@@ -4,4 +4,4 @@
 
 A selection of simple examples to get you up and running
 
-See then <a href="http://playcanvas.github.io/">running live</a>
+See them <a href="http://playcanvas.github.io/">running live</a>
