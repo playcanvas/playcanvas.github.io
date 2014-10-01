@@ -91,7 +91,7 @@
             entity = new pc.fw.Entity();
             application.context.systems.audiosource.addComponent(entity, {
                 assets: [
-                    gravel.resourceId
+                    gravel.id
                 ],
                 loop: true,
                 pitch: 1.7
@@ -102,13 +102,13 @@
                 castShadows: true
             });
             application.context.systems.animation.addComponent(entity, {
-                assets: [anim.resourceId],
+                assets: [anim.id],
                 speed: 0.8
             });
             application.context.root.addChild(entity);
 
             // start the audio
-            entity.audiosource.play("footsteps_gravel_01");
+            entity.audiosource.play("footsteps_gravel_01.mp3");
 
             var pos;
             var angle = 135;
