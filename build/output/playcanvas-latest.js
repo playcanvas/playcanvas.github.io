@@ -1,6 +1,6 @@
 /*
- PlayCanvas Engine v0.156.0-dev
- revision ada7d8b
+ PlayCanvas Engine v0.159.0-dev
+ revision 0cb74fb
 
  http://playcanvas.com
  Copyright 2011-2014 PlayCanvas Ltd. All rights reserved.
@@ -727,6 +727,15 @@ pc.math = {DEG_TO_RAD:Math.PI / 180, RAD_TO_DEG:180 / Math.PI, clamp:function(va
   return pc.math.lerp(a, b, pc.math.clamp(alpha, 0, 1))
 }, powerOfTwo:function(x) {
   return x !== 0 && !(x & x - 1)
+}, nextPowerOfTwo:function(val) {
+  val--;
+  val = val >> 1 | val;
+  val = val >> 2 | val;
+  val = val >> 4 | val;
+  val = val >> 8 | val;
+  val = val >> 16 | val;
+  val++;
+  return val
 }, random:function(min, max) {
   var diff = max - min;
   return Math.random() * diff + min
@@ -2018,6 +2027,13 @@ pc.extend(pc, function() {
     rz = rhs.z;
     rw = rhs.w;
     var cosHalfTheta = lw * rw + lx * rx + ly * ry + lz * rz;
+    if(cosHalfTheta < 0) {
+      rw = -rw;
+      rx = -rx;
+      ry = -ry;
+      rz = -rz;
+      cosHalfTheta = -cosHalfTheta
+    }
     if(Math.abs(cosHalfTheta) >= 1) {
       this.w = lw;
       this.x = lx;
@@ -2071,6 +2087,211 @@ pc.extend(pc, function() {
     }
   }()});
   return{Quat:Quat}
+}());
+pc.extend(pc, function() {
+  var CURVE_LINEAR = 0;
+  var CURVE_SMOOTHSTEP = 1;
+  var Curve = function(data) {
+    this.keys = [];
+    this.type = CURVE_SMOOTHSTEP;
+    if(data) {
+      for(var i = 0;i < data.length - 1;i += 2) {
+        this.keys.push([data[i], data[i + 1]])
+      }
+    }
+    this.sort()
+  };
+  Curve.prototype = {add:function(time, value) {
+    var keys = this.keys;
+    var len = keys.length;
+    var i = 0;
+    for(;i < len;i++) {
+      if(keys[i][0] > time) {
+        break
+      }
+    }
+    var key = [time, value];
+    this.keys.splice(i, 0, key);
+    return key
+  }, get:function(index) {
+    return this.keys[index]
+  }, sort:function() {
+    this.keys.sort(function(a, b) {
+      return a[0] - b[0]
+    })
+  }, value:function(time) {
+    var keys = this.keys;
+    var leftTime = 0;
+    var leftValue = keys.length ? keys[0][1] : 0;
+    var rightTime = 1;
+    var rightValue = 0;
+    for(var i = 0, len = keys.length;i < len;i++) {
+      if(keys[i][0] === time) {
+        return keys[i][1]
+      }
+      rightValue = keys[i][1];
+      if(time < keys[i][0]) {
+        rightTime = keys[i][0];
+        break
+      }
+      leftTime = keys[i][0];
+      leftValue = keys[i][1]
+    }
+    var div = rightTime - leftTime;
+    var interpolation = div === 0 ? 0 : (time - leftTime) / div;
+    if(this.type === CURVE_SMOOTHSTEP) {
+      interpolation *= interpolation * (3 - 2 * interpolation)
+    }
+    return pc.math.lerp(leftValue, rightValue, interpolation)
+  }, closest:function(time) {
+    var keys = this.keys;
+    var length = keys.length;
+    var min = 2;
+    var result = null;
+    for(var i = 0;i < length;i++) {
+      var diff = Math.abs(time - keys[i][0]);
+      if(min >= diff) {
+        min = diff;
+        result = keys[i]
+      }else {
+        break
+      }
+    }
+    return result
+  }, clone:function() {
+    var result = new pc.Curve;
+    result.keys = pc.extend(result.keys, this.keys);
+    result.type = this.type;
+    return result
+  }, quantize:function(precision, blur) {
+    precision = Math.max(precision, 2);
+    var values = new Float32Array(precision);
+    var step = 1 / (precision - 1);
+    for(var i = 0;i < precision;i++) {
+      var value = this.value(step * i);
+      values[i] = value
+    }
+    if(blur > 0) {
+      var values2 = new Float32Array(precision);
+      var numSamples = blur * 2 + 1;
+      for(var i = 0;i < precision;i++) {
+        values2[i] = 0;
+        for(var sample = -blur;sample <= blur;sample++) {
+          var sampleAddr = Math.max(Math.min(i + sample, precision - 1), 0);
+          values2[i] += values[sampleAddr]
+        }
+        values2[i] /= numSamples
+      }
+      values = values2
+    }
+    return values
+  }};
+  Object.defineProperty(Curve.prototype, "length", {get:function() {
+    return this.keys.length
+  }});
+  return{Curve:Curve, CURVE_LINEAR:CURVE_LINEAR, CURVE_SMOOTHSTEP:CURVE_SMOOTHSTEP}
+}());
+pc.extend(pc, function() {
+  var CurveSet = function() {
+    var i;
+    this.curves = [];
+    this._type = pc.CURVE_SMOOTHSTEP;
+    if(arguments.length > 1) {
+      for(i = 0;i < arguments.length;i++) {
+        this.curves.push(new pc.Curve(arguments[i]))
+      }
+    }else {
+      if(arguments.length === 0) {
+        this.curves.push(new pc.Curve)
+      }else {
+        var arg = arguments[0];
+        if(pc.type(arg) === "number") {
+          for(i = 0;i < arg;i++) {
+            this.curves.push(new pc.Curve)
+          }
+        }else {
+          for(i = 0;i < arg.length;i++) {
+            this.curves.push(new pc.Curve(arg[i]))
+          }
+        }
+      }
+    }
+  };
+  CurveSet.prototype = {get:function(index) {
+    return this.curves[index]
+  }, value:function(time, result) {
+    var length = this.curves.length;
+    result = result || [];
+    result.length = length;
+    for(var i = 0;i < length;i++) {
+      result[i] = this.curves[i].value(time)
+    }
+    return result
+  }, clone:function() {
+    var result = new pc.CurveSet;
+    this.curves.forEach(function(c) {
+      result.push(c.clone())
+    });
+    result._type = this._type;
+    return result
+  }, quantize:function(precision, blur) {
+    precision = Math.max(precision, 2);
+    var numCurves = this.curves.length;
+    var values = new Float32Array(precision * numCurves);
+    var step = 1 / (precision - 1);
+    var temp = [];
+    for(var i = 0;i < precision;i++) {
+      var value = this.value(step * i, temp);
+      if(numCurves == 1) {
+        values[i] = value[0]
+      }else {
+        for(var j = 0;j < numCurves;j++) {
+          values[i * numCurves + j] = value[j]
+        }
+      }
+    }
+    if(blur > 0) {
+      var values2 = new Float32Array(precision * numCurves);
+      var numSamples = blur * 2 + 1;
+      for(var i = 0;i < precision;i++) {
+        if(numCurves == 1) {
+          values2[i] = 0;
+          for(var sample = -blur;sample <= blur;sample++) {
+            var sampleAddr = Math.max(Math.min(i + sample, precision - 1), 0);
+            values2[i] += values[sampleAddr]
+          }
+          values2[i] /= numSamples
+        }else {
+          for(var chan = 0;chan < numCurves;chan++) {
+            values2[i * numCurves + chan] = 0
+          }
+          for(var sample = -blur;sample <= blur;sample++) {
+            var sampleAddr = Math.max(Math.min(i + sample, precision - 1), 0);
+            for(var chan = 0;chan < numCurves;chan++) {
+              values2[i * numCurves + chan] += values[sampleAddr * numCurves + chan]
+            }
+          }
+          for(var chan = 0;chan < numCurves;chan++) {
+            values2[i * numCurves + chan] /= numSamples
+          }
+        }
+      }
+      values = values2
+    }
+    return values
+  }};
+  Object.defineProperty(CurveSet.prototype, "length", {get:function() {
+    return this.curves.length
+  }});
+  Object.defineProperty(CurveSet.prototype, "type", {get:function() {
+    return this._type
+  }, set:function(value) {
+    this._type = value;
+    for(var i = 0;i < this.curves.length;i++) {
+      this.curves[i].type = value
+    }
+  }});
+  return{CurveSet:CurveSet}
 }());
 pc.shape = function() {
   var Shape = function Shape() {
@@ -3168,7 +3389,7 @@ pc.extend(pc.gfx, function() {
       autoMipmap = typeof options.autoMipmap !== "undefined" ? options.autoMipmap : autoMipmap
     }
     this.name = null;
-    this.autoMipmap = true;
+    this.autoMipmap = autoMipmap;
     var gl = this.device.gl;
     var ext;
     this._glTextureId = gl.createTexture();
@@ -3259,7 +3480,14 @@ pc.extend(pc.gfx, function() {
     this._height = height || 4;
     this._addressu = pc.gfx.ADDRESS_REPEAT;
     this._addressv = pc.gfx.ADDRESS_REPEAT;
-    this._minFilter = pc.gfx.FILTER_NEAREST_MIPMAP_LINEAR;
+    this.bind();
+    if(pc.math.powerOfTwo(this._width) && pc.math.powerOfTwo(this._height)) {
+      gl.texParameteri(this._glTarget, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+      this._minFilter = pc.gfx.FILTER_LINEAR_MIPMAP_LINEAR
+    }else {
+      gl.texParameteri(this._glTarget, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      this._minFilter = pc.gfx.FILTER_LINEAR
+    }
     this._magFilter = pc.gfx.FILTER_LINEAR;
     this._maxAnisotropy = 1;
     this._levels = cubemap ? [[null, null, null, null, null, null]] : [null];
@@ -3822,6 +4050,7 @@ pc.extend(pc.gfx, function() {
       this.extTextureHalfFloat = gl.getExtension("OES_texture_half_float");
       this.maxVertexTextures = gl.getParameter(gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS);
       this.supportsBoneTextures = this.extTextureFloat && this.maxVertexTextures > 0;
+      this.fragmentUniformsCount = gl.getParameter(gl.MAX_FRAGMENT_UNIFORM_VECTORS);
       this.extDepthTexture = null;
       this.extStandardDerivatives = gl.getExtension("OES_standard_derivatives");
       if(this.extStandardDerivatives) {
@@ -4049,6 +4278,9 @@ pc.extend(pc.gfx, function() {
       if(uniformVersion.globalId !== programVersion.globalId || uniformVersion.revision !== programVersion.revision) {
         uniformVersion.globalId = programVersion.globalId;
         uniformVersion.revision = programVersion.revision;
+        if(scopeId.value == null) {
+          console.log(scopeId.name + " is null")
+        }
         this.commitFunction[uniform.dataType](uniform.locationId, scopeId.value)
       }
     }
@@ -4236,6 +4468,166 @@ pc.extend(pc.gfx, function() {
     }
   }});
   return{UnsupportedBrowserError:UnsupportedBrowserError, ContextCreationError:ContextCreationError, Device:Device}
+}());
+pc.extend(pc.gfx, function() {
+  var shaderChunks = {};
+  var shaderCache = {};
+  shaderChunks.collectAttribs = function(vsCode) {
+    var attribs = {};
+    var attrs = 0;
+    var found = vsCode.indexOf("attribute");
+    while(found >= 0) {
+      var endOfLine = vsCode.indexOf(";", found);
+      var startOfAttribName = vsCode.lastIndexOf(" ", endOfLine);
+      var attribName = vsCode.substr(startOfAttribName + 1, endOfLine - (startOfAttribName + 1));
+      if(attribName == "aPosition") {
+        attribs.aPosition = pc.gfx.SEMANTIC_POSITION
+      }else {
+        attribs[attribName] = "ATTR" + attrs;
+        attrs++
+      }
+      found = vsCode.indexOf("attribute", found + 1)
+    }
+    return attribs
+  };
+  shaderChunks.createShader = function(device, vsName, psName) {
+    var vsCode = shaderChunks[vsName];
+    var psCode = pc.gfx.programlib.getSnippet(device, "fs_precision") + "\n" + shaderChunks[psName];
+    attribs = this.collectAttribs(vsCode);
+    return new pc.gfx.Shader(device, {attributes:attribs, vshader:vsCode, fshader:psCode})
+  };
+  shaderChunks.createShaderFromCode = function(device, vsCode, psCode, uName) {
+    var cached = shaderCache[uName];
+    if(cached != undefined) {
+      return cached
+    }
+    psCode = pc.gfx.programlib.getSnippet(device, "fs_precision") + "\n" + psCode;
+    attribs = this.collectAttribs(vsCode);
+    shaderCache[uName] = new pc.gfx.Shader(device, {attributes:attribs, vshader:vsCode, fshader:psCode});
+    return shaderCache[uName]
+  };
+  return{shaderChunks:shaderChunks}
+}());
+pc.extend(pc.gfx, function() {
+  var _postEffectQuadVB = null;
+  function drawQuadWithShader(device, target, shader) {
+    if(_postEffectQuadVB == null) {
+      var vertexFormat = new pc.gfx.VertexFormat(device, [{semantic:pc.gfx.SEMANTIC_POSITION, components:2, type:pc.gfx.ELEMENTTYPE_FLOAT32}]);
+      _postEffectQuadVB = new pc.gfx.VertexBuffer(device, vertexFormat, 4);
+      var iterator = new pc.gfx.VertexIterator(_postEffectQuadVB);
+      iterator.element[pc.gfx.SEMANTIC_POSITION].set(-1, -1);
+      iterator.next();
+      iterator.element[pc.gfx.SEMANTIC_POSITION].set(1, -1);
+      iterator.next();
+      iterator.element[pc.gfx.SEMANTIC_POSITION].set(-1, 1);
+      iterator.next();
+      iterator.element[pc.gfx.SEMANTIC_POSITION].set(1, 1);
+      iterator.end()
+    }
+    device.setRenderTarget(target);
+    device.updateBegin();
+    var w = target !== null ? target.width : device.width;
+    var h = target !== null ? target.height : device.height;
+    var x = 0;
+    var y = 0;
+    device.setViewport(x, y, w, h);
+    device.setScissor(x, y, w, h);
+    var oldDepthTest = device.getDepthTest();
+    var oldDepthWrite = device.getDepthWrite();
+    device.setDepthTest(false);
+    device.setDepthWrite(false);
+    device.setVertexBuffer(_postEffectQuadVB, 0);
+    device.setShader(shader);
+    device.draw({type:pc.gfx.PRIMITIVE_TRISTRIP, base:0, count:4, indexed:false});
+    device.setDepthTest(oldDepthTest);
+    device.setDepthWrite(oldDepthWrite);
+    device.updateEnd()
+  }
+  return{drawQuadWithShader:drawQuadWithShader}
+}());
+pc.gfx.shaderChunks.albedoColorPS = "uniform vec3 material_diffuse;\nvoid getAlbedo(inout psInternalData data) {\n    data.albedo = material_diffuse.rgb;\n}\n\n";
+pc.gfx.shaderChunks.albedoTexPS = "uniform sampler2D texture_diffuseMap;\nvoid getAlbedo(inout psInternalData data) {\n    vec4 tex = texture2DSRGB(texture_diffuseMap, $UV);\n    data.albedo = tex.rgb;\n}\n\n";
+pc.gfx.shaderChunks.albedoTexColorPS = "uniform sampler2D texture_diffuseMap;\nuniform vec3 material_diffuse;\nvoid getAlbedo(inout psInternalData data) {\n    vec4 tex = texture2DSRGB(texture_diffuseMap, $UV);\n    data.albedo = tex.rgb * material_diffuse;\n}\n\n";
+pc.gfx.shaderChunks.ambientPS = "\nvoid getAmbientConstant(inout psInternalData data) {\n    data.diffuseLight = light_globalAmbient;\n}\n";
+pc.gfx.shaderChunks.basePS = "\n// Compiler should remove unneeded stuff\nuniform vec3 view_position;\n\nuniform vec3 light_globalAmbient;\n\nvarying vec3 vPositionW;\nvarying vec3 vNormalW;\nvarying vec3 vTangentW;\nvarying vec3 vBinormalW;\nvarying vec2 vUv0;\nvarying vec2 vUv1;\nvarying vec4 vVertexColor;\nvarying vec3 vNormalV;\n\nstruct psInternalData {\n    vec3 albedo;\n    vec3 specularity;\n    float glossiness;\n    vec3 emission;\n    vec3 normalW;\n    mat3 TBN;\n    vec3 viewDirW;\n    vec3 reflDirW;\n    vec3 diffuseLight;\n    vec3 specularLight;\n    vec4 reflection;\n    float alpha;\n    vec3 lightDirNormW;\n    vec3 lightDirW;\n    float atten;\n    vec3 shadowCoord;\n    vec2 uvOffset;\n};\n\nvoid getViewDir(inout psInternalData data) {\n    data.viewDirW = normalize(view_position - vPositionW);\n}\n\nvoid getReflDir(inout psInternalData data) {\n    data.reflDirW = normalize(-reflect(data.viewDirW, data.normalW));\n}\n\nvoid addAmbientConstant(inout psInternalData data) {\n    data.diffuseLight += light_globalAmbient;\n}\n\nvoid getLightDirPoint(inout psInternalData data, vec3 lightPosW) {\n    data.lightDirW = vPositionW - lightPosW;\n    data.lightDirNormW = normalize(data.lightDirW);\n}\n\nfloat getFalloffLinear(inout psInternalData data, float lightRadius) {\n    float d = length(data.lightDirW);\n    return max(((lightRadius - d) / lightRadius), 0.0);\n}\n\nfloat getFalloffInvSquared(inout psInternalData data) {\n    float sqrDist = dot(data.lightDirW, data.lightDirW);\n    return 1.0 / sqrDist;\n}\n\nfloat getSpotEffect(inout psInternalData data, vec3 lightSpotDirW, float lightInnerConeAngle, float lightOuterConeAngle) {\n    float cosAngle = dot(data.lightDirNormW, lightSpotDirW);\n    return smoothstep(lightOuterConeAngle, lightInnerConeAngle, cosAngle);\n}\n\n";
+pc.gfx.shaderChunks.baseVS = "\n// Compiler should remove unneeded stuff\nattribute vec3 vertex_position;\nattribute vec3 vertex_normal;\nattribute vec4 vertex_tangent;\nattribute vec2 vertex_texCoord0;\nattribute vec2 vertex_texCoord1;\nattribute vec4 vertex_color;\n\nuniform mat4 matrix_viewProjection;\nuniform mat4 matrix_model;\nuniform mat3 matrix_normal;\nuniform vec3 view_position;\n\nvarying vec3 vPositionW;\nvarying vec3 vNormalW;\nvarying vec3 vTangentW;\nvarying vec3 vBinormalW;\nvarying vec2 vUv0;\nvarying vec2 vUv1;\nvarying vec4 vVertexColor;\nvarying vec3 vNormalV;\n\nstruct vsInternalData {\n    vec3 positionW;\n    mat4 modelMatrix;\n    mat3 normalMatrix;\n};\n\n";
+pc.gfx.shaderChunks.combineDiffusePS = "vec3 combineColor(inout psInternalData data) {\n    return data.albedo * data.diffuseLight;\n}\n\n";
+pc.gfx.shaderChunks.combineDiffuseSpecularPS = "vec3 combineColor(inout psInternalData data) {\n    return mix(data.albedo * data.diffuseLight, data.specularLight + data.reflection.rgb * data.reflection.a, data.specularity);\n}\n\n";
+pc.gfx.shaderChunks.combineDiffuseSpecularNoReflPS = "vec3 combineColor(inout psInternalData data) {\n    return data.albedo * data.diffuseLight + data.specularLight * data.specularity;\n}\n\n";
+pc.gfx.shaderChunks.combineDiffuseSpecularNoReflSeparateAmbientPS = "uniform vec3 material_ambient;\nvec3 combineColor(inout psInternalData data) {\n    return (data.diffuseLight - light_globalAmbient) * data.albedo + data.specularLight * data.specularity + material_ambient * light_globalAmbient;\n}\n\n";
+pc.gfx.shaderChunks.combineDiffuseSpecularOldPS = "vec3 combineColor(inout psInternalData data) {\n    return mix(data.albedo * data.diffuseLight + data.specularLight * data.specularity, data.reflection.rgb, data.reflection.a);\n}\n\n";
+pc.gfx.shaderChunks.emissionColorPS = "uniform vec3 material_emissive;\nvec3 getEmission(inout psInternalData data) {\n    return material_emissive;\n}\n\n";
+pc.gfx.shaderChunks.emissionTexPS = "uniform sampler2D texture_emissiveMap;\nvec3 getEmission(inout psInternalData data) {\n    vec4 tex = texture2D(texture_emissiveMap, $UV);\n    return tex.rgb;\n}\n\n";
+pc.gfx.shaderChunks.emissionTexColorPS = "uniform sampler2D texture_emissiveMap;\nuniform vec3 material_emissive;\nvec3 getEmission(inout psInternalData data) {\n    vec4 tex = texture2D(texture_emissiveMap, $UV);\n    return tex.rgb * material_emissive;\n}\n\n";
+pc.gfx.shaderChunks.endPS = "   gl_FragColor.rgb = combineColor(data);\n   gl_FragColor.rgb += getEmission(data);\n   gl_FragColor.rgb = gammaCorrectOutput(gl_FragColor.rgb);\n   gl_FragColor.a = data.alpha;\n";
+pc.gfx.shaderChunks.fresnelComplexPS = "// More physically-based Fresnel\nuniform float material_fresnelFactor; // should be IOR\nvoid getFresnel(inout psInternalData data) {\n    float cosThetaI = max(dot(data.normalW, data.viewDirW), 0.0);\n    float n = material_fresnelFactor;\n\n    float cosThetaT = sqrt(max(0.0, 1.0 - (1.0 - cosThetaI * cosThetaI) / (n * n)));\n    float nCosThetaT = n * cosThetaT;\n    float nCosThetaI = n * cosThetaI;\n\n    float rS = abs((cosThetaI - nCosThetaT) / (cosThetaI + nCosThetaT));\n    float rP = abs((cosThetaT - nCosThetaI) / (cosThetaT + nCosThetaI));\n    rS *= rS;\n    rP *= rP;\n\n    data.specularity *= (rS + rP) / 2.0;\n}\n\n";
+pc.gfx.shaderChunks.fresnelSchlickPS = "// Schlick's approximation\nuniform float material_fresnelFactor; // unused\nvoid getFresnel(inout psInternalData data) {\n    float fresnel = 1.0 - max(dot(data.normalW, data.viewDirW), 0.0);\n    data.specularity = data.specularity + (1.0 - data.specularity) * fresnel * fresnel * fresnel * fresnel * fresnel;\n}\n\n";
+pc.gfx.shaderChunks.fresnelSimplePS = "// Easily tweakable but not very correct Fresnel\nuniform float material_fresnelFactor;\nvoid getFresnel(inout psInternalData data) {\n    float fresnel = 1.0 - max(dot(data.normalW, data.viewDirW), 0.0);\n    data.specularity *= pow(fresnel, material_fresnelFactor);\n}\n\n";
+pc.gfx.shaderChunks.fullscreenQuadVS = "attribute vec2 aPosition;\n\nvarying vec2 vUv0;\n\nvoid main(void)\n{\n    gl_Position = vec4(aPosition, 0.5, 1.0);\n    vUv0 = aPosition.xy*0.5+0.5;\n}\n\n";
+pc.gfx.shaderChunks.gamma1_0PS = "vec4 texture2DSRGB(sampler2D tex, vec2 uv) {\n    return texture2D(tex, uv);\n}\n\nvec4 textureCubeSRGB(samplerCube tex, vec3 uvw) {\n    return textureCube(tex, uvw);\n}\n\nvec3 gammaCorrectOutput(vec3 color) {\n    return color;\n}\n\n";
+pc.gfx.shaderChunks.gamma2_2PS = "vec4 texture2DSRGB(sampler2D tex, vec2 uv) {\n    vec4 rgba = texture2D(tex, uv);\n    rgba.rgb = pow(rgba.rgb, vec3(2.2));\n    return rgba;\n}\n\nvec4 textureCubeSRGB(samplerCube tex, vec3 uvw) {\n    vec4 rgba = textureCube(tex, uvw);\n    rgba.rgb = pow(rgba.rgb, vec3(2.2));\n    return rgba;\n}\n\nvec3 gammaCorrectOutput(vec3 color) {\n    return pow(color, vec3(0.45));\n}\n\n";
+pc.gfx.shaderChunks.glossinessFloatPS = "uniform float material_shininess;\nvoid getGlossiness(inout psInternalData data) {\n    // Hack: On Mac OS X, calling pow with zero for the exponent generates hideous artifacts so bias up a little\n    data.glossiness = material_shininess + 0.0001;\n}\n\n";
+pc.gfx.shaderChunks.glossinessTexPS = "uniform sampler2D texture_glossMap;\nvoid getGlossiness(inout psInternalData data) {\n    // Hack: On Mac OS X, calling pow with zero for the exponent generates hideous artifacts so bias up a little\n    vec4 tex = texture2D(texture_glossMap, $UV);\n    data.glossiness = tex.r * 100.0 + 0.0001;\n}\n\n";
+pc.gfx.shaderChunks.lightDiffuseLambertPS = "float getLightDiffuse(inout psInternalData data) {\n    return max(dot(data.normalW, -data.lightDirNormW), 0.0);\n}\n\n";
+pc.gfx.shaderChunks.lightmapSinglePS = "uniform sampler2D texture_lightMap;\nvoid addLightmap(inout psInternalData data) {\n    data.diffuseLight += texture2D(texture_lightMap, vUv1).rgb;\n}\n\n";
+pc.gfx.shaderChunks.lightSpecularBlinnPS = "// Energy-conserving (hopefully) Blinn-Phong\nfloat getLightSpecular(inout psInternalData data) {\n    vec3 h = normalize( -data.lightDirNormW - -data.viewDirW );\n    float nh = max( dot( h, data.normalW ), 0.0 );\n    return pow( nh, data.glossiness ) * (data.glossiness + 2.0)/8.0;\n}\n\n";
+pc.gfx.shaderChunks.lightSpecularPhongPS = "float getLightSpecular(inout psInternalData data) {\n    return pow(max(dot(data.reflDirW, -data.lightDirNormW), 0.0), data.glossiness);\n}\n\n";
+pc.gfx.shaderChunks.normalVS = "vec3 getNormal(inout vsInternalData data) {\n    data.normalMatrix = matrix_normal;\n    return normalize(data.normalMatrix * vertex_normal);\n}\n\n";
+pc.gfx.shaderChunks.normalMapPS = "uniform sampler2D texture_normalMap;\nuniform float material_bumpMapFactor;\nvoid getNormal(inout psInternalData data) {\n    vec3 normalMap = texture2D(texture_normalMap, $UV).xyz * 2.0 - 1.0;\n    normalMap = normalize(mix(vec3(0.0, 0.0, 1.0), normalMap, material_bumpMapFactor));\n\n    data.normalW = data.TBN * normalMap;\n}\n\n";
+pc.gfx.shaderChunks.normalSkinnedVS = "vec3 getNormal(inout vsInternalData data) {\n    data.normalMatrix = mat3(data.modelMatrix[0].xyz, data.modelMatrix[1].xyz, data.modelMatrix[2].xyz);\n    return normalize(data.normalMatrix * vertex_normal);\n}\n\n";
+pc.gfx.shaderChunks.normalVertexPS = "void getNormal(inout psInternalData data) {\n    data.normalW = normalize(vNormalW);\n}\n\n";
+pc.gfx.shaderChunks.opacityFloatPS = "uniform float material_opacity;\nvoid getOpacity(inout psInternalData data) {\n    data.alpha = material_opacity;\n}\n\n";
+pc.gfx.shaderChunks.opacityTexPS = "uniform sampler2D texture_opacityMap;\nvoid getOpacity(inout psInternalData data) {\n    vec4 tex = texture2D(texture_opacityMap, $UV);\n    data.alpha = tex.r;\n}\n\n";
+pc.gfx.shaderChunks.opacityTexFloatPS = "uniform sampler2D texture_opacityMap;\nuniform float material_opacity;\nvoid getOpacity(inout psInternalData data) {\n    vec4 tex = texture2D(texture_opacityMap, $UV);\n    data.alpha = tex.r * material_opacity;\n}\n\n";
+pc.gfx.shaderChunks.parallaxPS = "uniform sampler2D texture_heightMap;\nvoid getParallax(inout psInternalData data) {\n    const float parallaxScale = 0.025;\n    const float parallaxBias = 0.01;\n\n    float height = texture2D(texture_heightMap, $UV).r * parallaxScale - parallaxBias;\n    vec3 viewDirT = data.viewDirW * data.TBN;\n\n    data.uvOffset = min(height * viewDirT.xy, vec2(parallaxBias));\n}\n\n";
+pc.gfx.shaderChunks.particlePS = "// FRAGMENT SHADER INPUTS: VARYINGS\nvarying vec2 vUv0;\nvarying float vAge;\nvarying vec4 vColor;\n\n// FRAGMENT SHADER INPUTS: UNIFORMS\nuniform sampler2D texture_colorMap;\nuniform sampler2D texture_opacityMap;\nuniform sampler2D texture_rampMap;\n\nvoid main(void)\n{\n    vec4 colorMult = texture2D(texture_rampMap, vec2(vAge, 0.5)) * vColor;\n    vec3 rgb = texture2D(texture_colorMap, vUv0).rgb;\n    float a = texture2D(texture_opacityMap, vUv0).r;\n    gl_FragColor = vec4(rgb, a) * colorMult;\n}\n\n";
+pc.gfx.shaderChunks.particleVS = "\n// VERTEX SHADER BODY\nvoid main(void)\n{\n    vec2 uv = particle_uvLifeTimeFrameStart.xy;\n    float lifeTime = particle_uvLifeTimeFrameStart.z;\n    float frameStart = particle_uvLifeTimeFrameStart.w;\n    vec3 position = particle_positionStartTime.xyz;\n    float startTime = particle_positionStartTime.w;\n\n    vec3 velocity = (matrix_model * vec4(particle_velocityStartSize.xyz, 0.0)).xyz + particle_worldVelocity;\n    float startSize = particle_velocityStartSize.w;\n\n    vec3 acceleration = (matrix_model * vec4(particle_accelerationEndSize.xyz, 0.0)).xyz + particle_worldAcceleration;\n    float endSize = particle_accelerationEndSize.w;\n\n    float spinStart = particle_spinStartSpinSpeed.x;\n    float spinSpeed = particle_spinStartSpinSpeed.y;\n\n    float localTime = mod((particle_time - particle_timeOffset - startTime), particle_timeRange);\n    float percentLife = localTime / lifeTime;\n\n    float frame = mod(floor(localTime / particle_frameDuration + frameStart), particle_numFrames);\n    float uOffset = frame / particle_numFrames;\n    float u = uOffset + (uv.x + 0.5) * (1.0 / particle_numFrames);\n\n    vUv0 = vec2(u, uv.y + 0.5);\n    vColor = particle_colorMult;\n\n\n";
+pc.gfx.shaderChunks.particle2PS = "varying vec4 texCoordsAlphaLife;\n\nuniform sampler2D colorMap, normalMap, uDepthMap;\nuniform sampler2D internalTex3;\nuniform float graphSampleSize;\nuniform float graphNumSamples;\nuniform vec4 screenSize;\nuniform float camera_far;\nuniform float softening;\nuniform float colorMult;\n\nvec4 tex1Dlod_lerp(sampler2D tex, vec2 tc) {\n    return mix( texture2D(tex,tc), texture2D(tex,tc + graphSampleSize), fract(tc.x*graphNumSamples) );\n}\n\nfloat saturate(float x) {\n    return clamp(x, 0.0, 1.0);\n}\n\nfloat unpackFloat(vec4 rgbaDepth) {\n    const vec4 bitShift = vec4(1.0 / (256.0 * 256.0 * 256.0), 1.0 / (256.0 * 256.0), 1.0 / 256.0, 1.0);\n    float depth = dot(rgbaDepth, bitShift);\n    return depth;\n}\n\nvoid main(void) {\n    vec4 tex         = texture2DSRGB(colorMap, texCoordsAlphaLife.xy);\n    vec4 ramp     = tex1Dlod_lerp(internalTex3, vec2(texCoordsAlphaLife.w, 0.0));\n    ramp *= colorMult;\n\n    ramp.a += texCoordsAlphaLife.z;\n\n    vec3 rgb =     tex.rgb * ramp.rgb;\n    float a =         tex.a * ramp.a;\n\n";
+pc.gfx.shaderChunks.particle2VS = "attribute vec4 particle_vertexData; // XYZ = particle position, W = particle ID + random factor\n\nuniform mat4 matrix_viewProjection;\nuniform mat4 matrix_model;\nuniform mat3 matrix_normal;\nuniform mat4 matrix_viewInverse;\nuniform mat4 matrix_view;\n\nuniform float numParticles, numParticlesPot;\nuniform float graphSampleSize;\nuniform float graphNumSamples;\nuniform float stretch;\nuniform vec3 wrapBounds;\nuniform vec3 emitterScale;\nuniform float rate, rateDiv, lifetime, deltaRandomnessStatic, totalTime, totalTimePrev, scaleDivMult, alphaDivMult, oneShotStartTime, seed, lifetimeDiv;\nuniform sampler2D particleTexOUT, particleTexIN;\nuniform sampler2D internalTex0;\nuniform sampler2D internalTex1;\nuniform sampler2D internalTex2;\n\nvarying vec4 texCoordsAlphaLife;\n\nvec3 unpack3NFloats(float src) {\n    float r = fract(src);\n    float g = fract(src * 256.0);\n    float b = fract(src * 65536.0);\n    return vec3(r, g, b);\n}\n\nfloat saturate(float x) {\n    return clamp(x, 0.0, 1.0);\n}\n\nvec4 tex1Dlod_lerp(sampler2D tex, vec2 tc) {\n    return mix( texture2D(tex,tc), texture2D(tex,tc + graphSampleSize), fract(tc.x*graphNumSamples) );\n}\n\nvec4 tex1Dlod_lerp(sampler2D tex, vec2 tc, out vec3 w) {\n    vec4 a = texture2D(tex,tc);\n    vec4 b = texture2D(tex,tc + graphSampleSize);\n    float c = fract(tc.x*graphNumSamples);\n\n    vec3 unpackedA = unpack3NFloats(a.w);\n    vec3 unpackedB = unpack3NFloats(b.w);\n    w = mix(unpackedA, unpackedB, c);\n\n    return mix(a, b, c);\n}\n\n\nvec2 rotate(vec2 quadXY, float pRotation, out mat2 rotMatrix) {\n    float c = cos(pRotation);\n    float s = sin(pRotation);\n\n    mat2 m = mat2(c, -s, s, c);\n    rotMatrix = m;\n\n    return m * quadXY;\n}\n\nvec3 billboard(vec3 InstanceCoords, vec2 quadXY, out mat3 localMat) {\n    vec3 viewUp = matrix_viewInverse[1].xyz;\n    vec3 posCam = matrix_viewInverse[3].xyz;\n\n    mat3 billMat;\n    billMat[2] = normalize(InstanceCoords - posCam);\n    billMat[0] = normalize(cross(viewUp, billMat[2]));\n    billMat[1] = -viewUp;\n    vec3 pos = billMat * vec3(quadXY, 0);\n\n    localMat = billMat;\n\n    return pos;\n}\n\nvoid main(void) {\n    vec2 quadXY = particle_vertexData.xy;\n    float id = floor(particle_vertexData.w);\n\n    float rndFactor = fract(sin(id + 1.0 + seed));\n    vec3 rndFactor3 = vec3(rndFactor, fract(rndFactor*10.0), fract(rndFactor*100.0));\n\n    vec4 particleTex = texture2D(particleTexOUT, vec2(id / numParticlesPot, 0.0));\n    vec3 pos = particleTex.xyz;\n    float angle = particleTex.w;\n\n    float particleRate = rate + rateDiv * rndFactor;\n    float particleLifetime = lifetime + lifetimeDiv * rndFactor;\n    float startSpawnTime = -particleRate * id;\n    float accumLife = max(totalTime + startSpawnTime + particleRate, 0.0);\n    float life = mod(accumLife, particleLifetime + particleRate) - particleRate;\n    if (life <= 0.0) quadXY = vec2(0,0);\n    float nlife = clamp(life / particleLifetime, 0.0, 1.0);\n\n    float accumLifeOneShotStart = max(oneShotStartTime + startSpawnTime + particleRate, 0.0);\n    bool endOfSim = floor(accumLife / (particleLifetime + particleRate)) != floor(accumLifeOneShotStart / (particleLifetime + particleRate));\n    if (endOfSim) quadXY = vec2(0,0);\n\n    vec3 paramDiv;\n    vec4 params =                 tex1Dlod_lerp(internalTex2, vec2(nlife, 0), paramDiv);\n    float scale = params.y;\n    float scaleDiv = paramDiv.x;\n    float alphaDiv = paramDiv.z;\n\n    scale += (scaleDiv * 2.0 - 1.0) * scaleDivMult * fract(rndFactor*10000.0);\n\n    texCoordsAlphaLife = vec4(quadXY*0.5+0.5,    (alphaDiv * 2.0 - 1.0) * alphaDivMult * fract(rndFactor*1000.0),    nlife);\n\n    vec3 particlePos = pos;\n    vec3 particlePosMoved = vec3(0.0);\n\n    mat2 rotMatrix;\n    mat3 localMat;\n\n\n";
+pc.gfx.shaderChunks.particle2_billboardVS = "\n    quadXY = rotate(quadXY, angle, rotMatrix);\n    vec3 localPos = billboard(particlePos, quadXY, localMat);\n\n";
+pc.gfx.shaderChunks.particle2_cpuVS = "attribute vec4 particle_vertexData;     // XYZ = world pos, W = life\nattribute vec4 particle_vertexData2;     // X = angle, Y = scale, Z = alpha, W = unused\nattribute vec4 particle_vertexData3;     // XYZ = particle local pos\n\nuniform mat4 matrix_viewProjection;\nuniform mat4 matrix_model;\nuniform mat3 matrix_normal;\nuniform mat4 matrix_viewInverse;\n\nuniform float numParticles;\nuniform float lifetime;\n//uniform float graphSampleSize;\n//uniform float graphNumSamples;\nuniform vec3 wrapBounds, emitterScale;\nuniform sampler2D texLifeAndSourcePosOUT;\nuniform sampler2D internalTex0;\nuniform sampler2D internalTex1;\nuniform sampler2D internalTex2;\n\nvarying vec4 texCoordsAlphaLife;\n\n\nvec2 rotate(vec2 quadXY, float pRotation, out mat2 rotMatrix)\n{\n    float c = cos(pRotation);\n    float s = sin(pRotation);\n    //vec4 rotationMatrix = vec4(c, -s, s, c);\n\n    mat2 m = mat2(c, -s, s, c);\n    rotMatrix = m;\n\n    return m * quadXY;\n}\n\nvec3 billboard(vec3 InstanceCoords, vec2 quadXY, out mat3 localMat)\n{\n    vec3 viewUp = matrix_viewInverse[1].xyz;\n    vec3 posCam = matrix_viewInverse[3].xyz;\n\n    mat3 billMat;\n    billMat[2] = normalize(InstanceCoords - posCam);\n    billMat[0] = normalize(cross(viewUp, billMat[2]));\n    billMat[1] = -viewUp;\n    vec3 pos = billMat * vec3(quadXY, 0);\n\n    localMat = billMat;\n\n    return pos;\n}\n\n\nvoid main(void)\n{\n    vec3 particlePos = particle_vertexData.xyz;\n    vec3 vertPos = particle_vertexData3.xyz;\n\n    //float vfrac = fract(particle_vertexData2.w);\n    vec2 TC = vertPos.xy*0.5+0.5;//vec2(particle_vertexData2.w - vfrac, vfrac*10.0);\n\n    texCoordsAlphaLife = vec4(TC, particle_vertexData2.z, particle_vertexData.w);\n\n    vec2 quadXY = TC*2.0 - 1.0;\n\n    mat2 rotMatrix;\n    mat3 localMat;\n\n    quadXY = rotate(quadXY, particle_vertexData2.x, rotMatrix);\n    //quadXY *= particle_vertexData2.y;\n\n    vec3 localPos = billboard(particlePos, quadXY, localMat);\n    vec3 particlePosMoved = vec3(0.0);\n\n\n\n";
+pc.gfx.shaderChunks.particle2_cpu_endVS = "\n    localPos *= particle_vertexData2.y * emitterScale;\n    localPos += particlePos;\n\n    gl_Position = matrix_viewProjection * vec4(localPos, 1.0);\n}\n\n";
+pc.gfx.shaderChunks.particle2_cpu_meshVS = "\n    worldPos -= localPos;\n    localPos = particle_vertexData3.xyz;\n    localPos.xy = rotate(localPos.xy, particle_vertexData2.x, rotMatrix);\n    localPos.yz = rotate(localPos.yz, particle_vertexData2.x, rotMatrix);\n    worldPos += localPos;\n\n";
+pc.gfx.shaderChunks.particle2_endPS = "\n    if (a < 0.01) discard;\n    gl_FragColor = vec4(rgb*a, a);\n}\n\n";
+pc.gfx.shaderChunks.particle2_endVS = "\n    localPos *= scale * emitterScale;\n    localPos += particlePos;\n\n    gl_Position = matrix_viewProjection * vec4(localPos.xyz, 1.0);\n}\n";
+pc.gfx.shaderChunks.particle2_end_nopremulPS = "\n    if (a < 0.01) discard;\n    gl_FragColor = vec4(rgb, a);\n}\n\n";
+pc.gfx.shaderChunks.particle2_end_srgbPS = "\n    if (a < 0.01) discard;\n    gl_FragColor = vec4(pow(rgb,vec3(0.45))*a, a);\n}\n\n";
+pc.gfx.shaderChunks.particle2_end_srgb_nopremulPS = "\n    if (a < 0.01) discard;\n    gl_FragColor = vec4(pow(rgb,vec3(0.45)), a);\n}\n\n";
+pc.gfx.shaderChunks.particle2_halflambertPS = "\n    vec3 negNormal = normal*0.5+0.5;\n    vec3 posNormal = -normal*0.5+0.5;\n    negNormal *= negNormal;\n    posNormal *= posNormal;\n\n\n";
+pc.gfx.shaderChunks.particle2_lambertPS = "\n    vec3 negNormal = max(normal, vec3(0.0));\n    vec3 posNormal = max(-normal, vec3(0.0));\n\n\n";
+pc.gfx.shaderChunks.particle2_lightingPS = "\n    vec3 light = negNormal.x*lightCube[0] + posNormal.x*lightCube[1] +\n                        negNormal.y*lightCube[2] + posNormal.y*lightCube[3] +\n                        negNormal.z*lightCube[4] + posNormal.z*lightCube[5];\n\n\n    rgb *= light;\n\n\n";
+pc.gfx.shaderChunks.particle2_meshVS = "\n    vec3 localPos = particle_vertexData.xyz;\n    localPos.xy = rotate(localPos.xy, angle, rotMatrix);\n    localPos.yz = rotate(localPos.yz, angle, rotMatrix);\n\n    billboard(particlePos, quadXY, localMat);\n\n\n";
+pc.gfx.shaderChunks.particle2_normalVS = "\n    Normal = normalize(localPos - localMat[2]);\n\n\n";
+pc.gfx.shaderChunks.particle2_normalMapPS = "\n    vec3 normalMap         = normalize( texture2D(normalMap, texCoordsAlphaLife.xy).xyz * 2.0 - 1.0 );\n    vec3 normal = ParticleMat * normalMap;\n\n\n\n\n";
+pc.gfx.shaderChunks.particle2_softPS = "\n    vec2 screenTC = gl_FragCoord.xy / screenSize.xy;\n    float depth = unpackFloat( texture2D(uDepthMap, screenTC) ) * camera_far;\n    float particleDepth = gl_FragCoord.z / gl_FragCoord.w;\n    float depthDiff = saturate(abs(particleDepth - depth) * softening);\n    a *= depthDiff;\n\n";
+pc.gfx.shaderChunks.particle2_stretchVS = "    float accumLifePrev = max(totalTimePrev + startSpawnTime + particleRate, 0.0);\n    bool respawn = floor(accumLife / (particleLifetime + particleRate)) != floor(accumLifePrev / (particleLifetime + particleRate));\n\n    if (!respawn) {\n        particleTex = texture2D(particleTexIN, vec2(id / numParticlesPot, 0.0));\n        vec3 posPrev = particleTex.xyz;\n        vec3 moveDir = (pos - posPrev) * stretch;\n        posPrev = pos - moveDir;\n        posPrev += particlePosMoved;\n\n        float interpolation =  quadXY.y * 0.5 + 0.5;\n        particlePos = mix(particlePos, posPrev, interpolation);\n    }\n\n";
+pc.gfx.shaderChunks.particle2_TBNVS = "\n    mat3 rot3 = mat3(rotMatrix[0][0], rotMatrix[0][1], 0.0,        rotMatrix[1][0], rotMatrix[1][1], 0.0,        0.0, 0.0, 1.0);\n    localMat[2] *= -1.0;\n    ParticleMat = localMat * rot3;\n\n\n\n\n";
+pc.gfx.shaderChunks.particle2_wrapVS = "\n    vec3 origParticlePos = particlePos;\n    particlePos -= matrix_viewInverse[3].xyz;\n    particlePos = mod(particlePos, wrapBounds*2.0) - wrapBounds;\n    particlePos += matrix_viewInverse[3].xyz;\n    particlePosMoved = particlePos - origParticlePos;\n\n\n";
+pc.gfx.shaderChunks.particleEndVS = "\n    float size = mix(startSize, endSize, percentLife);\n    size = (percentLife < 0.0 || percentLife > 1.0) ? 0.0 : size;\n    float s = sin(spinStart + spinSpeed * localTime);\n    float c = cos(spinStart + spinSpeed * localTime);\n\n    vec4 rotatedPoint = vec4((uv.x * c + uv.y * s) * size, 0.0, (uv.x * s - uv.y * c) * size, 1.0);\n    vec3 center = velocity * localTime + acceleration * localTime * localTime + position;\n\n    vec4 q2 = particle_orientation + particle_orientation;\n    vec4 qx = particle_orientation.xxxw * q2.xyzx;\n    vec4 qy = particle_orientation.xyyw * q2.xyzy;\n    vec4 qz = particle_orientation.xxzw * q2.xxzz;\n\n    mat4 localMatrix =\n         mat4((1.0 - qy.y) - qz.z, qx.y + qz.w, qx.z - qy.w, 0,\n              qx.y - qz.w, (1.0 - qx.x) - qz.z, qy.z + qx.w, 0,\n              qx.z + qy.w, qy.z - qx.w, (1.0 - qx.x) - qy.y, 0,\n              center.x, center.y, center.z, 1);\n    rotatedPoint = localMatrix * rotatedPoint;\n    vAge = percentLife;\n    gl_Position = matrix_viewProjection * vec4(rotatedPoint.xyz + matrix_model[3].xyz, 1.0);\n}\n";
+pc.gfx.shaderChunks.particleEndBBRDVS = "\n    vec3 basisX = matrix_viewInverse[0].xyz;\n    vec3 basisZ = matrix_viewInverse[1].xyz;\n    float size = mix(startSize, endSize, percentLife);\n    size = (percentLife < 0.0 || percentLife > 1.0) ? 0.0 : size;\n    float s = sin(spinStart + spinSpeed * localTime);\n    float c = cos(spinStart + spinSpeed * localTime);\n    vec2 rotatedPoint = vec2(uv.x * c + uv.y * s,\n                             -uv.x * s + uv.y * c);\n    vec3 localPosition = vec3(basisX * rotatedPoint.x +\n                              basisZ * rotatedPoint.y) * size +\n                              velocity * localTime +\n                              acceleration * localTime * localTime +\n                              position;\n    vAge = percentLife;\n    gl_Position = matrix_viewProjection * vec4(localPosition + matrix_model[3].xyz, 1.0);\n}\n";
+pc.gfx.shaderChunks.particleStartVS = "// VERTEX SHADER INPUTS: ATTRIBUTES\nattribute vec4 particle_uvLifeTimeFrameStart; // uv, lifeTime, frameStart\nattribute vec4 particle_positionStartTime;    // position.xyz, startTime\nattribute vec4 particle_velocityStartSize;    // velocity.xyz, startSize\nattribute vec4 particle_accelerationEndSize;  // acceleration.xyz, endSize\nattribute vec4 particle_spinStartSpinSpeed;   // spinStart.x, spinSpeed.y\nattribute vec4 particle_colorMult;            // multiplies color and ramp textures\n\n// VERTEX SHADER INPUTS: UNIFORMS\nuniform mat4 matrix_viewProjection;\nuniform mat4 matrix_model;\nuniform mat4 matrix_viewInverse;\nuniform vec3 particle_worldVelocity;\nuniform vec3 particle_worldAcceleration;\nuniform float particle_timeRange;\nuniform float particle_time;\nuniform float particle_timeOffset;\nuniform float particle_frameDuration;\nuniform float particle_numFrames;\n\n// VERTEX SHADER OUTPUTS\nvarying vec2 vUv0;\nvarying float vAge;\nvarying vec4 vColor;\n\n";
+pc.gfx.shaderChunks.particleStartRotationVS = "\n// VERTEX SHADER INPUTS: ROTATION ATTRIBUTE (not used on billboards)\nattribute vec4 particle_orientation;\n\n";
+pc.gfx.shaderChunks.particleUpdaterEndPS = "\n    gl_FragColor = tex;\n}\n";
+pc.gfx.shaderChunks.particleUpdaterRespawnPS = "    float accumLifePrev = max(totalTimePrev + startSpawnTime + particleRate, 0.0);\n    bool respawn = floor(accumLife / (particleLifetime + particleRate)) != floor(accumLifePrev / (particleLifetime + particleRate));\n\n    float accumLifeOneShotStart = max(oneShotStartTime + startSpawnTime + particleRate, 0.0);\n    bool endOfSim = floor(accumLife / (particleLifetime + particleRate)) != floor(accumLifeOneShotStart / (particleLifetime + particleRate));\n\n    if (respawn || endOfSim || life <= 0.0) {\n        vec3 inBounds = fract( vec3(rndFactor, rndFactor*10.0, rndFactor*100.0) + frameRandom );\n        tex.xyz = emitterPos + spawnBounds * (inBounds - vec3(0.5));\n        tex.w = mix(startAngle, startAngle2, rndFactor);\n    }\n\n";
+pc.gfx.shaderChunks.particleUpdaterStartPS = "varying vec2 vUv0;\n\nuniform sampler2D particleTexIN;\nuniform vec3 emitterPos, frameRandom, localVelocityDivMult, velocityDivMult;\nuniform mat3 spawnBounds;\nuniform mat3 emitterMatrix;\nuniform float delta, rate, rateDiv, lifetime, lifetimeDiv, numParticles, totalTime, totalTimePrev, rotSpeedDivMult, oneShotStartTime, oneShotEndTime, seed;\nuniform float startAngle, startAngle2;\n\nuniform float graphSampleSize;\nuniform float graphNumSamples;\nuniform sampler2D internalTex0;\nuniform sampler2D internalTex1;\nuniform sampler2D internalTex2;\nuniform vec3 emitterScale;\n\nfloat saturate(float x) {\n    return clamp(x, 0.0, 1.0);\n}\n\nvec3 unpack3NFloats(float src) {\n    float r = fract(src);\n    float g = fract(src * 256.0);\n    float b = fract(src * 65536.0);\n    return vec3(r, g, b);\n}\n\nvec4 tex1Dlod_lerp(sampler2D tex, vec2 tc, out vec3 w) {\n    vec4 a = texture2D(tex, tc);\n    vec4 b = texture2D(tex, tc + graphSampleSize);\n    float c = fract(tc.x * graphNumSamples);\n\n    vec3 unpackedA = unpack3NFloats(a.w);\n    vec3 unpackedB = unpack3NFloats(b.w);\n    w = mix(unpackedA, unpackedB, c);\n\n    return mix(a, b, c);\n}\n\nvoid main(void)\n{\n    if (gl_FragCoord.x > numParticles) discard;\n\n    vec4 tex = texture2D(particleTexIN, vec2(vUv0.x, 0));\n\n    float rndFactor = fract(sin(gl_FragCoord.x + 0.5 + seed));\n    vec3 rndFactor3 = vec3(rndFactor, fract(rndFactor*10.0), fract(rndFactor*100.0));\n\n    float particleRate = rate + rateDiv * rndFactor;\n    float particleLifetime = lifetime + lifetimeDiv * rndFactor;\n    float startSpawnTime = -particleRate * (gl_FragCoord.x - 0.5);\n    float accumLife = max(totalTime + startSpawnTime + particleRate, 0.0);\n    float life = mod(accumLife, particleLifetime + particleRate) - particleRate;\n\n    if (life > 0.0) {\n        life = clamp(life / particleLifetime, 0.0, 1.0);\n        vec3 localVelocityDiv;\n        vec3 velocityDiv;\n        vec3 paramDiv;\n        vec3 localVelocity =    tex1Dlod_lerp(internalTex0, vec2(life, 0), localVelocityDiv).xyz;\n        vec3 velocity =         tex1Dlod_lerp(internalTex1, vec2(life, 0), velocityDiv).xyz;\n        vec4 params =           tex1Dlod_lerp(internalTex2, vec2(life, 0), paramDiv);\n\n        float rotSpeed = params.x;\n        float rotSpeedDiv = paramDiv.y;\n\n        localVelocity +=        (localVelocityDiv * vec3(2.0) - vec3(1.0)) * localVelocityDivMult * rndFactor3;\n        velocity +=             (velocityDiv * vec3(2.0) - vec3(1.0)) * velocityDivMult * rndFactor3.zxy;\n        rotSpeed +=             (rotSpeedDiv * 2.0 - 1.0) * rotSpeedDivMult * rndFactor3.y;\n\n        tex.xyz += (emitterMatrix * localVelocity.xyz + velocity.xyz * emitterScale) * delta;\n        tex.w += rotSpeed * delta;\n    }\n\n";
+pc.gfx.shaderChunks.reflectionCubePS = "uniform samplerCube texture_cubeMap;\nuniform float material_reflectionFactor;\nvoid addCubemapReflection(inout psInternalData data) {\n    data.reflection += vec4(textureCubeSRGB(texture_cubeMap, data.reflDirW).rgb, material_reflectionFactor);\n}\n\n";
+pc.gfx.shaderChunks.reflectionSpherePS = "uniform mat4 matrix_view;\nuniform sampler2D texture_sphereMap;\nuniform float material_reflectionFactor;\nvoid addSpheremapReflection(inout psInternalData data) {\n\n    vec3 reflDirV = (mat3(matrix_view) * data.reflDirW).xyz;\n\n    float m = 2.0 * sqrt( dot(reflDirV.xy, reflDirV.xy) + (reflDirV.z+1.0)*(reflDirV.z+1.0) );\n    vec2 sphereMapUv = reflDirV.xy / m + 0.5;\n\n    data.reflection += vec4(texture2DSRGB(texture_sphereMap, sphereMapUv).rgb, material_reflectionFactor);\n}\n\n\n";
+pc.gfx.shaderChunks.reflectionSphereLowPS = "uniform sampler2D texture_sphereMap;\nuniform float material_reflectionFactor;\nvoid addSpheremapReflection(inout psInternalData data) {\n\n    vec3 reflDirV = vNormalV;\n\n    vec2 sphereMapUv = reflDirV.xy * 0.5 + 0.5;\n    data.reflection += vec4(texture2DSRGB(texture_sphereMap, sphereMapUv).rgb, material_reflectionFactor);\n}\n\n";
+pc.gfx.shaderChunks.shadowPS = "float unpackFloat(vec4 rgbaDepth) {\n    const vec4 bitShift = vec4(1.0 / (256.0 * 256.0 * 256.0), 1.0 / (256.0 * 256.0), 1.0 / 256.0, 1.0);\n    return dot(rgbaDepth, bitShift);\n}\n\nvoid getShadowCoord(inout psInternalData data, mat4 shadowMatrix, vec3 shadowParams) {\n    vec4 projPos = shadowMatrix * vec4(vPositionW, 1.0);\n    projPos.xyz /= projPos.w;\n    projPos.z += shadowParams.z;\n    data.shadowCoord = projPos.xyz;\n}\n\nbool shadowContained(psInternalData data) {\n    bvec4 containedVec = bvec4(data.shadowCoord.x >= 0.0, data.shadowCoord.x <= 1.0, data.shadowCoord.y >= 0.0, data.shadowCoord.y <= 1.0);\n    return all(bvec2(all(containedVec), data.shadowCoord.z <= 1.0));\n}\n\nfloat getShadow(inout psInternalData data, sampler2D shadowMap, vec3 shadowParams) {\n    if (shadowContained(data)) {\n        float depth = unpackFloat(texture2D(shadowMap, data.shadowCoord.xy));\n        return (depth < data.shadowCoord.z) ? 0.0 : 1.0;\n    }\n    return 1.0;\n}\n\nfloat getShadowPCF3x3(inout psInternalData data, sampler2D shadowMap, vec3 shadowParams) {\n    if (shadowContained(data)) {\n        float shadowAccum = 0.0;\n        vec3 shadowCoord = data.shadowCoord;\n\n        float xoffset = 1.0 / shadowParams.x; // 1/shadow map width\n        float yoffset = 1.0 / shadowParams.y; // 1/shadow map height\n        float dx0 = -xoffset;\n        float dy0 = -yoffset;\n        float dx1 = xoffset;\n        float dy1 = yoffset;\n\n        mat3 shadowKernel;\n        mat3 depthKernel;\n\n        depthKernel[0][0] = unpackFloat(texture2D(shadowMap, shadowCoord.xy + vec2(dx0, dy0)));\n        depthKernel[0][1] = unpackFloat(texture2D(shadowMap, shadowCoord.xy + vec2(dx0, 0.0)));\n        depthKernel[0][2] = unpackFloat(texture2D(shadowMap, shadowCoord.xy + vec2(dx0, dy1)));\n        depthKernel[1][0] = unpackFloat(texture2D(shadowMap, shadowCoord.xy + vec2(0.0, dy0)));\n        depthKernel[1][1] = unpackFloat(texture2D(shadowMap, shadowCoord.xy));\n        depthKernel[1][2] = unpackFloat(texture2D(shadowMap, shadowCoord.xy + vec2(0.0, dy1)));\n        depthKernel[2][0] = unpackFloat(texture2D(shadowMap, shadowCoord.xy + vec2(dx1, dy0)));\n        depthKernel[2][1] = unpackFloat(texture2D(shadowMap, shadowCoord.xy + vec2(dx1, 0.0)));\n        depthKernel[2][2] = unpackFloat(texture2D(shadowMap, shadowCoord.xy + vec2(dx1, dy1)));\n\n        vec3 shadowZ = vec3(shadowCoord.z);\n        shadowKernel[0] = vec3(lessThan(depthKernel[0], shadowZ));\n        shadowKernel[0] *= vec3(0.25);\n        shadowKernel[1] = vec3(lessThan(depthKernel[1], shadowZ));\n        shadowKernel[1] *= vec3(0.25);\n        shadowKernel[2] = vec3(lessThan(depthKernel[2], shadowZ));\n        shadowKernel[2] *= vec3(0.25);\n\n        vec2 fractionalCoord = 1.0 - fract( shadowCoord.xy * shadowParams.xy );\n\n        shadowKernel[0] = mix(shadowKernel[1], shadowKernel[0], fractionalCoord.x);\n        shadowKernel[1] = mix(shadowKernel[2], shadowKernel[1], fractionalCoord.x);\n\n        vec4 shadowValues;\n        shadowValues.x = mix(shadowKernel[0][1], shadowKernel[0][0], fractionalCoord.y);\n        shadowValues.y = mix(shadowKernel[0][2], shadowKernel[0][1], fractionalCoord.y);\n        shadowValues.z = mix(shadowKernel[1][1], shadowKernel[1][0], fractionalCoord.y);\n        shadowValues.w = mix(shadowKernel[1][2], shadowKernel[1][1], fractionalCoord.y);\n\n        shadowAccum = 1.0 - dot( shadowValues, vec4( 1.0 ) );\n\n        return shadowAccum;\n    }\n    return 1.0;\n}\n\n";
+pc.gfx.shaderChunks.specularityColorPS = "uniform vec3 material_specular;\nvoid getSpecularity(inout psInternalData data) {\n    data.specularity = material_specular;\n}\n\n";
+pc.gfx.shaderChunks.specularityTexPS = "uniform sampler2D texture_specularMap;\nvoid getSpecularity(inout psInternalData data) {\n    vec4 tex = texture2D(texture_specularMap, $UV);\n    data.specularity = tex.rgb;\n}\n\n";
+pc.gfx.shaderChunks.specularityTexColorPS = "uniform sampler2D texture_specularMap;\nuniform vec3 material_specular;\nvoid getSpecularity(inout psInternalData data) {\n    vec4 tex = texture2D(texture_specularMap, $UV);\n    data.specularity = tex.rgb * material_specular;\n}\n\n";
+pc.gfx.shaderChunks.startPS = "\nvoid main(void) {\n    psInternalData data;\n\tdata.diffuseLight = vec3(0);\n\tdata.specularLight = vec3(0);\n    data.reflection = vec4(0);\n\n\n";
+pc.gfx.shaderChunks.startVS = "\nvoid main(void) {\n    vsInternalData data;\n\n    gl_Position = getPosition(data);\n";
+pc.gfx.shaderChunks.tangentBinormalVS = "\nvec3 getTangent(inout vsInternalData data) {\n    return normalize(data.normalMatrix * vertex_tangent.xyz);\n}\n\nvec3 getBinormal(inout vsInternalData data) {\n    return cross(vNormalW, vTangentW) * vertex_tangent.w;\n}\n\n";
+pc.gfx.shaderChunks.TBNPS = "void getTBN(inout psInternalData data) {\n    data.TBN = mat3(normalize(vTangentW), normalize(vBinormalW), normalize(vNormalW));\n}\n\n";
+pc.gfx.shaderChunks.transformVS = "mat4 getModelMatrix(inout vsInternalData data) {\n    return matrix_model;\n}\n\nvec4 getPosition(inout vsInternalData data) {\n    data.modelMatrix = getModelMatrix(data);\n    vec4 posW = data.modelMatrix * vec4(vertex_position, 1.0);\n    data.positionW = posW.xyz;\n    return matrix_viewProjection * posW;\n}\n\nvec3 getWorldPosition(inout vsInternalData data) {\n    return data.positionW;\n}\n\n";
+pc.gfx.shaderChunks.transformSkinnedVS = "mat4 getModelMatrix(inout vsInternalData data) {\n    return             vertex_boneWeights.x * getBoneMatrix(vertex_boneIndices.x) +\n                       vertex_boneWeights.y * getBoneMatrix(vertex_boneIndices.y) +\n                       vertex_boneWeights.z * getBoneMatrix(vertex_boneIndices.z) +\n                       vertex_boneWeights.w * getBoneMatrix(vertex_boneIndices.w);\n}\n\nvec4 getPosition(inout vsInternalData data) {\n    data.modelMatrix = getModelMatrix(data);\n    vec4 posW = data.modelMatrix * vec4(vertex_position, 1.0);\n    data.positionW = posW.xyz / posW.w;\n    return matrix_viewProjection * posW;\n}\n\nvec3 getWorldPosition(inout vsInternalData data) {\n    return data.positionW;\n}\n\n";
+pc.gfx.shaderChunks.uv0VS = "\nvec2 getUv0(inout vsInternalData data) {\n    return vertex_texCoord0;\n}\n";
+pc.gfx.shaderChunks.uv1VS = "\nvec2 getUv1(inout vsInternalData data) {\n    return vertex_texCoord1;\n}\n";
+pc.gfx.shaderChunks.viewNormalVS = "\nuniform mat4 matrix_view;\nvec3 getViewNormal(inout vsInternalData data) {\n    return mat3(matrix_view) * vNormalW;\n}\n";
+pc.extend(pc.gfx.shaderChunks, function() {
+  return{defaultGamma:pc.gfx.shaderChunks.gamma1_0PS, defaultSpecular:pc.gfx.shaderChunks.lightSpecularPhongPS, defaultFresnel:pc.gfx.shaderChunks.fresnelSimplePS}
 }());
 pc.gfx.programlib = {getSnippet:function(device, id) {
   var code = "";
@@ -4500,10 +4892,17 @@ pc.gfx.programlib.depth = {generateKey:function(device, options) {
   code = getSnippet(device, "fs_precision");
   code += "uniform float camera_near;\n";
   code += "uniform float camera_far;\n";
+  code += "vec4 packFloat(float depth)\n";
+  code += "{\n";
+  code += "    const vec4 bit_shift = vec4(256.0 * 256.0 * 256.0, 256.0 * 256.0, 256.0, 1.0);\n";
+  code += "    const vec4 bit_mask  = vec4(0.0, 1.0 / 256.0, 1.0 / 256.0, 1.0 / 256.0);\n";
+  code += "    vec4 res = mod(depth * bit_shift * vec4(255), vec4(256) ) / vec4(255);\n";
+  code += "    res -= res.xxyz * bit_mask;\n";
+  code += "    return res;\n";
+  code += "}\n\n";
   code += getSnippet(device, "common_main_begin");
-  code += "float depth = gl_FragCoord.z / gl_FragCoord.w;";
-  code += "float color = 1.0 - smoothstep(camera_near, camera_far, depth);";
-  code += "gl_FragColor = vec4(vec3(color), 1.0);";
+  code += "float depth = gl_FragCoord.z / gl_FragCoord.w;\n";
+  code += "gl_FragColor = packFloat(depth / camera_far);\n";
   code += getSnippet(device, "common_main_end");
   var fshader = code;
   return{attributes:attributes, vshader:vshader, fshader:fshader}
@@ -4588,565 +4987,235 @@ pc.gfx.programlib.particle = {generateKey:function(device, options) {
   }
   var getSnippet = pc.gfx.programlib.getSnippet;
   var code = "";
-  code += "attribute vec4 particle_uvLifeTimeFrameStart;\n";
-  code += "attribute vec4 particle_positionStartTime;\n";
-  code += "attribute vec4 particle_velocityStartSize;\n";
-  code += "attribute vec4 particle_accelerationEndSize;\n";
-  code += "attribute vec4 particle_spinStartSpinSpeed;\n";
-  code += "attribute vec4 particle_colorMult;\n";
+  var chunk = pc.gfx.shaderChunks;
+  code += chunk.particleStartVS;
   if(!options.billboard) {
-    code += "attribute vec4 particle_orientation;\n"
+    code += chunk.particleStartRotationVS
   }
-  code += "uniform mat4 matrix_viewProjection;\n";
-  code += "uniform mat4 matrix_model;\n";
-  code += "uniform mat4 matrix_viewInverse;\n";
-  code += "uniform vec3 particle_worldVelocity;\n";
-  code += "uniform vec3 particle_worldAcceleration;\n";
-  code += "uniform float particle_timeRange;\n";
-  code += "uniform float particle_time;\n";
-  code += "uniform float particle_timeOffset;\n";
-  code += "uniform float particle_frameDuration;\n";
-  code += "uniform float particle_numFrames;\n\n";
-  code += "varying vec2 vUv0;\n";
-  code += "varying float vAge;\n";
-  code += "varying vec4 vColor;\n\n";
-  code += "void main(void)\n";
-  code += "{\n";
-  code += "    vec2 uv = particle_uvLifeTimeFrameStart.xy;\n";
-  code += "    float lifeTime = particle_uvLifeTimeFrameStart.z;\n";
-  code += "    float frameStart = particle_uvLifeTimeFrameStart.w;\n";
-  code += "    vec3 position = particle_positionStartTime.xyz;\n";
-  code += "    float startTime = particle_positionStartTime.w;\n";
-  code += "    vec3 velocity = (matrix_model * vec4(particle_velocityStartSize.xyz, 0.0)).xyz + particle_worldVelocity;\n";
-  code += "    float startSize = particle_velocityStartSize.w;\n";
-  code += "    vec3 acceleration = (matrix_model * vec4(particle_accelerationEndSize.xyz, 0.0)).xyz + particle_worldAcceleration;\n";
-  code += "    float endSize = particle_accelerationEndSize.w;\n";
-  code += "    float spinStart = particle_spinStartSpinSpeed.x;\n";
-  code += "    float spinSpeed = particle_spinStartSpinSpeed.y;\n";
-  code += "    float localTime = mod((particle_time - particle_timeOffset - startTime), particle_timeRange);\n";
-  code += "    float percentLife = localTime / lifeTime;\n";
-  code += "    float frame = mod(floor(localTime / particle_frameDuration + frameStart), particle_numFrames);\n";
-  code += "    float uOffset = frame / particle_numFrames;\n";
-  code += "    float u = uOffset + (uv.x + 0.5) * (1.0 / particle_numFrames);\n";
-  code += "    vUv0 = vec2(u, uv.y + 0.5);\n";
-  code += "    vColor = particle_colorMult;\n";
-  if(options.billboard) {
-    code += "    vec3 basisX = matrix_viewInverse[0].xyz;\n";
-    code += "    vec3 basisZ = matrix_viewInverse[1].xyz;\n";
-    code += "    float size = mix(startSize, endSize, percentLife);\n";
-    code += "    size = (percentLife < 0.0 || percentLife > 1.0) ? 0.0 : size;\n";
-    code += "    float s = sin(spinStart + spinSpeed * localTime);\n";
-    code += "    float c = cos(spinStart + spinSpeed * localTime);\n";
-    code += "    vec2 rotatedPoint = vec2(uv.x * c + uv.y * s, \n";
-    code += "                             -uv.x * s + uv.y * c);\n";
-    code += "    vec3 localPosition = vec3(basisX * rotatedPoint.x +\n";
-    code += "                              basisZ * rotatedPoint.y) * size +\n";
-    code += "                              velocity * localTime +\n";
-    code += "                              acceleration * localTime * localTime + \n";
-    code += "                              position;\n";
-    code += "    vAge = percentLife;\n";
-    code += "    gl_Position = matrix_viewProjection * vec4(localPosition + matrix_model[3].xyz, 1.0);\n"
-  }else {
-    code += "    float size = mix(startSize, endSize, percentLife);\n";
-    code += "    size = (percentLife < 0.0 || percentLife > 1.0) ? 0.0 : size;\n";
-    code += "    float s = sin(spinStart + spinSpeed * localTime);\n";
-    code += "    float c = cos(spinStart + spinSpeed * localTime);\n";
-    code += "\n";
-    code += "    vec4 rotatedPoint = vec4((uv.x * c + uv.y * s) * size, 0.0, (uv.x * s - uv.y * c) * size, 1.0);\n";
-    code += "    vec3 center = velocity * localTime + acceleration * localTime * localTime + position;\n";
-    code += "\n";
-    code += "    vec4 q2 = particle_orientation + particle_orientation;\n";
-    code += "    vec4 qx = particle_orientation.xxxw * q2.xyzx;\n";
-    code += "    vec4 qy = particle_orientation.xyyw * q2.xyzy;\n";
-    code += "    vec4 qz = particle_orientation.xxzw * q2.xxzz;\n";
-    code += "\n";
-    code += "    mat4 localMatrix =\n";
-    code += "         mat4((1.0 - qy.y) - qz.z, qx.y + qz.w, qx.z - qy.w, 0,\n";
-    code += "              qx.y - qz.w, (1.0 - qx.x) - qz.z, qy.z + qx.w, 0,\n";
-    code += "              qx.z + qy.w, qy.z - qx.w, (1.0 - qx.x) - qy.y, 0,\n";
-    code += "              center.x, center.y, center.z, 1);\n";
-    code += "    rotatedPoint = localMatrix * rotatedPoint;\n";
-    code += "    vAge = percentLife;\n";
-    code += "    gl_Position = matrix_viewProjection * vec4(rotatedPoint.xyz + matrix_model[3].xyz, 1.0);\n"
-  }
-  code += "}";
+  code += chunk.particleVS;
+  code += options.billboard ? chunk.particleEndBBRDVS : chunk.particleEndVS;
   var vshader = code;
   code = getSnippet(device, "fs_precision");
-  code += "varying vec2 vUv0;\n";
-  code += "varying float vAge;\n";
-  code += "varying vec4 vColor;\n";
-  code += "uniform sampler2D texture_colorMap;\n";
-  code += "uniform sampler2D texture_opacityMap;\n";
-  code += "uniform sampler2D texture_rampMap;\n\n";
-  code += "void main(void)\n";
-  code += "{\n";
-  code += "    vec4 colorMult = texture2D(texture_rampMap, vec2(vAge, 0.5)) * vColor;\n";
-  code += "    vec3 rgb = texture2D(texture_colorMap, vUv0).rgb;\n";
-  code += "    float a = texture2D(texture_opacityMap, vUv0).r;\n";
-  code += "    gl_FragColor = vec4(rgb, a) * colorMult;\n";
-  code += "}";
+  code += chunk.particlePS;
   var fshader = code;
   return{attributes:attributes, vshader:vshader, fshader:fshader}
 }};
-pc.gfx.programlib.phong = {generateKey:function(device, options) {
-  var key = "phong";
-  if(options.skin) {
-    key += "_skin"
-  }
-  switch(options.fog) {
-    case "none":
-      key += "_fogn";
-      break;
-    case "linear":
-      key += "_fogl";
-      break;
-    case "exp2":
-      key += "_foge";
-      break
-  }
-  if(options.numDirs > 0) {
-    key += "_" + options.numDirs + "dir"
-  }
-  if(options.numPnts > 0) {
-    key += "_" + options.numPnts + "pnt"
-  }
-  if(options.numSpts > 0) {
-    key += "_" + options.numSpts + "spt"
-  }
-  if(options.numSDirs > 0) {
-    key += "_" + options.numSDirs + "sdir"
-  }
-  if(options.numSPnts > 0) {
-    key += "_" + options.numSPnts + "spnt"
-  }
-  if(options.numSSpts > 0) {
-    key += "_" + options.numSSpts + "sspt"
-  }
-  if(options.vertexColors) {
-    key += "_vcol"
-  }
-  if(options.diffuseMapTransform) {
-    key += "_difx"
-  }else {
-    if(options.diffuseMap) {
-      key += "_difm"
-    }else {
-      key += "_difc"
-    }
-  }
-  if(options.specularMapTransform) {
-    key += "_spex"
-  }else {
-    if(options.specularMap) {
-      key += "_spem"
-    }else {
-      key += "_spec"
-    }
-  }
-  if(options.glossMapTransform) {
-    key += "_glox"
-  }else {
-    if(options.glossMap) {
-      key += "_glom"
-    }
-  }
-  if(options.emissiveMapTransform) {
-    key += "_emix"
-  }else {
-    if(options.emissiveMap) {
-      key += "_emim"
-    }else {
-      key += "_emic"
-    }
-  }
-  if(options.opacityMapTransform) {
-    key += "_opax"
-  }else {
-    if(options.opacityMap) {
-      key += "_opam"
-    }
-  }
-  if(options.normalMapTransform) {
-    key += "_norx"
-  }else {
-    if(options.normalMap) {
-      key += "_norm"
-    }
-  }
-  if(options.heightMapTransform) {
-    key += "_hgtx"
-  }else {
-    if(options.heightMap) {
-      key += "_hgtm"
-    }
-  }
-  if(options.sphereMap) {
-    key += "_sphr"
-  }
-  if(options.cubeMap) {
-    key += "_cube"
-  }
-  if(options.lightMap) {
-    key += "_lght"
-  }
+pc.gfx.programlib.particle2 = {generateKey:function(device, options) {
+  var key = "particle2" + options.mode + options.normal + options.halflambert + options.stretch + options.soft + options.mesh + options.srgb + options.wrap + options.premul;
   return key
 }, createShaderDefinition:function(device, options) {
+  var modeGPU = 0;
+  var modeCPU = 1;
+  var getSnippet = pc.gfx.programlib.getSnippet;
+  var chunk = pc.gfx.shaderChunks;
+  var vshader = "";
+  var fshader = getSnippet(device, "fs_precision") + "\n";
+  if(options.mode == modeGPU) {
+    if(options.normal == 1) {
+      vshader += "\nvarying vec3 Normal;\n"
+    }
+    if(options.normal == 2) {
+      vshader += "\nvarying mat3 ParticleMat;\n"
+    }
+    vshader += chunk.particle2VS;
+    if(options.wrap) {
+      vshader += chunk.particle2_wrapVS
+    }
+    vshader += options.mesh ? chunk.particle2_meshVS : chunk.particle2_billboardVS;
+    if(options.normal == 1) {
+      vshader += chunk.particle2_normalVS
+    }
+    if(options.normal == 2) {
+      vshader += chunk.particle2_TBNVS
+    }
+    if(options.stretch > 0) {
+      vshader += chunk.particle2_stretchVS
+    }
+    vshader += chunk.particle2_endVS
+  }else {
+    if(options.normal == 1) {
+      vshader += "\nvarying vec3 Normal;\n"
+    }
+    if(options.normal == 2) {
+      vshader += "\nvarying mat3 ParticleMat;\n"
+    }
+    vshader += chunk.particle2_cpuVS;
+    if(options.mesh) {
+      vshader += chunk.particle2_cpu_meshVS
+    }
+    if(options.normal == 1) {
+      vshader += chunk.particle2_normalVS
+    }
+    if(options.normal == 2) {
+      vshader += chunk.particle2_TBNVS
+    }
+    vshader += chunk.particle2_cpu_endVS
+  }
+  if(options.normal > 0) {
+    if(options.normal == 1) {
+      fshader += "\nvarying vec3 Normal;\n"
+    }else {
+      if(options.normal == 2) {
+        fshader += "\nvarying mat3 ParticleMat;\n"
+      }
+    }
+    fshader += "\nuniform vec3 lightCube[6];\n"
+  }
+  fshader += options.srgb ? chunk.gamma2_2PS : chunk.gamma1_0PS;
+  fshader += chunk.particle2PS;
+  if(options.soft > 0) {
+    fshader += chunk.particle2_softPS
+  }
+  if(options.normal == 1) {
+    fshader += "\nvec3 normal = Normal;\n"
+  }
+  if(options.normal == 2) {
+    fshader += chunk.particle2_normalMapPS
+  }
+  if(options.normal > 0) {
+    fshader += options.halflambert ? chunk.particle2_halflambertPS : chunk.particle2_lambertPS
+  }
+  if(options.normal > 0) {
+    fshader += chunk.particle2_lightingPS
+  }
+  if(options.srgb) {
+    fshader += options.premul ? chunk.particle2_end_srgbPS : chunk.particle2_end_srgb_nopremulPS
+  }else {
+    fshader += options.premul ? chunk.particle2_endPS : chunk.particle2_end_nopremulPS
+  }
+  var attributes = pc.gfx.shaderChunks.collectAttribs(vshader);
+  return{attributes:attributes, vshader:vshader, fshader:fshader}
+}};
+pc.gfx.programlib.phong = {generateKey:function(device, options) {
+  var props = [];
+  var key = "phong";
+  for(prop in options) {
+    props.push(prop + "=" + options[prop])
+  }
+  props.sort();
+  for(prop in props) {
+    key += "_" + props[prop]
+  }
+  return key
+}, _setMapTransform:function(codes, name) {
+  var capitalName = name.charAt(0).toUpperCase() + name.slice(1);
+  codes[0] += "uniform vec4 texture_" + name + "MapTransform;\n";
+  codes[1] += "varying vec2 vUv" + capitalName + ";\n";
+  codes[2] += "   vUv" + capitalName + "   = vUv0 * texture_" + name + "MapTransform.xy + texture_" + name + "MapTransform.zw;\n";
+  return codes
+}, _uvSource:function(name) {
+  var capitalName = name.charAt(0).toUpperCase() + name.slice(1);
+  return this.options[name + "MapTransform"] ? "vUv" + capitalName : "vUv0"
+}, createShaderDefinition:function(device, options) {
   var i;
-  var numNormalLights = options.numDirs + options.numPnts + options.numSpts;
-  var numShadowLights = options.numSDirs + options.numSPnts + options.numSSpts;
-  var totalDirs = options.numDirs + options.numSDirs;
-  var totalPnts = options.numPnts + options.numSPnts;
-  var totalSpts = options.numSpts + options.numSSpts;
-  var totalLights = numNormalLights + numShadowLights;
-  var lighting = totalLights > 0;
-  var mapWithoutTransform = options.diffuseMap && !options.diffuseMapTransform || options.specularMap && !options.specularMapTransform || options.glossMap && !options.glossMapTransform || options.emissiveMap && !options.emissiveMapTransform || options.opacityMap && !options.opacityMapTransform || options.normalMap && !options.normalMapTransform || options.heightMap && !options.heightMapTransform;
+  var lighting = options.numLights > 0;
   var useTangents = pc.gfx.precalculatedTangents;
+  this.options = options;
+  var getSnippet = pc.gfx.programlib.getSnippet;
+  var code = "";
+  var codeBody = "";
+  var varyings = "";
+  var chunks = pc.gfx.shaderChunks;
+  code += chunks.baseVS;
   var attributes = {vertex_position:pc.gfx.SEMANTIC_POSITION};
-  if(lighting || options.cubeMap || options.sphereMap) {
+  codeBody += "   vPositionW    = getWorldPosition(data);\n";
+  if(lighting) {
     attributes.vertex_normal = pc.gfx.SEMANTIC_NORMAL;
+    codeBody += "   vNormalW    = getNormal(data);\n";
+    if(options.sphereMap && device.fragmentUniformsCount <= 16) {
+      code += chunks.viewNormalVS;
+      codeBody += "   vNormalV    = getViewNormal(data);\n"
+    }
     if(options.normalMap && useTangents) {
-      attributes.vertex_tangent = pc.gfx.SEMANTIC_TANGENT
+      attributes.vertex_tangent = pc.gfx.SEMANTIC_TANGENT;
+      code += chunks.tangentBinormalVS;
+      codeBody += "   vTangentW   = getTangent(data);\n";
+      codeBody += "   vBinormalW  = getBinormal(data);\n"
     }
   }
   if(options.diffuseMap || options.specularMap || options.glossMap || options.emissiveMap || options.normalMap || options.heightMap || options.opacityMap) {
-    attributes.vertex_texCoord0 = pc.gfx.SEMANTIC_TEXCOORD0
+    attributes.vertex_texCoord0 = pc.gfx.SEMANTIC_TEXCOORD0;
+    code += chunks.uv0VS;
+    codeBody += "   vUv0        = getUv0(data);\n";
+    var codes = [code, varyings, codeBody];
+    if(options.diffuseMapTransform) {
+      this._setMapTransform(codes, "diffuse")
+    }
+    if(options.normalMapTransform) {
+      this._setMapTransform(codes, "normal")
+    }
+    if(options.heightMapTransform) {
+      this._setMapTransform(codes, "height")
+    }
+    if(options.opacityMapTransform) {
+      this._setMapTransform(codes, "opacity")
+    }
+    if(options.useSpecular) {
+      if(options.specularMapTransform) {
+        this._setMapTransform(codes, "specular")
+      }
+      if(options.glossMapTransform) {
+        this._setMapTransform(codes, "gloss")
+      }
+    }
+    if(options.emissiveMapTransform) {
+      this._setMapTransform(codes, "emissive")
+    }
+    code = codes[0] + codes[1];
+    varyings = codes[1];
+    codeBody = codes[2]
   }
   if(options.lightMap) {
-    attributes.vertex_texCoord1 = pc.gfx.SEMANTIC_TEXCOORD1
+    attributes.vertex_texCoord1 = pc.gfx.SEMANTIC_TEXCOORD1;
+    code += chunks.uv1VS;
+    codeBody += "   vUv1        = getUv1(data);\n"
   }
   if(options.vertexColors) {
     attributes.vertex_color = pc.gfx.SEMANTIC_COLOR
   }
   if(options.skin) {
     attributes.vertex_boneWeights = pc.gfx.SEMANTIC_BLENDWEIGHT;
-    attributes.vertex_boneIndices = pc.gfx.SEMANTIC_BLENDINDICES
-  }
-  var getSnippet = pc.gfx.programlib.getSnippet;
-  var code = "";
-  code += "attribute vec3 vertex_position;\n";
-  if(lighting) {
-    code += "attribute vec3 vertex_normal;\n";
-    if(options.normalMap && useTangents) {
-      code += "attribute vec4 vertex_tangent;\n"
-    }
-  }
-  if(options.diffuseMap || options.specularMap || options.glossMap || options.emissiveMap || options.normalMap || options.heightMap || options.opacityMap) {
-    code += "attribute vec2 vertex_texCoord0;\n"
-  }
-  if(options.lightMap) {
-    code += "attribute vec2 vertex_texCoord1;\n"
-  }
-  if(options.vertexColors) {
-    code += "attribute vec4 vertex_color;\n"
-  }
-  code += "\n";
-  code += "uniform mat4 matrix_viewProjection;\n";
-  code += "uniform mat4 matrix_model;\n";
-  if(lighting) {
-    code += "uniform mat3 matrix_normal;\n"
-  }
-  for(i = 0;i < totalLights;i++) {
-    if(i < totalDirs) {
-      code += "uniform vec3 light" + i + "_direction;\n"
-    }
-    if(i >= totalDirs) {
-      code += "uniform vec3 light" + i + "_position;\n"
-    }
-    if(i >= totalDirs + totalPnts) {
-      code += "uniform vec3 light" + i + "_spotDirection;\n"
-    }
-    if(i >= options.numDirs && i < totalDirs || i >= totalDirs + options.numPnts && i < totalDirs + totalPnts || i >= totalDirs + totalPnts + options.numSpts && i < totalLights) {
-      code += "uniform mat4 light" + i + "_shadowMatrix;\n"
-    }
-  }
-  if(lighting) {
-    code += "uniform vec3 view_position;\n"
-  }
-  if(options.diffuseMap && options.diffuseMapTransform) {
-    code += "uniform mat4 texture_diffuseMapTransform;\n"
-  }
-  if(options.normalMap && options.normalMapTransform) {
-    code += "uniform mat4 texture_normalMapTransform;\n"
-  }
-  if(options.heightMap && options.heightMapTransform) {
-    code += "uniform mat4 texture_heightMapTransform;\n"
-  }
-  if(options.opacityMap && options.opacityMapTransform) {
-    code += "uniform mat4 texture_opacityMapTransform;\n"
-  }
-  if(options.specularMap && options.specularMapTransform) {
-    code += "uniform mat4 texture_specularMapTransform;\n"
-  }
-  if(options.glossMap && options.glossMapTransform) {
-    code += "uniform mat4 texture_glossMapTransform;\n"
-  }
-  if(options.emissiveMap && options.emissiveMapTransform) {
-    code += "uniform mat4 texture_emissiveMapTransform;\n"
-  }
-  code += "\n";
-  if(lighting) {
-    if(!(options.normalMap && useTangents)) {
-      code += "varying vec3 vNormalW;\n"
-    }
-    code += "varying vec3 vViewDirW;\n";
-    for(i = 0;i < totalLights;i++) {
-      code += "varying vec3 vLight" + i + "DirW;\n";
-      if(i >= totalDirs + totalPnts) {
-        code += "varying vec3 vLight" + i + "SpotDirW;\n"
-      }
-      if(i >= options.numDirs && i < totalDirs || i >= totalDirs + options.numPnts && i < totalDirs + totalPnts || i >= totalDirs + totalPnts + options.numSpts && i < totalLights) {
-        code += "varying vec4 vLight" + i + "ShadowCoord;\n"
-      }
-    }
-  }
-  if(mapWithoutTransform) {
-    code += "varying vec2 vUv0;\n"
-  }
-  if(options.diffuseMap && options.diffuseMapTransform) {
-    code += "varying vec2 vUvDiffuseMap;\n"
-  }
-  if(lighting) {
-    if(options.specularMap && options.specularMapTransform) {
-      code += "varying vec2 vUvSpecularMap;\n"
-    }
-    if(options.glossMap && options.glossMapTransform) {
-      code += "varying vec2 vUvGlossMap;\n"
-    }
-    if(options.normalMap && options.normalMapTransform || options.heightMap && options.heightMapTransform) {
-      code += "varying vec2 vUvBumpMap;\n"
-    }
-  }
-  if(options.emissiveMap && options.emissiveMapTransform) {
-    code += "varying vec2 vUvEmissiveMap;\n"
-  }
-  if(options.opacityMap && options.opacityMapTransform) {
-    code += "varying vec2 vUvOpacityMap;\n"
-  }
-  if(options.lightMap) {
-    code += "varying vec2 vUvLightMap;\n"
-  }
-  if(options.vertexColors) {
-    code += "varying vec4 vVertexColor;\n"
-  }
-  code += "\n";
-  if(options.skin) {
-    code += getSnippet(device, "vs_skin_decl")
-  }
-  code += "void main(void)\n";
-  code += "{\n";
-  if(options.skin) {
-    code += "    mat4 modelMatrix = vertex_boneWeights.x * getBoneMatrix(vertex_boneIndices.x) +\n";
-    code += "                       vertex_boneWeights.y * getBoneMatrix(vertex_boneIndices.y) +\n";
-    code += "                       vertex_boneWeights.z * getBoneMatrix(vertex_boneIndices.z) +\n";
-    code += "                       vertex_boneWeights.w * getBoneMatrix(vertex_boneIndices.w);\n";
+    attributes.vertex_boneIndices = pc.gfx.SEMANTIC_BLENDINDICES;
+    code += getSnippet(device, "vs_skin_decl");
+    code += chunks.transformSkinnedVS;
     if(lighting) {
-      code += "    mat3 normalMatrix = mat3(modelMatrix[0].xyz, modelMatrix[1].xyz, modelMatrix[2].xyz);\n"
+      code += chunks.normalSkinnedVS
     }
   }else {
-    code += "    mat4 modelMatrix = matrix_model;\n";
+    code += chunks.transformVS;
     if(lighting) {
-      code += "    mat3 normalMatrix = matrix_normal;\n"
+      code += chunks.normalVS
     }
   }
   code += "\n";
-  code += "    vec4 positionW = modelMatrix * vec4(vertex_position, 1.0);\n";
-  code += "    gl_Position = matrix_viewProjection * positionW;\n\n";
-  if(lighting) {
-    code += "    vec3 normalW = normalMatrix * vertex_normal;\n";
-    code += "    normalW = normalize(normalW);\n";
-    if(options.normalMap && useTangents) {
-      code += "    vec3 tangentW = normalMatrix * vertex_tangent.xyz;\n";
-      code += "    tangentW  = normalize(tangentW);\n"
-    }
-  }
-  code += "\n";
-  if(lighting) {
-    if(options.normalMap && useTangents) {
-      code += "    vec3 binormalW = cross(normalW, tangentW) * vertex_tangent.w;\n";
-      code += "    mat3 tbnMatrix = mat3(tangentW.x, binormalW.x, normalW.x,\n";
-      code += "                          tangentW.y, binormalW.y, normalW.y,\n";
-      code += "                          tangentW.z, binormalW.z, normalW.z);\n";
-      code += "    vViewDirW = tbnMatrix * (view_position - positionW.xyz);\n";
-      for(i = 0;i < totalLights;i++) {
-        if(i < totalDirs) {
-          code += "    vLight" + i + "DirW = -(tbnMatrix * light" + i + "_direction);\n"
-        }
-        if(i >= totalDirs) {
-          code += "    vLight" + i + "DirW = tbnMatrix * (light" + i + "_position - positionW.xyz);\n"
-        }
-        if(i >= totalDirs + totalPnts) {
-          code += "    vLight" + i + "SpotDirW = tbnMatrix * light" + i + "_spotDirection;\n"
-        }
-      }
-    }else {
-      code += "    vNormalW = normalW;\n";
-      code += "    vViewDirW = view_position - positionW.xyz;\n";
-      for(i = 0;i < totalLights;i++) {
-        if(i < totalDirs) {
-          code += "    vLight" + i + "DirW = -light" + i + "_direction;\n"
-        }
-        if(i >= totalDirs) {
-          code += "    vLight" + i + "DirW = light" + i + "_position - positionW.xyz;\n"
-        }
-        if(i >= totalDirs + totalPnts) {
-          code += "    vLight" + i + "SpotDirW = light" + i + "_spotDirection;\n"
-        }
-      }
-    }
-    for(i = 0;i < totalLights;i++) {
-      if(i >= options.numDirs && i < totalDirs || i >= totalDirs + options.numPnts && i < totalDirs + totalPnts || i >= totalDirs + totalPnts + options.numSpts && i < totalLights) {
-        code += "    vLight" + i + "ShadowCoord = light" + i + "_shadowMatrix * positionW;\n"
-      }
-    }
-    code += "\n"
-  }
-  if(mapWithoutTransform) {
-    code += "    vUv0 = vertex_texCoord0;\n"
-  }
-  if(options.diffuseMap && options.diffuseMapTransform) {
-    code += "    vUvDiffuseMap = (texture_diffuseMapTransform * vec4(vertex_texCoord0, 0, 1)).st;\n"
-  }
-  if(lighting) {
-    if(options.specularMap & options.specularMapTransform) {
-      code += "    vUvSpecularMap = (texture_specularMapTransform * vec4(vertex_texCoord0, 0, 1)).st;\n"
-    }
-    if(options.glossMap & options.glossMapTransform) {
-      code += "    vUvGlossMap = (texture_glossMapTransform * vec4(vertex_texCoord0, 0, 1)).st;\n"
-    }
-    if(options.normalMap && options.normalMapTransform) {
-      code += "    vUvBumpMap = (texture_normalMapTransform * vec4(vertex_texCoord0, 0, 1)).st;\n"
-    }else {
-      if(options.heightMap && options.heightMapTransform) {
-        code += "    vUvBumpMap = (texture_heightMapTransform * vec4(vertex_texCoord0, 0, 1)).st;\n"
-      }
-    }
-  }
-  if(options.opacityMap && options.opacityMapTransform) {
-    code += "    vUvOpacityMap = (texture_opacityMapTransform * vec4(vertex_texCoord0, 0, 1)).st;\n"
-  }
-  if(options.emissiveMap && options.emissiveMapTransform) {
-    code += "    vUvEmissiveMap = (texture_emissiveMapTransform * vec4(vertex_texCoord0, 0, 1)).st;\n"
-  }
-  if(options.lightMap) {
-    code += "    vUvLightMap = vertex_texCoord1;\n"
-  }
+  code += chunks.startVS;
+  code += codeBody;
   code += "}";
   var vshader = code;
   code = getSnippet(device, "fs_precision");
-  if(options.normalMap && !useTangents || options.heightMap) {
-    code += "#extension GL_OES_standard_derivatives : enable\n\n"
-  }
-  if(lighting) {
-    if(!(options.normalMap && useTangents)) {
-      code += "varying vec3 vNormalW;\n"
-    }
-    code += "varying vec3 vViewDirW;\n";
-    for(i = 0;i < totalLights;i++) {
-      code += "varying vec3 vLight" + i + "DirW;\n";
-      if(i >= totalDirs + totalPnts) {
-        code += "varying vec3 vLight" + i + "SpotDirW;\n"
-      }
-      if(i >= options.numDirs && i < totalDirs || i >= totalDirs + options.numPnts && i < totalDirs + totalPnts || i >= totalDirs + totalPnts + options.numSpts && i < totalLights) {
-        code += "varying vec4 vLight" + i + "ShadowCoord;\n"
-      }
-    }
-  }
-  if(mapWithoutTransform) {
-    code += "varying vec2 vUv0;\n"
-  }
-  if(options.diffuseMap && options.diffuseMapTransform) {
-    code += "varying vec2 vUvDiffuseMap;\n"
-  }
-  if(lighting) {
-    if(options.specularMap && options.specularMapTransform) {
-      code += "varying vec2 vUvSpecularMap;\n"
-    }
-    if(options.glossMap && options.glossMapTransform) {
-      code += "varying vec2 vUvGlossMap;\n"
-    }
-    if(options.normalMap && options.normalMapTransform || options.heightMap && options.heightMapTransform) {
-      code += "varying vec2 vUvBumpMap;\n"
-    }
-  }
-  if(options.emissiveMap && options.emissiveMapTransform) {
-    code += "varying vec2 vUvEmissiveMap;\n"
-  }
-  if(options.opacityMap && options.opacityMapTransform) {
-    code += "varying vec2 vUvOpacityMap;\n"
-  }
-  if(options.lightMap) {
-    code += "varying vec2 vUvLightMap;\n"
-  }
-  if(options.vertexColors) {
-    code += "varying vec4 vVertexColor;\n"
-  }
-  code += "\n";
-  if(options.diffuseMap) {
-    code += "uniform sampler2D texture_diffuseMap;\n"
-  }else {
-    code += "uniform vec3 material_ambient;\n";
-    code += "uniform vec3 material_diffuse;\n"
-  }
-  if(lighting) {
-    if(options.specularMap) {
-      code += "uniform sampler2D texture_specularMap;\n"
-    }else {
-      code += "uniform vec3 material_specular;\n"
-    }
-    if(options.glossMap) {
-      code += "uniform sampler2D texture_glossMap;\n"
-    }else {
-      code += "uniform float material_shininess;\n"
-    }
-  }
-  if(options.emissiveMap) {
-    code += "uniform sampler2D texture_emissiveMap;\n"
-  }else {
-    code += "uniform vec3 material_emissive;\n"
-  }
-  if(options.lightMap) {
-    code += "uniform sampler2D texture_lightMap;\n"
-  }
-  if(lighting) {
-    if(options.normalMap) {
-      code += "uniform sampler2D texture_normalMap;\n";
-      code += "uniform float material_bumpMapFactor;\n"
-    }
-    if(options.heightMap) {
-      code += "uniform sampler2D texture_heightMap;\n"
-    }
-    if(options.cubeMap || options.sphereMap) {
-      code += "uniform float material_reflectionFactor;\n";
-      if(options.sphereMap) {
-        code += "uniform mat4 matrix_view;\n";
-        code += "uniform sampler2D texture_sphereMap;\n"
-      }else {
-        code += "uniform samplerCube texture_cubeMap;\n"
-      }
-    }
-  }
-  if(options.opacityMap) {
-    code += "uniform sampler2D texture_opacityMap;\n"
-  }else {
-    code += "uniform float material_opacity;\n"
-  }
-  code += "uniform vec3 light_globalAmbient;\n";
-  for(i = 0;i < totalLights;i++) {
+  code += chunks.basePS;
+  code += varyings;
+  var numShadowLights = 0;
+  for(i = 0;i < options.numLights;i++) {
+    var lightType = options.lightType[i];
     code += "uniform vec3 light" + i + "_color;\n";
-    if(i >= totalDirs) {
+    if(lightType == pc.scene.LIGHTTYPE_DIRECTIONAL) {
+      code += "uniform vec3 light" + i + "_direction;\n"
+    }else {
+      code += "uniform vec3 light" + i + "_position;\n";
       code += "uniform float light" + i + "_radius;\n";
-      if(i >= totalDirs + totalPnts) {
+      if(lightType == pc.scene.LIGHTTYPE_SPOT) {
+        code += "uniform vec3 light" + i + "_spotDirection;\n";
         code += "uniform float light" + i + "_innerConeAngle;\n";
         code += "uniform float light" + i + "_outerConeAngle;\n"
       }
     }
-    if(i >= options.numDirs && i < totalDirs || i >= totalDirs + options.numPnts && i < totalDirs + totalPnts || i >= totalDirs + totalPnts + options.numSpts && i < totalLights) {
+    if(options.lightShadow[i]) {
+      code += "uniform mat4 light" + i + "_shadowMatrix;\n";
       code += "uniform vec3 light" + i + "_shadowParams;\n";
-      code += "uniform sampler2D light" + i + "_shadowMap;\n"
+      code += "uniform sampler2D light" + i + "_shadowMap;\n";
+      numShadowLights++
     }
-  }
-  if(numShadowLights > 0) {
-    code += "uniform bool shadow_enable;\n"
   }
   switch(options.fog) {
     case "linear":
@@ -5159,263 +5228,149 @@ pc.gfx.programlib.phong = {generateKey:function(device, options) {
       code += getSnippet(device, "fs_fog_exp2_decl");
       break
   }
-  code += getSnippet(device, "fs_alpha_test_decl");
-  if(options.normalMap) {
-    code += getSnippet(device, "fs_normal_map_funcs")
-  }else {
-    if(options.heightMap) {
-      code += getSnippet(device, "fs_height_map_funcs")
-    }
+  if(options.alphaTest) {
+    code += getSnippet(device, "fs_alpha_test_decl")
   }
   code += "\n";
+  var uvOffset = options.heightMap ? " + data.uvOffset" : "";
+  if(options.normalMap && useTangents) {
+    code += chunks.normalMapPS.replace(/\$UV/g, this._uvSource("normal") + uvOffset);
+    code += chunks.TBNPS
+  }else {
+    code += chunks.normalVertexPS
+  }
+  code += chunks.defaultGamma;
+  if(options.diffuseMap) {
+    code += chunks.albedoTexPS.replace(/\$UV/g, this._uvSource("diffuse") + uvOffset)
+  }else {
+    code += chunks.albedoColorPS
+  }
+  if(options.useSpecular) {
+    if(options.specularMap) {
+      code += chunks.specularityTexPS.replace(/\$UV/g, this._uvSource("specular") + uvOffset)
+    }else {
+      code += chunks.specularityColorPS
+    }
+    if(options.useFresnel) {
+      code += chunks.defaultFresnel
+    }
+  }
+  if(options.glossMap) {
+    code += chunks.glossinessTexPS.replace(/\$UV/g, this._uvSource("gloss") + uvOffset)
+  }else {
+    code += chunks.glossinessFloatPS
+  }
+  if(options.opacityMap) {
+    code += chunks.opacityTexPS.replace(/\$UV/g, this._uvSource("opacity") + uvOffset)
+  }else {
+    code += chunks.opacityFloatPS
+  }
+  if(options.emissiveMap) {
+    code += chunks.emissionTexPS.replace(/\$UV/g, this._uvSource("emissive") + uvOffset)
+  }else {
+    code += chunks.emissionColorPS
+  }
+  if(options.heightMap) {
+    if(!options.normalMap) {
+      code += chunks.TBNPS
+    }
+    code += chunks.parallaxPS.replace(/\$UV/g, this._uvSource("height"))
+  }
+  if(options.cubeMap) {
+    code += chunks.reflectionCubePS
+  }
+  if(options.sphereMap) {
+    code += device.fragmentUniformsCount > 16 ? chunks.reflectionSpherePS : chunks.reflectionSphereLowPS
+  }
+  if(options.lightMap) {
+    code += chunks.lightmapSinglePS
+  }
   if(numShadowLights > 0) {
-    code += "float unpackFloat(vec4 rgbaDepth)\n";
-    code += "{\n";
-    code += "    const vec4 bitShift = vec4(1.0 / (256.0 * 256.0 * 256.0), 1.0 / (256.0 * 256.0), 1.0 / 256.0, 1.0);\n";
-    code += "    float depth = dot(rgbaDepth, bitShift);\n";
-    code += "    return depth;\n";
-    code += "}\n\n";
-    code += "float calculateShadowFactor(const in vec4 sc, const in vec3 sp, const in sampler2D shadowMap)\n";
-    code += "{\n";
-    code += "    float depth;\n";
-    code += "    float depthBias = sp.z;\n";
-    code += "    vec3 shadowCoord = sc.xyz / sc.w;\n";
-    code += "    shadowCoord.z += depthBias;\n";
-    code += "    bvec4 containedVec = bvec4(shadowCoord.x >= 0.0, shadowCoord.x <= 1.0, shadowCoord.y >= 0.0, shadowCoord.y <= 1.0);\n";
-    code += "    bool contained = all(bvec2(all(containedVec), shadowCoord.z <= 1.0));\n";
-    code += "    if (contained)\n";
-    code += "    {\n";
-    if(false) {
-      code += "        depth = upackRgbaDepthToFloat(texture2D(shadowMap, shadowCoord.xy));\n";
-      code += "        return (depth < shadowCoord.z) ? 0.3 : 1.0;\n"
-    }else {
-      code += "        float shadowAccum = 0.0;\n";
-      code += "        float xoffset = 1.0 / sp[0];\n";
-      code += "        float yoffset = 1.0 / sp[1];\n";
-      code += "        float dx0 = -xoffset;\n";
-      code += "        float dy0 = -yoffset;\n";
-      code += "        float dx1 = xoffset;\n";
-      code += "        float dy1 = yoffset;\n";
-      code += "        mat3 shadowKernel;\n", code += "        mat3 depthKernel;\n", code += "        depthKernel[0][0] = unpackFloat(texture2D(shadowMap, shadowCoord.xy + vec2(dx0, dy0)));\n";
-      code += "        depthKernel[0][1] = unpackFloat(texture2D(shadowMap, shadowCoord.xy + vec2(dx0, 0.0)));\n";
-      code += "        depthKernel[0][2] = unpackFloat(texture2D(shadowMap, shadowCoord.xy + vec2(dx0, dy1)));\n";
-      code += "        depthKernel[1][0] = unpackFloat(texture2D(shadowMap, shadowCoord.xy + vec2(0.0, dy0)));\n";
-      code += "        depthKernel[1][1] = unpackFloat(texture2D(shadowMap, shadowCoord.xy));\n";
-      code += "        depthKernel[1][2] = unpackFloat(texture2D(shadowMap, shadowCoord.xy + vec2(0.0, dy1)));\n";
-      code += "        depthKernel[2][0] = unpackFloat(texture2D(shadowMap, shadowCoord.xy + vec2(dx1, dy0)));\n";
-      code += "        depthKernel[2][1] = unpackFloat(texture2D(shadowMap, shadowCoord.xy + vec2(dx1, 0.0)));\n";
-      code += "        depthKernel[2][2] = unpackFloat(texture2D(shadowMap, shadowCoord.xy + vec2(dx1, dy1)));\n";
-      code += "        vec3 shadowZ = vec3(shadowCoord.z);\n";
-      code += "        shadowKernel[0] = vec3(lessThan(depthKernel[0], shadowZ));\n";
-      code += "        shadowKernel[0] *= vec3(0.25);\n";
-      code += "        shadowKernel[1] = vec3(lessThan(depthKernel[1], shadowZ));\n";
-      code += "        shadowKernel[1] *= vec3(0.25);\n";
-      code += "        shadowKernel[2] = vec3(lessThan(depthKernel[2], shadowZ));\n";
-      code += "        shadowKernel[2] *= vec3(0.25);\n";
-      code += "        vec2 fractionalCoord = 1.0 - fract( shadowCoord.xy * sp.xy );\n";
-      code += "        shadowKernel[0] = mix(shadowKernel[1], shadowKernel[0], fractionalCoord.x);\n";
-      code += "        shadowKernel[1] = mix(shadowKernel[2], shadowKernel[1], fractionalCoord.x);\n";
-      code += "        vec4 shadowValues;\n";
-      code += "        shadowValues.x = mix(shadowKernel[0][1], shadowKernel[0][0], fractionalCoord.y);\n";
-      code += "        shadowValues.y = mix(shadowKernel[0][2], shadowKernel[0][1], fractionalCoord.y);\n";
-      code += "        shadowValues.z = mix(shadowKernel[1][1], shadowKernel[1][0], fractionalCoord.y);\n";
-      code += "        shadowValues.w = mix(shadowKernel[1][2], shadowKernel[1][1], fractionalCoord.y);\n";
-      code += "        shadowAccum = 1.0 - dot( shadowValues, vec4( 1.0 ) );\n";
-      code += "        return shadowAccum;\n"
-    }
-    code += "    }\n";
-    code += "    else\n";
-    code += "    {\n";
-    code += "        return 1.0;\n";
-    code += "    }\n";
-    code += "}\n\n"
+    code += chunks.shadowPS
   }
-  code += getSnippet(device, "common_main_begin");
-  if(options.diffuseMap) {
-    if(options.diffuseMapTransform) {
-      code += "    vec2 uvDiffuseMap = vUvDiffuseMap;\n"
-    }else {
-      code += "    vec2 uvDiffuseMap = vUv0;\n"
-    }
-  }
-  if(lighting) {
-    if(options.specularMap) {
-      if(options.specularMapTransform) {
-        code += "    vec2 uvSpecularMap = vUvSpecularMap;\n"
+  code += chunks.lightDiffuseLambertPS;
+  if(options.useSpecular) {
+    code += chunks.defaultSpecular;
+    if(options.sphereMap || options.cubeMap || options.useFresnel) {
+      if(options.useFresnel) {
+        code += chunks.combineDiffuseSpecularPS
       }else {
-        code += "    vec2 uvSpecularMap = vUv0;\n"
+        code += chunks.combineDiffuseSpecularOldPS
       }
-    }
-    if(options.glossMap) {
-      if(options.glossMapTransform) {
-        code += "    vec2 uvGlossMap = vUvGlossMap;\n"
-      }else {
-        code += "    vec2 uvGlossMap = vUv0;\n"
-      }
-    }
-    if(options.normalMap || options.heightMap) {
-      if(options.normalMapTransform || options.heightMapTransform) {
-        code += "    vec2 uvBumpMap = vUvBumpMap;\n"
-      }else {
-        code += "    vec2 uvBumpMap = vUv0;\n"
-      }
-    }
-  }
-  if(options.opacityMap) {
-    if(options.opacityMapTransform) {
-      code += "    vec2 uvOpacityMap = vUvOpacityMap;\n"
     }else {
-      code += "    vec2 uvOpacityMap = vUv0;\n"
-    }
-  }
-  if(options.emissiveMap) {
-    if(options.emissiveMapTransform) {
-      code += "    vec2 uvEmissiveMap = vUvEmissiveMap;\n"
-    }else {
-      code += "    vec2 uvEmissiveMap = vUv0;\n"
-    }
-  }
-  if(options.lightMap) {
-    code += "    vec2 uvLightMap = vUvLightMap;\n"
-  }
-  if(lighting) {
-    code += "    vec3 viewDirW = normalize(vViewDirW);\n";
-    if(!(options.normalMap && useTangents)) {
-      code += "    vec3 normalW = normalize(vNormalW);\n"
-    }
-    if(options.normalMap && options.heightMap) {
-      code += "    const float parallaxScale = 0.025;\n";
-      code += "    const float parallaxBias = 0.01;\n";
-      code += "    float height = texture2D(texture_heightMap, uvBumpMap).a * parallaxScale - parallaxBias;\n";
-      code += "    uvBumpMap = uvBumpMap - min(height * viewDirW.xy, vec2(parallaxBias));\n";
       if(options.diffuseMap) {
-        code += "    uvDiffuseMap = uvDiffuseMap - min(height * viewDirW.xy, vec2(parallaxBias));\n"
-      }
-      if(options.specularMap) {
-        code += "    uvSpecularMap = uvSpecularMap - min(height * viewDirW.xy, vec2(parallaxBias));\n"
-      }
-    }
-    code += "\n"
-  }
-  if(options.diffuseMap) {
-    code += "    vec3 diffuseColor = texture2D(texture_diffuseMap, uvDiffuseMap).rgb;\n";
-    code += "    vec3 ambientColor = diffuseColor;\n"
-  }else {
-    code += "    vec3 ambientColor = material_ambient;\n";
-    code += "    vec3 diffuseColor = material_diffuse;\n"
-  }
-  if(lighting) {
-    if(options.specularMap) {
-      code += "    vec3 specularColor = texture2D(texture_specularMap, uvSpecularMap).rgb;\n"
-    }else {
-      code += "    vec3 specularColor = material_specular;\n"
-    }
-    if(options.glossMap) {
-      code += "    float shininess = texture2D(texture_glossMap, uvGlossMap).r * 100.0 + 0.0001;\n"
-    }else {
-      code += "    float shininess = material_shininess + 0.0001;\n"
-    }
-  }
-  if(options.emissiveMap) {
-    code += "    vec3 emissiveColor = texture2D(texture_emissiveMap, uvEmissiveMap).rgb;\n"
-  }else {
-    code += "    vec3 emissiveColor = material_emissive;\n"
-  }
-  if(options.opacityMap) {
-    code += "    float opacity = texture2D(texture_opacityMap, uvOpacityMap).r;\n"
-  }else {
-    code += "    float opacity = material_opacity;\n"
-  }
-  code += "\n";
-  if(lighting || options.lightMap) {
-    code += "    vec3 diffuseContrib = vec3(0.0);\n"
-  }
-  if(lighting) {
-    code += "    vec3 specularContrib = vec3(0.0);\n";
-    if(options.normalMap) {
-      if(useTangents) {
-        code += "    vec3 N = normalize(texture2D(texture_normalMap, uvBumpMap).xyz * 2.0 - 1.0);\n";
-        code += "    N = normalize(mix(vec3(0.0, 0.0, 1.0), N, material_bumpMapFactor));\n"
+        code += chunks.combineDiffuseSpecularNoReflPS
       }else {
-        code += "    vec3 N = perturb_normal(normalW, viewDirW, uvBumpMap);\n"
+        code += chunks.combineDiffuseSpecularNoReflSeparateAmbientPS
       }
-    }else {
-      code += "    vec3 N = normalW;\n"
     }
-    code += "    vec3 L, R;\n";
-    code += "    float diffuseLight, specularLight;\n";
-    if(totalPnts + totalSpts > 0) {
-      code += "    float d, attenuation;\n"
+  }else {
+    code += chunks.combineDiffusePS
+  }
+  code += chunks.startPS;
+  if(lighting) {
+    code += "   getViewDir(data);\n";
+    if(options.heightMap || options.normalMap) {
+      code += "   getTBN(data);\n"
     }
-    if(totalSpts > 0) {
-      code += "    float cosAngle, spotEffect;\n"
+    if(options.heightMap) {
+      code += "   getParallax(data);\n"
     }
-    if(numShadowLights > 0) {
-      code += "    float shadowFactor;\n"
+    code += "   getNormal(data);\n";
+    if(options.useSpecular) {
+      code += "   getReflDir(data);\n"
     }
-    code += "\n";
-    for(i = 0;i < totalLights;i++) {
-      var positionalLight = i >= totalDirs;
-      var spotLight = i >= totalDirs + totalPnts;
-      var shadowLight = i >= options.numDirs && i < totalDirs || i >= totalDirs + options.numPnts && i < totalDirs + totalPnts || i >= totalDirs + totalPnts + options.numSpts && i < totalLights;
-      code += "    L = normalize(vLight" + i + "DirW);\n";
-      code += "    diffuseLight = max(dot(N, L), 0.0);\n";
-      code += "    R = normalize(-reflect(L, N));\n";
-      code += "    specularLight = pow(max(dot(R, viewDirW), 0.0), shininess);\n";
-      if(positionalLight) {
-        code += "    d = length(vLight" + i + "DirW);\n";
-        code += "    attenuation = max(((light" + i + "_radius - d) / light" + i + "_radius), 0.0);\n"
-      }
-      if(spotLight) {
-        code += "    cosAngle = dot(-L, vLight" + i + "SpotDirW);\n";
-        code += "    spotEffect = smoothstep(light" + i + "_outerConeAngle, light" + i + "_innerConeAngle, cosAngle);\n"
-      }
-      if(shadowLight) {
-        code += "    shadowFactor = shadow_enable ? calculateShadowFactor(vLight" + i + "ShadowCoord, light" + i + "_shadowParams, light" + i + "_shadowMap) : 1.0;\n"
-      }
-      code += "    diffuseContrib += light" + i + "_color * diffuseLight" + (positionalLight ? " * attenuation" : "") + (spotLight ? " * spotEffect" : "") + (shadowLight ? " * shadowFactor" : "") + ";\n";
-      code += "    if (diffuseLight <= 0.0) specularLight = 0.0;\n";
-      code += "    specularContrib += light" + i + "_color * specularLight" + (positionalLight ? " * attenuation" : "") + (spotLight ? " * spotEffect" : "") + (shadowLight ? " * shadowFactor" : "") + ";\n\n"
+  }
+  code += "   getAlbedo(data);\n";
+  if(lighting && options.useSpecular) {
+    code += "   getSpecularity(data);\n";
+    if(options.useFresnel) {
+      code += "   getFresnel(data);\n"
     }
+    code += "   getGlossiness(data);\n"
+  }
+  code += "   getOpacity(data);\n";
+  if(options.alphaTest) {
+    code += "   if (data.alpha < alpha_ref) discard;"
   }
   if(options.lightMap) {
-    code += "    diffuseContrib += texture2D(texture_lightMap, uvLightMap).rgb;\n"
+    code += "    addLightmap(data);\n"
   }
+  code += "   addAmbientConstant(data);\n";
   if(lighting) {
-    if(options.cubeMap || options.sphereMap) {
-      code += "    vec3 reflectW = -reflect(viewDirW, N);\n";
-      if(options.cubeMap) {
-        code += "    vec3 reflectionColor = textureCube(texture_cubeMap, reflectW).rgb;\n"
+    if(options.cubeMap) {
+      code += "   addCubemapReflection(data);\n"
+    }else {
+      if(options.sphereMap) {
+        code += "   addSpheremapReflection(data);\n"
+      }
+    }
+    for(i = 0;i < options.numLights;i++) {
+      if(options.lightType[i] == pc.scene.LIGHTTYPE_DIRECTIONAL) {
+        code += "   data.lightDirNormW = light" + i + "_direction;\n";
+        code += "   data.atten = 1.0;\n"
       }else {
-        if(options.sphereMap) {
-          code += "    vec3 reflectE = (matrix_view * vec4(reflectW, 0.0)).xyz;\n";
-          code += "    float m = 2.0 * sqrt( dot(reflectE.xy, reflectE.xy) + (reflectE.z+1.0)*(reflectE.z+1.0) );\n";
-          code += "    vec2 sphereMapUv = reflectE.xy / m + 0.5;\n";
-          code += "    vec3 reflectionColor = texture2D(texture_sphereMap, sphereMapUv).rgb;\n"
+        code += "   getLightDirPoint(data, light" + i + "_position);\n";
+        code += "   data.atten = getFalloffLinear(data, light" + i + "_radius);\n";
+        if(options.lightType[i] == pc.scene.LIGHTTYPE_SPOT) {
+          code += "   data.atten *= getSpotEffect(data, light" + i + "_spotDirection, light" + i + "_innerConeAngle, light" + i + "_outerConeAngle);\n"
         }
       }
-      code += "    diffuseColor = mix(diffuseColor, reflectionColor, material_reflectionFactor);\n\n"
+      code += "   data.atten *= getLightDiffuse(data);\n";
+      if(options.lightShadow[i]) {
+        code += "   getShadowCoord(data, light" + i + "_shadowMatrix, light" + i + "_shadowParams);\n";
+        code += "   data.atten *= getShadowPCF3x3(data, light" + i + "_shadowMap, light" + i + "_shadowParams);\n"
+      }
+      code += "   data.diffuseLight += data.atten * light" + i + "_color;\n";
+      if(options.useSpecular) {
+        code += "   data.atten *= getLightSpecular(data);\n";
+        code += "   data.specularLight += data.atten * light" + i + "_color;\n"
+      }
+      code += "\n"
     }
   }
-  code += "    vec3 ambient  = ambientColor * light_globalAmbient;\n";
-  if(lighting || options.lightMap) {
-    code += "    vec3 diffuse  = diffuseColor * diffuseContrib;\n"
-  }
-  if(lighting) {
-    code += "    vec3 specular = specularColor * specularContrib;\n"
-  }
-  code += "    vec3 emissive = emissiveColor;\n\n";
-  code += "    gl_FragColor.rgb  = ambient;\n";
-  if(lighting || options.lightMap) {
-    code += "    gl_FragColor.rgb += diffuse;\n"
-  }
-  if(lighting) {
-    code += "    gl_FragColor.rgb += specular;\n"
-  }
-  code += "    gl_FragColor.rgb += emissive;\n";
-  code += "    gl_FragColor.a    = opacity;\n\n";
-  code += getSnippet(device, "fs_alpha_test");
-  code += getSnippet(device, "fs_clamp");
+  code += "\n";
+  code += chunks.endPS;
   switch(options.fog) {
     case "linear":
       code += getSnippet(device, "fs_fog_linear");
@@ -5427,6 +5382,7 @@ pc.gfx.programlib.phong = {generateKey:function(device, options) {
       code += getSnippet(device, "fs_fog_exp2");
       break
   }
+  code += getSnippet(device, "fs_clamp");
   code += getSnippet(device, "common_main_end");
   var fshader = code;
   return{attributes:attributes, vshader:vshader, fshader:fshader}
@@ -5710,7 +5666,7 @@ pc.extend(pc.posteffect, function() {
   }};
   return{PostEffectQueue:PostEffectQueue}
 }());
-pc.scene = {BLEND_SUBTRACTIVE:0, BLEND_ADDITIVE:1, BLEND_NORMAL:2, BLEND_NONE:3, RENDERSTYLE_SOLID:0, RENDERSTYLE_WIREFRAME:1, RENDERSTYLE_POINTS:2, LAYER_HUD:0, LAYER_GIZMO:1, LAYER_FX:2, LAYER_WORLD:3, FOG_NONE:"none", FOG_LINEAR:"linear", FOG_EXP:"exp", FOG_EXP2:"exp2"};
+pc.scene = {BLEND_SUBTRACTIVE:0, BLEND_ADDITIVE:1, BLEND_NORMAL:2, BLEND_NONE:3, BLEND_PREMULTIPLIED:4, BLEND_MULTIPLICATIVE:5, RENDERSTYLE_SOLID:0, RENDERSTYLE_WIREFRAME:1, RENDERSTYLE_POINTS:2, LAYER_HUD:0, LAYER_GIZMO:1, LAYER_FX:2, LAYER_WORLD:3, FOG_NONE:"none", FOG_LINEAR:"linear", FOG_EXP:"exp", FOG_EXP2:"exp2"};
 pc.extend(pc.scene, function() {
   var Scene = function Scene() {
     this.drawCalls = [];
@@ -5722,6 +5678,7 @@ pc.extend(pc.scene, function() {
     this.fogDensity = 0;
     this.ambientLight = new pc.Color(0, 0, 0);
     this.shadowDistance = 40;
+    this._gammaCorrection = false;
     this._models = [];
     this._lights = [];
     this._globalLights = [];
@@ -5733,6 +5690,15 @@ pc.extend(pc.scene, function() {
   }, set:function(type) {
     if(type !== this._fog) {
       this._fog = type;
+      this.updateShaders = true
+    }
+  }});
+  Object.defineProperty(Scene.prototype, "gammaCorrection", {get:function() {
+    return this._gammaCorrection
+  }, set:function(value) {
+    if(value !== this._gammaCorrection) {
+      this._gammaCorrection = value;
+      pc.gfx.shaderChunks.defaultGamma = value ? pc.gfx.shaderChunks.gamma2_2PS : pc.gfx.shaderChunks.gamma1_0PS;
       this.updateShaders = true
     }
   }});
@@ -5859,6 +5825,7 @@ pc.extend(pc.scene, function() {
   var shadowCamView = new pc.Mat4;
   var shadowCamViewProj = new pc.Mat4;
   var viewMat = new pc.Mat4;
+  var viewMat3 = new pc.Mat3;
   var viewProjMat = new pc.Mat4;
   var c2sc = new pc.Mat4;
   var frustumPoints = [];
@@ -5968,6 +5935,7 @@ pc.extend(pc.scene, function() {
     var scope = this.device.scope;
     this.projId = scope.resolve("matrix_projection");
     this.viewId = scope.resolve("matrix_view");
+    this.viewId3 = scope.resolve("matrix_view3");
     this.viewInvId = scope.resolve("matrix_viewInverse");
     this.viewProjId = scope.resolve("matrix_viewProjection");
     this.viewPosId = scope.resolve("view_position");
@@ -5998,6 +5966,16 @@ pc.extend(pc.scene, function() {
     this.viewInvId.setValue(wtm.data);
     viewMat.copy(wtm).invert();
     this.viewId.setValue(viewMat.data);
+    viewMat3.data[0] = viewMat.data[0];
+    viewMat3.data[1] = viewMat.data[1];
+    viewMat3.data[2] = viewMat.data[2];
+    viewMat3.data[3] = viewMat.data[4];
+    viewMat3.data[4] = viewMat.data[5];
+    viewMat3.data[5] = viewMat.data[6];
+    viewMat3.data[6] = viewMat.data[8];
+    viewMat3.data[7] = viewMat.data[9];
+    viewMat3.data[8] = viewMat.data[10];
+    this.viewId3.setValue(viewMat3.data);
     viewProjMat.mul2(projMat, viewMat);
     this.viewProjId.setValue(viewProjMat.data);
     this.viewPosId.setValue(camera.getPosition().data);
@@ -6032,7 +6010,7 @@ pc.extend(pc.scene, function() {
       var light = "light" + i;
       scope.resolve(light + "_color").setValue(directional._finalColor.data);
       wtm.getY(directional._direction).scale(-1);
-      scope.resolve(light + "_direction").setValue(directional._direction.data);
+      scope.resolve(light + "_direction").setValue(directional._direction.normalize().data);
       if(directional.getCastShadows()) {
         var shadowMap = this.device.extDepthTexture ? directional._shadowCamera._renderTarget._depthTexture : directional._shadowCamera._renderTarget.colorBuffer;
         scope.resolve(light + "_shadowMap").setValue(shadowMap);
@@ -6105,11 +6083,7 @@ pc.extend(pc.scene, function() {
       var light = lights[i];
       if(light.getEnabled()) {
         if(light.getType() === pc.scene.LIGHTTYPE_DIRECTIONAL) {
-          if(light.getCastShadows()) {
-            scene._globalLights.push(light)
-          }else {
-            scene._globalLights.unshift(light)
-          }
+          scene._globalLights.push(light)
         }else {
           scene._localLights[light.getType() === pc.scene.LIGHTTYPE_POINT ? 0 : 1].push(light)
         }
@@ -6120,7 +6094,7 @@ pc.extend(pc.scene, function() {
       drawCall = drawCalls[i];
       if(!drawCall.command) {
         meshInstance = drawCall;
-        if(meshInstance.material.blendType === pc.scene.BLEND_NORMAL) {
+        if(meshInstance.material.blendType === pc.scene.BLEND_NORMAL || meshInstance.material.blendType === pc.scene.BLEND_PREMULTIPLIED) {
           meshInstance.syncAabb();
           var meshPos = meshInstance.aabb.center;
           var tempx = meshPos.x - camPos.x;
@@ -6128,7 +6102,7 @@ pc.extend(pc.scene, function() {
           var tempz = meshPos.z - camPos.z;
           meshInstance.distSqr = tempx * tempx + tempy * tempy + tempz * tempz
         }else {
-          if(typeof meshInstance.distSqr !== "undefined") {
+          if(meshInstance.distSqr !== undefined) {
             delete meshInstance.distSqr
           }
         }
@@ -6678,6 +6652,21 @@ pc.extend(pc.scene, function() {
     }
     this._children.push(node);
     this._onInsertChild(node)
+  }, addChildAndSaveTransform:function(node) {
+    var wPos = node.getPosition();
+    var wRot = node.getRotation();
+    var current = node.getParent();
+    if(current) {
+      current.removeChild(node)
+    }
+    if(this.tmpMat4 == undefined) {
+      this.tmpMat4 = new pc.Mat4;
+      this.tmpQuat = new pc.Quat
+    }
+    node.setPosition(this.tmpMat4.copy(this.worldTransform).invert().transformPoint(wPos));
+    node.setRotation(this.tmpQuat.copy(this.getRotation()).invert().mul(wRot));
+    this._children.push(node);
+    this._onInsertChild(node)
   }, insertChild:function(node, index) {
     if(node.getParent() !== null) {
       throw new Error("GraphNode is already parented");
@@ -7134,7 +7123,15 @@ pc.extend(pc.scene, function() {
         if(this.blend && this.blendSrc === pc.gfx.BLENDMODE_ONE && this.blendDst === pc.gfx.BLENDMODE_ONE && this.blendEquation === pc.gfx.BLENDEQUATION_ADD) {
           return pc.scene.BLEND_ADDITIVE
         }else {
-          return pc.scene.BLEND_NORMAL
+          if(this.blend && this.blendSrc === pc.gfx.BLENDMODE_DST_COLOR && this.blendDst === pc.gfx.BLENDMODE_ZERO && this.blendEquation === pc.gfx.BLENDEQUATION_ADD) {
+            return pc.scene.BLEND_MULTIPLICATIVE
+          }else {
+            if(this.blend && this.blendSrc === pc.gfx.BLENDMODE_ONE && this.blendDst === pc.gfx.BLENDMODE_ONE_MINUS_SRC_ALPHA && this.blendEquation === pc.gfx.BLENDEQUATION_ADD) {
+              return pc.scene.BLEND_PREMULTIPLIED
+            }else {
+              return pc.scene.BLEND_NORMAL
+            }
+          }
         }
       }
     }
@@ -7152,10 +7149,22 @@ pc.extend(pc.scene, function() {
         this.blendDst = pc.gfx.BLENDMODE_ONE_MINUS_SRC_ALPHA;
         this.blendEquation = pc.gfx.BLENDEQUATION_ADD;
         break;
+      case pc.scene.BLEND_PREMULTIPLIED:
+        this.blend = true;
+        this.blendSrc = pc.gfx.BLENDMODE_ONE;
+        this.blendDst = pc.gfx.BLENDMODE_ONE_MINUS_SRC_ALPHA;
+        this.blendEquation = pc.gfx.BLENDEQUATION_ADD;
+        break;
       case pc.scene.BLEND_ADDITIVE:
         this.blend = true;
         this.blendSrc = pc.gfx.BLENDMODE_ONE;
         this.blendDst = pc.gfx.BLENDMODE_ONE;
+        this.blendEquation = pc.gfx.BLENDEQUATION_ADD;
+        break;
+      case pc.scene.BLEND_MULTIPLICATIVE:
+        this.blend = true;
+        this.blendSrc = pc.gfx.BLENDMODE_DST_COLOR;
+        this.blendDst = pc.gfx.BLENDMODE_ZERO;
         this.blendEquation = pc.gfx.BLENDEQUATION_ADD;
         break
     }
@@ -7338,6 +7347,7 @@ pc.extend(pc.scene, function() {
     this.sphereMap = null;
     this.reflectivity = 1;
     this.lightMap = null;
+    this.fresnelFactor = 0;
     this.ambientUniform = new Float32Array(3);
     this.diffuseUniform = new Float32Array(3);
     this.specularUniform = new Float32Array(3);
@@ -7415,6 +7425,7 @@ pc.extend(pc.scene, function() {
     clone.sphereMap = this.sphereMap;
     clone.reflectivity = this.reflectivity;
     clone.lightMap = this.lightMap;
+    clone.fresnelFactor = this.fresnelFactor;
     clone.update();
     return clone
   }, init:function(data) {
@@ -7550,35 +7561,36 @@ pc.extend(pc.scene, function() {
           break;
         case "blendType":
           this.blendType = param.data;
-          break
+          break;
+        case "fresnelFactor":
+          this.fresnelFactor = param.data
       }
     }
     this.update()
   }, _updateMapTransform:function(transform, tiling, offset, rotation) {
-    if(tiling) {
-      _tempTiling.set(tiling.x, tiling.y, 1)
-    }else {
-      _tempTiling.set(1, 1, 1)
+    transform = transform || new pc.Vec4;
+    transform.set(tiling.x, tiling.y, offset.x, offset.y);
+    if(transform.x == 1 && transform.y == 1 && transform.z == 0 && transform.w == 0) {
+      return null
     }
-    if(offset) {
-      _tempOffset.set(offset.x, offset.y, 0)
-    }else {
-      _tempOffset.set(0, 0, 0)
+    return transform
+  }, _collectLights:function(lType, lights, typeArray, shadowArray) {
+    for(var i = 0;i < lights.length;i++) {
+      if(lights[i].getEnabled()) {
+        var lightType = lights[i].getType();
+        if(lightType == lType) {
+          typeArray.push(lightType);
+          shadowArray.push(lights[i].getCastShadows())
+        }
+      }
     }
-    if(rotation) {
-      _tempRotation.setFromEulerAngles(rotation.x, rotation.y, rotation.z)
-    }else {
-      _tempRotation.copy(pc.Quat.IDENTITY)
-    }
-    transform = transform || new pc.Mat4;
-    transform.setTRS(_tempOffset, _tempRotation, _tempTiling);
-    return transform.isIdentity() ? null : transform
   }, update:function() {
     this.clearParameters();
     this.ambientUniform[0] = this.ambient.r;
     this.ambientUniform[1] = this.ambient.g;
     this.ambientUniform[2] = this.ambient.b;
     this.setParameter("material_ambient", this.ambientUniform);
+    var i = 0;
     if(this.diffuseMap) {
       this.setParameter("texture_diffuseMap", this.diffuseMap);
       this.diffuseMapTransform = this._updateMapTransform(this.diffuseMapTransform, this.diffuseMapTiling, this.diffuseMapOffset, this.diffuseMapRotation);
@@ -7668,40 +7680,25 @@ pc.extend(pc.scene, function() {
     if(this.sphereMap || this.cubeMap) {
       this.setParameter("material_reflectionFactor", this.reflectivity)
     }
+    if(this.fresnelFactor > 0) {
+      this.setParameter("material_fresnelFactor", this.fresnelFactor)
+    }
     if(this.lightMap) {
       this.setParameter("texture_lightMap", this.lightMap)
     }
     this.shader = null
   }, updateShader:function(device, scene) {
     var lights = scene._lights;
-    var numDirs = 0, numPnts = 0, numSpts = 0;
-    var numSDirs = 0, numSPnts = 0, numSSpts = 0;
-    for(var i = 0;i < lights.length;i++) {
-      var light = lights[i];
-      if(light.getEnabled()) {
-        switch(light.getType()) {
-          case pc.scene.LIGHTTYPE_DIRECTIONAL:
-            if(light.getCastShadows()) {
-              numSDirs++
-            }else {
-              numDirs++
-            }
-            break;
-          case pc.scene.LIGHTTYPE_POINT:
-            numPnts++;
-            break;
-          case pc.scene.LIGHTTYPE_SPOT:
-            if(light.getCastShadows()) {
-              numSSpts++
-            }else {
-              numSpts++
-            }
-            break
-        }
-      }
-    }
-    var options = {fog:scene.fog, skin:!!this.meshInstances[0].skinInstance, numDirs:numDirs, numSDirs:numSDirs, numPnts:numPnts, numSPnts:numSPnts, numSpts:numSpts, numSSpts:numSSpts, diffuseMap:!!this.diffuseMap, diffuseMapTransform:!!this.diffuseMapTransform, specularMap:!!this.specularMap, specularMapTransform:!!this.specularMapTransform, glossMap:!!this.glossMap, glossMapTransform:!!this.glossMapTransform, emissiveMap:!!this.emissiveMap, emissiveMapTransform:!!this.emissiveMapTransform, opacityMap:!!this.opacityMap, 
-    opacityMapTransform:!!this.opacityMapTransform, normalMap:!!this.normalMap, normalMapTransform:!!this.normalMapTransform, heightMap:!!this.heightMap, heightMapTransform:!!this.heightMapTransform, sphereMap:!!this.sphereMap, cubeMap:!!this.cubeMap, lightMap:!!this.lightMap};
+    var options = {fog:scene.fog, gamma:scene.gammaCorrection, skin:!!this.meshInstances[0].skinInstance, diffuseMap:!!this.diffuseMap, diffuseMapTransform:!!this.diffuseMapTransform, specularMap:!!this.specularMap, specularMapTransform:!!this.specularMapTransform, glossMap:!!this.glossMap, glossMapTransform:!!this.glossMapTransform, emissiveMap:!!this.emissiveMap, emissiveMapTransform:!!this.emissiveMapTransform, opacityMap:!!this.opacityMap, opacityMapTransform:!!this.opacityMapTransform, normalMap:!!this.normalMap, 
+    normalMapTransform:!!this.normalMapTransform, heightMap:!!this.heightMap, heightMapTransform:!!this.heightMapTransform, sphereMap:!!this.sphereMap, cubeMap:!!this.cubeMap, lightMap:!!this.lightMap, useSpecular:!!this.specularMap || !(this.specular.r === 0 && this.specular.g === 0 && this.specular.b === 0) || !!this.sphereMap || !!this.cubeMap, useFresnel:this.fresnelFactor > 0};
+    var lightType = [];
+    var lightShadow = [];
+    this._collectLights(pc.scene.LIGHTTYPE_DIRECTIONAL, lights, lightType, lightShadow);
+    this._collectLights(pc.scene.LIGHTTYPE_POINT, lights, lightType, lightShadow);
+    this._collectLights(pc.scene.LIGHTTYPE_SPOT, lights, lightType, lightShadow);
+    options.numLights = lightType.length;
+    options.lightType = lightType;
+    options.lightShadow = lightShadow;
     var library = device.getProgramLibrary();
     this.shader = library.getProgram("phong", options)
   }});
@@ -7755,6 +7752,12 @@ pc.extend(pc.scene, function() {
     this.aabb = new pc.shape.Aabb;
     this.normalMatrix = new pc.Mat3
   };
+  Object.defineProperty(MeshInstance.prototype, "aabb", {get:function() {
+    this._aabb.setFromTransformedAabb(this.mesh.aabb, this.node.worldTransform);
+    return this._aabb
+  }, set:function(aabb) {
+    this._aabb = aabb
+  }});
   Object.defineProperty(MeshInstance.prototype, "material", {get:function() {
     return this._material
   }, set:function(material) {
@@ -7776,7 +7779,6 @@ pc.extend(pc.scene, function() {
     this.updateKey()
   }});
   pc.extend(MeshInstance.prototype, {syncAabb:function() {
-    this.aabb.setFromTransformedAabb(this.mesh.aabb, this.node.worldTransform)
   }, updateKey:function() {
     var material = this.material;
     this.key = getKey(this.layer, material.blendType, false, material.id)
@@ -8217,10 +8219,6 @@ pc.extend(pc.scene, function() {
     clone.meshInstances = cloneMeshInstances;
     clone.skinInstances = cloneSkinInstances;
     clone.getGraph().syncHierarchy();
-    var meshInstances = clone.meshInstances;
-    for(i = 0;i < meshInstances.length;i++) {
-      meshInstances[i].syncAabb()
-    }
     return clone
   }, generateWireframe:function() {
     var i, j, k;
@@ -8469,6 +8467,850 @@ pc.extend(pc.scene, function() {
   return{ParticleEmitter:ParticleEmitter}
 }());
 pc.extend(pc.scene, function() {
+  var particleVerts = [[-1, -1], [1, -1], [1, 1], [-1, 1]];
+  var _createTexture = function(device, width, height, pixelData, format, mult8Bit) {
+    if(!format) {
+      format = pc.gfx.PIXELFORMAT_RGBA32F
+    }
+    var texture = new pc.gfx.Texture(device, {width:width, height:height, format:format, cubemap:false, autoMipmap:false});
+    texture.addressU = pc.gfx.ADDRESS_CLAMP_TO_EDGE;
+    texture.addressV = pc.gfx.ADDRESS_CLAMP_TO_EDGE;
+    texture.minFilter = pc.gfx.FILTER_NEAREST;
+    texture.magFilter = pc.gfx.FILTER_NEAREST;
+    var pixels = texture.lock();
+    if(format == pc.gfx.PIXELFORMAT_R8_G8_B8_A8) {
+      var temp = new Uint8Array(pixelData.length);
+      for(var i = 0;i < pixelData.length;i++) {
+        temp[i] = pixelData[i] * mult8Bit * 255
+      }
+      pixelData = temp
+    }
+    pixels.set(pixelData);
+    texture.unlock();
+    return texture
+  };
+  function saturate(x) {
+    return Math.max(Math.min(x, 1), 0)
+  }
+  function glMod(x, y) {
+    return x - y * Math.floor(x / y)
+  }
+  function tex1D(arr, u, chans, outArr, test) {
+    var a, b, c;
+    if(chans === undefined || chans < 2) {
+      u *= arr.length - 1;
+      a = arr[Math.floor(u)];
+      b = arr[Math.ceil(u)];
+      c = u % 1;
+      return pc.math.lerp(a, b, c)
+    }
+    u *= arr.length / chans - 1;
+    if(!outArr) {
+      outArr = []
+    }
+    for(var i = 0;i < chans;i++) {
+      a = arr[Math.floor(u) * chans + i];
+      b = arr[Math.ceil(u) * chans + i];
+      c = u % 1;
+      outArr[i] = pc.math.lerp(a, b, c)
+    }
+    return outArr
+  }
+  var default0Curve = new pc.Curve([0, 0, 1, 0]);
+  var default1Curve = new pc.Curve([0, 1, 1, 1]);
+  var default0Curve3 = new pc.CurveSet([0, 0, 1, 0], [0, 0, 1, 0], [0, 0, 1, 0]);
+  var default1Curve3 = new pc.CurveSet([0, 1, 1, 1], [0, 1, 1, 1], [0, 1, 1, 1]);
+  var defaultParamTex = null;
+  var velocityVec = new pc.Vec3;
+  var localVelocityVec = new pc.Vec3;
+  var velocityVec2 = new pc.Vec3;
+  var localVelocityVec2 = new pc.Vec3;
+  var rndFactor3Vec = new pc.Vec3;
+  var particlePosPrev = new pc.Vec3;
+  var particlePos = new pc.Vec3;
+  var particlePosMoved = new pc.Vec3;
+  var particleFinalPos = new pc.Vec3;
+  var moveDirVec = new pc.Vec3;
+  var rotMat = new pc.Mat4;
+  var spawnMatrix3 = new pc.Mat3;
+  var emitterMatrix3 = new pc.Mat3;
+  var uniformScale = 1;
+  var nonUniformScale;
+  var spawnMatrix = new pc.Mat4;
+  var randomPos = new pc.Vec3;
+  var randomPosTformed = new pc.Vec3;
+  var tmpVec3 = new pc.Vec3;
+  var setPropertyTarget;
+  var setPropertyOptions;
+  function setProperty(pName, defaultVal) {
+    if(setPropertyOptions[pName] !== undefined && setPropertyOptions[pName] !== null) {
+      setPropertyTarget[pName] = setPropertyOptions[pName]
+    }else {
+      setPropertyTarget[pName] = defaultVal
+    }
+  }
+  function pack3NFloats(a, b, c) {
+    var packed = a * 255 << 16 | b * 255 << 8 | c * 255;
+    return packed / (1 << 24)
+  }
+  function packTextureXYZ_NXYZ(qXYZ, qXYZ2) {
+    var num = qXYZ.length / 3;
+    var colors = new Array(num * 4);
+    for(var i = 0;i < num;i++) {
+      colors[i * 4] = qXYZ[i * 3];
+      colors[i * 4 + 1] = qXYZ[i * 3 + 1];
+      colors[i * 4 + 2] = qXYZ[i * 3 + 2];
+      colors[i * 4 + 3] = pack3NFloats(qXYZ2[i * 3], qXYZ2[i * 3 + 1], qXYZ2[i * 3 + 2])
+    }
+    return colors
+  }
+  function packTextureRGBA(qRGB, qA) {
+    var colors = new Array(qA.length * 4);
+    for(var i = 0;i < qA.length;i++) {
+      colors[i * 4] = qRGB[i * 3];
+      colors[i * 4 + 1] = qRGB[i * 3 + 1];
+      colors[i * 4 + 2] = qRGB[i * 3 + 2];
+      colors[i * 4 + 3] = qA[i]
+    }
+    return colors
+  }
+  function packTexture5Floats(qA, qB, qC, qD, qE) {
+    var colors = new Array(qA.length * 4);
+    for(var i = 0;i < qA.length;i++) {
+      colors[i * 4] = qA[i];
+      colors[i * 4 + 1] = qB[i];
+      colors[i * 4 + 2] = 0;
+      colors[i * 4 + 3] = pack3NFloats(qC[i], qD[i], qE[i])
+    }
+    return colors
+  }
+  function createOffscreenTarget(gd, camera) {
+    var rect = camera.rect;
+    var width = Math.floor(rect.z * gd.width);
+    var height = Math.floor(rect.w * gd.height);
+    var colorBuffer = new pc.gfx.Texture(gd, {format:pc.gfx.PIXELFORMAT_R8_G8_B8_A8, width:width, height:height});
+    colorBuffer.minFilter = pc.gfx.FILTER_NEAREST;
+    colorBuffer.magFilter = pc.gfx.FILTER_NEAREST;
+    colorBuffer.addressU = pc.gfx.ADDRESS_CLAMP_TO_EDGE;
+    colorBuffer.addressV = pc.gfx.ADDRESS_CLAMP_TO_EDGE;
+    return new pc.gfx.RenderTarget(gd, colorBuffer, {depth:true})
+  }
+  var ParticleEmitter2 = function(graphicsDevice, options) {
+    this.graphicsDevice = graphicsDevice;
+    var gd = graphicsDevice;
+    var precision = 32;
+    this.precision = precision;
+    if(!defaultParamTex) {
+      var dtex = new Float32Array(8 * 8 * 4);
+      var x, y, xgrad, ygrad, p, c;
+      for(y = 0;y < 8;y++) {
+        for(x = 0;x < 8;x++) {
+          xgrad = x + 1 - 4.5;
+          ygrad = y + 1 - 4.5;
+          c = saturate(1 - saturate(Math.sqrt(xgrad * xgrad + ygrad * ygrad) / 8) - 0.5);
+          p = y * 8 + x;
+          dtex[p * 4] = 1;
+          dtex[p * 4 + 1] = 1;
+          dtex[p * 4 + 2] = 1;
+          dtex[p * 4 + 3] = c
+        }
+      }
+      defaultParamTex = _createTexture(gd, 8, 8, dtex, pc.gfx.PIXELFORMAT_R8_G8_B8_A8, 1);
+      defaultParamTex.minFilter = pc.gfx.FILTER_LINEAR;
+      defaultParamTex.magFilter = pc.gfx.FILTER_LINEAR
+    }
+    setPropertyTarget = this;
+    setPropertyOptions = options;
+    setProperty("numParticles", 1);
+    setProperty("rate", 1);
+    setProperty("rate2", this.rate);
+    setProperty("lifetime", 50);
+    setProperty("lifetime2", this.lifetime);
+    setProperty("spawnBounds", new pc.Vec3(0, 0, 0));
+    setProperty("wrap", false);
+    setProperty("wrapBounds", null);
+    setProperty("smoothness", 4);
+    setProperty("colorMap", defaultParamTex);
+    setProperty("normalMap", null);
+    setProperty("oneShot", false);
+    setProperty("preWarm", false);
+    setProperty("sort", pc.scene.PARTICLES_SORT_NONE);
+    setProperty("mode", this.sort > pc.scene.PARTICLES_SORT_NONE ? "CPU" : "GPU");
+    setProperty("camera", null);
+    setProperty("scene", null);
+    setProperty("lighting", false);
+    setProperty("halfLambert", false);
+    setProperty("intensity", 1);
+    setProperty("stretch", 0);
+    setProperty("depthSoftening", 0);
+    setProperty("maxEmissionTime", 15);
+    setProperty("mesh", null);
+    setProperty("depthTest", false);
+    setProperty("blendType", pc.scene.BLEND_PREMULTIPLIED);
+    setProperty("node", null);
+    setProperty("startAngle", 0);
+    setProperty("startAngle2", this.startAngle);
+    this.mode = this.mode === "CPU" ? pc.scene.PARTICLES_MODE_CPU : pc.scene.PARTICLES_MODE_GPU;
+    if(!(gd.extTextureFloat && gd.maxVertexTextures >= 1)) {
+      this.mode = pc.scene.PARTICLES_MODE_CPU
+    }
+    if(gd.fragmentUniformsCount < 100) {
+      this.mode = pc.scene.PARTICLES_MODE_CPU
+    }
+    this.frameRandom = new pc.Vec3(0, 0, 0);
+    setProperty("colorGraph", default1Curve3);
+    setProperty("colorGraph2", this.colorGraph);
+    setProperty("scaleGraph", default1Curve);
+    setProperty("scaleGraph2", this.scaleGraph);
+    setProperty("alphaGraph", default1Curve);
+    setProperty("alphaGraph2", this.alphaGraph);
+    setProperty("localVelocityGraph", default0Curve3);
+    setProperty("localVelocityGraph2", this.localVelocityGraph);
+    setProperty("velocityGraph", default0Curve3);
+    setProperty("velocityGraph2", this.velocityGraph);
+    setProperty("rotationSpeedGraph", default0Curve);
+    setProperty("rotationSpeedGraph2", this.rotationSpeedGraph);
+    this.constantParticleTexIN = gd.scope.resolve("particleTexIN");
+    this.constantParticleTexOUT = gd.scope.resolve("particleTexOUT");
+    this.constantEmitterPos = gd.scope.resolve("emitterPos");
+    this.constantEmitterScale = gd.scope.resolve("emitterScale");
+    this.constantSpawnBounds = gd.scope.resolve("spawnBounds");
+    this.constantFrameRandom = gd.scope.resolve("frameRandom");
+    this.constantDelta = gd.scope.resolve("delta");
+    this.constantRate = gd.scope.resolve("rate");
+    this.constantRateDiv = gd.scope.resolve("rateDiv");
+    this.constantLifetime = gd.scope.resolve("lifetime");
+    this.constantLifetimeDiv = gd.scope.resolve("lifetimeDiv");
+    this.constantLightCube = gd.scope.resolve("lightCube[0]");
+    this.constantGraphSampleSize = gd.scope.resolve("graphSampleSize");
+    this.constantGraphNumSamples = gd.scope.resolve("graphNumSamples");
+    this.constantInternalTex0 = gd.scope.resolve("internalTex0");
+    this.constantInternalTex1 = gd.scope.resolve("internalTex1");
+    this.constantInternalTex2 = gd.scope.resolve("internalTex2");
+    this.constantEmitterMatrix = gd.scope.resolve("emitterMatrix");
+    this.constantNumParticles = gd.scope.resolve("numParticles");
+    this.constantNumParticlesPot = gd.scope.resolve("numParticlesPot");
+    this.constantTotalTime = gd.scope.resolve("totalTime");
+    this.constantTotalTimePrev = gd.scope.resolve("totalTimePrev");
+    this.constantLocalVelocityDivMult = gd.scope.resolve("localVelocityDivMult");
+    this.constantVelocityDivMult = gd.scope.resolve("velocityDivMult");
+    this.constantRotSpeedDivMult = gd.scope.resolve("rotSpeedDivMult");
+    this.constantOneShotStartTime = gd.scope.resolve("oneShotStartTime");
+    this.constantOneShotEndTime = gd.scope.resolve("oneShotEndTime");
+    this.constantSeed = gd.scope.resolve("seed");
+    this.constantStartAngle = gd.scope.resolve("startAngle");
+    this.constantStartAngle2 = gd.scope.resolve("startAngle2");
+    this.lightCube = new Float32Array(6 * 3);
+    this.lightCubeDir = new Array(6);
+    this.internalTex0 = null;
+    this.internalTex1 = null;
+    this.internalTex2 = null;
+    this.internalTex3 = null;
+    this.vbToSort = null;
+    this.vbOld = null;
+    this.particleDistance = null;
+    this.particleNoize = null;
+    this.swapTex = false;
+    this.shaderParticleUpdateRespawn = null;
+    this.shaderParticleUpdateNoRespawn = null;
+    this.numParticleVerts = 0;
+    this.numParticleIndices = 0;
+    this.material = null;
+    this.meshInstance = null;
+    this.totalTime = 0;
+    this.totalTimePrev = 0;
+    this.oneShotStartTime = 0;
+    this.oneShotEndTime = 0;
+    this.seed = 0;
+    this.rebuild()
+  };
+  function calcEndTime(emitter) {
+    var interval = emitter.rate * emitter.numParticles + emitter.lifetime;
+    interval = Math.min(interval, emitter.maxEmissionTime);
+    return Date.now() + interval * 1E3
+  }
+  function subGraph(A, B) {
+    var r = new Float32Array(A.length);
+    for(var i = 0;i < A.length;i++) {
+      r[i] = A[i] - B[i]
+    }
+    return r
+  }
+  function maxUnsignedGraphValue(A, outUMax) {
+    var i, j;
+    var chans = outUMax.length;
+    var values = A.length / chans;
+    for(i = 0;i < values;i++) {
+      for(j = 0;j < chans;j++) {
+        var a = Math.abs(A[i * chans + j]);
+        outUMax[j] = Math.max(outUMax[j], a)
+      }
+    }
+  }
+  function normalizeGraph(A, uMax) {
+    var chans = uMax.length;
+    var i, j;
+    var values = A.length / chans;
+    for(i = 0;i < values;i++) {
+      for(j = 0;j < chans;j++) {
+        A[i * chans + j] /= uMax[j];
+        A[i * chans + j] *= 0.5;
+        A[i * chans + j] += 0.5
+      }
+    }
+  }
+  function divGraphFrom2Curves(curve1, curve2, outUMax) {
+    var sub = subGraph(curve2, curve1);
+    maxUnsignedGraphValue(sub, outUMax);
+    normalizeGraph(sub, outUMax);
+    return sub
+  }
+  function mat4ToMat3(mat4, mat3) {
+    mat3.data[0] = mat4.data[0];
+    mat3.data[1] = mat4.data[1];
+    mat3.data[2] = mat4.data[2];
+    mat3.data[3] = mat4.data[4];
+    mat3.data[4] = mat4.data[5];
+    mat3.data[5] = mat4.data[6];
+    mat3.data[6] = mat4.data[8];
+    mat3.data[7] = mat4.data[9];
+    mat3.data[8] = mat4.data[10]
+  }
+  ParticleEmitter2.prototype = {rebuild:function() {
+    var i, len;
+    this.numParticlesPot = pc.math.nextPowerOfTwo(this.numParticles);
+    var precision = this.precision;
+    var gd = this.graphicsDevice;
+    if(this.depthSoftening > 0) {
+      if(this.camera) {
+        if(!this.camera.camera.camera._depthTarget) {
+          this.camera.camera.camera._depthTarget = createOffscreenTarget(this.graphicsDevice, this.camera.camera);
+          this.camera.camera._depthTarget = this.camera.camera.camera._depthTarget;
+          this.camera._depthTarget = this.camera.camera.camera._depthTarget
+        }
+      }
+    }
+    if(this.lighting) {
+      this.lightCubeDir[0] = new pc.Vec3(-1, 0, 0);
+      this.lightCubeDir[1] = new pc.Vec3(1, 0, 0);
+      this.lightCubeDir[2] = new pc.Vec3(0, -1, 0);
+      this.lightCubeDir[3] = new pc.Vec3(0, 1, 0);
+      this.lightCubeDir[4] = new pc.Vec3(0, 0, -1);
+      this.lightCubeDir[5] = new pc.Vec3(0, 0, 1)
+    }
+    this.rebuildGraphs();
+    this.vbToSort = new Array(this.numParticles);
+    this.vbOld = new Float32Array(this.numParticles * 4 * 4);
+    this.particleDistance = new Float32Array(this.numParticles);
+    this.particleNoize = new Float32Array(this.numParticles);
+    for(i = 0;i < this.numParticles;i++) {
+      this.particleNoize[i] = Math.random()
+    }
+    this.particleTex = new Float32Array(this.numParticles * 4);
+    var emitterPos = this.node === null ? pc.Vec3.ZERO : this.node.getPosition();
+    if(this.node === null) {
+      spawnMatrix.setTRS(pc.Vec3.ZERO, pc.Quat.IDENTITY, this.spawnBounds)
+    }else {
+      spawnMatrix.setTRS(pc.Vec3.ZERO, this.node.getRotation(), tmpVec3.copy(this.spawnBounds).mul(this.node.getLocalScale()))
+    }
+    for(i = 0;i < this.numParticles;i++) {
+      this.calcSpawnPosition(emitterPos, i)
+    }
+    this.particleTexStart = new Float32Array(this.numParticles * 4);
+    for(i = 0;i < this.particleTexStart.length;i++) {
+      this.particleTexStart[i] = this.particleTex[i]
+    }
+    if(this.mode === pc.scene.PARTICLES_MODE_GPU) {
+      this.particleTexIN = _createTexture(gd, this.numParticlesPot, 1, this.particleTex);
+      this.particleTexOUT = _createTexture(gd, this.numParticlesPot, 1, this.particleTex);
+      this.particleTexStart = _createTexture(gd, this.numParticlesPot, 1, this.particleTexStart);
+      this.rtParticleTexIN = new pc.gfx.RenderTarget(gd, this.particleTexIN, {depth:false});
+      this.rtParticleTexOUT = new pc.gfx.RenderTarget(gd, this.particleTexOUT, {depth:false});
+      this.swapTex = false
+    }
+    var chunks = pc.gfx.shaderChunks;
+    var shaderCodeRespawn = chunks.particleUpdaterStartPS;
+    shaderCodeRespawn += chunks.particleUpdaterRespawnPS;
+    shaderCodeRespawn += chunks.particleUpdaterEndPS;
+    var shaderCodeNoRespawn = chunks.particleUpdaterStartPS;
+    shaderCodeNoRespawn += chunks.particleUpdaterRespawnPS;
+    shaderCodeNoRespawn += chunks.particleUpdaterEndPS;
+    this.shaderParticleUpdateRespawn = chunks.createShaderFromCode(gd, chunks.fullscreenQuadVS, shaderCodeRespawn, "fsQuad" + false);
+    this.shaderParticleUpdateNoRespawn = chunks.createShaderFromCode(gd, chunks.fullscreenQuadVS, shaderCodeNoRespawn, "fsQuad" + true);
+    this.numParticleVerts = this.mesh === null ? 4 : this.mesh.vertexBuffer.numVertices;
+    this.numParticleIndices = this.mesh === null ? 6 : this.mesh.indexBuffer[0].numIndices;
+    this._allocate(this.numParticles);
+    var mesh = new pc.scene.Mesh;
+    mesh.vertexBuffer = this.vertexBuffer;
+    mesh.indexBuffer[0] = this.indexBuffer;
+    mesh.primitive[0].type = pc.gfx.PRIMITIVE_TRIANGLES;
+    mesh.primitive[0].base = 0;
+    mesh.primitive[0].count = this.numParticles * this.numParticleIndices;
+    mesh.primitive[0].indexed = true;
+    var hasNormal = this.normalMap != null;
+    var programLib = this.graphicsDevice.getProgramLibrary();
+    this.normalOption = 0;
+    if(this.lighting) {
+      this.normalOption = hasNormal ? 2 : 1
+    }
+    this.isMesh = this.mesh != null;
+    this.material = new pc.scene.Material;
+    this.material.cullMode = pc.gfx.CULLFACE_NONE;
+    this.material.blend = true;
+    this.material.blendType = this.blendType;
+    this.material.depthWrite = this.depthTest;
+    this.material.emitter = this;
+    this.material.updateShader = function() {
+      var shader = programLib.getProgram("particle2", {mode:this.emitter.mode, normal:this.emitter.normalOption, halflambert:this.emitter.halfLambert, stretch:this.emitter.stretch, soft:this.emitter.depthSoftening && this.emitter._hasDepthTarget(), mesh:this.emitter.isMesh, srgb:this.emitter.scene ? this.emitter.scene.gammaCorrection : false, wrap:this.emitter.wrap && this.emitter.wrapBounds, premul:this.blendType === pc.scene.BLEND_PREMULTIPLIED});
+      this.setShader(shader)
+    };
+    this.material.updateShader();
+    this.resetMaterial();
+    this.meshInstance = new pc.scene.MeshInstance(this.node, mesh, this.material);
+    this.meshInstance.layer = pc.scene.LAYER_SKYBOX;
+    this.meshInstance.updateKey();
+    this._initializeTextures();
+    this.addTime(this._getStartTime());
+    this.resetTime()
+  }, calcSpawnPosition:function(emitterPos, i) {
+    randomPos.data[0] = this.particleNoize[i] - 0.5;
+    randomPos.data[1] = this.particleNoize[i] * 10 % 1 - 0.5;
+    randomPos.data[2] = this.particleNoize[i] * 100 % 1 - 0.5;
+    randomPosTformed.copy(emitterPos).add(spawnMatrix.transformPoint(randomPos));
+    this.particleTex[i * 4] = randomPosTformed.data[0];
+    this.particleTex[i * 4 + 1] = randomPosTformed.data[1];
+    this.particleTex[i * 4 + 2] = randomPosTformed.data[2];
+    this.particleTex[i * 4 + 3] = pc.math.lerp(this.startAngle * pc.math.DEG_TO_RAD, this.startAngle2 * pc.math.DEG_TO_RAD, this.particleNoize[i])
+  }, rebuildGraphs:function() {
+    var precision = this.precision;
+    var gd = this.graphicsDevice;
+    var i;
+    this.qLocalVelocity = this.localVelocityGraph.quantize(precision, this.smoothness);
+    this.qVelocity = this.velocityGraph.quantize(precision, this.smoothness);
+    this.qColor = this.colorGraph.quantize(precision, this.smoothness);
+    this.qRotSpeed = this.rotationSpeedGraph.quantize(precision, this.smoothness);
+    this.qScale = this.scaleGraph.quantize(precision, this.smoothness);
+    this.qAlpha = this.alphaGraph.quantize(precision, this.smoothness);
+    this.qLocalVelocity2 = this.localVelocityGraph2.quantize(precision, this.smoothness);
+    this.qVelocity2 = this.velocityGraph2.quantize(precision, this.smoothness);
+    this.qColor2 = this.colorGraph2.quantize(precision, this.smoothness);
+    this.qRotSpeed2 = this.rotationSpeedGraph2.quantize(precision, this.smoothness);
+    this.qScale2 = this.scaleGraph2.quantize(precision, this.smoothness);
+    this.qAlpha2 = this.alphaGraph2.quantize(precision, this.smoothness);
+    for(i = 0;i < precision;i++) {
+      this.qRotSpeed[i] *= pc.math.DEG_TO_RAD;
+      this.qRotSpeed2[i] *= pc.math.DEG_TO_RAD
+    }
+    this.localVelocityUMax = new pc.Vec3(0, 0, 0);
+    this.velocityUMax = new pc.Vec3(0, 0, 0);
+    this.colorUMax = new pc.Vec3(0, 0, 0);
+    this.rotSpeedUMax = [0];
+    this.scaleUMax = [0];
+    this.alphaUMax = [0];
+    this.qLocalVelocityDiv = divGraphFrom2Curves(this.qLocalVelocity, this.qLocalVelocity2, this.localVelocityUMax.data);
+    this.qVelocityDiv = divGraphFrom2Curves(this.qVelocity, this.qVelocity2, this.velocityUMax.data);
+    this.qColorDiv = divGraphFrom2Curves(this.qColor, this.qColor2, this.colorUMax.data);
+    this.qRotSpeedDiv = divGraphFrom2Curves(this.qRotSpeed, this.qRotSpeed2, this.rotSpeedUMax);
+    this.qScaleDiv = divGraphFrom2Curves(this.qScale, this.qScale2, this.scaleUMax);
+    this.qAlphaDiv = divGraphFrom2Curves(this.qAlpha, this.qAlpha2, this.alphaUMax);
+    if(this.mode === pc.scene.PARTICLES_MODE_GPU) {
+      this.internalTex0 = _createTexture(gd, precision, 1, packTextureXYZ_NXYZ(this.qLocalVelocity, this.qLocalVelocityDiv));
+      this.internalTex1 = _createTexture(gd, precision, 1, packTextureXYZ_NXYZ(this.qVelocity, this.qVelocityDiv));
+      this.internalTex2 = _createTexture(gd, precision, 1, packTexture5Floats(this.qRotSpeed, this.qScale, this.qScaleDiv, this.qRotSpeedDiv, this.qAlphaDiv))
+    }
+    this.internalTex3 = _createTexture(gd, precision, 1, packTextureRGBA(this.qColor, this.qAlpha), pc.gfx.PIXELFORMAT_R8_G8_B8_A8, 1)
+  }, _initializeTextures:function() {
+    if(this.colorMap) {
+      this.material.setParameter("colorMap", this.colorMap);
+      if(this.lighting && this.normalMap) {
+        this.material.setParameter("normalMap", this.normalMap)
+      }
+    }
+  }, _hasDepthTarget:function() {
+    if(this.camera) {
+      return!!this.camera.camera._depthTarget
+    }
+    return false
+  }, _getStartTime:function() {
+    return this.preWarm && !this.oneShot ? this.lifetime : 0
+  }, resetMaterial:function() {
+    var material = this.material;
+    var gd = this.graphicsDevice;
+    material.setParameter("stretch", this.stretch);
+    material.setParameter("colorMult", this.intensity);
+    if(this.mode === pc.scene.PARTICLES_MODE_GPU) {
+      material.setParameter("internalTex0", this.internalTex0);
+      material.setParameter("internalTex1", this.internalTex1);
+      material.setParameter("internalTex2", this.internalTex2)
+    }
+    material.setParameter("internalTex3", this.internalTex3);
+    material.setParameter("numParticles", this.numParticles);
+    material.setParameter("numParticlesPot", this.numParticlesPot);
+    material.setParameter("lifetime", this.lifetime);
+    material.setParameter("lifetimeDiv", this.lifetime2 - this.lifetime);
+    material.setParameter("rate", this.rate);
+    material.setParameter("rateDiv", this.rate2 - this.rate);
+    material.setParameter("seed", this.seed);
+    material.setParameter("scaleDivMult", this.scaleUMax[0]);
+    material.setParameter("alphaDivMult", this.alphaUMax[0]);
+    material.setParameter("oneShotStartTime", this.oneShotStartTime);
+    material.setParameter("oneShotEndTime", this.oneShotEndTime);
+    material.setParameter("graphNumSamples", this.precision);
+    material.setParameter("graphSampleSize", 1 / this.precision);
+    material.setParameter("emitterScale", pc.Vec3.ONE);
+    if(this.wrap && this.wrapBounds) {
+      material.setParameter("wrapBounds", this.wrapBounds.data)
+    }
+    if(this.colorMap) {
+      material.setParameter("colorMap", this.colorMap)
+    }
+    if(this.lighting) {
+      if(this.normalMap) {
+        material.setParameter("normalMap", this.normalMap)
+      }
+    }
+    if(this.depthSoftening > 0 && this._hasDepthTarget()) {
+      material.setParameter("uDepthMap", this.camera.camera._depthTarget.colorBuffer);
+      material.setParameter("screenSize", (new pc.Vec4(gd.width, gd.height, 1 / gd.width, 1 / gd.height)).data);
+      material.setParameter("softening", this.depthSoftening)
+    }
+    if(this.stretch > 0) {
+      material.cull = pc.gfx.CULLFACE_NONE
+    }
+  }, _allocate:function(numParticles) {
+    var psysVertCount = numParticles * this.numParticleVerts;
+    var psysIndexCount = numParticles * this.numParticleIndices;
+    var elements, particleFormat;
+    var i;
+    if(this.vertexBuffer === undefined || this.vertexBuffer.getNumVertices() !== psysVertCount) {
+      if(this.mode === pc.scene.PARTICLES_MODE_GPU) {
+        elements = [{semantic:pc.gfx.SEMANTIC_ATTR0, components:4, type:pc.gfx.ELEMENTTYPE_FLOAT32}];
+        particleFormat = new pc.gfx.VertexFormat(this.graphicsDevice, elements);
+        this.vertexBuffer = new pc.gfx.VertexBuffer(this.graphicsDevice, particleFormat, psysVertCount, pc.gfx.BUFFER_DYNAMIC);
+        this.indexBuffer = new pc.gfx.IndexBuffer(this.graphicsDevice, pc.gfx.INDEXFORMAT_UINT16, psysIndexCount)
+      }else {
+        elements = [{semantic:pc.gfx.SEMANTIC_ATTR0, components:4, type:pc.gfx.ELEMENTTYPE_FLOAT32}, {semantic:pc.gfx.SEMANTIC_ATTR1, components:4, type:pc.gfx.ELEMENTTYPE_FLOAT32}, {semantic:pc.gfx.SEMANTIC_ATTR2, components:4, type:pc.gfx.ELEMENTTYPE_FLOAT32}];
+        particleFormat = new pc.gfx.VertexFormat(this.graphicsDevice, elements);
+        this.vertexBuffer = new pc.gfx.VertexBuffer(this.graphicsDevice, particleFormat, psysVertCount, pc.gfx.BUFFER_DYNAMIC);
+        this.indexBuffer = new pc.gfx.IndexBuffer(this.graphicsDevice, pc.gfx.INDEXFORMAT_UINT16, psysIndexCount)
+      }
+      var data = new Float32Array(this.vertexBuffer.lock());
+      var meshData, stride;
+      if(this.mesh) {
+        meshData = new Float32Array(this.mesh.vertexBuffer.lock());
+        stride = meshData.length / this.mesh.vertexBuffer.numVertices
+      }
+      var rnd;
+      for(i = 0;i < psysVertCount;i++) {
+        id = Math.floor(i / this.numParticleVerts);
+        if(i % this.numParticleVerts === 0) {
+          rnd = this.particleNoize[id]
+        }
+        if(!this.mesh) {
+          var vertID = i % 4;
+          data[i * 4] = particleVerts[vertID][0];
+          data[i * 4 + 1] = particleVerts[vertID][1];
+          data[i * 4 + 2] = 0
+        }else {
+          var vert = i % this.numParticleVerts;
+          data[i * 4] = meshData[vert * stride];
+          data[i * 4 + 1] = meshData[vert * stride + 1];
+          data[i * 4 + 2] = meshData[vert * stride + 2]
+        }
+        data[i * 4 + 3] = id + rnd
+      }
+      if(this.mode === pc.scene.PARTICLES_MODE_CPU) {
+        this.vbCPU = new Float32Array(data)
+      }
+      this.vertexBuffer.unlock();
+      if(this.mesh) {
+        this.mesh.vertexBuffer.unlock()
+      }
+      var dst = 0;
+      indices = new Uint16Array(this.indexBuffer.lock());
+      if(this.mesh) {
+        meshData = new Uint16Array(this.mesh.indexBuffer[0].lock())
+      }
+      for(i = 0;i < numParticles;i++) {
+        if(!this.mesh) {
+          var baseIndex = i * 4;
+          indices[dst++] = baseIndex;
+          indices[dst++] = baseIndex + 1;
+          indices[dst++] = baseIndex + 2;
+          indices[dst++] = baseIndex;
+          indices[dst++] = baseIndex + 2;
+          indices[dst++] = baseIndex + 3
+        }else {
+          for(var j = 0;j < this.numParticleIndices;j++) {
+            indices[i * this.numParticleIndices + j] = meshData[j] + i * this.numParticleVerts
+          }
+        }
+      }
+      this.indexBuffer.unlock();
+      if(this.mesh) {
+        this.mesh.indexBuffer[0].unlock()
+      }
+    }
+  }, reset:function() {
+    this.seed = Math.random();
+    this.material.setParameter("seed", this.seed);
+    if(this.mode === pc.scene.PARTICLES_MODE_CPU) {
+      for(var i = 0;i < this.particleTexStart.length;i++) {
+        this.particleTex[i] = this.particleTexStart[i]
+      }
+    }else {
+      this._initializeTextures();
+      this.swapTex = false;
+      var oldTexIN = this.particleTexIN;
+      this.particleTexIN = this.particleTexStart;
+      this.particleTexIN = oldTexIN
+    }
+    var startTime = this.preWarm ? this.lifetime : 0;
+    this.totalTime = this.totalTimePrev = this.oneShotStartTime = this.oneShotEndTime = 0;
+    this.addTime(this._getStartTime());
+    this.resetTime()
+  }, resetTime:function() {
+    this.endTime = calcEndTime(this)
+  }, addTime:function(delta) {
+    var i, j;
+    var device = this.graphicsDevice;
+    this.totalTimePrev = this.totalTime;
+    this.totalTime += delta;
+    if(!this.oneShot) {
+      this.oneShotStartTime = this.totalTime
+    }
+    device.setBlending(false);
+    device.setColorWrite(true, true, true, true);
+    device.setCullMode(pc.gfx.CULLFACE_NONE);
+    device.setDepthTest(false);
+    device.setDepthWrite(false);
+    if(this.lighting) {
+      if(!this.scene) {
+        console.error("There is no scene defined for lighting particles");
+        return
+      }
+      for(i = 0;i < 6;i++) {
+        this.lightCube[i * 3] = this.scene.ambientLight.r;
+        this.lightCube[i * 3 + 1] = this.scene.ambientLight.g;
+        this.lightCube[i * 3 + 2] = this.scene.ambientLight.b
+      }
+      var dirs = this.scene._globalLights;
+      for(i = 0;i < dirs.length;i++) {
+        for(var c = 0;c < 6;c++) {
+          var weight = Math.max(this.lightCubeDir[c].dot(dirs[i]._direction), 0) * dirs[i]._intensity;
+          this.lightCube[c * 3] += dirs[i]._color.r * weight;
+          this.lightCube[c * 3 + 1] += dirs[i]._color.g * weight;
+          this.lightCube[c * 3 + 2] += dirs[i]._color.b * weight
+        }
+      }
+      this.constantLightCube.setValue(this.lightCube)
+    }
+    if(this.meshInstance.node === null) {
+      spawnMatrix.setTRS(pc.Vec3.ZERO, pc.Quat.IDENTITY, this.spawnBounds)
+    }else {
+      spawnMatrix.setTRS(pc.Vec3.ZERO, this.meshInstance.node.getRotation(), tmpVec3.copy(this.spawnBounds).mul(this.meshInstance.node.getLocalScale()))
+    }
+    var emitterScale = this.meshInstance.node === null ? pc.Vec3.ONE.data : this.meshInstance.node.getLocalScale().data;
+    this.material.setParameter("emitterScale", emitterScale);
+    if(this.mode === pc.scene.PARTICLES_MODE_GPU) {
+      this.frameRandom.x = Math.random();
+      this.frameRandom.y = Math.random();
+      this.frameRandom.z = Math.random();
+      this.constantGraphSampleSize.setValue(1 / this.precision);
+      this.constantGraphNumSamples.setValue(this.precision);
+      this.constantNumParticles.setValue(this.numParticles);
+      this.constantNumParticlesPot.setValue(this.numParticlesPot);
+      this.constantInternalTex0.setValue(this.internalTex0);
+      this.constantInternalTex1.setValue(this.internalTex1);
+      this.constantInternalTex2.setValue(this.internalTex2);
+      var emitterPos = this.meshInstance.node === null ? pc.Vec3.ZERO.data : this.meshInstance.node.getPosition().data;
+      var emitterMatrix = this.meshInstance.node === null ? pc.Mat4.IDENTITY : this.meshInstance.node.getWorldTransform();
+      mat4ToMat3(spawnMatrix, spawnMatrix3);
+      mat4ToMat3(emitterMatrix, emitterMatrix3);
+      this.constantEmitterPos.setValue(emitterPos);
+      this.constantSpawnBounds.setValue(spawnMatrix3.data);
+      this.constantFrameRandom.setValue(this.frameRandom.data);
+      this.constantDelta.setValue(delta);
+      this.constantTotalTime.setValue(this.totalTime);
+      this.constantTotalTimePrev.setValue(this.totalTimePrev);
+      this.constantOneShotStartTime.setValue(this.oneShotStartTime);
+      this.constantOneShotEndTime.setValue(this.oneShotEndTime);
+      this.constantRate.setValue(this.rate);
+      this.constantRateDiv.setValue(this.rate2 - this.rate);
+      this.constantStartAngle.setValue(this.startAngle * pc.math.DEG_TO_RAD);
+      this.constantStartAngle2.setValue(this.startAngle2 * pc.math.DEG_TO_RAD);
+      this.constantSeed.setValue(this.seed);
+      this.constantLifetime.setValue(this.lifetime);
+      this.constantLifetimeDiv.setValue(this.lifetime2 - this.lifetime);
+      this.constantEmitterScale.setValue(emitterScale);
+      this.constantEmitterMatrix.setValue(emitterMatrix3.data);
+      this.constantLocalVelocityDivMult.setValue(this.localVelocityUMax.data);
+      this.constantVelocityDivMult.setValue(this.velocityUMax.data);
+      this.constantRotSpeedDivMult.setValue(this.rotSpeedUMax[0]);
+      var texIN = this.swapTex ? this.particleTexOUT : this.particleTexIN;
+      var texOUT = this.swapTex ? this.particleTexIN : this.particleTexOUT;
+      this.constantParticleTexIN.setValue(texIN);
+      pc.gfx.drawQuadWithShader(device, this.swapTex ? this.rtParticleTexIN : this.rtParticleTexOUT, this.oneShot ? this.shaderParticleUpdateNoRespawn : this.shaderParticleUpdateRespawn);
+      this.constantParticleTexOUT.setValue(texOUT);
+      this.material.setParameter("totalTime", this.totalTime);
+      this.material.setParameter("totalTimePrev", this.totalTimePrev);
+      this.material.setParameter("oneShotStartTime", this.oneShotStartTime);
+      this.material.setParameter("oneShotEndTime", this.oneShotEndTime);
+      this.material.setParameter("particleTexOUT", texOUT);
+      this.material.setParameter("particleTexIN", texIN);
+      this.swapTex = !this.swapTex
+    }else {
+      var data = new Float32Array(this.vertexBuffer.lock());
+      if(this.meshInstance.node) {
+        var fullMat = this.meshInstance.node.worldTransform;
+        for(j = 0;j < 12;j++) {
+          rotMat.data[j] = fullMat.data[j]
+        }
+        nonUniformScale = this.meshInstance.node.getLocalScale();
+        uniformScale = Math.max(Math.max(nonUniformScale.x, nonUniformScale.y), nonUniformScale.z)
+      }
+      var emitterPos = this.meshInstance.node === null ? pc.Vec3.ZERO : this.meshInstance.node.getPosition();
+      var posCam = this.camera ? this.camera.position : pc.Vec3.ZERO;
+      for(i = 0;i < this.numParticles;i++) {
+        var id = Math.floor(this.vbCPU[i * this.numParticleVerts * 4 + 3]);
+        var rndFactor = (this.particleNoize[id] + this.seed) % 1;
+        rndFactor3Vec.x = rndFactor;
+        rndFactor3Vec.y = rndFactor * 10 % 1;
+        rndFactor3Vec.z = rndFactor * 100 % 1;
+        var particleRate = pc.math.lerp(this.rate, this.rate2, rndFactor);
+        var particleLifetime = pc.math.lerp(this.lifetime, this.lifetime2, rndFactor);
+        var startSpawnTime = -particleRate * id;
+        var accumLife = Math.max(this.totalTime + startSpawnTime + particleRate, 0);
+        var life = accumLife % (particleLifetime + particleRate) - particleRate;
+        var nlife = saturate(life / particleLifetime);
+        var accumLifePrev = Math.max(this.totalTimePrev + startSpawnTime + particleRate, 0);
+        var respawn = Math.floor(accumLife / (particleLifetime + particleRate)) != Math.floor(accumLifePrev / (particleLifetime + particleRate));
+        var scale = 0;
+        var alphaRnd = 0;
+        if(life > 0) {
+          localVelocityVec.data = tex1D(this.qLocalVelocity, nlife, 3, localVelocityVec.data);
+          localVelocityVec2.data = tex1D(this.qLocalVelocity2, nlife, 3, localVelocityVec2.data);
+          velocityVec.data = tex1D(this.qVelocity, nlife, 3, velocityVec.data);
+          velocityVec2.data = tex1D(this.qVelocity2, nlife, 3, velocityVec2.data);
+          var rotSpeed = tex1D(this.qRotSpeed, nlife);
+          var rotSpeed2 = tex1D(this.qRotSpeed2, nlife);
+          scale = tex1D(this.qScale, nlife);
+          var scale2 = tex1D(this.qScale2, nlife);
+          localVelocityVec.x = pc.math.lerp(localVelocityVec.x, localVelocityVec2.x, rndFactor3Vec.x);
+          localVelocityVec.y = pc.math.lerp(localVelocityVec.y, localVelocityVec2.y, rndFactor3Vec.y);
+          localVelocityVec.z = pc.math.lerp(localVelocityVec.z, localVelocityVec2.z, rndFactor3Vec.z);
+          velocityVec.x = pc.math.lerp(velocityVec.x, velocityVec2.x, rndFactor3Vec.x);
+          velocityVec.y = pc.math.lerp(velocityVec.y, velocityVec2.y, rndFactor3Vec.y);
+          velocityVec.z = pc.math.lerp(velocityVec.z, velocityVec2.z, rndFactor3Vec.z);
+          rotSpeed = pc.math.lerp(rotSpeed, rotSpeed2, rndFactor3Vec.y);
+          scale = pc.math.lerp(scale, scale2, rndFactor * 1E4 % 1) * uniformScale;
+          if(this.meshInstance.node) {
+            rotMat.transformPoint(localVelocityVec, localVelocityVec)
+          }
+          localVelocityVec.add(velocityVec.mul(nonUniformScale));
+          particlePosPrev.x = this.particleTex[id * 4];
+          particlePosPrev.y = this.particleTex[id * 4 + 1];
+          particlePosPrev.z = this.particleTex[id * 4 + 2];
+          particlePos.copy(particlePosPrev).add(localVelocityVec.scale(delta));
+          particleFinalPos.copy(particlePos);
+          particlePosMoved.x = particlePosMoved.y = particlePosMoved.z = 0;
+          if(this.wrap && this.wrapBounds) {
+            particleFinalPos.sub(posCam);
+            particleFinalPos.x = glMod(particleFinalPos.x, this.wrapBounds.x * 2) - this.wrapBounds.x;
+            particleFinalPos.y = glMod(particleFinalPos.y, this.wrapBounds.y * 2) - this.wrapBounds.y;
+            particleFinalPos.z = glMod(particleFinalPos.z, this.wrapBounds.z * 2) - this.wrapBounds.z;
+            particleFinalPos.add(posCam);
+            particlePosMoved.copy(particleFinalPos).sub(particlePos)
+          }
+          if(this.stretch > 0 && !respawn) {
+            moveDirVec.copy(particlePos).sub(particlePosPrev).scale(this.stretch);
+            particlePosPrev.sub(moveDirVec).add(particlePosMoved)
+          }
+          this.particleTex[id * 4] = particleFinalPos.x;
+          this.particleTex[id * 4 + 1] = particleFinalPos.y;
+          this.particleTex[id * 4 + 2] = particleFinalPos.z;
+          this.particleTex[id * 4 + 3] += rotSpeed * delta;
+          if(this.sort > 0) {
+            if(this.sort === 1) {
+              tmpVec3.copy(particleFinalPos).sub(posCam);
+              this.particleDistance[id] = -(tmpVec3.x * tmpVec3.x + tmpVec3.y * tmpVec3.y + tmpVec3.z * tmpVec3.z)
+            }else {
+              if(this.sort === 2) {
+                this.particleDistance[id] = life
+              }else {
+                if(this.sort === 3) {
+                  this.particleDistance[id] = -life
+                }
+              }
+            }
+          }
+        }
+        var accumLifeOneShotStart = Math.max(this.oneShotStartTime + startSpawnTime + particleRate, 0);
+        var endOfSim = Math.floor(accumLife / (particleLifetime + particleRate)) != Math.floor(accumLifeOneShotStart / (particleLifetime + particleRate));
+        var particleEnabled = !(respawn || endOfSim || life <= 0);
+        if(!particleEnabled) {
+          this.calcSpawnPosition(emitterPos, id)
+        }
+        for(var v = 0;v < this.numParticleVerts;v++) {
+          var quadX = this.vbCPU[i * this.numParticleVerts * 4 + v * 4];
+          var quadY = this.vbCPU[i * this.numParticleVerts * 4 + v * 4 + 1];
+          var quadZ = this.vbCPU[i * this.numParticleVerts * 4 + v * 4 + 2];
+          if(!particleEnabled) {
+            quadX = quadY = quadZ = 0
+          }else {
+            if(this.stretch > 0 && !respawn) {
+              var interpolation = quadY * 0.5 + 0.5;
+              particleFinalPos.lerp(particleFinalPos, particlePosPrev, interpolation)
+            }
+          }
+          var w = i * this.numParticleVerts * 12 + v * 12;
+          data[w] = particleFinalPos.x;
+          data[w + 1] = particleFinalPos.y;
+          data[w + 2] = particleFinalPos.z;
+          data[w + 3] = nlife;
+          data[w + 4] = this.particleTex[id * 4 + 3];
+          data[w + 5] = scale;
+          data[w + 6] = alphaRnd * (rndFactor * 1E3 % 1 * 2 - 1);
+          data[w + 8] = quadX;
+          data[w + 9] = quadY;
+          data[w + 10] = quadZ
+        }
+      }
+      if(this.sort > pc.scene.PARTICLES_SORT_NONE && this.camera) {
+        for(i = 0;i < this.numParticles;i++) {
+          this.vbToSort[i] = [i, Math.floor(this.vbCPU[i * this.numParticleVerts * 4 + 3])]
+        }
+        for(i = 0;i < this.numParticles * this.numParticleVerts * 4;i++) {
+          this.vbOld[i] = this.vbCPU[i]
+        }
+        var particleDistance = this.particleDistance;
+        this.vbToSort.sort(function(a, b) {
+          return particleDistance[a[1]] - particleDistance[b[1]]
+        });
+        for(i = 0;i < this.numParticles;i++) {
+          var start = this.vbToSort[i][0];
+          for(var corner = 0;corner < this.numParticleVerts;corner++) {
+            for(j = 0;j < 4;j++) {
+              this.vbCPU[i * this.numParticleVerts * 4 + corner * 4 + j] = this.vbOld[start * this.numParticleVerts * 4 + corner * 4 + j]
+            }
+          }
+        }
+      }
+      this.vertexBuffer.unlock()
+    }
+    if(this.oneShot) {
+      if(this.onFinished) {
+        if(Date.now() > this.endTime) {
+          this.onFinished()
+        }
+      }
+    }
+    device.setDepthTest(true);
+    device.setDepthWrite(true)
+  }};
+  return{ParticleEmitter2:ParticleEmitter2, PARTICLES_SORT_NONE:0, PARTICLES_SORT_DISTANCE:1, PARTICLES_SORT_NEWER_FIRST:2, PARTICLES_SORT_OLDER_FIRST:3, PARTICLES_MODE_GPU:0, PARTICLES_MODE_CPU:1}
+}());
+pc.extend(pc.scene, function() {
   var Picker = function(device, width, height) {
     this.device = device;
     var library = device.getProgramLibrary();
@@ -8565,7 +9407,7 @@ pc.extend(pc.scene, function() {
     device.setRenderTarget(prevRenderTarget)
   };
   Picker.prototype.resize = function(width, height) {
-    var colorBuffer = new pc.gfx.Texture(this.device, {format:pc.gfx.PIXELFORMAT_R8_G8_B8_A8, width:width, height:height});
+    var colorBuffer = new pc.gfx.Texture(this.device, {format:pc.gfx.PIXELFORMAT_R8_G8_B8_A8, width:width, height:height, autoMipmap:false});
     colorBuffer.minFilter = pc.gfx.FILTER_NEAREST;
     colorBuffer.magFilter = pc.gfx.FILTER_NEAREST;
     colorBuffer.addressU = pc.gfx.ADDRESS_CLAMP_TO_EDGE;
@@ -9182,7 +10024,7 @@ pc.extend(pc.resources, function() {
   };
   TextureResourceHandler.prototype.open = function(data, request, options) {
     var texture;
-    if(data instanceof Image) {
+    if(data instanceof Image || data instanceof HTMLImageElement) {
       var img = data;
       if(request.result) {
         texture = request.result
@@ -9434,10 +10276,6 @@ pc.extend(pc.resources, function() {
     model.meshInstances = meshInstances;
     model.skinInstances = skinInstances;
     model.getGraph().syncHierarchy();
-    var meshInstances = model.meshInstances;
-    for(i = 0;i < meshInstances.length;i++) {
-      meshInstances[i].syncAabb()
-    }
     return model
   };
   ModelResourceHandler.prototype._getMaterial = function(meshInstanceIndex, mapping, options) {
@@ -10459,12 +11297,21 @@ pc.extend(pc.input, function() {
       if(event instanceof MouseEvent) {
         throw Error("Expected MouseEvent");
       }
-      coords = pc.input.getTargetCoords(event)
+      coords = mouse._getTargetCoords(event)
     }else {
       event = {}
     }
-    this.x = coords.x;
-    this.y = coords.y;
+    if(coords) {
+      this.x = coords.x;
+      this.y = coords.y
+    }else {
+      if(pc.input.Mouse.isPointerLocked()) {
+        this.x = 0;
+        this.y = 0
+      }else {
+        return
+      }
+    }
     if(event.detail) {
       this.wheel = -1 * event.detail
     }else {
@@ -10506,36 +11353,45 @@ pc.extend(pc.input, function() {
     this._contextMenuHandler = function(event) {
       event.preventDefault()
     };
-    this._element = null;
-    if(element) {
-      this.attach(element)
-    }
+    this._target = null;
+    this._attached = false;
+    this.attach(element);
     pc.events.attach(this)
   };
   Mouse.isPointerLocked = function() {
-    return!!document.pointerLockElement
+    return!!(document.pointerLockElement || document.mozPointerLockElement || document.webkitPointerLockElement)
   };
   Mouse.prototype = {attach:function(element) {
-    if(this._element) {
-      this.detach()
+    this._target = element;
+    if(this._attached) {
+      return
     }
-    this._element = element;
-    this._element.addEventListener("mouseup", this._upHandler, false);
-    this._element.addEventListener("mousedown", this._downHandler, false);
-    this._element.addEventListener("mousemove", this._moveHandler, false);
-    this._element.addEventListener("mousewheel", this._wheelHandler, false);
-    this._element.addEventListener("DOMMouseScroll", this._wheelHandler, false)
+    this._attached = true;
+    window.addEventListener("mouseup", this._upHandler, false);
+    window.addEventListener("mousedown", this._downHandler, false);
+    window.addEventListener("mousemove", this._moveHandler, false);
+    window.addEventListener("mousewheel", this._wheelHandler, false);
+    window.addEventListener("DOMMouseScroll", this._wheelHandler, false)
   }, detach:function() {
-    this._element.removeEventListener("mouseup", this._upHandler);
-    this._element.removeEventListener("mousedown", this._downHandler);
-    this._element.removeEventListener("mousemove", this._moveHandler);
-    this._element.removeEventListener("mousewheel", this._wheelHandler);
-    this._element.removeEventListener("DOMMouseScroll", this._wheelHandler);
-    this._element = null
+    if(!this._attached) {
+      return
+    }
+    this._attached = false;
+    window.removeEventListener("mouseup", this._upHandler);
+    window.removeEventListener("mousedown", this._downHandler);
+    window.removeEventListener("mousemove", this._moveHandler);
+    window.removeEventListener("mousewheel", this._wheelHandler);
+    window.removeEventListener("DOMMouseScroll", this._wheelHandler)
   }, disableContextMenu:function() {
-    this._element.addEventListener("contextmenu", this._contextMenuHandler)
+    if(!this._target) {
+      return
+    }
+    this._target.addEventListener("contextmenu", this._contextMenuHandler)
   }, enableContextMenu:function() {
-    this._element.removeEventListener("contextmenu", this._contextMenuHandler)
+    if(!this._target) {
+      return
+    }
+    this._target.removeEventListener("contextmenu", this._contextMenuHandler)
   }, enablePointerLock:function(success, error) {
     var s = function() {
       success();
@@ -10551,7 +11407,7 @@ pc.extend(pc.input, function() {
     if(error) {
       document.addEventListener("pointerlockerror", e, false)
     }
-    this._element.requestPointerLock()
+    document.body.requestPointerLock()
   }, disablePointerLock:function(success) {
     var s = function() {
       success();
@@ -10573,17 +11429,40 @@ pc.extend(pc.input, function() {
     return!this._buttons[button] && this._lastbuttons[button]
   }, _handleUp:function(event) {
     this._buttons[event.button] = false;
-    this.fire(pc.input.EVENT_MOUSEUP, new MouseEvent(this, event))
+    var e = new MouseEvent(this, event);
+    if(!e.event) {
+      return
+    }
+    this.fire(pc.input.EVENT_MOUSEUP, e)
   }, _handleDown:function(event) {
     this._buttons[event.button] = true;
-    this.fire(pc.input.EVENT_MOUSEDOWN, new MouseEvent(this, event))
+    var e = new MouseEvent(this, event);
+    if(!e.event) {
+      return
+    }
+    this.fire(pc.input.EVENT_MOUSEDOWN, e)
   }, _handleMove:function(event) {
     var e = new MouseEvent(this, event);
+    if(!e.event) {
+      return
+    }
     this.fire(pc.input.EVENT_MOUSEMOVE, e);
     this._lastX = e.x;
     this._lastY = e.y
   }, _handleWheel:function(event) {
-    this.fire(pc.input.EVENT_MOUSEWHEEL, new MouseEvent(this, event))
+    var e = new MouseEvent(this, event);
+    if(!e.event) {
+      return
+    }
+    this.fire(pc.input.EVENT_MOUSEWHEEL, e)
+  }, _getTargetCoords:function(event) {
+    var rect = this._target.getBoundingClientRect();
+    var left = Math.floor(rect.left);
+    var top = Math.floor(rect.top);
+    if(event.clientX < left || event.clientX >= left + this._target.clientWidth || event.clientY < top || event.clientY >= top + this._target.clientHeight) {
+      return null
+    }
+    return{x:event.clientX - left, y:event.clientY - top}
   }};
   (function() {
     if(typeof navigator === "undefined" || typeof document === "undefined") {
@@ -10606,11 +11485,6 @@ pc.extend(pc.input, function() {
     document.addEventListener("mozpointerlocklost", pointerlockchange, false);
     document.addEventListener("webkitpointerlockerror", pointerlockerror, false);
     document.addEventListener("mozpointerlockerror", pointerlockerror, false);
-    if(!document.pointerLockElement) {
-      Object.defineProperty(document, "pointerLockElement", {enumerable:true, configurable:false, get:function() {
-        return document.webkitPointerLockElement || document.mozPointerLockElement
-      }})
-    }
     if(Element.prototype.mozRequestPointerLock) {
       Element.prototype.requestPointerLock = function() {
         this.mozRequestPointerLock()
@@ -10635,20 +11509,7 @@ pc.extend(pc.input, function() {
       }
     }
   })();
-  return{Mouse:Mouse, MouseEvent:MouseEvent, EVENT_MOUSEDOWN:"mousedown", EVENT_MOUSEMOVE:"mousemove", EVENT_MOUSEUP:"mouseup", EVENT_MOUSEWHEEL:"mousewheel", MOUSEBUTTON_NONE:-1, MOUSEBUTTON_LEFT:0, MOUSEBUTTON_MIDDLE:1, MOUSEBUTTON_RIGHT:2, getTargetCoords:function getTargetCoords(event) {
-    var coords = {x:0, y:0};
-    var element = event.currentTarget;
-    var totalOffsetLeft = 0;
-    var totalOffsetTop = 0;
-    while(element.offsetParent) {
-      totalOffsetLeft += element.offsetLeft;
-      totalOffsetTop += element.offsetTop;
-      element = element.offsetParent
-    }
-    coords.x = event.pageX - totalOffsetLeft;
-    coords.y = event.pageY - totalOffsetTop;
-    return coords
-  }}
+  return{Mouse:Mouse, MouseEvent:MouseEvent, EVENT_MOUSEDOWN:"mousedown", EVENT_MOUSEMOVE:"mousemove", EVENT_MOUSEUP:"mouseup", EVENT_MOUSEWHEEL:"mousewheel", MOUSEBUTTON_NONE:-1, MOUSEBUTTON_LEFT:0, MOUSEBUTTON_MIDDLE:1, MOUSEBUTTON_RIGHT:2}
 }());
 pc.extend(pc.input, function() {
   var KeyboardEvent = function(keyboard, event) {
@@ -10814,14 +11675,14 @@ pc.extend(pc.input, function() {
       return false
     }
     var key = this.current[index].map.buttons[button];
-    return this.current[index].pad.buttons[pc.input[key]]
+    return this.current[index].pad.buttons[pc.input[key]].pressed
   }, wasPressed:function(index, button) {
     if(!this.current[index]) {
       return false
     }
     var key = this.current[index].map.buttons[button];
     var i = pc.input[key];
-    return this.current[index].pad.buttons[i] && !this.previous[index].pad.buttons[i]
+    return this.current[index].pad.buttons[i].pressed && !this.previous[index].pad.buttons[i].pressed
   }, getAxis:function(index, axes) {
     if(!this.current[index]) {
       return false
@@ -11695,10 +12556,21 @@ pc.extend(editor, function() {
       }else {
         details.RuntimeType = pc.Vec3
       }
-    }
-    if(details.type === "rgb" || details.type === "rgba") {
-      details.array = true;
-      details.RuntimeType = pc.Color
+    }else {
+      if(details.type === "rgb" || details.type === "rgba") {
+        details.array = true;
+        details.RuntimeType = pc.Color
+      }else {
+        if(details.type === "curve") {
+          details.object = true;
+          details.RuntimeType = pc.Curve
+        }else {
+          if(details.type === "curveset") {
+            details.object = true;
+            details.RuntimeType = pc.CurveSet
+          }
+        }
+      }
     }
     if(!this.exposed[system][details.name]) {
       this.exposed[system][details.name] = {}
@@ -11814,6 +12686,7 @@ pc.extend(pc.fw, function() {
     var picksys = new pc.fw.PickComponentSystem(this.context);
     var audiosourcesys = new pc.fw.AudioSourceComponentSystem(this.context, this.audioManager);
     var audiolistenersys = new pc.fw.AudioListenerComponentSystem(this.context, this.audioManager);
+    var particlesystemsys = new pc.fw.ParticleSystemComponentSystem(this.context);
     var designersys = new pc.fw.DesignerComponentSystem(this.context);
     this.on("librariesloaded", this.onLibrariesLoaded, this);
     if(options.libraries && options.libraries.length) {
@@ -11885,6 +12758,7 @@ pc.extend(pc.fw, function() {
         this.context.scene.fogEnd = pack.settings.render.fog_end;
         this.context.scene.fogDensity = pack.settings.render.fog_density;
         this.context.scene.shadowDistance = pack.settings.render.shadow_distance;
+        this.context.scene.gammaCorrection = pack.settings.render.gamma_correction;
         success(pack);
         this.context.loader.off("progress", progress)
       }.bind(this), function(msg) {
@@ -11959,6 +12833,7 @@ pc.extend(pc.fw, function() {
     var dt = (now - (time || now)) / 1E3;
     time = now;
     dt = pc.math.clamp(dt, 0, 0.1);
+    dt = 0.0166666;
     this.update(dt);
     this.render()
   }, setCanvasFillMode:function(mode, width, height) {
@@ -11989,7 +12864,7 @@ pc.extend(pc.fw, function() {
     if(error) {
       document.addEventListener("fullscreenerror", e, false)
     }
-    element.requestFullscreen()
+    element.requestFullscreen(Element.ALLOW_KEYBOARD_INPUT)
   }, disableFullscreen:function(success) {
     var s = function() {
       success();
@@ -12149,7 +13024,12 @@ pc.extend(pc.fw, function() {
                         entity[componentName][attributeName] = new attribute.RuntimeType(value[0], value[1], value[2], value[3])
                       }
                     }else {
-                      entity[componentName][attributeName] = new attribute.RuntimeType(value)
+                      if(attribute.RuntimeType === pc.Curve || attribute.RuntimeType === pc.CurveSet) {
+                        entity[componentName][attributeName] = new attribute.RuntimeType(value.keys);
+                        entity[componentName][attributeName].type = value.type
+                      }else {
+                        entity[componentName][attributeName] = new attribute.RuntimeType(value)
+                      }
                     }
                   }
                 }
@@ -12223,7 +13103,8 @@ pc.extend(pc.fw, function() {
     var fog = settings.render.fog_color;
     this.context.scene.fogColor = new pc.Color(fog[0], fog[1], fog[2]);
     this.context.scene.fogDensity = settings.render.fog_density;
-    this.context.scene.shadowDistance = settings.render.shadow_distance
+    this.context.scene.shadowDistance = settings.render.shadow_distance;
+    this.context.scene.gammaCorrection = settings.render.gamma_correction
   }};
   return{FillMode:{NONE:"NONE", FILL_WINDOW:"FILL_WINDOW", KEEP_ASPECT:"KEEP_ASPECT"}, ResolutionMode:{AUTO:"AUTO", FIXED:"FIXED"}, Application:Application}
 }());
@@ -12714,8 +13595,8 @@ pc.extend(pc.fw, function() {
     context.systems.add(this.id, this);
     this.ComponentType = pc.fw.ModelComponent;
     this.DataType = pc.fw.ModelComponentData;
-    this.schema = [{name:"enabled", displayName:"Enabled", description:"Enable or disable rendering of the Model", type:"boolean", defaultValue:true}, {name:"type", displayName:"Type", description:"Type of model", type:"enumeration", options:{enumerations:[{name:"Asset", value:"asset"}, {name:"Box", value:"box"}, {name:"Capsule", value:"capsule"}, {name:"Sphere", value:"sphere"}, {name:"Cylinder", value:"cylinder"}, {name:"Cone", value:"cone"}]}, defaultValue:"asset"}, {name:"asset", displayName:"Asset", 
-    description:"Model Asset to render", type:"asset", options:{max:1, type:"model"}, defaultValue:null, filter:{type:"asset"}}, {name:"materialAsset", displayName:"Material", description:"The material of the model", type:"asset", options:{max:1, type:"material"}, defaultValue:null, filter:{type:function(value) {
+    this.schema = [{name:"enabled", displayName:"Enabled", description:"Enable or disable rendering of the Model", type:"boolean", defaultValue:true}, {name:"type", displayName:"Type", description:"Type of model", type:"enumeration", options:{enumerations:[{name:"Asset", value:"asset"}, {name:"Box", value:"box"}, {name:"Capsule", value:"capsule"}, {name:"Sphere", value:"sphere"}, {name:"Cylinder", value:"cylinder"}, {name:"Cone", value:"cone"}, {name:"Plane", value:"plane"}]}, defaultValue:"asset"}, 
+    {name:"asset", displayName:"Asset", description:"Model Asset to render", type:"asset", options:{max:1, type:"model"}, defaultValue:null, filter:{type:"asset"}}, {name:"materialAsset", displayName:"Material", description:"The material of the model", type:"asset", options:{max:1, type:"material"}, defaultValue:null, filter:{type:function(value) {
       return false
     }}}, {name:"castShadows", displayName:"Cast shadows", description:"Occlude light from shadow casting lights", type:"boolean", defaultValue:false}, {name:"receiveShadows", displayName:"Receive shadows", description:"Receive shadows cast from occluders", type:"boolean", defaultValue:true}, {name:"material", exposed:false}, {name:"model", exposed:false}];
     this.exposeProperties();
@@ -12725,6 +13606,7 @@ pc.extend(pc.fw, function() {
     this.sphere = pc.scene.procedural.createSphere(gd, {radius:0.5});
     this.cone = pc.scene.procedural.createCone(gd, {baseRadius:0.5, peakRadius:0, height:1});
     this.cylinder = pc.scene.procedural.createCylinder(gd, {radius:0.5, height:1});
+    this.plane = pc.scene.procedural.createPlane(gd, {halfExtents:new pc.Vec2(0.5, 0.5), widthSegments:1, lengthSegments:1});
     this.defaultMaterial = new pc.scene.PhongMaterial
   };
   ModelComponentSystem = pc.inherits(ModelComponentSystem, pc.fw.ComponentSystem);
@@ -12819,6 +13701,9 @@ pc.extend(pc.fw, function() {
             break;
           case "cylinder":
             mesh = this.system.cylinder;
+            break;
+          case "plane":
+            mesh = this.system.plane;
             break;
           default:
             throw new Error("Invalid model type: " + newValue);
@@ -13322,8 +14207,8 @@ pc.extend(pc.fw, function() {
   }});
   pc.extend(CameraComponent.prototype, {screenToWorld:function(x, y, z, worldCoord) {
     var device = this.system.context.graphicsDevice;
-    var width = parseInt(device.canvas.style.width);
-    var height = parseInt(device.canvas.style.height);
+    var width = parseInt(device.canvas.clientWidth);
+    var height = parseInt(device.canvas.clientHeight);
     return this.data.camera.screenToWorld(x, y, z, width, height, worldCoord)
   }, onSetAspectRatio:function(name, oldValue, newValue) {
     this.data.camera.setAspectRatio(newValue)
@@ -14494,6 +15379,7 @@ pc.extend(pc.fw, function() {
     exposed:false, readOnly:true}, {name:"currentSource", exposed:false, readOnly:true}, {name:"channel", exposed:false, readOnly:true}];
     this.exposeProperties();
     this.manager = manager;
+    this.initialized = false;
     pc.fw.ComponentSystem.on("initialize", this.onInitialize, this);
     pc.fw.ComponentSystem.on("update", this.onUpdate, this)
   };
@@ -14513,6 +15399,7 @@ pc.extend(pc.fw, function() {
         this.onInitialize(children[i])
       }
     }
+    this.initialized = true
   }, onUpdate:function(dt) {
     var components = this.store;
     for(var id in components) {
@@ -14632,10 +15519,12 @@ pc.extend(pc.fw, function() {
     }
   }, onEnable:function() {
     AudioSourceComponent._super.onEnable.call(this);
-    if(this.data.activate && !this.channel) {
-      this.play(this.currentSource)
-    }else {
-      this.unpause()
+    if(this.system.initialized) {
+      if(this.data.activate && !this.channel) {
+        this.play(this.currentSource)
+      }else {
+        this.unpause()
+      }
     }
   }, onDisable:function() {
     AudioSourceComponent._super.onDisable.call(this);
@@ -14670,14 +15559,14 @@ pc.extend(pc.fw, function() {
         this.data.sources = sources;
         this.data.currentSource = currentSource;
         if(!options.parent && this.enabled && this.activate && currentSource) {
-          this.play(currentSource)
+          this.onEnable()
         }
       }.bind(this))
     }else {
       this.data.sources = sources;
       this.data.currentSource = currentSource;
       if(this.enabled && this.activate && currentSource) {
-        this.play(currentSource)
+        this.onEnable()
       }
     }
   }});
@@ -15538,8 +16427,7 @@ pc.extend(pc.fw, function() {
     var rayCallback = new Ammo.ClosestRayResultCallback(ammoRayStart, ammoRayEnd);
     this.dynamicsWorld.rayTest(ammoRayStart, ammoRayEnd, rayCallback);
     if(rayCallback.hasHit()) {
-      var collisionObjPtr = rayCallback.get_m_collisionObject();
-      var collisionObj = Ammo.wrapPointer(collisionObjPtr, Ammo.btCollisionObject);
+      var collisionObj = rayCallback.get_m_collisionObject();
       var body = Ammo.castObject(collisionObj, Ammo.btRigidBody);
       var point = rayCallback.get_m_hitPointWorld();
       var normal = rayCallback.get_m_hitNormalWorld();
@@ -17093,6 +17981,324 @@ pc.extend(pc.fw, function() {
   };
   BallSocketJointComponentData = pc.inherits(BallSocketJointComponentData, pc.fw.ComponentData);
   return{BallSocketJointComponentData:BallSocketJointComponentData}
+}());
+pc.extend(pc.fw, function() {
+  var ParticleSystemComponentSystem = function ParticleSystemComponentSystem(context) {
+    this.id = "particlesystem";
+    this.description = "Updates and renders particle system in the scene.";
+    context.systems.add(this.id, this);
+    this.ComponentType = pc.fw.ParticleSystemComponent;
+    this.DataType = pc.fw.ParticleSystemComponentData;
+    this.schema = [{name:"enabled", displayName:"Enabled", description:"Enables or disables the component", type:"boolean", defaultValue:true}, {name:"numParticles", displayName:"Particle count", description:"Total number of particles allocated", type:"number", defaultValue:30, options:{min:1, max:4096, step:1}}, {name:"lifetime", displayName:"Lifetime", description:"The lifetime of each particle in seconds", type:"number", defaultValue:5, options:{min:0, step:0.01}}, {name:"lifetime2", displayName:"Lifetime 2", 
+    description:"", type:"number", exposed:false, defaultValue:5, options:{min:0, step:0.01}}, {name:"rate", displayName:"Emission Rate", description:"Delay between emission of each particle in seconds", type:"number", defaultValue:0.05, options:{min:0, step:0.01}}, {name:"rate2", displayName:"Emission Rate 2", description:"", type:"number", defaultValue:0.05, options:{min:0, step:0.01}}, {name:"startAngle", displayName:"Start Angle", description:"", type:"number", defaultValue:0, options:{min:0, 
+    step:0.01}}, {name:"startAngle2", displayName:"Start Angle 2", description:"", type:"number", defaultValue:0, options:{min:0, step:0.01}}, {name:"oneShot", displayName:"One Shot", description:"Disables looping", type:"boolean", defaultValue:false}, {name:"maxEmissionTime", displayName:"Max emission time", description:"Limits time for one-shot emission. Should be only used in case of high Speed Divergence", type:"number", defaultValue:15, options:{min:0, max:600, step:0.5}, filter:{oneShot:true}}, 
+    {name:"preWarm", displayName:"Pre Warm", description:"Starts particles in the middle of simulation", type:"boolean", defaultValue:false, filter:{oneShot:false}}, {name:"lighting", displayName:"Lighting", description:"Enables particle lighting; Only ambient and directional lights are used", type:"boolean", defaultValue:false}, {name:"halfLambert", displayName:"Half-Lambert", description:"Uses Half-Lambert shading instead of Lambert, for softer lighting.", type:"boolean", defaultValue:false, filter:{lighting:true}}, 
+    {name:"intensity", displayName:"Color intensity", description:"Controls the intensity of the colors for each particle", type:"number", defaultValue:1, options:{min:0, max:10, step:0.1}}, {name:"depthTest", displayName:"Depth Test", description:"Enables hardware depth testing; don't use it for semi-transparent particles", type:"boolean", defaultValue:false}, {name:"depthSoftening", displayName:"Depth Softening", description:"Softens particle intersections with scene geometry", type:"number", defaultValue:0, 
+    options:{min:0, max:1, step:0.01}}, {name:"sort", displayName:"Sorting Mode", description:"How to sort particles; Only works in CPU mode", type:"enumeration", options:{enumerations:[{name:"None", value:pc.scene.PARTICLES_SORT_NONE}, {name:"Camera Distance", value:pc.scene.PARTICLES_SORT_DISTANCE}, {name:"Newer First", value:pc.scene.PARTICLES_SORT_NEWER_FIRST}, {name:"Older First", value:pc.scene.PARTICLES_SORT_OLDER_FIRST}]}, defaultValue:0}, {name:"blendType", displayName:"Blending Mode", description:"How to blend particles", 
+    type:"enumeration", options:{enumerations:[{name:"Premultiplied Alpha", value:pc.scene.BLEND_PREMULTIPLIED}, {name:"Alpha", value:pc.scene.BLEND_NORMAL}, {name:"Add", value:pc.scene.BLEND_ADDITIVE}, {name:"Multiply", value:pc.scene.BLEND_MULTIPLICATIVE}]}, defaultValue:pc.scene.BLEND_PREMULTIPLIED}, {name:"stretch", displayName:"Stretch", description:"Stretch particles in the direction of motion", type:"number", defaultValue:0, options:{min:0, max:32, step:0.25}}, {name:"spawnBounds", displayName:"Spawn Bounds", 
+    description:"Defines an AABB in which particles are allowed to spawn", type:"vector", defaultValue:[0, 0, 0]}, {name:"wrap", displayName:"Wrap", description:"Set to true to wrap particles around the camera. Used for infinite atmospheric effect like rain or mist.", type:"boolean", defaultValue:false}, {name:"wrapBounds", displayName:"Wrap Bounds", description:"AABB around to camera to wrap particles. Used for infinite atmospheric effect like rain or mist.", type:"vector", filter:{wrap:true}, defaultValue:[0, 
+    0, 0]}, {name:"colorMapAsset", displayName:"Color Map", description:"Color map used for each particle, with alpha channel", type:"asset", options:{max:1, type:"texture"}, defaultValue:null}, {name:"normalMapAsset", displayName:"Normal map", description:"Normal map used for each particle", type:"asset", options:{max:1, type:"texture"}, defaultValue:null}, {name:"mesh", displayName:"Particle mesh", description:"Mesh to use as particle; Will be quad, if not set", type:"asset", options:{max:1, type:"model"}, 
+    defaultValue:null}, {name:"localVelocityGraph", displayName:"Local Velocity", description:"A graph that defines the local velocity of particles over time.", type:"curveset", defaultValue:{type:pc.CURVE_SMOOTHSTEP, keys:[[0, 0], [0, 0], [0, 0]]}, options:{curveNames:["X", "Y", "Z"]}}, {name:"localVelocityGraph2", displayName:"Local Velocity 2", description:"A graph that defines the local velocity of particles over time.", type:"curveset", defaultValue:{type:pc.CURVE_SMOOTHSTEP, keys:[[0, 0], [0, 
+    0], [0, 0]]}, options:{curveNames:["X", "Y", "Z"]}}, {name:"velocityGraph", displayName:"Velocity", description:"A graph that defines the world velocity of particles over time.", type:"curveset", defaultValue:{type:pc.CURVE_SMOOTHSTEP, keys:[[0, 0], [0, 1], [0, 0]]}, options:{curveNames:["X", "Y", "Z"]}}, {name:"velocityGraph2", displayName:"Velocity 2", description:"A graph that defines the world velocity of particles over time.", type:"curveset", defaultValue:{type:pc.CURVE_SMOOTHSTEP, keys:[[0, 
+    0], [0, 1], [0, 0]]}, options:{curveNames:["X", "Y", "Z"]}}, {name:"rotationSpeedGraph", displayName:"Rotation Speed", description:"A graph that defines how fast particle rotates over time.", type:"curve", defaultValue:{type:pc.CURVE_SMOOTHSTEP, keys:[0, 0]}, options:{curveNames:["Angle"]}}, {name:"rotationSpeedGraph2", displayName:"Rotation Speed 2", description:"A graph that defines how fast particle rotates over time.", type:"curve", defaultValue:{type:pc.CURVE_SMOOTHSTEP, keys:[0, 0]}, options:{curveNames:["Angle"]}}, 
+    {name:"scaleGraph", displayName:"Scale", description:"A graph that defines the scale of particles over time.", type:"curve", defaultValue:{type:pc.CURVE_SMOOTHSTEP, keys:[0, 1]}, options:{curveNames:["Scale"], verticalAxisValue:1}}, {name:"scaleGraph2", displayName:"Scale 2", description:"A graph that defines the scale of particles over time.", type:"curve", defaultValue:{type:pc.CURVE_SMOOTHSTEP, keys:[0, 1]}, options:{curveNames:["Scale"], verticalAxisValue:1}}, {name:"colorGraph", displayName:"Color", 
+    description:"A graph that defines the color of particles over time.", type:"curveset", defaultValue:{type:pc.CURVE_SMOOTHSTEP, keys:[[0, 1, 1, 1], [0, 1, 1, 1], [0, 1, 1, 1]]}, options:{curveNames:["R", "G", "B"], max:1, min:0}}, {name:"colorGraph2", displayName:"Color 2", description:"A graph that defines the color of particles over time.", type:"curveset", defaultValue:{type:pc.CURVE_SMOOTHSTEP, keys:[[0, 1, 1, 1], [0, 1, 1, 1], [0, 1, 1, 1]]}, options:{curveNames:["R", "G", "B"], max:1, min:0}}, 
+    {name:"alphaGraph", displayName:"Opacity", description:"A graph that defines the opacity of particles over time.", type:"curve", defaultValue:{type:pc.CURVE_SMOOTHSTEP, keys:[0, 1]}, options:{curveNames:["Opacity"], max:1, min:0}}, {name:"alphaGraph2", displayName:"Opacity 2", description:"A graph that defines the opacity of particles over time.", type:"curve", defaultValue:{type:pc.CURVE_SMOOTHSTEP, keys:[0, 1]}, options:{curveNames:["Opacity"], max:1, min:0}}, {name:"smoothness", displayName:"Smoothness", 
+    description:"Graph interpolation smoothness", type:"number", defaultValue:4, options:{min:0, max:32, step:1}}, {name:"camera", exposed:false}, {name:"colorMap", exposed:false}, {name:"normalMap", exposed:false}];
+    this.exposeProperties();
+    this.propertyTypes = {};
+    for(var i = 0;i < this.schema.length;i++) {
+      var s = this.schema[i];
+      this.propertyTypes[s.name] = s.type
+    }
+    this.on("remove", this.onRemove, this);
+    pc.fw.ComponentSystem.on("update", this.onUpdate, this)
+  };
+  ParticleSystemComponentSystem = pc.inherits(ParticleSystemComponentSystem, pc.fw.ComponentSystem);
+  pc.extend(ParticleSystemComponentSystem.prototype, {initializeComponentData:function(component, data, properties) {
+    properties = [];
+    var types = this.propertyTypes;
+    var type;
+    for(var prop in data) {
+      if(data.hasOwnProperty(prop)) {
+        properties.push(prop)
+      }
+      if(types[prop] === "vector") {
+        if(pc.type(data[prop]) === "array") {
+          data[prop] = new pc.Vec3(data[prop])
+        }
+      }else {
+        if(types[prop] === "curve") {
+          if(!(data[prop] instanceof pc.Curve)) {
+            type = data[prop].type;
+            data[prop] = new pc.Curve(data[prop].keys);
+            data[prop].type = type
+          }
+        }else {
+          if(types[prop] === "curveset") {
+            if(!(data[prop] instanceof pc.CurveSet)) {
+              type = data[prop].type;
+              data[prop] = new pc.CurveSet(data[prop].keys);
+              data[prop].type = type
+            }
+          }
+        }
+      }
+    }
+    ParticleSystemComponentSystem._super.initializeComponentData.call(this, component, data, properties)
+  }, cloneComponent:function(entity, clone) {
+    var source = entity.particlesystem.data;
+    var schema = this.schema;
+    var data = {};
+    for(var i = 0, len = schema.length;i < len;i++) {
+      var prop = schema[i];
+      var sourceProp = source[prop.name];
+      if(sourceProp instanceof pc.Vec3 || sourceProp instanceof pc.Curve || sourceProp instanceof pc.CurveSet) {
+        sourceProp = sourceProp.clone();
+        data[prop.name] = sourceProp
+      }
+    }
+    return this.addComponent(clone, data)
+  }, onUpdate:function(dt) {
+    var components = this.store;
+    var currentCamera;
+    for(var id in components) {
+      if(components.hasOwnProperty(id)) {
+        var c = components[id];
+        var data = c.data;
+        if(data.enabled && c.entity.enabled) {
+          var emitter = data.model.emitter;
+          var cameraEntity = data.camera;
+          var camera = cameraEntity ? cameraEntity.camera : null;
+          if(!cameraEntity || !camera || !camera.enabled) {
+            if(!currentCamera) {
+              currentCamera = this.context.systems.camera.cameras[0];
+              if(currentCamera) {
+                currentCamera = currentCamera.entity
+              }
+            }
+            c.entity.particlesystem.camera = currentCamera
+          }
+          emitter.addTime(dt)
+        }
+      }
+    }
+  }, onRemove:function(entity, data) {
+    if(data.model) {
+      this.context.scene.removeModel(data.model);
+      entity.removeChild(data.model.getGraph());
+      data.model = null
+    }
+  }});
+  return{ParticleSystemComponentSystem:ParticleSystemComponentSystem}
+}());
+pc.extend(pc.fw, function() {
+  var SIMPLE_PROPERTIES = ["spawnBounds", "colorMap", "normalMap", "oneShot"];
+  var COMPLEX_PROPERTIES = ["numParticles", "lifetime", "lifetime2", "rate", "rate2", "startAngle", "startAngle2", "smoothness", "lighting", "halfLambert", "intensity", "wrap", "wrapBounds", "depthTest", "depthSoftening", "sort", "stretch", "preWarm", "maxEmissionTime", "camera"];
+  var GRAPH_PROPERTIES = ["scaleGraph", "scaleGraph2", "colorGraph", "colorGraph2", "alphaGraph", "alphaGraph2", "velocityGraph", "velocityGraph2", "localVelocityGraph", "localVelocityGraph2", "rotationSpeedGraph", "rotationSpeedGraph2"];
+  var ParticleSystemComponent = function ParticleSystemComponent(system, entity) {
+    this.on("set_colorMapAsset", this.onSetColorMapAsset, this);
+    this.on("set_normalMapAsset", this.onSetNormalMapAsset, this);
+    this.on("set_mesh", this.onSetMesh, this);
+    this.on("set_oneShot", this.onSetOneShot, this);
+    this.on("set_blendType", this.onSetBlendType, this);
+    SIMPLE_PROPERTIES.forEach(function(prop) {
+      this.on("set_" + prop, this.onSetSimpleProperty, this)
+    }.bind(this));
+    COMPLEX_PROPERTIES.forEach(function(prop) {
+      this.on("set_" + prop, this.onSetComplexProperty, this)
+    }.bind(this));
+    GRAPH_PROPERTIES.forEach(function(prop) {
+      this.on("set_" + prop, this.onSetGraphProperty, this)
+    }.bind(this))
+  };
+  ParticleSystemComponent = pc.inherits(ParticleSystemComponent, pc.fw.Component);
+  pc.extend(ParticleSystemComponent.prototype, {onSetColorMapAsset:function(name, oldValue, newValue) {
+    if(newValue) {
+      this._loadAsset(newValue, function(resource) {
+        this.colorMap = resource
+      }.bind(this))
+    }else {
+      this.colorMap = null
+    }
+  }, onSetNormalMapAsset:function(name, oldValue, newValue) {
+    if(newValue) {
+      this._loadAsset(newValue, function(resource) {
+        this.normalMap = resource
+      }.bind(this))
+    }else {
+      this.normalMap = null
+    }
+  }, _loadAsset:function(assetId, callback) {
+    var asset = assetId instanceof pc.asset.Asset ? assetId : this.system.context.assets.getAssetById(assetId);
+    if(!asset) {
+      logERROR(pc.string.format("Trying to load particle system before asset {0} is loaded.", assetId));
+      return
+    }
+    var resource;
+    if(asset.resource) {
+      callback(asset.resource)
+    }else {
+      var options = {parent:this.entity.getRequest()};
+      this.system.context.assets.load(asset, [], options).then(function(resources) {
+        callback(resources[0])
+      })
+    }
+  }, onSetMesh:function(name, oldValue, newValue) {
+    if(newValue) {
+      if(newValue instanceof pc.asset.Asset || pc.type(newValue) === "number") {
+        this._loadAsset(newValue, function(model) {
+          this._onMeshChanged(model)
+        }.bind(this))
+      }else {
+        this._onMeshChanged(newValue)
+      }
+    }else {
+      this._onMeshChanged(null)
+    }
+  }, _onMeshChanged:function(mesh) {
+    if(mesh) {
+      if(mesh.meshInstances[0]) {
+        mesh = mesh.meshInstances[0].mesh
+      }else {
+        mesh = null
+      }
+    }
+    this.data.mesh = mesh;
+    if(this.emitter) {
+      this.emitter.mesh = mesh;
+      this.emitter.resetMaterial();
+      this.rebuild()
+    }
+  }, onSetOneShot:function(name, oldValue, newValue) {
+    if(this.emitter) {
+      this.emitter[name] = newValue;
+      this.emitter.resetTime();
+      if(oldValue && !newValue) {
+        this.emitter.oneShotEndTime = this.emitter.totalTime
+      }
+    }
+  }, onSetBlendType:function(name, oldValue, newValue) {
+    if(this.emitter) {
+      this.emitter[name] = newValue;
+      this.emitter.material.blendType = newValue;
+      this.emitter.resetMaterial();
+      this.rebuild()
+    }
+  }, onSetSimpleProperty:function(name, oldValue, newValue) {
+    if(this.emitter) {
+      this.emitter[name] = newValue;
+      this.emitter.resetMaterial()
+    }
+  }, onSetComplexProperty:function(name, oldValue, newValue) {
+    if(this.emitter) {
+      this.emitter[name] = newValue;
+      this.emitter.resetMaterial();
+      this.rebuild()
+    }
+  }, onSetGraphProperty:function(name, oldValue, newValue) {
+    if(this.emitter) {
+      this.emitter[name] = newValue;
+      this.emitter.rebuildGraphs();
+      this.emitter.resetMaterial()
+    }
+  }, onEnable:function() {
+    if(!this.emitter && !this.system._inTools) {
+      if(!this.data.camera) {
+        var camera = this.system.context.systems.camera.cameras[0];
+        if(camera) {
+          this.data.camera = camera.entity
+        }
+      }
+      this.emitter = new pc.scene.ParticleEmitter2(this.system.context.graphicsDevice, {numParticles:this.data.numParticles, spawnBounds:this.data.spawnBounds, wrap:this.data.wrap, wrapBounds:this.data.wrapBounds, lifetime:this.data.lifetime, lifetime2:this.data.lifetime2, rate:this.data.rate, rate2:this.data.rate2, startAngle:this.data.startAngle, startAngle2:this.data.startAngle2, scaleGraph:this.data.scaleGraph, scaleGraph2:this.data.scaleGraph2, colorGraph:this.data.colorGraph, colorGraph2:this.data.colorGraph2, 
+      alphaGraph:this.data.alphaGraph, alphaGraph2:this.data.alphaGraph2, localVelocityGraph:this.data.localVelocityGraph, localVelocityGraph2:this.data.localVelocityGraph2, velocityGraph:this.data.velocityGraph, velocityGraph2:this.data.velocityGraph2, rotationSpeedGraph:this.data.rotationSpeedGraph, rotationSpeedGraph2:this.data.rotationSpeedGraph2, colorMap:this.data.colorMap, normalMap:this.data.normalMap, oneShot:this.data.oneShot, preWarm:this.data.preWarm, sort:this.data.sort, stretch:this.data.stretch, 
+      lighting:this.data.lighting, halfLambert:this.data.halfLambert, intensity:this.data.intensity, maxEmissionTime:this.data.maxEmissionTime, depthSoftening:this.data.depthSoftening, camera:this.data.camera, scene:this.system.context.scene, mesh:this.data.mesh, depthTest:this.data.depthTest, smoothness:this.data.smoothness, node:this.entity, blendType:this.data.blendType});
+      this.emitter.meshInstance.node = this.entity;
+      this.psys = new pc.scene.Model;
+      this.psys.graph = this.entity;
+      this.psys.emitter = this.emitter;
+      this.psys.meshInstances = [this.emitter.meshInstance];
+      this.data.model = this.psys;
+      this.emitter.psys = this.psys;
+      this.emitter.onFinished = function() {
+        this.enabled = false
+      }.bind(this)
+    }
+    ParticleSystemComponent._super.onEnable.call(this);
+    if(this.data.model) {
+      if(!this.system.context.scene.containsModel(this.data.model)) {
+        if(this.emitter.colorMap) {
+          this.system.context.scene.addModel(this.data.model)
+        }
+      }
+    }
+  }, onDisable:function() {
+    ParticleSystemComponent._super.onDisable.call(this);
+    if(this.data.model) {
+      if(this.system.context.scene.containsModel(this.data.model)) {
+        this.system.context.scene.removeModel(this.data.model)
+      }
+    }
+  }, reset:function() {
+    this.emitter.reset()
+  }, rebuild:function() {
+    var enabled = this.enabled;
+    this.enabled = false;
+    this.emitter.rebuild();
+    this.emitter.meshInstance.node = this.entity;
+    this.data.model.meshInstances = [this.emitter.meshInstance];
+    this.enabled = enabled
+  }});
+  return{ParticleSystemComponent:ParticleSystemComponent}
+}());
+pc.extend(pc.fw, function() {
+  var ParticleSystemComponentData = function() {
+    this.numParticles = 1;
+    this.rate = 1;
+    this.rate2 = null;
+    this.startAngle = 0;
+    this.startAngle2 = null;
+    this.lifetime = 50;
+    this.lifetime2 = null;
+    this.spawnBounds = new pc.Vec3;
+    this.wrapBounds = new pc.Vec3;
+    this.smoothness = 4;
+    this.colorMap = null;
+    this.colorMapAsset = null;
+    this.normalMap = null;
+    this.normalMapAsset = null;
+    this.oneShot = false;
+    this.preWarm = false;
+    this.sort = 0;
+    this.mode = "GPU";
+    this.camera = null;
+    this.scene = null;
+    this.lighting = false;
+    this.halfLambert = false;
+    this.intensity = 1;
+    this.maxEmissionTime = 15;
+    this.stretch = 0;
+    this.depthSoftening = 0;
+    this.mesh = null;
+    this.depthTest = false;
+    this.scaleGraph = null;
+    this.scaleGraph2 = null;
+    this.colorGraph = null;
+    this.colorGraph2 = null;
+    this.alphaGraph = null;
+    this.alphaGraph2 = null;
+    this.localVelocityGraph = null;
+    this.localVelocityGraph2 = null;
+    this.velocityGraph = null;
+    this.velocityGraph2 = null;
+    this.rotationSpeedGraph = null;
+    this.rotationSpeedGraph2 = null;
+    this.blendType = pc.scene.BLEND_PREMULTIPLIED;
+    this.model = null;
+    this.enabled = true
+  };
+  ParticleSystemComponentData = pc.inherits(ParticleSystemComponentData, pc.fw.ComponentData);
+  return{ParticleSystemComponentData:ParticleSystemComponentData}
 }());
 pc.extend(pc.fw, function() {
   var LiveLink = function(senderIdPrefix) {
