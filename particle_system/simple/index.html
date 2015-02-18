@@ -10,36 +10,27 @@
     <canvas id="application-canvas"></canvas>
 
     <script>
-        function createMaterial(colors) {
-            var material = new pc.scene.PhongMaterial();
-            for (var param in colors) {
-                material[param] = colors[param];
-            }
-            material.update();
-            return material;
-        }
-
         var canvas = document.getElementById("application-canvas");
 
         // Create the application and start the update loop
-        var application = new pc.fw.Application(canvas);
-        application.start();
+        var app = new pc.Application(canvas);
+        app.start();
 
         // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
-        application.setCanvasFillMode(pc.fw.FillMode.FILL_WINDOW);
-        application.setCanvasResolution(pc.fw.ResolutionMode.AUTO);
+        app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
+        app.setCanvasResolution(pc.RESOLUTION_AUTO);
 
         // Create an Entity with a camera component
-        var cameraEntity = new pc.fw.Entity();
-        application.context.systems.camera.addComponent(cameraEntity, {
+        var cameraEntity = new pc.Entity();
+        cameraEntity.addComponent("camera", {
             clearColor: new pc.Color(0,0,0)
         });
         cameraEntity.rotateLocal(0, 0, 0);
         cameraEntity.translateLocal(0, 0, 10);
 
         // Create a directional light
-        var lightDirEntity = new pc.fw.Entity();
-        application.context.systems.light.addComponent(lightDirEntity, {
+        var lightDirEntity = new pc.Entity();
+        lightDirEntity.addComponent("light", {
             type: "directional",
             color: new pc.Color(1, 1, 1),
             intensity: 1
@@ -47,54 +38,49 @@
         lightDirEntity.setLocalEulerAngles(45,0,0);
 
         // Add Entities into the scene hierarchy
-        application.context.root.addChild(cameraEntity);
-        application.context.root.addChild(lightDirEntity);
+        app.root.addChild(cameraEntity);
+        app.root.addChild(lightDirEntity);
 
 
-        // Offset position down 5 metres
-        var posCurve = new pc.CurveSet([
-            [0, 0, 1, 0],  // x
-            [0, 0, 1, -5], // y
-            [0, 0, 1, 0] // z
+        // set up random downwards velocity from -0.4 to -0.7
+        var velocityCurve = new pc.CurveSet([
+            [0, 0],     // x
+            [0, -0.7],  // y
+            [0, 0]      // z
+        ]);
+        var velocityCurve2 = new pc.CurveSet([
+            [0, 0],   // x
+            [0, -0.4],// y
+            [0, 0]    // z
         ]);
 
-        posCurve.type = pc.CURVE_LINEAR;
+        // set up random rotation speed from -100 to 100 degrees per second
+        var rotCurve = new pc.Curve([0, 100]);
+        var rotCurve2 = new pc.Curve([0, -100]);
 
         // scale is constant at 0.1
-        var scaleCurve = new pc.Curve([0, 0.1, 1, 0.1]);
-
-        // rotate snowflakes
-        var angleCurve = new pc.Curve([0, 0, 1, 360 * 2]);
-
-        // randomize rotation
-        var angleDivCurve = new pc.Curve([0, 0, 1, 1]);
-
-        // color is constant white
-        var colorCurve = new pc.CurveSet([
-            [0, 1, 1, 1], // red channel
-            [0, 1, 1, 1], // green channel
-            [0, 1, 1, 1] // blue channel
-        ]);
+        var scaleCurve = new pc.Curve([0, 0.1]);
 
         // Create entity for particle system
-        var entity = new pc.fw.Entity();
+        var entity = new pc.Entity();
         entity.setLocalPosition(0, 3, 0);
 
         // load snowflake texture
-        application.context.assets.loadFromUrl('../../assets/snowflake.png', 'texture').then(function (result) {
+        app.assets.loadFromUrl('../../assets/snowflake.png', 'texture').then(function (result) {
 
             // when texture is loaded add particlesystem component to entity
-            application.context.systems.particlesystem.addComponent(entity, {
+            entity.addComponent("particlesystem", {
                 numParticles: 100,
                 lifetime: 10,
                 rate: 0.1,
-                constantSpeedDiv: 0.5,
-                spawnBounds: new pc.Vec3(5, 0, 0),
-                offsetGraph: posCurve,
+                startAngle: 360,
+                startAngle2: -360,
+                emitterExtents: new pc.Vec3(5, 0, 0),
+                velocityGraph: velocityCurve,
+                velocityGraph2: velocityCurve2,
                 scaleGraph: scaleCurve,
-                angleGraph: angleCurve,
-                angleDivGraph: angleDivCurve,
-                colorGraph: colorCurve,
+                rotationSpeedGraph: rotCurve,
+                rotationSpeedGraph2: rotCurve2,
                 colorMap: result.resource
             });
         });

@@ -16,20 +16,20 @@
     var canvas = document.getElementById("application-canvas");
 
     // Create the application and start the update loop
-    var application = new pc.fw.Application(canvas);
-    application.start();
+    var app = new pc.Application(canvas);
+    app.start();
 
     // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
-    application.setCanvasFillMode(pc.fw.FillMode.FILL_WINDOW);
-    application.setCanvasResolution(pc.fw.ResolutionMode.AUTO);
+    app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
+    app.setCanvasResolution(pc.RESOLUTION_AUTO);
 
-    application.context.scene.ambientLight = new pc.Color(0.2, 0.2, 0.2);
+    app.scene.ambientLight = new pc.Color(0.2, 0.2, 0.2);
 
     // Set the gravity for our rigid bodies
-    application.context.systems.rigidbody.setGravity(0, -9.8, 0);
+    app.systems.rigidbody.setGravity(0, -9.8, 0);
 
     function createMaterial (color) {
-        var material = new pc.scene.PhongMaterial();
+        var material = new pc.PhongMaterial();
         material.diffuse = color;
         // we need to call material.update when we change its properties
         material.update()
@@ -45,11 +45,9 @@
 
     // ***********    Create our floor   *******************
 
-    var floor = new pc.fw.Entity();
-
-    // add a 'box' model
-    application.context.systems.model.addComponent(floor, {
-        type: "box",
+    var floor = new pc.Entity();
+    floor.addComponent("model", {
+        type: "box"
     });
 
     // make the floor white
@@ -59,28 +57,30 @@
     floor.setLocalScale(10, 1, 10);
 
     // add a rigidbody component so that other objects collide with it
-    application.context.systems.rigidbody.addComponent(floor, {
+    floor.addComponent("rigidbody", {
         type: "static",
         restitution: 0.5
     });
 
     // add a collision component
-    application.context.systems.collision.addComponent(floor, {
+    floor.addComponent("collision", {
         type: "box",
         halfExtents: new pc.Vec3(5, 0.5, 5)
     });
 
     // add the floor to the hierarchy
-    application.context.root.addChild(floor);
+    app.root.addChild(floor);
 
     // ***********    Create lights   *******************
 
     // make our scene prettier by adding a directional light
-    var light = new pc.fw.Entity();
-    application.context.systems.light.addComponent(light, {
+    var light = new pc.Entity();
+    light.addComponent("light", {
         type: "directional",
         color: new pc.Color(1, 1, 1),
         castShadows: true,
+        shadowBias: 0.05,
+        normalOffsetBias: 0.05,
         shadowResolution: 2048
     });
 
@@ -88,19 +88,19 @@
     light.setLocalEulerAngles(45, 30, 0);
 
     // Add the light to the hierarchy
-    application.context.root.addChild(light);
+    app.root.addChild(light);
 
     // ***********    Create camera    *******************
 
     // Create an Entity with a camera component
-    var camera = new pc.fw.Entity();
-    application.context.systems.camera.addComponent(camera, {
+    var camera = new pc.Entity();
+    camera.addComponent("camera", {
         clearColor: new pc.Color(0.5, 0.5, 0.8),
         farClip: 50
     });
 
     // add the camera to the hierarchy
-    application.context.root.addChild(camera);
+    app.root.addChild(camera);
 
     // Move the camera a little further away
     camera.translate(0, 10, 15);
@@ -110,22 +110,22 @@
 
     // Create a template for a falling box
     // It will have a model component of type 'box'...
-    var boxTemplate = new pc.fw.Entity();
-    application.context.systems.model.addComponent(boxTemplate, {
+    var boxTemplate = new pc.Entity();
+    boxTemplate.addComponent("model", {
         type: "box",
         castShadows: true
     });
 
      // ...a rigidbody component of type 'dynamic' so that it is simulated
     // by the physics engine...
-    application.context.systems.rigidbody.addComponent(boxTemplate, {
+    boxTemplate.addComponent("rigidbody", {
         type: "dynamic",
         mass: 50,
         restitution: 0.5
     });
 
     // ... and a collision component of type 'box'
-    application.context.systems.collision.addComponent(boxTemplate, {
+    boxTemplate.addComponent("collision", {
         type: "box",
         halfExtents: new pc.Vec3(0.5, 0.5, 0.5)
     });
@@ -136,19 +136,19 @@
     // Create other shapes too for variety...
 
     // A sphere...
-    var sphereTemplate = new pc.fw.Entity();
-    application.context.systems.model.addComponent(sphereTemplate, {
+    var sphereTemplate = new pc.Entity();
+    sphereTemplate.addComponent("model", {
         type: "sphere",
         castShadows: true
     });
 
-    application.context.systems.rigidbody.addComponent(sphereTemplate, {
+    sphereTemplate.addComponent("rigidbody", {
         type: "dynamic",
         mass: 50,
         restitution: 0.5
     });
 
-    application.context.systems.collision.addComponent(sphereTemplate, {
+    sphereTemplate.addComponent("collision", {
         type: "sphere",
         radius: 0.5
     });
@@ -158,19 +158,19 @@
     sphereTemplate.model.material = green;
 
     // A capsule...
-    var capsuleTemplate = new pc.fw.Entity();
-    application.context.systems.model.addComponent(capsuleTemplate, {
+    var capsuleTemplate = new pc.Entity();
+    capsuleTemplate.addComponent("model", {
         type: "capsule",
         castShadows: true
     });
 
-    application.context.systems.rigidbody.addComponent(capsuleTemplate, {
+    capsuleTemplate.addComponent("rigidbody", {
         type: "dynamic",
         mass: 50,
         restitution: 0.5
     });
 
-    application.context.systems.collision.addComponent(capsuleTemplate, {
+    capsuleTemplate.addComponent("collision", {
         type: "capsule",
         radius: 0.5,
         height: 2
@@ -181,19 +181,19 @@
     capsuleTemplate.model.material = blue;
 
     // A cylinder...
-    var cylinderTemplate = new pc.fw.Entity();
-    application.context.systems.model.addComponent(cylinderTemplate, {
+    var cylinderTemplate = new pc.Entity();
+    cylinderTemplate.addComponent("model", {
         type: "cylinder",
         castShadows: true
     });
 
-    application.context.systems.rigidbody.addComponent(cylinderTemplate, {
+    cylinderTemplate.addComponent("rigidbody", {
         type: "dynamic",
         mass: 50,
         restitution: 0.5
     });
 
-    application.context.systems.collision.addComponent(cylinderTemplate, {
+    cylinderTemplate.addComponent("collision", {
         type: "cylinder",
         radius: 0.5,
         height: 1
@@ -220,7 +220,7 @@
     var count = 40;
 
     // Set an update function on the application's update event
-    application.on("update", function (dt) {
+    app.on("update", function (dt) {
         // create a falling box every 0.2 seconds
         if (count > 0) {
             timer -= dt;
@@ -234,7 +234,7 @@
                 // enable the clone because the template is disabled
                 clone.enabled = true;
 
-                application.context.root.addChild(clone);
+                app.root.addChild(clone);
 
                 clone.setLocalPosition(pc.math.random(-1,1), 10, pc.math.random(-1,1));
 
