@@ -1,5 +1,5 @@
 /*
- * PlayCanvas Engine v1.25.0-dev revision f556b9b4
+ * PlayCanvas Engine v1.24.2 revision 7a55d627
  * Copyright 2011-2019 PlayCanvas Ltd. All rights reserved.
  */
 ;(function (root, factory) {
@@ -139,7 +139,7 @@ if (!String.prototype.startsWith) {
   }
   return result;
 }();
-var pc = {version:"1.25.0-dev", revision:"f556b9b4", config:{}, common:{}, apps:{}, data:{}, unpack:function() {
+var pc = {version:"1.24.2", revision:"7a55d627", config:{}, common:{}, apps:{}, data:{}, unpack:function() {
   console.warn("pc.unpack has been deprecated and will be removed shortly. Please update your code.");
 }, makeArray:function(arr) {
   var i, ret = [], length = arr.length;
@@ -28128,6 +28128,9 @@ Object.assign(pc, function() {
     if (!this.overlap) {
       this.stop();
     }
+    if (!this.isLoaded && !this._hasAsset()) {
+      return;
+    }
     var instance = this._createInstance();
     this.instances.push(instance);
     if (!this.isLoaded) {
@@ -30136,6 +30139,9 @@ Object.assign(pc, function() {
     }
     return null;
   }, _onInsert:function(parent) {
+    if (typeof Ammo === "undefined") {
+      return;
+    }
     if (this._compoundParent) {
       this.system.recreatePhysicalShapes(this);
     } else {
@@ -30243,6 +30249,7 @@ Object.assign(pc, function() {
         data.shape = null;
       }
       data.shape = this.createPhysicalShape(component.entity, data);
+      var firstCompoundChild = !component._compoundParent;
       if (data.type === "compound" && (!component._compoundParent || component === component._compoundParent)) {
         component._compoundParent = component;
         entity.forEach(this._addEachDescendant, component);
@@ -30266,9 +30273,13 @@ Object.assign(pc, function() {
       }
       if (component._compoundParent) {
         if (component !== component._compoundParent) {
-          this.system.updateCompoundChildTransform(entity);
-          if (component._compoundParent.entity.rigidbody) {
-            component._compoundParent.entity.rigidbody.activate();
+          if (firstCompoundChild && component._compoundParent.shape.getNumChildShapes() === 0) {
+            this.system.recreatePhysicalShapes(component._compoundParent);
+          } else {
+            this.system.updateCompoundChildTransform(entity);
+            if (component._compoundParent.entity.rigidbody) {
+              component._compoundParent.entity.rigidbody.activate();
+            }
           }
         }
       }
@@ -30745,9 +30756,13 @@ Object.assign(pc, function() {
       Ammo.destroy(transform);
     }
   }, _removeCompoundChild:function(collision, shape) {
-    var ind = collision._getCompoundChildShapeIndex(shape);
-    if (ind !== null) {
-      collision.shape.removeChildShapeByIndex(ind);
+    if (collision.shape.removeChildShape) {
+      collision.shape.removeChildShape(shape);
+    } else {
+      var ind = collision._getCompoundChildShapeIndex(shape);
+      if (ind !== null) {
+        collision.shape.removeChildShapeByIndex(ind);
+      }
     }
   }, onTransformChanged:function(component, position, rotation, scale) {
     this.implementations[component.data.type].updateTransform(component, position, rotation, scale);
@@ -42260,7 +42275,7 @@ Object.assign(pc, function() {
       if (!width || !height || !images || !levels) {
         basisFile.close();
         basisFile.delete();
-        throw new Error("Invalid image dimensions url=" + url);
+        throw new Error("Invalid image dimensions url=" + url + " width=" + width + " height=" + height + " images=" + images + " levels=" + levels);
       }
       var basisFormat = hasAlpha ? alphaMapping[format] : opaqueMapping[format];
       if (!basisFile.startTranscoding()) {
@@ -42302,10 +42317,10 @@ Object.assign(pc, function() {
           });
           self.postMessage({url:url, data:result}, result.levels);
         } catch (err) {
-          self.postMessage({url:url, err:err});
+          self.postMessage({url:url.toString(), err:err.toString()});
         }
       } else {
-        queue.push([url, data]);
+        queue.push([url, format, data]);
       }
     };
     var workerInit = function(basisModule) {
@@ -42319,7 +42334,7 @@ Object.assign(pc, function() {
         basis = instance;
         basis.initializeBasis();
         for (var i = 0; i < queue.length; ++i) {
-          workerTranscode(queue[i][0], queue[i][1]);
+          workerTranscode(queue[i][0], queue[i][1], queue[i][2]);
         }
         queue = null;
       });
@@ -42447,12 +42462,7 @@ Object.assign(pc, function() {
           basisInitialize(glueCode, compiledModule, callback);
         }
       };
-      WebAssembly.compileStreaming(fetch(wasmUrl)).then(function(result) {
-        compiledModule = result;
-        downloadCompleted();
-      }).catch(function(reason) {
-        console.error(reason);
-        console.warn("compileStreaming() failed for " + wasmUrl + ", falling back to arraybuffer download...");
+      var performHttpDownload = function() {
         pc.http.get(wasmUrl, {cache:true, responseType:"arraybuffer", retry:false}, function(err, result) {
           if (result) {
             WebAssembly.compile(result).then(function(result) {
@@ -42461,7 +42471,19 @@ Object.assign(pc, function() {
             });
           }
         });
-      });
+      };
+      if (WebAssembly.compileStreaming) {
+        WebAssembly.compileStreaming(fetch(wasmUrl)).then(function(result) {
+          compiledModule = result;
+          downloadCompleted();
+        }).catch(function(reason) {
+          console.error(reason);
+          console.warn("compileStreaming() failed for " + wasmUrl + ", falling back to arraybuffer download...");
+          performHttpDownload();
+        });
+      } else {
+        performHttpDownload();
+      }
       pc.http.get(glueUrl, {cache:true, responseType:"text", retry:false}, function(err, result) {
         glueCode = result;
         downloadCompleted();
@@ -42925,7 +42947,17 @@ Object.assign(pc, function() {
       return;
     }
     asset.once("load", function(loadedAsset) {
-      callback(null, loadedAsset);
+      if (type === "material") {
+        self._loadTextures([loadedAsset], function(err, textures) {
+          if (err) {
+            callback(err);
+          } else {
+            callback(null, loadedAsset);
+          }
+        });
+      } else {
+        callback(null, loadedAsset);
+      }
     });
     asset.once("error", function(err) {
       callback(err);
