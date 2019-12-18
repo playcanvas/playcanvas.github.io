@@ -1,5 +1,5 @@
 /*
- * PlayCanvas Engine v1.24.2 revision 7a55d627
+ * PlayCanvas Engine v1.24.3 revision aa1dfe23
  * Copyright 2011-2019 PlayCanvas Ltd. All rights reserved.
  */
 ;(function (root, factory) {
@@ -139,7 +139,7 @@ if (!String.prototype.startsWith) {
   }
   return result;
 }();
-var pc = {version:"1.24.2", revision:"7a55d627", config:{}, common:{}, apps:{}, data:{}, unpack:function() {
+var pc = {version:"1.24.3", revision:"aa1dfe23", config:{}, common:{}, apps:{}, data:{}, unpack:function() {
   console.warn("pc.unpack has been deprecated and will be removed shortly. Please update your code.");
 }, makeArray:function(arr) {
   var i, ret = [], length = arr.length;
@@ -42248,22 +42248,22 @@ Object.assign(pc, function() {
   return {JsonStandardMaterialParser:JsonStandardMaterialParser};
 }());
 Object.assign(pc, function() {
-  var BASIS_FORMAT = {cTFETC1:0, cTFETC2:1, cTFBC1:2, cTFBC3:3, cTFPVRTC1_4_RGB:8, cTFPVRTC1_4_RGBA:9, cTFASTC_4x4:10, cTFATC_RGB:11, cTFATC_RGBA_INTERPOLATED_ALPHA:12, cTFRGB565:14, cTFRGBA4444:16};
-  var opaqueMapping = {astc:BASIS_FORMAT.cTFASTC_4x4, dxt:BASIS_FORMAT.cTFBC1, etc2:BASIS_FORMAT.cTFETC1, etc1:BASIS_FORMAT.cTFETC1, pvr:BASIS_FORMAT.cTFPVRTC1_4_RGB, atc:BASIS_FORMAT.cTFATC_RGB, none:BASIS_FORMAT.cTFRGB565};
-  var alphaMapping = {astc:BASIS_FORMAT.cTFASTC_4x4, dxt:BASIS_FORMAT.cTFBC3, etc2:BASIS_FORMAT.cTFETC2, etc1:BASIS_FORMAT.cTFRGBA4444, pvr:BASIS_FORMAT.cTFPVRTC1_4_RGBA, atc:BASIS_FORMAT.cTFATC_RGBA_INTERPOLATED_ALPHA, none:BASIS_FORMAT.cTFRGBA4444};
-  var basisToEngineMapping = {};
-  basisToEngineMapping[BASIS_FORMAT.cTFETC1] = pc.PIXELFORMAT_ETC1;
-  basisToEngineMapping[BASIS_FORMAT.cTFETC2] = pc.PIXELFORMAT_ETC2_RGBA;
-  basisToEngineMapping[BASIS_FORMAT.cTFBC1] = pc.PIXELFORMAT_DXT1;
-  basisToEngineMapping[BASIS_FORMAT.cTFBC3] = pc.PIXELFORMAT_DXT5;
-  basisToEngineMapping[BASIS_FORMAT.cTFPVRTC1_4_RGB] = pc.PIXELFORMAT_PVRTC_4BPP_RGB_1;
-  basisToEngineMapping[BASIS_FORMAT.cTFPVRTC1_4_RGBA] = pc.PIXELFORMAT_PVRTC_4BPP_RGBA_1;
-  basisToEngineMapping[BASIS_FORMAT.cTFASTC_4x4] = pc.PIXELFORMAT_ASTC_4x4;
-  basisToEngineMapping[BASIS_FORMAT.cTFATC_RGB] = pc.PIXELFORMAT_ATC_RGB;
-  basisToEngineMapping[BASIS_FORMAT.cTFATC_RGBA_INTERPOLATED_ALPHA] = pc.PIXELFORMAT_ATC_RGBA;
-  basisToEngineMapping[BASIS_FORMAT.cTFRGB565] = pc.PIXELFORMAT_R5_G6_B5;
-  basisToEngineMapping[BASIS_FORMAT.cTFRGBA4444] = pc.PIXELFORMAT_R4_G4_B4_A4;
   var BasisWorker = function() {
+    var BASIS_FORMAT = {cTFETC1:0, cTFETC2:1, cTFBC1:2, cTFBC3:3, cTFPVRTC1_4_RGB:8, cTFPVRTC1_4_RGBA:9, cTFASTC_4x4:10, cTFATC_RGB:11, cTFATC_RGBA_INTERPOLATED_ALPHA:12, cTFRGB565:14, cTFRGBA4444:16};
+    var opaqueMapping = {astc:BASIS_FORMAT.cTFASTC_4x4, dxt:BASIS_FORMAT.cTFBC1, etc2:BASIS_FORMAT.cTFETC1, etc1:BASIS_FORMAT.cTFETC1, pvr:BASIS_FORMAT.cTFPVRTC1_4_RGB, atc:BASIS_FORMAT.cTFATC_RGB, none:BASIS_FORMAT.cTFRGB565};
+    var alphaMapping = {astc:BASIS_FORMAT.cTFASTC_4x4, dxt:BASIS_FORMAT.cTFBC3, etc2:BASIS_FORMAT.cTFETC2, etc1:BASIS_FORMAT.cTFRGBA4444, pvr:BASIS_FORMAT.cTFPVRTC1_4_RGBA, atc:BASIS_FORMAT.cTFATC_RGBA_INTERPOLATED_ALPHA, none:BASIS_FORMAT.cTFRGBA4444};
+    var basisToEngineMapping = {};
+    basisToEngineMapping[BASIS_FORMAT.cTFETC1] = pc.PIXELFORMAT_ETC1;
+    basisToEngineMapping[BASIS_FORMAT.cTFETC2] = pc.PIXELFORMAT_ETC2_RGBA;
+    basisToEngineMapping[BASIS_FORMAT.cTFBC1] = pc.PIXELFORMAT_DXT1;
+    basisToEngineMapping[BASIS_FORMAT.cTFBC3] = pc.PIXELFORMAT_DXT5;
+    basisToEngineMapping[BASIS_FORMAT.cTFPVRTC1_4_RGB] = pc.PIXELFORMAT_PVRTC_4BPP_RGB_1;
+    basisToEngineMapping[BASIS_FORMAT.cTFPVRTC1_4_RGBA] = pc.PIXELFORMAT_PVRTC_4BPP_RGBA_1;
+    basisToEngineMapping[BASIS_FORMAT.cTFASTC_4x4] = pc.PIXELFORMAT_ASTC_4x4;
+    basisToEngineMapping[BASIS_FORMAT.cTFATC_RGB] = pc.PIXELFORMAT_ATC_RGB;
+    basisToEngineMapping[BASIS_FORMAT.cTFATC_RGBA_INTERPOLATED_ALPHA] = pc.PIXELFORMAT_ATC_RGBA;
+    basisToEngineMapping[BASIS_FORMAT.cTFRGB565] = pc.PIXELFORMAT_R5_G6_B5;
+    basisToEngineMapping[BASIS_FORMAT.cTFRGBA4444] = pc.PIXELFORMAT_R4_G4_B4_A4;
     var transcode = function(basis, url, format, data) {
       var funcStart = performance.now();
       var basisFile = new basis.BasisFile(new Uint8Array(data));
@@ -42434,8 +42434,17 @@ Object.assign(pc, function() {
       callbacks[url].push(callback);
     }
   };
+  var extractPixelFormats = function() {
+    var result = {};
+    for (var key in pc) {
+      if (pc.hasOwnProperty(key) && key.startsWith("PIXELFORMAT_")) {
+        result[key] = pc[key];
+      }
+    }
+    return result;
+  };
   var basisInitialize = function(basisCode, basisModule, callback) {
-    var code = ["/* basis.js */", basisCode, "/* mappings */", "var opaqueMapping=" + JSON.stringify(opaqueMapping) + ";", "var alphaMapping=" + JSON.stringify(alphaMapping) + ";", "var basisToEngineMapping=" + JSON.stringify(basisToEngineMapping) + ";", " /* worker */", "(" + BasisWorker.toString() + ")()\n\n"].join("\n");
+    var code = ["/* basis.js */", basisCode, "/* mappings */", "var pc=" + JSON.stringify(extractPixelFormats()) + ";\n", " /* worker */", "(" + BasisWorker.toString() + ")()\n\n"].join("\n");
     var blob = new Blob([code], {type:"application/javascript"});
     var url = URL.createObjectURL(blob);
     worker = new Worker(url);
