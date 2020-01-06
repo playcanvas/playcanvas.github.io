@@ -1,6 +1,6 @@
 /*
- * PlayCanvas Engine v1.24.3 revision aa1dfe23
- * Copyright 2011-2019 PlayCanvas Ltd. All rights reserved.
+ * PlayCanvas Engine v1.25.0-dev revision 91f5384e
+ * Copyright 2011-2020 PlayCanvas Ltd. All rights reserved.
  */
 ;(function (root, factory) {
     if (typeof define === 'function' && define.amd) {
@@ -15,7 +15,12 @@
 Math.log2 = Math.log2 || function(x) {
   return Math.log(x) * Math.LOG2E;
 };
-if (typeof Object.assign != "function") {
+if (!Math.sign) {
+  Math.sign = function(x) {
+    return (x > 0) - (x < 0) || +x;
+  };
+}
+;if (typeof Object.assign != "function") {
   Object.defineProperty(Object, "assign", {value:function assign(target, varArgs) {
     if (target == null) {
       throw new TypeError("Cannot convert undefined or null to object");
@@ -139,7 +144,7 @@ if (!String.prototype.startsWith) {
   }
   return result;
 }();
-var pc = {version:"1.24.3", revision:"aa1dfe23", config:{}, common:{}, apps:{}, data:{}, unpack:function() {
+var pc = {version:"1.25.0-dev", revision:"91f5384e", config:{}, common:{}, apps:{}, data:{}, unpack:function() {
   console.warn("pc.unpack has been deprecated and will be removed shortly. Please update your code.");
 }, makeArray:function(arr) {
   var i, ret = [], length = arr.length;
@@ -8980,7 +8985,6 @@ Object.assign(pc, function() {
         model.meshInstances = [meshInstance];
         this.skyboxModel = model;
         skyLayer.addMeshInstances(model.meshInstances);
-        skyLayer.enabled = true;
         this.skyLayer = skyLayer;
         this.fire("set:skybox", usedTex);
       }
@@ -8989,7 +8993,6 @@ Object.assign(pc, function() {
   Scene.prototype._resetSkyboxModel = function() {
     if (this.skyboxModel) {
       this.skyLayer.removeMeshInstances(this.skyboxModel.meshInstances);
-      this.skyLayer.enabled = false;
       this.skyboxModel.destroy();
     }
     this.skyboxModel = null;
@@ -11749,6 +11752,9 @@ Object.assign(pc, function() {
       if (this._children[i] === child) {
         this._children.splice(i, 1);
         child._parent = null;
+        if (child.fire) {
+          child.fire("remove", this);
+        }
         if (this.fire) {
           this.fire("childremove", child);
         }
@@ -24803,6 +24809,8 @@ Object.assign(pc, function() {
     this._dirtyModelAsset = false;
     this._dirtyMaterialAsset = false;
     this._clonedModel = false;
+    entity.on("remove", this.onRemoveChild, this);
+    entity.on("insert", this.onInsertChild, this);
   };
   ModelComponent.prototype = Object.create(pc.Component.prototype);
   ModelComponent.prototype.constructor = ModelComponent;
@@ -24819,7 +24827,7 @@ Object.assign(pc, function() {
       }
       layer.addMeshInstances(this.meshInstances);
     }
-  }, removeModelFromLayers:function(model) {
+  }, removeModelFromLayers:function() {
     var layer;
     var layers = this.system.app.scene.layers;
     for (var i = 0; i < this._layers.length; i++) {
@@ -24827,8 +24835,18 @@ Object.assign(pc, function() {
       if (!layer) {
         continue;
       }
-      layer.removeMeshInstances(model.meshInstances);
+      layer.removeMeshInstances(this.meshInstances);
     }
+  }, onRemoveChild:function() {
+    if (!this._model) {
+      return;
+    }
+    this.removeModelFromLayers();
+  }, onInsertChild:function() {
+    if (!this._model) {
+      return;
+    }
+    this.addModelToLayers();
   }, onRemove:function() {
     if (this.type === "asset") {
       this.asset = null;
@@ -24837,6 +24855,8 @@ Object.assign(pc, function() {
     }
     this.materialAsset = null;
     this._unsetMaterialEvents();
+    this.entity.off("remove", this.onRemoveChild, this);
+    this.entity.off("insert", this.onInsertChild, this);
   }, onLayersChanged:function(oldComp, newComp) {
     this.addModelToLayers();
     oldComp.off("add", this.onLayerAdded, this);
@@ -24911,22 +24931,20 @@ Object.assign(pc, function() {
     if (!materialAsset) {
       return;
     }
-    if (materialAsset) {
-      if (materialAsset.resource) {
-        meshInstance.material = materialAsset.resource;
+    if (materialAsset.resource) {
+      meshInstance.material = materialAsset.resource;
+      this._setMaterialEvent(index, "remove", materialAsset.id, function() {
+        meshInstance.material = this.system.defaultMaterial;
+      });
+    } else {
+      this._setMaterialEvent(index, "load", materialAsset.id, function(asset) {
+        meshInstance.material = asset.resource;
         this._setMaterialEvent(index, "remove", materialAsset.id, function() {
           meshInstance.material = this.system.defaultMaterial;
         });
-      } else {
-        this._setMaterialEvent(index, "load", materialAsset.id, function(asset) {
-          meshInstance.material = asset.resource;
-          this._setMaterialEvent(index, "remove", materialAsset.id, function() {
-            meshInstance.material = this.system.defaultMaterial;
-          });
-        });
-        if (this.enabled && this.entity.enabled) {
-          assets.load(materialAsset);
-        }
+      });
+      if (this.enabled && this.entity.enabled) {
+        assets.load(materialAsset);
       }
     }
   }, onEnable:function() {
@@ -24982,7 +25000,7 @@ Object.assign(pc, function() {
       app.batcher.remove(pc.BatchGroup.MODEL, this.batchGroupId, this.entity);
     }
     if (this._model) {
-      this.removeModelFromLayers(this._model);
+      this.removeModelFromLayers();
     }
   }, hide:function() {
     if (this._model) {
@@ -25024,9 +25042,9 @@ Object.assign(pc, function() {
       this._bindMaterialAsset(asset);
     }
   }, _onMaterialAssetLoad:function(asset) {
-    this.material = asset.resource;
+    this._setMaterial(asset.resource);
   }, _onMaterialAssetUnload:function(asset) {
-    this.material = this.system.defaultMaterial;
+    this._setMaterial(this.system.defaultMaterial);
   }, _onMaterialAssetRemove:function(asset) {
     this._onMaterialAssetUnload(asset);
   }, _onMaterialAssetChange:function(asset) {
@@ -25065,6 +25083,18 @@ Object.assign(pc, function() {
     }
   }, _onModelAssetRemove:function(asset) {
     this.model = null;
+  }, _setMaterial:function(material) {
+    if (this._material === material) {
+      return;
+    }
+    this._material = material;
+    var model = this._model;
+    if (model && this._type !== "asset") {
+      var meshInstances = model.meshInstances;
+      for (var i = 0, len = meshInstances.length; i < len; i++) {
+        meshInstances[i].material = material;
+      }
+    }
   }});
   Object.defineProperty(ModelComponent.prototype, "meshInstances", {get:function() {
     if (!this._model) {
@@ -25189,7 +25219,7 @@ Object.assign(pc, function() {
       return;
     }
     if (this._model) {
-      this.removeModelFromLayers(this._model);
+      this.removeModelFromLayers();
       this.entity.removeChild(this._model.getGraph());
       delete this._model._entity;
       if (this._clonedModel) {
@@ -25393,29 +25423,24 @@ Object.assign(pc, function() {
       if (this._materialAsset) {
         var asset = assets.get(this._materialAsset);
         if (!asset) {
-          this.material = this.system.defaultMaterial;
+          this._setMaterial(this.system.defaultMaterial);
           assets.on("add:" + this._materialAsset, this._onMaterialAssetAdd, this);
         } else {
           this._bindMaterialAsset(asset);
         }
       } else {
-        this.material = this.system.defaultMaterial;
+        this._setMaterial(this.system.defaultMaterial);
       }
     }
   }});
   Object.defineProperty(ModelComponent.prototype, "material", {get:function() {
     return this._material;
   }, set:function(value) {
-    if (this._material !== value) {
-      this._material = value;
-      var model = this._model;
-      if (model && this._type !== "asset") {
-        var meshInstances = model.meshInstances;
-        for (var i = 0, len = meshInstances.length; i < len; i++) {
-          meshInstances[i].material = value;
-        }
-      }
+    if (this._material === value) {
+      return;
     }
+    this.materialAsset = null;
+    this._setMaterial(value);
   }});
   Object.defineProperty(ModelComponent.prototype, "mapping", {get:function() {
     return this._mapping;
@@ -29799,6 +29824,9 @@ Object.assign(pc, function() {
               if (entityCollision) {
                 entityCollision.fire("triggerleave", other);
               }
+              if (other.rigidbody) {
+                other.rigidbody.fire("triggerleave", entity);
+              }
             } else {
               if (!other.trigger) {
                 if (entityRigidbody) {
@@ -29866,25 +29894,39 @@ Object.assign(pc, function() {
       var numContacts = manifold.getNumContacts();
       var forwardContacts = [];
       var reverseContacts = [];
-      var newCollision, e0Events, e1Events;
+      var newCollision, e0Events, e1Events, e0BodyEvents, e1BodyEvents;
       if (numContacts > 0) {
         if (flags0 & pc.BODYFLAG_NORESPONSE_OBJECT || flags1 & pc.BODYFLAG_NORESPONSE_OBJECT) {
-          e0Events = e0.collision ? e0.collision.hasEvent("triggerenter") || e0.collision.hasEvent("triggerleave") : false;
-          e1Events = e1.collision ? e1.collision.hasEvent("triggerenter") || e1.collision.hasEvent("triggerleave") : false;
+          e0Events = e0.collision && (e0.collision.hasEvent("triggerenter") || e0.collision.hasEvent("triggerleave"));
+          e1Events = e1.collision && (e1.collision.hasEvent("triggerenter") || e1.collision.hasEvent("triggerleave"));
+          e0BodyEvents = e0.rigidbody && (e0.rigidbody.hasEvent("triggerenter") || e0.rigidbody.hasEvent("triggerleave"));
+          e1BodyEvents = e1.rigidbody && (e1.rigidbody.hasEvent("triggerenter") || e1.rigidbody.hasEvent("triggerleave"));
           if (e0Events) {
             newCollision = this._storeCollision(e0, e1);
-            if (newCollision) {
-              if (e0.collision && !(flags1 & pc.BODYFLAG_NORESPONSE_OBJECT)) {
-                e0.collision.fire("triggerenter", e1);
-              }
+            if (newCollision && !(flags1 & pc.BODYFLAG_NORESPONSE_OBJECT)) {
+              e0.collision.fire("triggerenter", e1);
             }
           }
           if (e1Events) {
             newCollision = this._storeCollision(e1, e0);
+            if (newCollision && !(flags0 & pc.BODYFLAG_NORESPONSE_OBJECT)) {
+              e1.collision.fire("triggerenter", e0);
+            }
+          }
+          if (e0BodyEvents) {
+            if (!newCollision) {
+              newCollision = this._storeCollision(e1, e0);
+            }
             if (newCollision) {
-              if (e1.collision && !(flags0 & pc.BODYFLAG_NORESPONSE_OBJECT)) {
-                e1.collision.fire("triggerenter", e0);
-              }
+              e0.rigidbody.fire("triggerenter", e1);
+            }
+          }
+          if (e1BodyEvents) {
+            if (!newCollision) {
+              newCollision = this._storeCollision(e0, e1);
+            }
+            if (newCollision) {
+              e1.rigidbody.fire("triggerenter", e0);
             }
           }
         } else {
@@ -30545,10 +30587,7 @@ Object.assign(pc, function() {
     var entity = component.entity;
     var data = component.data;
     if (data.model) {
-      if (data.shape) {
-        Ammo.destroy(data.shape);
-        data.shape = null;
-      }
+      this.destroyShape(data);
       data.shape = this.createPhysicalShape(entity, data);
       if (entity.rigidbody) {
         entity.rigidbody.disableSimulation();
@@ -30577,14 +30616,19 @@ Object.assign(pc, function() {
       }
     }
     pc.CollisionSystemImpl.prototype.updateTransform.call(this, component, position, rotation, scale);
-  }, remove:function(entity, data) {
-    if (data.shape) {
-      var numShapes = data.shape.getNumChildShapes();
-      for (var i = 0; i < numShapes; i++) {
-        var shape = data.shape.getChildShape(i);
-        Ammo.destroy(shape);
-      }
+  }, destroyShape:function(data) {
+    if (!data.shape) {
+      return;
     }
+    var numShapes = data.shape.getNumChildShapes();
+    for (var i = 0; i < numShapes; i++) {
+      var shape = data.shape.getChildShape(i);
+      Ammo.destroy(shape);
+    }
+    Ammo.destroy(data.shape);
+    data.shape = null;
+  }, remove:function(entity, data) {
+    this.destroyShape(data);
     CollisionSystemImpl.prototype.remove.call(this, entity, data);
   }});
   var CollisionCompoundSystemImpl = function(system) {
@@ -31622,7 +31666,7 @@ Object.assign(pc, function() {
     } else {
       if (this._time > duration) {
         if (this.loop) {
-          this._time = this._time % duration;
+          this._time %= duration;
         } else {
           this._time = duration;
         }
@@ -43004,6 +43048,12 @@ Object.assign(pc, function() {
       _loadAsset(asset);
     }
   }, _loadMaterials:function(dir, mapping, callback) {
+    if (dir) {
+      dir += "/";
+      if (this.prefix && dir.startsWith(this.prefix)) {
+        dir = dir.slice(this.prefix.length);
+      }
+    }
     var self = this;
     var i;
     var count = mapping.mapping.length;
@@ -43047,6 +43097,12 @@ Object.assign(pc, function() {
       }
       var url = materialAssets[i].getFileUrl();
       var dir = pc.path.getDirectory(url);
+      if (dir) {
+        dir += "/";
+        if (this.prefix && dir.startsWith(this.prefix)) {
+          dir = dir.slice(this.prefix.length);
+        }
+      }
       var textureUrl;
       for (var pi = 0; pi < pc.StandardMaterial.TEXTURE_PARAMETERS.length; pi++) {
         var paramName = pc.StandardMaterial.TEXTURE_PARAMETERS[pi];
@@ -44798,7 +44854,7 @@ Object.assign(pc, function() {
     } else {
       arr = groupMeshInstances[node.model.batchGroupId] = arr.concat(node.model.meshInstances);
     }
-    node.model.removeModelFromLayers(node.model.model);
+    node.model.removeModelFromLayers();
     return arr;
   };
   BatchManager.prototype._extractElement = function(node, arr, group) {
