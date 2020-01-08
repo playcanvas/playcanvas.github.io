@@ -1,5 +1,5 @@
 /*
- * PlayCanvas Engine v1.25.0-dev revision 91f5384e
+ * PlayCanvas Engine v1.24.4 revision 8b5dab2b
  * Copyright 2011-2020 PlayCanvas Ltd. All rights reserved.
  */
 ;(function (root, factory) {
@@ -144,7 +144,7 @@ if (!String.prototype.startsWith) {
   }
   return result;
 }();
-var pc = {version:"1.25.0-dev", revision:"91f5384e", config:{}, common:{}, apps:{}, data:{}, unpack:function() {
+var pc = {version:"1.24.4", revision:"8b5dab2b", config:{}, common:{}, apps:{}, data:{}, unpack:function() {
   console.warn("pc.unpack has been deprecated and will be removed shortly. Please update your code.");
 }, makeArray:function(arr) {
   var i, ret = [], length = arr.length;
@@ -3740,6 +3740,7 @@ Object.assign(pc, function() {
     this._depth = 1;
     this._format = pc.PIXELFORMAT_R8_G8_B8_A8;
     this.rgbm = false;
+    this.swizzleGGGR = false;
     this._cubemap = false;
     this._volume = false;
     this.fixCubemapSeams = false;
@@ -3759,6 +3760,7 @@ Object.assign(pc, function() {
       this._height = options.height !== undefined ? options.height : this._height;
       this._format = options.format !== undefined ? options.format : this._format;
       this.rgbm = options.rgbm !== undefined ? options.rgbm : this.rgbm;
+      this.swizzleGGGR = options.swizzleGGGR !== undefined ? options.swizzleGGGR : this.swizzleGGGR;
       if (options.mipmaps !== undefined) {
         this._mipmaps = options.mipmaps;
       } else {
@@ -13779,7 +13781,7 @@ Object.assign(pc, function() {
     options.occludeDirect = stdMat.occludeDirect;
     options.shadingModel = stdMat.shadingModel;
     options.fresnelModel = stdMat.fresnelModel;
-    options.packedNormal = stdMat.normalMap ? stdMat.normalMap.format === pc.PIXELFORMAT_DXT5 : false;
+    options.packedNormal = stdMat.normalMap ? stdMat.normalMap.format === pc.PIXELFORMAT_DXT5 || stdMat.normalMap.swizzleGGGR : false;
     options.fastTbn = stdMat.fastTbn;
     options.cubeMapProjection = stdMat.cubeMapProjection;
     options.customFragmentShader = stdMat.customFragmentShader;
@@ -24838,15 +24840,13 @@ Object.assign(pc, function() {
       layer.removeMeshInstances(this.meshInstances);
     }
   }, onRemoveChild:function() {
-    if (!this._model) {
-      return;
+    if (this._model) {
+      this.removeModelFromLayers();
     }
-    this.removeModelFromLayers();
   }, onInsertChild:function() {
-    if (!this._model) {
-      return;
+    if (this._model && this.enabled && this.entity.enabled) {
+      this.addModelToLayers();
     }
-    this.addModelToLayers();
   }, onRemove:function() {
     if (this.type === "asset") {
       this.asset = null;
@@ -25215,6 +25215,7 @@ Object.assign(pc, function() {
   Object.defineProperty(ModelComponent.prototype, "model", {get:function() {
     return this._model;
   }, set:function(value) {
+    var i;
     if (this._model === value) {
       return;
     }
@@ -25225,12 +25226,18 @@ Object.assign(pc, function() {
       if (this._clonedModel) {
         this._model.destroy();
         this._clonedModel = false;
+      } else {
+        if (this._model) {
+          for (i = 0; i < this._model.meshInstances.length; i++) {
+            this._model.meshInstances[i].material = null;
+          }
+        }
       }
     }
     this._model = value;
     if (this._model) {
       var meshInstances = this._model.meshInstances;
-      for (var i = 0; i < meshInstances.length; i++) {
+      for (i = 0; i < meshInstances.length; i++) {
         meshInstances[i].castShadow = this._castShadows;
         meshInstances[i].receiveShadow = this._receiveShadows;
         meshInstances[i].isStatic = this._isStatic;
@@ -41081,6 +41088,14 @@ Object.assign(pc, function() {
     var rgbm = !!asset.data.rgbm;
     if (asset.data.hasOwnProperty("rgbm") && texture.rgbm !== rgbm) {
       texture.rgbm = rgbm;
+    }
+    if (asset.file && asset.getPreferredFile) {
+      var preferredFile = asset.getPreferredFile();
+      if (preferredFile) {
+        if (preferredFile.opt && (preferredFile.opt & 8) !== 0) {
+          texture.swizzleGGGR = true;
+        }
+      }
     }
   }});
   return {TextureHandler:TextureHandler};

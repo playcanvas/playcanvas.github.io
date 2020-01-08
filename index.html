@@ -61,7 +61,6 @@
                     }, false);
 
                     let currentExample = window.location.hash.substr(1).split("/")[1].split(".")[0];
-                    console.log(currentExample)
                     if (example === currentExample) {
                         exampleEntry.classList.add("active");
                     }
@@ -74,11 +73,7 @@
             // Navigation
             let navigationToggle = document.querySelector(".sidenav-toggle");
             navigationToggle.addEventListener("click", function (event){
-                if (sidenav.className === "sidenav closed") {
-                    sidenav.classList.remove("closed")
-                } else {
-                    sidenav.classList.add("closed")
-                }
+                sidenav.classList.toggle("closed");
             })
         </script>
     </body>
