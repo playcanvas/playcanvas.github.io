@@ -1,5 +1,5 @@
 /*
- * PlayCanvas Engine v1.24.4 revision 8b5dab2b
+ * PlayCanvas Engine v1.24.5 revision 95fc1969
  * Copyright 2011-2020 PlayCanvas Ltd. All rights reserved.
  */
 ;(function (root, factory) {
@@ -12,7 +12,29 @@
     }
 }(this, function () {
 
-Math.log2 = Math.log2 || function(x) {
+if (!Array.prototype.find) {
+  Object.defineProperty(Array.prototype, "find", {value:function(predicate) {
+    if (this == null) {
+      throw TypeError('"this" is null or not defined');
+    }
+    var o = Object(this);
+    var len = o.length >>> 0;
+    if (typeof predicate !== "function") {
+      throw TypeError("predicate must be a function");
+    }
+    var thisArg = arguments[1];
+    var k = 0;
+    while (k < len) {
+      var kValue = o[k];
+      if (predicate.call(thisArg, kValue, k, o)) {
+        return kValue;
+      }
+      k++;
+    }
+    return undefined;
+  }, configurable:true, writable:true});
+}
+;Math.log2 = Math.log2 || function(x) {
   return Math.log(x) * Math.LOG2E;
 };
 if (!Math.sign) {
@@ -144,7 +166,7 @@ if (!String.prototype.startsWith) {
   }
   return result;
 }();
-var pc = {version:"1.24.4", revision:"8b5dab2b", config:{}, common:{}, apps:{}, data:{}, unpack:function() {
+var pc = {version:"1.24.5", revision:"95fc1969", config:{}, common:{}, apps:{}, data:{}, unpack:function() {
   console.warn("pc.unpack has been deprecated and will be removed shortly. Please update your code.");
 }, makeArray:function(arr) {
   var i, ret = [], length = arr.length;
@@ -3894,69 +3916,9 @@ Object.assign(pc, function() {
   Object.defineProperty(Texture.prototype, "cubemap", {get:function() {
     return this._cubemap;
   }});
-  var _pixelFormat2Size = null;
   Object.defineProperty(Texture.prototype, "gpuSize", {get:function() {
-    if (!_pixelFormat2Size) {
-      _pixelFormat2Size = [];
-      _pixelFormat2Size[pc.PIXELFORMAT_A8] = 1;
-      _pixelFormat2Size[pc.PIXELFORMAT_L8] = 1;
-      _pixelFormat2Size[pc.PIXELFORMAT_L8_A8] = 1;
-      _pixelFormat2Size[pc.PIXELFORMAT_R5_G6_B5] = 2;
-      _pixelFormat2Size[pc.PIXELFORMAT_R5_G5_B5_A1] = 2;
-      _pixelFormat2Size[pc.PIXELFORMAT_R4_G4_B4_A4] = 2;
-      _pixelFormat2Size[pc.PIXELFORMAT_R8_G8_B8] = 4;
-      _pixelFormat2Size[pc.PIXELFORMAT_R8_G8_B8_A8] = 4;
-      _pixelFormat2Size[pc.PIXELFORMAT_RGB16F] = 8;
-      _pixelFormat2Size[pc.PIXELFORMAT_RGBA16F] = 8;
-      _pixelFormat2Size[pc.PIXELFORMAT_RGB32F] = 16;
-      _pixelFormat2Size[pc.PIXELFORMAT_RGBA32F] = 16;
-      _pixelFormat2Size[pc.PIXELFORMAT_R32F] = 4;
-      _pixelFormat2Size[pc.PIXELFORMAT_DEPTH] = 4;
-      _pixelFormat2Size[pc.PIXELFORMAT_DEPTHSTENCIL] = 4;
-      _pixelFormat2Size[pc.PIXELFORMAT_111110F] = 4;
-      _pixelFormat2Size[pc.PIXELFORMAT_SRGB] = 4;
-      _pixelFormat2Size[pc.PIXELFORMAT_SRGBA] = 4;
-    }
-    var mips = 1;
-    if (this.pot && (this._mipmaps || this._minFilter === pc.FILTER_NEAREST_MIPMAP_NEAREST || this._minFilter === pc.FILTER_NEAREST_MIPMAP_LINEAR || this._minFilter === pc.FILTER_LINEAR_MIPMAP_NEAREST || this._minFilter === pc.FILTER_LINEAR_MIPMAP_LINEAR) && !(this._compressed && this._levels.length === 1)) {
-      mips = Math.round(Math.log2(Math.max(this._width, this._height)) + 1);
-    }
-    var mipWidth = this._width;
-    var mipHeight = this._height;
-    var mipDepth = this._depth;
-    var size = 0;
-    for (var i = 0; i < mips; i++) {
-      if (!this._compressed) {
-        size += mipWidth * mipHeight * mipDepth * _pixelFormat2Size[this._format];
-      } else {
-        if (this._format === pc.PIXELFORMAT_ETC1) {
-          size += Math.floor((mipWidth + 3) / 4) * Math.floor((mipHeight + 3) / 4) * 8 * mipDepth;
-        } else {
-          if (this._format === pc.PIXELFORMAT_PVRTC_2BPP_RGB_1 || this._format === pc.PIXELFORMAT_PVRTC_2BPP_RGBA_1) {
-            size += Math.max(mipWidth, 16) * Math.max(mipHeight, 8) / 4 * mipDepth;
-          } else {
-            if (this._format === pc.PIXELFORMAT_PVRTC_4BPP_RGB_1 || this._format === pc.PIXELFORMAT_PVRTC_4BPP_RGBA_1) {
-              size += Math.max(mipWidth, 8) * Math.max(mipHeight, 8) / 2 * mipDepth;
-            } else {
-              var DXT_BLOCK_WIDTH = 4;
-              var DXT_BLOCK_HEIGHT = 4;
-              var blockSize = this._format === pc.PIXELFORMAT_DXT1 ? 8 : 16;
-              var numBlocksAcross = Math.floor((mipWidth + DXT_BLOCK_WIDTH - 1) / DXT_BLOCK_WIDTH);
-              var numBlocksDown = Math.floor((mipHeight + DXT_BLOCK_HEIGHT - 1) / DXT_BLOCK_HEIGHT);
-              var numBlocks = numBlocksAcross * numBlocksDown;
-              size += numBlocks * blockSize * mipDepth;
-            }
-          }
-        }
-      }
-      mipWidth = Math.max(mipWidth * 0.5, 1);
-      mipHeight = Math.max(mipHeight * 0.5, 1);
-      mipDepth = Math.max(mipDepth * 0.5, 1);
-    }
-    if (this._cubemap) {
-      size *= 6;
-    }
-    return size;
+    var mips = this.pot && (this._mipmaps || this._minFilter === pc.FILTER_NEAREST_MIPMAP_NEAREST || this._minFilter === pc.FILTER_NEAREST_MIPMAP_LINEAR || this._minFilter === pc.FILTER_LINEAR_MIPMAP_NEAREST || this._minFilter === pc.FILTER_LINEAR_MIPMAP_LINEAR) && !(this._compressed && this._levels.length === 1);
+    return Texture.calcGpuSize(this._width, this._height, this._depth, this._format, mips, this._cubemap);
   }});
   Object.defineProperty(Texture.prototype, "volume", {get:function() {
     return this._volume;
@@ -3979,6 +3941,70 @@ Object.assign(pc, function() {
   }});
   Object.defineProperty(Texture.prototype, "pot", {get:function() {
     return pc.math.powerOfTwo(this._width) && pc.math.powerOfTwo(this._height);
+  }});
+  var _pixelSizeTable = null;
+  var _blockSizeTable = null;
+  Object.assign(Texture, {calcGpuSize:function(width, height, depth, format, mipmaps, cubemap) {
+    if (!_pixelSizeTable) {
+      _pixelSizeTable = [];
+      _pixelSizeTable[pc.PIXELFORMAT_A8] = 1;
+      _pixelSizeTable[pc.PIXELFORMAT_L8] = 1;
+      _pixelSizeTable[pc.PIXELFORMAT_L8_A8] = 1;
+      _pixelSizeTable[pc.PIXELFORMAT_R5_G6_B5] = 2;
+      _pixelSizeTable[pc.PIXELFORMAT_R5_G5_B5_A1] = 2;
+      _pixelSizeTable[pc.PIXELFORMAT_R4_G4_B4_A4] = 2;
+      _pixelSizeTable[pc.PIXELFORMAT_R8_G8_B8] = 4;
+      _pixelSizeTable[pc.PIXELFORMAT_R8_G8_B8_A8] = 4;
+      _pixelSizeTable[pc.PIXELFORMAT_RGB16F] = 8;
+      _pixelSizeTable[pc.PIXELFORMAT_RGBA16F] = 8;
+      _pixelSizeTable[pc.PIXELFORMAT_RGB32F] = 16;
+      _pixelSizeTable[pc.PIXELFORMAT_RGBA32F] = 16;
+      _pixelSizeTable[pc.PIXELFORMAT_R32F] = 4;
+      _pixelSizeTable[pc.PIXELFORMAT_DEPTH] = 4;
+      _pixelSizeTable[pc.PIXELFORMAT_DEPTHSTENCIL] = 4;
+      _pixelSizeTable[pc.PIXELFORMAT_111110F] = 4;
+      _pixelSizeTable[pc.PIXELFORMAT_SRGB] = 4;
+      _pixelSizeTable[pc.PIXELFORMAT_SRGBA] = 4;
+    }
+    if (!_blockSizeTable) {
+      _blockSizeTable = [];
+      _blockSizeTable[pc.PIXELFORMAT_ETC1] = 8;
+      _blockSizeTable[pc.PIXELFORMAT_ETC2_RGB] = 8;
+      _blockSizeTable[pc.PIXELFORMAT_PVRTC_2BPP_RGB_1] = 8;
+      _blockSizeTable[pc.PIXELFORMAT_PVRTC_2BPP_RGBA_1] = 8;
+      _blockSizeTable[pc.PIXELFORMAT_PVRTC_4BPP_RGB_1] = 8;
+      _blockSizeTable[pc.PIXELFORMAT_PVRTC_4BPP_RGBA_1] = 8;
+      _blockSizeTable[pc.PIXELFORMAT_DXT1] = 8;
+      _blockSizeTable[pc.PIXELFORMAT_ATC_RGB] = 8;
+      _blockSizeTable[pc.PIXELFORMAT_ETC2_RGBA] = 16;
+      _blockSizeTable[pc.PIXELFORMAT_DXT3] = 16;
+      _blockSizeTable[pc.PIXELFORMAT_DXT5] = 16;
+      _blockSizeTable[pc.PIXELFORMAT_ASTC_4x4] = 16;
+      _blockSizeTable[pc.PIXELFORMAT_ATC_RGBA] = 16;
+    }
+    var pixelSize = _pixelSizeTable.hasOwnProperty(format) ? _pixelSizeTable[format] : 0;
+    var blockSize = _blockSizeTable.hasOwnProperty(format) ? _blockSizeTable[format] : 0;
+    var result = 0;
+    while (1) {
+      if (pixelSize > 0) {
+        result += width * height * depth * pixelSize;
+      } else {
+        var blockWidth = Math.floor((width + 3) / 4);
+        var blockHeight = Math.floor((height + 3) / 4);
+        var blockDepth = Math.floor((depth + 3) / 4);
+        if (format === pc.PIXELFORMAT_PVRTC_2BPP_RGB_1 || format === pc.PIXELFORMAT_PVRTC_2BPP_RGBA_1) {
+          blockWidth = Math.floor(blockWidth / 2, 1);
+        }
+        result += blockWidth * blockHeight * blockDepth * blockSize;
+      }
+      if (!mipmaps || width === 1 && height === 1 && depth === 1) {
+        break;
+      }
+      width = Math.max(Math.floor(width / 2), 1);
+      height = Math.max(Math.floor(height / 2), 1);
+      depth = Math.max(Math.floor(depth / 2), 1);
+    }
+    return result * (cubemap ? 6 : 1);
   }});
   Object.assign(Texture.prototype, {destroy:function() {
     if (this.device) {
@@ -43010,11 +43036,7 @@ Object.assign(pc, function() {
       asset = new pc.Asset(name, type, file, data);
       self.add(asset);
     }
-    if (type === "model") {
-      self._loadModel(asset, callback);
-      return;
-    }
-    asset.once("load", function(loadedAsset) {
+    var onLoadAsset = function(loadedAsset) {
       if (type === "material") {
         self._loadTextures([loadedAsset], function(err, textures) {
           if (err) {
@@ -43026,7 +43048,16 @@ Object.assign(pc, function() {
       } else {
         callback(null, loadedAsset);
       }
-    });
+    };
+    if (asset.resource) {
+      onLoadAsset(asset);
+      return;
+    }
+    if (type === "model") {
+      self._loadModel(asset, callback);
+      return;
+    }
+    asset.once("load", onLoadAsset);
     asset.once("error", function(err) {
       callback(err);
     });
@@ -43073,11 +43104,6 @@ Object.assign(pc, function() {
     var i;
     var count = mapping.mapping.length;
     var materials = [];
-    var done = function(err, loadedMaterials) {
-      self._loadTextures(loadedMaterials, function(e, textures) {
-        callback(null, loadedMaterials);
-      });
-    };
     if (count === 0) {
       callback(null, materials);
     }
@@ -43085,7 +43111,7 @@ Object.assign(pc, function() {
       materials.push(asset);
       count--;
       if (count === 0) {
-        done(null, materials);
+        callback(null, materials);
       }
     };
     for (i = 0; i < mapping.mapping.length; i++) {
@@ -43121,7 +43147,7 @@ Object.assign(pc, function() {
       var textureUrl;
       for (var pi = 0; pi < pc.StandardMaterial.TEXTURE_PARAMETERS.length; pi++) {
         var paramName = pc.StandardMaterial.TEXTURE_PARAMETERS[pi];
-        if (materialData[paramName]) {
+        if (materialData[paramName] && typeof materialData[paramName] === "string") {
           var texturePath = materialData[paramName];
           textureUrl = pc.path.join(dir, texturePath);
           if (!used[textureUrl]) {
