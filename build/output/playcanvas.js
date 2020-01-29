@@ -1,5 +1,5 @@
 /*
- * PlayCanvas Engine v1.24.5 revision 95fc1969
+ * PlayCanvas Engine v1.24.6 revision 5957521d
  * Copyright 2011-2020 PlayCanvas Ltd. All rights reserved.
  */
 ;(function (root, factory) {
@@ -166,7 +166,7 @@ if (!String.prototype.startsWith) {
   }
   return result;
 }();
-var pc = {version:"1.24.5", revision:"95fc1969", config:{}, common:{}, apps:{}, data:{}, unpack:function() {
+var pc = {version:"1.24.6", revision:"5957521d", config:{}, common:{}, apps:{}, data:{}, unpack:function() {
   console.warn("pc.unpack has been deprecated and will be removed shortly. Please update your code.");
 }, makeArray:function(arr) {
   var i, ret = [], length = arr.length;
@@ -487,13 +487,31 @@ pc.path = function() {
   }, isRelativePath:function(s) {
     return s.charAt(0) !== "/" && s.match(/:\/\//) === null;
   }, extractPath:function(s) {
-    var path = ".", parts = s.split("/"), i = 0;
+    var path = "";
+    var parts = s.split("/");
+    var i = 0;
     if (parts.length > 1) {
-      if (pc.path.isRelativePath(s) === false) {
-        path = "";
-      }
-      for (i = 0; i < parts.length - 1; ++i) {
-        path += "/" + parts[i];
+      if (pc.path.isRelativePath(s)) {
+        if (parts[0] === ".") {
+          for (i = 0; i < parts.length - 1; ++i) {
+            path += i === 0 ? parts[i] : "/" + parts[i];
+          }
+        } else {
+          if (parts[0] === "..") {
+            for (i = 0; i < parts.length - 1; ++i) {
+              path += i === 0 ? parts[i] : "/" + parts[i];
+            }
+          } else {
+            path = ".";
+            for (i = 0; i < parts.length - 1; ++i) {
+              path += "/" + parts[i];
+            }
+          }
+        }
+      } else {
+        for (i = 0; i < parts.length - 1; ++i) {
+          path += i === 0 ? parts[i] : "/" + parts[i];
+        }
       }
     }
     return path;
@@ -571,12 +589,6 @@ pc.string = function() {
       s = s.replace(regexp, args[i]);
     }
     return s;
-  }, startsWith:function(s, subs) {
-    console.warn("WARNING: startsWith: Function is deprecated. Use String.startsWith instead.");
-    return s.startsWith(subs);
-  }, endsWith:function(s, subs) {
-    console.warn("WARNING: endsWith: Function is deprecated. Use String.endsWith instead.");
-    return s.endsWith(subs);
   }, toBool:function(s, strict) {
     if (s === "true") {
       return true;
@@ -1055,7 +1067,7 @@ Object.assign(pc, function() {
   return {AllocatePool:AllocatePool};
 }());
 Object.assign(pc, function() {
-  var platform = {desktop:false, mobile:false, ios:false, android:false, windows:false, xbox:false, gamepads:false, touch:false, workers:false};
+  var platform = {desktop:false, mobile:false, ios:false, android:false, windows:false, xbox:false, gamepads:false, touch:false, workers:false, passiveEvents:false};
   if (typeof navigator !== "undefined") {
     var ua = navigator.userAgent;
     if (/(windows|mac os|linux|cros)/i.test(ua)) {
@@ -1086,6 +1098,15 @@ Object.assign(pc, function() {
     }
     platform.gamepads = "getGamepads" in navigator;
     platform.workers = typeof Worker !== "undefined";
+    try {
+      var opts = Object.defineProperty({}, "passive", {get:function() {
+        platform.passiveEvents = true;
+        return false;
+      }});
+      window.addEventListener("testpassive", null, opts);
+      window.removeEventListener("testpassive", null, opts);
+    } catch (e) {
+    }
   }
   return {platform:platform};
 }());
@@ -4635,6 +4656,7 @@ Object.assign(pc, function() {
     this._maxPixelRatio = 1;
     this.renderTarget = null;
     this.feedback = null;
+    this._tempEnableSafariTextureUnitWorkaround = !!window.safari;
     this._width = 0;
     this._height = 0;
     this.updateClientRect();
@@ -5218,6 +5240,13 @@ Object.assign(pc, function() {
     var gl = this.gl;
     this.boundBuffer = null;
     this.boundElementBuffer = null;
+    if (this._tempEnableSafariTextureUnitWorkaround) {
+      for (var unit = 0; unit < this.textureUnits.length; ++unit) {
+        for (var slot = 0; slot < 3; ++slot) {
+          this.textureUnits[unit][slot] = null;
+        }
+      }
+    }
     var target = this.renderTarget;
     if (target) {
       if (!target._glFrameBuffer) {
@@ -6977,14 +7006,13 @@ pc.shaderChunks.metalnessPS = "void processMetalness(float metalness) {\n    con
 pc.shaderChunks.msdfPS = "uniform sampler2D texture_msdfMap;\n#ifdef GL_OES_standard_derivatives\n#define USE_FWIDTH\n#endif\n#ifdef GL2\n#define USE_FWIDTH\n#endif\nfloat median(float r, float g, float b) {\n    return max(min(r, g), min(max(r, g), b));\n}\nfloat map (float min, float max, float v) {\n    return (v - min) / (max - min);\n}\nuniform float font_sdfIntensity; // intensity is used to boost the value read from the SDF, 0 is no boost, 1.0 is max boost\nuniform float font_pxrange;      // the number of pixels between inside and outside the font in SDF\nuniform float font_textureWidth; // the width of the texture atlas\nuniform vec4 outline_color;\nuniform float outline_thickness;\nuniform vec4 shadow_color;\nuniform vec2 shadow_offset;\nvec4 applyMsdf(vec4 color) {\n    // sample the field\n    vec3 tsample = texture2D(texture_msdfMap, vUv0).rgb;\n    vec2 uvShdw = vUv0 - shadow_offset;\n    vec3 ssample = texture2D(texture_msdfMap, uvShdw).rgb;\n    // get the signed distance value\n    float sigDist = median(tsample.r, tsample.g, tsample.b);\n    float sigDistShdw = median(ssample.r, ssample.g, ssample.b);\n    #ifdef USE_FWIDTH\n        // smoothing depends on size of texture on screen\n        vec2 w = fwidth(vUv0);\n        float smoothing = clamp(w.x * font_textureWidth / font_pxrange, 0.0, 0.5);\n    #else\n        float font_size = 16.0; // TODO fix this\n        // smoothing gets smaller as the font size gets bigger\n        // don't have fwidth we can approximate from font size, this doesn't account for scaling\n        // so a big font scaled down will be wrong...\n        float smoothing = clamp(font_pxrange / font_size, 0.0, 0.5);\n    #endif\n    float mapMin = 0.05;\n    float mapMax = clamp(1.0 - font_sdfIntensity, mapMin, 1.0);\n    // remap to a smaller range (used on smaller font sizes)\n    float sigDistInner = map(mapMin, mapMax, sigDist);\n    float sigDistOutline = map(mapMin, mapMax, sigDist + outline_thickness);\n    sigDistShdw = map(mapMin, mapMax, sigDistShdw + outline_thickness);\n    float center = 0.5;\n    // calculate smoothing and use to generate opacity\n    float inside = smoothstep(center-smoothing, center+smoothing, sigDistInner);\n    float outline = smoothstep(center-smoothing, center+smoothing, sigDistOutline);\n    float shadow = smoothstep(center-smoothing, center+smoothing, sigDistShdw);\n    vec4 tcolor = (outline > inside) ? outline * vec4(outline_color.a * outline_color.rgb, outline_color.a) : vec4(0.0);\n    tcolor = mix(tcolor, color, inside);\n    vec4 scolor = (shadow > outline) ? shadow * vec4(shadow_color.a * shadow_color.rgb, shadow_color.a) : tcolor;\n    tcolor = mix(scolor, tcolor, outline);\n    \n    return tcolor;\n}";
 pc.shaderChunks.normalVS = "vec3 getNormal() {\n    #ifdef SKIN\n        dNormalMatrix = mat3(dModelMatrix[0].xyz, dModelMatrix[1].xyz, dModelMatrix[2].xyz);\n    #elif defined(INSTANCING)\n        dNormalMatrix = mat3(instance_line1.xyz, instance_line2.xyz, instance_line3.xyz);\n    #else\n        dNormalMatrix = matrix_normal;\n    #endif\n    return normalize(dNormalMatrix * vertex_normal);\n}\n";
 pc.shaderChunks.normalInstancedVS = "vec3 getNormal() {\n    dNormalMatrix = mat3(instance_line1.xyz, instance_line2.xyz, instance_line3.xyz);\n    return normalize(dNormalMatrix * vertex_normal);\n}\n";
-pc.shaderChunks.normalMapPS = "uniform sampler2D texture_normalMap;\nuniform float material_bumpiness;\nvoid getNormal() {\n    vec3 normalMap = unpackNormal(texture2D(texture_normalMap, $UV));\n    dNormalMap = normalMap;\n    dNormalW = dTBN * normalMap;\n}\n";
-pc.shaderChunks.normalMapFloatPS = "uniform sampler2D texture_normalMap;\nuniform float material_bumpiness;\nvoid getNormal() {\n    vec3 normalMap = unpackNormal(texture2D(texture_normalMap, $UV));\n    dNormalMap = normalMap;\n    normalMap = normalize(mix(vec3(0.0, 0.0, 1.0), normalMap, material_bumpiness));\n    dNormalW = dTBN * normalMap;\n}\n";
-pc.shaderChunks.normalMapFloatTBNfastPS = "uniform sampler2D texture_normalMap;\nuniform float material_bumpiness;\nvoid getNormal() {\n    vec3 normalMap = unpackNormal(texture2D(texture_normalMap, $UV));\n    dNormalMap = normalMap;\n    normalMap = mix(vec3(0.0, 0.0, 1.0), normalMap, material_bumpiness);\n    dNormalW = normalize(dTBN * normalMap);\n}\n";
+pc.shaderChunks.normalMapPS = "uniform sampler2D texture_normalMap;\nuniform float material_bumpiness;\nvoid getNormal() {\n    vec3 normalMap = unpackNormal(texture2D(texture_normalMap, $UV));\n    dNormalMap = normalMap;\n    normalMap = mix(vec3(0.0, 0.0, 1.0), normalMap, material_bumpiness);\n    dNormalW = normalize(dTBN * normalMap);\n}\n";
+pc.shaderChunks.normalMapFastPS = "uniform sampler2D texture_normalMap;\nuniform float material_bumpiness;\nvoid getNormal() {\n    vec3 normalMap = unpackNormal(texture2D(texture_normalMap, $UV));\n    dNormalMap = normalMap;\n    dNormalW = dTBN * normalMap;\n}\n";
 pc.shaderChunks.normalSkinnedVS = "vec3 getNormal() {\n    dNormalMatrix = mat3(dModelMatrix[0].xyz, dModelMatrix[1].xyz, dModelMatrix[2].xyz);\n    return normalize(dNormalMatrix * vertex_normal);\n}\n";
 pc.shaderChunks.normalVertexPS = "void getNormal() {\n    dNormalW = normalize(dVertexNormalW);\n}\n";
 pc.shaderChunks.normalXYPS = "vec3 unpackNormal(vec4 nmap) {\n    vec3 normal;\n    normal.xy = nmap.wy * 2.0 - 1.0;\n    normal.z = sqrt(1.0 - saturate(dot(normal.xy, normal.xy)));\n    return normal;\n}\n";
 pc.shaderChunks.normalXYZPS = "vec3 unpackNormal(vec4 nmap) {\n    return nmap.xyz * 2.0 - 1.0;\n}\n";
-pc.shaderChunks.opacityPS = "#ifdef MAPFLOAT\nuniform float material_opacity;\n#endif\n#ifdef MAPTEXTURE\nuniform sampler2D texture_opacityMap;\n#endif\nvoid getOpacity() {\n    dAlpha = 1.0;\n    #ifdef MAPFLOAT\n        dAlpha *= material_opacity;\n    #endif\n    #ifdef MAPTEXTURE\n        dAlpha *= texture2D(texture_opacityMap, $UV).$CH;\n    #endif\n    #ifdef MAPVERTEX\n        dAlpha *= saturate(vVertexColor.$VC);\n    #endif\n}\n";
+pc.shaderChunks.opacityPS = "#ifdef MAPFLOAT\nuniform float material_opacity;\n#endif\n#ifdef MAPTEXTURE\nuniform sampler2D texture_opacityMap;\n#endif\nvoid getOpacity() {\n    dAlpha = 1.0;\n    #ifdef MAPFLOAT\n        dAlpha *= material_opacity;\n    #endif\n    #ifdef MAPTEXTURE\n        dAlpha *= texture2D(texture_opacityMap, $UV).$CH;\n    #endif\n    #ifdef MAPVERTEX\n        dAlpha *= clamp(vVertexColor.$VC, 0.0, 1.0);\n    #endif\n}\n";
 pc.shaderChunks.outputAlphaPS = "gl_FragColor.a = dAlpha;\n";
 pc.shaderChunks.outputAlphaOpaquePS = "gl_FragColor.a = 1.0;\n";
 pc.shaderChunks.outputAlphaPremulPS = "gl_FragColor.rgb *= dAlpha;\ngl_FragColor.a = dAlpha;\n";
@@ -7069,8 +7097,8 @@ pc.shaderChunks.skyboxHDRPS = "varying vec3 vViewDir;\nuniform samplerCube textu
 pc.shaderChunks.skyboxPrefilteredCubePS = "varying vec3 vViewDir;\nuniform samplerCube texture_cubeMap;\nvec3 fixSeamsStretch(vec3 vec, float mipmapIndex, float cubemapSize) {\n    float scale = 1.0 - exp2(mipmapIndex) / cubemapSize;\n    float M = max(max(abs(vec.x), abs(vec.y)), abs(vec.z));\n    if (abs(vec.x) != M) vec.x *= scale;\n    if (abs(vec.y) != M) vec.y *= scale;\n    if (abs(vec.z) != M) vec.z *= scale;\n    return vec;\n}\nvoid main(void) {\n    vec3 color = textureCubeRGBM(texture_cubeMap, fixSeamsStretch(vViewDir, 0.0, 128.0));\n    color = toneMap(color);\n    color = gammaCorrectOutput(color);\n    gl_FragColor = vec4(color, 1.0);\n}\n";
 pc.shaderChunks.specularPS = "#ifdef MAPCOLOR\nuniform vec3 material_specular;\n#endif\n#ifdef MAPTEXTURE\nuniform sampler2D texture_specularMap;\n#endif\nvoid getSpecularity() {\n    dSpecularity = vec3(1.0);\n    #ifdef MAPCOLOR\n        dSpecularity *= material_specular;\n    #endif\n    #ifdef MAPTEXTURE\n        dSpecularity *= texture2D(texture_specularMap, $UV).$CH;\n    #endif\n    #ifdef MAPVERTEX\n        dSpecularity *= saturate(vVertexColor.$VC);\n    #endif\n}\n";
 pc.shaderChunks.specularAaNonePS = "float antiAliasGlossiness(float power) {\n    return power;\n}\n";
-pc.shaderChunks.specularAaToksvigPS = "float antiAliasGlossiness(float power) {\n    float rlen = 1.0 / saturate(length(dNormalMap));\n    float toksvig = 1.0 / (1.0 + power * (rlen - 1.0));\n    return power * toksvig;\n}\n";
-pc.shaderChunks.specularAaToksvigFloatPS = "float antiAliasGlossiness(float power) {\n    float rlen = 1.0 / saturate(length(dNormalMap));\n    float toksvig = 1.0 / (1.0 + power * (rlen - 1.0));\n    return power * mix(1.0, toksvig, material_bumpiness);\n}\n";
+pc.shaderChunks.specularAaToksvigPS = "float antiAliasGlossiness(float power) {\n    float rlen = 1.0 / saturate(length(dNormalMap));\n    float toksvig = 1.0 / (1.0 + power * (rlen - 1.0));\n    return power * mix(1.0, toksvig, material_bumpiness);\n}\n";
+pc.shaderChunks.specularAaToksvigFastPS = "float antiAliasGlossiness(float power) {\n    float rlen = 1.0 / saturate(length(dNormalMap));\n    float toksvig = 1.0 / (1.0 + power * (rlen - 1.0));\n    return power * toksvig;\n}\n";
 pc.shaderChunks.spotPS = "float getSpotEffect(vec3 lightSpotDirW, float lightInnerConeAngle, float lightOuterConeAngle) {\n    float cosAngle = dot(dLightDirNormW, lightSpotDirW);\n    return smoothstep(lightOuterConeAngle, lightInnerConeAngle, cosAngle);\n}\n";
 pc.shaderChunks.startPS = "\nvoid main(void) {\n    dDiffuseLight = vec3(0);\n    dSpecularLight = vec3(0);\n    dReflection = vec4(0);\n    dSpecularity = vec3(0);\n";
 pc.shaderChunks.startVS = "\nvoid main(void) {\n    gl_Position = getPosition();\n";
@@ -8182,10 +8210,10 @@ f:_oldChunkTransformScreenSpace}, transformScreenSpaceBatchSkinned:{n:"transform
     if (options.normalMap) {
       code += options.packedNormal ? chunks.normalXYPS : chunks.normalXYZPS;
       var transformedNormalMapUv = this._getUvSourceExpression("normalMapTransform", "normalMapUv", options);
-      if (options.needsNormalFloat) {
-        code += (options.fastTbn ? chunks.normalMapFloatTBNfastPS : chunks.normalMapFloatPS).replace(/\$UV/g, transformedNormalMapUv);
-      } else {
+      if (options.normalizeNormalMap) {
         code += chunks.normalMapPS.replace(/\$UV/g, transformedNormalMapUv);
+      } else {
+        code += chunks.normalMapFastPS.replace(/\$UV/g, transformedNormalMapUv);
       }
       if (!options.hasTangents) {
         tbn = tbn.replace(/\$UV/g, transformedNormalMapUv);
@@ -8215,10 +8243,10 @@ f:_oldChunkTransformScreenSpace}, transformScreenSpaceBatchSkinned:{n:"transform
   code += this._addMap("emissive", "emissivePS", options, chunks, options.emissiveFormat);
   if (options.useSpecular && (lighting || reflections)) {
     if (options.specularAntialias && options.normalMap) {
-      if (options.needsNormalFloat && needsNormal) {
-        code += chunks.specularAaToksvigFloatPS;
-      } else {
+      if (options.normalizeNormalMap && needsNormal) {
         code += chunks.specularAaToksvigPS;
+      } else {
+        code += chunks.specularAaToksvigFastPS;
       }
     } else {
       code += chunks.specularAaNonePS;
@@ -8819,6 +8847,7 @@ Object.assign(pc, function() {
     this._toneMapping = 0;
     this.exposure = 1.0;
     this._skyboxPrefiltered = [null, null, null, null, null, null];
+    this._firstUpdateSkybox = true;
     this._skyboxCubeMap = null;
     this.skyboxModel = null;
     this._skyboxIntensity = 1;
@@ -9014,6 +9043,10 @@ Object.assign(pc, function() {
         this.skyboxModel = model;
         skyLayer.addMeshInstances(model.meshInstances);
         this.skyLayer = skyLayer;
+        if (this._firstUpdateSkybox) {
+          skyLayer.enabled = true;
+          this._firstUpdateSkybox = false;
+        }
         this.fire("set:skybox", usedTex);
       }
     }
@@ -10955,7 +10988,7 @@ Object.assign(pc, function() {
     frustumSize = frustumDiagonal.sub2(frustumPoints[0], frustumPoints[6]).length();
     frustumSize = Math.max(frustumSize, frustumDiagonal.sub2(frustumPoints[4], frustumPoints[6]).length());
     shadowCamView.copy(shadowCamNode.getWorldTransform()).invert();
-    c2sc.copy(shadowCamView).mul(camera._node.worldTransform);
+    c2sc.copy(shadowCamView).mul(camera._node.getWorldTransform());
     for (i = 0; i < 8; i++) {
       c2sc.transformPoint(frustumPoints[i], frustumPoints[i]);
     }
@@ -13783,6 +13816,7 @@ Object.assign(pc, function() {
       emissiveTint = (stdMat.emissive.r !== 1 || stdMat.emissive.g !== 1 || stdMat.emissive.b !== 1 || stdMat.emissiveIntensity !== 1) && stdMat.emissiveTint;
       emissiveTint = emissiveTint ? 3 : stdMat.emissiveIntensity !== 1 ? 1 : 0;
     }
+    var isPackedNormalMap = stdMat.normalMap ? stdMat.normalMap.format === pc.PIXELFORMAT_DXT5 || stdMat.normalMap.swizzleGGGR : false;
     options.opacityTint = stdMat.opacity !== 1 && stdMat.blendType !== pc.BLEND_NONE ? 1 : 0;
     options.blendMapsWithColors = true;
     options.ambientTint = stdMat.ambientTint;
@@ -13792,7 +13826,7 @@ Object.assign(pc, function() {
     options.glossTint = 1;
     options.emissiveTint = emissiveTint;
     options.alphaToCoverage = stdMat.alphaToCoverage;
-    options.needsNormalFloat = stdMat.normalizeNormalMap;
+    options.normalizeNormalMap = stdMat.normalizeNormalMap;
     options.sphereMap = !!stdMat.sphereMap;
     options.cubeMap = !!stdMat.cubeMap;
     options.dpAtlas = !!stdMat.dpAtlas;
@@ -13800,14 +13834,14 @@ Object.assign(pc, function() {
     options.useSpecular = useSpecular;
     options.emissiveFormat = stdMat.emissiveMap ? stdMat.emissiveMap.rgbm ? 1 : stdMat.emissiveMap.format === pc.PIXELFORMAT_RGBA32F ? 2 : 0 : null;
     options.lightMapFormat = stdMat.lightMap ? stdMat.lightMap.rgbm ? 1 : stdMat.lightMap.format === pc.PIXELFORMAT_RGBA32F ? 2 : 0 : null;
-    options.specularAntialias = stdMat.specularAntialias;
+    options.specularAntialias = stdMat.specularAntialias && !!stdMat.normalMap && !!stdMat.normalMap.mipmaps && !isPackedNormalMap;
     options.conserveEnergy = stdMat.conserveEnergy;
     options.occludeSpecular = stdMat.occludeSpecular;
     options.occludeSpecularFloat = stdMat.occludeSpecularIntensity !== 1.0;
     options.occludeDirect = stdMat.occludeDirect;
     options.shadingModel = stdMat.shadingModel;
     options.fresnelModel = stdMat.fresnelModel;
-    options.packedNormal = stdMat.normalMap ? stdMat.normalMap.format === pc.PIXELFORMAT_DXT5 || stdMat.normalMap.swizzleGGGR : false;
+    options.packedNormal = isPackedNormalMap;
     options.fastTbn = stdMat.fastTbn;
     options.cubeMapProjection = stdMat.cubeMapProjection;
     options.customFragmentShader = stdMat.customFragmentShader;
@@ -14038,6 +14072,7 @@ Object.assign(pc, function() {
     this.pick = true;
     this._updateAabb = true;
     this._updateAabbFunc = null;
+    this._calculateSortDistance = null;
     this.updateKey();
     this._skinInstance = null;
     this.morphInstance = null;
@@ -14311,6 +14346,11 @@ Object.assign(pc, function() {
   }, set:function(layer) {
     this._layer = layer;
     this.updateKey();
+  }});
+  Object.defineProperty(MeshInstance.prototype, "calculateSortDistance", {get:function() {
+    return this._calculateSortDistance;
+  }, set:function(calculateSortDistance) {
+    this._calculateSortDistance = calculateSortDistance;
   }});
   Object.defineProperty(MeshInstance.prototype, "receiveShadow", {get:function() {
     return this._receiveShadow;
@@ -17814,6 +17854,10 @@ Object.assign(pc, function() {
       if (drawCall.layer <= pc.LAYER_FX) {
         continue;
       }
+      if (drawCall.calculateSortDistance) {
+        drawCall.zdist = drawCall.calculateSortDistance(drawCall, camPos, camFwd);
+        continue;
+      }
       meshPos = drawCall.aabb.center;
       tempx = meshPos.x - camPos.x;
       tempy = meshPos.y - camPos.y;
@@ -19025,15 +19069,6 @@ Object.assign(pc, function() {
       this.context.close();
       this.context = null;
     }
-  }, getListener:function() {
-    console.warn('DEPRECATED: getListener is deprecated. Get the "listener" field instead.');
-    return this.listener;
-  }, getVolume:function() {
-    console.warn('DEPRECATED: getVolume is deprecated. Get the "volume" property instead.');
-    return this.volume;
-  }, setVolume:function(volume) {
-    console.warn('DEPRECATED: setVolume is deprecated. Set the "volume" property instead.');
-    this.volume = volume;
   }, playSound:function(sound, options) {
     options = options || {};
     var channel = null;
@@ -20188,13 +20223,24 @@ Object.assign(pc, function() {
         return;
       }
     }
-    if (event.detail) {
-      this.wheel = -1 * event.detail;
-    } else {
-      if (event.wheelDelta) {
-        this.wheel = event.wheelDelta / 120;
+    this.wheelDelta = 0;
+    if (event.type === "wheel") {
+      if (event.deltaY > 0) {
+        this.wheelDelta = 1;
       } else {
-        this.wheel = 0;
+        if (event.deltaY < 0) {
+          this.wheelDelta = -1;
+        }
+      }
+    }
+    this.wheel = 0;
+    if (event.type === "wheel") {
+      if (event.detail) {
+        this.wheel = -1 * event.detail;
+      } else {
+        if (event.wheelDelta) {
+          this.wheel = event.wheelDelta / 120;
+        }
       }
     }
     if (pc.Mouse.isPointerLocked()) {
@@ -20245,22 +20291,22 @@ Object.assign(pc, function() {
       return;
     }
     this._attached = true;
-    window.addEventListener("mouseup", this._upHandler, false);
-    window.addEventListener("mousedown", this._downHandler, false);
-    window.addEventListener("mousemove", this._moveHandler, false);
-    window.addEventListener("mousewheel", this._wheelHandler, false);
-    window.addEventListener("DOMMouseScroll", this._wheelHandler, false);
+    var opts = pc.platform.passiveEvents ? {passive:false} : false;
+    window.addEventListener("mouseup", this._upHandler, opts);
+    window.addEventListener("mousedown", this._downHandler, opts);
+    window.addEventListener("mousemove", this._moveHandler, opts);
+    window.addEventListener("wheel", this._wheelHandler, opts);
   }, detach:function() {
     if (!this._attached) {
       return;
     }
     this._attached = false;
     this._target = null;
-    window.removeEventListener("mouseup", this._upHandler);
-    window.removeEventListener("mousedown", this._downHandler);
-    window.removeEventListener("mousemove", this._moveHandler);
-    window.removeEventListener("mousewheel", this._wheelHandler);
-    window.removeEventListener("DOMMouseScroll", this._wheelHandler);
+    var opts = pc.platform.passiveEvents ? {passive:false} : false;
+    window.removeEventListener("mouseup", this._upHandler, opts);
+    window.removeEventListener("mousedown", this._downHandler, opts);
+    window.removeEventListener("mousemove", this._moveHandler, opts);
+    window.removeEventListener("wheel", this._wheelHandler, opts);
   }, disableContextMenu:function() {
     if (!this._target) {
       return;
@@ -20996,24 +21042,36 @@ Object.assign(pc, function() {
       this.dx = x - lastX;
       this.dy = y - lastY;
     }
-    if (event.detail) {
-      this.wheel = -1 * event.detail;
-    } else {
-      if (event.wheelDelta) {
-        this.wheel = event.wheelDelta / 120;
+    this.wheelDelta = 0;
+    if (event.type === "wheel") {
+      if (event.deltaY > 0) {
+        this.wheelDelta = 1;
       } else {
-        this.wheel = 0;
+        if (event.deltaY < 0) {
+          this.wheelDelta = -1;
+        }
+      }
+    }
+    this.wheel = 0;
+    if (event.type === "wheel") {
+      if (event.detail) {
+        this.wheel = -1 * event.detail;
+      } else {
+        if (event.wheelDelta) {
+          this.wheel = event.wheelDelta / 120;
+        }
       }
     }
   };
   ElementMouseEvent.prototype = Object.create(ElementInputEvent.prototype);
   ElementMouseEvent.prototype.constructor = ElementMouseEvent;
-  var ElementTouchEvent = function(event, element, camera, x, y, input) {
+  var ElementTouchEvent = function(event, element, camera, x, y, touch) {
     ElementInputEvent.call(this, event, element, camera);
     this.touches = event.touches;
     this.changedTouches = event.changedTouches;
     this.x = x;
     this.y = y;
+    this.touch = touch;
   };
   ElementTouchEvent.prototype = Object.create(ElementInputEvent.prototype);
   ElementTouchEvent.prototype.constructor = ElementTouchEvent;
@@ -21052,15 +21110,15 @@ Object.assign(pc, function() {
     }
     this._target = domElement;
     this._attached = true;
+    var opts = pc.platform.passiveEvents ? {passive:true} : false;
     if (this._useMouse) {
-      window.addEventListener("mouseup", this._upHandler, {passive:true});
-      window.addEventListener("mousedown", this._downHandler, {passive:true});
-      window.addEventListener("mousemove", this._moveHandler, {passive:true});
-      window.addEventListener("mousewheel", this._wheelHandler, {passive:true});
-      window.addEventListener("DOMMouseScroll", this._wheelHandler, {passive:true});
+      window.addEventListener("mouseup", this._upHandler, opts);
+      window.addEventListener("mousedown", this._downHandler, opts);
+      window.addEventListener("mousemove", this._moveHandler, opts);
+      window.addEventListener("wheel", this._wheelHandler, opts);
     }
     if (this._useTouch && pc.platform.touch) {
-      this._target.addEventListener("touchstart", this._touchstartHandler, {passive:true});
+      this._target.addEventListener("touchstart", this._touchstartHandler, opts);
       this._target.addEventListener("touchend", this._touchendHandler, false);
       this._target.addEventListener("touchmove", this._touchmoveHandler, false);
       this._target.addEventListener("touchcancel", this._touchcancelHandler, false);
@@ -21070,15 +21128,15 @@ Object.assign(pc, function() {
       return;
     }
     this._attached = false;
+    var opts = pc.platform.passiveEvents ? {passive:true} : false;
     if (this._useMouse) {
-      window.removeEventListener("mouseup", this._upHandler, false);
-      window.removeEventListener("mousedown", this._downHandler, false);
-      window.removeEventListener("mousemove", this._moveHandler, false);
-      window.removeEventListener("mousewheel", this._wheelHandler, false);
-      window.removeEventListener("DOMMouseScroll", this._wheelHandler, false);
+      window.removeEventListener("mouseup", this._upHandler, opts);
+      window.removeEventListener("mousedown", this._downHandler, opts);
+      window.removeEventListener("mousemove", this._moveHandler, opts);
+      window.removeEventListener("wheel", this._wheelHandler, opts);
     }
     if (this._useTouch) {
-      this._target.removeEventListener("touchstart", this._touchstartHandler, false);
+      this._target.removeEventListener("touchstart", this._touchstartHandler, opts);
       this._target.removeEventListener("touchend", this._touchendHandler, false);
       this._target.removeEventListener("touchmove", this._touchmoveHandler, false);
       this._target.removeEventListener("touchcancel", this._touchcancelHandler, false);
@@ -21171,7 +21229,7 @@ Object.assign(pc, function() {
       var newTouchInfo = newTouchedElements[touch.identifier];
       var oldTouchInfo = this._touchedElements[touch.identifier];
       if (newTouchInfo && (!oldTouchInfo || newTouchInfo.element !== oldTouchInfo.element)) {
-        this._fireEvent(event.type, new ElementTouchEvent(event, newTouchInfo.element, newTouchInfo.camera, newTouchInfo.x, newTouchInfo.y, this));
+        this._fireEvent(event.type, new ElementTouchEvent(event, newTouchInfo.element, newTouchInfo.camera, newTouchInfo.x, newTouchInfo.y, touch));
         this._touchesForWhichTouchLeaveHasFired[touch.identifier] = false;
       }
     }
@@ -21198,14 +21256,14 @@ Object.assign(pc, function() {
       var y = touchInfo.y;
       delete this._touchedElements[touch.identifier];
       delete this._touchesForWhichTouchLeaveHasFired[touch.identifier];
-      this._fireEvent(event.type, new ElementTouchEvent(event, element, camera, x, y, this));
+      this._fireEvent(event.type, new ElementTouchEvent(event, element, camera, x, y, touch));
       if (event.touches.length === 0) {
         var coords = this._calcTouchCoords(touch);
         for (var c = cameras.length - 1; c >= 0; c--) {
           var hovered = this._getTargetElement(cameras[c], coords.x, coords.y);
           if (hovered === element) {
             if (!this._clickedEntities[element.entity.getGuid()]) {
-              this._fireEvent("click", new ElementTouchEvent(event, element, camera, x, y, this));
+              this._fireEvent("click", new ElementTouchEvent(event, element, camera, x, y, touch));
               this._clickedEntities[element.entity.getGuid()] = true;
             }
           }
@@ -21225,10 +21283,10 @@ Object.assign(pc, function() {
       if (oldTouchInfo) {
         var coords = this._calcTouchCoords(touch);
         if ((!newTouchInfo || newTouchInfo.element !== oldTouchInfo.element) && !this._touchesForWhichTouchLeaveHasFired[touch.identifier]) {
-          this._fireEvent("touchleave", new ElementTouchEvent(event, oldTouchInfo.element, oldTouchInfo.camera, coords.x, coords.y, this));
+          this._fireEvent("touchleave", new ElementTouchEvent(event, oldTouchInfo.element, oldTouchInfo.camera, coords.x, coords.y, touch));
           this._touchesForWhichTouchLeaveHasFired[touch.identifier] = true;
         }
-        this._fireEvent("touchmove", new ElementTouchEvent(event, oldTouchInfo.element, oldTouchInfo.camera, coords.x, coords.y, this));
+        this._fireEvent("touchmove", new ElementTouchEvent(event, oldTouchInfo.element, oldTouchInfo.camera, coords.x, coords.y, touch));
       }
     }
   }, _onElementMouseEvent:function(event) {
@@ -24777,8 +24835,12 @@ Object.assign(pc, function() {
             } else {
               var delta = dt * componentData.speed;
               skeleton.addTime(delta);
-              if (skeleton._time === skeleton._animation.duration && !componentData.loop) {
+              if (componentData.speed > 0 && skeleton._time === skeleton._animation.duration && !componentData.loop) {
                 componentData.playing = false;
+              } else {
+                if (componentData.speed < 0 && skeleton._time === 0 && !componentData.loop) {
+                  componentData.playing = false;
+                }
               }
             }
             if (componentData.blending && componentData.blendTimeRemaining === 0.0) {
@@ -39011,7 +39073,6 @@ Object.assign(pc, function() {
       }
     }
     this._guid = null;
-    this._request = null;
     this._destroying = false;
   };
   Entity.prototype = Object.create(pc.GraphNode.prototype);
@@ -39113,12 +39174,6 @@ Object.assign(pc, function() {
         components[type].onPostStateChange();
       }
     }
-  };
-  Entity.prototype.setRequest = function(request) {
-    this._request = request;
-  };
-  Entity.prototype.getRequest = function() {
-    return this._request;
   };
   Entity.prototype.findByGuid = function(guid) {
     if (this._guid === guid) {
@@ -42334,7 +42389,7 @@ Object.assign(pc, function() {
 }());
 Object.assign(pc, function() {
   var BasisWorker = function() {
-    var BASIS_FORMAT = {cTFETC1:0, cTFETC2:1, cTFBC1:2, cTFBC3:3, cTFPVRTC1_4_RGB:8, cTFPVRTC1_4_RGBA:9, cTFASTC_4x4:10, cTFATC_RGB:11, cTFATC_RGBA_INTERPOLATED_ALPHA:12, cTFRGB565:14, cTFRGBA4444:16};
+    var BASIS_FORMAT = {cTFETC1:0, cTFETC2:1, cTFBC1:2, cTFBC3:3, cTFPVRTC1_4_RGB:8, cTFPVRTC1_4_RGBA:9, cTFASTC_4x4:10, cTFATC_RGB:11, cTFATC_RGBA_INTERPOLATED_ALPHA:12, cTFRGBA32:13, cTFRGB565:14, cTFRGBA4444:16};
     var opaqueMapping = {astc:BASIS_FORMAT.cTFASTC_4x4, dxt:BASIS_FORMAT.cTFBC1, etc2:BASIS_FORMAT.cTFETC1, etc1:BASIS_FORMAT.cTFETC1, pvr:BASIS_FORMAT.cTFPVRTC1_4_RGB, atc:BASIS_FORMAT.cTFATC_RGB, none:BASIS_FORMAT.cTFRGB565};
     var alphaMapping = {astc:BASIS_FORMAT.cTFASTC_4x4, dxt:BASIS_FORMAT.cTFBC3, etc2:BASIS_FORMAT.cTFETC2, etc1:BASIS_FORMAT.cTFRGBA4444, pvr:BASIS_FORMAT.cTFPVRTC1_4_RGBA, atc:BASIS_FORMAT.cTFATC_RGBA_INTERPOLATED_ALPHA, none:BASIS_FORMAT.cTFRGBA4444};
     var basisToEngineMapping = {};
@@ -42347,6 +42402,7 @@ Object.assign(pc, function() {
     basisToEngineMapping[BASIS_FORMAT.cTFASTC_4x4] = pc.PIXELFORMAT_ASTC_4x4;
     basisToEngineMapping[BASIS_FORMAT.cTFATC_RGB] = pc.PIXELFORMAT_ATC_RGB;
     basisToEngineMapping[BASIS_FORMAT.cTFATC_RGBA_INTERPOLATED_ALPHA] = pc.PIXELFORMAT_ATC_RGBA;
+    basisToEngineMapping[BASIS_FORMAT.cTFRGBA32] = pc.PIXELFORMAT_R8_G8_B8_A8;
     basisToEngineMapping[BASIS_FORMAT.cTFRGB565] = pc.PIXELFORMAT_R5_G6_B5;
     basisToEngineMapping[BASIS_FORMAT.cTFRGBA4444] = pc.PIXELFORMAT_R4_G4_B4_A4;
     var transcode = function(basis, url, format, data) {
@@ -42363,6 +42419,11 @@ Object.assign(pc, function() {
         throw new Error("Invalid image dimensions url=" + url + " width=" + width + " height=" + height + " images=" + images + " levels=" + levels);
       }
       var basisFormat = hasAlpha ? alphaMapping[format] : opaqueMapping[format];
+      if (basisFormat === BASIS_FORMAT.cTFPVRTC1_4_RGB || basisFormat === BASIS_FORMAT.cTFPVRTC1_4_RGBA) {
+        if ((width & width - 1) !== 0 || width !== height) {
+          basisFormat = basisFormat === BASIS_FORMAT.cTFPVRTC1_4_RGB ? BASIS_FORMAT.cTFRGB565 : BASIS_FORMAT.cTFRGBA32;
+        }
+      }
       if (!basisFile.startTranscoding()) {
         basisFile.close();
         basisFile.delete();
@@ -42378,7 +42439,7 @@ Object.assign(pc, function() {
           throw new Error("Failed to transcode image url=" + url);
         }
         var i;
-        if (basisFormat === 14 || basisFormat === 16) {
+        if (basisFormat === BASIS_FORMAT.cTFRGB565 || basisFormat === BASIS_FORMAT.cTFRGBA4444) {
           var dst16 = new Uint16Array(dstSize / 2);
           for (i = 0; i < dstSize / 2; ++i) {
             dst16[i] = dst[i * 2] + dst[i * 2 + 1] * 256;
@@ -43207,9 +43268,6 @@ Object.assign(pc, function() {
   }, find:function(name, type) {
     var asset = this.findAll(name, type);
     return asset ? asset[0] : null;
-  }, getAssetById:function(id) {
-    console.warn("DEPRECATED: getAssetById() use get() instead");
-    return this.get(id);
   }});
   return {AssetRegistry:AssetRegistry};
 }());
@@ -43661,6 +43719,12 @@ pc.posteffect = {createFullscreenQuad:pc.createFullscreenQuad, drawFullscreenQua
 Object.assign(pc.scene, {partitionSkin:pc.partitionSkin, procedural:{calculateTangents:pc.calculateTangents, createMesh:pc.createMesh, createTorus:pc.createTorus, createCylinder:pc.createCylinder, createCapsule:pc.createCapsule, createCone:pc.createCone, createSphere:pc.createSphere, createPlane:pc.createPlane, createBox:pc.createBox}, BasicMaterial:pc.BasicMaterial, DepthMaterial:pc.DepthMaterial, ForwardRenderer:pc.ForwardRenderer, GraphNode:pc.GraphNode, Material:pc.Material, Command:pc.Command, 
 Mesh:pc.Mesh, MeshInstance:pc.MeshInstance, Model:pc.Model, ParticleEmitter:pc.ParticleEmitter, PhongMaterial:pc.StandardMaterial, Picker:pc.Picker, PickMaterial:pc.PickMaterial, Projection:{ORTHOGRAPHIC:pc.PROJECTION_ORTHOGRAPHIC, PERSPECTIVE:pc.PROJECTION_PERSPECTIVE}, Scene:pc.Scene, Skin:pc.Skin, SkinInstance:pc.SkinInstance});
 pc.shape = {Aabb:pc.BoundingBox, Sphere:pc.BoundingSphere, Plane:pc.Plane};
+pc.string.startsWith = function(s, subs) {
+  return s.startsWith(subs);
+};
+pc.string.endsWith = function(s, subs) {
+  return s.endsWith(subs);
+};
 pc.time = {now:pc.now, Timer:pc.Timer};
 pc.PhongMaterial = pc.StandardMaterial;
 pc.BoundingSphere.prototype.intersectRay = pc.BoundingSphere.prototype.intersectsRay;
@@ -43720,17 +43784,43 @@ Object.defineProperty(pc.Color.prototype, "data3", {get:function() {
   this._data3[2] = this.b;
   return this._data3;
 }});
-pc.Material.prototype.getName = function() {
-  return this.name;
+pc.Application.prototype.isFullscreen = function() {
+  return !!document.fullscreenElement;
 };
-pc.Material.prototype.setName = function(name) {
-  this.name = name;
+pc.Application.prototype.enableFullscreen = function(element, success, error) {
+  element = element || this.graphicsDevice.canvas;
+  var s = function() {
+    success();
+    document.removeEventListener("fullscreenchange", s);
+  };
+  var e = function() {
+    error();
+    document.removeEventListener("fullscreenerror", e);
+  };
+  if (success) {
+    document.addEventListener("fullscreenchange", s, false);
+  }
+  if (error) {
+    document.addEventListener("fullscreenerror", e, false);
+  }
+  if (element.requestFullscreen) {
+    element.requestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+  } else {
+    error();
+  }
 };
-pc.Material.prototype.getShader = function() {
-  return this.shader;
+pc.Application.prototype.disableFullscreen = function(success) {
+  var s = function() {
+    success();
+    document.removeEventListener("fullscreenchange", s);
+  };
+  if (success) {
+    document.addEventListener("fullscreenchange", s, false);
+  }
+  document.exitFullscreen();
 };
-pc.Material.prototype.setShader = function(shader) {
-  this.shader = shader;
+pc.AssetRegistry.prototype.getAssetById = function(id) {
+  return this.get(id);
 };
 pc.GraphNode.prototype._dirtify = function(local) {
   if (local) {
@@ -43780,40 +43870,17 @@ pc.GraphNode.prototype.getParent = function() {
 pc.GraphNode.prototype.setName = function(name) {
   this.name = name;
 };
-pc.Application.prototype.isFullscreen = function() {
-  return !!document.fullscreenElement;
+pc.Material.prototype.getName = function() {
+  return this.name;
 };
-pc.Application.prototype.enableFullscreen = function(element, success, error) {
-  element = element || this.graphicsDevice.canvas;
-  var s = function() {
-    success();
-    document.removeEventListener("fullscreenchange", s);
-  };
-  var e = function() {
-    error();
-    document.removeEventListener("fullscreenerror", e);
-  };
-  if (success) {
-    document.addEventListener("fullscreenchange", s, false);
-  }
-  if (error) {
-    document.addEventListener("fullscreenerror", e, false);
-  }
-  if (element.requestFullscreen) {
-    element.requestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
-  } else {
-    error();
-  }
+pc.Material.prototype.setName = function(name) {
+  this.name = name;
 };
-pc.Application.prototype.disableFullscreen = function(success) {
-  var s = function() {
-    success();
-    document.removeEventListener("fullscreenchange", s);
-  };
-  if (success) {
-    document.addEventListener("fullscreenchange", s, false);
-  }
-  document.exitFullscreen();
+pc.Material.prototype.getShader = function() {
+  return this.shader;
+};
+pc.Material.prototype.setShader = function(shader) {
+  this.shader = shader;
 };
 pc.RigidBodyComponentSystem.prototype.setGravity = function() {
   if (arguments.length === 1) {
@@ -43821,6 +43888,15 @@ pc.RigidBodyComponentSystem.prototype.setGravity = function() {
   } else {
     this.gravity.set(arguments[0], arguments[1], arguments[2]);
   }
+};
+pc.SoundManager.prototype.getListener = function() {
+  return this.listener;
+};
+pc.SoundManager.prototype.getVolume = function() {
+  return this.volume;
+};
+pc.SoundManager.prototype.setVolume = function(volume) {
+  this.volume = volume;
 };
 Object.assign(pc.Application.prototype, function() {
   var tempGraphNode = new pc.GraphNode;
