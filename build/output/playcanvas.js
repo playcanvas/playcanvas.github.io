@@ -1,5 +1,5 @@
 /*
- * PlayCanvas Engine v1.24.6 revision 5957521d
+ * PlayCanvas Engine v1.24.7 revision f68e4a85
  * Copyright 2011-2020 PlayCanvas Ltd. All rights reserved.
  */
 ;(function (root, factory) {
@@ -166,7 +166,7 @@ if (!String.prototype.startsWith) {
   }
   return result;
 }();
-var pc = {version:"1.24.6", revision:"5957521d", config:{}, common:{}, apps:{}, data:{}, unpack:function() {
+var pc = {version:"1.24.7", revision:"f68e4a85", config:{}, common:{}, apps:{}, data:{}, unpack:function() {
   console.warn("pc.unpack has been deprecated and will be removed shortly. Please update your code.");
 }, makeArray:function(arr) {
   var i, ret = [], length = arr.length;
@@ -14320,23 +14320,22 @@ Object.assign(pc, function() {
         meshInstances.splice(i, 1);
       }
     }
-    var prevBlend = this._material ? this._material.blendType !== pc.BLEND_NONE : false;
     var prevMat = this._material;
     this._material = material;
     if (this._material) {
       this._material.meshInstances.push(this);
       this.updateKey();
-    }
-    if (material) {
-      if (material.blendType !== pc.BLEND_NONE !== prevBlend) {
-        var scene = material._scene;
+      var prevBlend = prevMat && prevMat.blendType !== pc.BLEND_NONE;
+      var thisBlend = this._material.blendType !== pc.BLEND_NONE;
+      if (prevBlend !== thisBlend) {
+        var scene = this._material._scene;
         if (!scene && prevMat && prevMat._scene) {
           scene = prevMat._scene;
         }
         if (scene) {
           scene.layers._dirtyBlend = true;
         } else {
-          material._dirtyBlend = true;
+          this._material._dirtyBlend = true;
         }
       }
     }
@@ -14996,6 +14995,7 @@ Object.assign(pc, function() {
     this.cameras = [];
     this.lights = [];
     this._shadersVersion = 0;
+    this._immutable = false;
   };
   Object.assign(Model.prototype, {getGraph:function() {
     return this.graph;
@@ -20233,16 +20233,6 @@ Object.assign(pc, function() {
         }
       }
     }
-    this.wheel = 0;
-    if (event.type === "wheel") {
-      if (event.detail) {
-        this.wheel = -1 * event.detail;
-      } else {
-        if (event.wheelDelta) {
-          this.wheel = event.wheelDelta / 120;
-        }
-      }
-    }
     if (pc.Mouse.isPointerLocked()) {
       this.dx = event.movementX || event.webkitMovementX || event.mozMovementX || 0;
       this.dy = event.movementY || event.webkitMovementY || event.mozMovementY || 0;
@@ -21049,16 +21039,6 @@ Object.assign(pc, function() {
       } else {
         if (event.deltaY < 0) {
           this.wheelDelta = -1;
-        }
-      }
-    }
-    this.wheel = 0;
-    if (event.type === "wheel") {
-      if (event.detail) {
-        this.wheel = -1 * event.detail;
-      } else {
-        if (event.wheelDelta) {
-          this.wheel = event.wheelDelta / 120;
         }
       }
     }
@@ -25307,23 +25287,22 @@ Object.assign(pc, function() {
     if (this._model === value) {
       return;
     }
+    if (value && value._immutable) {
+      return;
+    }
     if (this._model) {
+      this._model._immutable = false;
       this.removeModelFromLayers();
       this.entity.removeChild(this._model.getGraph());
       delete this._model._entity;
       if (this._clonedModel) {
         this._model.destroy();
         this._clonedModel = false;
-      } else {
-        if (this._model) {
-          for (i = 0; i < this._model.meshInstances.length; i++) {
-            this._model.meshInstances[i].material = null;
-          }
-        }
       }
     }
     this._model = value;
     if (this._model) {
+      this._model._immutable = true;
       var meshInstances = this._model.meshInstances;
       for (i = 0; i < meshInstances.length; i++) {
         meshInstances[i].castShadow = this._castShadows;
@@ -42405,8 +42384,9 @@ Object.assign(pc, function() {
     basisToEngineMapping[BASIS_FORMAT.cTFRGBA32] = pc.PIXELFORMAT_R8_G8_B8_A8;
     basisToEngineMapping[BASIS_FORMAT.cTFRGB565] = pc.PIXELFORMAT_R5_G6_B5;
     basisToEngineMapping[BASIS_FORMAT.cTFRGBA4444] = pc.PIXELFORMAT_R4_G4_B4_A4;
+    var hasPerformance = typeof performance !== "undefined";
     var transcode = function(basis, url, format, data) {
-      var funcStart = performance.now();
+      var funcStart = hasPerformance ? performance.now() : 0;
       var basisFile = new basis.BasisFile(new Uint8Array(data));
       var width = basisFile.getImageWidth(0, 0);
       var height = basisFile.getImageHeight(0, 0);
@@ -42450,7 +42430,7 @@ Object.assign(pc, function() {
       }
       basisFile.close();
       basisFile.delete();
-      return {format:basisToEngineMapping[basisFormat], width:width + 3 & ~3, height:height + 3 & ~3, levels:levelData, cubemap:false, mipmaps:true, transcodeTime:performance.now() - funcStart, url:url};
+      return {format:basisToEngineMapping[basisFormat], width:width + 3 & ~3, height:height + 3 & ~3, levels:levelData, cubemap:false, mipmaps:true, transcodeTime:hasPerformance ? performance.now() - funcStart : 0, url:url};
     };
     var basis = null;
     var queue = [];
@@ -43898,6 +43878,12 @@ pc.SoundManager.prototype.getVolume = function() {
 pc.SoundManager.prototype.setVolume = function(volume) {
   this.volume = volume;
 };
+Object.defineProperty(pc.ElementInput.prototype, "wheel", {get:function() {
+  return this.wheelDelta * -2;
+}});
+Object.defineProperty(pc.MouseEvent.prototype, "wheel", {get:function() {
+  return this.wheelDelta * -2;
+}});
 Object.assign(pc.Application.prototype, function() {
   var tempGraphNode = new pc.GraphNode;
   var identityGraphNode = new pc.GraphNode;
