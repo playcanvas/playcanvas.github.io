@@ -35,7 +35,7 @@
             app.resizeCanvas(canvas.width, canvas.height);
         });
 
-        var miniStats = new pc.MiniStats(app);
+        var miniStats = new pcx.MiniStats(app);
 
         app.scene.ambientLight = new pc.Color(0.2, 0.2, 0.2);
 
@@ -75,10 +75,10 @@
         var keyboard = new pc.Keyboard(document.body);
         app.on("update", function () {
             if (keyboard.isPressed(pc.KEY_LEFT)) {
-                entity.rotate(0, -1, 0)
+                entity.rotate(0, -1, 0);
             }
             if (keyboard.isPressed(pc.KEY_RIGHT)) {
-                entity.rotate(0, 1, 0)
+                entity.rotate(0, 1, 0);
             }
         });
     </script>

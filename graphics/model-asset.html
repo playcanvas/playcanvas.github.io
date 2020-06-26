@@ -34,7 +34,7 @@
             app.resizeCanvas(canvas.width, canvas.height);
         });
 
-        var miniStats = new pc.MiniStats(app);
+        var miniStats = new pcx.MiniStats(app);
 
         app.scene.ambientLight = new pc.Color(0.2, 0.2, 0.2);
 
@@ -74,7 +74,7 @@
 
             app.on("update", function (dt) {
                 if (entity) {
-                    entity.rotate(0,10*dt,0);
+                    entity.rotate(0, 10 * dt, 0);
                 }
             });
         });

@@ -35,7 +35,7 @@
             app.resizeCanvas(canvas.width, canvas.height);
         });
 
-        var miniStats = new pc.MiniStats(app);
+        var miniStats = new pcx.MiniStats(app);
 
         app.scene.ambientLight = new pc.Color(0.2, 0.2, 0.2);
 
@@ -82,10 +82,9 @@
             if (event.buttons[pc.MOUSEBUTTON_LEFT]) {
                 x += event.dx;
 
-                entity.setLocalEulerAngles(0, 0.2*x, 0);
+                entity.setLocalEulerAngles(0, 0.2 * x, 0);
             }
         });
-
     </script>
 </body>
 </html>
