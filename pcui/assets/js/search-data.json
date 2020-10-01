@@ -56,116 +56,116 @@
     "doc": "Storybook",
     "title": "Storybook",
     "content": "The storybook showcases all of PCUI’s components in a single app. Each component can be adjusted using its documented properties. Their behaviour can then be tested each components canvas. Click here to view the storybook. ",
-    "url": "https://playcanvas.github.io/pcui/pcui/storybook-docs/",
-    "relUrl": "/pcui/storybook-docs/"
+    "url": "https://playcanvas.github.io/pcui/storybook-docs/",
+    "relUrl": "/storybook-docs/"
   },"10": {
     "doc": "BooleanInput",
     "title": "BooleanInput",
     "content": " ",
-    "url": "https://playcanvas.github.io/pcui/examples/boolean-input/",
-    "relUrl": "/examples/boolean-input/"
+    "url": "https://playcanvas.github.io/pcui/components/boolean-input/",
+    "relUrl": "/components/boolean-input/"
   },"11": {
     "doc": "Button",
     "title": "Button",
     "content": " ",
-    "url": "https://playcanvas.github.io/pcui/examples/button/",
-    "relUrl": "/examples/button/"
+    "url": "https://playcanvas.github.io/pcui/components/button/",
+    "relUrl": "/components/button/"
   },"12": {
     "doc": "Code",
     "title": "Code",
     "content": " ",
-    "url": "https://playcanvas.github.io/pcui/examples/code/",
-    "relUrl": "/examples/code/"
+    "url": "https://playcanvas.github.io/pcui/components/code/",
+    "relUrl": "/components/code/"
   },"13": {
     "doc": "Container",
     "title": "Container",
     "content": " ",
-    "url": "https://playcanvas.github.io/pcui/examples/container/",
-    "relUrl": "/examples/container/"
+    "url": "https://playcanvas.github.io/pcui/components/container/",
+    "relUrl": "/components/container/"
   },"14": {
     "doc": "Divider",
     "title": "Divider",
     "content": " ",
-    "url": "https://playcanvas.github.io/pcui/examples/divider/",
-    "relUrl": "/examples/divider/"
+    "url": "https://playcanvas.github.io/pcui/components/divider/",
+    "relUrl": "/components/divider/"
   },"15": {
     "doc": "InfoBox",
     "title": "InfoBox",
     "content": " ",
-    "url": "https://playcanvas.github.io/pcui/examples/info-box/",
-    "relUrl": "/examples/info-box/"
+    "url": "https://playcanvas.github.io/pcui/components/info-box/",
+    "relUrl": "/components/info-box/"
   },"16": {
     "doc": "Label",
     "title": "Label",
     "content": " ",
-    "url": "https://playcanvas.github.io/pcui/examples/label/",
-    "relUrl": "/examples/label/"
+    "url": "https://playcanvas.github.io/pcui/components/label/",
+    "relUrl": "/components/label/"
   },"17": {
     "doc": "NumericInput",
     "title": "NumericInput",
     "content": " ",
-    "url": "https://playcanvas.github.io/pcui/examples/numeric-input/",
-    "relUrl": "/examples/numeric-input/"
+    "url": "https://playcanvas.github.io/pcui/components/numeric-input/",
+    "relUrl": "/components/numeric-input/"
   },"18": {
     "doc": "Overlay",
     "title": "Overlay",
     "content": " ",
-    "url": "https://playcanvas.github.io/pcui/examples/overlay/",
-    "relUrl": "/examples/overlay/"
+    "url": "https://playcanvas.github.io/pcui/components/overlay/",
+    "relUrl": "/components/overlay/"
   },"19": {
     "doc": "Panel",
     "title": "Panel",
     "content": " ",
-    "url": "https://playcanvas.github.io/pcui/examples/panel/",
-    "relUrl": "/examples/panel/"
+    "url": "https://playcanvas.github.io/pcui/components/panel/",
+    "relUrl": "/components/panel/"
   },"20": {
     "doc": "Progress",
     "title": "Progress",
     "content": " ",
-    "url": "https://playcanvas.github.io/pcui/examples/progress/",
-    "relUrl": "/examples/progress/"
+    "url": "https://playcanvas.github.io/pcui/components/progress/",
+    "relUrl": "/components/progress/"
   },"21": {
     "doc": "SelectInput",
     "title": "SelectInput",
     "content": " ",
-    "url": "https://playcanvas.github.io/pcui/examples/select-input/",
-    "relUrl": "/examples/select-input/"
+    "url": "https://playcanvas.github.io/pcui/components/select-input/",
+    "relUrl": "/components/select-input/"
   },"22": {
     "doc": "SliderInput",
     "title": "SliderInput",
     "content": " ",
-    "url": "https://playcanvas.github.io/pcui/examples/slider-input/",
-    "relUrl": "/examples/slider-input/"
+    "url": "https://playcanvas.github.io/pcui/components/slider-input/",
+    "relUrl": "/components/slider-input/"
   },"23": {
     "doc": "Spinner",
     "title": "Spinner",
     "content": " ",
-    "url": "https://playcanvas.github.io/pcui/examples/spinner/",
-    "relUrl": "/examples/spinner/"
+    "url": "https://playcanvas.github.io/pcui/components/spinner/",
+    "relUrl": "/components/spinner/"
   },"24": {
     "doc": "TextAreaInput",
     "title": "TextAreaInput",
     "content": " ",
-    "url": "https://playcanvas.github.io/pcui/examples/text-area-input/",
-    "relUrl": "/examples/text-area-input/"
+    "url": "https://playcanvas.github.io/pcui/components/text-area-input/",
+    "relUrl": "/components/text-area-input/"
   },"25": {
     "doc": "TextInput",
     "title": "TextInput",
     "content": " ",
-    "url": "https://playcanvas.github.io/pcui/examples/text-input/",
-    "relUrl": "/examples/text-input/"
+    "url": "https://playcanvas.github.io/pcui/components/text-input/",
+    "relUrl": "/components/text-input/"
   },"26": {
     "doc": "TreeView",
     "title": "TreeView",
     "content": " ",
-    "url": "https://playcanvas.github.io/pcui/examples/tree-view/",
-    "relUrl": "/examples/tree-view/"
+    "url": "https://playcanvas.github.io/pcui/components/tree-view/",
+    "relUrl": "/components/tree-view/"
   },"27": {
     "doc": "VectorInput",
     "title": "VectorInput",
     "content": " ",
-    "url": "https://playcanvas.github.io/pcui/examples/vector-input/",
-    "relUrl": "/examples/vector-input/"
+    "url": "https://playcanvas.github.io/pcui/components/vector-input/",
+    "relUrl": "/components/vector-input/"
   },"28": {
     "doc": "Using Observers",
     "title": "Using Observers",
