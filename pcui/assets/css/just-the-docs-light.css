@@ -1555,4 +1555,6 @@ html, body, .main, .main-content, .component-iframe { height: 100% !important; }
 
 .main-content-wrap { height: calc(100% - 60px) !important; }
 
+.example-background { background-color: #364346 !important; }
+
 /*# sourceMappingURL=just-the-docs-light.css.map */
