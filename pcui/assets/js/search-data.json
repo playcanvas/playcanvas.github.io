@@ -59,138 +59,132 @@
     "url": "https://playcanvas.github.io/pcui/storybook-docs/",
     "relUrl": "/storybook-docs/"
   },"10": {
-    "doc": "ArrayInput",
-    "title": "ArrayInput",
-    "content": " ",
-    "url": "https://playcanvas.github.io/pcui/components/array-input/",
-    "relUrl": "/components/array-input/"
-  },"11": {
     "doc": "BooleanInput",
     "title": "BooleanInput",
     "content": " ",
     "url": "https://playcanvas.github.io/pcui/components/boolean-input/",
     "relUrl": "/components/boolean-input/"
-  },"12": {
+  },"11": {
     "doc": "Button",
     "title": "Button",
     "content": " ",
     "url": "https://playcanvas.github.io/pcui/components/button/",
     "relUrl": "/components/button/"
-  },"13": {
+  },"12": {
     "doc": "Code",
     "title": "Code",
     "content": " ",
     "url": "https://playcanvas.github.io/pcui/components/code/",
     "relUrl": "/components/code/"
-  },"14": {
+  },"13": {
     "doc": "Container",
     "title": "Container",
     "content": " ",
     "url": "https://playcanvas.github.io/pcui/components/container/",
     "relUrl": "/components/container/"
-  },"15": {
+  },"14": {
     "doc": "ContextMenu",
     "title": "ContextMenu",
     "content": " ",
     "url": "https://playcanvas.github.io/pcui/components/context-menu/",
     "relUrl": "/components/context-menu/"
-  },"16": {
+  },"15": {
     "doc": "Divider",
     "title": "Divider",
     "content": " ",
     "url": "https://playcanvas.github.io/pcui/components/divider/",
     "relUrl": "/components/divider/"
-  },"17": {
+  },"16": {
     "doc": "InfoBox",
     "title": "InfoBox",
     "content": " ",
     "url": "https://playcanvas.github.io/pcui/components/info-box/",
     "relUrl": "/components/info-box/"
-  },"18": {
+  },"17": {
     "doc": "Label",
     "title": "Label",
     "content": " ",
     "url": "https://playcanvas.github.io/pcui/components/label/",
     "relUrl": "/components/label/"
-  },"19": {
+  },"18": {
     "doc": "NumericInput",
     "title": "NumericInput",
     "content": " ",
     "url": "https://playcanvas.github.io/pcui/components/numeric-input/",
     "relUrl": "/components/numeric-input/"
-  },"20": {
+  },"19": {
     "doc": "Overlay",
     "title": "Overlay",
     "content": " ",
     "url": "https://playcanvas.github.io/pcui/components/overlay/",
     "relUrl": "/components/overlay/"
-  },"21": {
+  },"20": {
     "doc": "Panel",
     "title": "Panel",
     "content": " ",
     "url": "https://playcanvas.github.io/pcui/components/panel/",
     "relUrl": "/components/panel/"
-  },"22": {
+  },"21": {
     "doc": "Progress",
     "title": "Progress",
     "content": " ",
     "url": "https://playcanvas.github.io/pcui/components/progress/",
     "relUrl": "/components/progress/"
-  },"23": {
+  },"22": {
     "doc": "SelectInput",
     "title": "SelectInput",
     "content": " ",
     "url": "https://playcanvas.github.io/pcui/components/select-input/",
     "relUrl": "/components/select-input/"
-  },"24": {
+  },"23": {
     "doc": "SliderInput",
     "title": "SliderInput",
     "content": " ",
     "url": "https://playcanvas.github.io/pcui/components/slider-input/",
     "relUrl": "/components/slider-input/"
-  },"25": {
+  },"24": {
     "doc": "Spinner",
     "title": "Spinner",
     "content": " ",
     "url": "https://playcanvas.github.io/pcui/components/spinner/",
     "relUrl": "/components/spinner/"
-  },"26": {
+  },"25": {
     "doc": "TextAreaInput",
     "title": "TextAreaInput",
     "content": " ",
     "url": "https://playcanvas.github.io/pcui/components/text-area-input/",
     "relUrl": "/components/text-area-input/"
-  },"27": {
+  },"26": {
     "doc": "TextInput",
     "title": "TextInput",
     "content": " ",
     "url": "https://playcanvas.github.io/pcui/components/text-input/",
     "relUrl": "/components/text-input/"
-  },"28": {
+  },"27": {
     "doc": "TreeView",
     "title": "TreeView",
     "content": " ",
     "url": "https://playcanvas.github.io/pcui/components/tree-view/",
     "relUrl": "/components/tree-view/"
-  },"29": {
+  },"28": {
     "doc": "VectorInput",
     "title": "VectorInput",
     "content": " ",
     "url": "https://playcanvas.github.io/pcui/components/vector-input/",
     "relUrl": "/components/vector-input/"
-  },"30": {
+  },"29": {
     "doc": "Using Observers",
     "title": "Using Observers",
     "content": "A simple use case is shown below. In this example the created label will start with Hello World as it’s text value. When a user enters a value into the text input, the label will be updated with the new value. How To . First import the components and binding classes. import { Label, TextInput } from '@playcanvas/pcui/pcui.js'; import { BindingObserversToElement, BindingElementToObservers, Observer } from '@playcanvas/pcui/pcui-binding.js'; . Create a new observer for an object which contains a text string. const observer = new Observer({text: 'Hello World'}); . Create a label which will listen to updates from the observer. const label = new Label({ binding: new BindingObserversToElement() }); . Link the observer to the label, telling it to use the text variable as its value. label.link(observer, 'text'); . Create a text input which will send updates to the observer. const textInput = new TextInput({ binding: new BindingElementToObservers() }); . Link the observer to the label, telling it to set the text variable on change. textInput.link(observer, 'text'); . ",
     "url": "https://playcanvas.github.io/pcui/data-binding/using-observers/",
     "relUrl": "/data-binding/using-observers/"
-  },"31": {
+  },"30": {
     "doc": "Two Way Binding",
     "title": "Two Way Binding Example",
     "content": "Observers can also be bound bi-directionally, in which case an element can both send and receive updates through its observer. The following example shows a two way binding between two text inputs, where either input can update the value of the other. It’s been written in react to showcase binding with react components. How To . First import the components and binding classes. import { TextInput } from '@playanvas/pcui/pcui-react.js'; import { BindingTwoWay, Observer } from '@playanvas/pcui/pcui-binding.js'; . Then create a new observer for a an object which contains a text string. const observer = new Observer({text: 'Hello World'}); . Create two text inputs, which can both send and receive updates through the linked observer. This style of binding is defined through the use of the BindingTwoWay object which is passed as a property. const link = { observer, path: 'text' }; const TextInput1 = () =&gt; &lt;TextInput binding={new BindingTwoWay()} link={link} /&gt; const TextInput2 = () =&gt; &lt;TextInput binding={new BindingTwoWay()} link={link} /&gt; . ",
     "url": "https://playcanvas.github.io/pcui/data-binding/two-way-binding/#two-way-binding-example",
     "relUrl": "/data-binding/two-way-binding/#two-way-binding-example"
-  },"32": {
+  },"31": {
     "doc": "Two Way Binding",
     "title": "Two Way Binding",
     "content": " ",
