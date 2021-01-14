@@ -20,7 +20,9 @@
     <canvas id="application-canvas"></canvas>
 
     <!-- Video element -->
-    <video id="vid" autoplay muted playsinline crossorigin="anonymous" src="https://download.blender.org/peach/bigbuckbunny_movies/big_buck_bunny_480p_stereo.ogg" style="display:none"></video>
+    <video id="vid" autoplay loop muted playsinline crossorigin="anonymous" style="display:none">
+        <source src="../assets/video/SampleVideo_1280x720_1mb.mp4" type="video/mp4">
+    </video>
 
     <!-- The script -->
     <script>
@@ -99,7 +101,7 @@
             
             var model = modelComponent.model;
             model.meshInstances[1].material = material;
-
+            
             video.play();
             ready = true;
         });
@@ -125,7 +127,7 @@
 
         app.on('update', function (dt) {
             if (!ready) return;
-
+            
             // Upload the video data to the texture every other frame
             upload = !upload;
             if (upload) {
