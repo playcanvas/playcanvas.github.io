@@ -4,8 +4,8 @@
         <title>PlayCanvas Examples</title>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-        <link rel="icon" type="image/png" href="examples/playcanvas-favicon.png" />
-        <link href="examples/style.css" rel="stylesheet" />
+        <link rel="icon" type="image/png" href="playcanvas-favicon.png" />
+        <link href="style.css" rel="stylesheet" />
     </head>
     <body>
         <div class="sidenav-toggle">
@@ -18,7 +18,7 @@
             <div class="btn">View Source</div>
         </div>
 
-        <script src="examples/examples.js"></script>
+        <script src="examples.js"></script>
         <script>
             let currentExampleRelativeUrl;
 
@@ -32,7 +32,7 @@
 
             function loadExample(example) {
                 let iframe = document.getElementById('example');
-                iframe.src = 'examples/' + example;
+                iframe.src = example;
                 location.href = location.protocol + '//' +
                                 location.host +
                                 location.pathname +
