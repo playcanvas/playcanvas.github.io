@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PlayCanvas Spine - Goblins</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <script src="https://code.playcanvas.com/playcanvas-stable.js"></script>
+    <style>
+        body { 
+            margin: 0;
+            overflow-y: hidden;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- The canvas element -->
+    <canvas id="application-canvas"></canvas>
+
+    <!-- The script -->
+    <script>
+        var canvas = document.getElementById("application-canvas");
+
+        // Create the application and start the update loop
+        var app = new pc.Application(canvas, {
+            mouse: new pc.Mouse(canvas),
+            keyboard: new pc.Keyboard(window)
+        });
+        app.start();
+
+        // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
+        app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
+        app.setCanvasResolution(pc.RESOLUTION_AUTO);
+
+        window.addEventListener("resize", function () {
+            app.resizeCanvas(canvas.width, canvas.height);
+        });
+
+        var assets = [
+            new pc.Asset("playcanvas-spine.3.6.js", "script", { url: "../../build/playcanvas-spine.3.6.js" }),
+            new pc.Asset("goblins-pma.atlas", "text", { url: "../assets/spine/goblins-pma.atlas" }),
+            new pc.Asset("goblins-pro.json", "json", { url: "../assets/spine/goblins-pro.json" }),
+            new pc.Asset("goblins-pma.png", "texture", { url: "../assets/spine/goblins-pma.png" })
+        ];
+
+        var preload = function (assets, callback) {
+            var count = 0;
+
+            for (var i = 0; i < assets.length; i++) {
+                app.assets.add(assets[i]);
+                assets[i].ready(function (asset) {
+                    count++;
+                    if (count === assets.length) {
+                        callback();
+                    }
+                });
+                app.assets.load(assets[i]);
+            }
+        };
+
+        preload(assets, function () {
+            var character = new pc.Entity();
+            character.addComponent("spine", {
+                atlasAsset: assets[1].id,
+                skeletonAsset: assets[2].id,
+                textureAssets: [ assets[3].id ]
+            });
+            character.translate(-1.5, 0, 0);
+            character.spine.skeleton.setSkinByName("goblingirl");
+            character.spine.skeleton.setSlotsToSetupPose();
+            character.spine.state.setAnimation(0, "walk", true);
+            app.root.addChild(character);
+
+            var character2 = new pc.Entity();
+            character2.addComponent("spine", {
+                atlasAsset: assets[1].id,
+                skeletonAsset: assets[2].id,
+                textureAssets: [ assets[3].id ]
+            });
+            character2.translate(1.5, 0, -1);
+            character2.spine.skeleton.setSkinByName("goblin");
+            character2.spine.skeleton.setSlotsToSetupPose();
+            character2.spine.state.setAnimation(0, "walk", true);
+            character2.spine.speed = 0.4;
+            app.root.addChild(character2);
+
+            app.on("update", function (dt) {
+                if (app.keyboard.wasPressed(pc.KEY_SPACE)) {
+                    character.spine.skeleton.setSkinByName("goblin");
+                    character.spine.skeleton.setSlotsToSetupPose();
+
+                    character2.spine.skeleton.setSkinByName("goblingirl");
+                    character2.spine.skeleton.setSlotsToSetupPose();
+                }
+                if (app.keyboard.wasPressed(pc.KEY_R)) {
+                    character.spine.skeleton.setSkinByName("goblingirl");
+                    character.spine.skeleton.setSlotsToSetupPose();
+
+                    character2.spine.skeleton.setSkinByName("goblin");
+                    character2.spine.skeleton.setSlotsToSetupPose();
+                }
+            });
+
+            // Create a camera to render the scene
+            var camera = new pc.Entity();
+            camera.addComponent("camera");
+            camera.translateLocal(0, 2, 8);
+            app.root.addChild(camera);
+        });
+    </script>
+</body>
+</html>

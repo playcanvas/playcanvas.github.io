@@ -88,6 +88,15 @@ var categories = [
             "positional"
         ]
     }, {
+        name: "spine",
+        examples: [
+            "alien",
+            "dragon",
+            "goblins",
+            "hero",
+            "spineboy"
+        ]
+    }, {
         name: "user-interface",
         examples: [
             "button-basic",

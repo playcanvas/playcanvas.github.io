@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PlayCanvas Spine - Hero</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <script src="https://code.playcanvas.com/playcanvas-stable.js"></script>
+    <style>
+        body { 
+            margin: 0;
+            overflow-y: hidden;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- The canvas element -->
+    <canvas id="application-canvas"></canvas>
+
+    <!-- The script -->
+    <script>
+        var canvas = document.getElementById("application-canvas");
+
+        // Create the application and start the update loop
+        var app = new pc.Application(canvas, {
+            mouse: new pc.Mouse(canvas),
+            keyboard: new pc.Keyboard(window)
+        });
+        app.start();
+
+        // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
+        app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
+        app.setCanvasResolution(pc.RESOLUTION_AUTO);
+
+        window.addEventListener("resize", function () {
+            app.resizeCanvas(canvas.width, canvas.height);
+        });
+
+        var assets = [
+            new pc.Asset("playcanvas-spine.3.6.js", "script", { url: "../../build/playcanvas-spine.3.6.js" }),
+            new pc.Asset("hero-mesh.atlas", "text", { url: "../assets/spine/hero-mesh.atlas" }),
+            new pc.Asset("hero-mesh.json", "json", { url: "../assets/spine/hero-mesh.json" }),
+            new pc.Asset("hero-mesh.png", "texture", { url: "../assets/spine/hero-mesh.png" })
+        ];
+
+        var preload = function (assets, callback) {
+            var count = 0;
+
+            for (var i = 0; i < assets.length; i++) {
+                app.assets.add(assets[i]);
+                assets[i].ready(function (asset) {
+                    count++;
+                    if (count === assets.length) {
+                        callback();
+                    }
+                });
+                app.assets.load(assets[i]);
+            }
+        };
+
+        preload(assets, function () {
+            // Control script for the hero character
+            var HeroControls = pc.createScript("heroControls");
+
+            HeroControls.prototype.initialize = function () {
+                this.state = "idle";
+            };
+
+            HeroControls.prototype.update = function (dt) {
+                var keyboard = this.app.keyboard;
+                var spine = this.entity.spine;
+
+                if (keyboard.wasPressed(pc.KEY_SPACE)) {
+                    if (this.state !== "attack") {
+                        spine.state.setAnimation(0, "attack", false);
+                        this.state = "attack";
+                    }
+                } else if (keyboard.isPressed(pc.KEY_RIGHT)) {
+                    this.entity.translate(10 * dt, 0, 0);
+                    if (this.state !== "runleft") {
+                        // Spine 3.6 has flipX, 3.8 has scaleX
+                        if (spine.spine.skeleton.hasOwnProperty('flipX')) {
+                            spine.spine.skeleton.flipX = false;
+                        } else {
+                            spine.spine.skeleton.scaleX = 1;
+                        }
+                        spine.state.setAnimation(0, "run", true);
+                        this.state = "runleft";
+                    }
+                } else if (keyboard.isPressed(pc.KEY_LEFT)) {
+                    this.entity.translate(-10 * dt, 0, 0);
+                    if (this.state !== "runright") {
+                        // Spine 3.6 has flipX, 3.8 has scaleX
+                        if (spine.spine.skeleton.hasOwnProperty('flipX')) {
+                            spine.spine.skeleton.flipX = true;
+                        } else {
+                            spine.spine.skeleton.scaleX = -1;
+                        }
+                        spine.state.setAnimation(0, "run", true);
+                        this.state = "runright";
+                    }
+                } else {
+                    if (this.state !== "idle") {
+                        spine.state.setAnimation(0, "idle", true);
+                        this.state = "idle";
+                    }
+                }
+            }
+
+            // Create the hero character
+            var hero = new pc.Entity();
+            hero.addComponent("spine", {
+                atlasAsset: assets[1].id,
+                skeletonAsset: assets[2].id,
+                textureAssets: [ assets[3].id ]
+            });
+            hero.addComponent("script");
+            hero.script.create("heroControls");
+            app.root.addChild(hero);
+
+            hero.spine.state.defaultMix = 0.2;
+            hero.spine.state.data.setMix("idle", "run", 0.2);
+            hero.spine.state.data.setMix("run", "idle", 0.2);
+            hero.spine.state.data.setMix("attack", "run", 0.5);
+            hero.spine.state.data.setMix("attack", "idle", 0.4);
+
+            hero.spine.spine.skeleton.setSkinByName("default");
+            hero.spine.spine.skeleton.setSlotsToSetupPose();
+            hero.spine.state.setAnimation(0, "idle", true);
+
+            hero.spine.states[1] = new spine.AnimationState(hero.spine.spine.stateData);
+
+            // Create a camera to render the scene
+            var camera = new pc.Entity();
+            camera.addComponent("camera");
+            camera.translateLocal(0, 2, 10);
+            app.root.addChild(camera);
+        });
+    </script>
+</body>
+</html>

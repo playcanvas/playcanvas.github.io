@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PlayCanvas Spine - SpineBoy</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <script src="https://code.playcanvas.com/playcanvas-stable.js"></script>
+    <style>
+        body { 
+            margin: 0;
+            overflow-y: hidden;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- The canvas element -->
+    <canvas id="application-canvas"></canvas>
+
+    <!-- The script -->
+    <script>
+        var canvas = document.getElementById("application-canvas");
+
+        // Create the application and start the update loop
+        var app = new pc.Application(canvas, {
+            mouse: new pc.Mouse(canvas),
+            keyboard: new pc.Keyboard(window)
+        });
+        app.start();
+
+        // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
+        app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
+        app.setCanvasResolution(pc.RESOLUTION_AUTO);
+
+        window.addEventListener("resize", function () {
+            app.resizeCanvas(canvas.width, canvas.height);
+        });
+
+        var assets = [
+            new pc.Asset("playcanvas-spine.3.8.js", "script", { url: "../../build/playcanvas-spine.3.8.js" }),
+            new pc.Asset("spineboy-pro.atlas", "text", { url: "../assets/spine/spineboy-pro.atlas" }),
+            new pc.Asset("spineboy-pro.json", "json", { url: "../assets/spine/spineboy-pro.json" }),
+            new pc.Asset("spineboy-pro.png", "texture", { url: "../assets/spine/spineboy-pro.png" })
+        ];
+
+        var preload = function (assets, callback) {
+            var count = 0;
+
+            for (var i = 0; i < assets.length; i++) {
+                app.assets.add(assets[i]);
+                assets[i].ready(function (asset) {
+                    count++;
+                    if (count === assets.length) {
+                        callback();
+                    }
+                });
+                app.assets.load(assets[i]);
+            }
+        };
+
+        preload(assets, function () {
+            var alien = new pc.Entity();
+            alien.addComponent("spine", {
+                atlasAsset: assets[1].id,
+                skeletonAsset: assets[2].id,
+                textureAssets: [ assets[3].id ]
+            });
+            app.root.addChild(alien);
+
+            alien.spine.state.setAnimation(0, "portal", true);
+
+            // Create a camera to render the scene
+            var camera = new pc.Entity();
+            camera.addComponent("camera");
+            camera.translateLocal(0, 7, 20);
+            app.root.addChild(camera);
+        });
+    </script>
+</body>
+</html>
