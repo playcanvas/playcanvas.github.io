@@ -1,4 +1,10 @@
 /**
+ * Creates an AnimStateGraph asset resource from a blob of JSON data that represents an anim state graph.
+ */
+export class AnimStateGraph {
+}
+
+/**
  * Create a new animation node.
  */
 export class Node {
@@ -542,6 +548,18 @@ export namespace callbacks {
      */
     type PreloadApp = () => void;
     /**
+     * Callback used by {@link SceneRegistry.loadSceneData}.
+     * @param err - The error message in the case where the loading or parsing fails.
+     * @param [sceneItem] - The scene registry item if no errors were encountered.
+     */
+    type LoadSceneData = (err: string | null, sceneItem?: SceneRegistryItem) => void;
+    /**
+     * Callback used by {@link SceneRegistry.loadSceneData}.
+     * @param err - The error message in the case where the loading or parsing fails.
+     * @param [sceneItem] - The scene registry item if no errors were encountered.
+     */
+    type UnloadSceneData = (err: string | null, sceneItem?: SceneRegistryItem) => void;
+    /**
      * Callback used by {@link SceneRegistry#loadSceneHierarchy}.
      * @param err - The error message in the case where the loading or parsing fails.
      * @param [entity] - The loaded root entity if no errors were encountered.
@@ -641,7 +659,84 @@ export namespace callbacks {
 /**
  * Root namespace for the PlayCanvas Engine.
  */
-export namespace pc { }
+export namespace pc {
+    /**
+     * Used to set the anim state graph transition interruption source to no state.
+     */
+    const ANIM_INTERRUPTION_NONE: string;
+    /**
+     * Used to set the anim state graph transition interruption source as the previous state only.
+     */
+    const ANIM_INTERRUPTION_PREV: string;
+    /**
+     * Used to set the anim state graph transition interruption source as the next state only.
+     */
+    const ANIM_INTERRUPTION_NEXT: string;
+    /**
+     * Used to set the anim state graph transition interruption sources as the previous state followed by the next state.
+     */
+    const ANIM_INTERRUPTION_PREV_NEXT: string;
+    /**
+     * Used to set the anim state graph transition interruption sources as the next state followed by the previous state.
+     */
+    const ANIM_INTERRUPTION_NEXT_PREV: string;
+    /**
+     * Used to set an anim state graph transition condition predicate as '>'.
+     */
+    const ANIM_GREATER_THAN: string;
+    /**
+     * Used to set an anim state graph transition condition predicate as '<'.
+     */
+    const ANIM_LESS_THAN: string;
+    /**
+     * Used to set an anim state graph transition condition predicate as '>='.
+     */
+    const ANIM_GREATER_THAN_EQUAL_TO: string;
+    /**
+     * Used to set an anim state graph transition condition predicate as '<='.
+     */
+    const ANIM_LESS_THAN_EQUAL_TO: string;
+    /**
+     * Used to set an anim state graph transition condition predicate as '==='.
+     */
+    const ANIM_EQUAL_TO: string;
+    /**
+     * Used to set an anim state graph transition condition predicate as '!=='.
+     */
+    const ANIM_NOT_EQUAL_TO: string;
+    /**
+     * Used to set an anim state graph parameter as type integer.
+     */
+    const ANIM_PARAMETER_INTEGER: string;
+    /**
+     * Used to set an anim state graph parameter as type float.
+     */
+    const ANIM_PARAMETER_FLOAT: string;
+    /**
+     * Used to set an anim state graph parameter as type boolean.
+     */
+    const ANIM_PARAMETER_BOOLEAN: string;
+    /**
+     * Used to set an anim state graph parameter as type trigger.
+     */
+    const ANIM_PARAMETER_TRIGGER: string;
+    const ANIM_BLEND_1D: string;
+    const ANIM_BLEND_2D_DIRECTIONAL: string;
+    const ANIM_BLEND_2D_CARTESIAN: string;
+    const ANIM_BLEND_DIRECT: string;
+    /**
+     * The starting state in an anim state graph layer.
+     */
+    const ANIM_STATE_START: string;
+    /**
+     * The ending state in an anim state graph layer.
+     */
+    const ANIM_STATE_END: string;
+    /**
+     * Used to indicate any state in an anim state graph layer.
+     */
+    const ANIM_STATE_ANY: string;
+}
 
 /**
  * Create a new event handler.
@@ -781,7 +876,7 @@ export namespace path {
      * Return the basename of the path. That is the second element of the pair returned by
     passing path into {@link path.split}.
      * @example
-     * pc.path.getBasename("/path/to/file.txt"); // returns "path.txt"
+     * pc.path.getBasename("/path/to/file.txt"); // returns "file.txt"
     pc.path.getBasename("/path/to/dir"); // returns "dir"
      * @param pathname - The path to process.
      * @returns The basename.
@@ -1105,6 +1200,7 @@ export class Application extends EventHandler {
      * The application's component system registry. The Application
     constructor adds the following component systems to its component system registry:
     
+    * anim ({@link AnimComponentSystem})
     * animation ({@link AnimationComponentSystem})
     * audiolistener ({@link AudioListenerComponentSystem})
     * button ({@link ButtonComponentSystem})
@@ -1117,6 +1213,7 @@ export class Application extends EventHandler {
     * model ({@link ModelComponentSystem})
     * particlesystem ({@link ParticleSystemComponentSystem})
     * rigidbody ({@link RigidBodyComponentSystem})
+    * render ({@link RenderComponentSystem})
     * screen ({@link ScreenComponentSystem})
     * script ({@link ScriptComponentSystem})
     * scrollbar ({@link ScrollbarComponentSystem})
@@ -1408,6 +1505,11 @@ export class Application extends EventHandler {
         };
     }): void;
     /**
+     * Sets the area light LUT asset for this app.
+     * @param asset - LUT asset of type `binary` to be set.
+     */
+    setAreaLightLuts(asset: Asset): void;
+    /**
      * Sets the skybox asset to current scene, and subscribes to asset load/change events.
      * @param asset - Asset of type `skybox` to be set to, or null to remove skybox.
      */
@@ -1505,6 +1607,224 @@ export class Application extends EventHandler {
      * this.app.destroy();
      */
     destroy(): void;
+}
+
+/**
+ * Create a new AnimComponentLayer.
+ * @param name - The name of the layer.
+ * @param controller - The controller to manage this layers animations.
+ * @param component - The component that this layer is a member of.
+ */
+export class AnimComponentLayer {
+    constructor(name: string, controller: any, component: AnimComponent);
+    /**
+     * Start playing the animation in the current state.
+     * @param [name] - If provided, will begin playing from the start of the state with this name.
+     */
+    play(name?: string): void;
+    /**
+     * Start playing the animation in the current state.
+     */
+    pause(): void;
+    /**
+     * Reset the animation component to it's initial state, including all parameters. The system will be paused.
+     */
+    reset(): void;
+    /**
+     * Rebind any animations in the layer to the currently present components and model of the anim components entity.
+     */
+    rebind(): void;
+    /**
+     * Associates an animation with a state node in the loaded state graph. If all states nodes are linked and the {@link AnimComponent#activate} value was set to true then the component will begin playing.
+     * @param nodeName - The name of the node that this animation should be associated with.
+     * @param animTrack - The animation track that will be assigned to this state and played whenever this state is active.
+     */
+    assignAnimation(nodeName: string, animTrack: any): void;
+    /**
+     * Removes animations from a node in the loaded state graph.
+     * @param nodeName - The name of the node that should have its animation tracks removed.
+     */
+    removeNodeAnimations(nodeName: string): void;
+    /**
+     * Returns the name of the layer
+     */
+    readonly name: string;
+    /**
+     * Whether this layer is currently playing
+     */
+    playing: string;
+    /**
+     * Returns true if a state graph has been loaded and all states in the graph have been assigned animation tracks.
+     */
+    readonly playable: string;
+    /**
+     * Returns the currently active state name.
+     */
+    readonly activeState: string;
+    /**
+     * Returns the previously active state name.
+     */
+    readonly previousState: string;
+    /**
+     * Returns the currently active states progress as a value normalised by the states animation duration. Looped animations will return values greater than 1.
+     */
+    readonly activeStateProgress: number;
+    /**
+     * Returns the currently active states duration.
+     */
+    readonly activeStateDuration: number;
+    /**
+     * The active states time in seconds
+     */
+    activeStateCurrentTime: number;
+    /**
+     * Returns whether the anim component layer is currently transitioning between states.
+     */
+    readonly transitioning: boolean;
+    /**
+     * If the anim component layer is currently transitioning between states, returns the progress. Otherwise returns null.
+     */
+    readonly transitionProgress: number;
+    /**
+     * Lists all available states in this layers state graph
+     */
+    readonly states: string[];
+}
+
+/**
+ * Create a new AnimComponent.
+ * @property speed - Speed multiplier for animation play back speed. 1.0 is playback at normal speed, 0.0 pauses the animation.
+ * @property activate - If true the first animation will begin playing when the scene is loaded.
+ * @property playing - Plays or pauses all animations in the component.
+ * @param system - The {@link ComponentSystem} that created this Component.
+ * @param entity - The Entity that this Component is attached to.
+ */
+export class AnimComponent extends Component {
+    constructor(system: AnimComponentSystem, entity: Entity);
+    /**
+     * Initialises component animation controllers using the provided state graph.
+     * @param stateGraph - The state graph asset to load into the component. Contains the states, transitions and parameters used to define a complete animation controller.
+     */
+    loadStateGraph(stateGraph: any): void;
+    /**
+     * Removes all layers from the anim component.
+     */
+    removeStateGraph(): void;
+    /**
+     * Reset all of the components layers and parameters to their initial states. If a layer was playing before it will continue playing
+     */
+    reset(): void;
+    /**
+     * Rebind all of the components layers
+     */
+    rebind(): void;
+    /**
+     * Finds a {@link AnimComponentLayer} in this component.
+     * @param layerName - The name of the anim component layer to find
+     * @returns layer
+     */
+    findAnimationLayer(layerName: string): AnimComponentLayer;
+    /**
+     * Associates an animation with a state in the loaded state graph. If all states are linked and the {@link AnimComponent#activate} value was set to true then the component will begin playing.
+     * @param nodeName - The name of the state node that this animation should be associated with.
+     * @param animTrack - The animation track that will be assigned to this state and played whenever this state is active.
+     * @param layerName - The name of the anim component layer to update. If omitted the default layer is used.
+     */
+    assignAnimation(nodeName: string, animTrack: any, layerName: string): void;
+    /**
+     * Removes animations from a node in the loaded state graph.
+     * @param nodeName - The name of the node that should have its animation tracks removed.
+     * @param layerName - The name of the anim component layer to update. If omitted the default layer is used.
+     */
+    removeNodeAnimations(nodeName: string, layerName: string): void;
+    /**
+     * Returns a float parameter value by name.
+     * @param name - The name of the float to return the value of.
+     * @returns A float
+     */
+    getFloat(name: string): number;
+    /**
+     * Sets the value of a float parameter that was defined in the animation components state graph.
+     * @param name - The name of the parameter to set.
+     * @param value - The new float value to set this parameter to.
+     */
+    setFloat(name: string, value: number): void;
+    /**
+     * Returns an integer parameter value by name.
+     * @param name - The name of the integer to return the value of.
+     * @returns An integer
+     */
+    getInteger(name: string): number;
+    /**
+     * Sets the value of an integer parameter that was defined in the animation components state graph.
+     * @param name - The name of the parameter to set.
+     * @param value - The new integer value to set this parameter to.
+     */
+    setInteger(name: string, value: number): void;
+    /**
+     * Returns a boolean parameter value by name.
+     * @param name - The name of the boolean to return the value of.
+     * @returns A boolean
+     */
+    getBoolean(name: string): boolean;
+    /**
+     * Sets the value of a boolean parameter that was defined in the animation components state graph.
+     * @param name - The name of the parameter to set.
+     * @param value - The new boolean value to set this parameter to.
+     */
+    setBoolean(name: string, value: boolean): void;
+    /**
+     * Returns a trigger parameter value by name.
+     * @param name - The name of the trigger to return the value of.
+     * @returns A boolean
+     */
+    getTrigger(name: string): boolean;
+    /**
+     * Sets the value of a trigger parameter that was defined in the animation components state graph to true.
+     * @param name - The name of the parameter to set.
+     */
+    setTrigger(name: string): void;
+    /**
+     * Resets the value of a trigger parameter that was defined in the animation components state graph to false.
+     * @param name - The name of the parameter to set.
+     */
+    resetTrigger(name: string): void;
+    /**
+     * The entity that this anim component should use as the root of the animation hierarchy
+     */
+    rootBone: Entity;
+    /**
+     * The state graph asset this component should use to generate it's animation state graph
+     */
+    stateGraphAsset: number;
+    /**
+     * Returns whether all component layers are currently playable
+     */
+    readonly playable: boolean;
+    /**
+     * Returns the base layer of the state graph
+     */
+    readonly baseLayer: AnimComponentLayer;
+    /**
+     * Speed multiplier for animation play back speed. 1.0 is playback at normal speed, 0.0 pauses the animation.
+    */
+    speed: number;
+    /**
+     * If true the first animation will begin playing when the scene is loaded.
+    */
+    activate: boolean;
+    /**
+     * Plays or pauses all animations in the component.
+    */
+    playing: boolean;
+}
+
+/**
+ * Create an AnimComponentSystem.
+ * @param app - The application managing this system.
+ */
+export class AnimComponentSystem extends ComponentSystem {
+    constructor(app: Application);
 }
 
 /**
@@ -2162,7 +2482,7 @@ export class CollisionComponent extends Component {
      * The asset for the model of the mesh collision volume - can also be
      * an asset id. Defaults to null.
     */
-    asset: Asset;
+    asset: Asset | number;
     /**
      * The model that is added to the scene graph for the mesh collision
      * volume.
@@ -2820,7 +3140,7 @@ export class LayoutGroupComponentSystem extends ComponentSystem {
  * // Add a pc.LightComponent to an entity
 var entity = new pc.Entity();
 entity.addComponent('light', {
-    type: "point",
+    type: "omni",
     color: new pc.Color(1, 0, 0),
     range: 10
 });
@@ -2832,12 +3152,18 @@ var lightComponent = entity.light;
 entity.light.range = 20;
  * @property type - The type of light. Can be:
 * "directional": A light that is infinitely far away and lights the entire scene from one direction.
-* "point": A light that illuminates in all directions from a point.
-* "spot": A light that illuminates in all directions from a point and is bounded by a cone.
+* "omni": An omni-directional light that illuminates in all directions from the light source.
+* "spot": An omni-directional light but is bounded by a cone.
 Defaults to "directional".
  * @property color - The Color of the light. The alpha component of the color is
 ignored. Defaults to white (1, 1, 1).
  * @property intensity - The brightness of the light. Defaults to 1.
+ * @property shape - The light source shape. Can be:
+* {@link pc.LIGHTSHAPE_PUNCTUAL}: Infinitesimally small point.
+* {@link pc.LIGHTSHAPE_RECT}: Rectangle shape.
+* {@link pc.LIGHTSHAPE_DISK}: Disk shape.
+* {@link pc.LIGHTSHAPE_SPHERE}: Sphere shape.
+Defaults to pc.LIGHTSHAPE_PUNCTUAL.
  * @property castShadows - If enabled the light will cast shadows. Defaults to false.
  * @property shadowDistance - The distance from the viewpoint beyond which shadows
 are no longer rendered. Affects directional lights only. Defaults to 40.
@@ -2901,8 +3227,8 @@ export class LightComponent extends Component {
     /**
      * The type of light. Can be:
      * * "directional": A light that is infinitely far away and lights the entire scene from one direction.
-     * * "point": A light that illuminates in all directions from a point.
-     * * "spot": A light that illuminates in all directions from a point and is bounded by a cone.
+     * * "omni": An omni-directional light that illuminates in all directions from the light source.
+     * * "spot": An omni-directional light but is bounded by a cone.
      * Defaults to "directional".
     */
     type: string;
@@ -2915,6 +3241,15 @@ export class LightComponent extends Component {
      * The brightness of the light. Defaults to 1.
     */
     intensity: number;
+    /**
+     * The light source shape. Can be:
+     * * {@link pc.LIGHTSHAPE_PUNCTUAL}: Infinitesimally small point.
+     * * {@link pc.LIGHTSHAPE_RECT}: Rectangle shape.
+     * * {@link pc.LIGHTSHAPE_DISK}: Disk shape.
+     * * {@link pc.LIGHTSHAPE_SPHERE}: Sphere shape.
+     * Defaults to pc.LIGHTSHAPE_PUNCTUAL.
+    */
+    shape: number;
     /**
      * If enabled the light will cast shadows. Defaults to false.
     */
@@ -3590,6 +3925,139 @@ export class ParticleSystemComponentSystem extends ComponentSystem {
  * Create a new ComponentSystemRegistry.
  */
 export class ComponentSystemRegistry {
+}
+
+/**
+ * Create a new RenderComponent.
+ * @property type - The type of the render. Can be one of the following:
+* "asset": The component will render a render asset
+* "box": The component will render a box (1 unit in each dimension)
+* "capsule": The component will render a capsule (radius 0.5, height 2)
+* "cone": The component will render a cone (radius 0.5, height 1)
+* "cylinder": The component will render a cylinder (radius 0.5, height 1)
+* "plane": The component will render a plane (1 unit in each dimension)
+* "sphere": The component will render a sphere (radius 0.5)
+ * @property asset - The render asset for the render component (only applies to type 'asset') - can also be an asset id.
+ * @property materialAssets - The material assets that will be used to render the meshes. Each material corresponds to the respective mesh instance.
+ * @property material - The material {@link Material} that will be used to render the meshes (not used on renders of type 'asset').
+ * @property castShadows - If true, attached meshes will cast shadows for lights that have shadow casting enabled.
+ * @property receiveShadows - If true, shadows will be cast on attached meshes.
+ * @property castShadowsLightmap - If true, the meshes will cast shadows when rendering lightmaps.
+ * @property lightmapped - If true, the meshes will be lightmapped after using lightmapper.bake().
+ * @property lightmapSizeMultiplier - Lightmap resolution multiplier.
+ * @property isStatic - Mark meshes as non-movable (optimization).
+ * @property aabb - If set, the bounding box is used as a bounding box for visibility culling of attached mesh instances. This is an optimization,
+allowing oversized bounding box to be specified for skinned characters in order to avoid per frame bounding box computations based on bone positions.
+ * @property meshInstances - An array of meshInstances contained in the component. If meshes are not set or loaded for component it will return null.
+ * @property batchGroupId - Assign meshes to a specific batch group (see {@link BatchGroup}). Default value is -1 (no group).
+ * @property layers - An array of layer IDs ({@link Layer#id}) to which the meshes should belong.
+Don't push/pop/splice or modify this array, if you want to change it - set a new one instead.
+ * @property rootBone - A reference to the entity to be used as the root bone for any skinned meshes that are rendered by this component.
+ * @property renderStyle - Set rendering of all {@link MeshInstance}s to the specified render style. Can be one of the following:
+* {@link RENDERSTYLE_SOLID}
+* {@link RENDERSTYLE_WIREFRAME}
+* {@link RENDERSTYLE_POINTS}
+ * @param system - The ComponentSystem that created this Component.
+ * @param entity - The Entity that this Component is attached to.
+ */
+export class RenderComponent extends Component {
+    constructor(system: RenderComponentSystem, entity: Entity);
+    /**
+     * Stop rendering {@link MeshInstance}s without removing them from the scene hierarchy.
+    This method sets the {@link MeshInstance#visible} property of every MeshInstance to false.
+    Note, this does not remove the mesh instances from the scene hierarchy or draw call list.
+    So the render component still incurs some CPU overhead.
+     */
+    hide(): void;
+    /**
+     * Enable rendering of the render {@link MeshInstance}s if hidden using {@link RenderComponent#hide}.
+    This method sets all the {@link MeshInstance#visible} property on all mesh instances to true.
+     */
+    show(): void;
+    /**
+     * The type of the render. Can be one of the following:
+     * * "asset": The component will render a render asset
+     * * "box": The component will render a box (1 unit in each dimension)
+     * * "capsule": The component will render a capsule (radius 0.5, height 2)
+     * * "cone": The component will render a cone (radius 0.5, height 1)
+     * * "cylinder": The component will render a cylinder (radius 0.5, height 1)
+     * * "plane": The component will render a plane (1 unit in each dimension)
+     * * "sphere": The component will render a sphere (radius 0.5)
+    */
+    type: string;
+    /**
+     * The render asset for the render component (only applies to type 'asset') - can also be an asset id.
+    */
+    asset: Asset | number;
+    /**
+     * The material assets that will be used to render the meshes. Each material corresponds to the respective mesh instance.
+    */
+    materialAssets: Asset[] | number[];
+    /**
+     * The material {@link Material} that will be used to render the meshes (not used on renders of type 'asset').
+    */
+    material: Material;
+    /**
+     * If true, attached meshes will cast shadows for lights that have shadow casting enabled.
+    */
+    castShadows: boolean;
+    /**
+     * If true, shadows will be cast on attached meshes.
+    */
+    receiveShadows: boolean;
+    /**
+     * If true, the meshes will cast shadows when rendering lightmaps.
+    */
+    castShadowsLightmap: boolean;
+    /**
+     * If true, the meshes will be lightmapped after using lightmapper.bake().
+    */
+    lightmapped: boolean;
+    /**
+     * Lightmap resolution multiplier.
+    */
+    lightmapSizeMultiplier: number;
+    /**
+     * Mark meshes as non-movable (optimization).
+    */
+    isStatic: boolean;
+    /**
+     * If set, the bounding box is used as a bounding box for visibility culling of attached mesh instances. This is an optimization,
+     * allowing oversized bounding box to be specified for skinned characters in order to avoid per frame bounding box computations based on bone positions.
+    */
+    aabb: BoundingBox;
+    /**
+     * An array of meshInstances contained in the component. If meshes are not set or loaded for component it will return null.
+    */
+    meshInstances: MeshInstance[];
+    /**
+     * Assign meshes to a specific batch group (see {@link BatchGroup}). Default value is -1 (no group).
+    */
+    batchGroupId: number;
+    /**
+     * An array of layer IDs ({@link Layer#id}) to which the meshes should belong.
+     * Don't push/pop/splice or modify this array, if you want to change it - set a new one instead.
+    */
+    layers: number[];
+    /**
+     * A reference to the entity to be used as the root bone for any skinned meshes that are rendered by this component.
+    */
+    rootBone: Entity;
+    /**
+     * Set rendering of all {@link MeshInstance}s to the specified render style. Can be one of the following:
+     * * {@link RENDERSTYLE_SOLID}
+     * * {@link RENDERSTYLE_WIREFRAME}
+     * * {@link RENDERSTYLE_POINTS}
+    */
+    renderStyle: number;
+}
+
+/**
+ * Create a new RenderComponentSystem.
+ * @param app - The Application.
+ */
+export class RenderComponentSystem extends ComponentSystem {
+    constructor(app: Application);
 }
 
 /**
@@ -4982,6 +5450,7 @@ entity.setLocalEulerAngles(e.x, e.y + 90, e.z);
 
 // Or use rotateLocal
 entity.rotateLocal(0, 90, 0);
+ * @property [anim] - Gets the {@link AnimComponent} attached to this entity. [read only]
  * @property [animation] - Gets the {@link AnimationComponent} attached to this entity. [read only]
  * @property [audiolistener] - Gets the {@link AudioListenerComponent} attached to this entity. [read only]
  * @property [button] - Gets the {@link ButtonComponent} attached to this entity. [read only]
@@ -4993,6 +5462,7 @@ entity.rotateLocal(0, 90, 0);
  * @property [light] - Gets the {@link LightComponent} attached to this entity. [read only]
  * @property [model] - Gets the {@link ModelComponent} attached to this entity. [read only]
  * @property [particlesystem] - Gets the {@link ParticleSystemComponent} attached to this entity. [read only]
+ * @property [render] - Gets the {@link RenderComponent} attached to this entity. [read only]
  * @property [rigidbody] - Gets the {@link RigidBodyComponent} attached to this entity. [read only]
  * @property [screen] - Gets the {@link ScreenComponent} attached to this entity. [read only]
  * @property [script] - Gets the {@link ScriptComponent} attached to this entity. [read only]
@@ -5031,6 +5501,7 @@ export class Entity extends GraphNode {
     * "light" - see {@link LightComponent}
     * "model" - see {@link ModelComponent}
     * "particlesystem" - see {@link ParticleSystemComponent}
+    * "render" - see {@link RenderComponent}
     * "rigidbody" - see {@link RigidBodyComponent}
     * "screen" - see {@link ScreenComponent}
     * "script" - see {@link ScriptComponent}
@@ -5099,6 +5570,10 @@ export class Entity extends GraphNode {
      */
     clone(): Entity;
     /**
+     * Gets the {@link AnimComponent} attached to this entity. [read only]
+    */
+    anim?: AnimComponent;
+    /**
      * Gets the {@link AnimationComponent} attached to this entity. [read only]
     */
     animation?: AnimationComponent;
@@ -5143,6 +5618,10 @@ export class Entity extends GraphNode {
     */
     particlesystem?: ParticleSystemComponent;
     /**
+     * Gets the {@link RenderComponent} attached to this entity. [read only]
+    */
+    render?: RenderComponent;
+    /**
      * Gets the {@link RigidBodyComponent} attached to this entity. [read only]
     */
     rigidbody?: RigidBodyComponent;
@@ -5172,6 +5651,7 @@ export class Entity extends GraphNode {
  * Item to be stored in the {@link SceneRegistry}.
  * @property name - The name of the scene.
  * @property url - The url of the scene file.
+ * @property loaded - Returns true if the scene data is still being loaded
  * @param name - The name of the scene.
  * @param url - The url of the scene file.
  */
@@ -5185,6 +5665,10 @@ export class SceneRegistryItem {
      * The url of the scene file.
     */
     url: string;
+    /**
+     * Returns true if the scene data is still being loaded
+    */
+    loaded: boolean;
 }
 
 /**
@@ -5223,38 +5707,53 @@ export class SceneRegistry {
      */
     remove(name: string): void;
     /**
+     * Loads and stores the scene data to reduce the number of the network
+    requests when the same scenes are loaded multiple times. Can also be used to load data before calling
+    {@link SceneRegistry.loadSceneHierarchy} and {@link SceneRegistry#loadSceneSettings} to make
+    scene loading quicker for the user.
+     * @param sceneItem - The scene item or URL of the scene file. Usually this will be "scene_id.json".
+     * @param callback - The function to call after loading,
+    passed (err, sceneItem) where err is null if no errors occurred.
+     */
+    loadSceneData(sceneItem: SceneRegistryItem | string, callback: callbacks.LoadSceneData): void;
+    /**
+     * Unloads scene data that has been loaded previously using {@link SceneRegistry#loadSceneData}.
+     * @param sceneItem - The scene item or URL of the scene file. Usually this will be "scene_id.json".
+     */
+    unloadSceneData(sceneItem: SceneRegistryItem | string): void;
+    /**
      * Load a scene file, create and initialize the Entity hierarchy
     and add the hierarchy to the application root Entity.
      * @example
-     * var url = app.scenes.getSceneUrl("Scene Name");
-    app.scenes.loadSceneHierarchy(url, function (err, entity) {
+     * var sceneItem = app.scenes.find("Scene Name");
+    app.scenes.loadSceneHierarchy(sceneItem, function (err, entity) {
         if (!err) {
             var e = app.root.find("My New Entity");
         } else {
             // error
         }
     });
-     * @param url - The URL of the scene file. Usually this will be "scene_id.json".
+     * @param sceneItem - The scene item or URL of the scene file. Usually this will be "scene_id.json".
      * @param callback - The function to call after loading,
     passed (err, entity) where err is null if no errors occurred.
      */
-    loadSceneHierarchy(url: string, callback: callbacks.LoadHierarchy): void;
+    loadSceneHierarchy(sceneItem: SceneRegistryItem | string, callback: callbacks.LoadHierarchy): void;
     /**
      * Load a scene file and apply the scene settings to the current scene.
      * @example
-     * var url = app.getSceneUrl("Scene Name");
-    app.loadSceneSettings(url, function (err) {
+     * var sceneItem = app.scenes.find("Scene Name");
+    app.scenes.loadSceneHierarchy(sceneItem, function (err, entity) {
         if (!err) {
-          // success
+            var e = app.root.find("My New Entity");
         } else {
-          // error
+            // error
         }
     });
-     * @param url - The URL of the scene file. This can be looked up using app.getSceneUrl.
+     * @param sceneItem - The scene item or URL of the scene file. Usually this will be "scene_id.json".
      * @param callback - The function called after the settings
     are applied. Passed (err) where err is null if no error occurred.
      */
-    loadSceneSettings(url: string, callback: callbacks.LoadSettings): void;
+    loadSceneSettings(sceneItem: SceneRegistryItem | string, callback: callbacks.LoadSettings): void;
     /**
      * Load the scene hierarchy and scene settings. This is an internal method used
     by the {@link Application}.
@@ -8755,7 +9254,7 @@ export class Color {
     included (the default), this is the same format as used in HTML/CSS.
      * @example
      * var c = new pc.Color(1, 1, 1);
-    // Should output '#ffffffff'
+    // Outputs #ffffffff
     console.log(c.toString());
      * @param alpha - If true, the output string will include the alpha value.
      * @returns The color in string form.
@@ -9044,7 +9543,7 @@ export class Mat3 {
      * Converts the matrix to string form.
      * @example
      * var m = new pc.Mat3();
-    // Should output '[1, 0, 0, 0, 1, 0, 0, 0, 1]'
+    // Outputs [1, 0, 0, 0, 1, 0, 0, 0, 1]
     console.log(m.toString());
      * @returns The matrix in string form.
      */
@@ -9448,7 +9947,7 @@ export class Mat4 {
      * Converts the specified matrix to string form.
      * @example
      * var m = new pc.Mat4();
-    // Should output '[1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]'
+    // Outputs [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
     console.log(m.toString());
      * @returns The matrix in string form.
      */
@@ -9719,9 +10218,9 @@ export class Quat {
     q.setFromAxisAngle(new pc.Vec3(0, 1, 0), 90);
     var v = new pc.Vec3();
     var angle = q.getAxisAngle(v);
-    // Should output 90
+    // Outputs 90
     console.log(angle);
-    // Should output [0, 1, 0]
+    // Outputs [0, 1, 0]
     console.log(v.toString());
      * @param axis - The 3-dimensional vector to receive the axis of rotation.
      * @returns Angle, in degrees, of the rotation.
@@ -9750,7 +10249,7 @@ export class Quat {
      * @example
      * var q = new pc.Quat(0, 0, 0, 5);
     var len = q.length();
-    // Should output 5
+    // Outputs 5
     console.log("The length of the quaternion is: " + len);
      * @returns The magnitude of the specified quaternion.
      */
@@ -9760,7 +10259,7 @@ export class Quat {
      * @example
      * var q = new pc.Quat(3, 4, 0);
     var lenSq = q.lengthSq();
-    // Should output 25
+    // Outputs 25
     console.log("The length squared of the quaternion is: " + lenSq);
      * @returns The magnitude of the specified quaternion.
      */
@@ -9804,7 +10303,7 @@ export class Quat {
     
     v.normalize();
     
-    // Should output 0, 0, 0, 1
+    // Outputs 0, 0, 0, 1
     console.log("The result of the vector normalization is: " + v.toString());
      * @returns The result of the normalization.
      */
@@ -9815,7 +10314,7 @@ export class Quat {
      * var q = new pc.Quat();
     q.set(1, 0, 0, 0);
     
-    // Should output 1, 0, 0, 0
+    // Outputs 1, 0, 0, 0
     console.log("The result of the vector set is: " + q.toString());
      * @param x - The x component of the quaternion.
      * @param y - The y component of the quaternion.
@@ -9897,7 +10396,7 @@ export class Quat {
      * Converts the quaternion to string form.
      * @example
      * var v = new pc.Quat(0, 0, 0, 1);
-    // Should output '[0, 0, 0, 1]'
+    // Outputs [0, 0, 0, 1]
     console.log(v.toString());
      * @returns The quaternion in string form.
      */
@@ -9953,7 +10452,7 @@ export class Vec2 {
     
     a.add(b);
     
-    // Should output [30, 30]
+    // Outputs [30, 30]
     console.log("The result of the addition is: " + a.toString());
      * @param rhs - The vector to add to the specified vector.
      * @returns Self for chaining.
@@ -9967,7 +10466,7 @@ export class Vec2 {
     var r = new pc.Vec2();
     
     r.add2(a, b);
-    // Should output [30, 30]
+    // Outputs [30, 30]
     
     console.log("The result of the addition is: " + r.toString());
      * @param lhs - The first vector operand for the addition.
@@ -9975,6 +10474,19 @@ export class Vec2 {
      * @returns Self for chaining.
      */
     add2(lhs: Vec2, rhs: Vec2): Vec2;
+    /**
+     * Adds a number to each element of a vector.
+     * @example
+     * var vec = new pc.Vec2(3, 4);
+    
+    vec.addScalar(2);
+    
+    // Outputs [5, 6]
+    console.log("The result of the addition is: " + vec.toString());
+     * @param scalar - The number to add.
+     * @returns Self for chaining.
+     */
+    addScalar(scalar: number): Vec2;
     /**
      * Returns an identical copy of the specified 2-dimensional vector.
      * @example
@@ -10004,7 +10516,7 @@ export class Vec2 {
     var up = new pc.Vec2(0, 1);
     var crossProduct = right.cross(up);
     
-    // Should print 1
+    // Prints 1
     console.log("The result of the cross product is: " + crossProduct);
      * @param rhs - The second 2-dimensional vector operand of the cross product.
      * @returns The cross product of the two vectors.
@@ -10021,6 +10533,50 @@ export class Vec2 {
      * @returns The distance between the two vectors.
      */
     distance(rhs: Vec2): number;
+    /**
+     * Divides a 2-dimensional vector by another in place.
+     * @example
+     * var a = new pc.Vec2(4, 9);
+    var b = new pc.Vec2(2, 3);
+    
+    a.div(b);
+    
+    // Outputs [2, 3]
+    console.log("The result of the division is: " + a.toString());
+     * @param rhs - The vector to divide the specified vector by.
+     * @returns Self for chaining.
+     */
+    div(rhs: Vec2): Vec2;
+    /**
+     * Divides one 2-dimensional vector by another and writes the result to
+    the specified vector.
+     * @example
+     * var a = new pc.Vec2(4, 9);
+    var b = new pc.Vec2(2, 3);
+    var r = new pc.Vec2();
+    
+    r.div2(a, b);
+    // Outputs [2, 3]
+    
+    console.log("The result of the division is: " + r.toString());
+     * @param lhs - The dividend vector (the vector being divided).
+     * @param rhs - The divisor vector (the vector dividing the dividend).
+     * @returns Self for chaining.
+     */
+    div2(lhs: Vec2, rhs: Vec2): Vec2;
+    /**
+     * Divides each element of a vector by a number.
+     * @example
+     * var vec = new pc.Vec2(3, 6);
+    
+    vec.divScalar(3);
+    
+    // Outputs [1, 2]
+    console.log("The result of the division is: " + vec.toString());
+     * @param scalar - The number to divide by.
+     * @returns Self for chaining.
+     */
+    divScalar(scalar: number): Vec2;
     /**
      * Returns the result of a dot product operation performed on the two specified 2-dimensional vectors.
      * @example
@@ -10047,7 +10603,7 @@ export class Vec2 {
      * @example
      * var vec = new pc.Vec2(3, 4);
     var len = vec.length();
-    // Should output 5
+    // Outputs 5
     console.log("The length of the vector is: " + len);
      * @returns The magnitude of the specified 2-dimensional vector.
      */
@@ -10057,7 +10613,7 @@ export class Vec2 {
      * @example
      * var vec = new pc.Vec2(3, 4);
     var len = vec.lengthSq();
-    // Should output 25
+    // Outputs 25
     console.log("The length squared of the vector is: " + len);
      * @returns The magnitude of the specified 2-dimensional vector.
      */
@@ -10088,7 +10644,7 @@ export class Vec2 {
     
     a.mul(b);
     
-    // Should output 8, 15
+    // Outputs 8, 15
     console.log("The result of the multiplication is: " + a.toString());
      * @param rhs - The 2-dimensional vector used as the second multiplicand of the operation.
      * @returns Self for chaining.
@@ -10103,13 +10659,26 @@ export class Vec2 {
     
     r.mul2(a, b);
     
-    // Should output 8, 15
+    // Outputs 8, 15
     console.log("The result of the multiplication is: " + r.toString());
      * @param lhs - The 2-dimensional vector used as the first multiplicand of the operation.
      * @param rhs - The 2-dimensional vector used as the second multiplicand of the operation.
      * @returns Self for chaining.
      */
     mul2(lhs: Vec2, rhs: Vec2): Vec2;
+    /**
+     * Multiplies each element of a vector by a number.
+     * @example
+     * var vec = new pc.Vec2(3, 6);
+    
+    vec.mulScalar(3);
+    
+    // Outputs [9, 18]
+    console.log("The result of the multiplication is: " + vec.toString());
+     * @param scalar - The number to multiply by.
+     * @returns Self for chaining.
+     */
+    mulScalar(scalar: number): Vec2;
     /**
      * Returns this 2-dimensional vector converted to a unit vector in place.
     If the vector has a length of zero, the vector's elements will be set to zero.
@@ -10118,36 +10687,18 @@ export class Vec2 {
     
     v.normalize();
     
-    // Should output 1, 0
+    // Outputs 1, 0
     console.log("The result of the vector normalization is: " + v.toString());
      * @returns Self for chaining.
      */
     normalize(): Vec2;
-    /**
-     * Scales each component of the specified 2-dimensional vector by the supplied
-    scalar value.
-     * @example
-     * var v = new pc.Vec2(2, 4);
-    
-    // Multiply by 2
-    v.scale(2);
-    
-    // Negate
-    v.scale(-1);
-    
-    // Divide by 2
-    v.scale(0.5);
-     * @param scalar - The value by which each vector component is multiplied.
-     * @returns Self for chaining.
-     */
-    scale(scalar: number): Vec2;
     /**
      * Sets the specified 2-dimensional vector to the supplied numerical values.
      * @example
      * var v = new pc.Vec2();
     v.set(5, 10);
     
-    // Should output 5, 10
+    // Outputs 5, 10
     console.log("The result of the vector set is: " + v.toString());
      * @param x - The value to set on the first component of the vector.
      * @param y - The value to set on the second component of the vector.
@@ -10162,7 +10713,7 @@ export class Vec2 {
     
     a.sub(b);
     
-    // Should output [-10, -10]
+    // Outputs [-10, -10]
     console.log("The result of the subtraction is: " + a.toString());
      * @param rhs - The vector to add to the specified vector.
      * @returns Self for chaining.
@@ -10177,7 +10728,7 @@ export class Vec2 {
     
     r.sub2(a, b);
     
-    // Should output [-10, -10]
+    // Outputs [-10, -10]
     console.log("The result of the subtraction is: " + r.toString());
      * @param lhs - The first vector operand for the addition.
      * @param rhs - The second vector operand for the addition.
@@ -10185,10 +10736,23 @@ export class Vec2 {
      */
     sub2(lhs: Vec2, rhs: Vec2): Vec2;
     /**
+     * Subtracts a number from each element of a vector.
+     * @example
+     * var vec = new pc.Vec2(3, 4);
+    
+    vec.subScalar(2);
+    
+    // Outputs [1, 2]
+    console.log("The result of the subtraction is: " + vec.toString());
+     * @param scalar - The number to subtract.
+     * @returns Self for chaining.
+     */
+    subScalar(scalar: number): Vec2;
+    /**
      * Converts the vector to string form.
      * @example
      * var v = new pc.Vec2(20, 10);
-    // Should output '[20, 10]'
+    // Outputs [20, 10]
     console.log(v.toString());
      * @returns The vector in string form.
      */
@@ -10273,7 +10837,7 @@ export class Vec3 {
     
     a.add(b);
     
-    // Should output [30, 30, 30]
+    // Outputs [30, 30, 30]
     console.log("The result of the addition is: " + a.toString());
      * @param rhs - The vector to add to the specified vector.
      * @returns Self for chaining.
@@ -10287,7 +10851,7 @@ export class Vec3 {
     var r = new pc.Vec3();
     
     r.add2(a, b);
-    // Should output [30, 30, 30]
+    // Outputs [30, 30, 30]
     
     console.log("The result of the addition is: " + r.toString());
      * @param lhs - The first vector operand for the addition.
@@ -10295,6 +10859,19 @@ export class Vec3 {
      * @returns Self for chaining.
      */
     add2(lhs: Vec3, rhs: Vec3): Vec3;
+    /**
+     * Adds a number to each element of a vector.
+     * @example
+     * var vec = new pc.Vec3(3, 4, 5);
+    
+    vec.addScalar(2);
+    
+    // Outputs [5, 6, 7]
+    console.log("The result of the addition is: " + vec.toString());
+     * @param scalar - The number to add.
+     * @returns Self for chaining.
+     */
+    addScalar(scalar: number): Vec3;
     /**
      * Returns an identical copy of the specified 3-dimensional vector.
      * @example
@@ -10322,7 +10899,7 @@ export class Vec3 {
      * @example
      * var back = new pc.Vec3().cross(pc.Vec3.RIGHT, pc.Vec3.UP);
     
-    // Should print the Z axis (i.e. [0, 0, 1])
+    // Prints the Z axis (i.e. [0, 0, 1])
     console.log("The result of the cross product is: " + back.toString());
      * @param lhs - The first 3-dimensional vector operand of the cross product.
      * @param rhs - The second 3-dimensional vector operand of the cross product.
@@ -10340,6 +10917,50 @@ export class Vec3 {
      * @returns The distance between the two vectors.
      */
     distance(rhs: Vec3): number;
+    /**
+     * Divides a 3-dimensional vector by another in place.
+     * @example
+     * var a = new pc.Vec3(4, 9, 16);
+    var b = new pc.Vec3(2, 3, 4);
+    
+    a.div(b);
+    
+    // Outputs [2, 3, 4]
+    console.log("The result of the division is: " + a.toString());
+     * @param rhs - The vector to divide the specified vector by.
+     * @returns Self for chaining.
+     */
+    div(rhs: Vec3): Vec3;
+    /**
+     * Divides one 3-dimensional vector by another and writes the result to
+    the specified vector.
+     * @example
+     * var a = new pc.Vec3(4, 9, 16);
+    var b = new pc.Vec3(2, 3, 4);
+    var r = new pc.Vec3();
+    
+    r.div2(a, b);
+    // Outputs [2, 3, 4]
+    
+    console.log("The result of the division is: " + r.toString());
+     * @param lhs - The dividend vector (the vector being divided).
+     * @param rhs - The divisor vector (the vector dividing the dividend).
+     * @returns Self for chaining.
+     */
+    div2(lhs: Vec3, rhs: Vec3): Vec3;
+    /**
+     * Divides each element of a vector by a number.
+     * @example
+     * var vec = new pc.Vec3(3, 6, 9);
+    
+    vec.divScalar(3);
+    
+    // Outputs [1, 2, 3]
+    console.log("The result of the division is: " + vec.toString());
+     * @param scalar - The number to divide by.
+     * @returns Self for chaining.
+     */
+    divScalar(scalar: number): Vec3;
     /**
      * Returns the result of a dot product operation performed on the two specified 3-dimensional vectors.
      * @example
@@ -10366,7 +10987,7 @@ export class Vec3 {
      * @example
      * var vec = new pc.Vec3(3, 4, 0);
     var len = vec.length();
-    // Should output 5
+    // Outputs 5
     console.log("The length of the vector is: " + len);
      * @returns The magnitude of the specified 3-dimensional vector.
      */
@@ -10376,7 +10997,7 @@ export class Vec3 {
      * @example
      * var vec = new pc.Vec3(3, 4, 0);
     var len = vec.lengthSq();
-    // Should output 25
+    // Outputs 25
     console.log("The length squared of the vector is: " + len);
      * @returns The magnitude of the specified 3-dimensional vector.
      */
@@ -10407,7 +11028,7 @@ export class Vec3 {
     
     a.mul(b);
     
-    // Should output 8, 15, 24
+    // Outputs 8, 15, 24
     console.log("The result of the multiplication is: " + a.toString());
      * @param rhs - The 3-dimensional vector used as the second multiplicand of the operation.
      * @returns Self for chaining.
@@ -10422,13 +11043,26 @@ export class Vec3 {
     
     r.mul2(a, b);
     
-    // Should output 8, 15, 24
+    // Outputs 8, 15, 24
     console.log("The result of the multiplication is: " + r.toString());
      * @param lhs - The 3-dimensional vector used as the first multiplicand of the operation.
      * @param rhs - The 3-dimensional vector used as the second multiplicand of the operation.
      * @returns Self for chaining.
      */
     mul2(lhs: Vec3, rhs: Vec3): Vec3;
+    /**
+     * Multiplies each element of a vector by a number.
+     * @example
+     * var vec = new pc.Vec3(3, 6, 9);
+    
+    vec.mulScalar(3);
+    
+    // Outputs [9, 18, 27]
+    console.log("The result of the multiplication is: " + vec.toString());
+     * @param scalar - The number to multiply by.
+     * @returns Self for chaining.
+     */
+    mulScalar(scalar: number): Vec3;
     /**
      * Returns this 3-dimensional vector converted to a unit vector in place.
     If the vector has a length of zero, the vector's elements will be set to zero.
@@ -10437,7 +11071,7 @@ export class Vec3 {
     
     v.normalize();
     
-    // Should output 1, 0, 0
+    // Outputs 1, 0, 0
     console.log("The result of the vector normalization is: " + v.toString());
      * @returns Self for chaining.
      */
@@ -10450,37 +11084,19 @@ export class Vec3 {
     
     v.project(normal);
     
-    // Should output 5, 0, 0
+    // Outputs 5, 0, 0
     console.log("The result of the vector projection is: " + v.toString());
      * @param rhs - The vector onto which the original vector will be projected on.
      * @returns Self for chaining.
      */
     project(rhs: Vec3): Vec3;
     /**
-     * Scales each dimension of the specified 3-dimensional vector by the supplied
-    scalar value.
-     * @example
-     * var v = new pc.Vec3(2, 4, 8);
-    
-    // Multiply by 2
-    v.scale(2);
-    
-    // Negate
-    v.scale(-1);
-    
-    // Divide by 2
-    v.scale(0.5);
-     * @param scalar - The value by which each vector component is multiplied.
-     * @returns Self for chaining.
-     */
-    scale(scalar: number): Vec3;
-    /**
      * Sets the specified 3-dimensional vector to the supplied numerical values.
      * @example
      * var v = new pc.Vec3();
     v.set(5, 10, 20);
     
-    // Should output 5, 10, 20
+    // Outputs 5, 10, 20
     console.log("The result of the vector set is: " + v.toString());
      * @param x - The value to set on the first component of the vector.
      * @param y - The value to set on the second component of the vector.
@@ -10496,7 +11112,7 @@ export class Vec3 {
     
     a.sub(b);
     
-    // Should output [-10, -10, -10]
+    // Outputs [-10, -10, -10]
     console.log("The result of the subtraction is: " + a.toString());
      * @param rhs - The vector to add to the specified vector.
      * @returns Self for chaining.
@@ -10511,7 +11127,7 @@ export class Vec3 {
     
     r.sub2(a, b);
     
-    // Should output [-10, -10, -10]
+    // Outputs [-10, -10, -10]
     console.log("The result of the subtraction is: " + r.toString());
      * @param lhs - The first vector operand for the addition.
      * @param rhs - The second vector operand for the addition.
@@ -10519,10 +11135,23 @@ export class Vec3 {
      */
     sub2(lhs: Vec3, rhs: Vec3): Vec3;
     /**
+     * Subtracts a number from each element of a vector.
+     * @example
+     * var vec = new pc.Vec3(3, 4, 5);
+    
+    vec.subScalar(2);
+    
+    // Outputs [1, 2, 3]
+    console.log("The result of the subtraction is: " + vec.toString());
+     * @param scalar - The number to subtract.
+     * @returns Self for chaining.
+     */
+    subScalar(scalar: number): Vec3;
+    /**
      * Converts the vector to string form.
      * @example
      * var v = new pc.Vec3(20, 10, 5);
-    // Should output '[20, 10, 5]'
+    // Outputs [20, 10, 5]
     console.log(v.toString());
      * @returns The vector in string form.
      */
@@ -10628,7 +11257,7 @@ export class Vec4 {
     
     a.add(b);
     
-    // Should output [30, 30, 30]
+    // Outputs [30, 30, 30]
     console.log("The result of the addition is: " + a.toString());
      * @param rhs - The vector to add to the specified vector.
      * @returns Self for chaining.
@@ -10642,7 +11271,7 @@ export class Vec4 {
     var r = new pc.Vec4();
     
     r.add2(a, b);
-    // Should output [30, 30, 30]
+    // Outputs [30, 30, 30]
     
     console.log("The result of the addition is: " + r.toString());
      * @param lhs - The first vector operand for the addition.
@@ -10650,6 +11279,19 @@ export class Vec4 {
      * @returns Self for chaining.
      */
     add2(lhs: Vec4, rhs: Vec4): Vec4;
+    /**
+     * Adds a number to each element of a vector.
+     * @example
+     * var vec = new pc.Vec4(3, 4, 5, 6);
+    
+    vec.addScalar(2);
+    
+    // Outputs [5, 6, 7, 8]
+    console.log("The result of the addition is: " + vec.toString());
+     * @param scalar - The number to add.
+     * @returns Self for chaining.
+     */
+    addScalar(scalar: number): Vec4;
     /**
      * Returns an identical copy of the specified 4-dimensional vector.
      * @example
@@ -10672,6 +11314,50 @@ export class Vec4 {
      * @returns Self for chaining.
      */
     copy(rhs: Vec4): Vec4;
+    /**
+     * Divides a 4-dimensional vector by another in place.
+     * @example
+     * var a = new pc.Vec4(4, 9, 16, 25);
+    var b = new pc.Vec4(2, 3, 4, 5);
+    
+    a.div(b);
+    
+    // Outputs [2, 3, 4, 5]
+    console.log("The result of the division is: " + a.toString());
+     * @param rhs - The vector to divide the specified vector by.
+     * @returns Self for chaining.
+     */
+    div(rhs: Vec4): Vec4;
+    /**
+     * Divides one 4-dimensional vector by another and writes the result to
+    the specified vector.
+     * @example
+     * var a = new pc.Vec4(4, 9, 16, 25);
+    var b = new pc.Vec4(2, 3, 4, 5);
+    var r = new pc.Vec4();
+    
+    r.div2(a, b);
+    // Outputs [2, 3, 4, 5]
+    
+    console.log("The result of the division is: " + r.toString());
+     * @param lhs - The dividend vector (the vector being divided).
+     * @param rhs - The divisor vector (the vector dividing the dividend).
+     * @returns Self for chaining.
+     */
+    div2(lhs: Vec4, rhs: Vec4): Vec4;
+    /**
+     * Divides each element of a vector by a number.
+     * @example
+     * var vec = new pc.Vec4(3, 6, 9, 12);
+    
+    vec.divScalar(3);
+    
+    // Outputs [1, 2, 3, 4]
+    console.log("The result of the division is: " + vec.toString());
+     * @param scalar - The number to divide by.
+     * @returns Self for chaining.
+     */
+    divScalar(scalar: number): Vec4;
     /**
      * Returns the result of a dot product operation performed on the two specified 4-dimensional vectors.
      * @example
@@ -10698,7 +11384,7 @@ export class Vec4 {
      * @example
      * var vec = new pc.Vec4(3, 4, 0, 0);
     var len = vec.length();
-    // Should output 5
+    // Outputs 5
     console.log("The length of the vector is: " + len);
      * @returns The magnitude of the specified 4-dimensional vector.
      */
@@ -10708,7 +11394,7 @@ export class Vec4 {
      * @example
      * var vec = new pc.Vec4(3, 4, 0);
     var len = vec.lengthSq();
-    // Should output 25
+    // Outputs 25
     console.log("The length squared of the vector is: " + len);
      * @returns The magnitude of the specified 4-dimensional vector.
      */
@@ -10739,7 +11425,7 @@ export class Vec4 {
     
     a.mul(b);
     
-    // Should output 8, 15, 24, 35
+    // Outputs 8, 15, 24, 35
     console.log("The result of the multiplication is: " + a.toString());
      * @param rhs - The 4-dimensional vector used as the second multiplicand of the operation.
      * @returns Self for chaining.
@@ -10754,13 +11440,26 @@ export class Vec4 {
     
     r.mul2(a, b);
     
-    // Should output 8, 15, 24, 35
+    // Outputs 8, 15, 24, 35
     console.log("The result of the multiplication is: " + r.toString());
      * @param lhs - The 4-dimensional vector used as the first multiplicand of the operation.
      * @param rhs - The 4-dimensional vector used as the second multiplicand of the operation.
      * @returns Self for chaining.
      */
     mul2(lhs: Vec4, rhs: Vec4): Vec4;
+    /**
+     * Multiplies each element of a vector by a number.
+     * @example
+     * var vec = new pc.Vec4(3, 6, 9, 12);
+    
+    vec.mulScalar(3);
+    
+    // Outputs [9, 18, 27, 36]
+    console.log("The result of the multiplication is: " + vec.toString());
+     * @param scalar - The number to multiply by.
+     * @returns Self for chaining.
+     */
+    mulScalar(scalar: number): Vec4;
     /**
      * Returns this 4-dimensional vector converted to a unit vector in place.
     If the vector has a length of zero, the vector's elements will be set to zero.
@@ -10769,36 +11468,18 @@ export class Vec4 {
     
     v.normalize();
     
-    // Should output 1, 0, 0, 0
+    // Outputs 1, 0, 0, 0
     console.log("The result of the vector normalization is: " + v.toString());
      * @returns Self for chaining.
      */
     normalize(): Vec4;
-    /**
-     * Scales each dimension of the specified 4-dimensional vector by the supplied
-    scalar value.
-     * @example
-     * var v = new pc.Vec4(2, 4, 8, 16);
-    
-    // Multiply by 2
-    v.scale(2);
-    
-    // Negate
-    v.scale(-1);
-    
-    // Divide by 2
-    v.scale(0.5);
-     * @param scalar - The value by which each vector component is multiplied.
-     * @returns Self for chaining.
-     */
-    scale(scalar: number): Vec4;
     /**
      * Sets the specified 4-dimensional vector to the supplied numerical values.
      * @example
      * var v = new pc.Vec4();
     v.set(5, 10, 20, 40);
     
-    // Should output 5, 10, 20, 40
+    // Outputs 5, 10, 20, 40
     console.log("The result of the vector set is: " + v.toString());
      * @param x - The value to set on the first component of the vector.
      * @param y - The value to set on the second component of the vector.
@@ -10815,7 +11496,7 @@ export class Vec4 {
     
     a.sub(b);
     
-    // Should output [-10, -10, -10, -10]
+    // Outputs [-10, -10, -10, -10]
     console.log("The result of the subtraction is: " + a.toString());
      * @param rhs - The vector to add to the specified vector.
      * @returns Self for chaining.
@@ -10830,7 +11511,7 @@ export class Vec4 {
     
     r.sub2(a, b);
     
-    // Should output [-10, -10, -10, -10]
+    // Outputs [-10, -10, -10, -10]
     console.log("The result of the subtraction is: " + r.toString());
      * @param lhs - The first vector operand for the subtraction.
      * @param rhs - The second vector operand for the subtraction.
@@ -10838,10 +11519,23 @@ export class Vec4 {
      */
     sub2(lhs: Vec4, rhs: Vec4): Vec4;
     /**
+     * Subtracts a number from each element of a vector.
+     * @example
+     * var vec = new pc.Vec4(3, 4, 5, 6);
+    
+    vec.subScalar(2);
+    
+    // Outputs [1, 2, 3, 4]
+    console.log("The result of the subtraction is: " + vec.toString());
+     * @param scalar - The number to subtract.
+     * @returns Self for chaining.
+     */
+    subScalar(scalar: number): Vec4;
+    /**
      * Converts the vector to string form.
      * @example
      * var v = new pc.Vec4(20, 10, 5, 0);
-    // Should output '[20, 10, 5, 0]'
+    // Outputs [20, 10, 5, 0]
     console.log(v.toString());
      * @returns The vector in string form.
      */
@@ -11191,6 +11885,34 @@ export class AudioHandler implements ResourceHandler {
  */
 export class ContainerResource {
     constructor(data: any);
+    /**
+     * Instantiates an entity with a model component.
+     * @example
+     * // load a glb file and instantiate an entity with a model component based on it
+    app.assets.loadFromUrl("statue.glb", "container", function (err, asset) {
+        var entity = asset.resource.instantiateModelEntity({
+            castShadows: true
+        });
+        app.root.addChild(entity);
+    });
+     * @param [options] - The initialization data for the model component type {@link ModelComponent}.
+     * @returns A single entity with a model component. Model component internally contains a hierarchy based on {@link GraphNode}.
+     */
+    instantiateModelEntity(options?: any): Entity;
+    /**
+     * Instantiates an entity with a render component.
+     * @example
+     * // load a glb file and instantiate an entity with a model component based on it
+    app.assets.loadFromUrl("statue.glb", "container", function (err, asset) {
+        var entity = asset.resource.instantiateRenderEntity({
+            castShadows: true
+        });
+        app.root.addChild(entity);
+    });
+     * @param [options] - The initialization data for the render component type {@link RenderComponent}.
+     * @returns A hierarachy of entities with render components on entities containing renderable geometry.
+     */
+    instantiateRenderEntity(options?: any): Entity;
     /**
      * Array of assets of animations in the GLB container.
     */
@@ -11550,130 +12272,6 @@ export class ModelHandler implements ResourceHandler {
      * @returns The parsed resource data.
      */
     open(url: string, data: any, asset?: Asset): any;
-}
-
-export interface BasisParser extends TextureParser {
-}
-
-/**
- * Parser for basis files.
- */
-export class BasisParser implements TextureParser {
-    /**
-     * Load the texture from the remote URL. When loaded (or failed),
-    use the callback to return an the raw resource data (or error).
-     * @param url - The URL of the resource to load.
-     * @param url.load - The URL to use for loading the resource
-     * @param url.original - The original URL useful for identifying the resource type
-     * @param callback - The callback used when the resource is loaded or an error occurs.
-     * @param [asset] - Optional asset that is passed by ResourceLoader.
-     */
-    load(url: {
-        load: string;
-        original: string;
-    }, callback: callbacks.ResourceHandler, asset?: Asset): void;
-    /**
-     * Convert raw resource data into a resource instance. E.g. Take 3D model format JSON and return a {@link Model}.
-     * @param url - The URL of the resource to open.
-     * @param data - The raw resource data passed by callback from {@link ResourceHandler#load}.
-     * @param asset - Optional asset which is passed in by ResourceLoader.
-     * @param device - The graphics device
-     * @returns The parsed resource data.
-     */
-    open(url: string, data: any, asset: Asset | null, device: GraphicsDevice): Texture;
-}
-
-export interface DdsParser extends TextureParser {
-}
-
-/**
- * Texture parser for dds files.
- */
-export class DdsParser implements TextureParser {
-    /**
-     * Load the texture from the remote URL. When loaded (or failed),
-    use the callback to return an the raw resource data (or error).
-     * @param url - The URL of the resource to load.
-     * @param url.load - The URL to use for loading the resource
-     * @param url.original - The original URL useful for identifying the resource type
-     * @param callback - The callback used when the resource is loaded or an error occurs.
-     * @param [asset] - Optional asset that is passed by ResourceLoader.
-     */
-    load(url: {
-        load: string;
-        original: string;
-    }, callback: callbacks.ResourceHandler, asset?: Asset): void;
-    /**
-     * Convert raw resource data into a resource instance. E.g. Take 3D model format JSON and return a {@link Model}.
-     * @param url - The URL of the resource to open.
-     * @param data - The raw resource data passed by callback from {@link ResourceHandler#load}.
-     * @param asset - Optional asset which is passed in by ResourceLoader.
-     * @param device - The graphics device
-     * @returns The parsed resource data.
-     */
-    open(url: string, data: any, asset: Asset | null, device: GraphicsDevice): Texture;
-}
-
-export interface ImgParser extends TextureParser {
-}
-
-/**
- * Parser for browser-supported image formats.
- */
-export class ImgParser implements TextureParser {
-    /**
-     * Load the texture from the remote URL. When loaded (or failed),
-    use the callback to return an the raw resource data (or error).
-     * @param url - The URL of the resource to load.
-     * @param url.load - The URL to use for loading the resource
-     * @param url.original - The original URL useful for identifying the resource type
-     * @param callback - The callback used when the resource is loaded or an error occurs.
-     * @param [asset] - Optional asset that is passed by ResourceLoader.
-     */
-    load(url: {
-        load: string;
-        original: string;
-    }, callback: callbacks.ResourceHandler, asset?: Asset): void;
-    /**
-     * Convert raw resource data into a resource instance. E.g. Take 3D model format JSON and return a {@link Model}.
-     * @param url - The URL of the resource to open.
-     * @param data - The raw resource data passed by callback from {@link ResourceHandler#load}.
-     * @param asset - Optional asset which is passed in by ResourceLoader.
-     * @param device - The graphics device
-     * @returns The parsed resource data.
-     */
-    open(url: string, data: any, asset: Asset | null, device: GraphicsDevice): Texture;
-}
-
-export interface KtxParser extends TextureParser {
-}
-
-/**
- * Texture parser for ktx files.
- */
-export class KtxParser implements TextureParser {
-    /**
-     * Load the texture from the remote URL. When loaded (or failed),
-    use the callback to return an the raw resource data (or error).
-     * @param url - The URL of the resource to load.
-     * @param url.load - The URL to use for loading the resource
-     * @param url.original - The original URL useful for identifying the resource type
-     * @param callback - The callback used when the resource is loaded or an error occurs.
-     * @param [asset] - Optional asset that is passed by ResourceLoader.
-     */
-    load(url: {
-        load: string;
-        original: string;
-    }, callback: callbacks.ResourceHandler, asset?: Asset): void;
-    /**
-     * Convert raw resource data into a resource instance. E.g. Take 3D model format JSON and return a {@link Model}.
-     * @param url - The URL of the resource to open.
-     * @param data - The raw resource data passed by callback from {@link ResourceHandler#load}.
-     * @param asset - Optional asset which is passed in by ResourceLoader.
-     * @param device - The graphics device
-     * @returns The parsed resource data.
-     */
-    open(url: string, data: any, asset: Asset | null, device: GraphicsDevice): Texture;
 }
 
 export interface LegacyDdsParser extends TextureParser {
@@ -12232,6 +12830,26 @@ export const LIGHTTYPE_POINT: number;
  * Spot (local) light source.
  */
 export const LIGHTTYPE_SPOT: number;
+
+/**
+ * Infinitesimally small point light source shape.
+ */
+export const LIGHTSHAPE_PUNCTUAL: number;
+
+/**
+ * Rectangle shape of light source.
+ */
+export const LIGHTSHAPE_RECT: number;
+
+/**
+ * Disk shape of light source.
+ */
+export const LIGHTSHAPE_DISK: number;
+
+/**
+ * Sphere shape of light source.
+ */
+export const LIGHTSHAPE_SPHERE: number;
 
 /**
  * Linear distance falloff model for light attenuation.
@@ -13231,12 +13849,9 @@ Defaults to {@link SORTMODE_BACK2FRONT}.
 
 Defaults to {@link SHADER_FORWARD}.
  * @property passThrough - Tells that this layer is simple and needs to just render a bunch of mesh instances without lighting, skinning and morphing (faster).
- * @property overrideClear - Defines if layer should use camera clear parameters (true) or ignore them and use {@link Layer#clearColor}, {@link Layer#clearColorBuffer},
-{@link Layer#clearDepthBuffer} and {@link Layer#clearStencilBuffer}.
- * @property clearColor - The color used to clear the canvas to before each camera starts to render.
- * @property clearColorBuffer - If true cameras will clear the color buffer to the color set in clearColor.
- * @property clearDepthBuffer - If true cameras will clear the depth buffer.
- * @property clearStencilBuffer - If true cameras will clear the stencil buffer.
+ * @property clearColorBuffer - If true, the camera will clear the color buffer when it renders this layer.
+ * @property clearDepthBuffer - If true, the camera will clear the depth buffer when it renders this layer.
+ * @property clearStencilBuffer - If true, the camera will clear the stencil buffer when it renders this layer.
  * @property layerReference - Make this layer render the same mesh instances that another layer does instead of having its own mesh instance list.
 Both layers must share cameras. Frustum culling is only performed for one layer. Useful for rendering multiple passes using different shaders.
  * @property cullingMask - Visibility mask that interacts with {@link MeshInstance#mask}.
@@ -13384,24 +13999,15 @@ export class Layer {
     */
     passThrough: boolean;
     /**
-     * Defines if layer should use camera clear parameters (true) or ignore them and use {@link Layer#clearColor}, {@link Layer#clearColorBuffer},
-     * {@link Layer#clearDepthBuffer} and {@link Layer#clearStencilBuffer}.
-    */
-    overrideClear: boolean;
-    /**
-     * The color used to clear the canvas to before each camera starts to render.
-    */
-    clearColor: Color;
-    /**
-     * If true cameras will clear the color buffer to the color set in clearColor.
+     * If true, the camera will clear the color buffer when it renders this layer.
     */
     clearColorBuffer: boolean;
     /**
-     * If true cameras will clear the depth buffer.
+     * If true, the camera will clear the depth buffer when it renders this layer.
     */
     clearDepthBuffer: boolean;
     /**
-     * If true cameras will clear the stencil buffer.
+     * If true, the camera will clear the stencil buffer when it renders this layer.
     */
     clearStencilBuffer: boolean;
     /**
@@ -13729,6 +14335,19 @@ var material = new pc.StandardMaterial();
 // Update the material's diffuse and specular properties
 material.diffuse.set(1, 0, 0);
 material.specular.set(1, 1, 1);
+
+// Notify the material that it has been modified
+material.update();
+ * @example
+ * // Create a new Standard material
+var material = new pc.StandardMaterial();
+
+// Assign a texture to the diffuse slot
+material.diffuseMap = texture;
+
+// Use the alpha channel of the texture for alpha testing with a reference value of 0.5
+material.opacityMap = texture;
+material.alphaTest = 0.5;
 
 // Notify the material that it has been modified
 material.update();
