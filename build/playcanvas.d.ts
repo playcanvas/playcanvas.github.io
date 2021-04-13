@@ -1,4 +1,102 @@
 /**
+ * Used to set the anim state graph transition interruption source to no state.
+ */
+export const ANIM_INTERRUPTION_NONE: string;
+
+/**
+ * Used to set the anim state graph transition interruption source as the previous state only.
+ */
+export const ANIM_INTERRUPTION_PREV: string;
+
+/**
+ * Used to set the anim state graph transition interruption source as the next state only.
+ */
+export const ANIM_INTERRUPTION_NEXT: string;
+
+/**
+ * Used to set the anim state graph transition interruption sources as the previous state followed by the next state.
+ */
+export const ANIM_INTERRUPTION_PREV_NEXT: string;
+
+/**
+ * Used to set the anim state graph transition interruption sources as the next state followed by the previous state.
+ */
+export const ANIM_INTERRUPTION_NEXT_PREV: string;
+
+/**
+ * Used to set an anim state graph transition condition predicate as '>'.
+ */
+export const ANIM_GREATER_THAN: string;
+
+/**
+ * Used to set an anim state graph transition condition predicate as '<'.
+ */
+export const ANIM_LESS_THAN: string;
+
+/**
+ * Used to set an anim state graph transition condition predicate as '>='.
+ */
+export const ANIM_GREATER_THAN_EQUAL_TO: string;
+
+/**
+ * Used to set an anim state graph transition condition predicate as '<='.
+ */
+export const ANIM_LESS_THAN_EQUAL_TO: string;
+
+/**
+ * Used to set an anim state graph transition condition predicate as '==='.
+ */
+export const ANIM_EQUAL_TO: string;
+
+/**
+ * Used to set an anim state graph transition condition predicate as '!=='.
+ */
+export const ANIM_NOT_EQUAL_TO: string;
+
+/**
+ * Used to set an anim state graph parameter as type integer.
+ */
+export const ANIM_PARAMETER_INTEGER: string;
+
+/**
+ * Used to set an anim state graph parameter as type float.
+ */
+export const ANIM_PARAMETER_FLOAT: string;
+
+/**
+ * Used to set an anim state graph parameter as type boolean.
+ */
+export const ANIM_PARAMETER_BOOLEAN: string;
+
+/**
+ * Used to set an anim state graph parameter as type trigger.
+ */
+export const ANIM_PARAMETER_TRIGGER: string;
+
+export const ANIM_BLEND_1D: string;
+
+export const ANIM_BLEND_2D_DIRECTIONAL: string;
+
+export const ANIM_BLEND_2D_CARTESIAN: string;
+
+export const ANIM_BLEND_DIRECT: string;
+
+/**
+ * The starting state in an anim state graph layer.
+ */
+export const ANIM_STATE_START: string;
+
+/**
+ * The ending state in an anim state graph layer.
+ */
+export const ANIM_STATE_END: string;
+
+/**
+ * Used to indicate any state in an anim state graph layer.
+ */
+export const ANIM_STATE_ANY: string;
+
+/**
  * Creates an AnimStateGraph asset resource from a blob of JSON data that represents an anim state graph.
  */
 export class AnimStateGraph {
@@ -102,14 +200,14 @@ export class Skeleton {
 
 /**
  * An object that manages the case where an object holds a reference to an asset and needs to be notified when
-changes occur in the asset. e.g. notifications include load, add and remove events.
+ * changes occur in the asset. e.g. notifications include load, add and remove events.
  * @example
  * var reference = new pc.AssetReference('textureAsset', this, this.app.assets, {
-    load: this.onTextureAssetLoad,
-    add: this.onTextureAssetAdd,
-    remove: this.onTextureAssetRemove
-}, this);
-reference.id = this.textureAsset.id;
+ *     load: this.onTextureAssetLoad,
+ *     add: this.onTextureAssetAdd,
+ *     remove: this.onTextureAssetRemove
+ * }, this);
+ * reference.id = this.textureAsset.id;
  * @property id - Get or set the asset id which this references. One of either id or url must be set to initialize an asset reference.
  * @property url - Get or set the asset url which this references. One of either id or url must be called to initialize an asset reference.
  * @param propertyName - The name of the property that the asset is stored under, passed into callbacks to enable updating.
@@ -141,7 +239,7 @@ export class AssetReference {
 
 /**
  * Create an instance of an AssetRegistry.
-Note: PlayCanvas scripts are provided with an AssetRegistry instance as 'app.assets'.
+ * Note: PlayCanvas scripts are provided with an AssetRegistry instance as 'app.assets'.
  * @property prefix - A URL prefix that will be added to all asset loading requests.
  * @param loader - The ResourceLoader used to load the asset files.
  */
@@ -157,9 +255,9 @@ export class AssetRegistry extends EventHandler {
      * Add an asset to the registry.
      * @example
      * var asset = new pc.Asset("My Asset", "texture", {
-        url: "../path/to/image.jpg"
-    });
-    app.assets.add(asset);
+     *     url: "../path/to/image.jpg"
+     * });
+     * app.assets.add(asset);
      * @param asset - The asset to add.
      */
     add(asset: Asset): void;
@@ -167,7 +265,7 @@ export class AssetRegistry extends EventHandler {
      * Remove an asset from the registry.
      * @example
      * var asset = app.assets.get(100);
-    app.assets.remove(asset);
+     * app.assets.remove(asset);
      * @param asset - The asset to remove.
      * @returns True if the asset was successfully removed and false otherwise.
      */
@@ -192,30 +290,30 @@ export class AssetRegistry extends EventHandler {
      * Load the asset's file from a remote source. Listen for "load" events on the asset to find out when it is loaded.
      * @example
      * // load some assets
-    var assetsToLoad = [
-        app.assets.find("My Asset"),
-        app.assets.find("Another Asset")
-    ];
-    var count = 0;
-    assetsToLoad.forEach(function (assetToLoad) {
-        assetToLoad.ready(function (asset) {
-            count++;
-            if (count === assetsToLoad.length) {
-                // done
-            }
-        });
-        app.assets.load(assetToLoad);
-    });
+     * var assetsToLoad = [
+     *     app.assets.find("My Asset"),
+     *     app.assets.find("Another Asset")
+     * ];
+     * var count = 0;
+     * assetsToLoad.forEach(function (assetToLoad) {
+     *     assetToLoad.ready(function (asset) {
+     *         count++;
+     *         if (count === assetsToLoad.length) {
+     *             // done
+     *         }
+     *     });
+     *     app.assets.load(assetToLoad);
+     * });
      * @param asset - The asset to load.
      */
     load(asset: Asset): void;
     /**
      * Use this to load and create an asset if you don't have assets created. Usually you would only use this
-    if you are not integrated with the PlayCanvas Editor.
+     * if you are not integrated with the PlayCanvas Editor.
      * @example
      * app.assets.loadFromUrl("../path/to/texture.jpg", "texture", function (err, asset) {
-        var texture = asset.resource;
-    });
+     *     var texture = asset.resource;
+     * });
      * @param url - The url to load.
      * @param type - The type of asset to load.
      * @param callback - Function called when asset is loaded, passed (err, asset), where err is null if no errors were encountered.
@@ -223,12 +321,12 @@ export class AssetRegistry extends EventHandler {
     loadFromUrl(url: string, type: string, callback: callbacks.LoadAsset): void;
     /**
      * Use this to load and create an asset when both the URL and filename are required. For example, use this function when loading
-    BLOB assets, where the URL does not adequately identify the file.
+     * BLOB assets, where the URL does not adequately identify the file.
      * @example
      * var file = magicallyAttainAFile();
-    app.assets.loadFromUrlAndFilename(URL.createObjectURL(file), "texture.png", "texture", function (err, asset) {
-        var texture = asset.resource;
-    });
+     * app.assets.loadFromUrlAndFilename(URL.createObjectURL(file), "texture.png", "texture", function (err, asset) {
+     *     var texture = asset.resource;
+     * });
      * @param url - The url to load.
      * @param filename - The filename of the asset to load.
      * @param type - The type of asset to load.
@@ -239,7 +337,7 @@ export class AssetRegistry extends EventHandler {
      * Return all Assets with the specified name and type found in the registry.
      * @example
      * var assets = app.assets.findAll("myTextureAsset", "texture");
-    console.log("Found " + assets.length + " assets called " + name);
+     * console.log("Found " + assets.length + " assets called " + name);
      * @param name - The name of the Assets to find.
      * @param [type] - The type of the Assets to find.
      * @returns A list of all Assets found.
@@ -247,21 +345,21 @@ export class AssetRegistry extends EventHandler {
     findAll(name: string, type?: string): Asset[];
     /**
      * Return all Assets that satisfy the search query.
-    Query can be simply a string, or comma separated strings,
-    to have inclusive results of assets that match at least one query.
-    A query that consists of an array of tags can be used to match assets that have each tag of array.
+     * Query can be simply a string, or comma separated strings,
+     * to have inclusive results of assets that match at least one query.
+     * A query that consists of an array of tags can be used to match assets that have each tag of array.
      * @example
      * var assets = app.assets.findByTag("level-1");
-    // returns all assets that tagged by `level-1`
+     * // returns all assets that tagged by `level-1`
      * @example
      * var assets = app.assets.findByTag("level-1", "level-2");
-    // returns all assets that tagged by `level-1` OR `level-2`
+     * // returns all assets that tagged by `level-1` OR `level-2`
      * @example
      * var assets = app.assets.findByTag(["level-1", "monster"]);
-    // returns all assets that tagged by `level-1` AND `monster`
+     * // returns all assets that tagged by `level-1` AND `monster`
      * @example
      * var assets = app.assets.findByTag(["level-1", "monster"], ["level-2", "monster"]);
-    // returns all assets that tagged by (`level-1` AND `monster`) OR (`level-2` AND `monster`)
+     * // returns all assets that tagged by (`level-1` AND `monster`) OR (`level-2` AND `monster`)
      * @param query - Name of a tag or array of tags.
      * @returns A list of all Assets matched query.
      */
@@ -270,9 +368,9 @@ export class AssetRegistry extends EventHandler {
      * Return all Assets that satisfy filter callback.
      * @example
      * var assets = app.assets.filter(function (asset) {
-        return asset.name.indexOf('monster') !== -1;
-    });
-    console.log("Found " + assets.length + " assets, where names contains 'monster'");
+     *     return asset.name.indexOf('monster') !== -1;
+     * });
+     * console.log("Found " + assets.length + " assets, where names contains 'monster'");
      * @param callback - The callback function that is used to filter assets, return `true` to include asset to result list.
      * @returns A list of all Assets found.
      */
@@ -296,16 +394,16 @@ export class AssetRegistry extends EventHandler {
  * Create a new Asset record. Generally, Assets are created in the loading process and you won't need to create them by hand.
  * @example
  * var file = {
-    filename: "filename.txt",
-    url: "/example/filename.txt"
-};
+ *     filename: "filename.txt",
+ *     url: "/example/filename.txt"
+ * };
  * @example
  * var asset = new pc.Asset("a texture", "texture", {
-    url: "http://example.com/my/assets/here/texture.png"
-});
+ *     url: "http://example.com/my/assets/here/texture.png"
+ * });
  * @property name - The name of the asset
  * @property id - The asset id
- * @property type - The type of the asset. One of ["animation", "audio", "binary", "cubemap", "css", "font", "json", "html", "material", "model", "script", "shader", "text", "texture"]
+ * @property type - The type of the asset. One of ["animation", "audio", "binary", "container", "cubemap", "css", "font", "json", "html", "material", "model", "script", "shader", "sprite", "template", "text", "texture"]
  * @property tags - Interface for tagging. Allows to find assets by tags using {@link AssetRegistry#findByTag} method.
  * @property file - The file details or null if no file
  * @property [file.url] - The URL of the resource file that contains the asset data
@@ -313,7 +411,7 @@ export class AssetRegistry extends EventHandler {
  * @property [file.size] - The size of the resource file or null if no size was set (e.g from using {@link AssetRegistry#loadFromUrl})
  * @property [file.hash] - The MD5 hash of the resource file data and the Asset data field or null if hash was set (e.g from using {@link AssetRegistry#loadFromUrl})
  * @property [file.contents] - Optional file contents. This is faster than wrapping the data
-in a (base64 encoded) blob. Currently only used by container assets.
+ * in a (base64 encoded) blob. Currently only used by container assets.
  * @property [data] - Optional JSON data that contains either the complete resource data. (e.g. in the case of a material) or additional data (e.g. in the case of a model it contains mappings from mesh to material)
  * @property [options] - Optional JSON data that contains the asset handler options.
  * @property resource - A reference to the resource when the asset is loaded. e.g. a {@link Texture} or a {@link Model}
@@ -323,7 +421,7 @@ in a (base64 encoded) blob. Currently only used by container assets.
  * @property loading - True if the resource is currently being loaded
  * @property registry - The asset registry that this Asset belongs to
  * @param name - A non-unique but human-readable name which can be later used to retrieve the asset.
- * @param type - Type of asset. One of ["animation", "audio", "binary", "cubemap", "css", "font", "json", "html", "material", "model", "script", "shader", "text", "texture"]
+ * @param type - Type of asset. One of ["animation", "audio", "binary", "container", cubemap", "css", "font", "json", "html", "material", "model", "script", "shader", "sprite", "template", text", "texture"]
  * @param [file] - Details about the file the asset is made from. At the least must contain the 'url' field. For assets that don't contain file data use null.
  * @param [data] - JSON object with additional data about the asset. (e.g. for texture and model assets) or contains the asset data itself (e.g. in the case of materials)
  * @param [options] - The asset handler options. For container options see {@link ContainerHandler}
@@ -337,7 +435,7 @@ export class Asset extends EventHandler {
      * Return the URL required to fetch the file for this asset.
      * @example
      * var assets = app.assets.find("My Image", "texture");
-    var img = "&lt;img src='" + assets[0].getFileUrl() + "'&gt;";
+     * var img = "&lt;img src='" + assets[0].getFileUrl() + "'&gt;";
      * @returns The URL.
      */
     getFileUrl(): string;
@@ -345,10 +443,10 @@ export class Asset extends EventHandler {
      * Take a callback which is called as soon as the asset is loaded. If the asset is already loaded the callback is called straight away.
      * @example
      * var asset = app.assets.find("My Asset");
-    asset.ready(function (asset) {
-      // asset loaded
-    });
-    app.assets.load(asset);
+     * asset.ready(function (asset) {
+     *   // asset loaded
+     * });
+     * app.assets.load(asset);
      * @param callback - The function called when the asset is ready. Passed the (asset) arguments.
      * @param [scope] - Scope object to use when calling the callback.
      */
@@ -357,8 +455,8 @@ export class Asset extends EventHandler {
      * Destroys the associated resource and marks asset as unloaded.
      * @example
      * var asset = app.assets.find("My Asset");
-    asset.unload();
-    // asset.resource is null
+     * asset.unload();
+     * // asset.resource is null
      */
     unload(): void;
     /**
@@ -370,9 +468,9 @@ export class Asset extends EventHandler {
     */
     id: number;
     /**
-     * The type of the asset. One of ["animation", "audio", "binary", "cubemap", "css", "font", "json", "html", "material", "model", "script", "shader", "text", "texture"]
+     * The type of the asset. One of ["animation", "audio", "binary", "container", "cubemap", "css", "font", "json", "html", "material", "model", "script", "shader", "sprite", "template", "text", "texture"]
     */
-    type: string;
+    type: "animation" | "audio" | "binary" | "container" | "cubemap" | "css" | "font" | "json" | "html" | "material" | "model" | "script" | "shader" | "sprite" | "template" | "text" | "texture";
     /**
      * Interface for tagging. Allows to find assets by tags using {@link AssetRegistry#findByTag} method.
     */
@@ -640,7 +738,7 @@ export namespace callbacks {
     /**
      * Callback used by {@link StandardMaterial#onUpdateShader}.
      * @param options - An object with shader generator settings (based on current material and scene properties), that you can change and then return.
-    Properties of the object passed into this function are documented in {@link StandardMaterial#onUpdateShader}.
+     * Properties of the object passed into this function are documented in {@link StandardMaterial#onUpdateShader}.
      */
     type UpdateShader = (options: any) => any;
     /**
@@ -651,7 +749,7 @@ export namespace callbacks {
     /**
      * Callback used by {@link XrHitTest#start} and {@link XrHitTest#startForInputSource}.
      * @param err - The Error object if failed to create hit test source or null.
-     * @param hitTestSource - object that provides access to hit results against real world geometry.
+     * @param hitTestSource - Object that provides access to hit results against real world geometry.
      */
     type XrHitTestStart = (err: Error | null, hitTestSource: XrHitTestSource | null) => void;
 }
@@ -659,106 +757,29 @@ export namespace callbacks {
 /**
  * Root namespace for the PlayCanvas Engine.
  */
-export namespace pc {
-    /**
-     * Used to set the anim state graph transition interruption source to no state.
-     */
-    const ANIM_INTERRUPTION_NONE: string;
-    /**
-     * Used to set the anim state graph transition interruption source as the previous state only.
-     */
-    const ANIM_INTERRUPTION_PREV: string;
-    /**
-     * Used to set the anim state graph transition interruption source as the next state only.
-     */
-    const ANIM_INTERRUPTION_NEXT: string;
-    /**
-     * Used to set the anim state graph transition interruption sources as the previous state followed by the next state.
-     */
-    const ANIM_INTERRUPTION_PREV_NEXT: string;
-    /**
-     * Used to set the anim state graph transition interruption sources as the next state followed by the previous state.
-     */
-    const ANIM_INTERRUPTION_NEXT_PREV: string;
-    /**
-     * Used to set an anim state graph transition condition predicate as '>'.
-     */
-    const ANIM_GREATER_THAN: string;
-    /**
-     * Used to set an anim state graph transition condition predicate as '<'.
-     */
-    const ANIM_LESS_THAN: string;
-    /**
-     * Used to set an anim state graph transition condition predicate as '>='.
-     */
-    const ANIM_GREATER_THAN_EQUAL_TO: string;
-    /**
-     * Used to set an anim state graph transition condition predicate as '<='.
-     */
-    const ANIM_LESS_THAN_EQUAL_TO: string;
-    /**
-     * Used to set an anim state graph transition condition predicate as '==='.
-     */
-    const ANIM_EQUAL_TO: string;
-    /**
-     * Used to set an anim state graph transition condition predicate as '!=='.
-     */
-    const ANIM_NOT_EQUAL_TO: string;
-    /**
-     * Used to set an anim state graph parameter as type integer.
-     */
-    const ANIM_PARAMETER_INTEGER: string;
-    /**
-     * Used to set an anim state graph parameter as type float.
-     */
-    const ANIM_PARAMETER_FLOAT: string;
-    /**
-     * Used to set an anim state graph parameter as type boolean.
-     */
-    const ANIM_PARAMETER_BOOLEAN: string;
-    /**
-     * Used to set an anim state graph parameter as type trigger.
-     */
-    const ANIM_PARAMETER_TRIGGER: string;
-    const ANIM_BLEND_1D: string;
-    const ANIM_BLEND_2D_DIRECTIONAL: string;
-    const ANIM_BLEND_2D_CARTESIAN: string;
-    const ANIM_BLEND_DIRECT: string;
-    /**
-     * The starting state in an anim state graph layer.
-     */
-    const ANIM_STATE_START: string;
-    /**
-     * The ending state in an anim state graph layer.
-     */
-    const ANIM_STATE_END: string;
-    /**
-     * Used to indicate any state in an anim state graph layer.
-     */
-    const ANIM_STATE_ANY: string;
-}
+export namespace pc { }
 
 /**
  * Create a new event handler.
  * @example
  * var obj = new EventHandlerSubclass();
-
-// subscribe to an event
-obj.on('hello', function (str) {
-    console.log('event hello is fired', str);
-});
-
-// fire event
-obj.fire('hello', 'world');
+ *
+ * // subscribe to an event
+ * obj.on('hello', function (str) {
+ *     console.log('event hello is fired', str);
+ * });
+ *
+ * // fire event
+ * obj.fire('hello', 'world');
  */
 export class EventHandler {
     /**
      * Attach an event handler to an event.
      * @example
      * obj.on('test', function (a, b) {
-        console.log(a + b);
-    });
-    obj.fire('test', 1, 2); // prints 3 to the console
+     *     console.log(a + b);
+     * });
+     * obj.fire('test', 1, 2); // prints 3 to the console
      * @param name - Name of the event to bind the callback to.
      * @param callback - Function that is called when event is fired. Note the callback is limited to 8 arguments.
      * @param [scope] - Object to use as 'this' when the event is fired, defaults to current this.
@@ -767,16 +788,16 @@ export class EventHandler {
     on(name: string, callback: callbacks.HandleEvent, scope?: any): EventHandler;
     /**
      * Detach an event handler from an event. If callback is not provided then all callbacks are unbound from the event,
-    if scope is not provided then all events with the callback will be unbound.
+     * if scope is not provided then all events with the callback will be unbound.
      * @example
      * var handler = function () {
-    };
-    obj.on('test', handler);
-    
-    obj.off(); // Removes all events
-    obj.off('test'); // Removes all events called 'test'
-    obj.off('test', handler); // Removes all handler functions, called 'test'
-    obj.off('test', handler, this); // Removes all hander functions, called 'test' with scope this
+     * };
+     * obj.on('test', handler);
+     *
+     * obj.off(); // Removes all events
+     * obj.off('test'); // Removes all events called 'test'
+     * obj.off('test', handler); // Removes all handler functions, called 'test'
+     * obj.off('test', handler, this); // Removes all hander functions, called 'test' with scope this
      * @param [name] - Name of the event to unbind.
      * @param [callback] - Function to be unbound.
      * @param [scope] - Scope that was used as the this when the event is fired.
@@ -803,10 +824,10 @@ export class EventHandler {
      * Attach an event handler to an event. This handler will be removed after being fired once.
      * @example
      * obj.once('test', function (a, b) {
-        console.log(a + b);
-    });
-    obj.fire('test', 1, 2); // prints 3 to the console
-    obj.fire('test', 1, 2); // not going to get handled
+     *     console.log(a + b);
+     * });
+     * obj.fire('test', 1, 2); // prints 3 to the console
+     * obj.fire('test', 1, 2); // not going to get handled
      * @param name - Name of the event to bind the callback to.
      * @param callback - Function that is called when event is fired. Note the callback is limited to 8 arguments.
      * @param [scope] - Object to use as 'this' when the event is fired, defaults to current this.
@@ -817,8 +838,8 @@ export class EventHandler {
      * Test if there are any handlers bound to an event name.
      * @example
      * obj.on('test', function () { }); // bind an event to 'test'
-    obj.hasEvent('test'); // returns true
-    obj.hasEvent('hello'); // returns false
+     * obj.hasEvent('test'); // returns true
+     * obj.hasEvent('hello'); // returns false
      * @param name - The name of the event to test.
      * @returns True if the object has handlers bound to the specified event name.
      */
@@ -827,7 +848,7 @@ export class EventHandler {
 
 /**
  * Basically a very large random number (128-bit) which means the probability of creating two that clash is vanishingly small.
-GUIDs are used as the unique identifiers for Entities.
+ * GUIDs are used as the unique identifiers for Entities.
  */
 export namespace guid {
     /**
@@ -847,15 +868,15 @@ export namespace path {
     const delimiter: string;
     /**
      * Join two or more sections of file path together, inserting a
-    delimiter if needed.
+     * delimiter if needed.
      * @example
      * var path = pc.path.join('foo', 'bar');
-    console.log(path); // Prints 'foo/bar'
+     * console.log(path); // Prints 'foo/bar'
      * @example
      * var path = pc.path.join('alpha', 'beta', 'gamma');
-    console.log(path); // Prints 'alpha/beta/gamma'
+     * console.log(path); // Prints 'alpha/beta/gamma'
      * @param section - Section of path to join. 2 or more can be
-    provided as parameters.
+     * provided as parameters.
      * @returns The joined file path.
      */
     function join(...section: string[]): string;
@@ -867,17 +888,17 @@ export namespace path {
     function normalize(pathname: string): string;
     /**
      * Split the pathname path into a pair [head, tail] where tail is the final part of the path
-    after the last delimiter and head is everything leading up to that. tail will never contain a slash.
+     * after the last delimiter and head is everything leading up to that. tail will never contain a slash.
      * @param pathname - The path to split.
      * @returns The split path which is an array of two strings, the path and the filename.
      */
     function split(pathname: string): string[];
     /**
      * Return the basename of the path. That is the second element of the pair returned by
-    passing path into {@link path.split}.
+     * passing path into {@link path.split}.
      * @example
      * pc.path.getBasename("/path/to/file.txt"); // returns "file.txt"
-    pc.path.getBasename("/path/to/dir"); // returns "dir"
+     * pc.path.getBasename("/path/to/dir"); // returns "dir"
      * @param pathname - The path to process.
      * @returns The basename.
      */
@@ -892,8 +913,8 @@ export namespace path {
      * Return the extension of the path. Pop the last value of a list after path is split by question mark and comma.
      * @example
      * pc.path.getExtension("/path/to/file.txt"); // returns ".txt"
-    pc.path.getExtension("/path/to/file.jpg"); // returns ".jpg"
-    pc.path.getExtension("/path/to/file.txt?function=getExtension"); // returns ".txt"
+     * pc.path.getExtension("/path/to/file.jpg"); // returns ".jpg"
+     * pc.path.getExtension("/path/to/file.txt?function=getExtension"); // returns ".txt"
      * @param pathname - The path to process.
      * @returns The extension.
      */
@@ -902,11 +923,11 @@ export namespace path {
      * Check if a string s is relative path.
      * @example
      * pc.path.isRelativePath("file.txt"); // returns true
-    pc.path.isRelativePath("path/to/file.txt"); // returns true
-    pc.path.isRelativePath("./path/to/file.txt"); // returns true
-    pc.path.isRelativePath("../path/to/file.jpg"); // returns true
-    pc.path.isRelativePath("/path/to/file.jpg"); // returns false
-    pc.path.isRelativePath("http://path/to/file.jpg"); // returns false
+     * pc.path.isRelativePath("path/to/file.txt"); // returns true
+     * pc.path.isRelativePath("./path/to/file.txt"); // returns true
+     * pc.path.isRelativePath("../path/to/file.jpg"); // returns true
+     * pc.path.isRelativePath("/path/to/file.jpg"); // returns false
+     * pc.path.isRelativePath("http://path/to/file.jpg"); // returns false
      * @param pathname - The path to process.
      * @returns True if s doesn't start with slash and doesn't include colon and double slash.
      */
@@ -915,9 +936,9 @@ export namespace path {
      * Return the path without file name. If path is relative path, start with period.
      * @example
      * pc.path.extractPath("path/to/file.txt");    // returns "./path/to"
-    pc.path.extractPath("./path/to/file.txt");  // returns "./path/to"
-    pc.path.extractPath("../path/to/file.txt"); // returns "../path/to"
-    pc.path.extractPath("/path/to/file.txt");   // returns "/path/to"
+     * pc.path.extractPath("./path/to/file.txt");  // returns "./path/to"
+     * pc.path.extractPath("../path/to/file.txt"); // returns "../path/to"
+     * pc.path.extractPath("/path/to/file.txt");   // returns "/path/to"
      * @param pathname - The full path to process.
      * @returns The path without a last element from list split by slash.
      */
@@ -928,8 +949,8 @@ export namespace path {
  * Global namespace that stores flags regarding platform environment and features support.
  * @example
  * if (pc.platform.touch) {
-    // touch is supported
-}
+ *     // touch is supported
+ * }
  */
 export namespace platform {
     /**
@@ -990,7 +1011,7 @@ export namespace string {
      * Return a string with {n} replaced with the n-th argument.
      * @example
      * var s = pc.string.format("Hello {0}", "world");
-    console.log(s); // Prints "Hello world"
+     * console.log(s); // Prints "Hello world"
      * @param s - The string to format.
      * @param [arguments] - All other arguments are substituted into the string.
      * @returns The formatted string.
@@ -998,8 +1019,8 @@ export namespace string {
     function format(s: string, arguments?: any): string;
     /**
      * Convert a string value to a boolean. In non-strict mode (the default), 'true' is converted to true, all other values
-    are converted to false. In strict mode, 'true' is converted to true, 'false' is converted to false, all other values will throw
-    an Exception.
+     * are converted to false. In strict mode, 'true' is converted to true, 'false' is converted to false, all other values will throw
+     * an Exception.
      * @param s - The string to convert.
      * @param [strict] - In strict mode an Exception is thrown if s is not an accepted string value. Defaults to false.
      * @returns The converted value.
@@ -1007,7 +1028,7 @@ export namespace string {
     function toBool(s: string, strict?: boolean): boolean;
     /**
      * Get the code point number for a character in a string. Polyfill for
-    [`codePointAt`]{@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/codePointAt}.
+     * [`codePointAt`]{@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/codePointAt}.
      * @param string - The string to get the code point from.
      * @param [i] - The index in the string.
      * @returns The code point value for the character in the string.
@@ -1021,15 +1042,15 @@ export namespace string {
     function getCodePoints(string: string): number[];
     /**
      * Gets an array of all grapheme clusters (visible symbols) in a string. This is needed because
-    some symbols (such as emoji or accented characters) are actually made up of multiple character codes. See
-    {@link https://mathiasbynens.be/notes/javascript-unicode here} for more info.
+     * some symbols (such as emoji or accented characters) are actually made up of multiple character codes. See
+     * {@link https://mathiasbynens.be/notes/javascript-unicode here} for more info.
      * @param string - The string to break into symbols.
      * @returns The symbols in the string.
      */
     function getSymbols(string: string): string[];
     /**
      * Get the string for a given code point or set of code points. Polyfill for
-    [`fromCodePoint`]{@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/fromCodePoint}.
+     * [`fromCodePoint`]{@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/fromCodePoint}.
      * @param args - The code points to convert to a string.
      * @returns The converted string.
      */
@@ -1039,7 +1060,7 @@ export namespace string {
 /**
  * Create an instance of a Tags.
  * @param [parent] - Parent object who tags belong to.
-Note: Tags are automatically available on {@link Entity} and {@link Asset} as `tags` field.
+ * Note: Tags are automatically available on {@link Entity} and {@link Asset} as `tags` field.
  */
 export class Tags extends EventHandler {
     constructor(parent?: any);
@@ -1075,10 +1096,10 @@ export class Tags extends EventHandler {
     clear(): void;
     /**
      * Check if tags satisfy filters.
-    Filters can be provided by simple name of tag, as well as by array of tags.
-    When an array is provided it will check if tags contain each tag within the array.
-    If any of comma separated argument is satisfied, then it will return true.
-    Any number of combinations are valid, and order is irrelevant.
+     * Filters can be provided by simple name of tag, as well as by array of tags.
+     * When an array is provided it will check if tags contain each tag within the array.
+     * If any of comma separated argument is satisfied, then it will return true.
+     * Any number of combinations are valid, and order is irrelevant.
      * @example
      * tags.has('player'); // player
      * @example
@@ -1125,10 +1146,10 @@ export class Font {
  * Create a new Application.
  * @example
  * // Engine-only example: create the application manually
-var app = new pc.Application(canvas, options);
-
-// Start the application's main loop
-app.start();
+ * var app = new pc.Application(canvas, options);
+ *
+ * // Start the application's main loop
+ * app.start();
  * @param canvas - The canvas element.
  * @param [options.elementInput] - Input handler for {@link ElementComponent}s.
  * @param [options.keyboard] - Keyboard handler for input.
@@ -1156,40 +1177,40 @@ export class Application extends EventHandler {
      * The scene managed by the application.
      * @example
      * // Set the tone mapping property of the application's scene
-    this.app.scene.toneMapping = pc.TONEMAP_FILMIC;
+     * this.app.scene.toneMapping = pc.TONEMAP_FILMIC;
      */
     scene: Scene;
     /**
      * Scales the global time delta. Defaults to 1.
      * @example
      * // Set the app to run at half speed
-    this.app.timeScale = 0.5;
+     * this.app.timeScale = 0.5;
      */
     timeScale: number;
     /**
      * Clamps per-frame delta time to an upper bound. Useful since returning from a tab
-    deactivation can generate huge values for dt, which can adversely affect game state. Defaults
-    to 0.1 (seconds).
+     * deactivation can generate huge values for dt, which can adversely affect game state. Defaults
+     * to 0.1 (seconds).
      * @example
      * // Don't clamp inter-frame times of 200ms or less
-    this.app.maxDeltaTime = 0.2;
+     * this.app.maxDeltaTime = 0.2;
      */
     maxDeltaTime: number;
     /**
      * The scene registry managed by the application.
      * @example
      * // Search the scene registry for a item with the name 'racetrack1'
-    var sceneItem = this.app.scenes.find('racetrack1');
-    
-    // Load the scene using the item's url
-    this.app.scenes.loadScene(sceneItem.url);
+     * var sceneItem = this.app.scenes.find('racetrack1');
+     *
+     * // Load the scene using the item's url
+     * this.app.scenes.loadScene(sceneItem.url);
      */
     scenes: SceneRegistry;
     /**
      * The asset registry managed by the application.
      * @example
      * // Search the asset registry for all assets with the tag 'vehicle'
-    var vehicleAssets = this.app.assets.findByTag('vehicle');
+     * var vehicleAssets = this.app.assets.findByTag('vehicle');
      */
     assets: AssetRegistry;
     /**
@@ -1198,43 +1219,43 @@ export class Application extends EventHandler {
     graphicsDevice: GraphicsDevice;
     /**
      * The application's component system registry. The Application
-    constructor adds the following component systems to its component system registry:
-    
-    * anim ({@link AnimComponentSystem})
-    * animation ({@link AnimationComponentSystem})
-    * audiolistener ({@link AudioListenerComponentSystem})
-    * button ({@link ButtonComponentSystem})
-    * camera ({@link CameraComponentSystem})
-    * collision ({@link CollisionComponentSystem})
-    * element ({@link ElementComponentSystem})
-    * layoutchild ({@link LayoutChildComponentSystem})
-    * layoutgroup ({@link LayoutGroupComponentSystem})
-    * light ({@link LightComponentSystem})
-    * model ({@link ModelComponentSystem})
-    * particlesystem ({@link ParticleSystemComponentSystem})
-    * rigidbody ({@link RigidBodyComponentSystem})
-    * render ({@link RenderComponentSystem})
-    * screen ({@link ScreenComponentSystem})
-    * script ({@link ScriptComponentSystem})
-    * scrollbar ({@link ScrollbarComponentSystem})
-    * scrollview ({@link ScrollViewComponentSystem})
-    * sound ({@link SoundComponentSystem})
-    * sprite ({@link SpriteComponentSystem})
+     * constructor adds the following component systems to its component system registry:
+     *
+     * * anim ({@link AnimComponentSystem})
+     * * animation ({@link AnimationComponentSystem})
+     * * audiolistener ({@link AudioListenerComponentSystem})
+     * * button ({@link ButtonComponentSystem})
+     * * camera ({@link CameraComponentSystem})
+     * * collision ({@link CollisionComponentSystem})
+     * * element ({@link ElementComponentSystem})
+     * * layoutchild ({@link LayoutChildComponentSystem})
+     * * layoutgroup ({@link LayoutGroupComponentSystem})
+     * * light ({@link LightComponentSystem})
+     * * model ({@link ModelComponentSystem})
+     * * particlesystem ({@link ParticleSystemComponentSystem})
+     * * rigidbody ({@link RigidBodyComponentSystem})
+     * * render ({@link RenderComponentSystem})
+     * * screen ({@link ScreenComponentSystem})
+     * * script ({@link ScriptComponentSystem})
+     * * scrollbar ({@link ScrollbarComponentSystem})
+     * * scrollview ({@link ScrollViewComponentSystem})
+     * * sound ({@link SoundComponentSystem})
+     * * sprite ({@link SpriteComponentSystem})
      * @example
      * // Set global gravity to zero
-    this.app.systems.rigidbody.gravity.set(0, 0, 0);
+     * this.app.systems.rigidbody.gravity.set(0, 0, 0);
      * @example
      * // Set the global sound volume to 50%
-    this.app.systems.sound.volume = 0.5;
+     * this.app.systems.sound.volume = 0.5;
      */
     systems: ComponentSystemRegistry;
     /**
      * The XR Manager that provides ability to start VR/AR sessions.
      * @example
      * // check if VR is available
-    if (app.xr.isAvailable(pc.XRTYPE_VR)) {
-        // VR is available
-    }
+     * if (app.xr.isAvailable(pc.XRTYPE_VR)) {
+     *     // VR is available
+     * }
      */
     xr: XrManager;
     /**
@@ -1249,7 +1270,7 @@ export class Application extends EventHandler {
      * The root entity of the application.
      * @example
      * // Return the first entity called 'Camera' in a depth-first search of the scene hierarchy
-    var camera = this.app.root.findByName('Camera');
+     * var camera = this.app.root.findByName('Camera');
      */
     root: Entity;
     /**
@@ -1278,33 +1299,33 @@ export class Application extends EventHandler {
     scripts: ScriptRegistry;
     /**
      * The application's batch manager. The batch manager is used to
-    merge mesh instances in the scene, which reduces the overall number of draw
-    calls, thereby boosting performance.
+     * merge mesh instances in the scene, which reduces the overall number of draw
+     * calls, thereby boosting performance.
      */
     batcher: BatchManager;
     /**
      * When true, the application's render function is called every frame.
-    Setting autoRender to false is useful to applications where the rendered image
-    may often be unchanged over time. This can heavily reduce the application's
-    load on the CPU and GPU. Defaults to true.
+     * Setting autoRender to false is useful to applications where the rendered image
+     * may often be unchanged over time. This can heavily reduce the application's
+     * load on the CPU and GPU. Defaults to true.
      * @example
      * // Disable rendering every frame and only render on a keydown event
-    this.app.autoRender = false;
-    this.app.keyboard.on('keydown', function (event) {
-        this.app.renderNextFrame = true;
-    }, this);
+     * this.app.autoRender = false;
+     * this.app.keyboard.on('keydown', function (event) {
+     *     this.app.renderNextFrame = true;
+     * }, this);
      */
     autoRender: boolean;
     /**
      * Set to true to render the scene on the next iteration of the main loop.
-    This only has an effect if {@link Application#autoRender} is set to false. The
-    value of renderNextFrame is set back to false again as soon as the scene has been
-    rendered.
+     * This only has an effect if {@link Application#autoRender} is set to false. The
+     * value of renderNextFrame is set back to false again as soon as the scene has been
+     * rendered.
      * @example
      * // Render the scene only while space key is pressed
-    if (this.app.keyboard.isPressed(pc.KEY_SPACE)) {
-        this.app.renderNextFrame = true;
-    }
+     * if (this.app.keyboard.isPressed(pc.KEY_SPACE)) {
+     *     this.app.renderNextFrame = true;
+     * }
      */
     renderNextFrame: boolean;
     /**
@@ -1313,9 +1334,9 @@ export class Application extends EventHandler {
     i18n: I18n;
     /**
      * Get the current application. In the case where there are multiple running
-    applications, the function can get an application based on a supplied canvas id. This
-    function is particularly useful when the current Application is not readily available.
-    For example, in the JavaScript console of the browser's developer tools.
+     * applications, the function can get an application based on a supplied canvas id. This
+     * function is particularly useful when the current Application is not readily available.
+     * For example, in the JavaScript console of the browser's developer tools.
      * @example
      * var app = pc.Application.getApplication();
      * @param [id] - If defined, the returned application should use the canvas which has this id. Otherwise current application will be returned.
@@ -1324,17 +1345,17 @@ export class Application extends EventHandler {
     static getApplication(id?: string): Application | undefined;
     /**
      * The current fill mode of the canvas. Can be:
-    
-    * {@link FILLMODE_NONE}: the canvas will always match the size provided.
-    * {@link FILLMODE_FILL_WINDOW}: the canvas will simply fill the window, changing aspect ratio.
-    * {@link FILLMODE_KEEP_ASPECT}: the canvas will grow to fill the window as best it can while maintaining the aspect ratio.
+     *
+     * * {@link FILLMODE_NONE}: the canvas will always match the size provided.
+     * * {@link FILLMODE_FILL_WINDOW}: the canvas will simply fill the window, changing aspect ratio.
+     * * {@link FILLMODE_KEEP_ASPECT}: the canvas will grow to fill the window as best it can while maintaining the aspect ratio.
      */
     readonly fillMode: string;
     /**
      * The current resolution mode of the canvas, Can be:
-    
-    * {@link RESOLUTION_AUTO}: if width and height are not provided, canvas will be resized to match canvas client size.
-    * {@link RESOLUTION_FIXED}: resolution of canvas will be fixed.
+     *
+     * * {@link RESOLUTION_AUTO}: if width and height are not provided, canvas will be resized to match canvas client size.
+     * * {@link RESOLUTION_FIXED}: resolution of canvas will be fixed.
      */
     readonly resolutionMode: string;
     /**
@@ -1350,41 +1371,41 @@ export class Application extends EventHandler {
     preload(callback: callbacks.PreloadApp): void;
     /**
      * Start the application. This function does the following:
-    1. Fires an event on the application named 'start'
-    2. Calls initialize for all components on entities in the hierarchy
-    3. Fires an event on the application named 'initialize'
-    4. Calls postInitialize for all components on entities in the hierarchy
-    5. Fires an event on the application named 'postinitialize'
-    6. Starts executing the main loop of the application
-    This function is called internally by PlayCanvas applications made in the Editor
-    but you will need to call start yourself if you are using the engine stand-alone.
+     * 1. Fires an event on the application named 'start'
+     * 2. Calls initialize for all components on entities in the hierarchy
+     * 3. Fires an event on the application named 'initialize'
+     * 4. Calls postInitialize for all components on entities in the hierarchy
+     * 5. Fires an event on the application named 'postinitialize'
+     * 6. Starts executing the main loop of the application
+     * This function is called internally by PlayCanvas applications made in the Editor
+     * but you will need to call start yourself if you are using the engine stand-alone.
      * @example
      * app.start();
      */
     start(): void;
     /**
      * Update the application. This function will call the update
-    functions and then the postUpdate functions of all enabled components. It
-    will then update the current state of all connected input devices.
-    This function is called internally in the application's main loop and
-    does not need to be called explicitly.
+     * functions and then the postUpdate functions of all enabled components. It
+     * will then update the current state of all connected input devices.
+     * This function is called internally in the application's main loop and
+     * does not need to be called explicitly.
      * @param dt - The time delta since the last frame.
      */
     update(dt: number): void;
     /**
      * Render the application's scene. More specifically, the scene's
-    {@link LayerComposition} is rendered by the application's {@link ForwardRenderer}.
-    This function is called internally in the application's main loop and
-    does not need to be called explicitly.
+     * {@link LayerComposition} is rendered by the application's {@link ForwardRenderer}.
+     * This function is called internally in the application's main loop and
+     * does not need to be called explicitly.
      */
     render(): void;
     /**
      * Controls how the canvas fills the window and resizes when the window changes.
      * @param mode - The mode to use when setting the size of the canvas. Can be:
-    
-    * {@link FILLMODE_NONE}: the canvas will always match the size provided.
-    * {@link FILLMODE_FILL_WINDOW}: the canvas will simply fill the window, changing aspect ratio.
-    * {@link FILLMODE_KEEP_ASPECT}: the canvas will grow to fill the window as best it can while maintaining the aspect ratio.
+     *
+     * * {@link FILLMODE_NONE}: the canvas will always match the size provided.
+     * * {@link FILLMODE_FILL_WINDOW}: the canvas will simply fill the window, changing aspect ratio.
+     * * {@link FILLMODE_KEEP_ASPECT}: the canvas will grow to fill the window as best it can while maintaining the aspect ratio.
      * @param [width] - The width of the canvas (only used when mode is {@link FILLMODE_NONE}).
      * @param [height] - The height of the canvas (only used when mode is {@link FILLMODE_NONE}).
      */
@@ -1392,9 +1413,9 @@ export class Application extends EventHandler {
     /**
      * Change the resolution of the canvas, and set the way it behaves when the window is resized.
      * @param mode - The mode to use when setting the resolution. Can be:
-    
-    * {@link RESOLUTION_AUTO}: if width and height are not provided, canvas will be resized to match canvas client size.
-    * {@link RESOLUTION_FIXED}: resolution of canvas will be fixed.
+     *
+     * * {@link RESOLUTION_AUTO}: if width and height are not provided, canvas will be resized to match canvas client size.
+     * * {@link RESOLUTION_FIXED}: resolution of canvas will be fixed.
      * @param [width] - The horizontal resolution, optional in AUTO mode, if not provided canvas clientWidth is used.
      * @param [height] - The vertical resolution, optional in AUTO mode, if not provided canvas clientHeight is used.
      */
@@ -1406,9 +1427,9 @@ export class Application extends EventHandler {
     isHidden(): boolean;
     /**
      * Resize the application's canvas element in line with the current fill mode.
-    In {@link FILLMODE_KEEP_ASPECT} mode, the canvas will grow to fill the window as best it can while maintaining the aspect ratio.
-    In {@link FILLMODE_FILL_WINDOW} mode, the canvas will simply fill the window, changing aspect ratio.
-    In {@link FILLMODE_NONE} mode, the canvas will always match the size provided.
+     * In {@link FILLMODE_KEEP_ASPECT} mode, the canvas will grow to fill the window as best it can while maintaining the aspect ratio.
+     * In {@link FILLMODE_FILL_WINDOW} mode, the canvas will simply fill the window, changing aspect ratio.
+     * In {@link FILLMODE_NONE} mode, the canvas will always match the size provided.
      * @param [width] - The width of the canvas. Only used if current fill mode is {@link FILLMODE_NONE}.
      * @param [height] - The height of the canvas. Only used if current fill mode is {@link FILLMODE_NONE}.
      * @returns A object containing the values calculated to use as width and height.
@@ -1418,55 +1439,55 @@ export class Application extends EventHandler {
      * Apply scene settings to the current scene. Useful when your scene settings are parsed or generated from a non-URL source.
      * @example
      * var settings = {
-        physics: {
-            gravity: [0, -9.8, 0]
-        },
-        render: {
-            fog_end: 1000,
-            tonemapping: 0,
-            skybox: null,
-            fog_density: 0.01,
-            gamma_correction: 1,
-            exposure: 1,
-            fog_start: 1,
-            global_ambient: [0, 0, 0],
-            skyboxIntensity: 1,
-            skyboxRotation: [0, 0, 0],
-            fog_color: [0, 0, 0],
-            lightmapMode: 1,
-            fog: 'none',
-            lightmapMaxResolution: 2048,
-            skyboxMip: 2,
-            lightmapSizeMultiplier: 16
-        }
-    };
-    app.applySceneSettings(settings);
+     *     physics: {
+     *         gravity: [0, -9.8, 0]
+     *     },
+     *     render: {
+     *         fog_end: 1000,
+     *         tonemapping: 0,
+     *         skybox: null,
+     *         fog_density: 0.01,
+     *         gamma_correction: 1,
+     *         exposure: 1,
+     *         fog_start: 1,
+     *         global_ambient: [0, 0, 0],
+     *         skyboxIntensity: 1,
+     *         skyboxRotation: [0, 0, 0],
+     *         fog_color: [0, 0, 0],
+     *         lightmapMode: 1,
+     *         fog: 'none',
+     *         lightmapMaxResolution: 2048,
+     *         skyboxMip: 2,
+     *         lightmapSizeMultiplier: 16
+     *     }
+     * };
+     * app.applySceneSettings(settings);
      * @param settings - The scene settings to be applied.
      * @param settings.physics - The physics settings to be applied.
      * @param settings.physics.gravity - The world space vector representing global gravity in the physics simulation. Must be a fixed size array with three number elements, corresponding to each axis [ X, Y, Z ].
      * @param settings.render - The rendering settings to be applied.
      * @param settings.render.global_ambient - The color of the scene's ambient light. Must be a fixed size array with three number elements, corresponding to each color channel [ R, G, B ].
      * @param settings.render.fog - The type of fog used by the scene. Can be:
-    
-    * {@link FOG_NONE}
-    * {@link FOG_LINEAR}
-    * {@link FOG_EXP}
-    * {@link FOG_EXP2}
+     *
+     * * {@link FOG_NONE}
+     * * {@link FOG_LINEAR}
+     * * {@link FOG_EXP}
+     * * {@link FOG_EXP2}
      * @param settings.render.fog_color - The color of the fog (if enabled). Must be a fixed size array with three number elements, corresponding to each color channel [ R, G, B ].
      * @param settings.render.fog_density - The density of the fog (if enabled). This property is only valid if the fog property is set to {@link FOG_EXP} or {@link FOG_EXP2}.
      * @param settings.render.fog_start - The distance from the viewpoint where linear fog begins. This property is only valid if the fog property is set to {@link FOG_LINEAR}.
      * @param settings.render.fog_end - The distance from the viewpoint where linear fog reaches its maximum. This property is only valid if the fog property is set to {@link FOG_LINEAR}.
      * @param settings.render.gamma_correction - The gamma correction to apply when rendering the scene. Can be:
-    
-    * {@link GAMMA_NONE}
-    * {@link GAMMA_SRGB}
+     *
+     * * {@link GAMMA_NONE}
+     * * {@link GAMMA_SRGB}
      * @param settings.render.tonemapping - The tonemapping transform to apply when writing fragments to the
-    frame buffer. Can be:
-    
-    * {@link TONEMAP_LINEAR}
-    * {@link TONEMAP_FILMIC}
-    * {@link TONEMAP_HEJL}
-    * {@link TONEMAP_ACES}
+     * frame buffer. Can be:
+     *
+     * * {@link TONEMAP_LINEAR}
+     * * {@link TONEMAP_FILMIC}
+     * * {@link TONEMAP_HEJL}
+     * * {@link TONEMAP_ACES}
      * @param settings.render.exposure - The exposure value tweaks the overall brightness of the scene.
      * @param [settings.render.skybox] - The asset ID of the cube map texture to be used as the scene's skybox. Defaults to null.
      * @param settings.render.skyboxIntensity - Multiplier for skybox intensity.
@@ -1475,11 +1496,11 @@ export class Application extends EventHandler {
      * @param settings.render.lightmapSizeMultiplier - The lightmap resolution multiplier.
      * @param settings.render.lightmapMaxResolution - The maximum lightmap resolution.
      * @param settings.render.lightmapMode - The lightmap baking mode. Can be:
-    
-    * {@link BAKE_COLOR}: single color lightmap
-    * {@link BAKE_COLORDIR}: single color lightmap + dominant light direction (used for bump/specular)
-    
-    Only lights with bakeDir=true will be used for generating the dominant light direction. Defaults to.
+     *
+     * * {@link BAKE_COLOR}: single color lightmap
+     * * {@link BAKE_COLORDIR}: single color lightmap + dominant light direction (used for bump/specular)
+     *
+     * Only lights with bakeDir=true will be used for generating the dominant light direction.
      */
     applySceneSettings(settings: {
         physics: {
@@ -1516,85 +1537,85 @@ export class Application extends EventHandler {
     setSkybox(asset: Asset): void;
     /**
      * Renders a line. Line start and end coordinates are specified in
-    world-space. If a single color is supplied, the line will be flat-shaded with
-    that color. If two colors are supplied, the line will be smooth shaded between
-    those colors. It is also possible to control which scene layer the line is
-    rendered into. By default, lines are rendered into the immediate layer
-    {@link LAYERID_IMMEDIATE}.
+     * world-space. If a single color is supplied, the line will be flat-shaded with
+     * that color. If two colors are supplied, the line will be smooth shaded between
+     * those colors. It is also possible to control which scene layer the line is
+     * rendered into. By default, lines are rendered into the immediate layer
+     * {@link LAYERID_IMMEDIATE}.
      * @example
      * // Render a 1-unit long white line
-    var start = new pc.Vec3(0, 0, 0);
-    var end = new pc.Vec3(1, 0, 0);
-    var color = new pc.Color(1, 1, 1);
-    app.renderLine(start, end, color);
+     * var start = new pc.Vec3(0, 0, 0);
+     * var end = new pc.Vec3(1, 0, 0);
+     * var color = new pc.Color(1, 1, 1);
+     * app.renderLine(start, end, color);
      * @example
      * // Render a 1-unit long line that is smooth-shaded from white to red
-    var start = new pc.Vec3(0, 0, 0);
-    var end = new pc.Vec3(1, 0, 0);
-    var startColor = new pc.Color(1, 1, 1);
-    var endColor = new pc.Color(1, 0, 0);
-    app.renderLine(start, end, startColor, endColor);
+     * var start = new pc.Vec3(0, 0, 0);
+     * var end = new pc.Vec3(1, 0, 0);
+     * var startColor = new pc.Color(1, 1, 1);
+     * var endColor = new pc.Color(1, 0, 0);
+     * app.renderLine(start, end, startColor, endColor);
      * @example
      * // Render a 1-unit long white line into the world layer
-    var start = new pc.Vec3(0, 0, 0);
-    var end = new pc.Vec3(1, 0, 0);
-    var color = new pc.Color(1, 1, 1);
-    var worldLayer = app.scene.layers.getLayerById(pc.LAYERID_WORLD);
-    app.renderLine(start, end, color, {
-        layer: worldLayer
-    });
+     * var start = new pc.Vec3(0, 0, 0);
+     * var end = new pc.Vec3(1, 0, 0);
+     * var color = new pc.Color(1, 1, 1);
+     * var worldLayer = app.scene.layers.getLayerById(pc.LAYERID_WORLD);
+     * app.renderLine(start, end, color, {
+     *     layer: worldLayer
+     * });
      * @example
      * // Render a 1-unit long line that is smooth-shaded from white to red into the world layer
-    var start = new pc.Vec3(0, 0, 0);
-    var end = new pc.Vec3(1, 0, 0);
-    var startColor = new pc.Color(1, 1, 1);
-    var endColor = new pc.Color(1, 0, 0);
-    var worldLayer = app.scene.layers.getLayerById(pc.LAYERID_WORLD);
-    app.renderLine(start, end, color, {
-        layer: worldLayer
-    });
+     * var start = new pc.Vec3(0, 0, 0);
+     * var end = new pc.Vec3(1, 0, 0);
+     * var startColor = new pc.Color(1, 1, 1);
+     * var endColor = new pc.Color(1, 0, 0);
+     * var worldLayer = app.scene.layers.getLayerById(pc.LAYERID_WORLD);
+     * app.renderLine(start, end, color, {
+     *     layer: worldLayer
+     * });
      * @param start - The start world-space coordinate of the line.
      * @param end - The end world-space coordinate of the line.
      * @param color - The start color of the line.
      * @param [endColor] - The end color of the line.
      * @param [options] - Options to set rendering properties.
      * @param [options.layer] - The layer to render the line into. Defaults
-    to {@link LAYERID_IMMEDIATE}.
+     * to {@link LAYERID_IMMEDIATE}.
      */
     renderLine(start: Vec3, end: Vec3, color: Color, endColor?: Color, options?: {
         layer?: Layer;
     }): void;
     /**
      * Renders an arbitrary number of discrete line segments. The lines
-    are not connected by each subsequent point in the array. Instead, they are
-    individual segments specified by two points. Therefore, the lengths of the
-    supplied position and color arrays must be the same and also must be a multiple
-    of 2. The colors of the ends of each line segment will be interpolated along
-    the length of each line.
+     * are not connected by each subsequent point in the array. Instead, they are
+     * individual segments specified by two points. Therefore, the lengths of the
+     * supplied position and color arrays must be the same and also must be a multiple
+     * of 2. The colors of the ends of each line segment will be interpolated along
+     * the length of each line.
      * @example
      * // Render 2 discrete line segments
-    var points = [
-        // Line 1
-        new pc.Vec3(0, 0, 0),
-        new pc.Vec3(1, 0, 0),
-        // Line 2
-        new pc.Vec3(1, 1, 0),
-        new pc.Vec3(1, 1, 1)
-    ];
-    var colors = [
-        // Line 1
-        pc.Color.RED,
-        pc.Color.YELLOW,
-        // Line 2
-        pc.Color.CYAN,
-        pc.Color.BLUE
-    ];
-    app.renderLines(points, colors);
+     * var points = [
+     *     // Line 1
+     *     new pc.Vec3(0, 0, 0),
+     *     new pc.Vec3(1, 0, 0),
+     *     // Line 2
+     *     new pc.Vec3(1, 1, 0),
+     *     new pc.Vec3(1, 1, 1)
+     * ];
+     * var colors = [
+     *     // Line 1
+     *     pc.Color.RED,
+     *     pc.Color.YELLOW,
+     *     // Line 2
+     *     pc.Color.CYAN,
+     *     pc.Color.BLUE
+     * ];
+     * app.renderLines(points, colors);
      * @param position - An array of points to draw lines between. The
-    length of the array must be a multiple of 2.
+     * length of the array must be a multiple of 2.
      * @param color - An array of colors to color the lines. This
-    must be the same length as the position array. The length of the array must
-    also be a multiple of 2.
+     * must be the same length as the position array. The length of the array must
+     * also be a multiple of 2.
      * @param [options] - Options to set rendering properties.
      * @param [options.layer] - The layer to render the lines into.
      */
@@ -1646,11 +1667,11 @@ export class AnimComponentLayer {
      */
     removeNodeAnimations(nodeName: string): void;
     /**
-     * Returns the name of the layer
+     * Returns the name of the layer.
      */
     readonly name: string;
     /**
-     * Whether this layer is currently playing
+     * Whether this layer is currently playing.
      */
     playing: string;
     /**
@@ -1674,7 +1695,7 @@ export class AnimComponentLayer {
      */
     readonly activeStateDuration: number;
     /**
-     * The active states time in seconds
+     * The active states time in seconds.
      */
     activeStateCurrentTime: number;
     /**
@@ -1686,7 +1707,7 @@ export class AnimComponentLayer {
      */
     readonly transitionProgress: number;
     /**
-     * Lists all available states in this layers state graph
+     * Lists all available states in this layers state graph.
      */
     readonly states: string[];
 }
@@ -1711,36 +1732,36 @@ export class AnimComponent extends Component {
      */
     removeStateGraph(): void;
     /**
-     * Reset all of the components layers and parameters to their initial states. If a layer was playing before it will continue playing
+     * Reset all of the components layers and parameters to their initial states. If a layer was playing before it will continue playing.
      */
     reset(): void;
     /**
-     * Rebind all of the components layers
+     * Rebind all of the components layers.
      */
     rebind(): void;
     /**
      * Finds a {@link AnimComponentLayer} in this component.
-     * @param layerName - The name of the anim component layer to find
-     * @returns layer
+     * @param layerName - The name of the anim component layer to find.
+     * @returns Layer.
      */
     findAnimationLayer(layerName: string): AnimComponentLayer;
     /**
      * Associates an animation with a state in the loaded state graph. If all states are linked and the {@link AnimComponent#activate} value was set to true then the component will begin playing.
      * @param nodeName - The name of the state node that this animation should be associated with.
      * @param animTrack - The animation track that will be assigned to this state and played whenever this state is active.
-     * @param layerName - The name of the anim component layer to update. If omitted the default layer is used.
+     * @param [layerName] - The name of the anim component layer to update. If omitted the default layer is used.
      */
-    assignAnimation(nodeName: string, animTrack: any, layerName: string): void;
+    assignAnimation(nodeName: string, animTrack: any, layerName?: string): void;
     /**
      * Removes animations from a node in the loaded state graph.
      * @param nodeName - The name of the node that should have its animation tracks removed.
-     * @param layerName - The name of the anim component layer to update. If omitted the default layer is used.
+     * @param [layerName] - The name of the anim component layer to update. If omitted the default layer is used.
      */
-    removeNodeAnimations(nodeName: string, layerName: string): void;
+    removeNodeAnimations(nodeName: string, layerName?: string): void;
     /**
      * Returns a float parameter value by name.
      * @param name - The name of the float to return the value of.
-     * @returns A float
+     * @returns A float.
      */
     getFloat(name: string): number;
     /**
@@ -1752,7 +1773,7 @@ export class AnimComponent extends Component {
     /**
      * Returns an integer parameter value by name.
      * @param name - The name of the integer to return the value of.
-     * @returns An integer
+     * @returns An integer.
      */
     getInteger(name: string): number;
     /**
@@ -1764,7 +1785,7 @@ export class AnimComponent extends Component {
     /**
      * Returns a boolean parameter value by name.
      * @param name - The name of the boolean to return the value of.
-     * @returns A boolean
+     * @returns A boolean.
      */
     getBoolean(name: string): boolean;
     /**
@@ -1776,7 +1797,7 @@ export class AnimComponent extends Component {
     /**
      * Returns a trigger parameter value by name.
      * @param name - The name of the trigger to return the value of.
-     * @returns A boolean
+     * @returns A boolean.
      */
     getTrigger(name: string): boolean;
     /**
@@ -1790,19 +1811,19 @@ export class AnimComponent extends Component {
      */
     resetTrigger(name: string): void;
     /**
-     * The entity that this anim component should use as the root of the animation hierarchy
+     * The entity that this anim component should use as the root of the animation hierarchy.
      */
     rootBone: Entity;
     /**
-     * The state graph asset this component should use to generate it's animation state graph
+     * The state graph asset this component should use to generate it's animation state graph.
      */
     stateGraphAsset: number;
     /**
-     * Returns whether all component layers are currently playable
+     * Returns whether all component layers are currently playable.
      */
     readonly playable: boolean;
     /**
-     * Returns the base layer of the state graph
+     * Returns the base layer of the state graph.
      */
     readonly baseLayer: AnimComponentLayer;
     /**
@@ -2160,7 +2181,7 @@ export class CameraComponent extends Component {
      */
     calculateAspectRatio(rt?: RenderTarget): number;
     /**
-     * Attempt to start XR session with this camera
+     * Attempt to start XR session with this camera.
      * @example
      * // On an entity with a camera component
     this.entity.camera.startXr(pc.XRTYPE_VR, pc.XRSPACE_LOCAL, {
@@ -2180,7 +2201,7 @@ export class CameraComponent extends Component {
     to the VR device with the best available tracking features.
     * {@link XRTYPE_AR}: Immersive AR - session that provides exclusive access
     to the VR/AR device that is intended to be blended with the real-world environment.
-     * @param spaceType - reference space type. Can be one of the following:
+     * @param spaceType - Reference space type. Can be one of the following:
     
     * {@link XRSPACE_VIEWER}: Viewer - always supported space with some basic
     tracking capabilities.
@@ -2197,7 +2218,7 @@ export class CameraComponent extends Component {
     * {@link XRSPACE_UNBOUNDED}: Unbounded - represents a tracking space where the
     user is expected to move freely around their environment, potentially long
     distances from their starting point.
-     * @param [options] - object with options for XR session initialization.
+     * @param [options] - Object with options for XR session initialization.
      * @param [options.optionalFeatures] - Optional features for XRSession start. It is used for getting access to additional WebXR spec extensions.
      * @param [options.callback] - Optional callback function called once
     the session is started. The callback has one argument Error - it is null if the XR
@@ -2208,7 +2229,7 @@ export class CameraComponent extends Component {
         callback?: callbacks.XrError;
     }): void;
     /**
-     * Attempt to end XR session of this camera
+     * Attempt to end XR session of this camera.
      * @example
      * // On an entity with a camera component
     this.entity.camera.endXr(function (err) {
@@ -2376,7 +2397,7 @@ export class PostEffectQueue {
     constructor(app: Application, camera: CameraComponent);
     /**
      * Adds a post effect to the queue. If the queue is disabled adding a post effect will
-    automatically enable the queue.
+     * automatically enable the queue.
      * @param effect - The post effect to add to the queue.
      */
     addEffect(effect: PostEffect): void;
@@ -2415,30 +2436,30 @@ export class CameraComponentSystem extends ComponentSystem {
 /**
  * Create a new CollisionComponent.
  * @property type - The type of the collision volume. Can be:
-
-* "box": A box-shaped collision volume.
-* "capsule": A capsule-shaped collision volume.
-* "compound": A compound shape. Any descendant entities with a collision component
-of type box, capsule, cone, cylinder or sphere will be combined into a single, rigid
-shape.
-* "cone": A cone-shaped collision volume.
-* "cylinder": A cylinder-shaped collision volume.
-* "mesh": A collision volume that uses a model asset as its shape.
-* "sphere": A sphere-shaped collision volume.
-
-Defaults to "box".
+ *
+ * * "box": A box-shaped collision volume.
+ * * "capsule": A capsule-shaped collision volume.
+ * * "compound": A compound shape. Any descendant entities with a collision component
+ * of type box, capsule, cone, cylinder or sphere will be combined into a single, rigid
+ * shape.
+ * * "cone": A cone-shaped collision volume.
+ * * "cylinder": A cylinder-shaped collision volume.
+ * * "mesh": A collision volume that uses a model asset as its shape.
+ * * "sphere": A sphere-shaped collision volume.
+ *
+ * Defaults to "box".
  * @property halfExtents - The half-extents of the box-shaped collision volume in the
-x, y and z axes. Defaults to [0.5, 0.5, 0.5].
+ * x, y and z axes. Defaults to [0.5, 0.5, 0.5].
  * @property radius - The radius of the sphere, capsule, cylinder or cone-shaped collision
-volumes. Defaults to 0.5.
+ * volumes. Defaults to 0.5.
  * @property axis - The local space axis with which the capsule, cylinder or cone-shaped
-collision volume's length is aligned. 0 for X, 1 for Y and 2 for Z. Defaults to 1 (Y-axis).
+ * collision volume's length is aligned. 0 for X, 1 for Y and 2 for Z. Defaults to 1 (Y-axis).
  * @property height - The total height of the capsule, cylinder or cone-shaped collision
-volume from tip to tip. Defaults to 2.
+ * volume from tip to tip. Defaults to 2.
  * @property asset - The asset for the model of the mesh collision volume - can also be
-an asset id. Defaults to null.
+ * an asset id. Defaults to null.
  * @property model - The model that is added to the scene graph for the mesh collision
-volume.
+ * volume.
  * @param system - The ComponentSystem that created this Component.
  * @param entity - The Entity that this Component is attached to.
  */
@@ -2446,46 +2467,48 @@ export class CollisionComponent extends Component {
     constructor(system: CollisionComponentSystem, entity: Entity);
     /**
      * The type of the collision volume. Can be:
-     * * "box": A box-shaped collision volume.
-     * * "capsule": A capsule-shaped collision volume.
-     * * "compound": A compound shape. Any descendant entities with a collision component
-     * of type box, capsule, cone, cylinder or sphere will be combined into a single, rigid
-     * shape.
-     * * "cone": A cone-shaped collision volume.
-     * * "cylinder": A cylinder-shaped collision volume.
-     * * "mesh": A collision volume that uses a model asset as its shape.
-     * * "sphere": A sphere-shaped collision volume.
-     * Defaults to "box".
+    
+    * "box": A box-shaped collision volume.
+    * "capsule": A capsule-shaped collision volume.
+    * "compound": A compound shape. Any descendant entities with a collision component
+    of type box, capsule, cone, cylinder or sphere will be combined into a single, rigid
+    shape.
+    * "cone": A cone-shaped collision volume.
+    * "cylinder": A cylinder-shaped collision volume.
+    * "mesh": A collision volume that uses a model asset as its shape.
+    * "sphere": A sphere-shaped collision volume.
+    
+    Defaults to "box".
     */
     type: string;
     /**
      * The half-extents of the box-shaped collision volume in the
-     * x, y and z axes. Defaults to [0.5, 0.5, 0.5].
+    x, y and z axes. Defaults to [0.5, 0.5, 0.5].
     */
     halfExtents: Vec3;
     /**
      * The radius of the sphere, capsule, cylinder or cone-shaped collision
-     * volumes. Defaults to 0.5.
+    volumes. Defaults to 0.5.
     */
     radius: number;
     /**
      * The local space axis with which the capsule, cylinder or cone-shaped
-     * collision volume's length is aligned. 0 for X, 1 for Y and 2 for Z. Defaults to 1 (Y-axis).
+    collision volume's length is aligned. 0 for X, 1 for Y and 2 for Z. Defaults to 1 (Y-axis).
     */
     axis: number;
     /**
      * The total height of the capsule, cylinder or cone-shaped collision
-     * volume from tip to tip. Defaults to 2.
+    volume from tip to tip. Defaults to 2.
     */
     height: number;
     /**
      * The asset for the model of the mesh collision volume - can also be
-     * an asset id. Defaults to null.
+    an asset id. Defaults to null.
     */
     asset: Asset | number;
     /**
      * The model that is added to the scene graph for the mesh collision
-     * volume.
+    volume.
     */
     model: Model;
 }
@@ -2524,58 +2547,58 @@ export class Component extends EventHandler {
 
 /**
  * ElementComponents are used to construct user interfaces. An ElementComponent's [type](#type)
-property can be configured in 3 main ways: as a text element, as an image element or as a group element.
-If the ElementComponent has a {@link ScreenComponent} ancestor in the hierarchy, it will be transformed
-with respect to the coordinate system of the screen. If there is no {@link ScreenComponent} ancestor,
-the ElementComponent will be transformed like any other entity.
-
-You should never need to use the ElementComponent constructor. To add an ElementComponent to a {@link Entity},
-use {@link Entity#addComponent}:
-
-~~~javascript
-// Add an element component to an entity with the default options
-let entity = pc.Entity();
-entity.addComponent("element"); // This defaults to a 'group' element
-~~~
-
-To create a simple text-based element:
-
-~~~javascript
-entity.addComponent("element", {
-    anchor: new pc.Vec4(0.5, 0.5, 0.5, 0.5), // centered anchor
-    fontAsset: fontAsset,
-    fontSize: 128,
-    pivot: new pc.Vec2(0.5, 0.5),            // centered pivot
-    text: "Hello World!",
-    type: pc.ELEMENTTYPE_TEXT
-});
-~~~
-
-Once the ElementComponent is added to the entity, you can set and get any of its properties:
-
-~~~javascript
-entity.element.color = pc.Color.RED; // Set the element's color to red
-
-console.log(entity.element.color);   // Get the element's color and print it
-~~~
-
-Relevant 'Engine-only' examples:
-* [Basic text rendering](http://playcanvas.github.io/#user-interface/text-basic.html)
-* [Rendering text outlines](http://playcanvas.github.io/#user-interface/text-outline.html)
-* [Adding drop shadows to text](http://playcanvas.github.io/#user-interface/text-drop-shadow.html)
-* [Coloring text with markup](http://playcanvas.github.io/#user-interface/text-markup.html)
-* [Wrapping text](http://playcanvas.github.io/#user-interface/text-wrap.html)
-* [Typewriter text](http://playcanvas.github.io/#user-interface/text-typewriter.html)
+ * property can be configured in 3 main ways: as a text element, as an image element or as a group element.
+ * If the ElementComponent has a {@link ScreenComponent} ancestor in the hierarchy, it will be transformed
+ * with respect to the coordinate system of the screen. If there is no {@link ScreenComponent} ancestor,
+ * the ElementComponent will be transformed like any other entity.
+ *
+ * You should never need to use the ElementComponent constructor. To add an ElementComponent to a {@link Entity},
+ * use {@link Entity#addComponent}:
+ *
+ * ~~~javascript
+ * // Add an element component to an entity with the default options
+ * let entity = pc.Entity();
+ * entity.addComponent("element"); // This defaults to a 'group' element
+ * ~~~
+ *
+ * To create a simple text-based element:
+ *
+ * ~~~javascript
+ * entity.addComponent("element", {
+ *     anchor: new pc.Vec4(0.5, 0.5, 0.5, 0.5), // centered anchor
+ *     fontAsset: fontAsset,
+ *     fontSize: 128,
+ *     pivot: new pc.Vec2(0.5, 0.5),            // centered pivot
+ *     text: "Hello World!",
+ *     type: pc.ELEMENTTYPE_TEXT
+ * });
+ * ~~~
+ *
+ * Once the ElementComponent is added to the entity, you can set and get any of its properties:
+ *
+ * ~~~javascript
+ * entity.element.color = pc.Color.RED; // Set the element's color to red
+ *
+ * console.log(entity.element.color);   // Get the element's color and print it
+ * ~~~
+ *
+ * Relevant 'Engine-only' examples:
+ * * [Basic text rendering](http://playcanvas.github.io/#user-interface/text-basic.html)
+ * * [Rendering text outlines](http://playcanvas.github.io/#user-interface/text-outline.html)
+ * * [Adding drop shadows to text](http://playcanvas.github.io/#user-interface/text-drop-shadow.html)
+ * * [Coloring text with markup](http://playcanvas.github.io/#user-interface/text-markup.html)
+ * * [Wrapping text](http://playcanvas.github.io/#user-interface/text-wrap.html)
+ * * [Typewriter text](http://playcanvas.github.io/#user-interface/text-typewriter.html)
  * @property type - The type of the ElementComponent. Can be:
-
-* {@link ELEMENTTYPE_GROUP}: The component can be used as a layout mechanism to create groups of ElementComponents e.g. panels.
-* {@link ELEMENTTYPE_IMAGE}: The component will render an image
-* {@link ELEMENTTYPE_TEXT}: The component will render text
+ *
+ * * {@link ELEMENTTYPE_GROUP}: The component can be used as a layout mechanism to create groups of ElementComponents e.g. panels.
+ * * {@link ELEMENTTYPE_IMAGE}: The component will render an image
+ * * {@link ELEMENTTYPE_TEXT}: The component will render text
  * @property screen - The Entity with a {@link ScreenComponent} that this component belongs to. This is automatically set when the component is a child of a ScreenComponent.
  * @property drawOrder - The draw order of the component. A higher value means that the component will be rendered on top of other components.
  * @property anchor - Specifies where the left, bottom, right and top edges of the component are anchored relative to its parent. Each value
-ranges from 0 to 1. E.g. a value of [0,0,0,0] means that the element will be anchored to the bottom left of its parent. A value of [1, 1, 1, 1] means
-it will be anchored to the top right. A split anchor is when the left-right or top-bottom pairs of the anchor are not equal. In that case the component will be resized to cover that entire area. E.g. a value of [0,0,1,1] will make the component resize exactly as its parent.
+ * ranges from 0 to 1. E.g. a value of [0,0,0,0] means that the element will be anchored to the bottom left of its parent. A value of [1, 1, 1, 1] means
+ * it will be anchored to the top right. A split anchor is when the left-right or top-bottom pairs of the anchor are not equal. In that case the component will be resized to cover that entire area. E.g. a value of [0,0,1,1] will make the component resize exactly as its parent.
  * @property pivot - The position of the pivot of the component relative to its anchor. Each value ranges from 0 to 1 where [0,0] is the bottom left and [1,1] is the top right.
  * @property margin - The distance from the left, bottom, right and top edges of the anchor. For example if we are using a split anchor like [0,0,1,1] and the margin is [0,0,0,0] then the component will be the same width and height as its parent.
  * @property left - The distance from the left edge of the anchor. Can be used in combination with a split anchor to make the component's left edge always be 'left' units away from the left.
@@ -2627,7 +2650,7 @@ it will be anchored to the top right. A split anchor is when the left-right or t
  * @property unicodeConverter - Convert unicode characters using a function registered by `app.systems.element.registerUnicodeConverter`.
  * @property batchGroupId - Assign element to a specific batch group (see {@link BatchGroup}). Default value is -1 (no group).
  * @property layers - An array of layer IDs ({@link Layer#id}) to which this element should belong.
-Don't push/pop/splice or modify this array, if you want to change it - set a new one instead.
+ * Don't push/pop/splice or modify this array, if you want to change it - set a new one instead.
  * @property enableMarkup - Flag for enabling markup processing. Only works for {@link ELEMENTTYPE_TEXT} types. The only supported tag is `[color]` with a hex color value. E.g `[color="#ff0000"]red text[/color]`
  * @property rangeStart - Index of the first character to render. Only works for {@link ELEMENTTYPE_TEXT} types.
  * @property rangeEnd - Index of the last character to render. Only works for {@link ELEMENTTYPE_TEXT} types.
@@ -2639,9 +2662,10 @@ export class ElementComponent extends Component {
     constructor(system: ElementComponentSystem, entity: Entity);
     /**
      * The type of the ElementComponent. Can be:
-     * * {@link ELEMENTTYPE_GROUP}: The component can be used as a layout mechanism to create groups of ElementComponents e.g. panels.
-     * * {@link ELEMENTTYPE_IMAGE}: The component will render an image
-     * * {@link ELEMENTTYPE_TEXT}: The component will render text
+    
+    * {@link ELEMENTTYPE_GROUP}: The component can be used as a layout mechanism to create groups of ElementComponents e.g. panels.
+    * {@link ELEMENTTYPE_IMAGE}: The component will render an image
+    * {@link ELEMENTTYPE_TEXT}: The component will render text
     */
     type: string;
     /**
@@ -2654,8 +2678,8 @@ export class ElementComponent extends Component {
     drawOrder: number;
     /**
      * Specifies where the left, bottom, right and top edges of the component are anchored relative to its parent. Each value
-     * ranges from 0 to 1. E.g. a value of [0,0,0,0] means that the element will be anchored to the bottom left of its parent. A value of [1, 1, 1, 1] means
-     * it will be anchored to the top right. A split anchor is when the left-right or top-bottom pairs of the anchor are not equal. In that case the component will be resized to cover that entire area. E.g. a value of [0,0,1,1] will make the component resize exactly as its parent.
+    ranges from 0 to 1. E.g. a value of [0,0,0,0] means that the element will be anchored to the bottom left of its parent. A value of [1, 1, 1, 1] means
+    it will be anchored to the top right. A split anchor is when the left-right or top-bottom pairs of the anchor are not equal. In that case the component will be resized to cover that entire area. E.g. a value of [0,0,1,1] will make the component resize exactly as its parent.
     */
     anchor: Vec4;
     /**
@@ -2860,7 +2884,7 @@ export class ElementComponent extends Component {
     batchGroupId: number;
     /**
      * An array of layer IDs ({@link Layer#id}) to which this element should belong.
-     * Don't push/pop/splice or modify this array, if you want to change it - set a new one instead.
+    Don't push/pop/splice or modify this array, if you want to change it - set a new one instead.
     */
     layers: number[];
     /**
@@ -2968,140 +2992,144 @@ export class LayoutChildComponentSystem extends ComponentSystem {
 /**
  * Create a new LayoutGroupComponent.
  * @property orientation - Whether the layout should run horizontally or
-vertically. Can be:
-
-* {@link ORIENTATION_HORIZONTAL}
-* {@link ORIENTATION_VERTICAL}
-
-Defaults to {@link ORIENTATION_HORIZONTAL}.
+ * vertically. Can be:
+ *
+ * * {@link ORIENTATION_HORIZONTAL}
+ * * {@link ORIENTATION_VERTICAL}
+ *
+ * Defaults to {@link ORIENTATION_HORIZONTAL}.
  * @property reverseX - Reverses the order of children along the x axis.
-Defaults to false.
+ * Defaults to false.
  * @property reverseY - Reverses the order of children along the y axis.
-Defaults to true.
+ * Defaults to true.
  * @property alignment - Specifies the horizontal and vertical alignment of
-child elements. Values range from 0 to 1 where [0, 0] is the bottom left and
-[1, 1] is the top right. Defaults to [0, 1].
+ * child elements. Values range from 0 to 1 where [0, 0] is the bottom left and
+ * [1, 1] is the top right. Defaults to [0, 1].
  * @property padding - Padding to be applied inside the container before
-positioning any children. Specified as left, bottom, right and top values.
-Defaults to [0, 0, 0, 0] (no padding).
+ * positioning any children. Specified as left, bottom, right and top values.
+ * Defaults to [0, 0, 0, 0] (no padding).
  * @property spacing - Spacing to be applied between each child element.
-Defaults to [0, 0] (no spacing).
+ * Defaults to [0, 0] (no spacing).
  * @property widthFitting - Fitting logic to be applied when positioning and
-scaling child elements. Can be:
-
-* {@link FITTING_NONE}: Child elements will be rendered at their natural size.
-* {@link FITTING_STRETCH}: When the natural size of all child elements does not
-fill the width of the container, children will be stretched to fit. The rules for how
-each child will be stretched are outlined below:
-  1. Sum the {@link LayoutChildComponent#fitWidthProportion} values of each child
-and normalize so that all values sum to 1.
-  2. Apply the natural width of each child.
-  3. If there is space remaining in the container, distribute it to each child based
-on the normalized {@link LayoutChildComponent#fitWidthProportion} values, but do
-not exceed the {@link LayoutChildComponent#maxWidth} of each child.
-* {@link FITTING_SHRINK}: When the natural size of all child elements overflows the
-width of the container, children will be shrunk to fit. The rules for how each child
-will be stretched are outlined below:
-  1. Sum the {@link LayoutChildComponent#fitWidthProportion} values of each child
-and normalize so that all values sum to 1.
-  2. Apply the natural width of each child.
-  3. If the new total width of all children exceeds the available space of the
-container, reduce each child's width proportionally based on the normalized {@link
-LayoutChildComponent#fitWidthProportion} values, but do not exceed the {@link
-LayoutChildComponent#minWidth} of each child.
-* {@link FITTING_BOTH}: Applies both STRETCH and SHRINK logic as necessary.
-
-Defaults to {@link FITTING_NONE}.
+ * scaling child elements. Can be:
+ *
+ * * {@link FITTING_NONE}: Child elements will be rendered at their natural size.
+ * * {@link FITTING_STRETCH}: When the natural size of all child elements does not
+ * fill the width of the container, children will be stretched to fit. The rules for how
+ * each child will be stretched are outlined below:
+ *   1. Sum the {@link LayoutChildComponent#fitWidthProportion} values of each child
+ * and normalize so that all values sum to 1.
+ *   2. Apply the natural width of each child.
+ *   3. If there is space remaining in the container, distribute it to each child based
+ * on the normalized {@link LayoutChildComponent#fitWidthProportion} values, but do
+ * not exceed the {@link LayoutChildComponent#maxWidth} of each child.
+ * * {@link FITTING_SHRINK}: When the natural size of all child elements overflows the
+ * width of the container, children will be shrunk to fit. The rules for how each child
+ * will be stretched are outlined below:
+ *   1. Sum the {@link LayoutChildComponent#fitWidthProportion} values of each child
+ * and normalize so that all values sum to 1.
+ *   2. Apply the natural width of each child.
+ *   3. If the new total width of all children exceeds the available space of the
+ * container, reduce each child's width proportionally based on the normalized {@link
+ * LayoutChildComponent#fitWidthProportion} values, but do not exceed the {@link
+ * LayoutChildComponent#minWidth} of each child.
+ * * {@link FITTING_BOTH}: Applies both STRETCH and SHRINK logic as necessary.
+ *
+ * Defaults to {@link FITTING_NONE}.
  * @property heightFitting - Identical to {@link LayoutGroupComponent#widthFitting}
-but for the Y axis. Defaults to {@link FITTING_NONE}.
+ * but for the Y axis. Defaults to {@link FITTING_NONE}.
  * @property wrap - Whether or not to wrap children onto a new row/column when the
-size of the container is exceeded. Defaults to false, which means that children will be
-be rendered in a single row (horizontal orientation) or column (vertical orientation).
-Note that setting wrap to true makes it impossible for the {@link FITTING_BOTH}
-fitting mode to operate in any logical manner. For this reason, when wrap is true, a
-{@link LayoutGroupComponent#widthFitting} or {@link LayoutGroupComponent#heightFitting}
-mode of {@link FITTING_BOTH} will be coerced to {@link FITTING_STRETCH}.
+ * size of the container is exceeded. Defaults to false, which means that children will be
+ * be rendered in a single row (horizontal orientation) or column (vertical orientation).
+ * Note that setting wrap to true makes it impossible for the {@link FITTING_BOTH}
+ * fitting mode to operate in any logical manner. For this reason, when wrap is true, a
+ * {@link LayoutGroupComponent#widthFitting} or {@link LayoutGroupComponent#heightFitting}
+ * mode of {@link FITTING_BOTH} will be coerced to {@link FITTING_STRETCH}.
  * @param system - The ComponentSystem that created
-this Component.
+ * this Component.
  * @param entity - The Entity that this Component is attached to.
  */
 export class LayoutGroupComponent extends Component {
     constructor(system: LayoutGroupComponentSystem, entity: Entity);
     /**
      * Whether the layout should run horizontally or
-     * vertically. Can be:
-     * * {@link ORIENTATION_HORIZONTAL}
-     * * {@link ORIENTATION_VERTICAL}
-     * Defaults to {@link ORIENTATION_HORIZONTAL}.
+    vertically. Can be:
+    
+    * {@link ORIENTATION_HORIZONTAL}
+    * {@link ORIENTATION_VERTICAL}
+    
+    Defaults to {@link ORIENTATION_HORIZONTAL}.
     */
     orientation: number;
     /**
      * Reverses the order of children along the x axis.
-     * Defaults to false.
+    Defaults to false.
     */
     reverseX: boolean;
     /**
      * Reverses the order of children along the y axis.
-     * Defaults to true.
+    Defaults to true.
     */
     reverseY: boolean;
     /**
      * Specifies the horizontal and vertical alignment of
-     * child elements. Values range from 0 to 1 where [0, 0] is the bottom left and
-     * [1, 1] is the top right. Defaults to [0, 1].
+    child elements. Values range from 0 to 1 where [0, 0] is the bottom left and
+    [1, 1] is the top right. Defaults to [0, 1].
     */
     alignment: Vec2;
     /**
      * Padding to be applied inside the container before
-     * positioning any children. Specified as left, bottom, right and top values.
-     * Defaults to [0, 0, 0, 0] (no padding).
+    positioning any children. Specified as left, bottom, right and top values.
+    Defaults to [0, 0, 0, 0] (no padding).
     */
     padding: Vec4;
     /**
      * Spacing to be applied between each child element.
-     * Defaults to [0, 0] (no spacing).
+    Defaults to [0, 0] (no spacing).
     */
     spacing: Vec2;
     /**
      * Fitting logic to be applied when positioning and
-     * scaling child elements. Can be:
-     * * {@link FITTING_NONE}: Child elements will be rendered at their natural size.
-     * * {@link FITTING_STRETCH}: When the natural size of all child elements does not
-     * fill the width of the container, children will be stretched to fit. The rules for how
-     * each child will be stretched are outlined below:
-     * 1. Sum the {@link LayoutChildComponent#fitWidthProportion} values of each child
-     * and normalize so that all values sum to 1.
-     * 2. Apply the natural width of each child.
-     * 3. If there is space remaining in the container, distribute it to each child based
-     * on the normalized {@link LayoutChildComponent#fitWidthProportion} values, but do
-     * not exceed the {@link LayoutChildComponent#maxWidth} of each child.
-     * * {@link FITTING_SHRINK}: When the natural size of all child elements overflows the
-     * width of the container, children will be shrunk to fit. The rules for how each child
-     * will be stretched are outlined below:
-     * 1. Sum the {@link LayoutChildComponent#fitWidthProportion} values of each child
-     * and normalize so that all values sum to 1.
-     * 2. Apply the natural width of each child.
-     * 3. If the new total width of all children exceeds the available space of the
-     * container, reduce each child's width proportionally based on the normalized {@link
-     * LayoutChildComponent#fitWidthProportion} values, but do not exceed the {@link
-     * LayoutChildComponent#minWidth} of each child.
-     * * {@link FITTING_BOTH}: Applies both STRETCH and SHRINK logic as necessary.
-     * Defaults to {@link FITTING_NONE}.
+    scaling child elements. Can be:
+    
+    * {@link FITTING_NONE}: Child elements will be rendered at their natural size.
+    * {@link FITTING_STRETCH}: When the natural size of all child elements does not
+    fill the width of the container, children will be stretched to fit. The rules for how
+    each child will be stretched are outlined below:
+      1. Sum the {@link LayoutChildComponent#fitWidthProportion} values of each child
+    and normalize so that all values sum to 1.
+      2. Apply the natural width of each child.
+      3. If there is space remaining in the container, distribute it to each child based
+    on the normalized {@link LayoutChildComponent#fitWidthProportion} values, but do
+    not exceed the {@link LayoutChildComponent#maxWidth} of each child.
+    * {@link FITTING_SHRINK}: When the natural size of all child elements overflows the
+    width of the container, children will be shrunk to fit. The rules for how each child
+    will be stretched are outlined below:
+      1. Sum the {@link LayoutChildComponent#fitWidthProportion} values of each child
+    and normalize so that all values sum to 1.
+      2. Apply the natural width of each child.
+      3. If the new total width of all children exceeds the available space of the
+    container, reduce each child's width proportionally based on the normalized {@link
+    LayoutChildComponent#fitWidthProportion} values, but do not exceed the {@link
+    LayoutChildComponent#minWidth} of each child.
+    * {@link FITTING_BOTH}: Applies both STRETCH and SHRINK logic as necessary.
+    
+    Defaults to {@link FITTING_NONE}.
     */
     widthFitting: number;
     /**
      * Identical to {@link LayoutGroupComponent#widthFitting}
-     * but for the Y axis. Defaults to {@link FITTING_NONE}.
+    but for the Y axis. Defaults to {@link FITTING_NONE}.
     */
     heightFitting: number;
     /**
      * Whether or not to wrap children onto a new row/column when the
-     * size of the container is exceeded. Defaults to false, which means that children will be
-     * be rendered in a single row (horizontal orientation) or column (vertical orientation).
-     * Note that setting wrap to true makes it impossible for the {@link FITTING_BOTH}
-     * fitting mode to operate in any logical manner. For this reason, when wrap is true, a
-     * {@link LayoutGroupComponent#widthFitting} or {@link LayoutGroupComponent#heightFitting}
-     * mode of {@link FITTING_BOTH} will be coerced to {@link FITTING_STRETCH}.
+    size of the container is exceeded. Defaults to false, which means that children will be
+    be rendered in a single row (horizontal orientation) or column (vertical orientation).
+    Note that setting wrap to true makes it impossible for the {@link FITTING_BOTH}
+    fitting mode to operate in any logical manner. For this reason, when wrap is true, a
+    {@link LayoutGroupComponent#widthFitting} or {@link LayoutGroupComponent#heightFitting}
+    mode of {@link FITTING_BOTH} will be coerced to {@link FITTING_STRETCH}.
     */
     wrap: boolean;
 }
@@ -3138,75 +3166,75 @@ export class LayoutGroupComponentSystem extends ComponentSystem {
  * Creates a new Light Component.
  * @example
  * // Add a pc.LightComponent to an entity
-var entity = new pc.Entity();
-entity.addComponent('light', {
-    type: "omni",
-    color: new pc.Color(1, 0, 0),
-    range: 10
-});
+ * var entity = new pc.Entity();
+ * entity.addComponent('light', {
+ *     type: "omni",
+ *     color: new pc.Color(1, 0, 0),
+ *     range: 10
+ * });
  * @example
  * // Get the pc.LightComponent on an entity
-var lightComponent = entity.light;
+ * var lightComponent = entity.light;
  * @example
  * // Update a property on a light component
-entity.light.range = 20;
+ * entity.light.range = 20;
  * @property type - The type of light. Can be:
-* "directional": A light that is infinitely far away and lights the entire scene from one direction.
-* "omni": An omni-directional light that illuminates in all directions from the light source.
-* "spot": An omni-directional light but is bounded by a cone.
-Defaults to "directional".
+ * * "directional": A light that is infinitely far away and lights the entire scene from one direction.
+ * * "omni": An omni-directional light that illuminates in all directions from the light source.
+ * * "spot": An omni-directional light but is bounded by a cone.
+ * Defaults to "directional".
  * @property color - The Color of the light. The alpha component of the color is
-ignored. Defaults to white (1, 1, 1).
+ * ignored. Defaults to white (1, 1, 1).
  * @property intensity - The brightness of the light. Defaults to 1.
  * @property shape - The light source shape. Can be:
-* {@link pc.LIGHTSHAPE_PUNCTUAL}: Infinitesimally small point.
-* {@link pc.LIGHTSHAPE_RECT}: Rectangle shape.
-* {@link pc.LIGHTSHAPE_DISK}: Disk shape.
-* {@link pc.LIGHTSHAPE_SPHERE}: Sphere shape.
-Defaults to pc.LIGHTSHAPE_PUNCTUAL.
+ * * {@link pc.LIGHTSHAPE_PUNCTUAL}: Infinitesimally small point.
+ * * {@link pc.LIGHTSHAPE_RECT}: Rectangle shape.
+ * * {@link pc.LIGHTSHAPE_DISK}: Disk shape.
+ * * {@link pc.LIGHTSHAPE_SPHERE}: Sphere shape.
+ * Defaults to pc.LIGHTSHAPE_PUNCTUAL.
  * @property castShadows - If enabled the light will cast shadows. Defaults to false.
  * @property shadowDistance - The distance from the viewpoint beyond which shadows
-are no longer rendered. Affects directional lights only. Defaults to 40.
+ * are no longer rendered. Affects directional lights only. Defaults to 40.
  * @property shadowResolution - The size of the texture used for the shadow map.
-Valid sizes are 64, 128, 256, 512, 1024, 2048. Defaults to 1024.
+ * Valid sizes are 64, 128, 256, 512, 1024, 2048. Defaults to 1024.
  * @property shadowBias - The depth bias for tuning the appearance of the shadow
-mapping generated by this light. Defaults to 0.05.
+ * mapping generated by this light. Defaults to 0.05.
  * @property normalOffsetBias - Normal offset depth bias. Defaults to 0.
  * @property range - The range of the light. Affects point and spot lights only.
-Defaults to 10.
+ * Defaults to 10.
  * @property innerConeAngle - The angle at which the spotlight cone starts
-to fade off. The angle is specified in degrees. Affects spot lights only. Defaults
-to 40.
+ * to fade off. The angle is specified in degrees. Affects spot lights only. Defaults
+ * to 40.
  * @property outerConeAngle - The angle at which the spotlight cone has faded
-to nothing. The angle is specified in degrees. Affects spot lights only. Defaults
-to 45.
+ * to nothing. The angle is specified in degrees. Affects spot lights only. Defaults
+ * to 45.
  * @property falloffMode - Controls the rate at which a light attenuates from
-its position. Can be:
-* {@link LIGHTFALLOFF_LINEAR}: Linear.
-* {@link LIGHTFALLOFF_INVERSESQUARED}: Inverse squared.
-Affects point and spot lights only. Defaults to {@link LIGHTFALLOFF_LINEAR}.
+ * its position. Can be:
+ * * {@link LIGHTFALLOFF_LINEAR}: Linear.
+ * * {@link LIGHTFALLOFF_INVERSESQUARED}: Inverse squared.
+ * Affects point and spot lights only. Defaults to {@link LIGHTFALLOFF_LINEAR}.
  * @property mask - Defines a mask to determine which {@link MeshInstance}s are
-lit by this light. Defaults to 1.
- * @property affectDynamic - If enabled the light will affect non-lightmapped objects
- * @property affectLightmapped - If enabled the light will affect lightmapped objects
- * @property bake - If enabled the light will be rendered into lightmaps
+ * lit by this light. Defaults to 1.
+ * @property affectDynamic - If enabled the light will affect non-lightmapped objects.
+ * @property affectLightmapped - If enabled the light will affect lightmapped objects.
+ * @property bake - If enabled the light will be rendered into lightmaps.
  * @property bakeDir - If enabled and bake=true, the light's direction will contribute to directional lightmaps.
-Be aware, that directional lightmap is an approximation and can only hold single direction per pixel.
-Intersecting multiple lights with bakeDir=true may lead to incorrect look of specular/bump-mapping in the area of intersection.
-The error is not always visible though, and highly scene-dependent.
+ * Be aware, that directional lightmap is an approximation and can only hold single direction per pixel.
+ * Intersecting multiple lights with bakeDir=true may lead to incorrect look of specular/bump-mapping in the area of intersection.
+ * The error is not always visible though, and highly scene-dependent.
  * @property shadowUpdateMode - Tells the renderer how often shadows must be updated for this light. Options:
-* {@link SHADOWUPDATE_NONE}: Don't render shadows.
-* {@link SHADOWUPDATE_THISFRAME}: Render shadows only once (then automatically switches to {@link SHADOWUPDATE_NONE}.
-* {@link SHADOWUPDATE_REALTIME}: Render shadows every frame (default).
+ * * {@link SHADOWUPDATE_NONE}: Don't render shadows.
+ * * {@link SHADOWUPDATE_THISFRAME}: Render shadows only once (then automatically switches to {@link SHADOWUPDATE_NONE}.
+ * * {@link SHADOWUPDATE_REALTIME}: Render shadows every frame (default).
  * @property shadowType - Type of shadows being rendered by this light. Options:
-* {@link SHADOW_PCF3}: Render depth (color-packed on WebGL 1.0), can be used for PCF 3x3 sampling.
-* {@link SHADOW_VSM8}: Render packed variance shadow map. All shadow receivers must also cast shadows for this mode to work correctly.
-* {@link SHADOW_VSM16}: Render 16-bit exponential variance shadow map. Requires OES_texture_half_float extension. Falls back to {@link SHADOW_VSM8}, if not supported.
-* {@link SHADOW_VSM32}: Render 32-bit exponential variance shadow map. Requires OES_texture_float extension. Falls back to {@link SHADOW_VSM16}, if not supported.
-* {@link SHADOW_PCF5}: Render depth buffer only, can be used for hardware-accelerated PCF 5x5 sampling. Requires WebGL2. Falls back to {@link SHADOW_PCF3} on WebGL 1.0.
+ * * {@link SHADOW_PCF3}: Render depth (color-packed on WebGL 1.0), can be used for PCF 3x3 sampling.
+ * * {@link SHADOW_VSM8}: Render packed variance shadow map. All shadow receivers must also cast shadows for this mode to work correctly.
+ * * {@link SHADOW_VSM16}: Render 16-bit exponential variance shadow map. Requires OES_texture_half_float extension. Falls back to {@link SHADOW_VSM8}, if not supported.
+ * * {@link SHADOW_VSM32}: Render 32-bit exponential variance shadow map. Requires OES_texture_float extension. Falls back to {@link SHADOW_VSM16}, if not supported.
+ * * {@link SHADOW_PCF5}: Render depth buffer only, can be used for hardware-accelerated PCF 5x5 sampling. Requires WebGL2. Falls back to {@link SHADOW_PCF3} on WebGL 1.0.
  * @property vsmBlurMode - Blurring mode for variance shadow maps:
-* {@link BLUR_BOX}: Box filter.
-* {@link BLUR_GAUSSIAN}: Gaussian filter. May look smoother than box, but requires more samples.
+ * * {@link BLUR_BOX}: Box filter.
+ * * {@link BLUR_GAUSSIAN}: Gaussian filter. May look smoother than box, but requires more samples.
  * @property vsmBlurSize - Number of samples used for blurring a variance shadow map. Only uneven numbers work, even are incremented. Minimum value is 1, maximum is 25.
  * @property cookieAsset - Asset that has texture that will be assigned to cookie internally once asset resource is available.
  * @property cookie - Projection texture. Must be 2D for spot and cubemap for point (ignored if incorrect type is used).
@@ -3216,9 +3244,9 @@ The error is not always visible though, and highly scene-dependent.
  * @property cookieAngle - Angle for spotlight cookie rotation.
  * @property cookieScale - Spotlight cookie scale.
  * @property cookieOffset - Spotlight cookie position offset.
- * @property isStatic - Mark light as non-movable (optimization)
+ * @property isStatic - Mark light as non-movable (optimization).
  * @property layers - An array of layer IDs ({@link Layer#id}) to which this light should belong.
-Don't push/pop/splice or modify this array, if you want to change it - set a new one instead.
+ * Don't push/pop/splice or modify this array, if you want to change it - set a new one instead.
  * @param system - The ComponentSystem that created this Component.
  * @param entity - The Entity that this Component is attached to.
  */
@@ -3226,15 +3254,15 @@ export class LightComponent extends Component {
     constructor(system: LightComponentSystem, entity: Entity);
     /**
      * The type of light. Can be:
-     * * "directional": A light that is infinitely far away and lights the entire scene from one direction.
-     * * "omni": An omni-directional light that illuminates in all directions from the light source.
-     * * "spot": An omni-directional light but is bounded by a cone.
-     * Defaults to "directional".
+    * "directional": A light that is infinitely far away and lights the entire scene from one direction.
+    * "omni": An omni-directional light that illuminates in all directions from the light source.
+    * "spot": An omni-directional light but is bounded by a cone.
+    Defaults to "directional".
     */
     type: string;
     /**
      * The Color of the light. The alpha component of the color is
-     * ignored. Defaults to white (1, 1, 1).
+    ignored. Defaults to white (1, 1, 1).
     */
     color: Color;
     /**
@@ -3243,11 +3271,11 @@ export class LightComponent extends Component {
     intensity: number;
     /**
      * The light source shape. Can be:
-     * * {@link pc.LIGHTSHAPE_PUNCTUAL}: Infinitesimally small point.
-     * * {@link pc.LIGHTSHAPE_RECT}: Rectangle shape.
-     * * {@link pc.LIGHTSHAPE_DISK}: Disk shape.
-     * * {@link pc.LIGHTSHAPE_SPHERE}: Sphere shape.
-     * Defaults to pc.LIGHTSHAPE_PUNCTUAL.
+    * {@link pc.LIGHTSHAPE_PUNCTUAL}: Infinitesimally small point.
+    * {@link pc.LIGHTSHAPE_RECT}: Rectangle shape.
+    * {@link pc.LIGHTSHAPE_DISK}: Disk shape.
+    * {@link pc.LIGHTSHAPE_SPHERE}: Sphere shape.
+    Defaults to pc.LIGHTSHAPE_PUNCTUAL.
     */
     shape: number;
     /**
@@ -3256,17 +3284,17 @@ export class LightComponent extends Component {
     castShadows: boolean;
     /**
      * The distance from the viewpoint beyond which shadows
-     * are no longer rendered. Affects directional lights only. Defaults to 40.
+    are no longer rendered. Affects directional lights only. Defaults to 40.
     */
     shadowDistance: number;
     /**
      * The size of the texture used for the shadow map.
-     * Valid sizes are 64, 128, 256, 512, 1024, 2048. Defaults to 1024.
+    Valid sizes are 64, 128, 256, 512, 1024, 2048. Defaults to 1024.
     */
     shadowResolution: number;
     /**
      * The depth bias for tuning the appearance of the shadow
-     * mapping generated by this light. Defaults to 0.05.
+    mapping generated by this light. Defaults to 0.05.
     */
     shadowBias: number;
     /**
@@ -3275,73 +3303,73 @@ export class LightComponent extends Component {
     normalOffsetBias: number;
     /**
      * The range of the light. Affects point and spot lights only.
-     * Defaults to 10.
+    Defaults to 10.
     */
     range: number;
     /**
      * The angle at which the spotlight cone starts
-     * to fade off. The angle is specified in degrees. Affects spot lights only. Defaults
-     * to 40.
+    to fade off. The angle is specified in degrees. Affects spot lights only. Defaults
+    to 40.
     */
     innerConeAngle: number;
     /**
      * The angle at which the spotlight cone has faded
-     * to nothing. The angle is specified in degrees. Affects spot lights only. Defaults
-     * to 45.
+    to nothing. The angle is specified in degrees. Affects spot lights only. Defaults
+    to 45.
     */
     outerConeAngle: number;
     /**
      * Controls the rate at which a light attenuates from
-     * its position. Can be:
-     * * {@link LIGHTFALLOFF_LINEAR}: Linear.
-     * * {@link LIGHTFALLOFF_INVERSESQUARED}: Inverse squared.
-     * Affects point and spot lights only. Defaults to {@link LIGHTFALLOFF_LINEAR}.
+    its position. Can be:
+    * {@link LIGHTFALLOFF_LINEAR}: Linear.
+    * {@link LIGHTFALLOFF_INVERSESQUARED}: Inverse squared.
+    Affects point and spot lights only. Defaults to {@link LIGHTFALLOFF_LINEAR}.
     */
     falloffMode: number;
     /**
      * Defines a mask to determine which {@link MeshInstance}s are
-     * lit by this light. Defaults to 1.
+    lit by this light. Defaults to 1.
     */
     mask: number;
     /**
-     * If enabled the light will affect non-lightmapped objects
+     * If enabled the light will affect non-lightmapped objects.
     */
     affectDynamic: boolean;
     /**
-     * If enabled the light will affect lightmapped objects
+     * If enabled the light will affect lightmapped objects.
     */
     affectLightmapped: boolean;
     /**
-     * If enabled the light will be rendered into lightmaps
+     * If enabled the light will be rendered into lightmaps.
     */
     bake: boolean;
     /**
      * If enabled and bake=true, the light's direction will contribute to directional lightmaps.
-     * Be aware, that directional lightmap is an approximation and can only hold single direction per pixel.
-     * Intersecting multiple lights with bakeDir=true may lead to incorrect look of specular/bump-mapping in the area of intersection.
-     * The error is not always visible though, and highly scene-dependent.
+    Be aware, that directional lightmap is an approximation and can only hold single direction per pixel.
+    Intersecting multiple lights with bakeDir=true may lead to incorrect look of specular/bump-mapping in the area of intersection.
+    The error is not always visible though, and highly scene-dependent.
     */
     bakeDir: boolean;
     /**
      * Tells the renderer how often shadows must be updated for this light. Options:
-     * * {@link SHADOWUPDATE_NONE}: Don't render shadows.
-     * * {@link SHADOWUPDATE_THISFRAME}: Render shadows only once (then automatically switches to {@link SHADOWUPDATE_NONE}.
-     * * {@link SHADOWUPDATE_REALTIME}: Render shadows every frame (default).
+    * {@link SHADOWUPDATE_NONE}: Don't render shadows.
+    * {@link SHADOWUPDATE_THISFRAME}: Render shadows only once (then automatically switches to {@link SHADOWUPDATE_NONE}.
+    * {@link SHADOWUPDATE_REALTIME}: Render shadows every frame (default).
     */
     shadowUpdateMode: number;
     /**
      * Type of shadows being rendered by this light. Options:
-     * * {@link SHADOW_PCF3}: Render depth (color-packed on WebGL 1.0), can be used for PCF 3x3 sampling.
-     * * {@link SHADOW_VSM8}: Render packed variance shadow map. All shadow receivers must also cast shadows for this mode to work correctly.
-     * * {@link SHADOW_VSM16}: Render 16-bit exponential variance shadow map. Requires OES_texture_half_float extension. Falls back to {@link SHADOW_VSM8}, if not supported.
-     * * {@link SHADOW_VSM32}: Render 32-bit exponential variance shadow map. Requires OES_texture_float extension. Falls back to {@link SHADOW_VSM16}, if not supported.
-     * * {@link SHADOW_PCF5}: Render depth buffer only, can be used for hardware-accelerated PCF 5x5 sampling. Requires WebGL2. Falls back to {@link SHADOW_PCF3} on WebGL 1.0.
+    * {@link SHADOW_PCF3}: Render depth (color-packed on WebGL 1.0), can be used for PCF 3x3 sampling.
+    * {@link SHADOW_VSM8}: Render packed variance shadow map. All shadow receivers must also cast shadows for this mode to work correctly.
+    * {@link SHADOW_VSM16}: Render 16-bit exponential variance shadow map. Requires OES_texture_half_float extension. Falls back to {@link SHADOW_VSM8}, if not supported.
+    * {@link SHADOW_VSM32}: Render 32-bit exponential variance shadow map. Requires OES_texture_float extension. Falls back to {@link SHADOW_VSM16}, if not supported.
+    * {@link SHADOW_PCF5}: Render depth buffer only, can be used for hardware-accelerated PCF 5x5 sampling. Requires WebGL2. Falls back to {@link SHADOW_PCF3} on WebGL 1.0.
     */
     shadowType: number;
     /**
      * Blurring mode for variance shadow maps:
-     * * {@link BLUR_BOX}: Box filter.
-     * * {@link BLUR_GAUSSIAN}: Gaussian filter. May look smoother than box, but requires more samples.
+    * {@link BLUR_BOX}: Box filter.
+    * {@link BLUR_GAUSSIAN}: Gaussian filter. May look smoother than box, but requires more samples.
     */
     vsmBlurMode: number;
     /**
@@ -3381,12 +3409,12 @@ export class LightComponent extends Component {
     */
     cookieOffset: Vec2;
     /**
-     * Mark light as non-movable (optimization)
+     * Mark light as non-movable (optimization).
     */
     isStatic: boolean;
     /**
      * An array of layer IDs ({@link Layer#id}) to which this light should belong.
-     * Don't push/pop/splice or modify this array, if you want to change it - set a new one instead.
+    Don't push/pop/splice or modify this array, if you want to change it - set a new one instead.
     */
     layers: number[];
 }
@@ -3402,13 +3430,13 @@ export class LightComponentSystem extends ComponentSystem {
 /**
  * Create a new ModelComponent.
  * @property type - The type of the model. Can be one of the following:
-* "asset": The component will render a model asset
-* "box": The component will render a box (1 unit in each dimension)
-* "capsule": The component will render a capsule (radius 0.5, height 2)
-* "cone": The component will render a cone (radius 0.5, height 1)
-* "cylinder": The component will render a cylinder (radius 0.5, height 1)
-* "plane": The component will render a plane (1 unit in each dimension)
-* "sphere": The component will render a sphere (radius 0.5)
+ * * "asset": The component will render a model asset
+ * * "box": The component will render a box (1 unit in each dimension)
+ * * "capsule": The component will render a capsule (radius 0.5, height 2)
+ * * "cone": The component will render a cone (radius 0.5, height 1)
+ * * "cylinder": The component will render a cylinder (radius 0.5, height 1)
+ * * "plane": The component will render a plane (1 unit in each dimension)
+ * * "sphere": The component will render a sphere (radius 0.5)
  * @property asset - The asset for the model (only applies to models of type 'asset') - can also be an asset id.
  * @property castShadows - If true, this model will cast shadows for lights that have shadow casting enabled.
  * @property receiveShadows - If true, shadows will be cast on this model.
@@ -3416,17 +3444,17 @@ export class LightComponentSystem extends ComponentSystem {
  * @property materialAsset - The material {@link Asset} that will be used to render the model (not used on models of type 'asset').
  * @property model - The model that is added to the scene graph. It can be not set or loaded, so will return null.
  * @property mapping - A dictionary that holds material overrides for each mesh instance. Only applies to model
-components of type 'asset'. The mapping contains pairs of mesh instance index - material asset id.
+ * components of type 'asset'. The mapping contains pairs of mesh instance index - material asset id.
  * @property castShadowsLightmap - If true, this model will cast shadows when rendering lightmaps.
  * @property lightmapped - If true, this model will be lightmapped after using lightmapper.bake().
  * @property lightmapSizeMultiplier - Lightmap resolution multiplier.
  * @property isStatic - Mark model as non-movable (optimization).
  * @property aabb - If set, the bounding box is used as a bounding box for visibility culling of attached mesh instances. This is an optimization,
-allowing oversized bounding box to be specified for skinned characters in order to avoid per frame bounding box computations based on bone positions.
+ * allowing oversized bounding box to be specified for skinned characters in order to avoid per frame bounding box computations based on bone positions.
  * @property meshInstances - An array of meshInstances contained in the component's model. If model is not set or loaded for component it will return null.
  * @property batchGroupId - Assign model to a specific batch group (see {@link BatchGroup}). Default value is -1 (no group).
  * @property layers - An array of layer IDs ({@link Layer#id}) to which this model should belong.
-Don't push/pop/splice or modify this array, if you want to change it - set a new one instead.
+ * Don't push/pop/splice or modify this array, if you want to change it - set a new one instead.
  * @param system - The ComponentSystem that created this Component.
  * @param entity - The Entity that this Component is attached to.
  */
@@ -3434,41 +3462,41 @@ export class ModelComponent extends Component {
     constructor(system: ModelComponentSystem, entity: Entity);
     /**
      * Stop rendering model without removing it from the scene hierarchy.
-    This method sets the {@link MeshInstance#visible} property of every MeshInstance in the model to false
-    Note, this does not remove the model or mesh instances from the scene hierarchy or draw call list.
-    So the model component still incurs some CPU overhead.
+     * This method sets the {@link MeshInstance#visible} property of every MeshInstance in the model to false
+     * Note, this does not remove the model or mesh instances from the scene hierarchy or draw call list.
+     * So the model component still incurs some CPU overhead.
      * @example
      * this.timer = 0;
-    this.visible = true;
-    // ...
-    // blink model every 0.1 seconds
-    this.timer += dt;
-    if (this.timer > 0.1) {
-        if (!this.visible) {
-            this.entity.model.show();
-            this.visible = true;
-        } else {
-            this.entity.model.hide();
-            this.visible = false;
-        }
-        this.timer = 0;
-    }
+     * this.visible = true;
+     * // ...
+     * // blink model every 0.1 seconds
+     * this.timer += dt;
+     * if (this.timer > 0.1) {
+     *     if (!this.visible) {
+     *         this.entity.model.show();
+     *         this.visible = true;
+     *     } else {
+     *         this.entity.model.hide();
+     *         this.visible = false;
+     *     }
+     *     this.timer = 0;
+     * }
      */
     hide(): void;
     /**
      * Enable rendering of the model if hidden using {@link ModelComponent#hide}.
-    This method sets all the {@link MeshInstance#visible} property on all mesh instances to true.
+     * This method sets all the {@link MeshInstance#visible} property on all mesh instances to true.
      */
     show(): void;
     /**
      * The type of the model. Can be one of the following:
-     * * "asset": The component will render a model asset
-     * * "box": The component will render a box (1 unit in each dimension)
-     * * "capsule": The component will render a capsule (radius 0.5, height 2)
-     * * "cone": The component will render a cone (radius 0.5, height 1)
-     * * "cylinder": The component will render a cylinder (radius 0.5, height 1)
-     * * "plane": The component will render a plane (1 unit in each dimension)
-     * * "sphere": The component will render a sphere (radius 0.5)
+    * "asset": The component will render a model asset
+    * "box": The component will render a box (1 unit in each dimension)
+    * "capsule": The component will render a capsule (radius 0.5, height 2)
+    * "cone": The component will render a cone (radius 0.5, height 1)
+    * "cylinder": The component will render a cylinder (radius 0.5, height 1)
+    * "plane": The component will render a plane (1 unit in each dimension)
+    * "sphere": The component will render a sphere (radius 0.5)
     */
     type: string;
     /**
@@ -3497,7 +3525,7 @@ export class ModelComponent extends Component {
     model: Model;
     /**
      * A dictionary that holds material overrides for each mesh instance. Only applies to model
-     * components of type 'asset'. The mapping contains pairs of mesh instance index - material asset id.
+    components of type 'asset'. The mapping contains pairs of mesh instance index - material asset id.
     */
     mapping: any;
     /**
@@ -3518,7 +3546,7 @@ export class ModelComponent extends Component {
     isStatic: boolean;
     /**
      * If set, the bounding box is used as a bounding box for visibility culling of attached mesh instances. This is an optimization,
-     * allowing oversized bounding box to be specified for skinned characters in order to avoid per frame bounding box computations based on bone positions.
+    allowing oversized bounding box to be specified for skinned characters in order to avoid per frame bounding box computations based on bone positions.
     */
     aabb: BoundingBox;
     /**
@@ -3531,7 +3559,7 @@ export class ModelComponent extends Component {
     batchGroupId: number;
     /**
      * An array of layer IDs ({@link Layer#id}) to which this model should belong.
-     * Don't push/pop/splice or modify this array, if you want to change it - set a new one instead.
+    Don't push/pop/splice or modify this array, if you want to change it - set a new one instead.
     */
     layers: number[];
 }
@@ -3586,31 +3614,31 @@ export class ModelComponentSystem extends ComponentSystem {
  * @property colorMap - The color map texture to apply to all particles in the system. If no texture is assigned, a default spot texture is used.
  * @property normalMap - The normal map texture to apply to all particles in the system. If no texture is assigned, an approximate spherical normal is calculated for each vertex.
  * @property emitterShape - Shape of the emitter. Defines the bounds inside which particles are spawned. Also affects the direction of initial velocity.
-
-* {@link EMITTERSHAPE_BOX}: Box shape parameterized by emitterExtents. Initial velocity is directed towards local Z axis.
-* {@link EMITTERSHAPE_SPHERE}: Sphere shape parameterized by emitterRadius. Initial velocity is directed outwards from the center.
+ *
+ * * {@link EMITTERSHAPE_BOX}: Box shape parameterized by emitterExtents. Initial velocity is directed towards local Z axis.
+ * * {@link EMITTERSHAPE_SPHERE}: Sphere shape parameterized by emitterRadius. Initial velocity is directed outwards from the center.
  * @property sort - Sorting mode. Forces CPU simulation, so be careful.
-
-* {@link PARTICLESORT_NONE}: No sorting, particles are drawn in arbitrary order. Can be simulated on GPU.
-* {@link PARTICLESORT_DISTANCE}: Sorting based on distance to the camera. CPU only.
-* {@link PARTICLESORT_NEWER_FIRST}: Newer particles are drawn first. CPU only.
-* {@link PARTICLESORT_OLDER_FIRST}: Older particles are drawn first. CPU only.
+ *
+ * * {@link PARTICLESORT_NONE}: No sorting, particles are drawn in arbitrary order. Can be simulated on GPU.
+ * * {@link PARTICLESORT_DISTANCE}: Sorting based on distance to the camera. CPU only.
+ * * {@link PARTICLESORT_NEWER_FIRST}: Newer particles are drawn first. CPU only.
+ * * {@link PARTICLESORT_OLDER_FIRST}: Older particles are drawn first. CPU only.
  * @property mesh - Triangular mesh to be used as a particle. Only first vertex/index buffer is used. Vertex buffer must contain local position at first 3 floats of each vertex.
  * @property blend - Controls how particles are blended when being written to the currently active render target.
-Can be:
-
-* {@link BLEND_SUBTRACTIVE}: Subtract the color of the source fragment from the destination fragment and write the result to the frame buffer.
-* {@link BLEND_ADDITIVE}: Add the color of the source fragment to the destination fragment and write the result to the frame buffer.
-* {@link BLEND_NORMAL}: Enable simple translucency for materials such as glass. This is equivalent to enabling a source blend mode of {@link BLENDMODE_SRC_ALPHA} and a destination blend mode of {@link BLENDMODE_ONE_MINUS_SRC_ALPHA}.
-* {@link BLEND_NONE}: Disable blending.
-* {@link BLEND_PREMULTIPLIED}: Similar to {@link BLEND_NORMAL} expect the source fragment is assumed to have already been multiplied by the source alpha value.
-* {@link BLEND_MULTIPLICATIVE}: Multiply the color of the source fragment by the color of the destination fragment and write the result to the frame buffer.
-* {@link BLEND_ADDITIVEALPHA}: Same as {@link BLEND_ADDITIVE} except the source RGB is multiplied by the source alpha.
+ * Can be:
+ *
+ * * {@link BLEND_SUBTRACTIVE}: Subtract the color of the source fragment from the destination fragment and write the result to the frame buffer.
+ * * {@link BLEND_ADDITIVE}: Add the color of the source fragment to the destination fragment and write the result to the frame buffer.
+ * * {@link BLEND_NORMAL}: Enable simple translucency for materials such as glass. This is equivalent to enabling a source blend mode of {@link BLENDMODE_SRC_ALPHA} and a destination blend mode of {@link BLENDMODE_ONE_MINUS_SRC_ALPHA}.
+ * * {@link BLEND_NONE}: Disable blending.
+ * * {@link BLEND_PREMULTIPLIED}: Similar to {@link BLEND_NORMAL} expect the source fragment is assumed to have already been multiplied by the source alpha value.
+ * * {@link BLEND_MULTIPLICATIVE}: Multiply the color of the source fragment by the color of the destination fragment and write the result to the frame buffer.
+ * * {@link BLEND_ADDITIVEALPHA}: Same as {@link BLEND_ADDITIVE} except the source RGB is multiplied by the source alpha.
  * @property orientation - Sorting mode. Forces CPU simulation, so be careful.
-
-* {@link PARTICLEORIENTATION_SCREEN}: Particles are facing camera.
-* {@link PARTICLEORIENTATION_WORLD}: User defines world space normal (particleNormal) to set planes orientation.
-* {@link PARTICLEORIENTATION_EMITTER}: Similar to previous, but the normal is affected by emitter(entity) transformation.
+ *
+ * * {@link PARTICLEORIENTATION_SCREEN}: Particles are facing camera.
+ * * {@link PARTICLEORIENTATION_WORLD}: User defines world space normal (particleNormal) to set planes orientation.
+ * * {@link PARTICLEORIENTATION_EMITTER}: Similar to previous, but the normal is affected by emitter(entity) transformation.
  * @property particleNormal - (Only for PARTICLEORIENTATION_WORLD and PARTICLEORIENTATION_EMITTER) The exception of extents of a local space bounding box within which particles are not spawned. Aligned to the center of EmitterExtents.
  * @property localVelocityGraph - Velocity relative to emitter over lifetime.
  * @property localVelocityGraph2 - If not null, particles pick random values between localVelocityGraph and localVelocityGraph2.
@@ -3626,7 +3654,7 @@ Can be:
  * @property alphaGraph - Alpha over lifetime.
  * @property alphaGraph2 - If not null, particles pick random values between alphaGraph and alphaGraph2.
  * @property layers - An array of layer IDs ({@link Layer#id}) to which this particle system should belong.
-Don't push/pop/splice or modify this array, if you want to change it - set a new one instead.
+ * Don't push/pop/splice or modify this array, if you want to change it - set a new one instead.
  * @param system - The ComponentSystem that created this Component.
  * @param entity - The Entity this Component is attached to.
  */
@@ -3815,16 +3843,18 @@ export class ParticleSystemComponent extends Component {
     normalMap: Texture;
     /**
      * Shape of the emitter. Defines the bounds inside which particles are spawned. Also affects the direction of initial velocity.
-     * * {@link EMITTERSHAPE_BOX}: Box shape parameterized by emitterExtents. Initial velocity is directed towards local Z axis.
-     * * {@link EMITTERSHAPE_SPHERE}: Sphere shape parameterized by emitterRadius. Initial velocity is directed outwards from the center.
+    
+    * {@link EMITTERSHAPE_BOX}: Box shape parameterized by emitterExtents. Initial velocity is directed towards local Z axis.
+    * {@link EMITTERSHAPE_SPHERE}: Sphere shape parameterized by emitterRadius. Initial velocity is directed outwards from the center.
     */
     emitterShape: number;
     /**
      * Sorting mode. Forces CPU simulation, so be careful.
-     * * {@link PARTICLESORT_NONE}: No sorting, particles are drawn in arbitrary order. Can be simulated on GPU.
-     * * {@link PARTICLESORT_DISTANCE}: Sorting based on distance to the camera. CPU only.
-     * * {@link PARTICLESORT_NEWER_FIRST}: Newer particles are drawn first. CPU only.
-     * * {@link PARTICLESORT_OLDER_FIRST}: Older particles are drawn first. CPU only.
+    
+    * {@link PARTICLESORT_NONE}: No sorting, particles are drawn in arbitrary order. Can be simulated on GPU.
+    * {@link PARTICLESORT_DISTANCE}: Sorting based on distance to the camera. CPU only.
+    * {@link PARTICLESORT_NEWER_FIRST}: Newer particles are drawn first. CPU only.
+    * {@link PARTICLESORT_OLDER_FIRST}: Older particles are drawn first. CPU only.
     */
     sort: number;
     /**
@@ -3833,21 +3863,23 @@ export class ParticleSystemComponent extends Component {
     mesh: Mesh;
     /**
      * Controls how particles are blended when being written to the currently active render target.
-     * Can be:
-     * * {@link BLEND_SUBTRACTIVE}: Subtract the color of the source fragment from the destination fragment and write the result to the frame buffer.
-     * * {@link BLEND_ADDITIVE}: Add the color of the source fragment to the destination fragment and write the result to the frame buffer.
-     * * {@link BLEND_NORMAL}: Enable simple translucency for materials such as glass. This is equivalent to enabling a source blend mode of {@link BLENDMODE_SRC_ALPHA} and a destination blend mode of {@link BLENDMODE_ONE_MINUS_SRC_ALPHA}.
-     * * {@link BLEND_NONE}: Disable blending.
-     * * {@link BLEND_PREMULTIPLIED}: Similar to {@link BLEND_NORMAL} expect the source fragment is assumed to have already been multiplied by the source alpha value.
-     * * {@link BLEND_MULTIPLICATIVE}: Multiply the color of the source fragment by the color of the destination fragment and write the result to the frame buffer.
-     * * {@link BLEND_ADDITIVEALPHA}: Same as {@link BLEND_ADDITIVE} except the source RGB is multiplied by the source alpha.
+    Can be:
+    
+    * {@link BLEND_SUBTRACTIVE}: Subtract the color of the source fragment from the destination fragment and write the result to the frame buffer.
+    * {@link BLEND_ADDITIVE}: Add the color of the source fragment to the destination fragment and write the result to the frame buffer.
+    * {@link BLEND_NORMAL}: Enable simple translucency for materials such as glass. This is equivalent to enabling a source blend mode of {@link BLENDMODE_SRC_ALPHA} and a destination blend mode of {@link BLENDMODE_ONE_MINUS_SRC_ALPHA}.
+    * {@link BLEND_NONE}: Disable blending.
+    * {@link BLEND_PREMULTIPLIED}: Similar to {@link BLEND_NORMAL} expect the source fragment is assumed to have already been multiplied by the source alpha value.
+    * {@link BLEND_MULTIPLICATIVE}: Multiply the color of the source fragment by the color of the destination fragment and write the result to the frame buffer.
+    * {@link BLEND_ADDITIVEALPHA}: Same as {@link BLEND_ADDITIVE} except the source RGB is multiplied by the source alpha.
     */
     blend: number;
     /**
      * Sorting mode. Forces CPU simulation, so be careful.
-     * * {@link PARTICLEORIENTATION_SCREEN}: Particles are facing camera.
-     * * {@link PARTICLEORIENTATION_WORLD}: User defines world space normal (particleNormal) to set planes orientation.
-     * * {@link PARTICLEORIENTATION_EMITTER}: Similar to previous, but the normal is affected by emitter(entity) transformation.
+    
+    * {@link PARTICLEORIENTATION_SCREEN}: Particles are facing camera.
+    * {@link PARTICLEORIENTATION_WORLD}: User defines world space normal (particleNormal) to set planes orientation.
+    * {@link PARTICLEORIENTATION_EMITTER}: Similar to previous, but the normal is affected by emitter(entity) transformation.
     */
     orientation: number;
     /**
@@ -3908,7 +3940,7 @@ export class ParticleSystemComponent extends Component {
     alphaGraph2: Curve;
     /**
      * An array of layer IDs ({@link Layer#id}) to which this particle system should belong.
-     * Don't push/pop/splice or modify this array, if you want to change it - set a new one instead.
+    Don't push/pop/splice or modify this array, if you want to change it - set a new one instead.
     */
     layers: number[];
 }
@@ -3930,13 +3962,13 @@ export class ComponentSystemRegistry {
 /**
  * Create a new RenderComponent.
  * @property type - The type of the render. Can be one of the following:
-* "asset": The component will render a render asset
-* "box": The component will render a box (1 unit in each dimension)
-* "capsule": The component will render a capsule (radius 0.5, height 2)
-* "cone": The component will render a cone (radius 0.5, height 1)
-* "cylinder": The component will render a cylinder (radius 0.5, height 1)
-* "plane": The component will render a plane (1 unit in each dimension)
-* "sphere": The component will render a sphere (radius 0.5)
+ * * "asset": The component will render a render asset
+ * * "box": The component will render a box (1 unit in each dimension)
+ * * "capsule": The component will render a capsule (radius 0.5, height 2)
+ * * "cone": The component will render a cone (radius 0.5, height 1)
+ * * "cylinder": The component will render a cylinder (radius 0.5, height 1)
+ * * "plane": The component will render a plane (1 unit in each dimension)
+ * * "sphere": The component will render a sphere (radius 0.5)
  * @property asset - The render asset for the render component (only applies to type 'asset') - can also be an asset id.
  * @property materialAssets - The material assets that will be used to render the meshes. Each material corresponds to the respective mesh instance.
  * @property material - The material {@link Material} that will be used to render the meshes (not used on renders of type 'asset').
@@ -3947,16 +3979,16 @@ export class ComponentSystemRegistry {
  * @property lightmapSizeMultiplier - Lightmap resolution multiplier.
  * @property isStatic - Mark meshes as non-movable (optimization).
  * @property aabb - If set, the bounding box is used as a bounding box for visibility culling of attached mesh instances. This is an optimization,
-allowing oversized bounding box to be specified for skinned characters in order to avoid per frame bounding box computations based on bone positions.
+ * allowing oversized bounding box to be specified for skinned characters in order to avoid per frame bounding box computations based on bone positions.
  * @property meshInstances - An array of meshInstances contained in the component. If meshes are not set or loaded for component it will return null.
  * @property batchGroupId - Assign meshes to a specific batch group (see {@link BatchGroup}). Default value is -1 (no group).
  * @property layers - An array of layer IDs ({@link Layer#id}) to which the meshes should belong.
-Don't push/pop/splice or modify this array, if you want to change it - set a new one instead.
+ * Don't push/pop/splice or modify this array, if you want to change it - set a new one instead.
  * @property rootBone - A reference to the entity to be used as the root bone for any skinned meshes that are rendered by this component.
  * @property renderStyle - Set rendering of all {@link MeshInstance}s to the specified render style. Can be one of the following:
-* {@link RENDERSTYLE_SOLID}
-* {@link RENDERSTYLE_WIREFRAME}
-* {@link RENDERSTYLE_POINTS}
+ * * {@link RENDERSTYLE_SOLID}
+ * * {@link RENDERSTYLE_WIREFRAME}
+ * * {@link RENDERSTYLE_POINTS}
  * @param system - The ComponentSystem that created this Component.
  * @param entity - The Entity that this Component is attached to.
  */
@@ -3964,25 +3996,25 @@ export class RenderComponent extends Component {
     constructor(system: RenderComponentSystem, entity: Entity);
     /**
      * Stop rendering {@link MeshInstance}s without removing them from the scene hierarchy.
-    This method sets the {@link MeshInstance#visible} property of every MeshInstance to false.
-    Note, this does not remove the mesh instances from the scene hierarchy or draw call list.
-    So the render component still incurs some CPU overhead.
+     * This method sets the {@link MeshInstance#visible} property of every MeshInstance to false.
+     * Note, this does not remove the mesh instances from the scene hierarchy or draw call list.
+     * So the render component still incurs some CPU overhead.
      */
     hide(): void;
     /**
      * Enable rendering of the render {@link MeshInstance}s if hidden using {@link RenderComponent#hide}.
-    This method sets all the {@link MeshInstance#visible} property on all mesh instances to true.
+     * This method sets all the {@link MeshInstance#visible} property on all mesh instances to true.
      */
     show(): void;
     /**
      * The type of the render. Can be one of the following:
-     * * "asset": The component will render a render asset
-     * * "box": The component will render a box (1 unit in each dimension)
-     * * "capsule": The component will render a capsule (radius 0.5, height 2)
-     * * "cone": The component will render a cone (radius 0.5, height 1)
-     * * "cylinder": The component will render a cylinder (radius 0.5, height 1)
-     * * "plane": The component will render a plane (1 unit in each dimension)
-     * * "sphere": The component will render a sphere (radius 0.5)
+    * "asset": The component will render a render asset
+    * "box": The component will render a box (1 unit in each dimension)
+    * "capsule": The component will render a capsule (radius 0.5, height 2)
+    * "cone": The component will render a cone (radius 0.5, height 1)
+    * "cylinder": The component will render a cylinder (radius 0.5, height 1)
+    * "plane": The component will render a plane (1 unit in each dimension)
+    * "sphere": The component will render a sphere (radius 0.5)
     */
     type: string;
     /**
@@ -4023,7 +4055,7 @@ export class RenderComponent extends Component {
     isStatic: boolean;
     /**
      * If set, the bounding box is used as a bounding box for visibility culling of attached mesh instances. This is an optimization,
-     * allowing oversized bounding box to be specified for skinned characters in order to avoid per frame bounding box computations based on bone positions.
+    allowing oversized bounding box to be specified for skinned characters in order to avoid per frame bounding box computations based on bone positions.
     */
     aabb: BoundingBox;
     /**
@@ -4036,7 +4068,7 @@ export class RenderComponent extends Component {
     batchGroupId: number;
     /**
      * An array of layer IDs ({@link Layer#id}) to which the meshes should belong.
-     * Don't push/pop/splice or modify this array, if you want to change it - set a new one instead.
+    Don't push/pop/splice or modify this array, if you want to change it - set a new one instead.
     */
     layers: number[];
     /**
@@ -4045,9 +4077,9 @@ export class RenderComponent extends Component {
     rootBone: Entity;
     /**
      * Set rendering of all {@link MeshInstance}s to the specified render style. Can be one of the following:
-     * * {@link RENDERSTYLE_SOLID}
-     * * {@link RENDERSTYLE_WIREFRAME}
-     * * {@link RENDERSTYLE_POINTS}
+    * {@link RENDERSTYLE_SOLID}
+    * {@link RENDERSTYLE_WIREFRAME}
+    * {@link RENDERSTYLE_POINTS}
     */
     renderStyle: number;
 }
@@ -4063,37 +4095,37 @@ export class RenderComponentSystem extends ComponentSystem {
 /**
  * Create a new RigidBodyComponent.
  * @property mass - The mass of the body. This is only relevant for {@link BODYTYPE_DYNAMIC}
-bodies, other types have infinite mass. Defaults to 1.
+ * bodies, other types have infinite mass. Defaults to 1.
  * @property linearVelocity - Defines the speed of the body in a given direction.
  * @property angularVelocity - Defines the rotational speed of the body around each world axis.
  * @property linearDamping - Controls the rate at which a body loses linear velocity over time.
-Defaults to 0.
+ * Defaults to 0.
  * @property angularDamping - Controls the rate at which a body loses angular velocity over time.
-Defaults to 0.
+ * Defaults to 0.
  * @property linearFactor - Scaling factor for linear movement of the body in each axis. Only
-valid for rigid bodies of type {@link BODYTYPE_DYNAMIC}. Defaults to 1 in all axes.
+ * valid for rigid bodies of type {@link BODYTYPE_DYNAMIC}. Defaults to 1 in all axes.
  * @property angularFactor - Scaling factor for angular movement of the body in each axis. Only
-valid for rigid bodies of type {@link BODYTYPE_DYNAMIC}. Defaults to 1 in all axes.
+ * valid for rigid bodies of type {@link BODYTYPE_DYNAMIC}. Defaults to 1 in all axes.
  * @property friction - The friction value used when contacts occur between two bodies. A higher
-value indicates more friction. Should be set in the range 0 to 1. Defaults to 0.5.
+ * value indicates more friction. Should be set in the range 0 to 1. Defaults to 0.5.
  * @property rollingFriction - Sets a torsional friction orthogonal to the contact point. Defaults
-to 0.
+ * to 0.
  * @property restitution - Influences the amount of energy lost when two rigid bodies collide. The
-calculation multiplies the restitution values for both colliding bodies. A multiplied value of 0 means
-that all energy is lost in the collision while a value of 1 means that no energy is lost. Should be
-set in the range 0 to 1. Defaults to 0.
+ * calculation multiplies the restitution values for both colliding bodies. A multiplied value of 0 means
+ * that all energy is lost in the collision while a value of 1 means that no energy is lost. Should be
+ * set in the range 0 to 1. Defaults to 0.
  * @property group - The collision group this body belongs to. Combine the group and the mask to
-prevent bodies colliding with each other. Defaults to 1.
+ * prevent bodies colliding with each other. Defaults to 1.
  * @property mask - The collision mask sets which groups this body collides with. It is a bitfield
-of 16 bits, the first 8 bits are reserved for engine use. Defaults to 65535.
+ * of 16 bits, the first 8 bits are reserved for engine use. Defaults to 65535.
  * @property type - The rigid body type determines how the body is simulated. Can be:
-
-* {@link BODYTYPE_STATIC}: infinite mass and cannot move.
-* {@link BODYTYPE_DYNAMIC}: simulated according to applied forces.
-* {@link BODYTYPE_KINEMATIC}: infinite mass and does not respond to forces but can still be moved
-by setting their velocity or position.
-
-Defaults to {@link BODYTYPE_STATIC}.
+ *
+ * * {@link BODYTYPE_STATIC}: infinite mass and cannot move.
+ * * {@link BODYTYPE_DYNAMIC}: simulated according to applied forces.
+ * * {@link BODYTYPE_KINEMATIC}: infinite mass and does not respond to forces (can only be moved
+ * by setting the position and rotation of component's {@link Entity}).
+ *
+ * Defaults to {@link BODYTYPE_STATIC}.
  * @param system - The ComponentSystem that created this component.
  * @param entity - The entity this component is attached to.
  */
@@ -4106,43 +4138,43 @@ export class RigidBodyComponent extends Component {
     isActive(): boolean;
     /**
      * Forcibly activate the rigid body simulation. Only affects rigid bodies of
-    type {@link BODYTYPE_DYNAMIC}.
+     * type {@link BODYTYPE_DYNAMIC}.
      */
     activate(): void;
     /**
      * Apply an force to the body at a point. By default, the force is applied at the origin of the
-    body. However, the force can be applied at an offset this point by specifying a world space vector from
-    the body's origin to the point of application. This function has two valid signatures. You can either
-    specify the force (and optional relative point) via 3D-vector or numbers.
+     * body. However, the force can be applied at an offset this point by specifying a world space vector from
+     * the body's origin to the point of application. This function has two valid signatures. You can either
+     * specify the force (and optional relative point) via 3D-vector or numbers.
      * @example
      * // Apply an approximation of gravity at the body's center
-    this.entity.rigidbody.applyForce(0, -10, 0);
+     * this.entity.rigidbody.applyForce(0, -10, 0);
      * @example
      * // Apply an approximation of gravity at 1 unit down the world Z from the center of the body
-    this.entity.rigidbody.applyForce(0, -10, 0, 0, 0, 1);
+     * this.entity.rigidbody.applyForce(0, -10, 0, 0, 0, 1);
      * @example
      * // Apply a force at the body's center
-    // Calculate a force vector pointing in the world space direction of the entity
-    var force = this.entity.forward.clone().scale(100);
-    
-    // Apply the force
-    this.entity.rigidbody.applyForce(force);
+     * // Calculate a force vector pointing in the world space direction of the entity
+     * var force = this.entity.forward.clone().mulScalar(100);
+     *
+     * // Apply the force
+     * this.entity.rigidbody.applyForce(force);
      * @example
      * // Apply a force at some relative offset from the body's center
-    // Calculate a force vector pointing in the world space direction of the entity
-    var force = this.entity.forward.clone().scale(100);
-    
-    // Calculate the world space relative offset
-    var relativePos = new pc.Vec3();
-    var childEntity = this.entity.findByName('Engine');
-    relativePos.sub2(childEntity.getPosition(), this.entity.getPosition());
-    
-    // Apply the force
-    this.entity.rigidbody.applyForce(force, relativePos);
+     * // Calculate a force vector pointing in the world space direction of the entity
+     * var force = this.entity.forward.clone().mulScalar(100);
+     *
+     * // Calculate the world space relative offset
+     * var relativePos = new pc.Vec3();
+     * var childEntity = this.entity.findByName('Engine');
+     * relativePos.sub2(childEntity.getPosition(), this.entity.getPosition());
+     *
+     * // Apply the force
+     * this.entity.rigidbody.applyForce(force, relativePos);
      * @param x - A 3-dimensional vector representing the force in world-space or
-    the x-component of the force in world-space.
+     * the x-component of the force in world-space.
      * @param [y] - An optional 3-dimensional vector representing the relative point at
-    which to apply the impulse in world-space or the y-component of the force in world-space.
+     * which to apply the impulse in world-space or the y-component of the force in world-space.
      * @param [z] - The z-component of the force in world-space.
      * @param [px] - The x-component of a world-space offset from the body's position where the force is applied.
      * @param [py] - The y-component of a world-space offset from the body's position where the force is applied.
@@ -4151,46 +4183,46 @@ export class RigidBodyComponent extends Component {
     applyForce(x: Vec3 | number, y?: Vec3 | number, z?: number, px?: number, py?: number, pz?: number): void;
     /**
      * Apply torque (rotational force) to the body. This function has two valid signatures.
-    You can either specify the torque force with a 3D-vector or with 3 numbers.
+     * You can either specify the torque force with a 3D-vector or with 3 numbers.
      * @example
      * // Apply via vector
-    var torque = new pc.Vec3(0, 10, 0);
-    entity.rigidbody.applyTorque(torque);
+     * var torque = new pc.Vec3(0, 10, 0);
+     * entity.rigidbody.applyTorque(torque);
      * @example
      * // Apply via numbers
-    entity.rigidbody.applyTorque(0, 10, 0);
+     * entity.rigidbody.applyTorque(0, 10, 0);
      * @param x - A 3-dimensional vector representing the torque force in world-space or
-    the x-component of the torque force in world-space.
+     * the x-component of the torque force in world-space.
      * @param [y] - The y-component of the torque force in world-space.
      * @param [z] - The z-component of the torque force in world-space.
      */
     applyTorque(x: Vec3 | number, y?: number, z?: number): void;
     /**
      * Apply an impulse (instantaneous change of velocity) to the body at a point.
-    This function has two valid signatures. You can either specify the impulse (and optional relative
-    point) via 3D-vector or numbers.
+     * This function has two valid signatures. You can either specify the impulse (and optional relative
+     * point) via 3D-vector or numbers.
      * @example
      * // Apply an impulse along the world-space positive y-axis at the entity's position.
-    var impulse = new pc.Vec3(0, 10, 0);
-    entity.rigidbody.applyImpulse(impulse);
+     * var impulse = new pc.Vec3(0, 10, 0);
+     * entity.rigidbody.applyImpulse(impulse);
      * @example
      * // Apply an impulse along the world-space positive y-axis at 1 unit down the positive
-    // z-axis of the entity's local-space.
-    var impulse = new pc.Vec3(0, 10, 0);
-    var relativePoint = new pc.Vec3(0, 0, 1);
-    entity.rigidbody.applyImpulse(impulse, relativePoint);
+     * // z-axis of the entity's local-space.
+     * var impulse = new pc.Vec3(0, 10, 0);
+     * var relativePoint = new pc.Vec3(0, 0, 1);
+     * entity.rigidbody.applyImpulse(impulse, relativePoint);
      * @example
      * // Apply an impulse along the world-space positive y-axis at the entity's position.
-    entity.rigidbody.applyImpulse(0, 10, 0);
+     * entity.rigidbody.applyImpulse(0, 10, 0);
      * @example
      * // Apply an impulse along the world-space positive y-axis at 1 unit down the positive
-    // z-axis of the entity's local-space.
-    entity.rigidbody.applyImpulse(0, 10, 0, 0, 0, 1);
+     * // z-axis of the entity's local-space.
+     * entity.rigidbody.applyImpulse(0, 10, 0, 0, 0, 1);
      * @param x - A 3-dimensional vector representing the impulse in world-space or
-    the x-component of the impulse in world-space.
+     * the x-component of the impulse in world-space.
      * @param [y] - An optional 3-dimensional vector representing the relative point at
-    which to apply the impulse in the local-space of the entity or the y-component of the impulse to
-    apply in world-space.
+     * which to apply the impulse in the local-space of the entity or the y-component of the impulse to
+     * apply in world-space.
      * @param [z] - The z-component of the impulse to apply in world-space.
      * @param [px = 0] - The x-component of the point at which to apply the impulse in the local-space of the entity.
      * @param [py = 0] - The y-component of the point at which to apply the impulse in the local-space of the entity.
@@ -4199,17 +4231,17 @@ export class RigidBodyComponent extends Component {
     applyImpulse(x: Vec3 | number, y?: Vec3 | number, z?: number, px?: number, py?: number, pz?: number): void;
     /**
      * Apply a torque impulse (rotational force applied instantaneously) to the body.
-    This function has two valid signatures. You can either specify the torque force with a 3D-vector
-    or with 3 numbers.
+     * This function has two valid signatures. You can either specify the torque force with a 3D-vector
+     * or with 3 numbers.
      * @example
      * // Apply via vector
-    var torque = new pc.Vec3(0, 10, 0);
-    entity.rigidbody.applyTorqueImpulse(torque);
+     * var torque = new pc.Vec3(0, 10, 0);
+     * entity.rigidbody.applyTorqueImpulse(torque);
      * @example
      * // Apply via numbers
-    entity.rigidbody.applyTorqueImpulse(0, 10, 0);
+     * entity.rigidbody.applyTorqueImpulse(0, 10, 0);
      * @param x - A 3-dimensional vector representing the torque impulse in world-space or
-    the x-component of the torque impulse in world-space.
+     * the x-component of the torque impulse in world-space.
      * @param [y] - The y-component of the torque impulse in world-space.
      * @param [z] - The z-component of the torque impulse in world-space.
      */
@@ -4231,26 +4263,26 @@ export class RigidBodyComponent extends Component {
     isKinematic(): boolean;
     /**
      * Teleport an entity to a new world-space position, optionally setting orientation. This function
-    should only be called for rigid bodies that are dynamic. This function has three valid signatures.
-    The first takes a 3-dimensional vector for the position and an optional 3-dimensional vector for Euler rotation.
-    The second takes a 3-dimensional vector for the position and an optional quaternion for rotation.
-    The third takes 3 numbers for the position and an optional 3 numbers for Euler rotation.
+     * should only be called for rigid bodies that are dynamic. This function has three valid signatures.
+     * The first takes a 3-dimensional vector for the position and an optional 3-dimensional vector for Euler rotation.
+     * The second takes a 3-dimensional vector for the position and an optional quaternion for rotation.
+     * The third takes 3 numbers for the position and an optional 3 numbers for Euler rotation.
      * @example
      * // Teleport the entity to the origin
-    entity.rigidbody.teleport(pc.Vec3.ZERO);
+     * entity.rigidbody.teleport(pc.Vec3.ZERO);
      * @example
      * // Teleport the entity to the origin
-    entity.rigidbody.teleport(0, 0, 0);
+     * entity.rigidbody.teleport(0, 0, 0);
      * @example
      * // Teleport the entity to world-space coordinate [1, 2, 3] and reset orientation
-    var position = new pc.Vec3(1, 2, 3);
-    entity.rigidbody.teleport(position, pc.Vec3.ZERO);
+     * var position = new pc.Vec3(1, 2, 3);
+     * entity.rigidbody.teleport(position, pc.Vec3.ZERO);
      * @example
      * // Teleport the entity to world-space coordinate [1, 2, 3] and reset orientation
-    entity.rigidbody.teleport(1, 2, 3, 0, 0, 0);
+     * entity.rigidbody.teleport(1, 2, 3, 0, 0, 0);
      * @param x - A 3-dimensional vector holding the new position or the new position x-coordinate.
      * @param y - A 3-dimensional vector or quaternion holding the new rotation or the new
-    position y-coordinate.
+     * position y-coordinate.
      * @param [z] - The new position z-coordinate.
      * @param [rx] - The new Euler x-angle value.
      * @param [ry] - The new Euler y-angle value.
@@ -4259,7 +4291,7 @@ export class RigidBodyComponent extends Component {
     teleport(x: Vec3 | number, y: Vec3 | Quat | number, z?: number, rx?: number, ry?: number, rz?: number): void;
     /**
      * The mass of the body. This is only relevant for {@link BODYTYPE_DYNAMIC}
-     * bodies, other types have infinite mass. Defaults to 1.
+    bodies, other types have infinite mass. Defaults to 1.
     */
     mass: number;
     /**
@@ -4272,58 +4304,60 @@ export class RigidBodyComponent extends Component {
     angularVelocity: Vec3;
     /**
      * Controls the rate at which a body loses linear velocity over time.
-     * Defaults to 0.
+    Defaults to 0.
     */
     linearDamping: number;
     /**
      * Controls the rate at which a body loses angular velocity over time.
-     * Defaults to 0.
+    Defaults to 0.
     */
     angularDamping: number;
     /**
      * Scaling factor for linear movement of the body in each axis. Only
-     * valid for rigid bodies of type {@link BODYTYPE_DYNAMIC}. Defaults to 1 in all axes.
+    valid for rigid bodies of type {@link BODYTYPE_DYNAMIC}. Defaults to 1 in all axes.
     */
     linearFactor: Vec3;
     /**
      * Scaling factor for angular movement of the body in each axis. Only
-     * valid for rigid bodies of type {@link BODYTYPE_DYNAMIC}. Defaults to 1 in all axes.
+    valid for rigid bodies of type {@link BODYTYPE_DYNAMIC}. Defaults to 1 in all axes.
     */
     angularFactor: Vec3;
     /**
      * The friction value used when contacts occur between two bodies. A higher
-     * value indicates more friction. Should be set in the range 0 to 1. Defaults to 0.5.
+    value indicates more friction. Should be set in the range 0 to 1. Defaults to 0.5.
     */
     friction: number;
     /**
      * Sets a torsional friction orthogonal to the contact point. Defaults
-     * to 0.
+    to 0.
     */
     rollingFriction: number;
     /**
      * Influences the amount of energy lost when two rigid bodies collide. The
-     * calculation multiplies the restitution values for both colliding bodies. A multiplied value of 0 means
-     * that all energy is lost in the collision while a value of 1 means that no energy is lost. Should be
-     * set in the range 0 to 1. Defaults to 0.
+    calculation multiplies the restitution values for both colliding bodies. A multiplied value of 0 means
+    that all energy is lost in the collision while a value of 1 means that no energy is lost. Should be
+    set in the range 0 to 1. Defaults to 0.
     */
     restitution: number;
     /**
      * The collision group this body belongs to. Combine the group and the mask to
-     * prevent bodies colliding with each other. Defaults to 1.
+    prevent bodies colliding with each other. Defaults to 1.
     */
     group: number;
     /**
      * The collision mask sets which groups this body collides with. It is a bitfield
-     * of 16 bits, the first 8 bits are reserved for engine use. Defaults to 65535.
+    of 16 bits, the first 8 bits are reserved for engine use. Defaults to 65535.
     */
     mask: number;
     /**
      * The rigid body type determines how the body is simulated. Can be:
-     * * {@link BODYTYPE_STATIC}: infinite mass and cannot move.
-     * * {@link BODYTYPE_DYNAMIC}: simulated according to applied forces.
-     * * {@link BODYTYPE_KINEMATIC}: infinite mass and does not respond to forces but can still be moved
-     * by setting their velocity or position.
-     * Defaults to {@link BODYTYPE_STATIC}.
+    
+    * {@link BODYTYPE_STATIC}: infinite mass and cannot move.
+    * {@link BODYTYPE_DYNAMIC}: simulated according to applied forces.
+    * {@link BODYTYPE_KINEMATIC}: infinite mass and does not respond to forces (can only be moved
+    by setting the position and rotation of component's {@link Entity}).
+    
+    Defaults to {@link BODYTYPE_STATIC}.
     */
     type: string;
 }
@@ -4472,14 +4506,14 @@ export class ContactResult {
 /**
  * Create a new RigidBodyComponentSystem.
  * @property gravity - The world space vector representing global gravity in the physics simulation.
-Defaults to [0, -9.81, 0] which is an approximation of the gravitational force on Earth.
+ * Defaults to [0, -9.81, 0] which is an approximation of the gravitational force on Earth.
  * @param app - The Application.
  */
 export class RigidBodyComponentSystem extends ComponentSystem {
     constructor(app: Application);
     /**
      * Raycast the world and return the first entity the ray hits. Fire a ray into the world from start to end,
-    if the ray hits an entity with a collision component, it returns a {@link RaycastResult}, otherwise returns null.
+     * if the ray hits an entity with a collision component, it returns a {@link RaycastResult}, otherwise returns null.
      * @param start - The world space point where the ray starts.
      * @param end - The world space point where the ray ends.
      * @returns The result of the raycasting or null if there was no hit.
@@ -4487,8 +4521,8 @@ export class RigidBodyComponentSystem extends ComponentSystem {
     raycastFirst(start: Vec3, end: Vec3): RaycastResult;
     /**
      * Raycast the world and return all entities the ray hits. It returns an array
-    of {@link RaycastResult}, one for each hit. If no hits are detected, the returned
-    array will be of length 0.
+     * of {@link RaycastResult}, one for each hit. If no hits are detected, the returned
+     * array will be of length 0.
      * @param start - The world space point where the ray starts.
      * @param end - The world space point where the ray ends.
      * @returns An array of raycast hit results (0 length if there were no hits).
@@ -4496,7 +4530,7 @@ export class RigidBodyComponentSystem extends ComponentSystem {
     raycastAll(start: Vec3, end: Vec3): RaycastResult[];
     /**
      * The world space vector representing global gravity in the physics simulation.
-     * Defaults to [0, -9.81, 0] which is an approximation of the gravitational force on Earth.
+    Defaults to [0, -9.81, 0] which is an approximation of the gravitational force on Earth.
     */
     gravity: Vec3;
 }
@@ -4516,8 +4550,8 @@ export class ScreenComponent extends Component {
     constructor(system: ScreenComponentSystem, entity: Entity);
     /**
      * Set the drawOrder of each child {@link ElementComponent}
-    so that ElementComponents which are last in the hierarchy are rendered on top.
-    Draw Order sync is queued and will be updated by the next update loop.
+     * so that ElementComponents which are last in the hierarchy are rendered on top.
+     * Draw Order sync is queued and will be updated by the next update loop.
      */
     syncDrawOrder(): void;
     /**
@@ -4566,7 +4600,7 @@ export class ScreenComponentSystem extends ComponentSystem {
 
 /**
  * The ScriptComponent allows you to extend the functionality of an Entity by attaching your own Script Types defined in JavaScript files
-to be executed with access to the Entity. For more details on scripting see <a href="//developer.playcanvas.com/user-manual/scripting/">Scripting</a>.
+ * to be executed with access to the Entity. For more details on scripting see <a href="//developer.playcanvas.com/user-manual/scripting/">Scripting</a>.
  * @property scripts - An array of all script instances attached to an entity. This Array shall not be modified by developer.
  * @param system - The ComponentSystem that created this Component.
  * @param entity - The Entity that this Component is attached to.
@@ -4577,8 +4611,8 @@ export class ScriptComponent extends Component {
      * Detect if script is attached to an entity.
      * @example
      * if (entity.script.has('playerController')) {
-        // entity has script
-    }
+     *     // entity has script
+     * }
      * @param nameOrType - The name or type of {@link ScriptType}.
      * @returns If script is attached to an entity.
      */
@@ -4595,10 +4629,10 @@ export class ScriptComponent extends Component {
      * Create a script instance and attach to an entity script component.
      * @example
      * entity.script.create('playerController', {
-        attributes: {
-            speed: 4
-        }
-    });
+     *     attributes: {
+     *         speed: 4
+     *     }
+     * });
      * @param nameOrType - The name or type of {@link ScriptType}.
      * @param [args] - Object with arguments for a script.
      * @param [args.enabled] - If script instance is enabled after creation. Defaults to true.
@@ -4606,8 +4640,8 @@ export class ScriptComponent extends Component {
      * @param [args.preloading] - If script instance is created during preload. If true, script and attributes must be initialized manually. Defaults to false.
      * @param [args.ind] - The index where to insert the script instance at. Defaults to -1, which means append it at the end.
      * @returns Returns an instance of a {@link ScriptType} if successfully attached to an entity,
-    or null if it failed because a script with a same name has already been added
-    or if the {@link ScriptType} cannot be found by name in the {@link ScriptRegistry}.
+     * or null if it failed because a script with a same name has already been added
+     * or if the {@link ScriptType} cannot be found by name in the {@link ScriptRegistry}.
      */
     create(nameOrType: string | typeof ScriptType, args?: {
         enabled?: boolean;
@@ -4651,10 +4685,10 @@ export class ScriptComponentSystem extends ComponentSystem {
  * @property horizontal - Whether to enable horizontal scrolling.
  * @property vertical - Whether to enable vertical scrolling.
  * @property scrollMode - Specifies how the scroll view should behave when the user scrolls past the end of the content. Modes are defined as follows:
-
-* {@link SCROLL_MODE_CLAMP}: Content does not scroll any further than its bounds.
-* {@link SCROLL_MODE_BOUNCE}: Content scrolls past its bounds and then gently bounces back.
-* {@link SCROLL_MODE_INFINITE}: Content can scroll forever.
+ *
+ * * {@link SCROLL_MODE_CLAMP}: Content does not scroll any further than its bounds.
+ * * {@link SCROLL_MODE_BOUNCE}: Content scrolls past its bounds and then gently bounces back.
+ * * {@link SCROLL_MODE_INFINITE}: Content can scroll forever.
  * @property bounceAmount - Controls how far the content should move before bouncing back.
  * @property friction - Controls how freely the content should move if thrown, i.e. By flicking on a phone or by flinging the scroll wheel on a mouse. A value of 1 means that content will stop immediately; 0 means that content will continue moving forever (or until the bounds of the content are reached, depending on the scrollMode).
  * @property horizontalScrollbarVisibility - Controls whether the horizontal scrollbar should be visible all the time, or only visible when the content exceeds the size of the viewport.
@@ -4678,9 +4712,10 @@ export class ScrollViewComponent extends Component {
     vertical: boolean;
     /**
      * Specifies how the scroll view should behave when the user scrolls past the end of the content. Modes are defined as follows:
-     * * {@link SCROLL_MODE_CLAMP}: Content does not scroll any further than its bounds.
-     * * {@link SCROLL_MODE_BOUNCE}: Content scrolls past its bounds and then gently bounces back.
-     * * {@link SCROLL_MODE_INFINITE}: Content can scroll forever.
+    
+    * {@link SCROLL_MODE_CLAMP}: Content does not scroll any further than its bounds.
+    * {@link SCROLL_MODE_BOUNCE}: Content scrolls past its bounds and then gently bounces back.
+    * {@link SCROLL_MODE_INFINITE}: Content can scroll forever.
     */
     scrollMode: number;
     /**
@@ -4753,17 +4788,17 @@ export class ScrollViewComponentSystem extends ComponentSystem {
 /**
  * Create a new ScrollbarComponent.
  * @property orientation - Whether the scrollbar moves horizontally or vertically. Can be:
-
-* {@link ORIENTATION_HORIZONTAL}: The scrollbar animates in the horizontal axis.
-* {@link ORIENTATION_VERTICAL}: The scrollbar animates in the vertical axis.
-
-Defaults to {@link ORIENTATION_HORIZONTAL}.
+ *
+ * * {@link ORIENTATION_HORIZONTAL}: The scrollbar animates in the horizontal axis.
+ * * {@link ORIENTATION_VERTICAL}: The scrollbar animates in the vertical axis.
+ *
+ * Defaults to {@link ORIENTATION_HORIZONTAL}.
  * @property value - The current position value of the scrollbar, in the range 0 to 1. Defaults to 0.
  * @property handleSize - The size of the handle relative to the size of the track, in the range
-0 to 1. For a vertical scrollbar, a value of 1 means that the handle will take up the full height of
-the track.
+ * 0 to 1. For a vertical scrollbar, a value of 1 means that the handle will take up the full height of
+ * the track.
  * @property handleEntity - The entity to be used as the scrollbar handle. This entity must
-have a Scrollbar component.
+ * have a Scrollbar component.
  * @param system - The ComponentSystem that created this Component.
  * @param entity - The Entity that this Component is attached to.
  */
@@ -4771,9 +4806,11 @@ export class ScrollbarComponent extends Component {
     constructor(system: ScrollbarComponentSystem, entity: Entity);
     /**
      * Whether the scrollbar moves horizontally or vertically. Can be:
-     * * {@link ORIENTATION_HORIZONTAL}: The scrollbar animates in the horizontal axis.
-     * * {@link ORIENTATION_VERTICAL}: The scrollbar animates in the vertical axis.
-     * Defaults to {@link ORIENTATION_HORIZONTAL}.
+    
+    * {@link ORIENTATION_HORIZONTAL}: The scrollbar animates in the horizontal axis.
+    * {@link ORIENTATION_VERTICAL}: The scrollbar animates in the vertical axis.
+    
+    Defaults to {@link ORIENTATION_HORIZONTAL}.
     */
     orientation: number;
     /**
@@ -4782,13 +4819,13 @@ export class ScrollbarComponent extends Component {
     value: number;
     /**
      * The size of the handle relative to the size of the track, in the range
-     * 0 to 1. For a vertical scrollbar, a value of 1 means that the handle will take up the full height of
-     * the track.
+    0 to 1. For a vertical scrollbar, a value of 1 means that the handle will take up the full height of
+    the track.
     */
     handleSize: number;
     /**
      * The entity to be used as the scrollbar handle. This entity must
-     * have a Scrollbar component.
+    have a Scrollbar component.
     */
     handleEntity: Entity;
 }
@@ -4804,30 +4841,30 @@ export class ScrollbarComponentSystem extends ComponentSystem {
 /**
  * Create a new Sound Component.
  * @property volume - The volume modifier to play the audio with. In range 0-1.
-Defaults to 1.
+ * Defaults to 1.
  * @property pitch - The pitch modifier to play the audio with. Must be larger
-than 0.01. Defaults to 1.
+ * than 0.01. Defaults to 1.
  * @property positional - If true the audio will play back at the location
-of the Entity in space, so the audio will be affected by the position of the
-{@link AudioListenerComponent}. Defaults to true.
+ * of the Entity in space, so the audio will be affected by the position of the
+ * {@link AudioListenerComponent}. Defaults to true.
  * @property distanceModel - Determines which algorithm to use to reduce the
-volume of the sound as it moves away from the listener. Can be:
-
-* {@link DISTANCE_LINEAR}
-* {@link DISTANCE_INVERSE}
-* {@link DISTANCE_EXPONENTIAL}
-
-Defaults to {@link DISTANCE_LINEAR}.
+ * volume of the sound as it moves away from the listener. Can be:
+ *
+ * * {@link DISTANCE_LINEAR}
+ * * {@link DISTANCE_INVERSE}
+ * * {@link DISTANCE_EXPONENTIAL}
+ *
+ * Defaults to {@link DISTANCE_LINEAR}.
  * @property refDistance - The reference distance for reducing volume as the
-sound source moves further from the listener. Defaults to 1.
+ * sound source moves further from the listener. Defaults to 1.
  * @property maxDistance - The maximum distance from the listener at which audio
-falloff stops. Note the volume of the audio is not 0 after this distance, but just
-doesn't fall off anymore. Defaults to 10000.
+ * falloff stops. Note the volume of the audio is not 0 after this distance, but just
+ * doesn't fall off anymore. Defaults to 10000.
  * @property rollOffFactor - The factor used in the falloff equation. Defaults to 1.
  * @property slots - A dictionary that contains the {@link SoundSlot}s managed
-by this SoundComponent.
+ * by this SoundComponent.
  * @param system - The ComponentSystem that created this
-component.
+ * component.
  * @param entity - The entity that the Component is attached to.
  */
 export class SoundComponent extends Component {
@@ -4836,13 +4873,13 @@ export class SoundComponent extends Component {
      * Creates a new {@link SoundSlot} with the specified name.
      * @example
      * // get an asset by id
-    var asset = app.assets.get(10);
-    // add a slot
-    this.entity.sound.addSlot('beep', {
-        asset: asset
-    });
-    // play
-    this.entity.sound.play('beep');
+     * var asset = app.assets.get(10);
+     * // add a slot
+     * this.entity.sound.addSlot('beep', {
+     *     asset: asset
+     * });
+     * // play
+     * this.entity.sound.play('beep');
      * @param name - The name of the slot.
      * @param [options] - Settings for the slot.
      * @param [options.volume = 1] - The playback volume, between 0 and 1.
@@ -4869,7 +4906,7 @@ export class SoundComponent extends Component {
      * Removes the {@link SoundSlot} with the specified name.
      * @example
      * // remove a slot called 'beep'
-    this.entity.sound.removeSlot('beep');
+     * this.entity.sound.removeSlot('beep');
      * @param name - The name of the slot.
      */
     removeSlot(name: string): void;
@@ -4877,7 +4914,7 @@ export class SoundComponent extends Component {
      * Returns the slot with the specified name.
      * @example
      * // get a slot and set its volume
-    this.entity.sound.slot('beep').volume = 0.5;
+     * this.entity.sound.slot('beep').volume = 0.5;
      * @param name - The name of the slot.
      * @returns The slot.
      */
@@ -4886,12 +4923,12 @@ export class SoundComponent extends Component {
      * Begins playing the sound slot with the specified name. The slot will restart playing if it is already playing unless the overlap field is true in which case a new sound will be created and played.
      * @example
      * // get asset by id
-    var asset = app.assets.get(10);
-    // create a slot and play it
-    this.entity.sound.addSlot('beep', {
-        asset: asset
-    });
-    this.entity.sound.play('beep');
+     * var asset = app.assets.get(10);
+     * // create a slot and play it
+     * this.entity.sound.addSlot('beep', {
+     *     asset: asset
+     * });
+     * this.entity.sound.play('beep');
      * @param name - The name of the {@link SoundSlot} to play.
      * @returns The sound instance that will be played.
      */
@@ -4900,68 +4937,70 @@ export class SoundComponent extends Component {
      * Pauses playback of the slot with the specified name. If the name is undefined then all slots currently played will be paused. The slots can be resumed by calling {@link SoundComponent#resume}.
      * @example
      * // pause all sounds
-    this.entity.sound.pause();
-    // pause a specific sound
-    this.entity.sound.pause('beep');
+     * this.entity.sound.pause();
+     * // pause a specific sound
+     * this.entity.sound.pause('beep');
      * @param [name] - The name of the slot to pause. Leave undefined to pause everything.
      */
     pause(name?: string): void;
     /**
      * Resumes playback of the sound slot with the specified name if it's paused. If no
-    name is specified all slots will be resumed.
+     * name is specified all slots will be resumed.
      * @example
      * // resume all sounds
-    this.entity.sound.resume();
-    // resume a specific sound
-    this.entity.sound.resume('beep');
+     * this.entity.sound.resume();
+     * // resume a specific sound
+     * this.entity.sound.resume('beep');
      * @param [name] - The name of the slot to resume. Leave undefined to resume everything.
      */
     resume(name?: string): void;
     /**
      * Stops playback of the sound slot with the specified name if it's paused. If no
-    name is specified all slots will be stopped.
+     * name is specified all slots will be stopped.
      * @example
      * // stop all sounds
-    this.entity.sound.stop();
-    // stop a specific sound
-    this.entity.sound.stop('beep');
+     * this.entity.sound.stop();
+     * // stop a specific sound
+     * this.entity.sound.stop('beep');
      * @param [name] - The name of the slot to stop. Leave undefined to stop everything.
      */
     stop(name?: string): void;
     /**
      * The volume modifier to play the audio with. In range 0-1.
-     * Defaults to 1.
+    Defaults to 1.
     */
     volume: number;
     /**
      * The pitch modifier to play the audio with. Must be larger
-     * than 0.01. Defaults to 1.
+    than 0.01. Defaults to 1.
     */
     pitch: number;
     /**
      * If true the audio will play back at the location
-     * of the Entity in space, so the audio will be affected by the position of the
-     * {@link AudioListenerComponent}. Defaults to true.
+    of the Entity in space, so the audio will be affected by the position of the
+    {@link AudioListenerComponent}. Defaults to true.
     */
     positional: boolean;
     /**
      * Determines which algorithm to use to reduce the
-     * volume of the sound as it moves away from the listener. Can be:
-     * * {@link DISTANCE_LINEAR}
-     * * {@link DISTANCE_INVERSE}
-     * * {@link DISTANCE_EXPONENTIAL}
-     * Defaults to {@link DISTANCE_LINEAR}.
+    volume of the sound as it moves away from the listener. Can be:
+    
+    * {@link DISTANCE_LINEAR}
+    * {@link DISTANCE_INVERSE}
+    * {@link DISTANCE_EXPONENTIAL}
+    
+    Defaults to {@link DISTANCE_LINEAR}.
     */
     distanceModel: string;
     /**
      * The reference distance for reducing volume as the
-     * sound source moves further from the listener. Defaults to 1.
+    sound source moves further from the listener. Defaults to 1.
     */
     refDistance: number;
     /**
      * The maximum distance from the listener at which audio
-     * falloff stops. Note the volume of the audio is not 0 after this distance, but just
-     * doesn't fall off anymore. Defaults to 10000.
+    falloff stops. Note the volume of the audio is not 0 after this distance, but just
+    doesn't fall off anymore. Defaults to 10000.
     */
     maxDistance: number;
     /**
@@ -4970,7 +5009,7 @@ export class SoundComponent extends Component {
     rollOffFactor: number;
     /**
      * A dictionary that contains the {@link SoundSlot}s managed
-     * by this SoundComponent.
+    by this SoundComponent.
     */
     slots: any;
 }
@@ -5016,8 +5055,8 @@ export class SoundSlot extends EventHandler {
     });
     /**
      * Plays a sound. If {@link SoundSlot#overlap} is true the new sound
-    instance will be played independently of any other instances already playing.
-    Otherwise existing sound instances will stop before playing the new sound.
+     * instance will be played independently of any other instances already playing.
+     * Otherwise existing sound instances will stop before playing the new sound.
      * @returns The new sound instance.
      */
     play(): SoundInstance;
@@ -5042,20 +5081,20 @@ export class SoundSlot extends EventHandler {
     load(): void;
     /**
      * Connect external Web Audio API nodes. Any sound played by this slot will
-    automatically attach the specified nodes to the source that plays the sound. You need to pass
-    the first node of the node graph that you created externally and the last node of that graph. The first
-    node will be connected to the audio source and the last node will be connected to the destination of the AudioContext (e.g. speakers).
+     * automatically attach the specified nodes to the source that plays the sound. You need to pass
+     * the first node of the node graph that you created externally and the last node of that graph. The first
+     * node will be connected to the audio source and the last node will be connected to the destination of the AudioContext (e.g. speakers).
      * @example
      * var context = app.systems.sound.context;
-    var analyzer = context.createAnalyzer();
-    var distortion = context.createWaveShaper();
-    var filter = context.createBiquadFilter();
-    analyzer.connect(distortion);
-    distortion.connect(filter);
-    slot.setExternalNodes(analyzer, filter);
+     * var analyzer = context.createAnalyzer();
+     * var distortion = context.createWaveShaper();
+     * var filter = context.createBiquadFilter();
+     * analyzer.connect(distortion);
+     * distortion.connect(filter);
+     * slot.setExternalNodes(analyzer, filter);
      * @param firstNode - The first node that will be connected to the audio source of sound instances.
      * @param [lastNode] - The last node that will be connected to the destination of the AudioContext.
-    If unspecified then the firstNode will be connected to the destination instead.
+     * If unspecified then the firstNode will be connected to the destination instead.
      */
     setExternalNodes(firstNode: AudioNode, lastNode?: AudioNode): void;
     /**
@@ -5128,7 +5167,7 @@ export class SoundSlot extends EventHandler {
 /**
  * Create a SoundComponentSystem.
  * @property volume - Sets / gets the volume for the entire Sound system. All sounds will have their volume
-multiplied by this value. Valid between [0, 1].
+ * multiplied by this value. Valid between [0, 1].
  * @property context - Gets the AudioContext currently used by the sound manager. Requires Web Audio API support.
  * @property manager - Gets / sets the sound manager.
  * @param app - The Application.
@@ -5138,7 +5177,7 @@ export class SoundComponentSystem extends ComponentSystem {
     constructor(app: Application, manager: SoundManager);
     /**
      * Sets / gets the volume for the entire Sound system. All sounds will have their volume
-     * multiplied by this value. Valid between [0, 1].
+    multiplied by this value. Valid between [0, 1].
     */
     volume: number;
     /**
@@ -5154,11 +5193,11 @@ export class SoundComponentSystem extends ComponentSystem {
 /**
  * Enables an Entity to render a simple static sprite or sprite animations.
  * @property type - The type of the SpriteComponent. Can be:
-
-* {@link SPRITETYPE_SIMPLE}: The component renders a single frame from a sprite asset.
-* {@link SPRITETYPE_ANIMATED}: The component can play sprite animation clips.
+ *
+ * * {@link SPRITETYPE_SIMPLE}: The component renders a single frame from a sprite asset.
+ * * {@link SPRITETYPE_ANIMATED}: The component can play sprite animation clips.
  * @property frame - The frame counter of the sprite. Specifies which frame from the current sprite asset to render.
- * @property spriteAsset - The id of the sprite asset to render. Only works for {@link SPRITETYPE_SIMPLE} types.
+ * @property spriteAsset - The asset id or the {@link Asset} of the sprite to render. Only works for {@link SPRITETYPE_SIMPLE} sprites.
  * @property sprite - The current sprite.
  * @property width - The width of the sprite when rendering using 9-Slicing. The width and height are only used when the render mode of the sprite asset is Sliced or Tiled.
  * @property height - The height of the sprite when rendering using 9-Slicing. The width and height are only used when the render mode of the sprite asset is Sliced or Tiled.
@@ -5184,14 +5223,14 @@ export class SpriteComponent extends Component {
      * @param [data.name] - The name of the new animation clip.
      * @param [data.fps] - Frames per second for the animation clip.
      * @param [data.loop] - Whether to loop the animation clip.
-     * @param [data.spriteAsset] - The id of the sprite asset that this clip will play.
+     * @param [data.spriteAsset] - The asset id or the {@link Asset} of the sprite that this clip will play.
      * @returns The new clip that was added.
      */
     addClip(data: {
         name?: string;
         fps?: number;
         loop?: any;
-        spriteAsset?: number;
+        spriteAsset?: number | Asset;
     }): SpriteAnimationClip;
     /**
      * Removes a clip by name.
@@ -5224,8 +5263,9 @@ export class SpriteComponent extends Component {
     stop(): void;
     /**
      * The type of the SpriteComponent. Can be:
-     * * {@link SPRITETYPE_SIMPLE}: The component renders a single frame from a sprite asset.
-     * * {@link SPRITETYPE_ANIMATED}: The component can play sprite animation clips.
+    
+    * {@link SPRITETYPE_SIMPLE}: The component renders a single frame from a sprite asset.
+    * {@link SPRITETYPE_ANIMATED}: The component can play sprite animation clips.
     */
     type: string;
     /**
@@ -5233,9 +5273,9 @@ export class SpriteComponent extends Component {
     */
     frame: number;
     /**
-     * The id of the sprite asset to render. Only works for {@link SPRITETYPE_SIMPLE} types.
+     * The asset id or the {@link Asset} of the sprite to render. Only works for {@link SPRITETYPE_SIMPLE} sprites.
     */
-    spriteAsset: number;
+    spriteAsset: number | Asset;
     /**
      * The current sprite.
     */
@@ -5416,40 +5456,40 @@ export const RESOLUTION_FIXED: string;
 
 /**
  * The Entity is the core primitive of a PlayCanvas game. Generally speaking an object in your game will consist of an {@link Entity},
-and a set of {@link Component}s which are managed by their respective {@link ComponentSystem}s. One of those components maybe a
-{@link ScriptComponent} which allows you to write custom code to attach to your Entity.
-<p>
-The Entity uniquely identifies the object and also provides a transform for position and orientation
-which it inherits from {@link GraphNode} so can be added into the scene graph.
-The Component and ComponentSystem provide the logic to give an Entity a specific type of behavior. e.g. the ability to
-render a model or play a sound. Components are specific to an instance of an Entity and are attached (e.g. `this.entity.model`)
-ComponentSystems allow access to all Entities and Components and are attached to the {@link Application}.
+ * and a set of {@link Component}s which are managed by their respective {@link ComponentSystem}s. One of those components maybe a
+ * {@link ScriptComponent} which allows you to write custom code to attach to your Entity.
+ * <p>
+ * The Entity uniquely identifies the object and also provides a transform for position and orientation
+ * which it inherits from {@link GraphNode} so can be added into the scene graph.
+ * The Component and ComponentSystem provide the logic to give an Entity a specific type of behavior. e.g. the ability to
+ * render a model or play a sound. Components are specific to an instance of an Entity and are attached (e.g. `this.entity.model`)
+ * ComponentSystems allow access to all Entities and Components and are attached to the {@link Application}.
  * @example
  * var entity = new pc.Entity();
-
-// Add a Component to the Entity
-entity.addComponent("camera", {
-    fov: 45,
-    nearClip: 1,
-    farClip: 10000
-});
-
-// Add the Entity into the scene graph
-app.root.addChild(entity);
-
-// Move the entity
-entity.translate(10, 0, 0);
-
-// Or translate it by setting it's position directly
-var p = entity.getPosition();
-entity.setPosition(p.x + 10, p.y, p.z);
-
-// Change the entity's rotation in local space
-var e = entity.getLocalEulerAngles();
-entity.setLocalEulerAngles(e.x, e.y + 90, e.z);
-
-// Or use rotateLocal
-entity.rotateLocal(0, 90, 0);
+ *
+ * // Add a Component to the Entity
+ * entity.addComponent("camera", {
+ *     fov: 45,
+ *     nearClip: 1,
+ *     farClip: 10000
+ * });
+ *
+ * // Add the Entity into the scene graph
+ * app.root.addChild(entity);
+ *
+ * // Move the entity
+ * entity.translate(10, 0, 0);
+ *
+ * // Or translate it by setting it's position directly
+ * var p = entity.getPosition();
+ * entity.setPosition(p.x + 10, p.y, p.z);
+ *
+ * // Change the entity's rotation in local space
+ * var e = entity.getLocalEulerAngles();
+ * entity.setLocalEulerAngles(e.x, e.y + 90, e.z);
+ *
+ * // Or use rotateLocal
+ * entity.rotateLocal(0, 90, 0);
  * @property [anim] - Gets the {@link AnimComponent} attached to this entity. [read only]
  * @property [animation] - Gets the {@link AnimationComponent} attached to this entity. [read only]
  * @property [audiolistener] - Gets the {@link AudioListenerComponent} attached to this entity. [read only]
@@ -5476,52 +5516,52 @@ export class Entity extends GraphNode {
     constructor(name?: string, app?: Application);
     /**
      * Create a new component and add it to the entity.
-    Use this to add functionality to the entity like rendering a model, playing sounds and so on.
+     * Use this to add functionality to the entity like rendering a model, playing sounds and so on.
      * @example
      * var entity = new pc.Entity();
-    
-    // Add a light component with default properties
-    entity.addComponent("light");
-    
-    // Add a camera component with some specified properties
-    entity.addComponent("camera", {
-        fov: 45,
-        clearColor: new pc.Color(1, 0, 0)
-    });
+     *
+     * // Add a light component with default properties
+     * entity.addComponent("light");
+     *
+     * // Add a camera component with some specified properties
+     * entity.addComponent("camera", {
+     *     fov: 45,
+     *     clearColor: new pc.Color(1, 0, 0)
+     * });
      * @param type - The name of the component to add. Valid strings are:
-    
-    * "animation" - see {@link AnimationComponent}
-    * "audiolistener" - see {@link AudioListenerComponent}
-    * "button" - see {@link ButtonComponent}
-    * "camera" - see {@link CameraComponent}
-    * "collision" - see {@link CollisionComponent}
-    * "element" - see {@link ElementComponent}
-    * "layoutchild" - see {@link LayoutChildComponent}
-    * "layoutgroup" - see {@link LayoutGroupComponent}
-    * "light" - see {@link LightComponent}
-    * "model" - see {@link ModelComponent}
-    * "particlesystem" - see {@link ParticleSystemComponent}
-    * "render" - see {@link RenderComponent}
-    * "rigidbody" - see {@link RigidBodyComponent}
-    * "screen" - see {@link ScreenComponent}
-    * "script" - see {@link ScriptComponent}
-    * "scrollbar" - see {@link ScrollbarComponent}
-    * "scrollview" - see {@link ScrollViewComponent}
-    * "sound" - see {@link SoundComponent}
-    * "sprite" - see {@link SpriteComponent}
+     *
+     * * "animation" - see {@link AnimationComponent}
+     * * "audiolistener" - see {@link AudioListenerComponent}
+     * * "button" - see {@link ButtonComponent}
+     * * "camera" - see {@link CameraComponent}
+     * * "collision" - see {@link CollisionComponent}
+     * * "element" - see {@link ElementComponent}
+     * * "layoutchild" - see {@link LayoutChildComponent}
+     * * "layoutgroup" - see {@link LayoutGroupComponent}
+     * * "light" - see {@link LightComponent}
+     * * "model" - see {@link ModelComponent}
+     * * "particlesystem" - see {@link ParticleSystemComponent}
+     * * "render" - see {@link RenderComponent}
+     * * "rigidbody" - see {@link RigidBodyComponent}
+     * * "screen" - see {@link ScreenComponent}
+     * * "script" - see {@link ScriptComponent}
+     * * "scrollbar" - see {@link ScrollbarComponent}
+     * * "scrollview" - see {@link ScrollViewComponent}
+     * * "sound" - see {@link SoundComponent}
+     * * "sprite" - see {@link SpriteComponent}
      * @param [data] - The initialization data for the specific component type. Refer to each
-    specific component's API reference page for details on valid values for this parameter.
+     * specific component's API reference page for details on valid values for this parameter.
      * @returns The new Component that was attached to the entity or null if there
-    was an error.
+     * was an error.
      */
     addComponent(type: string, data?: any): Component;
     /**
      * Remove a component from the Entity.
      * @example
      * var entity = new pc.Entity();
-    entity.addComponent("light"); // add new light component
-    
-    entity.removeComponent("light"); // remove light component
+     * entity.addComponent("light"); // add new light component
+     *
+     * entity.removeComponent("light"); // remove light component
      * @param type - The name of the Component type.
      */
     removeComponent(type: string): void;
@@ -5529,20 +5569,20 @@ export class Entity extends GraphNode {
      * Search the entity and all of its descendants for the first component of specified type.
      * @example
      * // Get the first found light component in the hierarchy tree that starts with this entity
-    var light = entity.findComponent("light");
+     * var light = entity.findComponent("light");
      * @param type - The name of the component type to retrieve.
      * @returns A component of specified type, if the entity or any of its descendants has
-    one. Returns undefined otherwise.
+     * one. Returns undefined otherwise.
      */
     findComponent(type: string): Component;
     /**
      * Search the entity and all of its descendants for all components of specified type.
      * @example
      * // Get all light components in the hierarchy tree that starts with this entity
-    var lights = entity.findComponents("light");
+     * var lights = entity.findComponents("light");
      * @param type - The name of the component type to retrieve.
      * @returns All components of specified type in the entity or any of its descendants.
-    Returns empty array if none found.
+     * Returns empty array if none found.
      */
     findComponents(type: string): Component[];
     /**
@@ -5555,17 +5595,17 @@ export class Entity extends GraphNode {
      * Remove all components from the Entity and detach it from the Entity hierarchy. Then recursively destroy all ancestor Entities.
      * @example
      * var firstChild = this.entity.children[0];
-    firstChild.destroy(); // delete child, all components and remove from hierarchy
+     * firstChild.destroy(); // delete child, all components and remove from hierarchy
      */
     destroy(): void;
     /**
      * Create a deep copy of the Entity. Duplicate the full Entity hierarchy, with all Components and all descendants.
-    Note, this Entity is not in the hierarchy and must be added manually.
+     * Note, this Entity is not in the hierarchy and must be added manually.
      * @example
      * var e = this.entity.clone();
-    
-    // Add clone as a sibling to the original
-    this.entity.parent.addChild(e);
+     *
+     * // Add clone as a sibling to the original
+     * this.entity.parent.addChild(e);
      * @returns A new Entity which is a deep copy of the original.
      */
     clone(): Entity;
@@ -5651,7 +5691,7 @@ export class Entity extends GraphNode {
  * Item to be stored in the {@link SceneRegistry}.
  * @property name - The name of the scene.
  * @property url - The url of the scene file.
- * @property loaded - Returns true if the scene data is still being loaded
+ * @property loaded - Returns true if the scene data is still being loaded.
  * @param name - The name of the scene.
  * @param url - The url of the scene file.
  */
@@ -5666,7 +5706,7 @@ export class SceneRegistryItem {
     */
     url: string;
     /**
-     * Returns true if the scene data is still being loaded
+     * Returns true if the scene data is still being loaded.
     */
     loaded: boolean;
 }
@@ -5708,12 +5748,12 @@ export class SceneRegistry {
     remove(name: string): void;
     /**
      * Loads and stores the scene data to reduce the number of the network
-    requests when the same scenes are loaded multiple times. Can also be used to load data before calling
-    {@link SceneRegistry.loadSceneHierarchy} and {@link SceneRegistry#loadSceneSettings} to make
-    scene loading quicker for the user.
+     * requests when the same scenes are loaded multiple times. Can also be used to load data before calling
+     * {@link SceneRegistry.loadSceneHierarchy} and {@link SceneRegistry#loadSceneSettings} to make
+     * scene loading quicker for the user.
      * @param sceneItem - The scene item or URL of the scene file. Usually this will be "scene_id.json".
      * @param callback - The function to call after loading,
-    passed (err, sceneItem) where err is null if no errors occurred.
+     * passed (err, sceneItem) where err is null if no errors occurred.
      */
     loadSceneData(sceneItem: SceneRegistryItem | string, callback: callbacks.LoadSceneData): void;
     /**
@@ -5723,66 +5763,66 @@ export class SceneRegistry {
     unloadSceneData(sceneItem: SceneRegistryItem | string): void;
     /**
      * Load a scene file, create and initialize the Entity hierarchy
-    and add the hierarchy to the application root Entity.
+     * and add the hierarchy to the application root Entity.
      * @example
      * var sceneItem = app.scenes.find("Scene Name");
-    app.scenes.loadSceneHierarchy(sceneItem, function (err, entity) {
-        if (!err) {
-            var e = app.root.find("My New Entity");
-        } else {
-            // error
-        }
-    });
+     * app.scenes.loadSceneHierarchy(sceneItem, function (err, entity) {
+     *     if (!err) {
+     *         var e = app.root.find("My New Entity");
+     *     } else {
+     *         // error
+     *     }
+     * });
      * @param sceneItem - The scene item or URL of the scene file. Usually this will be "scene_id.json".
      * @param callback - The function to call after loading,
-    passed (err, entity) where err is null if no errors occurred.
+     * passed (err, entity) where err is null if no errors occurred.
      */
     loadSceneHierarchy(sceneItem: SceneRegistryItem | string, callback: callbacks.LoadHierarchy): void;
     /**
      * Load a scene file and apply the scene settings to the current scene.
      * @example
      * var sceneItem = app.scenes.find("Scene Name");
-    app.scenes.loadSceneHierarchy(sceneItem, function (err, entity) {
-        if (!err) {
-            var e = app.root.find("My New Entity");
-        } else {
-            // error
-        }
-    });
+     * app.scenes.loadSceneHierarchy(sceneItem, function (err, entity) {
+     *     if (!err) {
+     *         var e = app.root.find("My New Entity");
+     *     } else {
+     *         // error
+     *     }
+     * });
      * @param sceneItem - The scene item or URL of the scene file. Usually this will be "scene_id.json".
      * @param callback - The function called after the settings
-    are applied. Passed (err) where err is null if no error occurred.
+     * are applied. Passed (err) where err is null if no error occurred.
      */
     loadSceneSettings(sceneItem: SceneRegistryItem | string, callback: callbacks.LoadSettings): void;
     /**
      * Load the scene hierarchy and scene settings. This is an internal method used
-    by the {@link Application}.
+     * by the {@link Application}.
      * @param url - The URL of the scene file.
      * @param callback - The function called after the settings are
-    applied. Passed (err, scene) where err is null if no error occurred and scene is the
-    {@link Scene}.
+     * applied. Passed (err, scene) where err is null if no error occurred and scene is the
+     * {@link Scene}.
      */
     loadScene(url: string, callback: callbacks.LoadScene): void;
 }
 
 /**
  * The script namespace holds the createLoadingScreen function that
-is used to override the default PlayCanvas loading screen.
+ * is used to override the default PlayCanvas loading screen.
  */
 export namespace script {
     /**
      * Handles the creation of the loading screen of the application. A script can subscribe to
-    the events of a {@link Application} to show a loading screen, progress bar etc. In order for this to work
-    you need to set the project's loading screen script to the script that calls this method.
+     * the events of a {@link Application} to show a loading screen, progress bar etc. In order for this to work
+     * you need to set the project's loading screen script to the script that calls this method.
      * @example
      * pc.script.createLoadingScreen(function (app) {
-        var showSplashScreen = function () {};
-        var hideSplashScreen = function () {};
-        var showProgress = function (progress) {};
-        app.on("preload:start", showSplashScreen);
-        app.on("preload:progress", showProgress);
-        app.on("start", hideSplashScreen);
-    });
+     *     var showSplashScreen = function () {};
+     *     var hideSplashScreen = function () {};
+     *     var showProgress = function (progress) {};
+     *     app.on("preload:start", showSplashScreen);
+     *     app.on("preload:progress", showProgress);
+     *     app.on("start", hideSplashScreen);
+     * });
      * @param callback - A function which can set up and tear down a customised loading screen.
      */
     function createLoadingScreen(callback: callbacks.CreateScreen): void;
@@ -5800,7 +5840,7 @@ export const ADDRESS_CLAMP_TO_EDGE: number;
 
 /**
  * Texture coordinate to be set to the fractional part if the integer part is even. If the integer part is odd,
-then the texture coordinate is set to 1 minus the fractional part.
+ * then the texture coordinate is set to 1 minus the fractional part.
  */
 export const ADDRESS_MIRRORED_REPEAT: number;
 
@@ -5966,7 +6006,7 @@ export const CULLFACE_FRONT: number;
 
 /**
  * Triangles are culled regardless of their orientation with respect to the view
-direction. Note that point or line primitives are unaffected by this render state.
+ * direction. Note that point or line primitives are unaffected by this render state.
  */
 export const CULLFACE_FRONTANDBACK: number;
 
@@ -6451,41 +6491,41 @@ export const TEXTURELOCK_WRITE: number;
 export const TEXTURETYPE_DEFAULT: string;
 
 /**
- * Texture stores high dynamic range data in RGBM format
+ * Texture stores high dynamic range data in RGBM format.
  */
 export const TEXTURETYPE_RGBM: string;
 
 /**
- * Texture stores high dynamic range data in RGBE format
+ * Texture stores high dynamic range data in RGBE format.
  */
 export const TEXTURETYPE_RGBE: string;
 
 /**
  * Texture stores normalmap data swizzled in GGGR format. This is used for tangent space normal
-maps. The R component is stored in alpha and G is stored in RGB. This packing can result in higher quality
-when the texture data is compressed.
+ * maps. The R component is stored in alpha and G is stored in RGB. This packing can result in higher quality
+ * when the texture data is compressed.
  */
 export const TEXTURETYPE_SWIZZLEGGGR: string;
 
 /**
  * Texture data is not stored a specific projection format.
  */
-export const TEXTUREPROJECTION_NONE: number;
+export const TEXTUREPROJECTION_NONE: string;
 
 /**
  * Texture data is stored in cubemap projection format.
  */
-export const TEXTUREPROJECTION_CUBE: number;
+export const TEXTUREPROJECTION_CUBE: string;
 
 /**
  * Texture data is stored in equirectangular projection format.
  */
-export const TEXTUREPROJECTION_EQUIRECT: number;
+export const TEXTUREPROJECTION_EQUIRECT: string;
 
 /**
  * Texture data is stored in octahedral projection format.
  */
-export const TEXTUREPROJECTION_OCTAHEDRAL: number;
+export const TEXTUREPROJECTION_OCTAHEDRAL: string;
 
 /**
  * Signed byte vertex element type.
@@ -6584,42 +6624,42 @@ export class GraphicsDevice extends EventHandler {
     copyRenderTarget(source: RenderTarget, dest?: RenderTarget, color?: boolean, depth?: boolean): boolean;
     /**
      * Marks the beginning of a block of rendering. Internally, this function
-    binds the render target currently set on the device. This function should be matched
-    with a call to {@link GraphicsDevice#updateEnd}. Calls to {@link GraphicsDevice#updateBegin}
-    and {@link GraphicsDevice#updateEnd} must not be nested.
+     * binds the render target currently set on the device. This function should be matched
+     * with a call to {@link GraphicsDevice#updateEnd}. Calls to {@link GraphicsDevice#updateBegin}
+     * and {@link GraphicsDevice#updateEnd} must not be nested.
      */
     updateBegin(): void;
     /**
      * Marks the end of a block of rendering. This function should be called
-    after a matching call to {@link GraphicsDevice#updateBegin}. Calls to {@link GraphicsDevice#updateBegin}
-    and {@link GraphicsDevice#updateEnd} must not be nested.
+     * after a matching call to {@link GraphicsDevice#updateBegin}. Calls to {@link GraphicsDevice#updateBegin}
+     * and {@link GraphicsDevice#updateEnd} must not be nested.
      */
     updateEnd(): void;
     /**
      * Submits a graphical primitive to the hardware for immediate rendering.
      * @example
      * // Render a single, unindexed triangle
-    device.draw({
-        type: pc.PRIMITIVE_TRIANGLES,
-        base: 0,
-        count: 3,
-        indexed: false
-    });
+     * device.draw({
+     *     type: pc.PRIMITIVE_TRIANGLES,
+     *     base: 0,
+     *     count: 3,
+     *     indexed: false
+     * });
      * @param primitive - Primitive object describing how to submit current vertex/index buffers defined as follows:
      * @param primitive.type - The type of primitive to render. Can be:
-    * {@link PRIMITIVE_POINTS}
-    * {@link PRIMITIVE_LINES}
-    * {@link PRIMITIVE_LINELOOP}
-    * {@link PRIMITIVE_LINESTRIP}
-    * {@link PRIMITIVE_TRIANGLES}
-    * {@link PRIMITIVE_TRISTRIP}
-    * {@link PRIMITIVE_TRIFAN}
+     * * {@link PRIMITIVE_POINTS}
+     * * {@link PRIMITIVE_LINES}
+     * * {@link PRIMITIVE_LINELOOP}
+     * * {@link PRIMITIVE_LINESTRIP}
+     * * {@link PRIMITIVE_TRIANGLES}
+     * * {@link PRIMITIVE_TRISTRIP}
+     * * {@link PRIMITIVE_TRIFAN}
      * @param primitive.base - The offset of the first index or vertex to dispatch in the draw call.
      * @param primitive.count - The number of indices or vertices to dispatch in the draw call.
      * @param [primitive.indexed] - True to interpret the primitive as indexed, thereby using the currently set index buffer and false otherwise.
      * @param [numInstances = 1] - The number of instances to render when using ANGLE_instanced_arrays. Defaults to 1.
      * @param [keepBuffers] - Optionally keep the current set of vertex / index buffers / VAO. This is used when rendering of
-    multiple views, for example under WebXR.
+     * multiple views, for example under WebXR.
      */
     draw(primitive: {
         type: number;
@@ -6631,28 +6671,28 @@ export class GraphicsDevice extends EventHandler {
      * Clears the frame buffer of the currently set render target.
      * @example
      * // Clear color buffer to black and depth buffer to 1.0
-    device.clear();
-    
-    // Clear just the color buffer to red
-    device.clear({
-        color: [1, 0, 0, 1],
-        flags: pc.CLEARFLAG_COLOR
-    });
-    
-    // Clear color buffer to yellow and depth to 1.0
-    device.clear({
-        color: [1, 1, 0, 1],
-        depth: 1,
-        flags: pc.CLEARFLAG_COLOR | pc.CLEARFLAG_DEPTH
-    });
+     * device.clear();
+     *
+     * // Clear just the color buffer to red
+     * device.clear({
+     *     color: [1, 0, 0, 1],
+     *     flags: pc.CLEARFLAG_COLOR
+     * });
+     *
+     * // Clear color buffer to yellow and depth to 1.0
+     * device.clear({
+     *     color: [1, 1, 0, 1],
+     *     depth: 1,
+     *     flags: pc.CLEARFLAG_COLOR | pc.CLEARFLAG_DEPTH
+     * });
      * @param options - Optional options object that controls the behavior of the clear operation defined as follows:
      * @param options.color - The color to clear the color buffer to in the range 0.0 to 1.0 for each component.
      * @param options.depth - The depth value to clear the depth buffer to in the range 0.0 to 1.0.
      * @param options.flags - The buffers to clear (the types being color, depth and stencil). Can be any bitwise
-    combination of:
-    * {@link CLEARFLAG_COLOR}
-    * {@link CLEARFLAG_DEPTH}
-    * {@link CLEARFLAG_STENCIL}
+     * combination of:
+     * * {@link CLEARFLAG_COLOR}
+     * * {@link CLEARFLAG_DEPTH}
+     * * {@link CLEARFLAG_STENCIL}
      * @param options.stencil - The stencil value to clear the stencil buffer to. Defaults to 0.
      */
     clear(options: {
@@ -6663,14 +6703,14 @@ export class GraphicsDevice extends EventHandler {
     }): void;
     /**
      * Sets the specified render target on the device. If null
-    is passed as a parameter, the back buffer becomes the current target
-    for all rendering operations.
+     * is passed as a parameter, the back buffer becomes the current target
+     * for all rendering operations.
      * @example
      * // Set a render target to receive all rendering output
-    device.setRenderTarget(renderTarget);
-    
-    // Set the back buffer to receive all rendering output
-    device.setRenderTarget(null);
+     * device.setRenderTarget(renderTarget);
+     *
+     * // Set the back buffer to receive all rendering output
+     * device.setRenderTarget(null);
      * @param renderTarget - The render target to activate.
      */
     setRenderTarget(renderTarget: RenderTarget): void;
@@ -6678,7 +6718,7 @@ export class GraphicsDevice extends EventHandler {
      * Queries the currently set render target on the device.
      * @example
      * // Get the current render target
-    var renderTarget = device.getRenderTarget();
+     * var renderTarget = device.getRenderTarget();
      * @returns The current render target.
      */
     getRenderTarget(): RenderTarget;
@@ -6686,13 +6726,13 @@ export class GraphicsDevice extends EventHandler {
      * Queries whether depth testing is enabled.
      * @example
      * var depthTest = device.getDepthTest();
-    console.log('Depth testing is ' + depthTest ? 'enabled' : 'disabled');
+     * console.log('Depth testing is ' + depthTest ? 'enabled' : 'disabled');
      * @returns True if depth testing is enabled and false otherwise.
      */
     getDepthTest(): boolean;
     /**
      * Enables or disables depth testing of fragments. Once this state
-    is set, it persists until it is changed. By default, depth testing is enabled.
+     * is set, it persists until it is changed. By default, depth testing is enabled.
      * @example
      * device.setDepthTest(true);
      * @param depthTest - True to enable depth testing and false otherwise.
@@ -6701,27 +6741,27 @@ export class GraphicsDevice extends EventHandler {
     /**
      * Configures the depth test.
      * @param func - A function to compare a new depth value with an existing z-buffer value and decide if to write a pixel. Can be:
-    * {@link FUNC_NEVER}: don't draw
-    * {@link FUNC_LESS}: draw if new depth < depth buffer
-    * {@link FUNC_EQUAL}: draw if new depth == depth buffer
-    * {@link FUNC_LESSEQUAL}: draw if new depth <= depth buffer
-    * {@link FUNC_GREATER}: draw if new depth > depth buffer
-    * {@link FUNC_NOTEQUAL}: draw if new depth != depth buffer
-    * {@link FUNC_GREATEREQUAL}: draw if new depth >= depth buffer
-    * {@link FUNC_ALWAYS}: always draw
+     * * {@link FUNC_NEVER}: don't draw
+     * * {@link FUNC_LESS}: draw if new depth < depth buffer
+     * * {@link FUNC_EQUAL}: draw if new depth == depth buffer
+     * * {@link FUNC_LESSEQUAL}: draw if new depth <= depth buffer
+     * * {@link FUNC_GREATER}: draw if new depth > depth buffer
+     * * {@link FUNC_NOTEQUAL}: draw if new depth != depth buffer
+     * * {@link FUNC_GREATEREQUAL}: draw if new depth >= depth buffer
+     * * {@link FUNC_ALWAYS}: always draw
      */
     setDepthFunc(func: number): void;
     /**
      * Queries whether writes to the depth buffer are enabled.
      * @example
      * var depthWrite = device.getDepthWrite();
-    console.log('Depth writing is ' + depthWrite ? 'enabled' : 'disabled');
+     * console.log('Depth writing is ' + depthWrite ? 'enabled' : 'disabled');
      * @returns True if depth writing is enabled and false otherwise.
      */
     getDepthWrite(): boolean;
     /**
      * Enables or disables writes to the depth buffer. Once this state
-    is set, it persists until it is changed. By default, depth writes are enabled.
+     * is set, it persists until it is changed. By default, depth writes are enabled.
      * @example
      * device.setDepthWrite(true);
      * @param writeDepth - True to enable depth writing and false otherwise.
@@ -6729,11 +6769,11 @@ export class GraphicsDevice extends EventHandler {
     setDepthWrite(writeDepth: boolean): void;
     /**
      * Enables or disables writes to the color buffer. Once this state
-    is set, it persists until it is changed. By default, color writes are enabled
-    for all color channels.
+     * is set, it persists until it is changed. By default, color writes are enabled
+     * for all color channels.
      * @example
      * // Just write alpha into the frame buffer
-    device.setColorWrite(false, false, false, true);
+     * device.setColorWrite(false, false, false, true);
      * @param writeRed - True to enable writing of the red channel and false otherwise.
      * @param writeGreen - True to enable writing of the green channel and false otherwise.
      * @param writeBlue - True to enable writing of the blue channel and false otherwise.
@@ -6758,15 +6798,15 @@ export class GraphicsDevice extends EventHandler {
     /**
      * Configures stencil test for both front and back faces.
      * @param func - A comparison function that decides if the pixel should be written, based on the current stencil buffer value,
-    reference value, and mask value. Can be:
-    * {@link FUNC_NEVER}: never pass
-    * {@link FUNC_LESS}: pass if (ref & mask) < (stencil & mask)
-    * {@link FUNC_EQUAL}: pass if (ref & mask) == (stencil & mask)
-    * {@link FUNC_LESSEQUAL}: pass if (ref & mask) <= (stencil & mask)
-    * {@link FUNC_GREATER}: pass if (ref & mask) > (stencil & mask)
-    * {@link FUNC_NOTEQUAL}: pass if (ref & mask) != (stencil & mask)
-    * {@link FUNC_GREATEREQUAL}: pass if (ref & mask) >= (stencil & mask)
-    * {@link FUNC_ALWAYS}: always pass
+     * reference value, and mask value. Can be:
+     * * {@link FUNC_NEVER}: never pass
+     * * {@link FUNC_LESS}: pass if (ref & mask) < (stencil & mask)
+     * * {@link FUNC_EQUAL}: pass if (ref & mask) == (stencil & mask)
+     * * {@link FUNC_LESSEQUAL}: pass if (ref & mask) <= (stencil & mask)
+     * * {@link FUNC_GREATER}: pass if (ref & mask) > (stencil & mask)
+     * * {@link FUNC_NOTEQUAL}: pass if (ref & mask) != (stencil & mask)
+     * * {@link FUNC_GREATEREQUAL}: pass if (ref & mask) >= (stencil & mask)
+     * * {@link FUNC_ALWAYS}: always pass
      * @param ref - Reference value used in comparison.
      * @param mask - Mask applied to stencil buffer value and reference value before comparison.
      */
@@ -6774,15 +6814,15 @@ export class GraphicsDevice extends EventHandler {
     /**
      * Configures stencil test for front faces.
      * @param func - A comparison function that decides if the pixel should be written,
-    based on the current stencil buffer value, reference value, and mask value. Can be:
-    * {@link FUNC_NEVER}: never pass
-    * {@link FUNC_LESS}: pass if (ref & mask) < (stencil & mask)
-    * {@link FUNC_EQUAL}: pass if (ref & mask) == (stencil & mask)
-    * {@link FUNC_LESSEQUAL}: pass if (ref & mask) <= (stencil & mask)
-    * {@link FUNC_GREATER}: pass if (ref & mask) > (stencil & mask)
-    * {@link FUNC_NOTEQUAL}: pass if (ref & mask) != (stencil & mask)
-    * {@link FUNC_GREATEREQUAL}: pass if (ref & mask) >= (stencil & mask)
-    * {@link FUNC_ALWAYS}: always pass
+     * based on the current stencil buffer value, reference value, and mask value. Can be:
+     * * {@link FUNC_NEVER}: never pass
+     * * {@link FUNC_LESS}: pass if (ref & mask) < (stencil & mask)
+     * * {@link FUNC_EQUAL}: pass if (ref & mask) == (stencil & mask)
+     * * {@link FUNC_LESSEQUAL}: pass if (ref & mask) <= (stencil & mask)
+     * * {@link FUNC_GREATER}: pass if (ref & mask) > (stencil & mask)
+     * * {@link FUNC_NOTEQUAL}: pass if (ref & mask) != (stencil & mask)
+     * * {@link FUNC_GREATEREQUAL}: pass if (ref & mask) >= (stencil & mask)
+     * * {@link FUNC_ALWAYS}: always pass
      * @param ref - Reference value used in comparison.
      * @param mask - Mask applied to stencil buffer value and reference value before comparison.
      */
@@ -6790,105 +6830,105 @@ export class GraphicsDevice extends EventHandler {
     /**
      * Configures stencil test for back faces.
      * @param func - A comparison function that decides if the pixel should be written,
-    based on the current stencil buffer value, reference value, and mask value. Can be:
-    * {@link FUNC_NEVER}: never pass
-    * {@link FUNC_LESS}: pass if (ref & mask) < (stencil & mask)
-    * {@link FUNC_EQUAL}: pass if (ref & mask) == (stencil & mask)
-    * {@link FUNC_LESSEQUAL}: pass if (ref & mask) <= (stencil & mask)
-    * {@link FUNC_GREATER}: pass if (ref & mask) > (stencil & mask)
-    * {@link FUNC_NOTEQUAL}: pass if (ref & mask) != (stencil & mask)
-    * {@link FUNC_GREATEREQUAL}: pass if (ref & mask) >= (stencil & mask)
-    * {@link FUNC_ALWAYS}: always pass
+     * based on the current stencil buffer value, reference value, and mask value. Can be:
+     * * {@link FUNC_NEVER}: never pass
+     * * {@link FUNC_LESS}: pass if (ref & mask) < (stencil & mask)
+     * * {@link FUNC_EQUAL}: pass if (ref & mask) == (stencil & mask)
+     * * {@link FUNC_LESSEQUAL}: pass if (ref & mask) <= (stencil & mask)
+     * * {@link FUNC_GREATER}: pass if (ref & mask) > (stencil & mask)
+     * * {@link FUNC_NOTEQUAL}: pass if (ref & mask) != (stencil & mask)
+     * * {@link FUNC_GREATEREQUAL}: pass if (ref & mask) >= (stencil & mask)
+     * * {@link FUNC_ALWAYS}: always pass
      * @param ref - Reference value used in comparison.
      * @param mask - Mask applied to stencil buffer value and reference value before comparison.
      */
     setStencilFuncBack(func: number, ref: number, mask: number): void;
     /**
      * Configures how stencil buffer values should be modified based on the result
-    of depth/stencil tests. Works for both front and back faces.
+     * of depth/stencil tests. Works for both front and back faces.
      * @param fail - Action to take if stencil test is failed.
      * @param zfail - Action to take if depth test is failed.
      * @param zpass - Action to take if both depth and stencil test are passed
-    All arguments can be:
-    * {@link STENCILOP_KEEP}: don't change the stencil buffer value
-    * {@link STENCILOP_ZERO}: set value to zero
-    * {@link STENCILOP_REPLACE}: replace value with the reference value (see {@link GraphicsDevice#setStencilFunc})
-    * {@link STENCILOP_INCREMENT}: increment the value
-    * {@link STENCILOP_INCREMENTWRAP}: increment the value, but wrap it to zero when it's larger than a maximum representable value
-    * {@link STENCILOP_DECREMENT}: decrement the value
-    * {@link STENCILOP_DECREMENTWRAP}: decrement the value, but wrap it to a maximum representable value, if the current value is 0
-    * {@link STENCILOP_INVERT}: invert the value bitwise
+     * All arguments can be:
+     * * {@link STENCILOP_KEEP}: don't change the stencil buffer value
+     * * {@link STENCILOP_ZERO}: set value to zero
+     * * {@link STENCILOP_REPLACE}: replace value with the reference value (see {@link GraphicsDevice#setStencilFunc})
+     * * {@link STENCILOP_INCREMENT}: increment the value
+     * * {@link STENCILOP_INCREMENTWRAP}: increment the value, but wrap it to zero when it's larger than a maximum representable value
+     * * {@link STENCILOP_DECREMENT}: decrement the value
+     * * {@link STENCILOP_DECREMENTWRAP}: decrement the value, but wrap it to a maximum representable value, if the current value is 0
+     * * {@link STENCILOP_INVERT}: invert the value bitwise
      * @param writeMask - A bit mask applied to the reference value, when written.
      */
     setStencilOperation(fail: number, zfail: number, zpass: number, writeMask: number): void;
     /**
      * Configures how stencil buffer values should be modified based on the result
-    of depth/stencil tests. Works for front faces.
+     * of depth/stencil tests. Works for front faces.
      * @param fail - Action to take if stencil test is failed.
      * @param zfail - Action to take if depth test is failed.
      * @param zpass - Action to take if both depth and stencil test are passed
-    All arguments can be:
-    * {@link STENCILOP_KEEP}: don't change the stencil buffer value
-    * {@link STENCILOP_ZERO}: set value to zero
-    * {@link STENCILOP_REPLACE}: replace value with the reference value (see {@link GraphicsDevice#setStencilFunc})
-    * {@link STENCILOP_INCREMENT}: increment the value
-    * {@link STENCILOP_INCREMENTWRAP}: increment the value, but wrap it to zero when it's larger than a maximum representable value
-    * {@link STENCILOP_DECREMENT}: decrement the value
-    * {@link STENCILOP_DECREMENTWRAP}: decrement the value, but wrap it to a maximum representable value, if the current value is 0
-    * {@link STENCILOP_INVERT}: invert the value bitwise
+     * All arguments can be:
+     * * {@link STENCILOP_KEEP}: don't change the stencil buffer value
+     * * {@link STENCILOP_ZERO}: set value to zero
+     * * {@link STENCILOP_REPLACE}: replace value with the reference value (see {@link GraphicsDevice#setStencilFunc})
+     * * {@link STENCILOP_INCREMENT}: increment the value
+     * * {@link STENCILOP_INCREMENTWRAP}: increment the value, but wrap it to zero when it's larger than a maximum representable value
+     * * {@link STENCILOP_DECREMENT}: decrement the value
+     * * {@link STENCILOP_DECREMENTWRAP}: decrement the value, but wrap it to a maximum representable value, if the current value is 0
+     * * {@link STENCILOP_INVERT}: invert the value bitwise
      * @param writeMask - A bit mask applied to the reference value, when written.
      */
     setStencilOperationFront(fail: number, zfail: number, zpass: number, writeMask: number): void;
     /**
      * Configures how stencil buffer values should be modified based on the result
-    of depth/stencil tests. Works for back faces.
+     * of depth/stencil tests. Works for back faces.
      * @param fail - Action to take if stencil test is failed.
      * @param zfail - Action to take if depth test is failed.
      * @param zpass - Action to take if both depth and stencil test are passed
-    All arguments can be:
-    * {@link STENCILOP_KEEP}: don't change the stencil buffer value
-    * {@link STENCILOP_ZERO}: set value to zero
-    * {@link STENCILOP_REPLACE}: replace value with the reference value (see {@link GraphicsDevice#setStencilFunc})
-    * {@link STENCILOP_INCREMENT}: increment the value
-    * {@link STENCILOP_INCREMENTWRAP}: increment the value, but wrap it to zero when it's larger than a maximum representable value
-    * {@link STENCILOP_DECREMENT}: decrement the value
-    * {@link STENCILOP_DECREMENTWRAP}: decrement the value, but wrap it to a maximum representable value, if the current value is 0
-    * {@link STENCILOP_INVERT}: invert the value bitwise
+     * All arguments can be:
+     * * {@link STENCILOP_KEEP}: don't change the stencil buffer value
+     * * {@link STENCILOP_ZERO}: set value to zero
+     * * {@link STENCILOP_REPLACE}: replace value with the reference value (see {@link GraphicsDevice#setStencilFunc})
+     * * {@link STENCILOP_INCREMENT}: increment the value
+     * * {@link STENCILOP_INCREMENTWRAP}: increment the value, but wrap it to zero when it's larger than a maximum representable value
+     * * {@link STENCILOP_DECREMENT}: decrement the value
+     * * {@link STENCILOP_DECREMENTWRAP}: decrement the value, but wrap it to a maximum representable value, if the current value is 0
+     * * {@link STENCILOP_INVERT}: invert the value bitwise
      * @param writeMask - A bit mask applied to the reference value, when written.
      */
     setStencilOperationBack(fail: number, zfail: number, zpass: number, writeMask: number): void;
     /**
      * Configures blending operations. Both source and destination
-    blend modes can take the following values:
-    * {@link BLENDMODE_ZERO}
-    * {@link BLENDMODE_ONE}
-    * {@link BLENDMODE_SRC_COLOR}
-    * {@link BLENDMODE_ONE_MINUS_SRC_COLOR}
-    * {@link BLENDMODE_DST_COLOR}
-    * {@link BLENDMODE_ONE_MINUS_DST_COLOR}
-    * {@link BLENDMODE_SRC_ALPHA}
-    * {@link BLENDMODE_SRC_ALPHA_SATURATE}
-    * {@link BLENDMODE_ONE_MINUS_SRC_ALPHA}
-    * {@link BLENDMODE_DST_ALPHA}
-    * {@link BLENDMODE_ONE_MINUS_DST_ALPHA}
+     * blend modes can take the following values:
+     * * {@link BLENDMODE_ZERO}
+     * * {@link BLENDMODE_ONE}
+     * * {@link BLENDMODE_SRC_COLOR}
+     * * {@link BLENDMODE_ONE_MINUS_SRC_COLOR}
+     * * {@link BLENDMODE_DST_COLOR}
+     * * {@link BLENDMODE_ONE_MINUS_DST_COLOR}
+     * * {@link BLENDMODE_SRC_ALPHA}
+     * * {@link BLENDMODE_SRC_ALPHA_SATURATE}
+     * * {@link BLENDMODE_ONE_MINUS_SRC_ALPHA}
+     * * {@link BLENDMODE_DST_ALPHA}
+     * * {@link BLENDMODE_ONE_MINUS_DST_ALPHA}
      * @param blendSrc - The source blend function.
      * @param blendDst - The destination blend function.
      */
     setBlendFunction(blendSrc: number, blendDst: number): void;
     /**
      * Configures blending operations. Both source and destination
-    blend modes can take the following values:
-    * {@link BLENDMODE_ZERO}
-    * {@link BLENDMODE_ONE}
-    * {@link BLENDMODE_SRC_COLOR}
-    * {@link BLENDMODE_ONE_MINUS_SRC_COLOR}
-    * {@link BLENDMODE_DST_COLOR}
-    * {@link BLENDMODE_ONE_MINUS_DST_COLOR}
-    * {@link BLENDMODE_SRC_ALPHA}
-    * {@link BLENDMODE_SRC_ALPHA_SATURATE}
-    * {@link BLENDMODE_ONE_MINUS_SRC_ALPHA}
-    * {@link BLENDMODE_DST_ALPHA}
-    * {@link BLENDMODE_ONE_MINUS_DST_ALPHA}
+     * blend modes can take the following values:
+     * * {@link BLENDMODE_ZERO}
+     * * {@link BLENDMODE_ONE}
+     * * {@link BLENDMODE_SRC_COLOR}
+     * * {@link BLENDMODE_ONE_MINUS_SRC_COLOR}
+     * * {@link BLENDMODE_DST_COLOR}
+     * * {@link BLENDMODE_ONE_MINUS_DST_COLOR}
+     * * {@link BLENDMODE_SRC_ALPHA}
+     * * {@link BLENDMODE_SRC_ALPHA_SATURATE}
+     * * {@link BLENDMODE_ONE_MINUS_SRC_ALPHA}
+     * * {@link BLENDMODE_DST_ALPHA}
+     * * {@link BLENDMODE_ONE_MINUS_DST_ALPHA}
      * @param blendSrc - The source blend function.
      * @param blendDst - The destination blend function.
      * @param blendSrcAlpha - The separate source blend function for the alpha channel.
@@ -6897,51 +6937,51 @@ export class GraphicsDevice extends EventHandler {
     setBlendFunctionSeparate(blendSrc: number, blendDst: number, blendSrcAlpha: number, blendDstAlpha: number): void;
     /**
      * Configures the blending equation. The default blend equation is
-    {@link BLENDEQUATION_ADD}.
+     * {@link BLENDEQUATION_ADD}.
      * @param blendEquation - The blend equation. Can be:
-    * {@link BLENDEQUATION_ADD}
-    * {@link BLENDEQUATION_SUBTRACT}
-    * {@link BLENDEQUATION_REVERSE_SUBTRACT}
-    * {@link BLENDEQUATION_MIN}
-    * {@link BLENDEQUATION_MAX}
-    
-    Note that MIN and MAX modes require either EXT_blend_minmax or WebGL2 to work (check device.extBlendMinmax).
+     * * {@link BLENDEQUATION_ADD}
+     * * {@link BLENDEQUATION_SUBTRACT}
+     * * {@link BLENDEQUATION_REVERSE_SUBTRACT}
+     * * {@link BLENDEQUATION_MIN}
+     * * {@link BLENDEQUATION_MAX}
+     *
+     * Note that MIN and MAX modes require either EXT_blend_minmax or WebGL2 to work (check device.extBlendMinmax).
      */
     setBlendEquation(blendEquation: number): void;
     /**
      * Configures the blending equation. The default blend equation is
-    {@link BLENDEQUATION_ADD}.
+     * {@link BLENDEQUATION_ADD}.
      * @param blendEquation - The blend equation. Can be:
-    * {@link BLENDEQUATION_ADD}
-    * {@link BLENDEQUATION_SUBTRACT}
-    * {@link BLENDEQUATION_REVERSE_SUBTRACT}
-    * {@link BLENDEQUATION_MIN}
-    * {@link BLENDEQUATION_MAX}
-    
-    Note that MIN and MAX modes require either EXT_blend_minmax or WebGL2 to work (check device.extBlendMinmax).
+     * * {@link BLENDEQUATION_ADD}
+     * * {@link BLENDEQUATION_SUBTRACT}
+     * * {@link BLENDEQUATION_REVERSE_SUBTRACT}
+     * * {@link BLENDEQUATION_MIN}
+     * * {@link BLENDEQUATION_MAX}
+     *
+     * Note that MIN and MAX modes require either EXT_blend_minmax or WebGL2 to work (check device.extBlendMinmax).
      * @param blendAlphaEquation - A separate blend equation for the alpha channel. Accepts same values as blendEquation.
      */
     setBlendEquationSeparate(blendEquation: number, blendAlphaEquation: number): void;
     /**
      * Controls how triangles are culled based on their face direction.
-    The default cull mode is {@link CULLFACE_BACK}.
+     * The default cull mode is {@link CULLFACE_BACK}.
      * @param cullMode - The cull mode to set. Can be:
-    * {@link CULLFACE_NONE}
-    * {@link CULLFACE_BACK}
-    * {@link CULLFACE_FRONT}
-    * {@link CULLFACE_FRONTANDBACK}
+     * * {@link CULLFACE_NONE}
+     * * {@link CULLFACE_BACK}
+     * * {@link CULLFACE_FRONT}
+     * * {@link CULLFACE_FRONTANDBACK}
      */
     setCullMode(cullMode: number): void;
     /**
      * Sets the current index buffer on the graphics device. On subsequent
-    calls to {@link GraphicsDevice#draw}, the specified index buffer will be used to provide
-    index data for any indexed primitives.
+     * calls to {@link GraphicsDevice#draw}, the specified index buffer will be used to provide
+     * index data for any indexed primitives.
      * @param indexBuffer - The index buffer to assign to the device.
      */
     setIndexBuffer(indexBuffer: IndexBuffer): void;
     /**
      * Sets the current vertex buffer on the graphics device. On subsequent calls to
-    {@link GraphicsDevice#draw}, the specified vertex buffer(s) will be used to provide vertex data for any primitives.
+     * {@link GraphicsDevice#draw}, the specified vertex buffer(s) will be used to provide vertex data for any primitives.
      * @param vertexBuffer - The vertex buffer to assign to the device.
      */
     setVertexBuffer(vertexBuffer: VertexBuffer): void;
@@ -6953,9 +6993,9 @@ export class GraphicsDevice extends EventHandler {
     setShader(shader: Shader): boolean;
     /**
      * Sets the width and height of the canvas, then fires the 'resizecanvas' event.
-    Note that the specified width and height values will be multiplied by the value of
-    {@link GraphicsDevice#maxPixelRatio} to give the final resultant width and height for
-    the canvas.
+     * Note that the specified width and height values will be multiplied by the value of
+     * {@link GraphicsDevice#maxPixelRatio} to give the final resultant width and height for
+     * the canvas.
      * @param width - The new width of the canvas.
      * @param height - The new height of the canvas.
      */
@@ -7014,32 +7054,32 @@ export class GraphicsDevice extends EventHandler {
  * Creates a new index buffer.
  * @example
  * // Create an index buffer holding 3 16-bit indices. The buffer is marked as
-// static, hinting that the buffer will never be modified.
-var indices = new UInt16Array([0, 1, 2]);
-var indexBuffer = new pc.IndexBuffer(graphicsDevice,
-                                     pc.INDEXFORMAT_UINT16,
-                                     3,
-                                     pc.BUFFER_STATIC,
-                                     indices);
+ * // static, hinting that the buffer will never be modified.
+ * var indices = new UInt16Array([0, 1, 2]);
+ * var indexBuffer = new pc.IndexBuffer(graphicsDevice,
+ *                                      pc.INDEXFORMAT_UINT16,
+ *                                      3,
+ *                                      pc.BUFFER_STATIC,
+ *                                      indices);
  * @param graphicsDevice - The graphics device used to
-manage this index buffer.
+ * manage this index buffer.
  * @param format - The type of each index to be stored in the index
-buffer. Can be:
-
-* {@link INDEXFORMAT_UINT8}
-* {@link INDEXFORMAT_UINT16}
-* {@link INDEXFORMAT_UINT32}
+ * buffer. Can be:
+ *
+ * * {@link INDEXFORMAT_UINT8}
+ * * {@link INDEXFORMAT_UINT16}
+ * * {@link INDEXFORMAT_UINT32}
  * @param numIndices - The number of indices to be stored in the index
-buffer.
+ * buffer.
  * @param [usage] - The usage type of the vertex buffer. Can be:
-
-* {@link BUFFER_DYNAMIC}
-* {@link BUFFER_STATIC}
-* {@link BUFFER_STREAM}
-
-Defaults to {@link BUFFER_STATIC}.
+ *
+ * * {@link BUFFER_DYNAMIC}
+ * * {@link BUFFER_STATIC}
+ * * {@link BUFFER_STREAM}
+ *
+ * Defaults to {@link BUFFER_STATIC}.
  * @param [initialData] - Initial data. If left unspecified, the
-index buffer will be initialized to zeros.
+ * index buffer will be initialized to zeros.
  */
 export class IndexBuffer {
     constructor(graphicsDevice: GraphicsDevice, format: number, numIndices: number, usage?: number, initialData?: ArrayBuffer);
@@ -7050,10 +7090,10 @@ export class IndexBuffer {
     /**
      * Returns the data format of the specified index buffer.
      * @returns The data format of the specified index buffer. Can be:
-    
-    * {@link INDEXFORMAT_UINT8}
-    * {@link INDEXFORMAT_UINT16}
-    * {@link INDEXFORMAT_UINT32}
+     *
+     * * {@link INDEXFORMAT_UINT8}
+     * * {@link INDEXFORMAT_UINT16}
+     * * {@link INDEXFORMAT_UINT32}
      */
     getFormat(): number;
     /**
@@ -7068,8 +7108,8 @@ export class IndexBuffer {
     lock(): ArrayBuffer;
     /**
      * Signals that the block of memory returned by a call to the lock function is
-    ready to be given to the graphics hardware. Only unlocked index buffers can be set on the
-    currently active device.
+     * ready to be given to the graphics hardware. Only unlocked index buffers can be set on the
+     * currently active device.
      */
     unlock(): void;
 }
@@ -7135,39 +7175,39 @@ export const shaderChunks: any;
  * Creates a new render target. A color buffer or a depth buffer must be set.
  * @example
  * // Create a 512x512x24-bit render target with a depth buffer
-var colorBuffer = new pc.Texture(graphicsDevice, {
-    width: 512,
-    height: 512,
-    format: pc.PIXELFORMAT_R8_G8_B8
-});
-var renderTarget = new pc.RenderTarget({
-    colorBuffer: colorBuffer,
-    depth: true
-});
-
-// Set the render target on a layer
-layer.renderTarget = renderTarget;
+ * var colorBuffer = new pc.Texture(graphicsDevice, {
+ *     width: 512,
+ *     height: 512,
+ *     format: pc.PIXELFORMAT_R8_G8_B8
+ * });
+ * var renderTarget = new pc.RenderTarget({
+ *     colorBuffer: colorBuffer,
+ *     depth: true
+ * });
+ *
+ * // Set the render target on a layer
+ * layer.renderTarget = renderTarget;
  * @param options - Object for passing optional arguments.
  * @param [options.colorBuffer] - The texture that this render target will treat as a rendering surface.
  * @param [options.depth] - If set to true, depth buffer will be created. Defaults to true. Ignored if depthBuffer is defined.
  * @param [options.stencil] - If set to true, depth buffer will include stencil. Defaults to false. Ignored if depthBuffer is defined or depth is false.
  * @param [options.depthBuffer] - The texture that this render target will treat as a depth/stencil surface (WebGL2 only). If set, the 'depth' and 'stencil' properties are ignored.
-Texture must have {@link PIXELFORMAT_DEPTH} or PIXELFORMAT_DEPTHSTENCIL format.
+ * Texture must have {@link PIXELFORMAT_DEPTH} or PIXELFORMAT_DEPTHSTENCIL format.
  * @param [options.samples] - Number of hardware anti-aliasing samples (WebGL2 only). Default is 1.
  * @param [options.autoResolve] - If samples > 1, enables or disables automatic MSAA resolve after rendering to this RT (see {@link RenderTarget#resolve}). Defaults to true;
-Defaults to true.
+ * Defaults to true.
  * @param [options.face] - If the colorBuffer parameter is a cubemap, use this option to specify the
-face of the cubemap to render to. Can be:
+ * face of the cubemap to render to. Can be:
  * @param [options.name] - The name of the render target.
-
-* {@link CUBEFACE_POSX}
-* {@link CUBEFACE_NEGX}
-* {@link CUBEFACE_POSY}
-* {@link CUBEFACE_NEGY}
-* {@link CUBEFACE_POSZ}
-* {@link CUBEFACE_NEGZ}
-
-Defaults to {@link CUBEFACE_POSX}.
+ *
+ * * {@link CUBEFACE_POSX}
+ * * {@link CUBEFACE_NEGX}
+ * * {@link CUBEFACE_POSY}
+ * * {@link CUBEFACE_NEGY}
+ * * {@link CUBEFACE_POSZ}
+ * * {@link CUBEFACE_NEGZ}
+ *
+ * Defaults to {@link CUBEFACE_POSX}.
  */
 export class RenderTarget {
     constructor(options: {
@@ -7186,19 +7226,19 @@ export class RenderTarget {
     destroy(): void;
     /**
      * If samples > 1, resolves the anti-aliased render target (WebGL2 only).
-    When you're rendering to an anti-aliased render target, pixels aren't written directly to the readable texture.
-    Instead, they're first written to a MSAA buffer, where each sample for each pixel is stored independently.
-    In order to read the results, you first need to 'resolve' the buffer - to average all samples and create a simple texture with one color per pixel.
-    This function performs this averaging and updates the colorBuffer and the depthBuffer.
-    If autoResolve is set to true, the resolve will happen after every rendering to this render target, otherwise you can do it manually,
-    during the app update or inside a {@link Command}.
+     * When you're rendering to an anti-aliased render target, pixels aren't written directly to the readable texture.
+     * Instead, they're first written to a MSAA buffer, where each sample for each pixel is stored independently.
+     * In order to read the results, you first need to 'resolve' the buffer - to average all samples and create a simple texture with one color per pixel.
+     * This function performs this averaging and updates the colorBuffer and the depthBuffer.
+     * If autoResolve is set to true, the resolve will happen after every rendering to this render target, otherwise you can do it manually,
+     * during the app update or inside a {@link Command}.
      * @param [color] - Resolve color buffer. Defaults to true.
      * @param [depth] - Resolve depth buffer. Defaults to true if the render target has a depth buffer.
      */
     resolve(color?: boolean, depth?: boolean): void;
     /**
      * Copies color and/or depth contents of source render target to this one. Formats, sizes and anti-aliasing samples must match.
-    Depth buffer can only be copied on WebGL 2.0.
+     * Depth buffer can only be copied on WebGL 2.0.
      * @param source - Source render target to copy from.
      * @param [color] - If true will copy the color buffer. Defaults to false.
      * @param [depth] - If true will copy the depth buffer. Defaults to false.
@@ -7211,19 +7251,19 @@ export class RenderTarget {
     readonly colorBuffer: Texture;
     /**
      * Depth buffer set up on the render target. Only available, if depthBuffer was set in constructor.
-    Not available, if depth property was used instead.
+     * Not available, if depth property was used instead.
      */
     readonly depthBuffer: Texture;
     /**
      * If the render target is bound to a cubemap, this property
-    specifies which face of the cubemap is rendered to. Can be:
-    
-    * {@link CUBEFACE_POSX}
-    * {@link CUBEFACE_NEGX}
-    * {@link CUBEFACE_POSY}
-    * {@link CUBEFACE_NEGY}
-    * {@link CUBEFACE_POSZ}
-    * {@link CUBEFACE_NEGZ}
+     * specifies which face of the cubemap is rendered to. Can be:
+     *
+     * * {@link CUBEFACE_POSX}
+     * * {@link CUBEFACE_NEGX}
+     * * {@link CUBEFACE_POSY}
+     * * {@link CUBEFACE_NEGY}
+     * * {@link CUBEFACE_POSZ}
+     * * {@link CUBEFACE_NEGZ}
      */
     readonly face: number;
     /**
@@ -7238,16 +7278,16 @@ export class RenderTarget {
 
 /**
  * This function reprojects textures between cubemap, equirectangular and octahedral formats. The
-function can read and write textures with pixel data in RGBE, RGBM, linear and sRGB formats. When
-specularPower is specified it will perform a phong-weighted convolution of the source (for generating
-a gloss maps).
- * @param device - The graphics device
- * @param source - The source texture
- * @param target - The target texture
- * @param [specularPower] - optional specular power. When specular power is specified,
-the source is convolved by a phong-weighted kernel raised to the specified power. Otherwise
-the function performs a standard resample.
- * @param [numSamples] - optional number of samples (default is 1024).
+ * function can read and write textures with pixel data in RGBE, RGBM, linear and sRGB formats. When
+ * specularPower is specified it will perform a phong-weighted convolution of the source (for generating
+ * a gloss maps).
+ * @param device - The graphics device.
+ * @param source - The source texture.
+ * @param target - The target texture.
+ * @param [specularPower] - Optional specular power. When specular power is specified,
+ * the source is convolved by a phong-weighted kernel raised to the specified power. Otherwise
+ * the function performs a standard resample.
+ * @param [numSamples] - Optional number of samples (default is 1024).
  */
 export function reprojectTexture(device: GraphicsDevice, source: Texture, target: Texture, specularPower?: number, numSamples?: number): void;
 
@@ -7297,34 +7337,34 @@ export class ScopeSpace {
  * Creates a new shader object.
  * @example
  * // Create a shader that renders primitives with a solid red color
-var shaderDefinition = {
-    attributes: {
-        aPosition: pc.SEMANTIC_POSITION
-    },
-    vshader: [
-        "attribute vec3 aPosition;",
-        "",
-        "void main(void)",
-        "{",
-        "    gl_Position = vec4(aPosition, 1.0);",
-        "}"
-    ].join("\n"),
-    fshader: [
-        "precision " + graphicsDevice.precision + " float;",
-        "",
-        "void main(void)",
-        "{",
-        "    gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);",
-        "}"
-    ].join("\n")
-};
-
-var shader = new pc.Shader(graphicsDevice, shaderDefinition);
+ * var shaderDefinition = {
+ *     attributes: {
+ *         aPosition: pc.SEMANTIC_POSITION
+ *     },
+ *     vshader: [
+ *         "attribute vec3 aPosition;",
+ *         "",
+ *         "void main(void)",
+ *         "{",
+ *         "    gl_Position = vec4(aPosition, 1.0);",
+ *         "}"
+ *     ].join("\n"),
+ *     fshader: [
+ *         "precision " + graphicsDevice.precision + " float;",
+ *         "",
+ *         "void main(void)",
+ *         "{",
+ *         "    gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);",
+ *         "}"
+ *     ].join("\n")
+ * };
+ *
+ * var shader = new pc.Shader(graphicsDevice, shaderDefinition);
  * @param graphicsDevice - The graphics device used to manage this shader.
  * @param definition - The shader definition from which to build the shader.
  * @param definition.attributes - Object detailing the mapping of vertex shader attribute names
-to semantics SEMANTIC_*. This enables the engine to match vertex buffer data as inputs to the
-shader.
+ * to semantics SEMANTIC_*. This enables the engine to match vertex buffer data as inputs to the
+ * shader.
  * @param definition.vshader - Vertex shader source (GLSL code).
  * @param definition.fshader - Fragment shader source (GLSL code).
  * @param [definition.useTransformFeedback] - Specifies that this shader outputs post-VS data to a buffer.
@@ -7369,23 +7409,23 @@ export function drawTexture(device: GraphicsDevice, texture: Texture, target?: R
  * Creates a new texture.
  * @example
  * // Create a 8x8x24-bit texture
-var texture = new pc.Texture(graphicsDevice, {
-    width: 8,
-    height: 8,
-    format: pc.PIXELFORMAT_R8_G8_B8
-});
-
-// Fill the texture with a gradient
-var pixels = texture.lock();
-var count = 0;
-for (var i = 0; i < 8; i++) {
-    for (var j = 0; j < 8; j++) {
-        pixels[count++] = i * 32;
-        pixels[count++] = j * 32;
-        pixels[count++] = 255;
-    }
-}
-texture.unlock();
+ * var texture = new pc.Texture(graphicsDevice, {
+ *     width: 8,
+ *     height: 8,
+ *     format: pc.PIXELFORMAT_R8_G8_B8
+ * });
+ *
+ * // Fill the texture with a gradient
+ * var pixels = texture.lock();
+ * var count = 0;
+ * for (var i = 0; i < 8; i++) {
+ *     for (var j = 0; j < 8; j++) {
+ *         pixels[count++] = i * 32;
+ *         pixels[count++] = j * 32;
+ *         pixels[count++] = 255;
+ *     }
+ * }
+ * texture.unlock();
  * @property name - The name of the texture. Defaults to null.
  * @param graphicsDevice - The graphics device used to manage this texture.
  * @param [options] - Object for passing optional arguments.
@@ -7394,65 +7434,65 @@ texture.unlock();
  * @param [options.height] - The height of the texture in pixels. Defaults to 4.
  * @param [options.depth] - The number of depth slices in a 3D texture (WebGL2 only). Defaults to 1 (single 2D image).
  * @param [options.format] - The pixel format of the texture. Can be:
-* {@link PIXELFORMAT_A8}
-* {@link PIXELFORMAT_L8}
-* {@link PIXELFORMAT_L8_A8}
-* {@link PIXELFORMAT_R5_G6_B5}
-* {@link PIXELFORMAT_R5_G5_B5_A1}
-* {@link PIXELFORMAT_R4_G4_B4_A4}
-* {@link PIXELFORMAT_R8_G8_B8}
-* {@link PIXELFORMAT_R8_G8_B8_A8}
-* {@link PIXELFORMAT_DXT1}
-* {@link PIXELFORMAT_DXT3}
-* {@link PIXELFORMAT_DXT5}
-* {@link PIXELFORMAT_RGB16F}
-* {@link PIXELFORMAT_RGBA16F}
-* {@link PIXELFORMAT_RGB32F}
-* {@link PIXELFORMAT_RGBA32F}
-* {@link PIXELFORMAT_ETC1}
-* {@link PIXELFORMAT_PVRTC_2BPP_RGB_1}
-* {@link PIXELFORMAT_PVRTC_2BPP_RGBA_1}
-* {@link PIXELFORMAT_PVRTC_4BPP_RGB_1}
-* {@link PIXELFORMAT_PVRTC_4BPP_RGBA_1}
-* {@link PIXELFORMAT_111110F}
-* {@link PIXELFORMAT_ASTC_4x4}>/li>
-* {@link PIXELFORMAT_ATC_RGB}
-* {@link PIXELFORMAT_ATC_RGBA}
-Defaults to {@link PIXELFORMAT_R8_G8_B8_A8}.
+ * * {@link PIXELFORMAT_A8}
+ * * {@link PIXELFORMAT_L8}
+ * * {@link PIXELFORMAT_L8_A8}
+ * * {@link PIXELFORMAT_R5_G6_B5}
+ * * {@link PIXELFORMAT_R5_G5_B5_A1}
+ * * {@link PIXELFORMAT_R4_G4_B4_A4}
+ * * {@link PIXELFORMAT_R8_G8_B8}
+ * * {@link PIXELFORMAT_R8_G8_B8_A8}
+ * * {@link PIXELFORMAT_DXT1}
+ * * {@link PIXELFORMAT_DXT3}
+ * * {@link PIXELFORMAT_DXT5}
+ * * {@link PIXELFORMAT_RGB16F}
+ * * {@link PIXELFORMAT_RGBA16F}
+ * * {@link PIXELFORMAT_RGB32F}
+ * * {@link PIXELFORMAT_RGBA32F}
+ * * {@link PIXELFORMAT_ETC1}
+ * * {@link PIXELFORMAT_PVRTC_2BPP_RGB_1}
+ * * {@link PIXELFORMAT_PVRTC_2BPP_RGBA_1}
+ * * {@link PIXELFORMAT_PVRTC_4BPP_RGB_1}
+ * * {@link PIXELFORMAT_PVRTC_4BPP_RGBA_1}
+ * * {@link PIXELFORMAT_111110F}
+ * * {@link PIXELFORMAT_ASTC_4x4}>/li>
+ * * {@link PIXELFORMAT_ATC_RGB}
+ * * {@link PIXELFORMAT_ATC_RGBA}
+ * Defaults to {@link PIXELFORMAT_R8_G8_B8_A8}.
  * @param [options.projection] - The projection type of the texture, used when the texture represents an environment. Can be:
-* {@link TEXTUREPROJECTION_NONE}
-* {@link TEXTUREPROJECTION_CUBE}
-* {@link TEXTUREPROJECTION_EQUIRECT}
-* {@link TEXTUREPROJECTION_OCTAHEDRAL}
-Defaults to {@link TEXTUREPROJECTION_CUBE} if options.cubemap is specified, otherwise {@link TEXTUREPROJECTION_NONE}.
- * @param [options.minFilter] - The minification filter type to use. Defaults to {@link FILTER_LINEAR_MIPMAP_LINEAR}
- * @param [options.magFilter] - The magnification filter type to use. Defaults to {@link FILTER_LINEAR}
- * @param [options.anisotropy] - The level of anisotropic filtering to use. Defaults to 1
- * @param [options.addressU] - The repeat mode to use in the U direction. Defaults to {@link ADDRESS_REPEAT}
- * @param [options.addressV] - The repeat mode to use in the V direction. Defaults to {@link ADDRESS_REPEAT}
- * @param [options.addressW] - The repeat mode to use in the W direction. Defaults to {@link ADDRESS_REPEAT}
- * @param [options.mipmaps] - When enabled try to generate or use mipmaps for this texture. Default is true
+ * * {@link TEXTUREPROJECTION_NONE}
+ * * {@link TEXTUREPROJECTION_CUBE}
+ * * {@link TEXTUREPROJECTION_EQUIRECT}
+ * * {@link TEXTUREPROJECTION_OCTAHEDRAL}
+ * Defaults to {@link TEXTUREPROJECTION_CUBE} if options.cubemap is specified, otherwise {@link TEXTUREPROJECTION_NONE}.
+ * @param [options.minFilter] - The minification filter type to use. Defaults to {@link FILTER_LINEAR_MIPMAP_LINEAR}.
+ * @param [options.magFilter] - The magnification filter type to use. Defaults to {@link FILTER_LINEAR}.
+ * @param [options.anisotropy] - The level of anisotropic filtering to use. Defaults to 1.
+ * @param [options.addressU] - The repeat mode to use in the U direction. Defaults to {@link ADDRESS_REPEAT}.
+ * @param [options.addressV] - The repeat mode to use in the V direction. Defaults to {@link ADDRESS_REPEAT}.
+ * @param [options.addressW] - The repeat mode to use in the W direction. Defaults to {@link ADDRESS_REPEAT}.
+ * @param [options.mipmaps] - When enabled try to generate or use mipmaps for this texture. Default is true.
  * @param [options.cubemap] - Specifies whether the texture is to be a cubemap. Defaults to false.
  * @param [options.volume] - Specifies whether the texture is to be a 3D volume (WebGL2 only). Defaults to false.
- * @param [options.type] - Specifies the image type, see {@link TEXTURETYPE_DEFAULT}
+ * @param [options.type] - Specifies the image type, see {@link TEXTURETYPE_DEFAULT}.
  * @param [options.fixCubemapSeams] - Specifies whether this cubemap texture requires special
-seam fixing shader code to look right. Defaults to false.
+ * seam fixing shader code to look right. Defaults to false.
  * @param [options.flipY] - Specifies whether the texture should be flipped in the Y-direction. Only affects textures
-with a source that is an image, canvas or video element. Does not affect cubemaps, compressed textures or textures set from raw
-pixel data. Defaults to true.
+ * with a source that is an image, canvas or video element. Does not affect cubemaps, compressed textures or textures set from raw
+ * pixel data. Defaults to true.
  * @param [options.premultiplyAlpha] - If true, the alpha channel of the texture (if present) is multiplied into the color
-channels. Defaults to false.
+ * channels. Defaults to false.
  * @param [options.compareOnRead] - When enabled, and if texture format is {@link PIXELFORMAT_DEPTH} or {@link PIXELFORMAT_DEPTHSTENCIL},
-hardware PCF is enabled for this texture, and you can get filtered results of comparison using texture() in your shader (WebGL2 only).
-Defaults to false.
+ * hardware PCF is enabled for this texture, and you can get filtered results of comparison using texture() in your shader (WebGL2 only).
+ * Defaults to false.
  * @param [options.compareFunc] - Comparison function when compareOnRead is enabled (WebGL2 only). Defaults to {@link FUNC_LESS}.
-Possible values:
-* {@link FUNC_LESS}
-* {@link FUNC_LESSEQUAL}
-* {@link FUNC_GREATER}
-* {@link FUNC_GREATEREQUAL}
-* {@link FUNC_EQUAL}
-* {@link FUNC_NOTEQUAL}
+ * Possible values:
+ * * {@link FUNC_LESS}
+ * * {@link FUNC_LESSEQUAL}
+ * * {@link FUNC_GREATER}
+ * * {@link FUNC_GREATEREQUAL}
+ * * {@link FUNC_EQUAL}
+ * * {@link FUNC_NOTEQUAL}
  */
 export class Texture {
     constructor(graphicsDevice: GraphicsDevice, options?: {
@@ -7480,60 +7520,60 @@ export class Texture {
     });
     /**
      * The minification filter to be applied to the texture. Can be:
-    * {@link FILTER_NEAREST}
-    * {@link FILTER_LINEAR}
-    * {@link FILTER_NEAREST_MIPMAP_NEAREST}
-    * {@link FILTER_NEAREST_MIPMAP_LINEAR}
-    * {@link FILTER_LINEAR_MIPMAP_NEAREST}
-    * {@link FILTER_LINEAR_MIPMAP_LINEAR}
+     * * {@link FILTER_NEAREST}
+     * * {@link FILTER_LINEAR}
+     * * {@link FILTER_NEAREST_MIPMAP_NEAREST}
+     * * {@link FILTER_NEAREST_MIPMAP_LINEAR}
+     * * {@link FILTER_LINEAR_MIPMAP_NEAREST}
+     * * {@link FILTER_LINEAR_MIPMAP_LINEAR}
      */
     minFilter: number;
     /**
      * The magnification filter to be applied to the texture. Can be:
-    * {@link FILTER_NEAREST}
-    * {@link FILTER_LINEAR}
+     * * {@link FILTER_NEAREST}
+     * * {@link FILTER_LINEAR}
      */
     magFilter: number;
     /**
      * The addressing mode to be applied to the texture horizontally. Can be:
-    * {@link ADDRESS_REPEAT}
-    * {@link ADDRESS_CLAMP_TO_EDGE}
-    * {@link ADDRESS_MIRRORED_REPEAT}
+     * * {@link ADDRESS_REPEAT}
+     * * {@link ADDRESS_CLAMP_TO_EDGE}
+     * * {@link ADDRESS_MIRRORED_REPEAT}
      */
     addressU: number;
     /**
      * The addressing mode to be applied to the texture vertically. Can be:
-    * {@link ADDRESS_REPEAT}
-    * {@link ADDRESS_CLAMP_TO_EDGE}
-    * {@link ADDRESS_MIRRORED_REPEAT}
+     * * {@link ADDRESS_REPEAT}
+     * * {@link ADDRESS_CLAMP_TO_EDGE}
+     * * {@link ADDRESS_MIRRORED_REPEAT}
      */
     addressV: number;
     /**
      * The addressing mode to be applied to the 3D texture depth (WebGL2 only). Can be:
-    * {@link ADDRESS_REPEAT}
-    * {@link ADDRESS_CLAMP_TO_EDGE}
-    * {@link ADDRESS_MIRRORED_REPEAT}
+     * * {@link ADDRESS_REPEAT}
+     * * {@link ADDRESS_CLAMP_TO_EDGE}
+     * * {@link ADDRESS_MIRRORED_REPEAT}
      */
     addressW: number;
     /**
      * When enabled, and if texture format is {@link PIXELFORMAT_DEPTH} or {@link PIXELFORMAT_DEPTHSTENCIL},
-    hardware PCF is enabled for this texture, and you can get filtered results of comparison using texture() in your shader (WebGL2 only).
+     * hardware PCF is enabled for this texture, and you can get filtered results of comparison using texture() in your shader (WebGL2 only).
      */
     compareOnRead: boolean;
     /**
      * Comparison function when compareOnRead is enabled (WebGL2 only).
-    Possible values:
-    * {@link FUNC_LESS}
-    * {@link FUNC_LESSEQUAL}
-    * {@link FUNC_GREATER}
-    * {@link FUNC_GREATEREQUAL}
-    * {@link FUNC_EQUAL}
-    * {@link FUNC_NOTEQUAL}
+     * Possible values:
+     * * {@link FUNC_LESS}
+     * * {@link FUNC_LESSEQUAL}
+     * * {@link FUNC_GREATER}
+     * * {@link FUNC_GREATEREQUAL}
+     * * {@link FUNC_EQUAL}
+     * * {@link FUNC_NOTEQUAL}
      */
     compareFunc: number;
     /**
      * Integer value specifying the level of anisotropic to apply to the texture
-    ranging from 1 (no anisotropic filtering) to the {@link GraphicsDevice} property maxAnisotropy.
+     * ranging from 1 (no anisotropic filtering) to the {@link GraphicsDevice} property maxAnisotropy.
      */
     anisotropy: number;
     /**
@@ -7554,30 +7594,30 @@ export class Texture {
     readonly depth: number;
     /**
      * The pixel format of the texture. Can be:
-    * {@link PIXELFORMAT_A8}
-    * {@link PIXELFORMAT_L8}
-    * {@link PIXELFORMAT_L8_A8}
-    * {@link PIXELFORMAT_R5_G6_B5}
-    * {@link PIXELFORMAT_R5_G5_B5_A1}
-    * {@link PIXELFORMAT_R4_G4_B4_A4}
-    * {@link PIXELFORMAT_R8_G8_B8}
-    * {@link PIXELFORMAT_R8_G8_B8_A8}
-    * {@link PIXELFORMAT_DXT1}
-    * {@link PIXELFORMAT_DXT3}
-    * {@link PIXELFORMAT_DXT5}
-    * {@link PIXELFORMAT_RGB16F}
-    * {@link PIXELFORMAT_RGBA16F}
-    * {@link PIXELFORMAT_RGB32F}
-    * {@link PIXELFORMAT_RGBA32F}
-    * {@link PIXELFORMAT_ETC1}
-    * {@link PIXELFORMAT_PVRTC_2BPP_RGB_1}
-    * {@link PIXELFORMAT_PVRTC_2BPP_RGBA_1}
-    * {@link PIXELFORMAT_PVRTC_4BPP_RGB_1}
-    * {@link PIXELFORMAT_PVRTC_4BPP_RGBA_1}
-    * {@link PIXELFORMAT_111110F}
-    * {@link PIXELFORMAT_ASTC_4x4}>/li>
-    * {@link PIXELFORMAT_ATC_RGB}
-    * {@link PIXELFORMAT_ATC_RGBA}
+     * * {@link PIXELFORMAT_A8}
+     * * {@link PIXELFORMAT_L8}
+     * * {@link PIXELFORMAT_L8_A8}
+     * * {@link PIXELFORMAT_R5_G6_B5}
+     * * {@link PIXELFORMAT_R5_G5_B5_A1}
+     * * {@link PIXELFORMAT_R4_G4_B4_A4}
+     * * {@link PIXELFORMAT_R8_G8_B8}
+     * * {@link PIXELFORMAT_R8_G8_B8_A8}
+     * * {@link PIXELFORMAT_DXT1}
+     * * {@link PIXELFORMAT_DXT3}
+     * * {@link PIXELFORMAT_DXT5}
+     * * {@link PIXELFORMAT_RGB16F}
+     * * {@link PIXELFORMAT_RGBA16F}
+     * * {@link PIXELFORMAT_RGB32F}
+     * * {@link PIXELFORMAT_RGBA32F}
+     * * {@link PIXELFORMAT_ETC1}
+     * * {@link PIXELFORMAT_PVRTC_2BPP_RGB_1}
+     * * {@link PIXELFORMAT_PVRTC_2BPP_RGBA_1}
+     * * {@link PIXELFORMAT_PVRTC_4BPP_RGB_1}
+     * * {@link PIXELFORMAT_PVRTC_4BPP_RGBA_1}
+     * * {@link PIXELFORMAT_111110F}
+     * * {@link PIXELFORMAT_ASTC_4x4}>/li>
+     * * {@link PIXELFORMAT_ATC_RGB}
+     * * {@link PIXELFORMAT_ATC_RGBA}
      */
     readonly format: number;
     /**
@@ -7590,8 +7630,8 @@ export class Texture {
     readonly volume: boolean;
     /**
      * Specifies whether the texture should be flipped in the Y-direction. Only affects textures
-    with a source that is an image, canvas or video element. Does not affect cubemaps, compressed textures
-    or textures set from raw pixel data. Defaults to true.
+     * with a source that is an image, canvas or video element. Does not affect cubemaps, compressed textures
+     * or textures set from raw pixel data. Defaults to true.
      */
     flipY: boolean;
     /**
@@ -7608,9 +7648,9 @@ export class Texture {
      * @param [options.level] - The mip level to lock with 0 being the top level. Defaults to 0.
      * @param [options.face] - If the texture is a cubemap, this is the index of the face to lock.
      * @param [options.mode] - The lock mode. Can be:
-    * {@link TEXTURELOCK_READ}
-    * {@link TEXTURELOCK_WRITE}
-    Defaults to {@link TEXTURELOCK_WRITE}.
+     * * {@link TEXTURELOCK_READ}
+     * * {@link TEXTURELOCK_WRITE}
+     * Defaults to {@link TEXTURELOCK_WRITE}.
      * @returns A typed array containing the pixel data of the locked mip level.
      */
     lock(options?: {
@@ -7620,18 +7660,18 @@ export class Texture {
     }): Uint8Array | Uint16Array | Float32Array;
     /**
      * Set the pixel data of the texture from a canvas, image, video DOM element. If the
-    texture is a cubemap, the supplied source must be an array of 6 canvases, images or videos.
+     * texture is a cubemap, the supplied source must be an array of 6 canvases, images or videos.
      * @param source - A canvas, image or video element,
-    or an array of 6 canvas, image or video elements.
+     * or an array of 6 canvas, image or video elements.
      * @param [mipLevel] - A non-negative integer specifying the image level of detail. Defaults to 0, which represents the base image source.
-    A level value of N, that is greater than 0, represents the image source for the Nth mipmap reduction level.
+     * A level value of N, that is greater than 0, represents the image source for the Nth mipmap reduction level.
      */
     setSource(source: HTMLCanvasElement | HTMLImageElement | HTMLVideoElement | HTMLCanvasElement[] | HTMLImageElement[] | HTMLVideoElement[], mipLevel?: number): void;
     /**
      * Get the pixel data of the texture. If this is a cubemap then an array of 6 images will be returned otherwise
-    a single image.
+     * a single image.
      * @param [mipLevel] - A non-negative integer specifying the image level of detail. Defaults to 0, which represents the base image source.
-    A level value of N, that is greater than 0, represents the image source for the Nth mipmap reduction level.
+     * A level value of N, that is greater than 0, represents the image source for the Nth mipmap reduction level.
      * @returns The source image of this texture. Can be null if source not assigned for specific image level.
      */
     getSource(mipLevel?: number): HTMLImageElement;
@@ -7641,9 +7681,9 @@ export class Texture {
     unlock(): void;
     /**
      * Forces a reupload of the textures pixel data to graphics memory. Ordinarily, this function
-    is called by internally by {@link Texture#setSource} and {@link Texture#unlock}. However, it still needs to
-    be called explicitly in the case where an HTMLVideoElement is set as the source of the texture.  Normally,
-    this is done once every frame before video textured geometry is rendered.
+     * is called by internally by {@link Texture#setSource} and {@link Texture#unlock}. However, it still needs to
+     * be called explicitly in the case where an HTMLVideoElement is set as the source of the texture.  Normally,
+     * this is done once every frame before video textured geometry is rendered.
      */
     upload(): void;
     /**
@@ -7654,73 +7694,73 @@ export class Texture {
 
 /**
  * This object allows you to configure and use the transform feedback feature (WebGL2
-only). How to use:
-
-1. First, check that you're on WebGL2, by looking at the `app.graphicsDevice.webgl2`` value.
-2. Define the outputs in your vertex shader. The syntax is `out vec3 out_vertex_position`,
-note that there must be out_ in the name. You can then simply assign values to these outputs
-in VS. The order and size of shader outputs must match the output buffer layout.
-3. Create the shader using `TransformFeedback.createShader(device, vsCode, yourShaderName)`.
-4. Create/acquire the input vertex buffer. Can be any VertexBuffer, either manually created,
-or from a Mesh.
-5. Create the TransformFeedback object: `var tf = new TransformFeedback(inputBuffer)`.
-This object will internally create an output buffer.
-6. Run the shader: `tf.process(shader)`. Shader will take the input buffer, process it and
-write to the output buffer, then the input/output buffers will be automatically swapped, so
-you'll immediately see the result.
+ * only). How to use:
+ *
+ * 1. First, check that you're on WebGL2, by looking at the `app.graphicsDevice.webgl2`` value.
+ * 2. Define the outputs in your vertex shader. The syntax is `out vec3 out_vertex_position`,
+ * note that there must be out_ in the name. You can then simply assign values to these outputs
+ * in VS. The order and size of shader outputs must match the output buffer layout.
+ * 3. Create the shader using `TransformFeedback.createShader(device, vsCode, yourShaderName)`.
+ * 4. Create/acquire the input vertex buffer. Can be any VertexBuffer, either manually created,
+ * or from a Mesh.
+ * 5. Create the TransformFeedback object: `var tf = new TransformFeedback(inputBuffer)`.
+ * This object will internally create an output buffer.
+ * 6. Run the shader: `tf.process(shader)`. Shader will take the input buffer, process it and
+ * write to the output buffer, then the input/output buffers will be automatically swapped, so
+ * you'll immediately see the result.
  * @example
  * // *** shader asset ***
-attribute vec3 vertex_position;
-attribute vec3 vertex_normal;
-attribute vec2 vertex_texCoord0;
-out vec3 out_vertex_position;
-out vec3 out_vertex_normal;
-out vec2 out_vertex_texCoord0;
-void main(void) {
-    // read position and normal, write new position (push away)
-    out_vertex_position = vertex_position + vertex_normal * 0.01;
-    // pass other attributes unchanged
-    out_vertex_normal = vertex_normal;
-    out_vertex_texCoord0 = vertex_texCoord0;
-}
+ * attribute vec3 vertex_position;
+ * attribute vec3 vertex_normal;
+ * attribute vec2 vertex_texCoord0;
+ * out vec3 out_vertex_position;
+ * out vec3 out_vertex_normal;
+ * out vec2 out_vertex_texCoord0;
+ * void main(void) {
+ *     // read position and normal, write new position (push away)
+ *     out_vertex_position = vertex_position + vertex_normal * 0.01;
+ *     // pass other attributes unchanged
+ *     out_vertex_normal = vertex_normal;
+ *     out_vertex_texCoord0 = vertex_texCoord0;
+ * }
  * @example
  * // *** script asset ***
-var TransformExample = pc.createScript('transformExample');
-
-// attribute that references shader asset and material
-TransformExample.attributes.add('shaderCode', { type: 'asset', assetType: 'shader' });
-TransformExample.attributes.add('material', { type: 'asset', assetType: 'material' });
-
-TransformExample.prototype.initialize = function() {
-    var device = this.app.graphicsDevice;
-    var mesh = pc.createTorus(device, { tubeRadius: 0.01, ringRadius: 3 });
-    var node = new pc.GraphNode();
-    var meshInstance = new pc.MeshInstance(mesh, this.material.resource, node);
-    var model = new pc.Model();
-    model.graph = node;
-    model.meshInstances = [ meshInstance ];
-    this.app.scene.addModel(model);
-
-    // if webgl2 is not supported, TF is not available
-    if (!device.webgl2) return;
-    var inputBuffer = mesh.vertexBuffer;
-    this.tf = new pc.TransformFeedback(inputBuffer);
-    this.shader = pc.TransformFeedback.createShader(device, this.shaderCode.resource, "tfMoveUp");
-};
-
-TransformExample.prototype.update = function(dt) {
-    if (!this.app.graphicsDevice.webgl2) return;
-    this.tf.process(this.shader);
-};
+ * var TransformExample = pc.createScript('transformExample');
+ *
+ * // attribute that references shader asset and material
+ * TransformExample.attributes.add('shaderCode', { type: 'asset', assetType: 'shader' });
+ * TransformExample.attributes.add('material', { type: 'asset', assetType: 'material' });
+ *
+ * TransformExample.prototype.initialize = function() {
+ *     var device = this.app.graphicsDevice;
+ *     var mesh = pc.createTorus(device, { tubeRadius: 0.01, ringRadius: 3 });
+ *     var node = new pc.GraphNode();
+ *     var meshInstance = new pc.MeshInstance(mesh, this.material.resource, node);
+ *     var model = new pc.Model();
+ *     model.graph = node;
+ *     model.meshInstances = [ meshInstance ];
+ *     this.app.scene.addModel(model);
+ *
+ *     // if webgl2 is not supported, TF is not available
+ *     if (!device.webgl2) return;
+ *     var inputBuffer = mesh.vertexBuffer;
+ *     this.tf = new pc.TransformFeedback(inputBuffer);
+ *     this.shader = pc.TransformFeedback.createShader(device, this.shaderCode.resource, "tfMoveUp");
+ * };
+ *
+ * TransformExample.prototype.update = function(dt) {
+ *     if (!this.app.graphicsDevice.webgl2) return;
+ *     this.tf.process(this.shader);
+ * };
  * @param inputBuffer - The input vertex buffer.
  * @param [usage] - The optional usage type of the output vertex buffer. Can be:
-
-* {@link BUFFER_STATIC}
-* {@link BUFFER_DYNAMIC}
-* {@link BUFFER_STREAM}
-* {@link BUFFER_GPUDYNAMIC}
-
-Defaults to {@link BUFFER_GPUDYNAMIC} (which is recommended for continuous update).
+ *
+ * * {@link BUFFER_STATIC}
+ * * {@link BUFFER_DYNAMIC}
+ * * {@link BUFFER_STREAM}
+ * * {@link BUFFER_GPUDYNAMIC}
+ *
+ * Defaults to {@link BUFFER_GPUDYNAMIC} (which is recommended for continuous update).
  */
 export class TransformFeedback {
     constructor(inputBuffer: VertexBuffer, usage?: number);
@@ -7773,9 +7813,9 @@ export class VertexBuffer {
     getFormat(): VertexFormat;
     /**
      * Returns the usage type of the specified vertex buffer. This indicates
-    whether the buffer can be modified once and used many times {@link BUFFER_STATIC},
-    modified repeatedly and used many times {@link BUFFER_DYNAMIC} or modified once
-    and used at most a few times {@link BUFFER_STREAM}.
+     * whether the buffer can be modified once and used many times {@link BUFFER_STATIC},
+     * modified repeatedly and used many times {@link BUFFER_DYNAMIC} or modified once
+     * and used at most a few times {@link BUFFER_STREAM}.
      * @returns The usage type of the vertex buffer (see BUFFER_*).
      */
     getUsage(): number;
@@ -7791,7 +7831,7 @@ export class VertexBuffer {
     lock(): ArrayBuffer;
     /**
      * Notifies the graphics engine that the client side copy of the vertex buffer's
-    memory can be returned to the control of the graphics driver.
+     * memory can be returned to the control of the graphics driver.
      */
     unlock(): void;
     /**
@@ -7806,94 +7846,94 @@ export class VertexBuffer {
  * Returns a new VertexFormat object.
  * @example
  * // Specify 3-component positions (x, y, z)
-var vertexFormat = new pc.VertexFormat(graphicsDevice, [
-    { semantic: pc.SEMANTIC_POSITION, components: 3, type: pc.TYPE_FLOAT32 }
-]);
+ * var vertexFormat = new pc.VertexFormat(graphicsDevice, [
+ *     { semantic: pc.SEMANTIC_POSITION, components: 3, type: pc.TYPE_FLOAT32 }
+ * ]);
  * @example
  * // Specify 2-component positions (x, y), a texture coordinate (u, v) and a vertex color (r, g, b, a)
-var vertexFormat = new pc.VertexFormat(graphicsDevice, [
-    { semantic: pc.SEMANTIC_POSITION, components: 2, type: pc.TYPE_FLOAT32 },
-    { semantic: pc.SEMANTIC_TEXCOORD0, components: 2, type: pc.TYPE_FLOAT32 },
-    { semantic: pc.SEMANTIC_COLOR, components: 4, type: pc.TYPE_UINT8, normalize: true }
-]);
+ * var vertexFormat = new pc.VertexFormat(graphicsDevice, [
+ *     { semantic: pc.SEMANTIC_POSITION, components: 2, type: pc.TYPE_FLOAT32 },
+ *     { semantic: pc.SEMANTIC_TEXCOORD0, components: 2, type: pc.TYPE_FLOAT32 },
+ *     { semantic: pc.SEMANTIC_COLOR, components: 4, type: pc.TYPE_UINT8, normalize: true }
+ * ]);
  * @property elements - The vertex attribute elements.
  * @property elements[].name - The meaning of the vertex element. This is used to link
-the vertex data to a shader input. Can be:
-
-* {@link SEMANTIC_POSITION}
-* {@link SEMANTIC_NORMAL}
-* {@link SEMANTIC_TANGENT}
-* {@link SEMANTIC_BLENDWEIGHT}
-* {@link SEMANTIC_BLENDINDICES}
-* {@link SEMANTIC_COLOR}
-* {@link SEMANTIC_TEXCOORD0}
-* {@link SEMANTIC_TEXCOORD1}
-* {@link SEMANTIC_TEXCOORD2}
-* {@link SEMANTIC_TEXCOORD3}
-* {@link SEMANTIC_TEXCOORD4}
-* {@link SEMANTIC_TEXCOORD5}
-* {@link SEMANTIC_TEXCOORD6}
-* {@link SEMANTIC_TEXCOORD7}
-
-If vertex data has a meaning other that one of those listed above, use the user-defined
-semantics: {@link SEMANTIC_ATTR0} to {@link SEMANTIC_ATTR15}.
+ * the vertex data to a shader input. Can be:
+ *
+ * * {@link SEMANTIC_POSITION}
+ * * {@link SEMANTIC_NORMAL}
+ * * {@link SEMANTIC_TANGENT}
+ * * {@link SEMANTIC_BLENDWEIGHT}
+ * * {@link SEMANTIC_BLENDINDICES}
+ * * {@link SEMANTIC_COLOR}
+ * * {@link SEMANTIC_TEXCOORD0}
+ * * {@link SEMANTIC_TEXCOORD1}
+ * * {@link SEMANTIC_TEXCOORD2}
+ * * {@link SEMANTIC_TEXCOORD3}
+ * * {@link SEMANTIC_TEXCOORD4}
+ * * {@link SEMANTIC_TEXCOORD5}
+ * * {@link SEMANTIC_TEXCOORD6}
+ * * {@link SEMANTIC_TEXCOORD7}
+ *
+ * If vertex data has a meaning other that one of those listed above, use the user-defined
+ * semantics: {@link SEMANTIC_ATTR0} to {@link SEMANTIC_ATTR15}.
  * @property elements[].numComponents - The number of components of the vertex attribute.
-Can be 1, 2, 3 or 4.
+ * Can be 1, 2, 3 or 4.
  * @property elements[].dataType - The data type of the attribute. Can be:
-
-* {@link TYPE_INT8}
-* {@link TYPE_UINT8}
-* {@link TYPE_INT16}
-* {@link TYPE_UINT16}
-* {@link TYPE_INT32}
-* {@link TYPE_UINT32}
-* {@link TYPE_FLOAT32}
+ *
+ * * {@link TYPE_INT8}
+ * * {@link TYPE_UINT8}
+ * * {@link TYPE_INT16}
+ * * {@link TYPE_UINT16}
+ * * {@link TYPE_INT32}
+ * * {@link TYPE_UINT32}
+ * * {@link TYPE_FLOAT32}
  * @property elements[].normalize - If true, vertex attribute data will be mapped from a
-0 to 255 range down to 0 to 1 when fed to a shader. If false, vertex attribute data is left
-unchanged. If this property is unspecified, false is assumed.
+ * 0 to 255 range down to 0 to 1 when fed to a shader. If false, vertex attribute data is left
+ * unchanged. If this property is unspecified, false is assumed.
  * @property elements[].offset - The number of initial bytes at the start of a vertex that are not relevant to this attribute.
  * @property elements[].stride - The number of total bytes that are between the start of one vertex, and the start of the next.
  * @property elements[].size - The size of the attribute in bytes.
  * @param graphicsDevice - The graphics device used to manage this vertex format.
  * @param description - An array of vertex attribute descriptions.
  * @param description[].semantic - The meaning of the vertex element. This is used to link
-the vertex data to a shader input. Can be:
-
-* {@link SEMANTIC_POSITION}
-* {@link SEMANTIC_NORMAL}
-* {@link SEMANTIC_TANGENT}
-* {@link SEMANTIC_BLENDWEIGHT}
-* {@link SEMANTIC_BLENDINDICES}
-* {@link SEMANTIC_COLOR}
-* {@link SEMANTIC_TEXCOORD0}
-* {@link SEMANTIC_TEXCOORD1}
-* {@link SEMANTIC_TEXCOORD2}
-* {@link SEMANTIC_TEXCOORD3}
-* {@link SEMANTIC_TEXCOORD4}
-* {@link SEMANTIC_TEXCOORD5}
-* {@link SEMANTIC_TEXCOORD6}
-* {@link SEMANTIC_TEXCOORD7}
-
-If vertex data has a meaning other that one of those listed above, use the user-defined
-semantics: {@link SEMANTIC_ATTR0} to {@link SEMANTIC_ATTR15}.
+ * the vertex data to a shader input. Can be:
+ *
+ * * {@link SEMANTIC_POSITION}
+ * * {@link SEMANTIC_NORMAL}
+ * * {@link SEMANTIC_TANGENT}
+ * * {@link SEMANTIC_BLENDWEIGHT}
+ * * {@link SEMANTIC_BLENDINDICES}
+ * * {@link SEMANTIC_COLOR}
+ * * {@link SEMANTIC_TEXCOORD0}
+ * * {@link SEMANTIC_TEXCOORD1}
+ * * {@link SEMANTIC_TEXCOORD2}
+ * * {@link SEMANTIC_TEXCOORD3}
+ * * {@link SEMANTIC_TEXCOORD4}
+ * * {@link SEMANTIC_TEXCOORD5}
+ * * {@link SEMANTIC_TEXCOORD6}
+ * * {@link SEMANTIC_TEXCOORD7}
+ *
+ * If vertex data has a meaning other that one of those listed above, use the user-defined
+ * semantics: {@link SEMANTIC_ATTR0} to {@link SEMANTIC_ATTR15}.
  * @param description[].components - The number of components of the vertex attribute.
-Can be 1, 2, 3 or 4.
+ * Can be 1, 2, 3 or 4.
  * @param description[].type - The data type of the attribute. Can be:
-
-* {@link TYPE_INT8}
-* {@link TYPE_UINT8}
-* {@link TYPE_INT16}
-* {@link TYPE_UINT16}
-* {@link TYPE_INT32}
-* {@link TYPE_UINT32}
-* {@link TYPE_FLOAT32}
+ *
+ * * {@link TYPE_INT8}
+ * * {@link TYPE_UINT8}
+ * * {@link TYPE_INT16}
+ * * {@link TYPE_UINT16}
+ * * {@link TYPE_INT32}
+ * * {@link TYPE_UINT32}
+ * * {@link TYPE_FLOAT32}
  * @param [description[].normalize] - If true, vertex attribute data will be mapped from a
-0 to 255 range down to 0 to 1 when fed to a shader. If false, vertex attribute data is left
-unchanged. If this property is unspecified, false is assumed.
+ * 0 to 255 range down to 0 to 1 when fed to a shader. If false, vertex attribute data is left
+ * unchanged. If this property is unspecified, false is assumed.
  * @param [vertexCount] - When specified, vertex format will be set up for non-interleaved format with a specified
-number of vertices. (example: PPPPNNNNCCCC), where arrays of individual attributes will be stored one right after the other (subject to alignment requirements).
-Note that in this case, the format depends on the number of vertices, and needs to change when the number of vertices changes.
-When not specified, vertex format will be interleaved. (example: PNCPNCPNCPNC)
+ * number of vertices. (example: PPPPNNNNCCCC), where arrays of individual attributes will be stored one right after the other (subject to alignment requirements).
+ * Note that in this case, the format depends on the number of vertices, and needs to change when the number of vertices changes.
+ * When not specified, vertex format will be interleaved. (example: PNCPNCPNCPNC).
  */
 export class VertexFormat {
     constructor(graphicsDevice: GraphicsDevice, description: {
@@ -8058,19 +8098,19 @@ export class VertexIterator {
 
 /**
  * Handles localization. Responsible for loading localization assets
-and returning translations for a certain key. Can also handle plural forms. To override
-its default behavior define a different implementation for {@link I18n#getText} and {@link I18n#getPluralText}.
+ * and returning translations for a certain key. Can also handle plural forms. To override
+ * its default behavior define a different implementation for {@link I18n#getText} and {@link I18n#getPluralText}.
  * @property locale - The current locale for example "en-US". Changing the locale will raise an event which will cause localized Text Elements to
-change language to the new locale.
+ * change language to the new locale.
  * @property assets - An array of asset ids or assets that contain localization data in the expected format. I18n will automatically load
-translations from these assets as the assets are loaded and it will also automatically unload translations if the assets get removed or unloaded at runtime.
+ * translations from these assets as the assets are loaded and it will also automatically unload translations if the assets get removed or unloaded at runtime.
  * @param app - The application.
  */
 export class I18n extends EventHandler {
     constructor(app: Application);
     /**
      * Returns the first available locale based on the desired locale specified. First
-    tries to find the desired locale and then tries to find an alternative locale based on the language.
+     * tries to find the desired locale and then tries to find an alternative locale based on the language.
      * @param desiredLocale - The desired locale e.g. En-US.
      * @param availableLocales - A dictionary where each key is an available locale.
      * @returns The locale found or if no locale is available returns the default en-US locale.
@@ -8078,54 +8118,54 @@ export class I18n extends EventHandler {
     findAvailableLocale(desiredLocale: string, availableLocales: any): string;
     /**
      * Returns the translation for the specified key and locale. If the locale is not specified
-    it will use the current locale.
+     * it will use the current locale.
      * @example
      * var localized = this.app.i18n.getText('localization-key');
-    var localizedFrench = this.app.i18n.getText('localization-key', 'fr-FR');
+     * var localizedFrench = this.app.i18n.getText('localization-key', 'fr-FR');
      * @param key - The localization key.
      * @param [locale] - The desired locale.
      * @returns The translated text. If no translations are found at all for the locale then it will return
-    the en-US translation. If no translation exists for that key then it will return the localization key.
+     * the en-US translation. If no translation exists for that key then it will return the localization key.
      */
     getText(key: string, locale?: string): string;
     /**
      * Returns the pluralized translation for the specified key, number n and locale. If the locale is not specified
-    it will use the current locale.
+     * it will use the current locale.
      * @example
      * // manually replace {number} in the resulting translation with our number
-    var localized = this.app.i18n.getPluralText('{number} apples', number).replace("{number}", number);
+     * var localized = this.app.i18n.getPluralText('{number} apples', number).replace("{number}", number);
      * @param key - The localization key.
      * @param n - The number used to determine which plural form to use. E.g. For the phrase "5 Apples" n equals 5.
      * @param [locale] - The desired locale.
      * @returns The translated text. If no translations are found at all for the locale then it will return
-    the en-US translation. If no translation exists for that key then it will return the localization key.
+     * the en-US translation. If no translation exists for that key then it will return the localization key.
      */
     getPluralText(key: string, n: number, locale?: string): string;
     /**
      * Adds localization data. If the locale and key for a translation already exists it will be overwritten.
      * @example
      * this.app.i18n.addData({
-        header: {
-            version: 1
-        },
-        data: [{
-            info: {
-                locale: 'en-US'
-            },
-            messages: {
-                "key": "translation",
-                // The number of plural forms depends on the locale. See the manual for more information.
-                "plural_key": ["one item", "more than one items"]
-            }
-        }, {
-            info: {
-                locale: 'fr-FR'
-            },
-            messages: {
-                // ...
-            }
-        }]
-    });
+     *     header: {
+     *         version: 1
+     *     },
+     *     data: [{
+     *         info: {
+     *             locale: 'en-US'
+     *         },
+     *         messages: {
+     *             "key": "translation",
+     *             // The number of plural forms depends on the locale. See the manual for more information.
+     *             "plural_key": ["one item", "more than one items"]
+     *         }
+     *     }, {
+     *         info: {
+     *             locale: 'fr-FR'
+     *         },
+     *         messages: {
+     *             // ...
+     *         }
+     *     }]
+     * });
      * @param data - The localization data. See example for the expected format of the data.
      */
     addData(data: any): void;
@@ -8140,12 +8180,12 @@ export class I18n extends EventHandler {
     destroy(): void;
     /**
      * The current locale for example "en-US". Changing the locale will raise an event which will cause localized Text Elements to
-     * change language to the new locale.
+    change language to the new locale.
     */
     locale: string;
     /**
      * An array of asset ids or assets that contain localization data in the expected format. I18n will automatically load
-     * translations from these assets as the assets are loaded and it will also automatically unload translations if the assets get removed or unloaded at runtime.
+    translations from these assets as the assets are loaded and it will also automatically unload translations if the assets get removed or unloaded at runtime.
     */
     assets: number[] | Asset[];
 }
@@ -8197,9 +8237,9 @@ export const EVENT_TOUCHMOVE: string;
 
 /**
  * Name of event fired when a touch point is interrupted in some way.
-The exact reasons for canceling a touch can vary from device to device.
-For example, a modal alert pops up during the interaction; the touch point leaves the document area,
-or there are more touch points than the device supports, in which case the earliest touch point is canceled.
+ * The exact reasons for canceling a touch can vary from device to device.
+ * For example, a modal alert pops up during the interaction; the touch point leaves the document area,
+ * or there are more touch points than the device supports, in which case the earliest touch point is canceled.
  */
 export const EVENT_TOUCHCANCEL: string;
 
@@ -8561,9 +8601,9 @@ export const PAD_R_STICK_Y: number;
  * Create a new instance of a Controller.
  * @example
  * var c = new pc.Controller(document);
-
-// Register the "fire" action and assign it to both the Enter key and the Spacebar.
-c.registerKeys("fire", [pc.KEY_ENTER, pc.KEY_SPACE]);
+ *
+ * // Register the "fire" action and assign it to both the Enter key and the Spacebar.
+ * c.registerKeys("fire", [pc.KEY_ENTER, pc.KEY_SPACE]);
  * @param [element] - Element to attach Controller to.
  * @param [options] - Optional arguments.
  * @param [options.keyboard] - A Keyboard object to use.
@@ -8806,16 +8846,16 @@ export class ElementInput {
 export class GamePads {
     /**
      * Update the current and previous state of the gamepads. This must be called every frame for wasPressed()
-    to work.
+     * to work.
      */
     update(): void;
     /**
      * Poll for the latest data from the gamepad API.
      * @example
      * var gamepads = new pc.GamePads();
-    var pads = gamepads.poll();
+     * var pads = gamepads.poll();
      * @param [pads] - An optional array used to receive the gamepads mapping. This array will be
-    returned by this function.
+     * returned by this function.
      * @returns An array of gamepads and mappings for the model of gamepad that is attached.
      */
     poll(pads?: object[]): object[];
@@ -8846,12 +8886,12 @@ export class GamePads {
  * Create a new KeyboardEvent.
  * @example
  * var onKeyDown = function (e) {
-    if (e.key === pc.KEY_SPACE) {
-        // space key pressed
-    }
-    e.event.preventDefault(); // Use original browser event to prevent browser action.
-};
-app.keyboard.on("keydown", onKeyDown, this);
+ *     if (e.key === pc.KEY_SPACE) {
+ *         // space key pressed
+ *     }
+ *     e.event.preventDefault(); // Use original browser event to prevent browser action.
+ * };
+ * app.keyboard.on("keydown", onKeyDown, this);
  * @property key - The keyCode of the key that has changed. See the KEY_* constants.
  * @property element - The element that fired the keyboard event.
  * @property event - The original browser event which was fired.
@@ -8879,7 +8919,7 @@ export class KeyboardEvent {
  * @example
  * var keyboard = new pc.Keyboard(window); // attach keyboard listeners to the window
  * @param [element] - Element to attach Keyboard to. Note that elements like &lt;div&gt; can't
-accept focus by default. To use keyboard events on an element like this it must have a value of 'tabindex' e.g. tabindex="0". For more details: <a href="http://www.w3.org/WAI/GL/WCAG20/WD-WCAG20-TECHS/SCR29.html">http://www.w3.org/WAI/GL/WCAG20/WD-WCAG20-TECHS/SCR29.html</a>.
+ * accept focus by default. To use keyboard events on an element like this it must have a value of 'tabindex' e.g. tabindex="0". For more details: <a href="http://www.w3.org/WAI/GL/WCAG20/WD-WCAG20-TECHS/SCR29.html">http://www.w3.org/WAI/GL/WCAG20/WD-WCAG20-TECHS/SCR29.html</a>.
  * @param [options] - Optional options object.
  * @param [options.preventDefault] - Call preventDefault() in key event handlers. This stops the default action of the event occurring. e.g. Ctrl+T will not open a new browser tab
  * @param [options.stopPropagation] - Call stopPropagation() in key event handlers. This stops the event bubbling up the DOM so no parent handlers will be notified of the event
@@ -8925,12 +8965,12 @@ export class Keyboard extends EventHandler {
  * @property dx - The change in x co-ordinate since the last mouse event.
  * @property dy - The change in y co-ordinate since the last mouse event.
  * @property button - The mouse button associated with this event. Can be:
-
-* {@link MOUSEBUTTON_LEFT}
-* {@link MOUSEBUTTON_MIDDLE}
-* {@link MOUSEBUTTON_RIGHT}
+ *
+ * * {@link MOUSEBUTTON_LEFT}
+ * * {@link MOUSEBUTTON_MIDDLE}
+ * * {@link MOUSEBUTTON_RIGHT}
  * @property wheelDelta - A value representing the amount the mouse wheel has moved, only
-valid for {@link mousewheel} events.
+ * valid for {@link mousewheel} events.
  * @property element - The element that the mouse was fired from.
  * @property ctrlKey - True if the ctrl key was pressed when this event was fired.
  * @property shiftKey - True if the shift key was pressed when this event was fired.
@@ -8960,14 +9000,15 @@ export class MouseEvent {
     dy: number;
     /**
      * The mouse button associated with this event. Can be:
-     * * {@link MOUSEBUTTON_LEFT}
-     * * {@link MOUSEBUTTON_MIDDLE}
-     * * {@link MOUSEBUTTON_RIGHT}
+    
+    * {@link MOUSEBUTTON_LEFT}
+    * {@link MOUSEBUTTON_MIDDLE}
+    * {@link MOUSEBUTTON_RIGHT}
     */
     button: number;
     /**
      * A value representing the amount the mouse wheel has moved, only
-     * valid for {@link mousewheel} events.
+    valid for {@link mousewheel} events.
     */
     wheelDelta: number;
     /**
@@ -9026,11 +9067,11 @@ export class Mouse extends EventHandler {
     enableContextMenu(): void;
     /**
      * Request that the browser hides the mouse cursor and locks the mouse to the element.
-    Allowing raw access to mouse movement input without risking the mouse exiting the element.
-    Notes:
-    
-    * In some browsers this will only work when the browser is running in fullscreen mode. See {@link Application#enableFullscreen}
-    * Enabling pointer lock can only be initiated by a user action e.g. in the event handler for a mouse or keyboard input.
+     * Allowing raw access to mouse movement input without risking the mouse exiting the element.
+     * Notes:
+     *
+     * * In some browsers this will only work when the browser is running in fullscreen mode. See {@link Application#enableFullscreen}
+     * * Enabling pointer lock can only be initiated by a user action e.g. in the event handler for a mouse or keyboard input.
      * @param [success] - Function called if the request for mouse lock is successful.
      * @param [error] - Function called if the request for mouse lock is unsuccessful.
      */
@@ -9047,30 +9088,30 @@ export class Mouse extends EventHandler {
     /**
      * Returns true if the mouse button is currently pressed.
      * @param button - The mouse button to test. Can be:
-    
-    * {@link MOUSEBUTTON_LEFT}
-    * {@link MOUSEBUTTON_MIDDLE}
-    * {@link MOUSEBUTTON_RIGHT}
+     *
+     * * {@link MOUSEBUTTON_LEFT}
+     * * {@link MOUSEBUTTON_MIDDLE}
+     * * {@link MOUSEBUTTON_RIGHT}
      * @returns True if the mouse button is current pressed.
      */
     isPressed(button: number): boolean;
     /**
      * Returns true if the mouse button was pressed this frame (since the last call to update).
      * @param button - The mouse button to test. Can be:
-    
-    * {@link MOUSEBUTTON_LEFT}
-    * {@link MOUSEBUTTON_MIDDLE}
-    * {@link MOUSEBUTTON_RIGHT}
+     *
+     * * {@link MOUSEBUTTON_LEFT}
+     * * {@link MOUSEBUTTON_MIDDLE}
+     * * {@link MOUSEBUTTON_RIGHT}
      * @returns True if the mouse button was pressed since the last update.
      */
     wasPressed(button: number): boolean;
     /**
      * Returns true if the mouse button was released this frame (since the last call to update).
      * @param button - The mouse button to test. Can be:
-    
-    * {@link MOUSEBUTTON_LEFT}
-    * {@link MOUSEBUTTON_MIDDLE}
-    * {@link MOUSEBUTTON_RIGHT}
+     *
+     * * {@link MOUSEBUTTON_LEFT}
+     * * {@link MOUSEBUTTON_MIDDLE}
+     * * {@link MOUSEBUTTON_RIGHT}
      * @returns True if the mouse button was released since the last update.
      */
     wasReleased(button: number): boolean;
@@ -9084,7 +9125,7 @@ export class TouchDevice extends EventHandler {
     constructor(element: Element);
     /**
      * Attach a device to an element in the DOM.
-    If the device is already attached to an element this method will detach it first.
+     * If the device is already attached to an element this method will detach it first.
      * @param element - The element to attach to.
      */
     attach(element: Element): void;
@@ -9096,8 +9137,8 @@ export class TouchDevice extends EventHandler {
 
 /**
  * Similar to {@link getTargetCoords} for the MouseEvents.
-This function takes a browser Touch object and returns the co-ordinates of the
-touch relative to the target element.
+ * This function takes a browser Touch object and returns the co-ordinates of the
+ * touch relative to the target element.
  * @param touch - The browser Touch object.
  * @returns The co-ordinates of the touch relative to the touch.target element. In the format {x, y}.
  */
@@ -9149,7 +9190,7 @@ export class TouchEvent {
     constructor(device: TouchDevice, event: TouchEvent);
     /**
      * Get an event from one of the touch lists by the id. It is useful to access
-    touches by their id so that you can be sure you are referencing the same touch.
+     * touches by their id so that you can be sure you are referencing the same touch.
      * @param id - The identifier of the touch.
      * @param list - An array of touches to search.
      * @returns The {@link Touch} object or null.
@@ -9195,11 +9236,11 @@ export class Color {
      * Copies the contents of a source color to a destination color.
      * @example
      * var src = new pc.Color(1, 0, 0, 1);
-    var dst = new pc.Color();
-    
-    dst.copy(src);
-    
-    console.log("The two colors are " + (dst.equals(src) ? "equal" : "different"));
+     * var dst = new pc.Color();
+     *
+     * dst.copy(src);
+     *
+     * console.log("The two colors are " + (dst.equals(src) ? "equal" : "different"));
      * @param rhs - A color to copy to the specified color.
      * @returns Self for chaining.
      */
@@ -9208,8 +9249,8 @@ export class Color {
      * Reports whether two colors are equal.
      * @example
      * var a = new pc.Color(1, 0, 0, 1);
-    var b = new pc.Color(1, 1, 0, 1);
-    console.log("The two colors are " + (a.equals(b) ? "equal" : "different"));
+     * var b = new pc.Color(1, 1, 0, 1);
+     * console.log("The two colors are " + (a.equals(b) ? "equal" : "different"));
      * @param rhs - The color to compare to the specified color.
      * @returns True if the colors are equal and false otherwise.
      */
@@ -9227,35 +9268,35 @@ export class Color {
      * Returns the result of a linear interpolation between two specified colors.
      * @example
      * var a = new pc.Color(0, 0, 0);
-    var b = new pc.Color(1, 1, 0.5);
-    var r = new pc.Color();
-    
-    r.lerp(a, b, 0);   // r is equal to a
-    r.lerp(a, b, 0.5); // r is 0.5, 0.5, 0.25
-    r.lerp(a, b, 1);   // r is equal to b
+     * var b = new pc.Color(1, 1, 0.5);
+     * var r = new pc.Color();
+     *
+     * r.lerp(a, b, 0);   // r is equal to a
+     * r.lerp(a, b, 0.5); // r is 0.5, 0.5, 0.25
+     * r.lerp(a, b, 1);   // r is equal to b
      * @param lhs - The color to interpolate from.
      * @param rhs - The color to interpolate to.
      * @param alpha - The value controlling the point of interpolation. Between 0 and 1, the linear interpolant
-    will occur on a straight line between lhs and rhs. Outside of this range, the linear interpolant will occur on
-    a ray extrapolated from this line.
+     * will occur on a straight line between lhs and rhs. Outside of this range, the linear interpolant will occur on
+     * a ray extrapolated from this line.
      * @returns Self for chaining.
      */
     lerp(lhs: Color, rhs: Color, alpha: number): Color;
     /**
      * Set the values of the color from a string representation '#11223344' or '#112233'.
      * @param hex - A string representation in the format '#RRGGBBAA' or '#RRGGBB'. Where RR, GG, BB, AA are red, green, blue and alpha values.
-    This is the same format used in HTML/CSS.
+     * This is the same format used in HTML/CSS.
      * @returns Self for chaining.
      */
     fromString(hex: string): Color;
     /**
      * Converts the color to string form. The format is '#RRGGBBAA', where
-    RR, GG, BB, AA are the red, green, blue and alpha values. When the alpha value is not
-    included (the default), this is the same format as used in HTML/CSS.
+     * RR, GG, BB, AA are the red, green, blue and alpha values. When the alpha value is not
+     * included (the default), this is the same format as used in HTML/CSS.
      * @example
      * var c = new pc.Color(1, 1, 1);
-    // Outputs #ffffffff
-    console.log(c.toString());
+     * // Outputs #ffffffff
+     * console.log(c.toString());
      * @param alpha - If true, the output string will include the alpha value.
      * @returns The color in string form.
      */
@@ -9348,21 +9389,21 @@ export const CURVE_STEP: number;
  * Creates a new curve set.
  * @example
  * var curveSet = new pc.CurveSet([
-    [
-        [0, 0],
-        [0.33, 2],
-        [0.66, 2.6],
-        [1, 3]
-    ],
-    [
-        [0, 34],
-        [0.33, 35],
-        [0.66, 36],
-        [1, 37]
-    ]
-]);
+ *     [
+ *         [0, 0],
+ *         [0.33, 2],
+ *         [0.66, 2.6],
+ *         [1, 3]
+ *     ],
+ *     [
+ *         [0, 34],
+ *         [0.33, 35],
+ *         [0.66, 36],
+ *         [1, 37]
+ *     ]
+ * ]);
  * @param [curveKeys] - An array of arrays of keys (pairs of numbers with
-the time first and value second).
+ * the time first and value second).
  */
 export class CurveSet {
     constructor(curveKeys?: number[][]);
@@ -9374,11 +9415,11 @@ export class CurveSet {
     get(index: number): Curve;
     /**
      * Returns the interpolated value of all curves in the curve
-    set at the specified time.
+     * set at the specified time.
      * @param time - The time at which to calculate the value.
      * @param [result] - The interpolated curve values at the specified time.
-    If this parameter is not supplied, the function allocates a new array internally
-    to return the result.
+     * If this parameter is not supplied, the function allocates a new array internally
+     * to return the result.
      * @returns The interpolated curve values at the specified time.
      */
     value(time: number, result?: number[]): number[];
@@ -9393,13 +9434,13 @@ export class CurveSet {
     readonly length: number;
     /**
      * The interpolation scheme applied to all curves in the curve set. Can be:
-    
-    * {@link CURVE_LINEAR}
-    * {@link CURVE_SMOOTHSTEP}
-    * {@link CURVE_SPLINE}
-    * {@link CURVE_STEP}
-    
-    Defaults to {@link CURVE_SMOOTHSTEP}.
+     *
+     * * {@link CURVE_LINEAR}
+     * * {@link CURVE_SMOOTHSTEP}
+     * * {@link CURVE_SPLINE}
+     * * {@link CURVE_STEP}
+     *
+     * Defaults to {@link CURVE_SMOOTHSTEP}.
      */
     type: number;
 }
@@ -9408,25 +9449,25 @@ export class CurveSet {
  * Creates a new curve.
  * @example
  * var curve = new pc.Curve([
-    [0, 0],
-    [0.33, 2],
-    [0.66, 2.6],
-    [1, 3]
-]);
+ *     [0, 0],
+ *     [0.33, 2],
+ *     [0.66, 2.6],
+ *     [1, 3]
+ * ]);
  * @property length - The number of keys in the curve. [read only].
  * @property type - The curve interpolation scheme. Can be:
-
-* {@link CURVE_LINEAR}
-* {@link CURVE_SMOOTHSTEP}
-* {@link CURVE_SPLINE}
-* {@link CURVE_STEP}
-
-Defaults to {@link CURVE_SMOOTHSTEP}.
+ *
+ * * {@link CURVE_LINEAR}
+ * * {@link CURVE_SMOOTHSTEP}
+ * * {@link CURVE_SPLINE}
+ * * {@link CURVE_STEP}
+ *
+ * Defaults to {@link CURVE_SMOOTHSTEP}.
  * @property tension - Controls how {@link CURVE_SPLINE} tangents are calculated.
-Valid range is between 0 and 1 where 0 results in a non-smooth curve (equivalent to linear
-interpolation) and 1 results in a very smooth curve. Use 0.5 for a Catmull-rom spline.
+ * Valid range is between 0 and 1 where 0 results in a non-smooth curve (equivalent to linear
+ * interpolation) and 1 results in a very smooth curve. Use 0.5 for a Catmull-rom spline.
  * @param [data] - An array of keys (pairs of numbers with the time first and
-value second).
+ * value second).
  */
 export class Curve {
     constructor(data?: number[]);
@@ -9464,17 +9505,19 @@ export class Curve {
     length: number;
     /**
      * The curve interpolation scheme. Can be:
-     * * {@link CURVE_LINEAR}
-     * * {@link CURVE_SMOOTHSTEP}
-     * * {@link CURVE_SPLINE}
-     * * {@link CURVE_STEP}
-     * Defaults to {@link CURVE_SMOOTHSTEP}.
+    
+    * {@link CURVE_LINEAR}
+    * {@link CURVE_SMOOTHSTEP}
+    * {@link CURVE_SPLINE}
+    * {@link CURVE_STEP}
+    
+    Defaults to {@link CURVE_SMOOTHSTEP}.
     */
     type: number;
     /**
      * Controls how {@link CURVE_SPLINE} tangents are calculated.
-     * Valid range is between 0 and 1 where 0 results in a non-smooth curve (equivalent to linear
-     * interpolation) and 1 results in a very smooth curve. Use 0.5 for a Catmull-rom spline.
+    Valid range is between 0 and 1 where 0 results in a non-smooth curve (equivalent to linear
+    interpolation) and 1 results in a very smooth curve. Use 0.5 for a Catmull-rom spline.
     */
     tension: number;
 }
@@ -9488,8 +9531,8 @@ export class Mat3 {
      * Creates a duplicate of the specified matrix.
      * @example
      * var src = new pc.Mat3().translate(10, 20, 30);
-    var dst = src.clone();
-    console.log("The two matrices are " + (src.equals(dst) ? "equal" : "different"));
+     * var dst = src.clone();
+     * console.log("The two matrices are " + (src.equals(dst) ? "equal" : "different"));
      * @returns A duplicate matrix.
      */
     clone(): Mat3;
@@ -9497,9 +9540,9 @@ export class Mat3 {
      * Copies the contents of a source 3x3 matrix to a destination 3x3 matrix.
      * @example
      * var src = new pc.Mat3().translate(10, 20, 30);
-    var dst = new pc.Mat3();
-    dst.copy(src);
-    console.log("The two matrices are " + (src.equals(dst) ? "equal" : "different"));
+     * var dst = new pc.Mat3();
+     * dst.copy(src);
+     * console.log("The two matrices are " + (src.equals(dst) ? "equal" : "different"));
      * @param rhs - A 3x3 matrix to be copied.
      * @returns Self for chaining.
      */
@@ -9508,7 +9551,7 @@ export class Mat3 {
      * Copies the contents of a source array[9] to a destination 3x3 matrix.
      * @example
      * var dst = new pc.Mat3();
-    dst.set([0, 1, 2, 3, 4, 5, 6, 7, 8]);
+     * dst.set([0, 1, 2, 3, 4, 5, 6, 7, 8]);
      * @param src - An array[9] to be copied.
      * @returns Self for chaining.
      */
@@ -9517,8 +9560,8 @@ export class Mat3 {
      * Reports whether two matrices are equal.
      * @example
      * var a = new pc.Mat3().translate(10, 20, 30);
-    var b = new pc.Mat3();
-    console.log("The two matrices are " + (a.equals(b) ? "equal" : "different"));
+     * var b = new pc.Mat3();
+     * console.log("The two matrices are " + (a.equals(b) ? "equal" : "different"));
      * @param rhs - The other matrix.
      * @returns True if the matrices are equal and false otherwise.
      */
@@ -9527,7 +9570,7 @@ export class Mat3 {
      * Reports whether the specified matrix is the identity matrix.
      * @example
      * var m = new pc.Mat3();
-    console.log("The matrix is " + (m.isIdentity() ? "identity" : "not identity"));
+     * console.log("The matrix is " + (m.isIdentity() ? "identity" : "not identity"));
      * @returns True if the matrix is identity and false otherwise.
      */
     isIdentity(): boolean;
@@ -9535,7 +9578,7 @@ export class Mat3 {
      * Sets the matrix to the identity matrix.
      * @example
      * m.setIdentity();
-    console.log("The matrix is " + (m.isIdentity() ? "identity" : "not identity"));
+     * console.log("The matrix is " + (m.isIdentity() ? "identity" : "not identity"));
      * @returns Self for chaining.
      */
     setIdentity(): Mat3;
@@ -9543,8 +9586,8 @@ export class Mat3 {
      * Converts the matrix to string form.
      * @example
      * var m = new pc.Mat3();
-    // Outputs [1, 0, 0, 0, 1, 0, 0, 0, 1]
-    console.log(m.toString());
+     * // Outputs [1, 0, 0, 0, 1, 0, 0, 0, 1]
+     * console.log(m.toString());
      * @returns The matrix in string form.
      */
     toString(): string;
@@ -9552,9 +9595,9 @@ export class Mat3 {
      * Generates the transpose of the specified 3x3 matrix.
      * @example
      * var m = new pc.Mat3();
-    
-    // Transpose in place
-    m.transpose();
+     *
+     * // Transpose in place
+     * m.transpose();
      * @returns Self for chaining.
      */
     transpose(): Mat3;
@@ -9592,13 +9635,13 @@ export class Mat3 {
 export class Mat4 {
     /**
      * Adds the specified 4x4 matrices together and stores the result in
-    the current instance.
+     * the current instance.
      * @example
      * var m = new pc.Mat4();
-    
-    m.add2(pc.Mat4.IDENTITY, pc.Mat4.ONE);
-    
-    console.log("The result of the addition is: " + m.toString());
+     *
+     * m.add2(pc.Mat4.IDENTITY, pc.Mat4.ONE);
+     *
+     * console.log("The result of the addition is: " + m.toString());
      * @param lhs - The 4x4 matrix used as the first operand of the addition.
      * @param rhs - The 4x4 matrix used as the second operand of the addition.
      * @returns Self for chaining.
@@ -9608,10 +9651,10 @@ export class Mat4 {
      * Adds the specified 4x4 matrix to the current instance.
      * @example
      * var m = new pc.Mat4();
-    
-    m.add(pc.Mat4.ONE);
-    
-    console.log("The result of the addition is: " + m.toString());
+     *
+     * m.add(pc.Mat4.ONE);
+     *
+     * console.log("The result of the addition is: " + m.toString());
      * @param rhs - The 4x4 matrix used as the second operand of the addition.
      * @returns Self for chaining.
      */
@@ -9620,8 +9663,8 @@ export class Mat4 {
      * Creates a duplicate of the specified matrix.
      * @example
      * var src = new pc.Mat4().setFromEulerAngles(10, 20, 30);
-    var dst = src.clone();
-    console.log("The two matrices are " + (src.equals(dst) ? "equal" : "different"));
+     * var dst = src.clone();
+     * console.log("The two matrices are " + (src.equals(dst) ? "equal" : "different"));
      * @returns A duplicate matrix.
      */
     clone(): Mat4;
@@ -9629,9 +9672,9 @@ export class Mat4 {
      * Copies the contents of a source 4x4 matrix to a destination 4x4 matrix.
      * @example
      * var src = new pc.Mat4().setFromEulerAngles(10, 20, 30);
-    var dst = new pc.Mat4();
-    dst.copy(src);
-    console.log("The two matrices are " + (src.equals(dst) ? "equal" : "different"));
+     * var dst = new pc.Mat4();
+     * dst.copy(src);
+     * console.log("The two matrices are " + (src.equals(dst) ? "equal" : "different"));
      * @param rhs - A 4x4 matrix to be copied.
      * @returns Self for chaining.
      */
@@ -9640,8 +9683,8 @@ export class Mat4 {
      * Reports whether two matrices are equal.
      * @example
      * var a = new pc.Mat4().setFromEulerAngles(10, 20, 30);
-    var b = new pc.Mat4();
-    console.log("The two matrices are " + (a.equals(b) ? "equal" : "different"));
+     * var b = new pc.Mat4();
+     * console.log("The two matrices are " + (a.equals(b) ? "equal" : "different"));
      * @param rhs - The other matrix.
      * @returns True if the matrices are equal and false otherwise.
      */
@@ -9650,22 +9693,22 @@ export class Mat4 {
      * Reports whether the specified matrix is the identity matrix.
      * @example
      * var m = new pc.Mat4();
-    console.log("The matrix is " + (m.isIdentity() ? "identity" : "not identity"));
+     * console.log("The matrix is " + (m.isIdentity() ? "identity" : "not identity"));
      * @returns True if the matrix is identity and false otherwise.
      */
     isIdentity(): boolean;
     /**
      * Multiplies the specified 4x4 matrices together and stores the result in
-    the current instance.
+     * the current instance.
      * @example
      * var a = new pc.Mat4().setFromEulerAngles(10, 20, 30);
-    var b = new pc.Mat4().setFromAxisAngle(pc.Vec3.UP, 180);
-    var r = new pc.Mat4();
-    
-    // r = a * b
-    r.mul2(a, b);
-    
-    console.log("The result of the multiplication is: " + r.toString());
+     * var b = new pc.Mat4().setFromAxisAngle(pc.Vec3.UP, 180);
+     * var r = new pc.Mat4();
+     *
+     * // r = a * b
+     * r.mul2(a, b);
+     *
+     * console.log("The result of the multiplication is: " + r.toString());
      * @param lhs - The 4x4 matrix used as the first multiplicand of the operation.
      * @param rhs - The 4x4 matrix used as the second multiplicand of the operation.
      * @returns Self for chaining.
@@ -9673,9 +9716,9 @@ export class Mat4 {
     mul2(lhs: Mat4, rhs: Mat4): Mat4;
     /**
      * Multiplies the specified 4x4 matrices together and stores the result in
-    the current instance. This function assumes the matrices are affine transformation matrices, where the upper left 3x3 elements
-    are a rotation matrix, and the bottom left 3 elements are translation. The rightmost column is assumed to be [0, 0, 0, 1]. The parameters
-    are not verified to be in the expected format. This function is faster than general {@link Mat4#mul2}.
+     * the current instance. This function assumes the matrices are affine transformation matrices, where the upper left 3x3 elements
+     * are a rotation matrix, and the bottom left 3 elements are translation. The rightmost column is assumed to be [0, 0, 0, 1]. The parameters
+     * are not verified to be in the expected format. This function is faster than general {@link Mat4#mul2}.
      * @param lhs - The affine transformation 4x4 matrix used as the first multiplicand of the operation.
      * @param rhs - The affine transformation 4x4 matrix used as the second multiplicand of the operation.
      * @returns Self for chaining.
@@ -9685,12 +9728,12 @@ export class Mat4 {
      * Multiplies the current instance by the specified 4x4 matrix.
      * @example
      * var a = new pc.Mat4().setFromEulerAngles(10, 20, 30);
-    var b = new pc.Mat4().setFromAxisAngle(pc.Vec3.UP, 180);
-    
-    // a = a * b
-    a.mul(b);
-    
-    console.log("The result of the multiplication is: " + a.toString());
+     * var b = new pc.Mat4().setFromAxisAngle(pc.Vec3.UP, 180);
+     *
+     * // a = a * b
+     * a.mul(b);
+     *
+     * console.log("The result of the multiplication is: " + a.toString());
      * @param rhs - The 4x4 matrix used as the second multiplicand of the operation.
      * @returns Self for chaining.
      */
@@ -9699,12 +9742,12 @@ export class Mat4 {
      * Transforms a 3-dimensional point by a 4x4 matrix.
      * @example
      * // Create a 3-dimensional point
-    var v = new pc.Vec3(1, 2, 3);
-    
-    // Create a 4x4 rotation matrix
-    var m = new pc.Mat4().setFromEulerAngles(10, 20, 30);
-    
-    var tv = m.transformPoint(v);
+     * var v = new pc.Vec3(1, 2, 3);
+     *
+     * // Create a 4x4 rotation matrix
+     * var m = new pc.Mat4().setFromEulerAngles(10, 20, 30);
+     *
+     * var tv = m.transformPoint(v);
      * @param vec - The 3-dimensional point to be transformed.
      * @param [res] - An optional 3-dimensional point to receive the result of the transformation.
      * @returns The input point v transformed by the current instance.
@@ -9714,12 +9757,12 @@ export class Mat4 {
      * Transforms a 3-dimensional vector by a 4x4 matrix.
      * @example
      * // Create a 3-dimensional vector
-    var v = new pc.Vec3(1, 2, 3);
-    
-    // Create a 4x4 rotation matrix
-    var m = new pc.Mat4().setFromEulerAngles(10, 20, 30);
-    
-    var tv = m.transformVector(v);
+     * var v = new pc.Vec3(1, 2, 3);
+     *
+     * // Create a 4x4 rotation matrix
+     * var m = new pc.Mat4().setFromEulerAngles(10, 20, 30);
+     *
+     * var tv = m.transformVector(v);
      * @param vec - The 3-dimensional vector to be transformed.
      * @param [res] - An optional 3-dimensional vector to receive the result of the transformation.
      * @returns The input vector v transformed by the current instance.
@@ -9729,15 +9772,15 @@ export class Mat4 {
      * Transforms a 4-dimensional vector by a 4x4 matrix.
      * @example
      * // Create an input 4-dimensional vector
-    var v = new pc.Vec4(1, 2, 3, 4);
-    
-    // Create an output 4-dimensional vector
-    var result = new pc.Vec4();
-    
-    // Create a 4x4 rotation matrix
-    var m = new pc.Mat4().setFromEulerAngles(10, 20, 30);
-    
-    m.transformVec4(v, result);
+     * var v = new pc.Vec4(1, 2, 3, 4);
+     *
+     * // Create an output 4-dimensional vector
+     * var result = new pc.Vec4();
+     *
+     * // Create a 4x4 rotation matrix
+     * var m = new pc.Mat4().setFromEulerAngles(10, 20, 30);
+     *
+     * m.transformVec4(v, result);
      * @param vec - The 4-dimensional vector to be transformed.
      * @param [res] - An optional 4-dimensional vector to receive the result of the transformation.
      * @returns The input vector v transformed by the current instance.
@@ -9745,16 +9788,16 @@ export class Mat4 {
     transformVec4(vec: Vec4, res?: Vec4): Vec4;
     /**
      * Sets the specified matrix to a viewing matrix derived from an eye point, a target point
-    and an up vector. The matrix maps the target point to the negative z-axis and the eye point to the
-    origin, so that when you use a typical projection matrix, the center of the scene maps to the center
-    of the viewport. Similarly, the direction described by the up vector projected onto the viewing plane
-    is mapped to the positive y-axis so that it points upward in the viewport. The up vector must not be
-    parallel to the line of sight from the eye to the reference point.
+     * and an up vector. The matrix maps the target point to the negative z-axis and the eye point to the
+     * origin, so that when you use a typical projection matrix, the center of the scene maps to the center
+     * of the viewport. Similarly, the direction described by the up vector projected onto the viewing plane
+     * is mapped to the positive y-axis so that it points upward in the viewport. The up vector must not be
+     * parallel to the line of sight from the eye to the reference point.
      * @example
      * var position = new pc.Vec3(10, 10, 10);
-    var target = new pc.Vec3(0, 0, 0);
-    var up = new pc.Vec3(0, 1, 0);
-    var m = new pc.Mat4().setLookAt(position, target, up);
+     * var target = new pc.Vec3(0, 0, 0);
+     * var up = new pc.Vec3(0, 1, 0);
+     * var m = new pc.Mat4().setLookAt(position, target, up);
      * @param position - 3-d vector holding view position.
      * @param target - 3-d vector holding reference point.
      * @param up - 3-d vector holding the up direction.
@@ -9763,27 +9806,27 @@ export class Mat4 {
     setLookAt(position: Vec3, target: Vec3, up: Vec3): Mat4;
     /**
      * Sets the specified matrix to a perspective projection matrix. The function's
-    parameters define the shape of a frustum.
+     * parameters define the shape of a frustum.
      * @example
      * // Create a 4x4 perspective projection matrix
-    var persp = pc.Mat4().setPerspective(45, 16 / 9, 1, 1000);
+     * var persp = pc.Mat4().setPerspective(45, 16 / 9, 1, 1000);
      * @param fov - The frustum's field of view in degrees. The fovIsHorizontal parameter
-    controls whether this is a vertical or horizontal field of view. By default, it's a vertical
-    field of view.
+     * controls whether this is a vertical or horizontal field of view. By default, it's a vertical
+     * field of view.
      * @param aspect - The aspect ratio of the frustum's projection plane (width / height).
      * @param znear - The near clip plane in eye coordinates.
      * @param zfar - The far clip plane in eye coordinates.
      * @param [fovIsHorizontal = false] - Set to true to treat the fov as horizontal (x-axis)
-    and false for vertical (y-axis). Defaults to false.
+     * and false for vertical (y-axis). Defaults to false.
      * @returns Self for chaining.
      */
     setPerspective(fov: number, aspect: number, znear: number, zfar: number, fovIsHorizontal?: boolean): Mat4;
     /**
      * Sets the specified matrix to an orthographic projection matrix. The function's parameters
-    define the shape of a cuboid-shaped frustum.
+     * define the shape of a cuboid-shaped frustum.
      * @example
      * // Create a 4x4 orthographic projection matrix
-    var ortho = pc.Mat4().ortho(-2, 2, -2, 2, 1, 1000);
+     * var ortho = pc.Mat4().ortho(-2, 2, -2, 2, 1, 1000);
      * @param left - The x-coordinate for the left edge of the camera's projection plane in eye space.
      * @param right - The x-coordinate for the right edge of the camera's projection plane in eye space.
      * @param bottom - The y-coordinate for the bottom edge of the camera's projection plane in eye space.
@@ -9795,10 +9838,10 @@ export class Mat4 {
     setOrtho(left: number, right: number, bottom: number, top: number, near: number, far: number): Mat4;
     /**
      * Sets the specified matrix to a rotation matrix equivalent to a rotation around
-    an axis. The axis must be normalized (unit length) and the angle must be specified in degrees.
+     * an axis. The axis must be normalized (unit length) and the angle must be specified in degrees.
      * @example
      * // Create a 4x4 rotation matrix
-    var rm = new pc.Mat4().setFromAxisAngle(pc.Vec3.UP, 90);
+     * var rm = new pc.Mat4().setFromAxisAngle(pc.Vec3.UP, 90);
      * @param axis - The normalized axis vector around which to rotate.
      * @param angle - The angle of rotation in degrees.
      * @returns Self for chaining.
@@ -9808,10 +9851,10 @@ export class Mat4 {
      * Sets the specified matrix to its inverse.
      * @example
      * // Create a 4x4 rotation matrix of 180 degrees around the y-axis
-    var rot = new pc.Mat4().setFromAxisAngle(pc.Vec3.UP, 180);
-    
-    // Invert in place
-    rot.invert();
+     * var rot = new pc.Mat4().setFromAxisAngle(pc.Vec3.UP, 180);
+     *
+     * // Invert in place
+     * rot.invert();
      * @returns Self for chaining.
      */
     invert(): Mat4;
@@ -9825,20 +9868,20 @@ export class Mat4 {
      * Sets the specified matrix to the identity matrix.
      * @example
      * m.setIdentity();
-    console.log("The matrix is " + (m.isIdentity() ? "identity" : "not identity"));
+     * console.log("The matrix is " + (m.isIdentity() ? "identity" : "not identity"));
      * @returns Self for chaining.
      */
     setIdentity(): Mat4;
     /**
      * Sets the specified matrix to the concatenation of a translation, a
-    quaternion rotation and a scale.
+     * quaternion rotation and a scale.
      * @example
      * var t = new pc.Vec3(10, 20, 30);
-    var r = new pc.Quat();
-    var s = new pc.Vec3(2, 2, 2);
-    
-    var m = new pc.Mat4();
-    m.setTRS(t, r, s);
+     * var r = new pc.Quat();
+     * var s = new pc.Vec3(2, 2, 2);
+     *
+     * var m = new pc.Mat4();
+     * m.setTRS(t, r, s);
      * @param t - A 3-d vector translation.
      * @param r - A quaternion rotation.
      * @param s - A 3-d vector scale.
@@ -9849,9 +9892,9 @@ export class Mat4 {
      * Sets the specified matrix to its transpose.
      * @example
      * var m = new pc.Mat4();
-    
-    // Transpose in place
-    m.transpose();
+     *
+     * // Transpose in place
+     * m.transpose();
      * @returns Self for chaining.
      */
     transpose(): Mat4;
@@ -9859,11 +9902,11 @@ export class Mat4 {
      * Extracts the translational component from the specified 4x4 matrix.
      * @example
      * // Create a 4x4 matrix
-    var m = new pc.Mat4();
-    
-    // Query the z-axis component
-    var t = new pc.Vec3();
-    m.getTranslation(t);
+     * var m = new pc.Mat4();
+     *
+     * // Query the z-axis component
+     * var t = new pc.Vec3();
+     * m.getTranslation(t);
      * @param [t] - The vector to receive the translation of the matrix.
      * @returns The translation of the specified 4x4 matrix.
      */
@@ -9872,11 +9915,11 @@ export class Mat4 {
      * Extracts the x-axis from the specified 4x4 matrix.
      * @example
      * // Create a 4x4 matrix
-    var m = new pc.Mat4();
-    
-    // Query the z-axis component
-    var x = new pc.Vec3();
-    m.getX(x);
+     * var m = new pc.Mat4();
+     *
+     * // Query the z-axis component
+     * var x = new pc.Vec3();
+     * m.getX(x);
      * @param [x] - The vector to receive the x axis of the matrix.
      * @returns The x-axis of the specified 4x4 matrix.
      */
@@ -9885,11 +9928,11 @@ export class Mat4 {
      * Extracts the y-axis from the specified 4x4 matrix.
      * @example
      * // Create a 4x4 matrix
-    var m = new pc.Mat4();
-    
-    // Query the z-axis component
-    var y = new pc.Vec3();
-    m.getY(y);
+     * var m = new pc.Mat4();
+     *
+     * // Query the z-axis component
+     * var y = new pc.Vec3();
+     * m.getY(y);
      * @param [y] - The vector to receive the y axis of the matrix.
      * @returns The y-axis of the specified 4x4 matrix.
      */
@@ -9898,11 +9941,11 @@ export class Mat4 {
      * Extracts the z-axis from the specified 4x4 matrix.
      * @example
      * // Create a 4x4 matrix
-    var m = new pc.Mat4();
-    
-    // Query the z-axis component
-    var z = new pc.Vec3();
-    m.getZ(z);
+     * var m = new pc.Mat4();
+     *
+     * // Query the z-axis component
+     * var z = new pc.Vec3();
+     * m.getZ(z);
      * @param [z] - The vector to receive the z axis of the matrix.
      * @returns The z-axis of the specified 4x4 matrix.
      */
@@ -9910,21 +9953,18 @@ export class Mat4 {
     /**
      * Extracts the scale component from the specified 4x4 matrix.
      * @example
-     * // Create a 4x4 scale matrix
-    var m = new pc.Mat4().scale(2, 3, 4);
-    
-    // Query the scale component
-    var scale = m.getScale();
+     * // Query the scale component
+     * var scale = m.getScale();
      * @param [scale] - Vector to receive the scale.
      * @returns The scale in X, Y and Z of the specified 4x4 matrix.
      */
     getScale(scale?: Vec3): Vec3;
     /**
      * Sets the specified matrix to a rotation matrix defined by
-    Euler angles. The Euler angles are specified in XYZ order and in degrees.
+     * Euler angles. The Euler angles are specified in XYZ order and in degrees.
      * @example
      * var m = new pc.Mat4();
-    m.setFromEulerAngles(45, 90, 180);
+     * m.setFromEulerAngles(45, 90, 180);
      * @param ex - Angle to rotate around X axis in degrees.
      * @param ey - Angle to rotate around Y axis in degrees.
      * @param ez - Angle to rotate around Z axis in degrees.
@@ -9933,12 +9973,12 @@ export class Mat4 {
     setFromEulerAngles(ex: number, ey: number, ez: number): Mat4;
     /**
      * Extracts the Euler angles equivalent to the rotational portion
-    of the specified matrix. The returned Euler angles are in XYZ order an in degrees.
+     * of the specified matrix. The returned Euler angles are in XYZ order an in degrees.
      * @example
      * // Create a 4x4 rotation matrix of 45 degrees around the y-axis
-    var m = new pc.Mat4().setFromAxisAngle(pc.Vec3.UP, 45);
-    
-    var eulers = m.getEulerAngles();
+     * var m = new pc.Mat4().setFromAxisAngle(pc.Vec3.UP, 45);
+     *
+     * var eulers = m.getEulerAngles();
      * @param [eulers] - A 3-d vector to receive the Euler angles.
      * @returns A 3-d vector containing the Euler angles.
      */
@@ -9947,8 +9987,8 @@ export class Mat4 {
      * Converts the specified matrix to string form.
      * @example
      * var m = new pc.Mat4();
-    // Outputs [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
-    console.log(m.toString());
+     * // Outputs [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
+     * console.log(m.toString());
      * @returns The matrix in string form.
      */
     toString(): string;
@@ -9974,14 +10014,14 @@ export namespace math {
      * Conversion factor between degrees and radians.
      * @example
      * // Convert 180 degrees to pi radians
-    var rad = 180 * pc.math.DEG_TO_RAD;
+     * var rad = 180 * pc.math.DEG_TO_RAD;
      */
     const DEG_TO_RAD: number;
     /**
      * Conversion factor between degrees and radians.
      * @example
      * // Convert pi radians to 180 degrees
-    var deg = Math.PI * pc.math.RAD_TO_DEG;
+     * var deg = Math.PI * pc.math.RAD_TO_DEG;
      */
     const RAD_TO_DEG: number;
     /**
@@ -9996,7 +10036,7 @@ export namespace math {
      * Convert an 24 bit integer into an array of 3 bytes.
      * @example
      * // Set bytes to [0x11, 0x22, 0x33]
-    var bytes = pc.math.intToBytes24(0x112233);
+     * var bytes = pc.math.intToBytes24(0x112233);
      * @param i - Number holding an integer value.
      * @returns An array of 3 bytes.
      */
@@ -10005,7 +10045,7 @@ export namespace math {
      * Convert an 32 bit integer into an array of 4 bytes.
      * @example
      * // Set bytes to [0x11, 0x22, 0x33, 0x44]
-    var bytes = pc.math.intToBytes32(0x11223344);
+     * var bytes = pc.math.intToBytes32(0x11223344);
      * @param i - Number holding an integer value.
      * @returns An array of 4 bytes.
      */
@@ -10014,10 +10054,10 @@ export namespace math {
      * Convert 3 8 bit Numbers into a single unsigned 24 bit Number.
      * @example
      * // Set result1 to 0x112233 from an array of 3 values
-    var result1 = pc.math.bytesToInt24([0x11, 0x22, 0x33]);
-    
-    // Set result2 to 0x112233 from 3 discrete values
-    var result2 = pc.math.bytesToInt24(0x11, 0x22, 0x33);
+     * var result1 = pc.math.bytesToInt24([0x11, 0x22, 0x33]);
+     *
+     * // Set result2 to 0x112233 from 3 discrete values
+     * var result2 = pc.math.bytesToInt24(0x11, 0x22, 0x33);
      * @param r - A single byte (0-255).
      * @param g - A single byte (0-255).
      * @param b - A single byte (0-255).
@@ -10028,10 +10068,10 @@ export namespace math {
      * Convert 4 1-byte Numbers into a single unsigned 32bit Number.
      * @example
      * // Set result1 to 0x11223344 from an array of 4 values
-    var result1 = pc.math.bytesToInt32([0x11, 0x22, 0x33, 0x44]);
-    
-    // Set result2 to 0x11223344 from 4 discrete values
-    var result2 = pc.math.bytesToInt32(0x11, 0x22, 0x33, 0x44);
+     * var result1 = pc.math.bytesToInt32([0x11, 0x22, 0x33, 0x44]);
+     *
+     * // Set result2 to 0x11223344 from 4 discrete values
+     * var result2 = pc.math.bytesToInt32(0x11, 0x22, 0x33, 0x44);
      * @param r - A single byte (0-255).
      * @param g - A single byte (0-255).
      * @param b - A single byte (0-255).
@@ -10044,26 +10084,26 @@ export namespace math {
      * @param a - Number to linearly interpolate from.
      * @param b - Number to linearly interpolate to.
      * @param alpha - The value controlling the result of interpolation. When alpha is 0,
-    a is returned. When alpha is 1, b is returned. Between 0 and 1, a linear interpolation between
-    a and b is returned. alpha is clamped between 0 and 1.
+     * a is returned. When alpha is 1, b is returned. Between 0 and 1, a linear interpolation between
+     * a and b is returned. alpha is clamped between 0 and 1.
      * @returns The linear interpolation of two numbers.
      */
     function lerp(a: number, b: number, alpha: number): number;
     /**
      * Calculates the linear interpolation of two angles ensuring that interpolation
-    is correctly performed across the 360 to 0 degree boundary. Angles are supplied in degrees.
+     * is correctly performed across the 360 to 0 degree boundary. Angles are supplied in degrees.
      * @param a - Angle (in degrees) to linearly interpolate from.
      * @param b - Angle (in degrees) to linearly interpolate to.
      * @param alpha - The value controlling the result of interpolation. When alpha is 0,
-    a is returned. When alpha is 1, b is returned. Between 0 and 1, a linear interpolation between
-    a and b is returned. alpha is clamped between 0 and 1.
+     * a is returned. When alpha is 1, b is returned. Between 0 and 1, a linear interpolation between
+     * a and b is returned. alpha is clamped between 0 and 1.
      * @returns The linear interpolation of two angles.
      */
     function lerpAngle(a: number, b: number, alpha: number): number;
     /**
      * Returns true if argument is a power-of-two and false otherwise.
      * @param x - Number to check for power-of-two property.
-     * @returns True if power-of-two and false otherwise.
+     * @returns true if power-of-two and false otherwise.
      */
     function powerOfTwo(x: number): boolean;
     /**
@@ -10074,7 +10114,7 @@ export namespace math {
     function nextPowerOfTwo(val: number): number;
     /**
      * Return a pseudo-random number between min and max.
-    The number generated is in the range [min, max), that is inclusive of the minimum but exclusive of the maximum.
+     * The number generated is in the range [min, max), that is inclusive of the minimum but exclusive of the maximum.
      * @param min - Lower bound for range.
      * @param max - Upper bound for range.
      * @returns Pseudo-random number between the supplied range.
@@ -10082,12 +10122,12 @@ export namespace math {
     function random(min: number, max: number): number;
     /**
      * The function interpolates smoothly between two input values based on
-    a third one that should be between the first two. The returned value is clamped
-    between 0 and 1.
-    <br/>The slope (i.e. derivative) of the smoothstep function starts at 0 and ends at 0.
-    This makes it easy to create a sequence of transitions using smoothstep to interpolate
-    each segment rather than using a more sophisticated or expensive interpolation technique.
-    <br/>See http://en.wikipedia.org/wiki/Smoothstep for more details.
+     * a third one that should be between the first two. The returned value is clamped
+     * between 0 and 1.
+     * <br/>The slope (i.e. derivative) of the smoothstep function starts at 0 and ends at 0.
+     * This makes it easy to create a sequence of transitions using smoothstep to interpolate
+     * each segment rather than using a more sophisticated or expensive interpolation technique.
+     * <br/>See http://en.wikipedia.org/wiki/Smoothstep for more details.
      * @param min - The lower bound of the interpolation range.
      * @param max - The upper bound of the interpolation range.
      * @param x - The value to interpolate.
@@ -10096,8 +10136,8 @@ export namespace math {
     function smoothstep(min: number, max: number, x: number): number;
     /**
      * An improved version of the {@link math.smoothstep} function which has zero
-    1st and 2nd order derivatives at t=0 and t=1.
-    <br/>See http://en.wikipedia.org/wiki/Smoothstep for more details.
+     * 1st and 2nd order derivatives at t=0 and t=1.
+     * <br/>See http://en.wikipedia.org/wiki/Smoothstep for more details.
      * @param min - The lower bound of the interpolation range.
      * @param max - The upper bound of the interpolation range.
      * @param x - The value to interpolate.
@@ -11552,19 +11592,19 @@ export class Vec4 {
 
 /**
  * Create a new Http instance. By default, a PlayCanvas application creates an instance of this
-object at `http`.
+ * object at `http`.
  */
 export class Http {
     /**
      * Perform an HTTP GET request to the given url.
      * @example
      * pc.http.get("http://example.com/", function (err, response) {
-        console.log(response);
-    });
+     *     console.log(response);
+     * });
      * @param url - The URL to make the request to.
      * @param callback - The callback used when the response has returned. Passed (err, data)
-    where data is the response (format depends on response type: text, Object, ArrayBuffer, XML) and
-    err is the error code.
+     * where data is the response (format depends on response type: text, Object, ArrayBuffer, XML) and
+     * err is the error code.
      * @returns The request object.
      */
     get(url: string, callback: callbacks.HttpResponse): XMLHttpRequest;
@@ -11572,8 +11612,8 @@ export class Http {
      * Perform an HTTP GET request to the given url with addtional options such as headers, retries, credentials, etc.
      * @example
      * pc.http.get("http://example.com/", { "retry": true, "maxRetries": 5 }, function (err, response) {
-        console.log(response);
-    });
+     *     console.log(response);
+     * });
      * @param url - The URL to make the request to.
      * @param options - Additional options.
      * @param [options.headers] - HTTP headers to add to the request.
@@ -11582,15 +11622,15 @@ export class Http {
      * @param [options.withCredentials] - Send cookies with this request. Defaults to false.
      * @param [options.responseType] - Override the response type.
      * @param [options.postdata] - Data to send in the body of the request.
-    Some content types are handled automatically. If postdata is an XML Document, it is handled. If
-    the Content-Type header is set to 'application/json' then the postdata is JSON stringified.
-    Otherwise, by default, the data is sent as form-urlencoded.
+     * Some content types are handled automatically. If postdata is an XML Document, it is handled. If
+     * the Content-Type header is set to 'application/json' then the postdata is JSON stringified.
+     * Otherwise, by default, the data is sent as form-urlencoded.
      * @param [options.retry] - If true then if the request fails it will be retried with an exponential backoff.
      * @param [options.maxRetries] - If options.retry is true this specifies the maximum number of retries. Defaults to 5.
      * @param [options.maxRetryDelay] - If options.retry is true this specifies the maximum amount of time to wait between retries in milliseconds. Defaults to 5000.
      * @param callback - The callback used when the response has returned. Passed (err, data)
-    where data is the response (format depends on response type: text, Object, ArrayBuffer, XML) and
-    err is the error code.
+     * where data is the response (format depends on response type: text, Object, ArrayBuffer, XML) and
+     * err is the error code.
      * @returns The request object.
      */
     get(url: string, options: {
@@ -11608,16 +11648,16 @@ export class Http {
      * Perform an HTTP POST request to the given url.
      * @example
      * pc.http.post("http://example.com/", { "name": "Alix" }, function (err, response) {
-        console.log(response);
-    });
+     *     console.log(response);
+     * });
      * @param url - The URL to make the request to.
      * @param data - Data to send in the body of the request.
-    Some content types are handled automatically. If postdata is an XML Document, it is handled. If
-    the Content-Type header is set to 'application/json' then the postdata is JSON stringified.
-    Otherwise, by default, the data is sent as form-urlencoded.
+     * Some content types are handled automatically. If postdata is an XML Document, it is handled. If
+     * the Content-Type header is set to 'application/json' then the postdata is JSON stringified.
+     * Otherwise, by default, the data is sent as form-urlencoded.
      * @param callback - The callback used when the response has returned. Passed (err, data)
-    where data is the response (format depends on response type: text, Object, ArrayBuffer, XML) and
-    err is the error code.
+     * where data is the response (format depends on response type: text, Object, ArrayBuffer, XML) and
+     * err is the error code.
      * @returns The request object.
      */
     post(url: string, data: any, callback: callbacks.HttpResponse): XMLHttpRequest;
@@ -11625,13 +11665,13 @@ export class Http {
      * Perform an HTTP POST request to the given url with addtional options such as headers, retries, credentials, etc.
      * @example
      * pc.http.post("http://example.com/", { "name": "Alix" }, { "retry": true, "maxRetries": 5 }, function (err, response) {
-        console.log(response);
-    });
+     *     console.log(response);
+     * });
      * @param url - The URL to make the request to.
      * @param data - Data to send in the body of the request.
-    Some content types are handled automatically. If postdata is an XML Document, it is handled. If
-    the Content-Type header is set to 'application/json' then the postdata is JSON stringified.
-    Otherwise, by default, the data is sent as form-urlencoded.
+     * Some content types are handled automatically. If postdata is an XML Document, it is handled. If
+     * the Content-Type header is set to 'application/json' then the postdata is JSON stringified.
+     * Otherwise, by default, the data is sent as form-urlencoded.
      * @param options - Additional options.
      * @param [options.headers] - HTTP headers to add to the request.
      * @param [options.async] - Make the request asynchronously. Defaults to true.
@@ -11642,8 +11682,8 @@ export class Http {
      * @param [options.maxRetries] - If options.retry is true this specifies the maximum number of retries. Defaults to 5.
      * @param [options.maxRetryDelay] - If options.retry is true this specifies the maximum amount of time to wait between retries in milliseconds. Defaults to 5000.
      * @param callback - The callback used when the response has returned. Passed (err, data)
-    where data is the response (format depends on response type: text, Object, ArrayBuffer, XML) and
-    err is the error code.
+     * where data is the response (format depends on response type: text, Object, ArrayBuffer, XML) and
+     * err is the error code.
      * @returns The request object.
      */
     post(url: string, data: any, options: {
@@ -11660,16 +11700,16 @@ export class Http {
      * Perform an HTTP PUT request to the given url.
      * @example
      * pc.http.put("http://example.com/", { "name": "Alix" }, function (err, response) {
-        console.log(response);
-    });
+     *     console.log(response);
+     * });
      * @param url - The URL to make the request to.
      * @param data - Data to send in the body of the request.
-    Some content types are handled automatically. If postdata is an XML Document, it is handled. If
-    the Content-Type header is set to 'application/json' then the postdata is JSON stringified.
-    Otherwise, by default, the data is sent as form-urlencoded.
+     * Some content types are handled automatically. If postdata is an XML Document, it is handled. If
+     * the Content-Type header is set to 'application/json' then the postdata is JSON stringified.
+     * Otherwise, by default, the data is sent as form-urlencoded.
      * @param callback - The callback used when the response has returned. Passed (err, data)
-    where data is the response (format depends on response type: text, Object, ArrayBuffer, XML) and
-    err is the error code.
+     * where data is the response (format depends on response type: text, Object, ArrayBuffer, XML) and
+     * err is the error code.
      * @returns The request object.
      */
     put(url: string, data: Document | any, callback: callbacks.HttpResponse): XMLHttpRequest;
@@ -11677,13 +11717,13 @@ export class Http {
      * Perform an HTTP PUT request to the given url with addtional options such as headers, retries, credentials, etc.
      * @example
      * pc.http.put("http://example.com/", { "name": "Alix" }, { "retry": true, "maxRetries": 5 }, function (err, response) {
-        console.log(response);
-    });
+     *     console.log(response);
+     * });
      * @param url - The URL to make the request to.
      * @param data - Data to send in the body of the request.
-    Some content types are handled automatically. If postdata is an XML Document, it is handled. If
-    the Content-Type header is set to 'application/json' then the postdata is JSON stringified.
-    Otherwise, by default, the data is sent as form-urlencoded.
+     * Some content types are handled automatically. If postdata is an XML Document, it is handled. If
+     * the Content-Type header is set to 'application/json' then the postdata is JSON stringified.
+     * Otherwise, by default, the data is sent as form-urlencoded.
      * @param options - Additional options.
      * @param [options.headers] - HTTP headers to add to the request.
      * @param [options.async] - Make the request asynchronously. Defaults to true.
@@ -11694,8 +11734,8 @@ export class Http {
      * @param [options.maxRetries] - If options.retry is true this specifies the maximum number of retries. Defaults to 5.
      * @param [options.maxRetryDelay] - If options.retry is true this specifies the maximum amount of time to wait between retries in milliseconds. Defaults to 5000.
      * @param callback - The callback used when the response has returned. Passed (err, data)
-    where data is the response (format depends on response type: text, Object, ArrayBuffer, XML) and
-    err is the error code.
+     * where data is the response (format depends on response type: text, Object, ArrayBuffer, XML) and
+     * err is the error code.
      * @returns The request object.
      */
     put(url: string, data: Document | any, options: {
@@ -11712,12 +11752,12 @@ export class Http {
      * Perform an HTTP DELETE request to the given url.
      * @example
      * pc.http.del("http://example.com/", function (err, response) {
-        console.log(response);
-    });
+     *     console.log(response);
+     * });
      * @param url - The URL to make the request to.
      * @param callback - The callback used when the response has returned. Passed (err, data)
-    where data is the response (format depends on response type: text, Object, ArrayBuffer, XML) and
-    err is the error code.
+     * where data is the response (format depends on response type: text, Object, ArrayBuffer, XML) and
+     * err is the error code.
      * @returns The request object.
      */
     del(url: any, callback: callbacks.HttpResponse): XMLHttpRequest;
@@ -11725,8 +11765,8 @@ export class Http {
      * Perform an HTTP DELETE request to the given url with addtional options such as headers, retries, credentials, etc.
      * @example
      * pc.http.del("http://example.com/", { "retry": true, "maxRetries": 5 }, function (err, response) {
-        console.log(response);
-    });
+     *     console.log(response);
+     * });
      * @param url - The URL to make the request to.
      * @param options - Additional options.
      * @param [options.headers] - HTTP headers to add to the request.
@@ -11735,15 +11775,15 @@ export class Http {
      * @param [options.withCredentials] - Send cookies with this request. Defaults to false.
      * @param [options.responseType] - Override the response type.
      * @param [options.postdata] - Data to send in the body of the request.
-    Some content types are handled automatically. If postdata is an XML Document, it is handled. If
-    the Content-Type header is set to 'application/json' then the postdata is JSON stringified.
-    Otherwise, by default, the data is sent as form-urlencoded.
+     * Some content types are handled automatically. If postdata is an XML Document, it is handled. If
+     * the Content-Type header is set to 'application/json' then the postdata is JSON stringified.
+     * Otherwise, by default, the data is sent as form-urlencoded.
      * @param [options.retry] - If true then if the request fails it will be retried with an exponential backoff.
      * @param [options.maxRetries] - If options.retry is true this specifies the maximum number of retries. Defaults to 5.
      * @param [options.maxRetryDelay] - If options.retry is true this specifies the maximum amount of time to wait between retries in milliseconds. Defaults to 5000.
      * @param callback - The callback used when the response has returned. Passed (err, data)
-    where data is the response (format depends on response type: text, Object, ArrayBuffer, XML) and
-    err is the error code.
+     * where data is the response (format depends on response type: text, Object, ArrayBuffer, XML) and
+     * err is the error code.
      * @returns The request object.
      */
     del(url: any, options: {
@@ -11761,13 +11801,13 @@ export class Http {
      * Make a general purpose HTTP request.
      * @example
      * pc.http.request("get", "http://example.com/", function (err, response) {
-        console.log(response);
-    });
+     *     console.log(response);
+     * });
      * @param method - The HTTP method "GET", "POST", "PUT", "DELETE".
      * @param url - The url to make the request to.
      * @param callback - The callback used when the response has returned. Passed (err, data)
-    where data is the response (format depends on response type: text, Object, ArrayBuffer, XML) and
-    err is the error code.
+     * where data is the response (format depends on response type: text, Object, ArrayBuffer, XML) and
+     * err is the error code.
      * @returns The request object.
      */
     request(method: string, url: string, callback: callbacks.HttpResponse): XMLHttpRequest;
@@ -11775,8 +11815,8 @@ export class Http {
      * Make a general purpose HTTP request with addtional options such as headers, retries, credentials, etc.
      * @example
      * pc.http.request("get", "http://example.com/", { "retry": true, "maxRetries": 5 }, function (err, response) {
-        console.log(response);
-    });
+     *     console.log(response);
+     * });
      * @param method - The HTTP method "GET", "POST", "PUT", "DELETE".
      * @param url - The url to make the request to.
      * @param options - Additional options.
@@ -11789,12 +11829,12 @@ export class Http {
      * @param [options.maxRetryDelay] - If options.retry is true this specifies the maximum amount of time to wait between retries in milliseconds. Defaults to 5000.
      * @param [options.responseType] - Override the response type.
      * @param [options.postdata] - Data to send in the body of the request.
-    Some content types are handled automatically. If postdata is an XML Document, it is handled. If
-    the Content-Type header is set to 'application/json' then the postdata is JSON stringified.
-    Otherwise, by default, the data is sent as form-urlencoded.
+     * Some content types are handled automatically. If postdata is an XML Document, it is handled. If
+     * the Content-Type header is set to 'application/json' then the postdata is JSON stringified.
+     * Otherwise, by default, the data is sent as form-urlencoded.
      * @param callback - The callback used when the response has returned. Passed (err, data)
-    where data is the response (format depends on response type: text, Object, ArrayBuffer, XML) and
-    err is the error code.
+     * where data is the response (format depends on response type: text, Object, ArrayBuffer, XML) and
+     * err is the error code.
      * @returns The request object.
      */
     request(method: string, url: string, options: {
@@ -11819,12 +11859,12 @@ export interface AnimationHandler extends ResourceHandler {
 export class AnimationHandler implements ResourceHandler {
     /**
      * Load a resource from a remote URL. When loaded (or failed),
-    use the callback to return an the raw resource data (or error).
+     * use the callback to return an the raw resource data (or error).
      * @param url - Either the URL of the resource to load or a structure containing the
-    load and original URL.
+     * load and original URL.
      * @param [url.load] - The URL to be used for loading the resource.
      * @param [url.original] - The original URL to be used for identifying the resource
-    format. This is necessary when loading, for example from blob.
+     * format. This is necessary when loading, for example from blob.
      * @param callback - The callback used when the resource is loaded or an error occurs.
      * @param [asset] - Optional asset that is passed by ResourceLoader.
      */
@@ -11853,12 +11893,12 @@ export class AudioHandler implements ResourceHandler {
     constructor(manager: SoundManager);
     /**
      * Load a resource from a remote URL. When loaded (or failed),
-    use the callback to return an the raw resource data (or error).
+     * use the callback to return an the raw resource data (or error).
      * @param url - Either the URL of the resource to load or a structure containing the
-    load and original URL.
+     * load and original URL.
      * @param [url.load] - The URL to be used for loading the resource.
      * @param [url.original] - The original URL to be used for identifying the resource
-    format. This is necessary when loading, for example from blob.
+     * format. This is necessary when loading, for example from blob.
      * @param callback - The callback used when the resource is loaded or an error occurs.
      * @param [asset] - Optional asset that is passed by ResourceLoader.
      */
@@ -11889,12 +11929,12 @@ export class ContainerResource {
      * Instantiates an entity with a model component.
      * @example
      * // load a glb file and instantiate an entity with a model component based on it
-    app.assets.loadFromUrl("statue.glb", "container", function (err, asset) {
-        var entity = asset.resource.instantiateModelEntity({
-            castShadows: true
-        });
-        app.root.addChild(entity);
-    });
+     * app.assets.loadFromUrl("statue.glb", "container", function (err, asset) {
+     *     var entity = asset.resource.instantiateModelEntity({
+     *         castShadows: true
+     *     });
+     *     app.root.addChild(entity);
+     * });
      * @param [options] - The initialization data for the model component type {@link ModelComponent}.
      * @returns A single entity with a model component. Model component internally contains a hierarchy based on {@link GraphNode}.
      */
@@ -11903,12 +11943,12 @@ export class ContainerResource {
      * Instantiates an entity with a render component.
      * @example
      * // load a glb file and instantiate an entity with a model component based on it
-    app.assets.loadFromUrl("statue.glb", "container", function (err, asset) {
-        var entity = asset.resource.instantiateRenderEntity({
-            castShadows: true
-        });
-        app.root.addChild(entity);
-    });
+     * app.assets.loadFromUrl("statue.glb", "container", function (err, asset) {
+     *     var entity = asset.resource.instantiateRenderEntity({
+     *         castShadows: true
+     *     });
+     *     app.root.addChild(entity);
+     * });
      * @param [options] - The initialization data for the render component type {@link RenderComponent}.
      * @returns A hierarachy of entities with render components on entities containing renderable geometry.
      */
@@ -11932,32 +11972,32 @@ export interface ContainerHandler extends ResourceHandler {
 
 /**
  * Loads files that contain multiple resources. For example glTF files can contain
-textures, models and animations.
-The asset options object can be used to pass load time callbacks for handling the various resources
-at different stages of loading. The table below lists the resource types and the corresponding
-supported process functions.
-```
-|---------------------------------------------------------------------|
-|  resource   |  preprocess |   process   |processAsync | postprocess |
-|-------------+-------------+-------------+-------------+-------------|
-| global      |      x      |             |             |      x      |
-| node        |      x      |      x      |             |      x      |
-| animation   |      x      |             |             |      x      |
-| material    |      x      |      x      |             |      x      |
-| image       |      x      |             |      x      |      x      |
-| texture     |      x      |             |      x      |      x      |
-| buffer      |      x      |             |      x      |      x      |
-| bufferView  |      x      |             |      x      |      x      |
-|---------------------------------------------------------------------|
-```
-For example, to receive a texture preprocess callback:
-```javascript
-var containerAsset = new pc.Asset(filename, 'container', { url: url, filename: filename }, null, {
-    texture: {
-        preprocess(gltfTexture) { console.log("texture preprocess"); }
-    },
-});
-```
+ * textures, models and animations.
+ * The asset options object can be used to pass load time callbacks for handling the various resources
+ * at different stages of loading. The table below lists the resource types and the corresponding
+ * supported process functions.
+ * ```
+ * |---------------------------------------------------------------------|
+ * |  resource   |  preprocess |   process   |processAsync | postprocess |
+ * |-------------+-------------+-------------+-------------+-------------|
+ * | global      |      x      |             |             |      x      |
+ * | node        |      x      |      x      |             |      x      |
+ * | animation   |      x      |             |             |      x      |
+ * | material    |      x      |      x      |             |      x      |
+ * | image       |      x      |             |      x      |      x      |
+ * | texture     |      x      |             |      x      |      x      |
+ * | buffer      |      x      |             |      x      |      x      |
+ * | bufferView  |      x      |             |      x      |      x      |
+ * |---------------------------------------------------------------------|
+ * ```
+ * For example, to receive a texture preprocess callback:
+ * ```javascript
+ * var containerAsset = new pc.Asset(filename, 'container', { url: url, filename: filename }, null, {
+ *     texture: {
+ *         preprocess(gltfTexture) { console.log("texture preprocess"); }
+ *     },
+ * });
+ * ```
  * @param device - The graphics device that will be rendering.
  * @param defaultMaterial - The shared default material that is used in any place that a material is not specified.
  */
@@ -11965,12 +12005,12 @@ export class ContainerHandler implements ResourceHandler {
     constructor(device: GraphicsDevice, defaultMaterial: StandardMaterial);
     /**
      * Load a resource from a remote URL. When loaded (or failed),
-    use the callback to return an the raw resource data (or error).
+     * use the callback to return an the raw resource data (or error).
      * @param url - Either the URL of the resource to load or a structure containing the
-    load and original URL.
+     * load and original URL.
      * @param [url.load] - The URL to be used for loading the resource.
      * @param [url.original] - The original URL to be used for identifying the resource
-    format. This is necessary when loading, for example from blob.
+     * format. This is necessary when loading, for example from blob.
      * @param callback - The callback used when the resource is loaded or an error occurs.
      * @param [asset] - Optional asset that is passed by ResourceLoader.
      */
@@ -11992,8 +12032,8 @@ export class ContainerHandler implements ResourceHandler {
  * Creates a &lt;style&gt; DOM element from a string that contains CSS.
  * @example
  * var css = 'body {height: 100;}';
-var style = pc.createStyle(css);
-document.head.appendChild(style);
+ * var style = pc.createStyle(css);
+ * document.head.appendChild(style);
  * @param cssString - A string that contains valid CSS.
  * @returns The style DOM element.
  */
@@ -12012,12 +12052,12 @@ export class CubemapHandler implements ResourceHandler {
     constructor(device: GraphicsDevice, assets: AssetRegistry, loader: ResourceLoader);
     /**
      * Load a resource from a remote URL. When loaded (or failed),
-    use the callback to return an the raw resource data (or error).
+     * use the callback to return an the raw resource data (or error).
      * @param url - Either the URL of the resource to load or a structure containing the
-    load and original URL.
+     * load and original URL.
      * @param [url.load] - The URL to be used for loading the resource.
      * @param [url.original] - The original URL to be used for identifying the resource
-    format. This is necessary when loading, for example from blob.
+     * format. This is necessary when loading, for example from blob.
      * @param callback - The callback used when the resource is loaded or an error occurs.
      * @param [asset] - Optional asset that is passed by ResourceLoader.
      */
@@ -12046,12 +12086,12 @@ export class FontHandler implements ResourceHandler {
     constructor(loader: ResourceLoader);
     /**
      * Load a resource from a remote URL. When loaded (or failed),
-    use the callback to return an the raw resource data (or error).
+     * use the callback to return an the raw resource data (or error).
      * @param url - Either the URL of the resource to load or a structure containing the
-    load and original URL.
+     * load and original URL.
      * @param [url.load] - The URL to be used for loading the resource.
      * @param [url.original] - The original URL to be used for identifying the resource
-    format. This is necessary when loading, for example from blob.
+     * format. This is necessary when loading, for example from blob.
      * @param callback - The callback used when the resource is loaded or an error occurs.
      * @param [asset] - Optional asset that is passed by ResourceLoader.
      */
@@ -12075,12 +12115,12 @@ export class FontHandler implements ResourceHandler {
 export interface ResourceHandler {
     /**
      * Load a resource from a remote URL. When loaded (or failed),
-    use the callback to return an the raw resource data (or error).
+     * use the callback to return an the raw resource data (or error).
      * @param url - Either the URL of the resource to load or a structure containing the
-    load and original URL.
+     * load and original URL.
      * @param [url.load] - The URL to be used for loading the resource.
      * @param [url.original] - The original URL to be used for identifying the resource
-    format. This is necessary when loading, for example from blob.
+     * format. This is necessary when loading, for example from blob.
      * @param callback - The callback used when the resource is loaded or an error occurs.
      * @param [asset] - Optional asset that is passed by ResourceLoader.
      */
@@ -12098,7 +12138,7 @@ export interface ResourceHandler {
     open(url: string, data: any, asset?: Asset): any;
     /**
      * Optional function to perform any operations on a resource, that requires a dependency on its asset data
-    or any other asset data.
+     * or any other asset data.
      * @param asset - The asset to patch.
      * @param assets - The asset registry.
      */
@@ -12107,33 +12147,33 @@ export interface ResourceHandler {
 
 /**
  * Load resource data, potentially from remote sources. Caches resource on load to prevent
-multiple requests. Add ResourceHandlers to handle different types of resources.
+ * multiple requests. Add ResourceHandlers to handle different types of resources.
  * @param app - The application.
  */
 export class ResourceLoader {
     constructor(app: Application);
     /**
      * Add a {@link ResourceHandler} for a resource type. Handler should support atleast load() and open().
-    Handlers can optionally support patch(asset, assets) to handle dependencies on other assets.
+     * Handlers can optionally support patch(asset, assets) to handle dependencies on other assets.
      * @example
      * var loader = new ResourceLoader();
-    loader.addHandler("json", new pc.JsonHandler());
+     * loader.addHandler("json", new pc.JsonHandler());
      * @param type - The name of the resource type that the handler will be registered with. Can be:
-    
-    * {@link ASSET_ANIMATION}
-    * {@link ASSET_AUDIO}
-    * {@link ASSET_IMAGE}
-    * {@link ASSET_JSON}
-    * {@link ASSET_MODEL}
-    * {@link ASSET_MATERIAL}
-    * {@link ASSET_TEXT}
-    * {@link ASSET_TEXTURE}
-    * {@link ASSET_CUBEMAP}
-    * {@link ASSET_SHADER}
-    * {@link ASSET_CSS}
-    * {@link ASSET_HTML}
-    * {@link ASSET_SCRIPT}
-    * {@link ASSET_CONTAINER}
+     *
+     * * {@link ASSET_ANIMATION}
+     * * {@link ASSET_AUDIO}
+     * * {@link ASSET_IMAGE}
+     * * {@link ASSET_JSON}
+     * * {@link ASSET_MODEL}
+     * * {@link ASSET_MATERIAL}
+     * * {@link ASSET_TEXT}
+     * * {@link ASSET_TEXTURE}
+     * * {@link ASSET_CUBEMAP}
+     * * {@link ASSET_SHADER}
+     * * {@link ASSET_CSS}
+     * * {@link ASSET_HTML}
+     * * {@link ASSET_SCRIPT}
+     * * {@link ASSET_CONTAINER}
      * @param handler - An instance of a resource handler supporting atleast load() and open().
      */
     addHandler(type: string, handler: ResourceHandler): void;
@@ -12150,17 +12190,17 @@ export class ResourceLoader {
     getHandler(type: string): ResourceHandler;
     /**
      * Make a request for a resource from a remote URL. Parse the returned data using the
-    handler for the specified type. When loaded and parsed, use the callback to return an instance of
-    the resource.
+     * handler for the specified type. When loaded and parsed, use the callback to return an instance of
+     * the resource.
      * @example
      * app.loader.load("../path/to/texture.png", "texture", function (err, texture) {
-        // use texture here
-    });
+     *     // use texture here
+     * });
      * @param url - The URL of the resource to load.
      * @param type - The type of resource expected.
      * @param callback - The callback used when the resource is loaded or an error occurs.
      * @param [asset] - Optional asset that is passed into handler
-    Passed (err, resource) where err is null if there are no errors.
+     * Passed (err, resource) where err is null if there are no errors.
      */
     load(url: string, type: string, callback: callbacks.ResourceLoader, asset?: Asset): void;
     /**
@@ -12172,7 +12212,7 @@ export class ResourceLoader {
     open(type: string, data: any): any;
     /**
      * Perform any operations on a resource, that requires a dependency on its asset data
-    or any other asset data.
+     * or any other asset data.
      * @param asset - The asset to patch.
      * @param assets - The asset registry.
      */
@@ -12207,12 +12247,12 @@ export class MaterialHandler implements ResourceHandler {
     constructor(app: Application);
     /**
      * Load a resource from a remote URL. When loaded (or failed),
-    use the callback to return an the raw resource data (or error).
+     * use the callback to return an the raw resource data (or error).
      * @param url - Either the URL of the resource to load or a structure containing the
-    load and original URL.
+     * load and original URL.
      * @param [url.load] - The URL to be used for loading the resource.
      * @param [url.original] - The original URL to be used for identifying the resource
-    format. This is necessary when loading, for example from blob.
+     * format. This is necessary when loading, for example from blob.
      * @param callback - The callback used when the resource is loaded or an error occurs.
      * @param [asset] - Optional asset that is passed by ResourceLoader.
      */
@@ -12242,21 +12282,21 @@ export class ModelHandler implements ResourceHandler {
     constructor(device: GraphicsDevice, defaultMaterial: StandardMaterial);
     /**
      * Add a parser that converts raw data into a {@link Model}
-    Default parser is for JSON models.
+     * Default parser is for JSON models.
      * @param parser - See JsonModelParser for example.
      * @param decider - Function that decides on which parser to use.
-    Function should take (url, data) arguments and return true if this parser should be used to parse the data into a {@link Model}.
-    The first parser to return true is used.
+     * Function should take (url, data) arguments and return true if this parser should be used to parse the data into a {@link Model}.
+     * The first parser to return true is used.
      */
     addParser(parser: any, decider: callbacks.AddParser): void;
     /**
      * Load a resource from a remote URL. When loaded (or failed),
-    use the callback to return an the raw resource data (or error).
+     * use the callback to return an the raw resource data (or error).
      * @param url - Either the URL of the resource to load or a structure containing the
-    load and original URL.
+     * load and original URL.
      * @param [url.load] - The URL to be used for loading the resource.
      * @param [url.original] - The original URL to be used for identifying the resource
-    format. This is necessary when loading, for example from blob.
+     * format. This is necessary when loading, for example from blob.
      * @param callback - The callback used when the resource is loaded or an error occurs.
      * @param [asset] - Optional asset that is passed by ResourceLoader.
      */
@@ -12283,10 +12323,10 @@ export interface LegacyDdsParser extends TextureParser {
 export class LegacyDdsParser implements TextureParser {
     /**
      * Load the texture from the remote URL. When loaded (or failed),
-    use the callback to return an the raw resource data (or error).
+     * use the callback to return an the raw resource data (or error).
      * @param url - The URL of the resource to load.
-     * @param url.load - The URL to use for loading the resource
-     * @param url.original - The original URL useful for identifying the resource type
+     * @param url.load - The URL to use for loading the resource.
+     * @param url.original - The original URL useful for identifying the resource type.
      * @param callback - The callback used when the resource is loaded or an error occurs.
      * @param [asset] - Optional asset that is passed by ResourceLoader.
      */
@@ -12299,7 +12339,7 @@ export class LegacyDdsParser implements TextureParser {
      * @param url - The URL of the resource to open.
      * @param data - The raw resource data passed by callback from {@link ResourceHandler#load}.
      * @param asset - Optional asset which is passed in by ResourceLoader.
-     * @param device - The graphics device
+     * @param device - The graphics device.
      * @returns The parsed resource data.
      */
     open(url: string, data: any, asset: Asset | null, device: GraphicsDevice): Texture;
@@ -12317,12 +12357,12 @@ export class RenderHandler implements ResourceHandler {
     constructor(device: GraphicsDevice, defaultMaterial: StandardMaterial);
     /**
      * Load a resource from a remote URL. When loaded (or failed),
-    use the callback to return an the raw resource data (or error).
+     * use the callback to return an the raw resource data (or error).
      * @param url - Either the URL of the resource to load or a structure containing the
-    load and original URL.
+     * load and original URL.
      * @param [url.load] - The URL to be used for loading the resource.
      * @param [url.original] - The original URL to be used for identifying the resource
-    format. This is necessary when loading, for example from blob.
+     * format. This is necessary when loading, for example from blob.
      * @param callback - The callback used when the resource is loaded or an error occurs.
      * @param [asset] - Optional asset that is passed by ResourceLoader.
      */
@@ -12351,12 +12391,12 @@ export class SceneHandler implements ResourceHandler {
     constructor(app: Application);
     /**
      * Load a resource from a remote URL. When loaded (or failed),
-    use the callback to return an the raw resource data (or error).
+     * use the callback to return an the raw resource data (or error).
      * @param url - Either the URL of the resource to load or a structure containing the
-    load and original URL.
+     * load and original URL.
      * @param [url.load] - The URL to be used for loading the resource.
      * @param [url.original] - The original URL to be used for identifying the resource
-    format. This is necessary when loading, for example from blob.
+     * format. This is necessary when loading, for example from blob.
      * @param callback - The callback used when the resource is loaded or an error occurs.
      * @param [asset] - Optional asset that is passed by ResourceLoader.
      */
@@ -12387,12 +12427,12 @@ export class ScriptHandler implements ResourceHandler {
     constructor(app: Application);
     /**
      * Load a resource from a remote URL. When loaded (or failed),
-    use the callback to return an the raw resource data (or error).
+     * use the callback to return an the raw resource data (or error).
      * @param url - Either the URL of the resource to load or a structure containing the
-    load and original URL.
+     * load and original URL.
      * @param [url.load] - The URL to be used for loading the resource.
      * @param [url.original] - The original URL to be used for identifying the resource
-    format. This is necessary when loading, for example from blob.
+     * format. This is necessary when loading, for example from blob.
      * @param callback - The callback used when the resource is loaded or an error occurs.
      * @param [asset] - Optional asset that is passed by ResourceLoader.
      */
@@ -12422,12 +12462,12 @@ export class SpriteHandler implements ResourceHandler {
     constructor(assets: AssetRegistry, device: GraphicsDevice);
     /**
      * Load a resource from a remote URL. When loaded (or failed),
-    use the callback to return an the raw resource data (or error).
+     * use the callback to return an the raw resource data (or error).
      * @param url - Either the URL of the resource to load or a structure containing the
-    load and original URL.
+     * load and original URL.
      * @param [url.load] - The URL to be used for loading the resource.
      * @param [url.original] - The original URL to be used for identifying the resource
-    format. This is necessary when loading, for example from blob.
+     * format. This is necessary when loading, for example from blob.
      * @param callback - The callback used when the resource is loaded or an error occurs.
      * @param [asset] - Optional asset that is passed by ResourceLoader.
      */
@@ -12456,12 +12496,12 @@ export class TextureAtlasHandler implements ResourceHandler {
     constructor(loader: ResourceLoader);
     /**
      * Load a resource from a remote URL. When loaded (or failed),
-    use the callback to return an the raw resource data (or error).
+     * use the callback to return an the raw resource data (or error).
      * @param url - Either the URL of the resource to load or a structure containing the
-    load and original URL.
+     * load and original URL.
      * @param [url.load] - The URL to be used for loading the resource.
      * @param [url.original] - The original URL to be used for identifying the resource
-    format. This is necessary when loading, for example from blob.
+     * format. This is necessary when loading, for example from blob.
      * @param callback - The callback used when the resource is loaded or an error occurs.
      * @param [asset] - Optional asset that is passed by ResourceLoader.
      */
@@ -12481,15 +12521,15 @@ export class TextureAtlasHandler implements ResourceHandler {
 
 /**
  * Interface to a texture parser. Implementations of this interface handle the loading
-and opening of texture assets.
+ * and opening of texture assets.
  */
 export interface TextureParser {
     /**
      * Load the texture from the remote URL. When loaded (or failed),
-    use the callback to return an the raw resource data (or error).
+     * use the callback to return an the raw resource data (or error).
      * @param url - The URL of the resource to load.
-     * @param url.load - The URL to use for loading the resource
-     * @param url.original - The original URL useful for identifying the resource type
+     * @param url.load - The URL to use for loading the resource.
+     * @param url.original - The original URL useful for identifying the resource type.
      * @param callback - The callback used when the resource is loaded or an error occurs.
      * @param [asset] - Optional asset that is passed by ResourceLoader.
      */
@@ -12502,7 +12542,7 @@ export interface TextureParser {
      * @param url - The URL of the resource to open.
      * @param data - The raw resource data passed by callback from {@link ResourceHandler#load}.
      * @param asset - Optional asset which is passed in by ResourceLoader.
-     * @param device - The graphics device
+     * @param device - The graphics device.
      * @returns The parsed resource data.
      */
     open(url: string, data: any, asset: Asset | null, device: GraphicsDevice): Texture;
@@ -12521,12 +12561,12 @@ export class TextureHandler implements ResourceHandler {
     constructor(device: GraphicsDevice, assets: AssetRegistry, loader: ResourceLoader);
     /**
      * Load a resource from a remote URL. When loaded (or failed),
-    use the callback to return an the raw resource data (or error).
+     * use the callback to return an the raw resource data (or error).
      * @param url - Either the URL of the resource to load or a structure containing the
-    load and original URL.
+     * load and original URL.
      * @param [url.load] - The URL to be used for loading the resource.
      * @param [url.original] - The original URL to be used for identifying the resource
-    format. This is necessary when loading, for example from blob.
+     * format. This is necessary when loading, for example from blob.
      * @param callback - The callback used when the resource is loaded or an error occurs.
      * @param [asset] - Optional asset that is passed by ResourceLoader.
      */
@@ -12548,18 +12588,18 @@ export class TextureHandler implements ResourceHandler {
  * Holds mesh batching settings and a unique id. Created via {@link BatchManager#addGroup}.
  * @property dynamic - Whether objects within this batch group should support transforming at runtime.
  * @property maxAabbSize - Maximum size of any dimension of a bounding box around batched objects.
-{@link BatchManager#prepare} will split objects into local groups based on this size.
+ * {@link BatchManager#prepare} will split objects into local groups based on this size.
  * @property id - Unique id. Can be assigned to model and element components.
  * @property name - Name of the group.
  * @property [layers] - Layer ID array. Default is [{@link LAYERID_WORLD}]. The whole batch group will belong
-to these layers. Layers of source models will be ignored.
+ * to these layers. Layers of source models will be ignored.
  * @param id - Unique id. Can be assigned to model and element components.
  * @param name - The name of the group.
  * @param dynamic - Whether objects within this batch group should support transforming at runtime.
  * @param maxAabbSize - Maximum size of any dimension of a bounding box around batched objects.
-{@link BatchManager#prepare} will split objects into local groups based on this size.
+ * {@link BatchManager#prepare} will split objects into local groups based on this size.
  * @param [layers] - Layer ID array. Default is [{@link LAYERID_WORLD}]. The whole batch group will belong
-to these layers. Layers of source models will be ignored.
+ * to these layers. Layers of source models will be ignored.
  */
 export class BatchGroup {
     constructor(id: number, name: string, dynamic: boolean, maxAabbSize: number, layers?: number[]);
@@ -12569,7 +12609,7 @@ export class BatchGroup {
     dynamic: boolean;
     /**
      * Maximum size of any dimension of a bounding box around batched objects.
-     * {@link BatchManager#prepare} will split objects into local groups based on this size.
+    {@link BatchManager#prepare} will split objects into local groups based on this size.
     */
     maxAabbSize: number;
     /**
@@ -12582,7 +12622,7 @@ export class BatchGroup {
     name: string;
     /**
      * Layer ID array. Default is [{@link LAYERID_WORLD}]. The whole batch group will belong
-     * to these layers. Layers of source models will be ignored.
+    to these layers. Layers of source models will be ignored.
     */
     layers?: number[];
 }
@@ -12600,22 +12640,22 @@ export class BatchManager {
      * @param name - Custom name.
      * @param dynamic - Is this batch group dynamic? Will these objects move/rotate/scale after being batched?
      * @param maxAabbSize - Maximum size of any dimension of a bounding box around batched objects.
-    {@link BatchManager#prepare} will split objects into local groups based on this size.
+     * {@link BatchManager#prepare} will split objects into local groups based on this size.
      * @param [id] - Optional custom unique id for the group (will be generated automatically otherwise).
      * @param [layers] - Optional layer ID array. Default is [{@link LAYERID_WORLD}]. The whole batch group will
-    belong to these layers. Layers of source models will be ignored.
+     * belong to these layers. Layers of source models will be ignored.
      * @returns Group object.
      */
     addGroup(name: string, dynamic: boolean, maxAabbSize: number, id?: number, layers?: number[]): BatchGroup;
     /**
      * Remove global batch group by id.
-    Note, this traverses the entire scene graph and clears the batch group id from all components.
+     * Note, this traverses the entire scene graph and clears the batch group id from all components.
      * @param id - Batch Group ID.
      */
     removeGroup(id: number): void;
     /**
      * Mark a specific batch group as dirty. Dirty groups are re-batched before the next frame is rendered.
-    Note, re-batching a group is a potentially expensive operation.
+     * Note, re-batching a group is a potentially expensive operation.
      * @param id - Batch Group ID to mark as dirty.
      */
     markGroupDirty(id: number): void;
@@ -12632,19 +12672,19 @@ export class BatchManager {
     generate(groupIds?: number[]): void;
     /**
      * Takes a list of mesh instances to be batched and sorts them into lists one for each draw call.
-    The input list will be split, if:
-    
-    * Mesh instances use different materials.
-    * Mesh instances have different parameters (e.g. lightmaps or static lights).
-    * Mesh instances have different shader defines (shadow receiving, being aligned to screen space, etc).
-    * Too many vertices for a single batch (65535 is maximum).
-    * Too many instances for a single batch (hardware-dependent, expect 128 on low-end and 1024 on high-end).
-    * Bounding box of a batch is larger than maxAabbSize in any dimension.
+     * The input list will be split, if:
+     *
+     * * Mesh instances use different materials.
+     * * Mesh instances have different parameters (e.g. lightmaps or static lights).
+     * * Mesh instances have different shader defines (shadow receiving, being aligned to screen space, etc).
+     * * Too many vertices for a single batch (65535 is maximum).
+     * * Too many instances for a single batch (hardware-dependent, expect 128 on low-end and 1024 on high-end).
+     * * Bounding box of a batch is larger than maxAabbSize in any dimension.
      * @param meshInstances - Input list of mesh instances
      * @param dynamic - Are we preparing for a dynamic batch? Instance count will matter then (otherwise not).
      * @param maxAabbSize - Maximum size of any dimension of a bounding box around batched objects.
      * @param translucent - Are we batching UI elements or sprites
-    This is useful to keep a balance between the number of draw calls and the number of drawn triangles, because smaller batches can be hidden when not visible in camera.
+     * This is useful to keep a balance between the number of draw calls and the number of drawn triangles, because smaller batches can be hidden when not visible in camera.
      * @returns An array of arrays of mesh instances, each valid to pass to {@link BatchManager#create}.
      */
     prepare(meshInstances: MeshInstance[], dynamic: boolean, maxAabbSize: number, translucent: boolean): MeshInstance[][];
@@ -12702,20 +12742,20 @@ export class Batch {
 
 /**
  * Subtract the color of the source fragment from the destination fragment
-and write the result to the frame buffer.
+ * and write the result to the frame buffer.
  */
 export const BLEND_SUBTRACTIVE: number;
 
 /**
  * Add the color of the source fragment to the destination fragment
-and write the result to the frame buffer.
+ * and write the result to the frame buffer.
  */
 export const BLEND_ADDITIVE: number;
 
 /**
  * Enable simple translucency for materials such as glass. This is
-equivalent to enabling a source blend mode of {@link BLENDMODE_SRC_ALPHA} and a destination
-blend mode of {@link BLENDMODE_ONE_MINUS_SRC_ALPHA}.
+ * equivalent to enabling a source blend mode of {@link BLENDMODE_SRC_ALPHA} and a destination
+ * blend mode of {@link BLENDMODE_ONE_MINUS_SRC_ALPHA}.
  */
 export const BLEND_NORMAL: number;
 
@@ -12726,13 +12766,13 @@ export const BLEND_NONE: number;
 
 /**
  * Similar to {@link BLEND_NORMAL} expect the source fragment is assumed to have
-already been multiplied by the source alpha value.
+ * already been multiplied by the source alpha value.
  */
 export const BLEND_PREMULTIPLIED: number;
 
 /**
  * Multiply the color of the source fragment by the color of the destination
-fragment and write the result to the frame buffer.
+ * fragment and write the result to the frame buffer.
  */
 export const BLEND_MULTIPLICATIVE: number;
 
@@ -13113,15 +13153,15 @@ export const SPRITE_RENDERMODE_SIMPLE: number;
 
 /**
  * This mode renders a sprite using 9-slicing in 'sliced' mode. Sliced mode stretches the
-top and bottom regions of the sprite horizontally, the left and right regions vertically and the middle region
-both horizontally and vertically.
+ * top and bottom regions of the sprite horizontally, the left and right regions vertically and the middle region
+ * both horizontally and vertically.
  */
 export const SPRITE_RENDERMODE_SLICED: number;
 
 /**
  * This mode renders a sprite using 9-slicing in 'tiled' mode. Tiled mode tiles the
-top and bottom regions of the sprite horizontally, the left and right regions vertically and the middle region
-both horizontally and vertically.
+ * top and bottom regions of the sprite horizontally, the left and right regions vertically and the middle region
+ * both horizontally and vertically.
  */
 export const SPRITE_RENDERMODE_TILED: number;
 
@@ -13225,8 +13265,8 @@ export class GraphNode extends EventHandler {
     readonly forward: Vec3;
     /**
      * Enable or disable a GraphNode. If one of the GraphNode's parents is disabled
-    there will be no other side effects. If all the parents are enabled then
-    the new value will activate / deactivate all the enabled children of the GraphNode.
+     * there will be no other side effects. If all the parents are enabled then
+     * the new value will activate / deactivate all the enabled children of the GraphNode.
      */
     enabled: boolean;
     /**
@@ -13235,7 +13275,7 @@ export class GraphNode extends EventHandler {
     readonly parent: GraphNode;
     /**
      * A read-only property to get the path of the graph node relative to
-    the root of the hierarchy.
+     * the root of the hierarchy.
      */
     readonly path: string;
     /**
@@ -13254,20 +13294,20 @@ export class GraphNode extends EventHandler {
      * Search the graph node and all of its descendants for the nodes that satisfy some search criteria.
      * @example
      * // Finds all nodes that have a model component and have `door` in their lower-cased name
-    var doors = house.find(function (node) {
-        return node.model && node.name.toLowerCase().indexOf('door') !== -1;
-    });
+     * var doors = house.find(function (node) {
+     *     return node.model && node.name.toLowerCase().indexOf('door') !== -1;
+     * });
      * @example
      * // Finds all nodes that have the name property set to 'Test'
-    var entities = parent.find('name', 'Test');
+     * var entities = parent.find('name', 'Test');
      * @param attr - This can either be a function or a string. If it's a function, it is executed
-    for each descendant node to test if node satisfies the search logic. Returning true from the function will
-    include the node into the results. If it's a string then it represents the name of a field or a method of the
-    node. If this is the name of a field then the value passed as the second argument will be checked for equality.
-    If this is the name of a function then the return value of the function will be checked for equality against
-    the valued passed as the second argument to this function.
+     * for each descendant node to test if node satisfies the search logic. Returning true from the function will
+     * include the node into the results. If it's a string then it represents the name of a field or a method of the
+     * node. If this is the name of a field then the value passed as the second argument will be checked for equality.
+     * If this is the name of a function then the return value of the function will be checked for equality against
+     * the valued passed as the second argument to this function.
      * @param [value] - If the first argument (attr) is a property name then this value will be checked against
-    the value of the property.
+     * the value of the property.
      * @returns The array of graph nodes that match the search criteria.
      */
     find(attr: callbacks.FindNode | string, value?: any): GraphNode[];
@@ -13275,57 +13315,57 @@ export class GraphNode extends EventHandler {
      * Search the graph node and all of its descendants for the first node that satisfies some search criteria.
      * @example
      * // Find the first node that is called `head` and has a model component
-    var head = player.findOne(function (node) {
-        return node.model && node.name === 'head';
-    });
+     * var head = player.findOne(function (node) {
+     *     return node.model && node.name === 'head';
+     * });
      * @example
      * // Finds the first node that has the name property set to 'Test'
-    var node = parent.findOne('name', 'Test');
+     * var node = parent.findOne('name', 'Test');
      * @param attr - This can either be a function or a string. If it's a function, it is executed
-    for each descendant node to test if node satisfies the search logic. Returning true from the function will
-    result in that node being returned from findOne. If it's a string then it represents the name of a field or a method of the
-    node. If this is the name of a field then the value passed as the second argument will be checked for equality.
-    If this is the name of a function then the return value of the function will be checked for equality against
-    the valued passed as the second argument to this function.
+     * for each descendant node to test if node satisfies the search logic. Returning true from the function will
+     * result in that node being returned from findOne. If it's a string then it represents the name of a field or a method of the
+     * node. If this is the name of a field then the value passed as the second argument will be checked for equality.
+     * If this is the name of a function then the return value of the function will be checked for equality against
+     * the valued passed as the second argument to this function.
      * @param [value] - If the first argument (attr) is a property name then this value will be checked against
-    the value of the property.
+     * the value of the property.
      * @returns A graph node that match the search criteria.
      */
     findOne(attr: callbacks.FindNode | string, value?: any): GraphNode;
     /**
      * Return all graph nodes that satisfy the search query.
-    Query can be simply a string, or comma separated strings,
-    to have inclusive results of assets that match at least one query.
-    A query that consists of an array of tags can be used to match graph nodes that have each tag of array.
+     * Query can be simply a string, or comma separated strings,
+     * to have inclusive results of assets that match at least one query.
+     * A query that consists of an array of tags can be used to match graph nodes that have each tag of array.
      * @example
      * // Return all graph nodes that tagged by `animal`
-    var animals = node.findByTag("animal");
+     * var animals = node.findByTag("animal");
      * @example
      * // Return all graph nodes that tagged by `bird` OR `mammal`
-    var birdsAndMammals = node.findByTag("bird", "mammal");
+     * var birdsAndMammals = node.findByTag("bird", "mammal");
      * @example
      * // Return all assets that tagged by `carnivore` AND `mammal`
-    var meatEatingMammals = node.findByTag(["carnivore", "mammal"]);
+     * var meatEatingMammals = node.findByTag(["carnivore", "mammal"]);
      * @example
      * // Return all assets that tagged by (`carnivore` AND `mammal`) OR (`carnivore` AND `reptile`)
-    var meatEatingMammalsAndReptiles = node.findByTag(["carnivore", "mammal"], ["carnivore", "reptile"]);
+     * var meatEatingMammalsAndReptiles = node.findByTag(["carnivore", "mammal"], ["carnivore", "reptile"]);
      * @param query - Name of a tag or array of tags.
      * @returns A list of all graph nodes that match the query.
      */
     findByTag(query: string | string[]): GraphNode[];
     /**
      * Get the first node found in the graph with the name. The search
-    is depth first.
+     * is depth first.
      * @param name - The name of the graph.
      * @returns The first node to be found matching the supplied name.
      */
     findByName(name: string): GraphNode;
     /**
      * Get the first node found in the graph by its full path in the graph.
-    The full path has this form 'parent/child/sub-child'. The search is depth first.
+     * The full path has this form 'parent/child/sub-child'. The search is depth first.
      * @example
      * var path = this.entity.findByPath('child/another_child');
-     * @param path - The full path of the {@link GraphNode} as either a string or array of {@link GraphNode} names
+     * @param path - The full path of the {@link GraphNode} as either a string or array of {@link GraphNode} names.
      * @returns The first node to be found matching the supplied path.
      */
     findByPath(path: string | any[]): GraphNode;
@@ -13333,9 +13373,9 @@ export class GraphNode extends EventHandler {
      * Executes a provided function once on this graph node and all of its descendants.
      * @example
      * // Log the path and name of each node in descendant tree starting with "parent"
-    parent.forEach(function (node) {
-        console.log(node.path + "/" + node.name);
-    });
+     * parent.forEach(function (node) {
+     *     console.log(node.path + "/" + node.name);
+     * });
      * @param callback - The function to execute on the graph node and each descendant.
      * @param [thisArg] - Optional value to use as this when executing callback function.
      */
@@ -13344,8 +13384,8 @@ export class GraphNode extends EventHandler {
      * Check if node is descendant of another node.
      * @example
      * if (roof.isDescendantOf(house)) {
-        // roof is descendant of house entity
-    }
+     *     // roof is descendant of house entity
+     * }
      * @param node - Potential ancestor of node.
      * @returns If node is descendant of another node.
      */
@@ -13354,51 +13394,51 @@ export class GraphNode extends EventHandler {
      * Check if node is ancestor for another node.
      * @example
      * if (body.isAncestorOf(foot)) {
-        // foot is within body's hierarchy
-    }
+     *     // foot is within body's hierarchy
+     * }
      * @param node - Potential descendant of node.
      * @returns If node is ancestor for another node.
      */
     isAncestorOf(node: GraphNode): boolean;
     /**
      * Get the world space rotation for the specified GraphNode in Euler angle
-    form. The order of the returned Euler angles is XYZ. The value returned by this function
-    should be considered read-only. In order to set the world-space rotation of the graph
-    node, use {@link GraphNode#setEulerAngles}.
+     * form. The order of the returned Euler angles is XYZ. The value returned by this function
+     * should be considered read-only. In order to set the world-space rotation of the graph
+     * node, use {@link GraphNode#setEulerAngles}.
      * @example
      * var angles = this.entity.getEulerAngles(); // [0,0,0]
-    angles[1] = 180; // rotate the entity around Y by 180 degrees
-    this.entity.setEulerAngles(angles);
+     * angles[1] = 180; // rotate the entity around Y by 180 degrees
+     * this.entity.setEulerAngles(angles);
      * @returns The world space rotation of the graph node in Euler angle form.
      */
     getEulerAngles(): Vec3;
     /**
      * Get the rotation in local space for the specified GraphNode. The rotation
-    is returned as euler angles in a 3-dimensional vector where the order is XYZ. The
-    returned vector should be considered read-only. To update the local rotation, use
-    {@link GraphNode#setLocalEulerAngles}.
+     * is returned as euler angles in a 3-dimensional vector where the order is XYZ. The
+     * returned vector should be considered read-only. To update the local rotation, use
+     * {@link GraphNode#setLocalEulerAngles}.
      * @example
      * var angles = this.entity.getLocalEulerAngles();
-    angles[1] = 180;
-    this.entity.setLocalEulerAngles(angles);
+     * angles[1] = 180;
+     * this.entity.setLocalEulerAngles(angles);
      * @returns The local space rotation of the graph node as euler angles in XYZ order.
      */
     getLocalEulerAngles(): Vec3;
     /**
      * Get the position in local space for the specified GraphNode. The position
-    is returned as a 3-dimensional vector. The returned vector should be considered read-only.
-    To update the local position, use {@link GraphNode#setLocalPosition}.
+     * is returned as a 3-dimensional vector. The returned vector should be considered read-only.
+     * To update the local position, use {@link GraphNode#setLocalPosition}.
      * @example
      * var position = this.entity.getLocalPosition();
-    position[0] += 1; // move the entity 1 unit along x.
-    this.entity.setLocalPosition(position);
+     * position[0] += 1; // move the entity 1 unit along x.
+     * this.entity.setLocalPosition(position);
      * @returns The local space position of the graph node.
      */
     getLocalPosition(): Vec3;
     /**
      * Get the rotation in local space for the specified GraphNode. The rotation
-    is returned as a quaternion. The returned quaternion should be considered read-only.
-    To update the local rotation, use {@link GraphNode#setLocalRotation}.
+     * is returned as a quaternion. The returned quaternion should be considered read-only.
+     * To update the local rotation, use {@link GraphNode#setLocalRotation}.
      * @example
      * var rotation = this.entity.getLocalRotation();
      * @returns The local space rotation of the graph node as a quaternion.
@@ -13406,18 +13446,18 @@ export class GraphNode extends EventHandler {
     getLocalRotation(): Quat;
     /**
      * Get the scale in local space for the specified GraphNode. The scale
-    is returned as a 3-dimensional vector. The returned vector should be considered read-only.
-    To update the local scale, use {@link GraphNode#setLocalScale}.
+     * is returned as a 3-dimensional vector. The returned vector should be considered read-only.
+     * To update the local scale, use {@link GraphNode#setLocalScale}.
      * @example
      * var scale = this.entity.getLocalScale();
-    scale.x = 100;
-    this.entity.setLocalScale(scale);
+     * scale.x = 100;
+     * this.entity.setLocalScale(scale);
      * @returns The local space scale of the graph node.
      */
     getLocalScale(): Vec3;
     /**
      * Get the local transform matrix for this graph node. This matrix
-    is the transform relative to the node's parent's world transformation matrix.
+     * is the transform relative to the node's parent's world transformation matrix.
      * @example
      * var transform = this.entity.getLocalTransform();
      * @returns The node's local transformation matrix.
@@ -13425,19 +13465,19 @@ export class GraphNode extends EventHandler {
     getLocalTransform(): Mat4;
     /**
      * Get the world space position for the specified GraphNode. The
-    value returned by this function should be considered read-only. In order to set
-    the world-space position of the graph node, use {@link GraphNode#setPosition}.
+     * value returned by this function should be considered read-only. In order to set
+     * the world-space position of the graph node, use {@link GraphNode#setPosition}.
      * @example
      * var position = this.entity.getPosition();
-    position.x = 10;
-    this.entity.setPosition(position);
+     * position.x = 10;
+     * this.entity.setPosition(position);
      * @returns The world space position of the graph node.
      */
     getPosition(): Vec3;
     /**
      * Get the world space rotation for the specified GraphNode in quaternion
-    form. The value returned by this function should be considered read-only. In order
-    to set the world-space rotation of the graph node, use {@link GraphNode#setRotation}.
+     * form. The value returned by this function should be considered read-only. In order
+     * to set the world-space rotation of the graph node, use {@link GraphNode#setRotation}.
      * @example
      * var rotation = this.entity.getRotation();
      * @returns The world space rotation of the graph node as a quaternion.
@@ -13458,52 +13498,52 @@ export class GraphNode extends EventHandler {
     reparent(parent: GraphNode, index?: number): void;
     /**
      * Sets the local-space rotation of the specified graph node using euler angles.
-    Eulers are interpreted in XYZ order. Eulers must be specified in degrees. This function
-    has two valid signatures: you can either pass a 3D vector or 3 numbers to specify the
-    local-space euler rotation.
+     * Eulers are interpreted in XYZ order. Eulers must be specified in degrees. This function
+     * has two valid signatures: you can either pass a 3D vector or 3 numbers to specify the
+     * local-space euler rotation.
      * @example
      * // Set rotation of 90 degrees around y-axis via 3 numbers
-    this.entity.setLocalEulerAngles(0, 90, 0);
+     * this.entity.setLocalEulerAngles(0, 90, 0);
      * @example
      * // Set rotation of 90 degrees around y-axis via a vector
-    var angles = new pc.Vec3(0, 90, 0);
-    this.entity.setLocalEulerAngles(angles);
+     * var angles = new pc.Vec3(0, 90, 0);
+     * this.entity.setLocalEulerAngles(angles);
      * @param x - 3-dimensional vector holding eulers or rotation around local-space
-    x-axis in degrees.
+     * x-axis in degrees.
      * @param [y] - Rotation around local-space y-axis in degrees.
      * @param [z] - Rotation around local-space z-axis in degrees.
      */
     setLocalEulerAngles(x: Vec3 | number, y?: number, z?: number): void;
     /**
      * Sets the local-space position of the specified graph node. This function
-    has two valid signatures: you can either pass a 3D vector or 3 numbers to specify the
-    local-space position.
+     * has two valid signatures: you can either pass a 3D vector or 3 numbers to specify the
+     * local-space position.
      * @example
      * // Set via 3 numbers
-    this.entity.setLocalPosition(0, 10, 0);
+     * this.entity.setLocalPosition(0, 10, 0);
      * @example
      * // Set via vector
-    var pos = new pc.Vec3(0, 10, 0);
-    this.entity.setLocalPosition(pos);
+     * var pos = new pc.Vec3(0, 10, 0);
+     * this.entity.setLocalPosition(pos);
      * @param x - 3-dimensional vector holding local-space position or
-    x-coordinate of local-space position.
+     * x-coordinate of local-space position.
      * @param [y] - Y-coordinate of local-space position.
      * @param [z] - Z-coordinate of local-space position.
      */
     setLocalPosition(x: Vec3 | number, y?: number, z?: number): void;
     /**
      * Sets the local-space rotation of the specified graph node. This function
-    has two valid signatures: you can either pass a quaternion or 3 numbers to specify the
-    local-space rotation.
+     * has two valid signatures: you can either pass a quaternion or 3 numbers to specify the
+     * local-space rotation.
      * @example
      * // Set via 4 numbers
-    this.entity.setLocalRotation(0, 0, 0, 1);
+     * this.entity.setLocalRotation(0, 0, 0, 1);
      * @example
      * // Set via quaternion
-    var q = pc.Quat();
-    this.entity.setLocalRotation(q);
+     * var q = pc.Quat();
+     * this.entity.setLocalRotation(q);
      * @param x - Quaternion holding local-space rotation or x-component of
-    local-space quaternion rotation.
+     * local-space quaternion rotation.
      * @param [y] - Y-component of local-space quaternion rotation.
      * @param [z] - Z-component of local-space quaternion rotation.
      * @param [w] - W-component of local-space quaternion rotation.
@@ -13511,51 +13551,51 @@ export class GraphNode extends EventHandler {
     setLocalRotation(x: Quat | number, y?: number, z?: number, w?: number): void;
     /**
      * Sets the local-space scale factor of the specified graph node. This function
-    has two valid signatures: you can either pass a 3D vector or 3 numbers to specify the
-    local-space scale.
+     * has two valid signatures: you can either pass a 3D vector or 3 numbers to specify the
+     * local-space scale.
      * @example
      * // Set via 3 numbers
-    this.entity.setLocalScale(10, 10, 10);
+     * this.entity.setLocalScale(10, 10, 10);
      * @example
      * // Set via vector
-    var scale = new pc.Vec3(10, 10, 10);
-    this.entity.setLocalScale(scale);
+     * var scale = new pc.Vec3(10, 10, 10);
+     * this.entity.setLocalScale(scale);
      * @param x - 3-dimensional vector holding local-space scale or x-coordinate
-    of local-space scale.
+     * of local-space scale.
      * @param [y] - Y-coordinate of local-space scale.
      * @param [z] - Z-coordinate of local-space scale.
      */
     setLocalScale(x: Vec3 | number, y?: number, z?: number): void;
     /**
      * Sets the world-space position of the specified graph node. This function
-    has two valid signatures: you can either pass a 3D vector or 3 numbers to specify the
-    world-space position.
+     * has two valid signatures: you can either pass a 3D vector or 3 numbers to specify the
+     * world-space position.
      * @example
      * // Set via 3 numbers
-    this.entity.setPosition(0, 10, 0);
+     * this.entity.setPosition(0, 10, 0);
      * @example
      * // Set via vector
-    var position = new pc.Vec3(0, 10, 0);
-    this.entity.setPosition(position);
+     * var position = new pc.Vec3(0, 10, 0);
+     * this.entity.setPosition(position);
      * @param x - 3-dimensional vector holding world-space position or
-    x-coordinate of world-space position.
+     * x-coordinate of world-space position.
      * @param [y] - Y-coordinate of world-space position.
      * @param [z] - Z-coordinate of world-space position.
      */
     setPosition(x: Vec3 | number, y?: number, z?: number): void;
     /**
      * Sets the world-space rotation of the specified graph node. This function
-    has two valid signatures: you can either pass a quaternion or 3 numbers to specify the
-    world-space rotation.
+     * has two valid signatures: you can either pass a quaternion or 3 numbers to specify the
+     * world-space rotation.
      * @example
      * // Set via 4 numbers
-    this.entity.setRotation(0, 0, 0, 1);
+     * this.entity.setRotation(0, 0, 0, 1);
      * @example
      * // Set via quaternion
-    var q = pc.Quat();
-    this.entity.setRotation(q);
+     * var q = pc.Quat();
+     * this.entity.setRotation(q);
      * @param x - Quaternion holding world-space rotation or x-component of
-    world-space quaternion rotation.
+     * world-space quaternion rotation.
      * @param [y] - Y-component of world-space quaternion rotation.
      * @param [z] - Z-component of world-space quaternion rotation.
      * @param [w] - W-component of world-space quaternion rotation.
@@ -13563,18 +13603,18 @@ export class GraphNode extends EventHandler {
     setRotation(x: Quat | number, y?: number, z?: number, w?: number): void;
     /**
      * Sets the world-space rotation of the specified graph node using euler angles.
-    Eulers are interpreted in XYZ order. Eulers must be specified in degrees. This function
-    has two valid signatures: you can either pass a 3D vector or 3 numbers to specify the
-    world-space euler rotation.
+     * Eulers are interpreted in XYZ order. Eulers must be specified in degrees. This function
+     * has two valid signatures: you can either pass a 3D vector or 3 numbers to specify the
+     * world-space euler rotation.
      * @example
      * // Set rotation of 90 degrees around world-space y-axis via 3 numbers
-    this.entity.setEulerAngles(0, 90, 0);
+     * this.entity.setEulerAngles(0, 90, 0);
      * @example
      * // Set rotation of 90 degrees around world-space y-axis via a vector
-    var angles = new pc.Vec3(0, 90, 0);
-    this.entity.setEulerAngles(angles);
+     * var angles = new pc.Vec3(0, 90, 0);
+     * this.entity.setEulerAngles(angles);
      * @param x - 3-dimensional vector holding eulers or rotation around world-space
-    x-axis in degrees.
+     * x-axis in degrees.
      * @param [y] - Rotation around world-space y-axis in degrees.
      * @param [z] - Rotation around world-space z-axis in degrees.
      */
@@ -13583,7 +13623,7 @@ export class GraphNode extends EventHandler {
      * Add a new child to the child list and update the parent value of the child node.
      * @example
      * var e = new pc.Entity(app);
-    this.entity.addChild(e);
+     * this.entity.addChild(e);
      * @param node - The new child to add.
      */
     addChild(node: GraphNode): void;
@@ -13591,7 +13631,7 @@ export class GraphNode extends EventHandler {
      * Insert a new child to the child list at the specified index and update the parent value of the child node.
      * @example
      * var e = new pc.Entity(app);
-    this.entity.insertChild(e, 1);
+     * this.entity.insertChild(e, 1);
      * @param node - The new child to insert.
      * @param index - The index in the child list of the parent where the new node will be inserted.
      */
@@ -13600,32 +13640,32 @@ export class GraphNode extends EventHandler {
      * Remove the node from the child list and update the parent value of the child.
      * @example
      * var child = this.entity.children[0];
-    this.entity.removeChild(child);
+     * this.entity.removeChild(child);
      * @param child - The node to remove.
      */
     removeChild(child: GraphNode): void;
     /**
      * Reorients the graph node so that the negative z-axis points towards the target.
-    This function has two valid signatures. Either pass 3D vectors for the look at coordinate and up
-    vector, or pass numbers to represent the vectors.
+     * This function has two valid signatures. Either pass 3D vectors for the look at coordinate and up
+     * vector, or pass numbers to represent the vectors.
      * @example
      * // Look at another entity, using the (default) positive y-axis for up
-    var position = otherEntity.getPosition();
-    this.entity.lookAt(position);
+     * var position = otherEntity.getPosition();
+     * this.entity.lookAt(position);
      * @example
      * // Look at another entity, using the negative world y-axis for up
-    var position = otherEntity.getPosition();
-    this.entity.lookAt(position, pc.Vec3.DOWN);
+     * var position = otherEntity.getPosition();
+     * this.entity.lookAt(position, pc.Vec3.DOWN);
      * @example
      * // Look at the world space origin, using the (default) positive y-axis for up
-    this.entity.lookAt(0, 0, 0);
+     * this.entity.lookAt(0, 0, 0);
      * @example
      * // Look at world-space coordinate [10, 10, 10], using the negative world y-axis for up
-    this.entity.lookAt(10, 10, 10, 0, -1, 0);
+     * this.entity.lookAt(10, 10, 10, 0, -1, 0);
      * @param x - If passing a 3D vector, this is the world-space coordinate to look at.
-    Otherwise, it is the x-component of the world-space coordinate to look at.
+     * Otherwise, it is the x-component of the world-space coordinate to look at.
      * @param [y] - If passing a 3D vector, this is the world-space up vector for look at
-    transform. Otherwise, it is the y-component of the world-space coordinate to look at.
+     * transform. Otherwise, it is the y-component of the world-space coordinate to look at.
      * @param [z] - Z-component of the world-space coordinate to look at.
      * @param [ux = 0] - X-component of the up vector for the look at transform.
      * @param [uy = 1] - Y-component of the up vector for the look at transform.
@@ -13634,68 +13674,68 @@ export class GraphNode extends EventHandler {
     lookAt(x: Vec3 | number, y?: Vec3 | number, z?: number, ux?: number, uy?: number, uz?: number): void;
     /**
      * Translates the graph node in world-space by the specified translation vector.
-    This function has two valid signatures: you can either pass a 3D vector or 3 numbers to
-    specify the world-space translation.
+     * This function has two valid signatures: you can either pass a 3D vector or 3 numbers to
+     * specify the world-space translation.
      * @example
      * // Translate via 3 numbers
-    this.entity.translate(10, 0, 0);
+     * this.entity.translate(10, 0, 0);
      * @example
      * // Translate via vector
-    var t = new pc.Vec3(10, 0, 0);
-    this.entity.translate(t);
+     * var t = new pc.Vec3(10, 0, 0);
+     * this.entity.translate(t);
      * @param x - 3-dimensional vector holding world-space translation or
-    x-coordinate of world-space translation.
+     * x-coordinate of world-space translation.
      * @param [y] - Y-coordinate of world-space translation.
      * @param [z] - Z-coordinate of world-space translation.
      */
     translate(x: Vec3 | number, y?: number, z?: number): void;
     /**
      * Translates the graph node in local-space by the specified translation vector.
-    This function has two valid signatures: you can either pass a 3D vector or 3 numbers to
-    specify the local-space translation.
+     * This function has two valid signatures: you can either pass a 3D vector or 3 numbers to
+     * specify the local-space translation.
      * @example
      * // Translate via 3 numbers
-    this.entity.translateLocal(10, 0, 0);
+     * this.entity.translateLocal(10, 0, 0);
      * @example
      * // Translate via vector
-    var t = new pc.Vec3(10, 0, 0);
-    this.entity.translateLocal(t);
+     * var t = new pc.Vec3(10, 0, 0);
+     * this.entity.translateLocal(t);
      * @param x - 3-dimensional vector holding local-space translation or
-    x-coordinate of local-space translation.
+     * x-coordinate of local-space translation.
      * @param [y] - Y-coordinate of local-space translation.
      * @param [z] - Z-coordinate of local-space translation.
      */
     translateLocal(x: Vec3 | number, y?: number, z?: number): void;
     /**
      * Rotates the graph node in world-space by the specified Euler angles.
-    Eulers are specified in degrees in XYZ order. This function has two valid signatures:
-    you can either pass a 3D vector or 3 numbers to specify the world-space rotation.
+     * Eulers are specified in degrees in XYZ order. This function has two valid signatures:
+     * you can either pass a 3D vector or 3 numbers to specify the world-space rotation.
      * @example
      * // Rotate via 3 numbers
-    this.entity.rotate(0, 90, 0);
+     * this.entity.rotate(0, 90, 0);
      * @example
      * // Rotate via vector
-    var r = new pc.Vec3(0, 90, 0);
-    this.entity.rotate(r);
+     * var r = new pc.Vec3(0, 90, 0);
+     * this.entity.rotate(r);
      * @param x - 3-dimensional vector holding world-space rotation or
-    rotation around world-space x-axis in degrees.
+     * rotation around world-space x-axis in degrees.
      * @param [y] - Rotation around world-space y-axis in degrees.
      * @param [z] - Rotation around world-space z-axis in degrees.
      */
     rotate(x: Vec3 | number, y?: number, z?: number): void;
     /**
      * Rotates the graph node in local-space by the specified Euler angles.
-    Eulers are specified in degrees in XYZ order. This function has two valid signatures:
-    you can either pass a 3D vector or 3 numbers to specify the local-space rotation.
+     * Eulers are specified in degrees in XYZ order. This function has two valid signatures:
+     * you can either pass a 3D vector or 3 numbers to specify the local-space rotation.
      * @example
      * // Rotate via 3 numbers
-    this.entity.rotateLocal(0, 90, 0);
+     * this.entity.rotateLocal(0, 90, 0);
      * @example
      * // Rotate via vector
-    var r = new pc.Vec3(0, 90, 0);
-    this.entity.rotateLocal(r);
+     * var r = new pc.Vec3(0, 90, 0);
+     * this.entity.rotateLocal(r);
      * @param x - 3-dimensional vector holding local-space rotation or
-    rotation around local-space x-axis in degrees.
+     * rotation around local-space x-axis in degrees.
      * @param [y] - Rotation around local-space y-axis in degrees.
      * @param [z] - Rotation around local-space z-axis in degrees.
      */
@@ -13714,11 +13754,11 @@ export class GraphNode extends EventHandler {
  * Create a new layer composition.
  * @property layerList - A read-only array of {@link Layer} sorted in the order they will be rendered.
  * @property subLayerList - A read-only array of boolean values, matching {@link Layer#layerList}.
-True means only semi-transparent objects are rendered, and false means opaque.
+ * True means only semi-transparent objects are rendered, and false means opaque.
  * @property subLayerEnabled - A read-only array of boolean values, matching {@link Layer#layerList}.
-True means the layer is rendered, false means it's skipped.
+ * True means the layer is rendered, false means it's skipped.
  * @property cameras - A read-only array of {@link CameraComponent} that can be used during rendering. e.g. Inside
-{@link Layer#onPreCull}, {@link Layer#onPostCull}, {@link Layer#onPreRender}, {@link Layer#onPostRender}.
+ * {@link Layer#onPreCull}, {@link Layer#onPostCull}, {@link Layer#onPreRender}, {@link Layer#onPostRender}.
  * @param [name] - Optional non-unique name of the layer composition. Defaults to "Untitled" if not specified.
  */
 export class LayerComposition extends EventHandler {
@@ -13801,17 +13841,17 @@ export class LayerComposition extends EventHandler {
     layerList: Layer[];
     /**
      * A read-only array of boolean values, matching {@link Layer#layerList}.
-     * True means only semi-transparent objects are rendered, and false means opaque.
+    True means only semi-transparent objects are rendered, and false means opaque.
     */
     subLayerList: boolean[];
     /**
      * A read-only array of boolean values, matching {@link Layer#layerList}.
-     * True means the layer is rendered, false means it's skipped.
+    True means the layer is rendered, false means it's skipped.
     */
     subLayerEnabled: boolean[];
     /**
      * A read-only array of {@link CameraComponent} that can be used during rendering. e.g. Inside
-     * {@link Layer#onPreCull}, {@link Layer#onPostCull}, {@link Layer#onPreRender}, {@link Layer#onPostRender}.
+    {@link Layer#onPreCull}, {@link Layer#onPostCull}, {@link Layer#onPreRender}, {@link Layer#onPostRender}.
     */
     cameras: CameraComponent[];
 }
@@ -13821,81 +13861,81 @@ export class LayerComposition extends EventHandler {
  * @property enabled - Enable the layer. Disabled layers are skipped. Defaults to true.
  * @property name - Name of the layer. Can be used in {@link LayerComposition#getLayerByName}.
  * @property opaqueSortMode - Defines the method used for sorting opaque (that is, not semi-transparent) mesh instances before rendering.
-Possible values are:
-
-* {@link SORTMODE_NONE}
-* {@link SORTMODE_MANUAL}
-* {@link SORTMODE_MATERIALMESH}
-* {@link SORTMODE_BACK2FRONT}
-* {@link SORTMODE_FRONT2BACK}
-
-Defaults to {@link SORTMODE_MATERIALMESH}.
+ * Possible values are:
+ *
+ * * {@link SORTMODE_NONE}
+ * * {@link SORTMODE_MANUAL}
+ * * {@link SORTMODE_MATERIALMESH}
+ * * {@link SORTMODE_BACK2FRONT}
+ * * {@link SORTMODE_FRONT2BACK}
+ *
+ * Defaults to {@link SORTMODE_MATERIALMESH}.
  * @property transparentSortMode - Defines the method used for sorting semi-transparent mesh instances before rendering.
-Possible values are:
-
-* {@link SORTMODE_NONE}
-* {@link SORTMODE_MANUAL}
-* {@link SORTMODE_MATERIALMESH}
-* {@link SORTMODE_BACK2FRONT}
-* {@link SORTMODE_FRONT2BACK}
-
-Defaults to {@link SORTMODE_BACK2FRONT}.
+ * Possible values are:
+ *
+ * * {@link SORTMODE_NONE}
+ * * {@link SORTMODE_MANUAL}
+ * * {@link SORTMODE_MATERIALMESH}
+ * * {@link SORTMODE_BACK2FRONT}
+ * * {@link SORTMODE_FRONT2BACK}
+ *
+ * Defaults to {@link SORTMODE_BACK2FRONT}.
  * @property shaderPass - A type of shader to use during rendering. Possible values are:
-
-* {@link SHADER_FORWARD}
-* {@link SHADER_FORWARDHDR}
-* {@link SHADER_DEPTH}
-* Your own custom value. Should be in 19 - 31 range. Use {@link StandardMaterial#onUpdateShader} to apply shader modifications based on this value.
-
-Defaults to {@link SHADER_FORWARD}.
+ *
+ * * {@link SHADER_FORWARD}
+ * * {@link SHADER_FORWARDHDR}
+ * * {@link SHADER_DEPTH}
+ * * Your own custom value. Should be in 19 - 31 range. Use {@link StandardMaterial#onUpdateShader} to apply shader modifications based on this value.
+ *
+ * Defaults to {@link SHADER_FORWARD}.
  * @property passThrough - Tells that this layer is simple and needs to just render a bunch of mesh instances without lighting, skinning and morphing (faster).
  * @property clearColorBuffer - If true, the camera will clear the color buffer when it renders this layer.
  * @property clearDepthBuffer - If true, the camera will clear the depth buffer when it renders this layer.
  * @property clearStencilBuffer - If true, the camera will clear the stencil buffer when it renders this layer.
  * @property layerReference - Make this layer render the same mesh instances that another layer does instead of having its own mesh instance list.
-Both layers must share cameras. Frustum culling is only performed for one layer. Useful for rendering multiple passes using different shaders.
+ * Both layers must share cameras. Frustum culling is only performed for one layer. Useful for rendering multiple passes using different shaders.
  * @property cullingMask - Visibility mask that interacts with {@link MeshInstance#mask}.
  * @property onEnable - Custom function that is called after the layer has been enabled.
-This happens when:
-
-* The layer is created with {@link Layer#enabled} set to true (which is the default value).
-* {@link Layer#enabled} was changed from false to true
-* {@link Layer#incrementCounter} was called and incremented the counter above zero.
-
-Useful for allocating resources this layer will use (e.g. creating render targets).
+ * This happens when:
+ *
+ * * The layer is created with {@link Layer#enabled} set to true (which is the default value).
+ * * {@link Layer#enabled} was changed from false to true
+ * * {@link Layer#incrementCounter} was called and incremented the counter above zero.
+ *
+ * Useful for allocating resources this layer will use (e.g. creating render targets).
  * @property onDisable - Custom function that is called after the layer has been disabled.
-This happens when:
-
-* {@link Layer#enabled} was changed from true to false
-* {@link Layer#decrementCounter} was called and set the counter to zero.
+ * This happens when:
+ *
+ * * {@link Layer#enabled} was changed from true to false
+ * * {@link Layer#decrementCounter} was called and set the counter to zero.
  * @property onPreCull - Custom function that is called before visibility culling is performed for this layer.
-Useful, for example, if you want to modify camera projection while still using the same camera and make frustum culling work correctly with it
-(see {@link CameraComponent#calculateTransform} and {@link CameraComponent#calculateProjection}).
-This function will receive camera index as the only argument. You can get the actual camera being used by looking up {@link LayerComposition#cameras} with this index.
+ * Useful, for example, if you want to modify camera projection while still using the same camera and make frustum culling work correctly with it
+ * (see {@link CameraComponent#calculateTransform} and {@link CameraComponent#calculateProjection}).
+ * This function will receive camera index as the only argument. You can get the actual camera being used by looking up {@link LayerComposition#cameras} with this index.
  * @property onPostCull - Custom function that is called after visibility culling is performed for this layer.
-Useful for reverting changes done in {@link Layer#onPreCull} and determining final mesh instance visibility (see {@link MeshInstance#visibleThisFrame}).
-This function will receive camera index as the only argument. You can get the actual camera being used by looking up {@link LayerComposition#cameras} with this index.
+ * Useful for reverting changes done in {@link Layer#onPreCull} and determining final mesh instance visibility (see {@link MeshInstance#visibleThisFrame}).
+ * This function will receive camera index as the only argument. You can get the actual camera being used by looking up {@link LayerComposition#cameras} with this index.
  * @property onPreRender - Custom function that is called before this layer is rendered.
-Useful, for example, for reacting on screen size changes.
-This function is called before the first occurrence of this layer in {@link LayerComposition}.
-It will receive camera index as the only argument. You can get the actual camera being used by looking up {@link LayerComposition#cameras} with this index.
+ * Useful, for example, for reacting on screen size changes.
+ * This function is called before the first occurrence of this layer in {@link LayerComposition}.
+ * It will receive camera index as the only argument. You can get the actual camera being used by looking up {@link LayerComposition#cameras} with this index.
  * @property onPreRenderOpaque - Custom function that is called before opaque mesh instances (not semi-transparent) in this layer are rendered.
-This function will receive camera index as the only argument. You can get the actual camera being used by looking up {@link LayerComposition#cameras} with this index.
+ * This function will receive camera index as the only argument. You can get the actual camera being used by looking up {@link LayerComposition#cameras} with this index.
  * @property onPreRenderTransparent - Custom function that is called before semi-transparent mesh instances in this layer are rendered.
-This function will receive camera index as the only argument. You can get the actual camera being used by looking up {@link LayerComposition#cameras} with this index.
+ * This function will receive camera index as the only argument. You can get the actual camera being used by looking up {@link LayerComposition#cameras} with this index.
  * @property onPostRender - Custom function that is called after this layer is rendered.
-Useful to revert changes made in {@link Layer#onPreRender} or performing some processing on {@link Layer#renderTarget}.
-This function is called after the last occurrence of this layer in {@link LayerComposition}.
-It will receive camera index as the only argument. You can get the actual camera being used by looking up {@link LayerComposition#cameras} with this index.
+ * Useful to revert changes made in {@link Layer#onPreRender} or performing some processing on {@link Layer#renderTarget}.
+ * This function is called after the last occurrence of this layer in {@link LayerComposition}.
+ * It will receive camera index as the only argument. You can get the actual camera being used by looking up {@link LayerComposition#cameras} with this index.
  * @property onPostRenderOpaque - Custom function that is called after opaque mesh instances (not semi-transparent) in this layer are rendered.
-This function will receive camera index as the only argument. You can get the actual camera being used by looking up {@link LayerComposition#cameras} with this index.
+ * This function will receive camera index as the only argument. You can get the actual camera being used by looking up {@link LayerComposition#cameras} with this index.
  * @property onPostRenderTransparent - Custom function that is called after semi-transparent mesh instances in this layer are rendered.
-This function will receive camera index as the only argument. You can get the actual camera being used by looking up {@link LayerComposition#cameras} with this index.
+ * This function will receive camera index as the only argument. You can get the actual camera being used by looking up {@link LayerComposition#cameras} with this index.
  * @property onDrawCall - Custom function that is called before every mesh instance in this layer is rendered.
-It is not recommended to set this function when rendering many objects every frame due to performance reasons.
+ * It is not recommended to set this function when rendering many objects every frame due to performance reasons.
  * @property id - A unique ID of the layer.
-Layer IDs are stored inside {@link ModelComponent#layers}, {@link CameraComponent#layers}, {@link LightComponent#layers} and {@link ElementComponent#layers} instead of names.
-Can be used in {@link LayerComposition#getLayerById}.
+ * Layer IDs are stored inside {@link ModelComponent#layers}, {@link CameraComponent#layers}, {@link LightComponent#layers} and {@link ElementComponent#layers} instead of names.
+ * Can be used in {@link LayerComposition#getLayerById}.
  * @param options - Object for passing optional arguments. These arguments are the same as properties of the Layer.
  */
 export class Layer {
@@ -13965,33 +14005,39 @@ export class Layer {
     name: string;
     /**
      * Defines the method used for sorting opaque (that is, not semi-transparent) mesh instances before rendering.
-     * Possible values are:
-     * * {@link SORTMODE_NONE}
-     * * {@link SORTMODE_MANUAL}
-     * * {@link SORTMODE_MATERIALMESH}
-     * * {@link SORTMODE_BACK2FRONT}
-     * * {@link SORTMODE_FRONT2BACK}
-     * Defaults to {@link SORTMODE_MATERIALMESH}.
+    Possible values are:
+    
+    * {@link SORTMODE_NONE}
+    * {@link SORTMODE_MANUAL}
+    * {@link SORTMODE_MATERIALMESH}
+    * {@link SORTMODE_BACK2FRONT}
+    * {@link SORTMODE_FRONT2BACK}
+    
+    Defaults to {@link SORTMODE_MATERIALMESH}.
     */
     opaqueSortMode: number;
     /**
      * Defines the method used for sorting semi-transparent mesh instances before rendering.
-     * Possible values are:
-     * * {@link SORTMODE_NONE}
-     * * {@link SORTMODE_MANUAL}
-     * * {@link SORTMODE_MATERIALMESH}
-     * * {@link SORTMODE_BACK2FRONT}
-     * * {@link SORTMODE_FRONT2BACK}
-     * Defaults to {@link SORTMODE_BACK2FRONT}.
+    Possible values are:
+    
+    * {@link SORTMODE_NONE}
+    * {@link SORTMODE_MANUAL}
+    * {@link SORTMODE_MATERIALMESH}
+    * {@link SORTMODE_BACK2FRONT}
+    * {@link SORTMODE_FRONT2BACK}
+    
+    Defaults to {@link SORTMODE_BACK2FRONT}.
     */
     transparentSortMode: number;
     /**
      * A type of shader to use during rendering. Possible values are:
-     * * {@link SHADER_FORWARD}
-     * * {@link SHADER_FORWARDHDR}
-     * * {@link SHADER_DEPTH}
-     * * Your own custom value. Should be in 19 - 31 range. Use {@link StandardMaterial#onUpdateShader} to apply shader modifications based on this value.
-     * Defaults to {@link SHADER_FORWARD}.
+    
+    * {@link SHADER_FORWARD}
+    * {@link SHADER_FORWARDHDR}
+    * {@link SHADER_DEPTH}
+    * Your own custom value. Should be in 19 - 31 range. Use {@link StandardMaterial#onUpdateShader} to apply shader modifications based on this value.
+    
+    Defaults to {@link SHADER_FORWARD}.
     */
     shaderPass: number;
     /**
@@ -14012,7 +14058,7 @@ export class Layer {
     clearStencilBuffer: boolean;
     /**
      * Make this layer render the same mesh instances that another layer does instead of having its own mesh instance list.
-     * Both layers must share cameras. Frustum culling is only performed for one layer. Useful for rendering multiple passes using different shaders.
+    Both layers must share cameras. Frustum culling is only performed for one layer. Useful for rendering multiple passes using different shaders.
     */
     layerReference: Layer;
     /**
@@ -14021,76 +14067,79 @@ export class Layer {
     cullingMask: (...params: any[]) => any;
     /**
      * Custom function that is called after the layer has been enabled.
-     * This happens when:
-     * * The layer is created with {@link Layer#enabled} set to true (which is the default value).
-     * * {@link Layer#enabled} was changed from false to true
-     * * {@link Layer#incrementCounter} was called and incremented the counter above zero.
-     * Useful for allocating resources this layer will use (e.g. creating render targets).
+    This happens when:
+    
+    * The layer is created with {@link Layer#enabled} set to true (which is the default value).
+    * {@link Layer#enabled} was changed from false to true
+    * {@link Layer#incrementCounter} was called and incremented the counter above zero.
+    
+    Useful for allocating resources this layer will use (e.g. creating render targets).
     */
     onEnable: (...params: any[]) => any;
     /**
      * Custom function that is called after the layer has been disabled.
-     * This happens when:
-     * * {@link Layer#enabled} was changed from true to false
-     * * {@link Layer#decrementCounter} was called and set the counter to zero.
+    This happens when:
+    
+    * {@link Layer#enabled} was changed from true to false
+    * {@link Layer#decrementCounter} was called and set the counter to zero.
     */
     onDisable: (...params: any[]) => any;
     /**
      * Custom function that is called before visibility culling is performed for this layer.
-     * Useful, for example, if you want to modify camera projection while still using the same camera and make frustum culling work correctly with it
-     * (see {@link CameraComponent#calculateTransform} and {@link CameraComponent#calculateProjection}).
-     * This function will receive camera index as the only argument. You can get the actual camera being used by looking up {@link LayerComposition#cameras} with this index.
+    Useful, for example, if you want to modify camera projection while still using the same camera and make frustum culling work correctly with it
+    (see {@link CameraComponent#calculateTransform} and {@link CameraComponent#calculateProjection}).
+    This function will receive camera index as the only argument. You can get the actual camera being used by looking up {@link LayerComposition#cameras} with this index.
     */
     onPreCull: (...params: any[]) => any;
     /**
      * Custom function that is called after visibility culling is performed for this layer.
-     * Useful for reverting changes done in {@link Layer#onPreCull} and determining final mesh instance visibility (see {@link MeshInstance#visibleThisFrame}).
-     * This function will receive camera index as the only argument. You can get the actual camera being used by looking up {@link LayerComposition#cameras} with this index.
+    Useful for reverting changes done in {@link Layer#onPreCull} and determining final mesh instance visibility (see {@link MeshInstance#visibleThisFrame}).
+    This function will receive camera index as the only argument. You can get the actual camera being used by looking up {@link LayerComposition#cameras} with this index.
     */
     onPostCull: (...params: any[]) => any;
     /**
      * Custom function that is called before this layer is rendered.
-     * Useful, for example, for reacting on screen size changes.
-     * This function is called before the first occurrence of this layer in {@link LayerComposition}.
-     * It will receive camera index as the only argument. You can get the actual camera being used by looking up {@link LayerComposition#cameras} with this index.
+    Useful, for example, for reacting on screen size changes.
+    This function is called before the first occurrence of this layer in {@link LayerComposition}.
+    It will receive camera index as the only argument. You can get the actual camera being used by looking up {@link LayerComposition#cameras} with this index.
     */
     onPreRender: (...params: any[]) => any;
     /**
      * Custom function that is called before opaque mesh instances (not semi-transparent) in this layer are rendered.
-     * This function will receive camera index as the only argument. You can get the actual camera being used by looking up {@link LayerComposition#cameras} with this index.
+    This function will receive camera index as the only argument. You can get the actual camera being used by looking up {@link LayerComposition#cameras} with this index.
     */
     onPreRenderOpaque: (...params: any[]) => any;
     /**
      * Custom function that is called before semi-transparent mesh instances in this layer are rendered.
-     * This function will receive camera index as the only argument. You can get the actual camera being used by looking up {@link LayerComposition#cameras} with this index.
+    This function will receive camera index as the only argument. You can get the actual camera being used by looking up {@link LayerComposition#cameras} with this index.
     */
     onPreRenderTransparent: (...params: any[]) => any;
     /**
      * Custom function that is called after this layer is rendered.
-     * Useful to revert changes made in {@link Layer#onPreRender} or performing some processing on {@link Layer#renderTarget}.
-     * This function is called after the last occurrence of this layer in {@link LayerComposition}.
-     * It will receive camera index as the only argument. You can get the actual camera being used by looking up {@link LayerComposition#cameras} with this index.
+    Useful to revert changes made in {@link Layer#onPreRender} or performing some processing on {@link Layer#renderTarget}.
+    This function is called after the last occurrence of this layer in {@link LayerComposition}.
+    It will receive camera index as the only argument. You can get the actual camera being used by looking up {@link LayerComposition#cameras} with this index.
     */
     onPostRender: (...params: any[]) => any;
     /**
      * Custom function that is called after opaque mesh instances (not semi-transparent) in this layer are rendered.
-     * This function will receive camera index as the only argument. You can get the actual camera being used by looking up {@link LayerComposition#cameras} with this index.
+    This function will receive camera index as the only argument. You can get the actual camera being used by looking up {@link LayerComposition#cameras} with this index.
     */
     onPostRenderOpaque: (...params: any[]) => any;
     /**
      * Custom function that is called after semi-transparent mesh instances in this layer are rendered.
-     * This function will receive camera index as the only argument. You can get the actual camera being used by looking up {@link LayerComposition#cameras} with this index.
+    This function will receive camera index as the only argument. You can get the actual camera being used by looking up {@link LayerComposition#cameras} with this index.
     */
     onPostRenderTransparent: (...params: any[]) => any;
     /**
      * Custom function that is called before every mesh instance in this layer is rendered.
-     * It is not recommended to set this function when rendering many objects every frame due to performance reasons.
+    It is not recommended to set this function when rendering many objects every frame due to performance reasons.
     */
     onDrawCall: (...params: any[]) => any;
     /**
      * A unique ID of the layer.
-     * Layer IDs are stored inside {@link ModelComponent#layers}, {@link CameraComponent#layers}, {@link LightComponent#layers} and {@link ElementComponent#layers} instead of names.
-     * Can be used in {@link LayerComposition#getLayerById}.
+    Layer IDs are stored inside {@link ModelComponent#layers}, {@link CameraComponent#layers}, {@link LightComponent#layers} and {@link ElementComponent#layers} instead of names.
+    Can be used in {@link LayerComposition#getLayerById}.
     */
     id: number;
 }
@@ -14108,14 +14157,14 @@ export class Lightmapper {
     /**
      * Generates and applies the lightmaps.
      * @param nodes - An array of entities (with model or render components) to render
-    lightmaps for. If not supplied, the entire scene will be baked.
+     * lightmaps for. If not supplied, the entire scene will be baked.
      * @param [mode] - Baking mode. Can be:
-    
-    * {@link BAKE_COLOR}: single color lightmap
-    * {@link BAKE_COLORDIR}: single color lightmap + dominant light direction (used for bump/specular)
-    
-    Only lights with bakeDir=true will be used for generating the dominant light direction. Defaults to
-    {@link BAKE_COLORDIR}.
+     *
+     * * {@link BAKE_COLOR}: single color lightmap
+     * * {@link BAKE_COLORDIR}: single color lightmap + dominant light direction (used for bump/specular)
+     *
+     * Only lights with bakeDir=true will be used for generating the dominant light direction. Defaults to
+     * {@link BAKE_COLORDIR}.
      */
     bake(nodes: Entity[] | null, mode?: number): void;
 }
@@ -14158,47 +14207,47 @@ export class BasicMaterial extends Material {
 /**
  * Create a new Material instance.
  * @property alphaTest - The alpha test reference value to control which fragments are written to the currently
-active render target based on alpha value. All fragments with an alpha value of less than the alphaTest reference value
-will be discarded. alphaTest defaults to 0 (all fragments pass).
+ * active render target based on alpha value. All fragments with an alpha value of less than the alphaTest reference value
+ * will be discarded. alphaTest defaults to 0 (all fragments pass).
  * @property alphaToCoverage - Enables or disables alpha to coverage (WebGL2 only). When enabled, and if hardware anti-aliasing is on,
-limited order-independent transparency can be achieved. Quality depends on the number of MSAA samples of the current render target.
-It can nicely soften edges of otherwise sharp alpha cutouts, but isn't recommended for large area semi-transparent surfaces.
-Note, that you don't need to enable blending to make alpha to coverage work. It will work without it, just like alphaTest.
+ * limited order-independent transparency can be achieved. Quality depends on the number of MSAA samples of the current render target.
+ * It can nicely soften edges of otherwise sharp alpha cutouts, but isn't recommended for large area semi-transparent surfaces.
+ * Note, that you don't need to enable blending to make alpha to coverage work. It will work without it, just like alphaTest.
  * @property alphaWrite - If true, the alpha component of fragments generated by the shader of this material is written to
-the color buffer of the currently active render target. If false, the alpha component will not be written. Defaults to true.
+ * the color buffer of the currently active render target. If false, the alpha component will not be written. Defaults to true.
  * @property blendType - Controls how primitives are blended when being written to the currently active render target.
-Can be:
-
-* {@link BLEND_SUBTRACTIVE}: Subtract the color of the source fragment from the destination fragment and write the result to the frame buffer.
-* {@link BLEND_ADDITIVE}: Add the color of the source fragment to the destination fragment and write the result to the frame buffer.
-* {@link BLEND_NORMAL}: Enable simple translucency for materials such as glass. This is equivalent to enabling a source blend mode of {@link BLENDMODE_SRC_ALPHA} and a destination blend mode of {@link BLENDMODE_ONE_MINUS_SRC_ALPHA}.
-* {@link BLEND_NONE}: Disable blending.
-* {@link BLEND_PREMULTIPLIED}: Similar to {@link BLEND_NORMAL} expect the source fragment is assumed to have already been multiplied by the source alpha value.
-* {@link BLEND_MULTIPLICATIVE}: Multiply the color of the source fragment by the color of the destination fragment and write the result to the frame buffer.
-* {@link BLEND_ADDITIVEALPHA}: Same as {@link BLEND_ADDITIVE} except the source RGB is multiplied by the source alpha.
-
-Defaults to {@link BLEND_NONE}.
+ * Can be:
+ *
+ * * {@link BLEND_SUBTRACTIVE}: Subtract the color of the source fragment from the destination fragment and write the result to the frame buffer.
+ * * {@link BLEND_ADDITIVE}: Add the color of the source fragment to the destination fragment and write the result to the frame buffer.
+ * * {@link BLEND_NORMAL}: Enable simple translucency for materials such as glass. This is equivalent to enabling a source blend mode of {@link BLENDMODE_SRC_ALPHA} and a destination blend mode of {@link BLENDMODE_ONE_MINUS_SRC_ALPHA}.
+ * * {@link BLEND_NONE}: Disable blending.
+ * * {@link BLEND_PREMULTIPLIED}: Similar to {@link BLEND_NORMAL} expect the source fragment is assumed to have already been multiplied by the source alpha value.
+ * * {@link BLEND_MULTIPLICATIVE}: Multiply the color of the source fragment by the color of the destination fragment and write the result to the frame buffer.
+ * * {@link BLEND_ADDITIVEALPHA}: Same as {@link BLEND_ADDITIVE} except the source RGB is multiplied by the source alpha.
+ *
+ * Defaults to {@link BLEND_NONE}.
  * @property blueWrite - If true, the blue component of fragments generated by the shader of this material is written to
-the color buffer of the currently active render target. If false, the blue component will not be written. Defaults to true.
+ * the color buffer of the currently active render target. If false, the blue component will not be written. Defaults to true.
  * @property cull - Controls how triangles are culled based on their face direction with respect to the viewpoint.
-Can be:
-
-* {@link CULLFACE_NONE}: Do not cull triangles based on face direction.
-* {@link CULLFACE_BACK}: Cull the back faces of triangles (do not render triangles facing away from the view point).
-* {@link CULLFACE_FRONT}: Cull the front faces of triangles (do not render triangles facing towards the view point).
-* {@link CULLFACE_FRONTANDBACK}: Cull both front and back faces (triangles will not be rendered).
-
-Defaults to {@link CULLFACE_BACK}.
+ * Can be:
+ *
+ * * {@link CULLFACE_NONE}: Do not cull triangles based on face direction.
+ * * {@link CULLFACE_BACK}: Cull the back faces of triangles (do not render triangles facing away from the view point).
+ * * {@link CULLFACE_FRONT}: Cull the front faces of triangles (do not render triangles facing towards the view point).
+ * * {@link CULLFACE_FRONTANDBACK}: Cull both front and back faces (triangles will not be rendered).
+ *
+ * Defaults to {@link CULLFACE_BACK}.
  * @property depthTest - If true, fragments generated by the shader of this material are only written to the
-current render target if they pass the depth test. If false, fragments generated by the shader of this material are
-written to the current render target regardless of what is in the depth buffer. Defaults to true.
+ * current render target if they pass the depth test. If false, fragments generated by the shader of this material are
+ * written to the current render target regardless of what is in the depth buffer. Defaults to true.
  * @property depthWrite - If true, fragments generated by the shader of this material write a depth value to
-the depth buffer of the currently active render target. If false, no depth value is written. Defaults to true.
+ * the depth buffer of the currently active render target. If false, no depth value is written. Defaults to true.
  * @property greenWrite - If true, the green component of fragments generated by the shader of this material is written to
-the color buffer of the currently active render target. If false, the green component will not be written. Defaults to true.
+ * the color buffer of the currently active render target. If false, the green component will not be written. Defaults to true.
  * @property name - The name of the material.
  * @property redWrite - If true, the red component of fragments generated by the shader of this material is written to
-the color buffer of the currently active render target. If false, the red component will not be written. Defaults to true.
+ * the color buffer of the currently active render target. If false, the red component will not be written. Defaults to true.
  * @property shader - The shader used by this material to render mesh instances (default is null).
  * @property stencilFront - Stencil parameters for front faces (default is null).
  * @property stencilBack - Stencil parameters for back faces (default is null).
@@ -14233,64 +14282,68 @@ export class Material {
     destroy(): void;
     /**
      * The alpha test reference value to control which fragments are written to the currently
-     * active render target based on alpha value. All fragments with an alpha value of less than the alphaTest reference value
-     * will be discarded. alphaTest defaults to 0 (all fragments pass).
+    active render target based on alpha value. All fragments with an alpha value of less than the alphaTest reference value
+    will be discarded. alphaTest defaults to 0 (all fragments pass).
     */
     alphaTest: number;
     /**
      * Enables or disables alpha to coverage (WebGL2 only). When enabled, and if hardware anti-aliasing is on,
-     * limited order-independent transparency can be achieved. Quality depends on the number of MSAA samples of the current render target.
-     * It can nicely soften edges of otherwise sharp alpha cutouts, but isn't recommended for large area semi-transparent surfaces.
-     * Note, that you don't need to enable blending to make alpha to coverage work. It will work without it, just like alphaTest.
+    limited order-independent transparency can be achieved. Quality depends on the number of MSAA samples of the current render target.
+    It can nicely soften edges of otherwise sharp alpha cutouts, but isn't recommended for large area semi-transparent surfaces.
+    Note, that you don't need to enable blending to make alpha to coverage work. It will work without it, just like alphaTest.
     */
     alphaToCoverage: boolean;
     /**
      * If true, the alpha component of fragments generated by the shader of this material is written to
-     * the color buffer of the currently active render target. If false, the alpha component will not be written. Defaults to true.
+    the color buffer of the currently active render target. If false, the alpha component will not be written. Defaults to true.
     */
     alphaWrite: boolean;
     /**
      * Controls how primitives are blended when being written to the currently active render target.
-     * Can be:
-     * * {@link BLEND_SUBTRACTIVE}: Subtract the color of the source fragment from the destination fragment and write the result to the frame buffer.
-     * * {@link BLEND_ADDITIVE}: Add the color of the source fragment to the destination fragment and write the result to the frame buffer.
-     * * {@link BLEND_NORMAL}: Enable simple translucency for materials such as glass. This is equivalent to enabling a source blend mode of {@link BLENDMODE_SRC_ALPHA} and a destination blend mode of {@link BLENDMODE_ONE_MINUS_SRC_ALPHA}.
-     * * {@link BLEND_NONE}: Disable blending.
-     * * {@link BLEND_PREMULTIPLIED}: Similar to {@link BLEND_NORMAL} expect the source fragment is assumed to have already been multiplied by the source alpha value.
-     * * {@link BLEND_MULTIPLICATIVE}: Multiply the color of the source fragment by the color of the destination fragment and write the result to the frame buffer.
-     * * {@link BLEND_ADDITIVEALPHA}: Same as {@link BLEND_ADDITIVE} except the source RGB is multiplied by the source alpha.
-     * Defaults to {@link BLEND_NONE}.
+    Can be:
+    
+    * {@link BLEND_SUBTRACTIVE}: Subtract the color of the source fragment from the destination fragment and write the result to the frame buffer.
+    * {@link BLEND_ADDITIVE}: Add the color of the source fragment to the destination fragment and write the result to the frame buffer.
+    * {@link BLEND_NORMAL}: Enable simple translucency for materials such as glass. This is equivalent to enabling a source blend mode of {@link BLENDMODE_SRC_ALPHA} and a destination blend mode of {@link BLENDMODE_ONE_MINUS_SRC_ALPHA}.
+    * {@link BLEND_NONE}: Disable blending.
+    * {@link BLEND_PREMULTIPLIED}: Similar to {@link BLEND_NORMAL} expect the source fragment is assumed to have already been multiplied by the source alpha value.
+    * {@link BLEND_MULTIPLICATIVE}: Multiply the color of the source fragment by the color of the destination fragment and write the result to the frame buffer.
+    * {@link BLEND_ADDITIVEALPHA}: Same as {@link BLEND_ADDITIVE} except the source RGB is multiplied by the source alpha.
+    
+    Defaults to {@link BLEND_NONE}.
     */
     blendType: number;
     /**
      * If true, the blue component of fragments generated by the shader of this material is written to
-     * the color buffer of the currently active render target. If false, the blue component will not be written. Defaults to true.
+    the color buffer of the currently active render target. If false, the blue component will not be written. Defaults to true.
     */
     blueWrite: boolean;
     /**
      * Controls how triangles are culled based on their face direction with respect to the viewpoint.
-     * Can be:
-     * * {@link CULLFACE_NONE}: Do not cull triangles based on face direction.
-     * * {@link CULLFACE_BACK}: Cull the back faces of triangles (do not render triangles facing away from the view point).
-     * * {@link CULLFACE_FRONT}: Cull the front faces of triangles (do not render triangles facing towards the view point).
-     * * {@link CULLFACE_FRONTANDBACK}: Cull both front and back faces (triangles will not be rendered).
-     * Defaults to {@link CULLFACE_BACK}.
+    Can be:
+    
+    * {@link CULLFACE_NONE}: Do not cull triangles based on face direction.
+    * {@link CULLFACE_BACK}: Cull the back faces of triangles (do not render triangles facing away from the view point).
+    * {@link CULLFACE_FRONT}: Cull the front faces of triangles (do not render triangles facing towards the view point).
+    * {@link CULLFACE_FRONTANDBACK}: Cull both front and back faces (triangles will not be rendered).
+    
+    Defaults to {@link CULLFACE_BACK}.
     */
     cull: number;
     /**
      * If true, fragments generated by the shader of this material are only written to the
-     * current render target if they pass the depth test. If false, fragments generated by the shader of this material are
-     * written to the current render target regardless of what is in the depth buffer. Defaults to true.
+    current render target if they pass the depth test. If false, fragments generated by the shader of this material are
+    written to the current render target regardless of what is in the depth buffer. Defaults to true.
     */
     depthTest: boolean;
     /**
      * If true, fragments generated by the shader of this material write a depth value to
-     * the depth buffer of the currently active render target. If false, no depth value is written. Defaults to true.
+    the depth buffer of the currently active render target. If false, no depth value is written. Defaults to true.
     */
     depthWrite: boolean;
     /**
      * If true, the green component of fragments generated by the shader of this material is written to
-     * the color buffer of the currently active render target. If false, the green component will not be written. Defaults to true.
+    the color buffer of the currently active render target. If false, the green component will not be written. Defaults to true.
     */
     greenWrite: boolean;
     /**
@@ -14299,7 +14352,7 @@ export class Material {
     name: string;
     /**
      * If true, the red component of fragments generated by the shader of this material is written to
-     * the color buffer of the currently active render target. If false, the red component will not be written. Defaults to true.
+    the color buffer of the currently active render target. If false, the red component will not be written. Defaults to true.
     */
     redWrite: boolean;
     /**
@@ -14326,36 +14379,36 @@ export class Material {
 
 /**
  * A Standard material is the main, general purpose material that is most often used for rendering.
-It can approximate a wide variety of surface types and can simulate dynamic reflected light.
-Most maps can use 3 types of input values in any combination: constant (color or number), mesh vertex colors and a texture. All enabled inputs are multiplied together.
+ * It can approximate a wide variety of surface types and can simulate dynamic reflected light.
+ * Most maps can use 3 types of input values in any combination: constant (color or number), mesh vertex colors and a texture. All enabled inputs are multiplied together.
  * @example
  * // Create a new Standard material
-var material = new pc.StandardMaterial();
-
-// Update the material's diffuse and specular properties
-material.diffuse.set(1, 0, 0);
-material.specular.set(1, 1, 1);
-
-// Notify the material that it has been modified
-material.update();
+ * var material = new pc.StandardMaterial();
+ *
+ * // Update the material's diffuse and specular properties
+ * material.diffuse.set(1, 0, 0);
+ * material.specular.set(1, 1, 1);
+ *
+ * // Notify the material that it has been modified
+ * material.update();
  * @example
  * // Create a new Standard material
-var material = new pc.StandardMaterial();
-
-// Assign a texture to the diffuse slot
-material.diffuseMap = texture;
-
-// Use the alpha channel of the texture for alpha testing with a reference value of 0.5
-material.opacityMap = texture;
-material.alphaTest = 0.5;
-
-// Notify the material that it has been modified
-material.update();
+ * var material = new pc.StandardMaterial();
+ *
+ * // Assign a texture to the diffuse slot
+ * material.diffuseMap = texture;
+ *
+ * // Use the alpha channel of the texture for alpha testing with a reference value of 0.5
+ * material.opacityMap = texture;
+ * material.alphaTest = 0.5;
+ *
+ * // Notify the material that it has been modified
+ * material.update();
  * @property ambient - The ambient color of the material. This color value is 3-component (RGB),
-where each component is between 0 and 1.
+ * where each component is between 0 and 1.
  * @property diffuse - The diffuse color of the material. This color value is 3-component (RGB),
-where each component is between 0 and 1.
-Defines basic surface color (aka albedo).
+ * where each component is between 0 and 1.
+ * Defines basic surface color (aka albedo).
  * @property diffuseTint - Multiply main (primary) diffuse map and/or diffuse vertex color by the constant diffuse value.
  * @property diffuseMap - The main (primary) diffuse map of the material (default is null).
  * @property diffuseMapUv - Main (primary) diffuse map UV channel.
@@ -14370,16 +14423,16 @@ Defines basic surface color (aka albedo).
  * @property diffuseDetailMapOffset - Controls the 2D offset of the detail (secondary) diffuse map. Each component is between 0 and 1.
  * @property diffuseDetailMapChannel - Color channels of the detail (secondary) diffuse map to use. Can be "r", "g", "b", "a", "rgb" or any swizzled combination.
  * @property diffuseDetailMode - Determines how the main (primary) and detail (secondary) diffuse maps are blended together. Can be:
-* {@link DETAILMODE_MUL}: Multiply together the primary and secondary colors.
-* {@link DETAILMODE_ADD}: Add together the primary and secondary colors.
-* {@link DETAILMODE_SCREEN}: Softer version of {@link DETAILMODE_ADD}.
-* {@link DETAILMODE_OVERLAY}: Multiplies or screens the colors, depending on the primary color.
-* {@link DETAILMODE_MIN}: Select whichever of the primary and secondary colors is darker, component-wise.
-* {@link DETAILMODE_MAX}: Select whichever of the primary and secondary colors is lighter, component-wise.
-Defaults to {@link DETAILMODE_MUL}.
+ * * {@link DETAILMODE_MUL}: Multiply together the primary and secondary colors.
+ * * {@link DETAILMODE_ADD}: Add together the primary and secondary colors.
+ * * {@link DETAILMODE_SCREEN}: Softer version of {@link DETAILMODE_ADD}.
+ * * {@link DETAILMODE_OVERLAY}: Multiplies or screens the colors, depending on the primary color.
+ * * {@link DETAILMODE_MIN}: Select whichever of the primary and secondary colors is darker, component-wise.
+ * * {@link DETAILMODE_MAX}: Select whichever of the primary and secondary colors is lighter, component-wise.
+ * Defaults to {@link DETAILMODE_MUL}.
  * @property specular - The specular color of the material. This color value is 3-component (RGB),
-where each component is between 0 and 1.
-Defines surface reflection/specular color. Affects specular intensity and tint.
+ * where each component is between 0 and 1.
+ * Defines surface reflection/specular color. Affects specular intensity and tint.
  * @property specularTint - Multiply specular map and/or specular vertex color by the constant specular value.
  * @property specularMap - The specular map of the material (default is null).
  * @property specularMapUv - Specular map UV channel.
@@ -14390,9 +14443,9 @@ Defines surface reflection/specular color. Affects specular intensity and tint.
  * @property specularVertexColorChannel - Vertex color channels to use for specular. Can be "r", "g", "b", "a", "rgb" or any swizzled combination.
  * @property enableGGXSpecular - Enables GGX specular. Also enables {@link StandardMaterial#anisotropy}  parameter to set material anisotropy.
  * @property anisotropy - Defines amount of anisotropy. Requires {@link StandardMaterial#enableGGXSpecular} is set to true.
-* When anisotropy == 0, specular is isotropic.
-* When anisotropy < 0, anistropy direction aligns with the tangent, and specular anisotropy increases as the anisotropy value decreases to minimum of -1.
-* When anisotropy > 0, anistropy direction aligns with the bi-normal, and specular anisotropy increases as anisotropy value increases to maximum of 1.
+ * * When anisotropy == 0, specular is isotropic.
+ * * When anisotropy < 0, anistropy direction aligns with the tangent, and specular anisotropy increases as the anisotropy value decreases to minimum of -1.
+ * * When anisotropy > 0, anistropy direction aligns with the bi-normal, and specular anisotropy increases as anisotropy value increases to maximum of 1.
  * @property clearCoat - Defines intensity of clear coat layer from 0 to 1. Clear coat layer is disabled when clearCoat == 0. Default value is 0 (disabled).
  * @property clearCoatMap - Monochrome clear coat intensity map (default is null). If specified, will be multiplied by normalized 'clearCoat' value and/or vertex colors.
  * @property clearCoatMapUv - Clear coat intensity map UV channel.
@@ -14414,12 +14467,12 @@ Defines surface reflection/specular color. Affects specular intensity and tint.
  * @property clearCoatNormalMapTiling - Controls the 2D tiling of the main clear coat normal map.
  * @property clearCoatNormalMapOffset - Controls the 2D offset of the main clear coat normal map. Each component is between 0 and 1.
  * @property clearCoatBumpiness - The bumpiness of the clear coat layer. This value scales the assigned main clear coat normal map.
-It should be normally between 0 (no bump mapping) and 1 (full bump mapping), but can be set to e.g. 2 to give even more pronounced bump effect.
+ * It should be normally between 0 (no bump mapping) and 1 (full bump mapping), but can be set to e.g. 2 to give even more pronounced bump effect.
  * @property useMetalness - Use metalness properties instead of specular.
-When enabled, diffuse colors also affect specular instead of the dedicated specular map.
-This can be used as alternative to specular color to save space.
-With metaless == 0, the pixel is assumed to be dielectric, and diffuse color is used as normal.
-With metaless == 1, the pixel is fully metallic, and diffuse color is used as specular color instead.
+ * When enabled, diffuse colors also affect specular instead of the dedicated specular map.
+ * This can be used as alternative to specular color to save space.
+ * With metaless == 0, the pixel is assumed to be dielectric, and diffuse color is used as normal.
+ * With metaless == 1, the pixel is fully metallic, and diffuse color is used as specular color instead.
  * @property metalness - Defines how much the surface is metallic. From 0 (dielectric) to 1 (metal).
  * @property metalnessMap - Monochrome metalness map (default is null).
  * @property metalnessMapUv - Metalness map UV channel.
@@ -14429,8 +14482,8 @@ With metaless == 1, the pixel is fully metallic, and diffuse color is used as sp
  * @property metalnessVertexColor - Use mesh vertex colors for metalness. If metalnessMap is set, it'll be multiplied by vertex colors.
  * @property metalnessVertexColorChannel - Vertex color channel to use for metalness. Can be "r", "g", "b" or "a".
  * @property shininess - Defines glossiness of the material from 0 (rough) to 100 (shiny mirror).
-A higher shininess value results in a more focused specular highlight.
-Glossiness map/vertex colors are always multiplied by this value (normalized to 0 - 1 range), or it is used directly as constant output.
+ * A higher shininess value results in a more focused specular highlight.
+ * Glossiness map/vertex colors are always multiplied by this value (normalized to 0 - 1 range), or it is used directly as constant output.
  * @property glossMap - Glossiness map (default is null). If specified, will be multiplied by normalized 'shininess' value and/or vertex colors.
  * @property glossMapUv - Gloss map UV channel.
  * @property glossMapChannel - Color channel of the gloss map to use. Can be "r", "g", "b" or "a".
@@ -14440,10 +14493,10 @@ Glossiness map/vertex colors are always multiplied by this value (normalized to 
  * @property glossVertexColorChannel - Vertex color channel to use for glossiness. Can be "r", "g", "b" or "a".
  * @property refraction - Defines the visibility of refraction. Material can refract the same cube map as used for reflections.
  * @property refractionIndex - Defines the index of refraction, i.e. The amount of distortion.
-The value is calculated as (outerIor / surfaceIor), where inputs are measured indices of refraction, the one around the object and the one of it's own surface.
-In most situations outer medium is air, so outerIor will be approximately 1. Then you only need to do (1.0 / surfaceIor).
+ * The value is calculated as (outerIor / surfaceIor), where inputs are measured indices of refraction, the one around the object and the one of it's own surface.
+ * In most situations outer medium is air, so outerIor will be approximately 1. Then you only need to do (1.0 / surfaceIor).
  * @property emissive - The emissive color of the material. This color value is 3-component (RGB),
-where each component is between 0 and 1.
+ * where each component is between 0 and 1.
  * @property emissiveTint - Multiply emissive map and/or emissive vertex color by the constant emissive value.
  * @property emissiveMap - The emissive map of the material (default is null). Can be HDR.
  * @property emissiveIntensity - Emissive color multiplier.
@@ -14454,9 +14507,9 @@ where each component is between 0 and 1.
  * @property emissiveVertexColor - Use mesh vertex colors for emission. If emissiveMap or emissiveTint are set, they'll be multiplied by vertex colors.
  * @property emissiveVertexColorChannel - Vertex color channels to use for emission. Can be "r", "g", "b", "a", "rgb" or any swizzled combination.
  * @property opacity - The opacity of the material. This value can be between 0 and 1, where 0 is fully
-transparent and 1 is fully opaque. If you want the material to be semi-transparent you also need to
-set the {@link Material#blendType} to {@link BLEND_NORMAL}, {@link BLEND_ADDITIVE} or any other mode.
-Also note that for most semi-transparent objects you want {@link Material#depthWrite} to be false, otherwise they can fully occlude objects behind them.
+ * transparent and 1 is fully opaque. If you want the material to be semi-transparent you also need to
+ * set the {@link Material#blendType} to {@link BLEND_NORMAL}, {@link BLEND_ADDITIVE} or any other mode.
+ * Also note that for most semi-transparent objects you want {@link Material#depthWrite} to be false, otherwise they can fully occlude objects behind them.
  * @property opacityMap - The opacity map of the material (default is null).
  * @property opacityMapUv - Opacity map UV channel.
  * @property opacityMapChannel - Color channel of the opacity map to use. Can be "r", "g", "b" or "a".
@@ -14467,21 +14520,21 @@ Also note that for most semi-transparent objects you want {@link Material#depthW
  * @property opacityFadesSpecular - used to specify whether specular and reflections are faded out using {@link StandardMaterial#opacity}. Default is true. When set to false use {@link Material#alphaFade} to fade out materials.
  * @property alphaFade - used to fade out materials when {@link StandardMaterial#opacityFadesSpecular} is set to false.
  * @property normalMap - The main (primary) normal map of the material (default is null).
-The texture must contains normalized, tangent space normals.
+ * The texture must contains normalized, tangent space normals.
  * @property normalMapUv - Main (primary) normal map UV channel.
  * @property normalMapTiling - Controls the 2D tiling of the main (primary) normal map.
  * @property normalMapOffset - Controls the 2D offset of the main (primary) normal map. Each component is between 0 and 1.
  * @property bumpiness - The bumpiness of the material. This value scales the assigned main (primary) normal map.
-It should be normally between 0 (no bump mapping) and 1 (full bump mapping), but can be set to e.g. 2 to give even more pronounced bump effect.
+ * It should be normally between 0 (no bump mapping) and 1 (full bump mapping), but can be set to e.g. 2 to give even more pronounced bump effect.
  * @property normalDetailMap - The detail (secondary) normal map of the material (default is null). Will only be used if main (primary) normal map is non-null.
  * @property normalDetailMapUv - Detail (secondary) normal map UV channel.
  * @property normalDetailMapTiling - Controls the 2D tiling of the detail (secondary) normal map.
  * @property normalDetailMapOffset - Controls the 2D offset of the detail (secondary) normal map. Each component is between 0 and 1.
  * @property normalDetailMapBumpiness - The bumpiness of the material. This value scales the assigned detail (secondary) normal map.
-It should be normally between 0 (no bump mapping) and 1 (full bump mapping), but can be set to e.g. 2 to give even more pronounced bump effect.
+ * It should be normally between 0 (no bump mapping) and 1 (full bump mapping), but can be set to e.g. 2 to give even more pronounced bump effect.
  * @property heightMap - The height map of the material (default is null). Used for a view-dependent parallax effect.
-The texture must represent the height of the surface where darker pixels are lower and lighter pixels are higher.
-It is recommended to use it together with a normal map.
+ * The texture must represent the height of the surface where darker pixels are lower and lighter pixels are higher.
+ * It is recommended to use it together with a normal map.
  * @property heightMapUv - Height map UV channel.
  * @property heightMapChannel - Color channel of the height map to use. Can be "r", "g", "b" or "a".
  * @property heightMapTiling - Controls the 2D tiling of the height map.
@@ -14490,11 +14543,11 @@ It is recommended to use it together with a normal map.
  * @property sphereMap - The spherical environment map of the material (default is null). Affects reflections.
  * @property cubeMap - The cubic environment map of the material (default is null). Overrides sphereMap. Affects reflections. If cubemap is prefiltered, will also affect ambient color.
  * @property cubeMapProjection - The type of projection applied to the cubeMap property:
-* {@link CUBEPROJ_NONE}: The cube map is treated as if it is infinitely far away.
-* {@link CUBEPROJ_BOX}: Box-projection based on a world space axis-aligned bounding box.
-Defaults to {@link CUBEPROJ_NONE}.
+ * * {@link CUBEPROJ_NONE}: The cube map is treated as if it is infinitely far away.
+ * * {@link CUBEPROJ_BOX}: Box-projection based on a world space axis-aligned bounding box.
+ * Defaults to {@link CUBEPROJ_NONE}.
  * @property cubeMapProjectionBox - The world space axis-aligned bounding box defining the
-box-projection used for the cubeMap property. Only used when cubeMapProjection is set to {@link CUBEPROJ_BOX}.
+ * box-projection used for the cubeMap property. Only used when cubeMapProjection is set to {@link CUBEPROJ_BOX}.
  * @property reflectivity - Environment map intensity.
  * @property lightMap - A custom lightmap of the material (default is null). Lightmaps are textures that contain pre-rendered lighting. Can be HDR.
  * @property lightMapUv - Lightmap UV channel
@@ -14512,22 +14565,22 @@ box-projection used for the cubeMap property. Only used when cubeMapProjection i
  * @property aoVertexColor - Use mesh vertex colors for AO. If aoMap is set, it'll be multiplied by vertex colors.
  * @property aoVertexColorChannel - Vertex color channels to use for AO. Can be "r", "g", "b" or "a".
  * @property occludeSpecular - Uses ambient occlusion to darken specular/reflection. It's a hack, because real specular occlusion is view-dependent. However, it can be better than nothing.
-* {@link SPECOCC_NONE}: No specular occlusion
-* {@link SPECOCC_AO}: Use AO directly to occlude specular.
-* {@link SPECOCC_GLOSSDEPENDENT}: Modify AO based on material glossiness/view angle to occlude specular.
+ * * {@link SPECOCC_NONE}: No specular occlusion
+ * * {@link SPECOCC_AO}: Use AO directly to occlude specular.
+ * * {@link SPECOCC_GLOSSDEPENDENT}: Modify AO based on material glossiness/view angle to occlude specular.
  * @property occludeSpecularIntensity - Controls visibility of specular occlusion.
  * @property occludeDirect - Tells if AO should darken directional lighting.
  * @property specularAntialias - Enables Toksvig AA for mipmapped normal maps with specular.
  * @property conserveEnergy - Defines how diffuse and specular components are combined when Fresnel is on.
-It is recommended that you leave this option enabled, although you may want to disable it in case when all reflection comes only from a few light sources, and you don't use an environment map, therefore having mostly black reflection.
+ * It is recommended that you leave this option enabled, although you may want to disable it in case when all reflection comes only from a few light sources, and you don't use an environment map, therefore having mostly black reflection.
  * @property shadingModel - Defines the shading model.
-* {@link SPECULAR_PHONG}: Phong without energy conservation. You should only use it as a backwards compatibility with older projects.
-* {@link SPECULAR_BLINN}: Energy-conserving Blinn-Phong.
+ * * {@link SPECULAR_PHONG}: Phong without energy conservation. You should only use it as a backwards compatibility with older projects.
+ * * {@link SPECULAR_BLINN}: Energy-conserving Blinn-Phong.
  * @property fresnelModel - Defines the formula used for Fresnel effect.
-As a side-effect, enabling any Fresnel model changes the way diffuse and reflection components are combined.
-When Fresnel is off, legacy non energy-conserving combining is used. When it is on, combining behavior is defined by conserveEnergy parameter.
-* {@link FRESNEL_NONE}: No Fresnel.
-* {@link FRESNEL_SCHLICK}: Schlick's approximation of Fresnel (recommended). Parameterized by specular color.
+ * As a side-effect, enabling any Fresnel model changes the way diffuse and reflection components are combined.
+ * When Fresnel is off, legacy non energy-conserving combining is used. When it is on, combining behavior is defined by conserveEnergy parameter.
+ * * {@link FRESNEL_NONE}: No Fresnel.
+ * * {@link FRESNEL_SCHLICK}: Schlick's approximation of Fresnel (recommended). Parameterized by specular color.
  * @property useFog - Apply fogging (as configured in scene settings)
  * @property useLighting - Apply lighting
  * @property useSkybox - Apply scene skybox as prefiltered environment map
@@ -14536,87 +14589,91 @@ When Fresnel is off, legacy non energy-conserving combining is used. When it is 
  * @property twoSidedLighting - Calculate proper normals (and therefore lighting) on backfaces
  * @property chunks - Object containing custom shader chunks that will replace default ones.
  * @property onUpdateShader - A custom function that will be called after all shader generator properties are collected and before shader code is generated.
-This function will receive an object with shader generator settings (based on current material and scene properties), that you can change and then return.
-Returned value will be used instead. This is mostly useful when rendering the same set of objects, but with different shader variations based on the same material.
-For example, you may wish to render a depth or normal pass using textures assigned to the material, a reflection pass with simpler shaders and so on.
-Properties of the object passed into this function are:
-* pass: value of {@link Layer#shaderPass} of the Layer being rendered.
-* chunks: Object containing custom shader chunks that will replace default ones.
-* customFragmentShader: Completely replace fragment shader with this code.
-* forceUv1: if UV1 (second set of texture coordinates) is required in the shader. Will be declared as "vUv1" and passed to the fragment shader.
-* fog: the type of fog being applied in the shader. See {@link Scene#fog} for the list of possible values.
-* gamma: the type of gamma correction being applied in the shader. See {@link Scene#gammaCorrection} for the list of possible values.
-* toneMap: the type of tone mapping being applied in the shader. See {@link Scene#toneMapping} for the list of possible values.
-* ambientTint: the value of {@link StandardMaterial#ambientTint}.
-* specularAntialias: the value of {@link StandardMaterial#specularAntialias}.
-* conserveEnergy: the value of {@link StandardMaterial#conserveEnergy}.
-* occludeSpecular: the value of {@link StandardMaterial#occludeSpecular}.
-* occludeDirect: the value of {@link StandardMaterial#occludeDirect}.
-* shadingModel: the value of {@link StandardMaterial#shadingModel}.
-* fresnelModel: the value of {@link StandardMaterial#fresnelModel}.
-* cubeMapProjection: the value of {@link StandardMaterial#cubeMapProjection}.
-* useMetalness: the value of {@link StandardMaterial#useMetalness}.
-* blendType: the value of {@link Material#blendType}.
-* twoSidedLighting: the value of {@link Material#twoSidedLighting}.
-* diffuseTint: defines if {@link StandardMaterial#diffuse} constant should affect diffuse color.
-* specularTint: defines if {@link StandardMaterial#specular} constant should affect specular color.
-* metalnessTint: defines if {@link StandardMaterial#metalness} constant should affect metalness value.
-* glossTint: defines if {@link StandardMaterial#shininess} constant should affect glossiness value.
-* emissiveTint: defines if {@link StandardMaterial#emissive} constant should affect emission value.
-* opacityTint: defines if {@link StandardMaterial#opacity} constant should affect opacity value.
-* occludeSpecularFloat: defines if {@link StandardMaterial#occludeSpecularIntensity} constant should affect specular occlusion.
-* alphaTest: enable alpha testing. See {@link Material#alphaTest}.
-* alphaToCoverage: enable alpha to coverage. See {@link Material#alphaToCoverage}.
-* opacityFadesSpecular: enable specular fade. See {@link Material#opacityFadesSpecular}.
-* alphaFade: fade value. See {@link Material#alphaFade}.
-* sphereMap: if {@link StandardMaterial#sphereMap} is used.
-* cubeMap: if {@link StandardMaterial#cubeMap} is used.
-* dpAtlas: if dual-paraboloid reflection is used. Dual paraboloid reflections replace prefiltered cubemaps on certain platform (mostly Android) for performance reasons.
-* ambientSH: if ambient spherical harmonics are used. Ambient SH replace prefiltered cubemap ambient on certain platform (mostly Android) for performance reasons.
-* useSpecular: if any specular or reflections are needed at all.
-* rgbmAmbient: if ambient cubemap or spherical harmonics are RGBM-encoded.
-* hdrAmbient: if ambient cubemap or spherical harmonics are plain float HDR data.
-* rgbmReflection: if reflection cubemap or dual paraboloid are RGBM-encoded.
-* hdrReflection: if reflection cubemap or dual paraboloid are plain float HDR data.
-* fixSeams: if cubemaps require seam fixing (see {@link Texture#options.fixCubemapSeams}).
-* prefilteredCubemap: if prefiltered cubemaps are used.
-* emissiveFormat: how emissiveMap must be sampled. This value is based on {@link Texture#options.rgbm} and {@link Texture#options.format}. Possible values are:
-  * 0: sRGB texture
-  * 1: RGBM-encoded HDR texture
-  * 2: Simple read (no conversion from sRGB)
-* lightMapFormat: how lightMap must be sampled. This value is based on {@link Texture#options.rgbm} and {@link Texture#options.format}. Possible values are:
-  * 0: sRGB texture
-  * 1: RGBM-encoded HDR texture
-  * 2: Simple read (no conversion from sRGB)
-* useRgbm: if decodeRGBM() function is needed in the shader at all.
-* packedNormal: if normal map contains X in RGB, Y in Alpha, and Z must be reconstructed.
-* forceFragmentPrecision: Override fragment shader numeric precision. Can be "lowp", "mediump", "highp" or null to use default.
-* fastTbn: Use slightly cheaper normal mapping code (skip tangent space normalization). Can look buggy sometimes.
-* refraction: if refraction is used.
-* skyboxIntensity: if reflected skybox intensity should be modulated.
-* useCubeMapRotation: if cube map rotation is enabled.
-* useRightHandedCubeMap: if the cube map uses a right-handed coordinate system. The convention for pre-generated cubemaps is left-handed.
-* useTexCubeLod: if textureCubeLodEXT function should be used to read prefiltered cubemaps. Usually true of iOS, false on other devices due to quality/performance balance.
-* useInstancing: if hardware instancing compatible shader should be generated. Transform is read from per-instance {@link VertexBuffer} instead of shader's uniforms.
-* useMorphPosition: if morphing code should be generated to morph positions.
-* useMorphNormal: if morphing code should be generated to morph normals.
+ * This function will receive an object with shader generator settings (based on current material and scene properties), that you can change and then return.
+ * Returned value will be used instead. This is mostly useful when rendering the same set of objects, but with different shader variations based on the same material.
+ * For example, you may wish to render a depth or normal pass using textures assigned to the material, a reflection pass with simpler shaders and so on.
+ * Properties of the object passed into this function are:
+ * * pass: value of {@link Layer#shaderPass} of the Layer being rendered.
+ * * chunks: Object containing custom shader chunks that will replace default ones.
+ * * customFragmentShader: Completely replace fragment shader with this code.
+ * * forceUv1: if UV1 (second set of texture coordinates) is required in the shader. Will be declared as "vUv1" and passed to the fragment shader.
+ * * fog: the type of fog being applied in the shader. See {@link Scene#fog} for the list of possible values.
+ * * gamma: the type of gamma correction being applied in the shader. See {@link Scene#gammaCorrection} for the list of possible values.
+ * * toneMap: the type of tone mapping being applied in the shader. See {@link Scene#toneMapping} for the list of possible values.
+ * * ambientTint: the value of {@link StandardMaterial#ambientTint}.
+ * * specularAntialias: the value of {@link StandardMaterial#specularAntialias}.
+ * * conserveEnergy: the value of {@link StandardMaterial#conserveEnergy}.
+ * * occludeSpecular: the value of {@link StandardMaterial#occludeSpecular}.
+ * * occludeDirect: the value of {@link StandardMaterial#occludeDirect}.
+ * * shadingModel: the value of {@link StandardMaterial#shadingModel}.
+ * * fresnelModel: the value of {@link StandardMaterial#fresnelModel}.
+ * * cubeMapProjection: the value of {@link StandardMaterial#cubeMapProjection}.
+ * * useMetalness: the value of {@link StandardMaterial#useMetalness}.
+ * * blendType: the value of {@link Material#blendType}.
+ * * twoSidedLighting: the value of {@link Material#twoSidedLighting}.
+ * * diffuseTint: defines if {@link StandardMaterial#diffuse} constant should affect diffuse color.
+ * * specularTint: defines if {@link StandardMaterial#specular} constant should affect specular color.
+ * * metalnessTint: defines if {@link StandardMaterial#metalness} constant should affect metalness value.
+ * * glossTint: defines if {@link StandardMaterial#shininess} constant should affect glossiness value.
+ * * emissiveTint: defines if {@link StandardMaterial#emissive} constant should affect emission value.
+ * * opacityTint: defines if {@link StandardMaterial#opacity} constant should affect opacity value.
+ * * occludeSpecularFloat: defines if {@link StandardMaterial#occludeSpecularIntensity} constant should affect specular occlusion.
+ * * alphaTest: enable alpha testing. See {@link Material#alphaTest}.
+ * * alphaToCoverage: enable alpha to coverage. See {@link Material#alphaToCoverage}.
+ * * opacityFadesSpecular: enable specular fade. See {@link Material#opacityFadesSpecular}.
+ * * alphaFade: fade value. See {@link Material#alphaFade}.
+ * * sphereMap: if {@link StandardMaterial#sphereMap} is used.
+ * * cubeMap: if {@link StandardMaterial#cubeMap} is used.
+ * * dpAtlas: if dual-paraboloid reflection is used. Dual paraboloid reflections replace prefiltered cubemaps on certain platform (mostly Android) for performance reasons.
+ * * ambientSH: if ambient spherical harmonics are used. Ambient SH replace prefiltered cubemap ambient on certain platform (mostly Android) for performance reasons.
+ * * useSpecular: if any specular or reflections are needed at all.
+ * * rgbmAmbient: if ambient cubemap or spherical harmonics are RGBM-encoded.
+ * * hdrAmbient: if ambient cubemap or spherical harmonics are plain float HDR data.
+ * * rgbmReflection: if reflection cubemap or dual paraboloid are RGBM-encoded.
+ * * hdrReflection: if reflection cubemap or dual paraboloid are plain float HDR data.
+ * * fixSeams: if cubemaps require seam fixing (see {@link Texture#options.fixCubemapSeams}).
+ * * prefilteredCubemap: if prefiltered cubemaps are used.
+ * * emissiveFormat: how emissiveMap must be sampled. This value is based on {@link Texture#options.rgbm} and {@link Texture#options.format}. Possible values are:
+ *   * 0: sRGB texture
+ *   * 1: RGBM-encoded HDR texture
+ *   * 2: Simple read (no conversion from sRGB)
+ * * lightMapFormat: how lightMap must be sampled. This value is based on {@link Texture#options.rgbm} and {@link Texture#options.format}. Possible values are:
+ *   * 0: sRGB texture
+ *   * 1: RGBM-encoded HDR texture
+ *   * 2: Simple read (no conversion from sRGB)
+ * * useRgbm: if decodeRGBM() function is needed in the shader at all.
+ * * packedNormal: if normal map contains X in RGB, Y in Alpha, and Z must be reconstructed.
+ * * forceFragmentPrecision: Override fragment shader numeric precision. Can be "lowp", "mediump", "highp" or null to use default.
+ * * fastTbn: Use slightly cheaper normal mapping code (skip tangent space normalization). Can look buggy sometimes.
+ * * refraction: if refraction is used.
+ * * skyboxIntensity: if reflected skybox intensity should be modulated.
+ * * useCubeMapRotation: if cube map rotation is enabled.
+ * * useRightHandedCubeMap: if the cube map uses a right-handed coordinate system. The convention for pre-generated cubemaps is left-handed.
+ * * useTexCubeLod: if textureCubeLodEXT function should be used to read prefiltered cubemaps. Usually true of iOS, false on other devices due to quality/performance balance.
+ * * useInstancing: if hardware instancing compatible shader should be generated. Transform is read from per-instance {@link VertexBuffer} instead of shader's uniforms.
+ * * useMorphPosition: if morphing code should be generated to morph positions.
+ * * useMorphNormal: if morphing code should be generated to morph normals.
  */
 export class StandardMaterial extends Material {
     /**
      * Duplicates a Standard material. All properties are duplicated except textures
-    where only the references are copied.
+     * where only the references are copied.
      * @returns A cloned Standard material.
      */
     clone(): StandardMaterial;
     /**
+     * Removes this material from the scene and possibly frees up memory from its shaders (if there are no other materials using it).
+     */
+    destroy(): void;
+    /**
      * The ambient color of the material. This color value is 3-component (RGB),
-     * where each component is between 0 and 1.
+    where each component is between 0 and 1.
     */
     ambient: Color;
     /**
      * The diffuse color of the material. This color value is 3-component (RGB),
-     * where each component is between 0 and 1.
-     * Defines basic surface color (aka albedo).
+    where each component is between 0 and 1.
+    Defines basic surface color (aka albedo).
     */
     diffuse: Color;
     /**
@@ -14673,19 +14730,19 @@ export class StandardMaterial extends Material {
     diffuseDetailMapChannel: string;
     /**
      * Determines how the main (primary) and detail (secondary) diffuse maps are blended together. Can be:
-     * * {@link DETAILMODE_MUL}: Multiply together the primary and secondary colors.
-     * * {@link DETAILMODE_ADD}: Add together the primary and secondary colors.
-     * * {@link DETAILMODE_SCREEN}: Softer version of {@link DETAILMODE_ADD}.
-     * * {@link DETAILMODE_OVERLAY}: Multiplies or screens the colors, depending on the primary color.
-     * * {@link DETAILMODE_MIN}: Select whichever of the primary and secondary colors is darker, component-wise.
-     * * {@link DETAILMODE_MAX}: Select whichever of the primary and secondary colors is lighter, component-wise.
-     * Defaults to {@link DETAILMODE_MUL}.
+    * {@link DETAILMODE_MUL}: Multiply together the primary and secondary colors.
+    * {@link DETAILMODE_ADD}: Add together the primary and secondary colors.
+    * {@link DETAILMODE_SCREEN}: Softer version of {@link DETAILMODE_ADD}.
+    * {@link DETAILMODE_OVERLAY}: Multiplies or screens the colors, depending on the primary color.
+    * {@link DETAILMODE_MIN}: Select whichever of the primary and secondary colors is darker, component-wise.
+    * {@link DETAILMODE_MAX}: Select whichever of the primary and secondary colors is lighter, component-wise.
+    Defaults to {@link DETAILMODE_MUL}.
     */
     diffuseDetailMode: string;
     /**
      * The specular color of the material. This color value is 3-component (RGB),
-     * where each component is between 0 and 1.
-     * Defines surface reflection/specular color. Affects specular intensity and tint.
+    where each component is between 0 and 1.
+    Defines surface reflection/specular color. Affects specular intensity and tint.
     */
     specular: Color;
     /**
@@ -14726,9 +14783,9 @@ export class StandardMaterial extends Material {
     enableGGXSpecular: boolean;
     /**
      * Defines amount of anisotropy. Requires {@link StandardMaterial#enableGGXSpecular} is set to true.
-     * * When anisotropy == 0, specular is isotropic.
-     * * When anisotropy < 0, anistropy direction aligns with the tangent, and specular anisotropy increases as the anisotropy value decreases to minimum of -1.
-     * * When anisotropy > 0, anistropy direction aligns with the bi-normal, and specular anisotropy increases as anisotropy value increases to maximum of 1.
+    * When anisotropy == 0, specular is isotropic.
+    * When anisotropy < 0, anistropy direction aligns with the tangent, and specular anisotropy increases as the anisotropy value decreases to minimum of -1.
+    * When anisotropy > 0, anistropy direction aligns with the bi-normal, and specular anisotropy increases as anisotropy value increases to maximum of 1.
     */
     anisotropy: number;
     /**
@@ -14813,15 +14870,15 @@ export class StandardMaterial extends Material {
     clearCoatNormalMapOffset: Vec2;
     /**
      * The bumpiness of the clear coat layer. This value scales the assigned main clear coat normal map.
-     * It should be normally between 0 (no bump mapping) and 1 (full bump mapping), but can be set to e.g. 2 to give even more pronounced bump effect.
+    It should be normally between 0 (no bump mapping) and 1 (full bump mapping), but can be set to e.g. 2 to give even more pronounced bump effect.
     */
     clearCoatBumpiness: number;
     /**
      * Use metalness properties instead of specular.
-     * When enabled, diffuse colors also affect specular instead of the dedicated specular map.
-     * This can be used as alternative to specular color to save space.
-     * With metaless == 0, the pixel is assumed to be dielectric, and diffuse color is used as normal.
-     * With metaless == 1, the pixel is fully metallic, and diffuse color is used as specular color instead.
+    When enabled, diffuse colors also affect specular instead of the dedicated specular map.
+    This can be used as alternative to specular color to save space.
+    With metaless == 0, the pixel is assumed to be dielectric, and diffuse color is used as normal.
+    With metaless == 1, the pixel is fully metallic, and diffuse color is used as specular color instead.
     */
     useMetalness: boolean;
     /**
@@ -14858,8 +14915,8 @@ export class StandardMaterial extends Material {
     metalnessVertexColorChannel: string;
     /**
      * Defines glossiness of the material from 0 (rough) to 100 (shiny mirror).
-     * A higher shininess value results in a more focused specular highlight.
-     * Glossiness map/vertex colors are always multiplied by this value (normalized to 0 - 1 range), or it is used directly as constant output.
+    A higher shininess value results in a more focused specular highlight.
+    Glossiness map/vertex colors are always multiplied by this value (normalized to 0 - 1 range), or it is used directly as constant output.
     */
     shininess: number;
     /**
@@ -14896,13 +14953,13 @@ export class StandardMaterial extends Material {
     refraction: number;
     /**
      * Defines the index of refraction, i.e. The amount of distortion.
-     * The value is calculated as (outerIor / surfaceIor), where inputs are measured indices of refraction, the one around the object and the one of it's own surface.
-     * In most situations outer medium is air, so outerIor will be approximately 1. Then you only need to do (1.0 / surfaceIor).
+    The value is calculated as (outerIor / surfaceIor), where inputs are measured indices of refraction, the one around the object and the one of it's own surface.
+    In most situations outer medium is air, so outerIor will be approximately 1. Then you only need to do (1.0 / surfaceIor).
     */
     refractionIndex: number;
     /**
      * The emissive color of the material. This color value is 3-component (RGB),
-     * where each component is between 0 and 1.
+    where each component is between 0 and 1.
     */
     emissive: Color;
     /**
@@ -14943,9 +15000,9 @@ export class StandardMaterial extends Material {
     emissiveVertexColorChannel: string;
     /**
      * The opacity of the material. This value can be between 0 and 1, where 0 is fully
-     * transparent and 1 is fully opaque. If you want the material to be semi-transparent you also need to
-     * set the {@link Material#blendType} to {@link BLEND_NORMAL}, {@link BLEND_ADDITIVE} or any other mode.
-     * Also note that for most semi-transparent objects you want {@link Material#depthWrite} to be false, otherwise they can fully occlude objects behind them.
+    transparent and 1 is fully opaque. If you want the material to be semi-transparent you also need to
+    set the {@link Material#blendType} to {@link BLEND_NORMAL}, {@link BLEND_ADDITIVE} or any other mode.
+    Also note that for most semi-transparent objects you want {@link Material#depthWrite} to be false, otherwise they can fully occlude objects behind them.
     */
     opacity: number;
     /**
@@ -14986,7 +15043,7 @@ export class StandardMaterial extends Material {
     alphaFade: number;
     /**
      * The main (primary) normal map of the material (default is null).
-     * The texture must contains normalized, tangent space normals.
+    The texture must contains normalized, tangent space normals.
     */
     normalMap: Texture | null;
     /**
@@ -15003,7 +15060,7 @@ export class StandardMaterial extends Material {
     normalMapOffset: Vec2;
     /**
      * The bumpiness of the material. This value scales the assigned main (primary) normal map.
-     * It should be normally between 0 (no bump mapping) and 1 (full bump mapping), but can be set to e.g. 2 to give even more pronounced bump effect.
+    It should be normally between 0 (no bump mapping) and 1 (full bump mapping), but can be set to e.g. 2 to give even more pronounced bump effect.
     */
     bumpiness: number;
     /**
@@ -15024,13 +15081,13 @@ export class StandardMaterial extends Material {
     normalDetailMapOffset: Vec2;
     /**
      * The bumpiness of the material. This value scales the assigned detail (secondary) normal map.
-     * It should be normally between 0 (no bump mapping) and 1 (full bump mapping), but can be set to e.g. 2 to give even more pronounced bump effect.
+    It should be normally between 0 (no bump mapping) and 1 (full bump mapping), but can be set to e.g. 2 to give even more pronounced bump effect.
     */
     normalDetailMapBumpiness: number;
     /**
      * The height map of the material (default is null). Used for a view-dependent parallax effect.
-     * The texture must represent the height of the surface where darker pixels are lower and lighter pixels are higher.
-     * It is recommended to use it together with a normal map.
+    The texture must represent the height of the surface where darker pixels are lower and lighter pixels are higher.
+    It is recommended to use it together with a normal map.
     */
     heightMap: Texture | null;
     /**
@@ -15063,14 +15120,14 @@ export class StandardMaterial extends Material {
     cubeMap: Texture | null;
     /**
      * The type of projection applied to the cubeMap property:
-     * * {@link CUBEPROJ_NONE}: The cube map is treated as if it is infinitely far away.
-     * * {@link CUBEPROJ_BOX}: Box-projection based on a world space axis-aligned bounding box.
-     * Defaults to {@link CUBEPROJ_NONE}.
+    * {@link CUBEPROJ_NONE}: The cube map is treated as if it is infinitely far away.
+    * {@link CUBEPROJ_BOX}: Box-projection based on a world space axis-aligned bounding box.
+    Defaults to {@link CUBEPROJ_NONE}.
     */
     cubeMapProjection: number;
     /**
      * The world space axis-aligned bounding box defining the
-     * box-projection used for the cubeMap property. Only used when cubeMapProjection is set to {@link CUBEPROJ_BOX}.
+    box-projection used for the cubeMap property. Only used when cubeMapProjection is set to {@link CUBEPROJ_BOX}.
     */
     cubeMapProjectionBox: BoundingBox;
     /**
@@ -15139,9 +15196,9 @@ export class StandardMaterial extends Material {
     aoVertexColorChannel: string;
     /**
      * Uses ambient occlusion to darken specular/reflection. It's a hack, because real specular occlusion is view-dependent. However, it can be better than nothing.
-     * * {@link SPECOCC_NONE}: No specular occlusion
-     * * {@link SPECOCC_AO}: Use AO directly to occlude specular.
-     * * {@link SPECOCC_GLOSSDEPENDENT}: Modify AO based on material glossiness/view angle to occlude specular.
+    * {@link SPECOCC_NONE}: No specular occlusion
+    * {@link SPECOCC_AO}: Use AO directly to occlude specular.
+    * {@link SPECOCC_GLOSSDEPENDENT}: Modify AO based on material glossiness/view angle to occlude specular.
     */
     occludeSpecular: number;
     /**
@@ -15158,21 +15215,21 @@ export class StandardMaterial extends Material {
     specularAntialias: boolean;
     /**
      * Defines how diffuse and specular components are combined when Fresnel is on.
-     * It is recommended that you leave this option enabled, although you may want to disable it in case when all reflection comes only from a few light sources, and you don't use an environment map, therefore having mostly black reflection.
+    It is recommended that you leave this option enabled, although you may want to disable it in case when all reflection comes only from a few light sources, and you don't use an environment map, therefore having mostly black reflection.
     */
     conserveEnergy: boolean;
     /**
      * Defines the shading model.
-     * * {@link SPECULAR_PHONG}: Phong without energy conservation. You should only use it as a backwards compatibility with older projects.
-     * * {@link SPECULAR_BLINN}: Energy-conserving Blinn-Phong.
+    * {@link SPECULAR_PHONG}: Phong without energy conservation. You should only use it as a backwards compatibility with older projects.
+    * {@link SPECULAR_BLINN}: Energy-conserving Blinn-Phong.
     */
     shadingModel: number;
     /**
      * Defines the formula used for Fresnel effect.
-     * As a side-effect, enabling any Fresnel model changes the way diffuse and reflection components are combined.
-     * When Fresnel is off, legacy non energy-conserving combining is used. When it is on, combining behavior is defined by conserveEnergy parameter.
-     * * {@link FRESNEL_NONE}: No Fresnel.
-     * * {@link FRESNEL_SCHLICK}: Schlick's approximation of Fresnel (recommended). Parameterized by specular color.
+    As a side-effect, enabling any Fresnel model changes the way diffuse and reflection components are combined.
+    When Fresnel is off, legacy non energy-conserving combining is used. When it is on, combining behavior is defined by conserveEnergy parameter.
+    * {@link FRESNEL_NONE}: No Fresnel.
+    * {@link FRESNEL_SCHLICK}: Schlick's approximation of Fresnel (recommended). Parameterized by specular color.
     */
     fresnelModel: number;
     /**
@@ -15205,70 +15262,70 @@ export class StandardMaterial extends Material {
     chunks: any;
     /**
      * A custom function that will be called after all shader generator properties are collected and before shader code is generated.
-     * This function will receive an object with shader generator settings (based on current material and scene properties), that you can change and then return.
-     * Returned value will be used instead. This is mostly useful when rendering the same set of objects, but with different shader variations based on the same material.
-     * For example, you may wish to render a depth or normal pass using textures assigned to the material, a reflection pass with simpler shaders and so on.
-     * Properties of the object passed into this function are:
-     * * pass: value of {@link Layer#shaderPass} of the Layer being rendered.
-     * * chunks: Object containing custom shader chunks that will replace default ones.
-     * * customFragmentShader: Completely replace fragment shader with this code.
-     * * forceUv1: if UV1 (second set of texture coordinates) is required in the shader. Will be declared as "vUv1" and passed to the fragment shader.
-     * * fog: the type of fog being applied in the shader. See {@link Scene#fog} for the list of possible values.
-     * * gamma: the type of gamma correction being applied in the shader. See {@link Scene#gammaCorrection} for the list of possible values.
-     * * toneMap: the type of tone mapping being applied in the shader. See {@link Scene#toneMapping} for the list of possible values.
-     * * ambientTint: the value of {@link StandardMaterial#ambientTint}.
-     * * specularAntialias: the value of {@link StandardMaterial#specularAntialias}.
-     * * conserveEnergy: the value of {@link StandardMaterial#conserveEnergy}.
-     * * occludeSpecular: the value of {@link StandardMaterial#occludeSpecular}.
-     * * occludeDirect: the value of {@link StandardMaterial#occludeDirect}.
-     * * shadingModel: the value of {@link StandardMaterial#shadingModel}.
-     * * fresnelModel: the value of {@link StandardMaterial#fresnelModel}.
-     * * cubeMapProjection: the value of {@link StandardMaterial#cubeMapProjection}.
-     * * useMetalness: the value of {@link StandardMaterial#useMetalness}.
-     * * blendType: the value of {@link Material#blendType}.
-     * * twoSidedLighting: the value of {@link Material#twoSidedLighting}.
-     * * diffuseTint: defines if {@link StandardMaterial#diffuse} constant should affect diffuse color.
-     * * specularTint: defines if {@link StandardMaterial#specular} constant should affect specular color.
-     * * metalnessTint: defines if {@link StandardMaterial#metalness} constant should affect metalness value.
-     * * glossTint: defines if {@link StandardMaterial#shininess} constant should affect glossiness value.
-     * * emissiveTint: defines if {@link StandardMaterial#emissive} constant should affect emission value.
-     * * opacityTint: defines if {@link StandardMaterial#opacity} constant should affect opacity value.
-     * * occludeSpecularFloat: defines if {@link StandardMaterial#occludeSpecularIntensity} constant should affect specular occlusion.
-     * * alphaTest: enable alpha testing. See {@link Material#alphaTest}.
-     * * alphaToCoverage: enable alpha to coverage. See {@link Material#alphaToCoverage}.
-     * * opacityFadesSpecular: enable specular fade. See {@link Material#opacityFadesSpecular}.
-     * * alphaFade: fade value. See {@link Material#alphaFade}.
-     * * sphereMap: if {@link StandardMaterial#sphereMap} is used.
-     * * cubeMap: if {@link StandardMaterial#cubeMap} is used.
-     * * dpAtlas: if dual-paraboloid reflection is used. Dual paraboloid reflections replace prefiltered cubemaps on certain platform (mostly Android) for performance reasons.
-     * * ambientSH: if ambient spherical harmonics are used. Ambient SH replace prefiltered cubemap ambient on certain platform (mostly Android) for performance reasons.
-     * * useSpecular: if any specular or reflections are needed at all.
-     * * rgbmAmbient: if ambient cubemap or spherical harmonics are RGBM-encoded.
-     * * hdrAmbient: if ambient cubemap or spherical harmonics are plain float HDR data.
-     * * rgbmReflection: if reflection cubemap or dual paraboloid are RGBM-encoded.
-     * * hdrReflection: if reflection cubemap or dual paraboloid are plain float HDR data.
-     * * fixSeams: if cubemaps require seam fixing (see {@link Texture#options.fixCubemapSeams}).
-     * * prefilteredCubemap: if prefiltered cubemaps are used.
-     * * emissiveFormat: how emissiveMap must be sampled. This value is based on {@link Texture#options.rgbm} and {@link Texture#options.format}. Possible values are:
-     * * 0: sRGB texture
-     * * 1: RGBM-encoded HDR texture
-     * * 2: Simple read (no conversion from sRGB)
-     * * lightMapFormat: how lightMap must be sampled. This value is based on {@link Texture#options.rgbm} and {@link Texture#options.format}. Possible values are:
-     * * 0: sRGB texture
-     * * 1: RGBM-encoded HDR texture
-     * * 2: Simple read (no conversion from sRGB)
-     * * useRgbm: if decodeRGBM() function is needed in the shader at all.
-     * * packedNormal: if normal map contains X in RGB, Y in Alpha, and Z must be reconstructed.
-     * * forceFragmentPrecision: Override fragment shader numeric precision. Can be "lowp", "mediump", "highp" or null to use default.
-     * * fastTbn: Use slightly cheaper normal mapping code (skip tangent space normalization). Can look buggy sometimes.
-     * * refraction: if refraction is used.
-     * * skyboxIntensity: if reflected skybox intensity should be modulated.
-     * * useCubeMapRotation: if cube map rotation is enabled.
-     * * useRightHandedCubeMap: if the cube map uses a right-handed coordinate system. The convention for pre-generated cubemaps is left-handed.
-     * * useTexCubeLod: if textureCubeLodEXT function should be used to read prefiltered cubemaps. Usually true of iOS, false on other devices due to quality/performance balance.
-     * * useInstancing: if hardware instancing compatible shader should be generated. Transform is read from per-instance {@link VertexBuffer} instead of shader's uniforms.
-     * * useMorphPosition: if morphing code should be generated to morph positions.
-     * * useMorphNormal: if morphing code should be generated to morph normals.
+    This function will receive an object with shader generator settings (based on current material and scene properties), that you can change and then return.
+    Returned value will be used instead. This is mostly useful when rendering the same set of objects, but with different shader variations based on the same material.
+    For example, you may wish to render a depth or normal pass using textures assigned to the material, a reflection pass with simpler shaders and so on.
+    Properties of the object passed into this function are:
+    * pass: value of {@link Layer#shaderPass} of the Layer being rendered.
+    * chunks: Object containing custom shader chunks that will replace default ones.
+    * customFragmentShader: Completely replace fragment shader with this code.
+    * forceUv1: if UV1 (second set of texture coordinates) is required in the shader. Will be declared as "vUv1" and passed to the fragment shader.
+    * fog: the type of fog being applied in the shader. See {@link Scene#fog} for the list of possible values.
+    * gamma: the type of gamma correction being applied in the shader. See {@link Scene#gammaCorrection} for the list of possible values.
+    * toneMap: the type of tone mapping being applied in the shader. See {@link Scene#toneMapping} for the list of possible values.
+    * ambientTint: the value of {@link StandardMaterial#ambientTint}.
+    * specularAntialias: the value of {@link StandardMaterial#specularAntialias}.
+    * conserveEnergy: the value of {@link StandardMaterial#conserveEnergy}.
+    * occludeSpecular: the value of {@link StandardMaterial#occludeSpecular}.
+    * occludeDirect: the value of {@link StandardMaterial#occludeDirect}.
+    * shadingModel: the value of {@link StandardMaterial#shadingModel}.
+    * fresnelModel: the value of {@link StandardMaterial#fresnelModel}.
+    * cubeMapProjection: the value of {@link StandardMaterial#cubeMapProjection}.
+    * useMetalness: the value of {@link StandardMaterial#useMetalness}.
+    * blendType: the value of {@link Material#blendType}.
+    * twoSidedLighting: the value of {@link Material#twoSidedLighting}.
+    * diffuseTint: defines if {@link StandardMaterial#diffuse} constant should affect diffuse color.
+    * specularTint: defines if {@link StandardMaterial#specular} constant should affect specular color.
+    * metalnessTint: defines if {@link StandardMaterial#metalness} constant should affect metalness value.
+    * glossTint: defines if {@link StandardMaterial#shininess} constant should affect glossiness value.
+    * emissiveTint: defines if {@link StandardMaterial#emissive} constant should affect emission value.
+    * opacityTint: defines if {@link StandardMaterial#opacity} constant should affect opacity value.
+    * occludeSpecularFloat: defines if {@link StandardMaterial#occludeSpecularIntensity} constant should affect specular occlusion.
+    * alphaTest: enable alpha testing. See {@link Material#alphaTest}.
+    * alphaToCoverage: enable alpha to coverage. See {@link Material#alphaToCoverage}.
+    * opacityFadesSpecular: enable specular fade. See {@link Material#opacityFadesSpecular}.
+    * alphaFade: fade value. See {@link Material#alphaFade}.
+    * sphereMap: if {@link StandardMaterial#sphereMap} is used.
+    * cubeMap: if {@link StandardMaterial#cubeMap} is used.
+    * dpAtlas: if dual-paraboloid reflection is used. Dual paraboloid reflections replace prefiltered cubemaps on certain platform (mostly Android) for performance reasons.
+    * ambientSH: if ambient spherical harmonics are used. Ambient SH replace prefiltered cubemap ambient on certain platform (mostly Android) for performance reasons.
+    * useSpecular: if any specular or reflections are needed at all.
+    * rgbmAmbient: if ambient cubemap or spherical harmonics are RGBM-encoded.
+    * hdrAmbient: if ambient cubemap or spherical harmonics are plain float HDR data.
+    * rgbmReflection: if reflection cubemap or dual paraboloid are RGBM-encoded.
+    * hdrReflection: if reflection cubemap or dual paraboloid are plain float HDR data.
+    * fixSeams: if cubemaps require seam fixing (see {@link Texture#options.fixCubemapSeams}).
+    * prefilteredCubemap: if prefiltered cubemaps are used.
+    * emissiveFormat: how emissiveMap must be sampled. This value is based on {@link Texture#options.rgbm} and {@link Texture#options.format}. Possible values are:
+      * 0: sRGB texture
+      * 1: RGBM-encoded HDR texture
+      * 2: Simple read (no conversion from sRGB)
+    * lightMapFormat: how lightMap must be sampled. This value is based on {@link Texture#options.rgbm} and {@link Texture#options.format}. Possible values are:
+      * 0: sRGB texture
+      * 1: RGBM-encoded HDR texture
+      * 2: Simple read (no conversion from sRGB)
+    * useRgbm: if decodeRGBM() function is needed in the shader at all.
+    * packedNormal: if normal map contains X in RGB, Y in Alpha, and Z must be reconstructed.
+    * forceFragmentPrecision: Override fragment shader numeric precision. Can be "lowp", "mediump", "highp" or null to use default.
+    * fastTbn: Use slightly cheaper normal mapping code (skip tangent space normalization). Can look buggy sometimes.
+    * refraction: if refraction is used.
+    * skyboxIntensity: if reflected skybox intensity should be modulated.
+    * useCubeMapRotation: if cube map rotation is enabled.
+    * useRightHandedCubeMap: if the cube map uses a right-handed coordinate system. The convention for pre-generated cubemaps is left-handed.
+    * useTexCubeLod: if textureCubeLodEXT function should be used to read prefiltered cubemaps. Usually true of iOS, false on other devices due to quality/performance balance.
+    * useInstancing: if hardware instancing compatible shader should be generated. Transform is read from per-instance {@link VertexBuffer} instead of shader's uniforms.
+    * useMorphPosition: if morphing code should be generated to morph positions.
+    * useMorphNormal: if morphing code should be generated to morph normals.
     */
     onUpdateShader: callbacks.UpdateShader;
 }
@@ -15277,39 +15334,39 @@ export class StandardMaterial extends Material {
  * Create a new mesh instance.
  * @example
  * // Create a mesh instance pointing to a 1x1x1 'cube' mesh
-var mesh = pc.createBox(graphicsDevice);
-var material = new pc.StandardMaterial();
-var node = new pc.GraphNode();
-var meshInstance = new pc.MeshInstance(mesh, material, node);
+ * var mesh = pc.createBox(graphicsDevice);
+ * var material = new pc.StandardMaterial();
+ * var node = new pc.GraphNode();
+ * var meshInstance = new pc.MeshInstance(mesh, material, node);
  * @example
  * // A script you can attach on an entity to test if it is visible on a Layer
-var MeshVisScript = pc.createScript('meshVisScript');
-MeshVisScript.prototype.initialize = function () {
-    var _this = this;
-    this.app.scene.layers.getLayerByName("World").onPostCull = function (cameraIndex) {
-        var meshInstance = _this.entity.model.model.meshInstances[0];
-        console.log("visible: " + meshInstance.visibleThisFrame);
-    };
-};
+ * var MeshVisScript = pc.createScript('meshVisScript');
+ * MeshVisScript.prototype.initialize = function () {
+ *     var _this = this;
+ *     this.app.scene.layers.getLayerByName("World").onPostCull = function (cameraIndex) {
+ *         var meshInstance = _this.entity.model.model.meshInstances[0];
+ *         console.log("visible: " + meshInstance.visibleThisFrame);
+ *     };
+ * };
  * @property aabb - The world space axis-aligned bounding box for this mesh instance.
  * @property visible - Enable rendering for this mesh instance. Use visible property to enable/disable rendering without overhead of removing from scene.
-But note that the mesh instance is still in the hierarchy and still in the draw call list.
+ * But note that the mesh instance is still in the hierarchy and still in the draw call list.
  * @property node - The graph node defining the transform for this instance.
  * @property mesh - The graphics mesh being instanced.
  * @property material - The material used by this mesh instance.
  * @property renderStyle - The render style of the mesh instance. Can be:
-
-* {@link RENDERSTYLE_SOLID}
-* {@link RENDERSTYLE_WIREFRAME}
-* {@link RENDERSTYLE_POINTS}
-
-Defaults to {@link RENDERSTYLE_SOLID}.
+ *
+ * * {@link RENDERSTYLE_SOLID}
+ * * {@link RENDERSTYLE_WIREFRAME}
+ * * {@link RENDERSTYLE_POINTS}
+ *
+ * Defaults to {@link RENDERSTYLE_SOLID}.
  * @property cull - Controls whether the mesh instance can be culled by with frustum culling ({@link CameraComponent#frustumCulling}).
  * @property drawOrder - Use this value to affect rendering order of mesh instances.
-Only used when mesh instances are added to a {@link Layer} with {@link Layer#opaqueSortMode} or {@link Layer#transparentSortMode} (depending on the material) set to {@link SORTMODE_MANUAL}.
+ * Only used when mesh instances are added to a {@link Layer} with {@link Layer#opaqueSortMode} or {@link Layer#transparentSortMode} (depending on the material) set to {@link SORTMODE_MANUAL}.
  * @property calculateSortDistance - In some circumstances mesh instances are sorted by a distance calculation to determine their rendering order.
-Set this callback to override the default distance calculation, which gives the dot product of the camera forward vector and the vector between the camera position and
-the center of the mesh instance's axis-aligned bounding box. This option can be particularly useful for rendering transparent meshes in a better order than default.
+ * Set this callback to override the default distance calculation, which gives the dot product of the camera forward vector and the vector between the camera position and
+ * the center of the mesh instance's axis-aligned bounding box. This option can be particularly useful for rendering transparent meshes in a better order than default.
  * @property visibleThisFrame - Read this value in {@link Layer#onPostCull} to determine if the object is actually going to be rendered.
  * @param mesh - The graphics mesh being instanced.
  * @param material - The material used to render this instance.
@@ -15319,7 +15376,7 @@ export class MeshInstance {
     constructor(mesh: Mesh, material: Material, node?: GraphNode);
     /**
      * Mask controlling which {@link LightComponent}s light this mesh instance, which {@link CameraComponent} sees it and in which {@link Layer} it is rendered.
-    Defaults to 1.
+     * Defaults to 1.
      */
     mask: number;
     /**
@@ -15329,7 +15386,7 @@ export class MeshInstance {
     /**
      * Sets up {@link MeshInstance} to be rendered using Hardware Instancing.
      * @param vertexBuffer - Vertex buffer to hold per-instance vertex data (usually world matrices).
-    Pass null to turn off hardware instancing.
+     * Pass null to turn off hardware instancing.
      */
     setInstancing(vertexBuffer: VertexBuffer | null): void;
     /**
@@ -15340,7 +15397,7 @@ export class MeshInstance {
     getParameter(name: string): any;
     /**
      * Sets a shader parameter on a mesh instance. Note that this parameter will take precedence over parameter of the same name
-    if set on Material this mesh instance uses for rendering.
+     * if set on Material this mesh instance uses for rendering.
      * @param name - The name of the parameter to set.
      * @param data - The value for the specified parameter.
      * @param [passFlags] - Mask describing which passes the material should be included in.
@@ -15357,7 +15414,7 @@ export class MeshInstance {
     aabb: BoundingBox;
     /**
      * Enable rendering for this mesh instance. Use visible property to enable/disable rendering without overhead of removing from scene.
-     * But note that the mesh instance is still in the hierarchy and still in the draw call list.
+    But note that the mesh instance is still in the hierarchy and still in the draw call list.
     */
     visible: boolean;
     /**
@@ -15374,10 +15431,12 @@ export class MeshInstance {
     material: Material;
     /**
      * The render style of the mesh instance. Can be:
-     * * {@link RENDERSTYLE_SOLID}
-     * * {@link RENDERSTYLE_WIREFRAME}
-     * * {@link RENDERSTYLE_POINTS}
-     * Defaults to {@link RENDERSTYLE_SOLID}.
+    
+    * {@link RENDERSTYLE_SOLID}
+    * {@link RENDERSTYLE_WIREFRAME}
+    * {@link RENDERSTYLE_POINTS}
+    
+    Defaults to {@link RENDERSTYLE_SOLID}.
     */
     renderStyle: number;
     /**
@@ -15386,13 +15445,13 @@ export class MeshInstance {
     cull: boolean;
     /**
      * Use this value to affect rendering order of mesh instances.
-     * Only used when mesh instances are added to a {@link Layer} with {@link Layer#opaqueSortMode} or {@link Layer#transparentSortMode} (depending on the material) set to {@link SORTMODE_MANUAL}.
+    Only used when mesh instances are added to a {@link Layer} with {@link Layer#opaqueSortMode} or {@link Layer#transparentSortMode} (depending on the material) set to {@link SORTMODE_MANUAL}.
     */
     drawOrder: number;
     /**
      * In some circumstances mesh instances are sorted by a distance calculation to determine their rendering order.
-     * Set this callback to override the default distance calculation, which gives the dot product of the camera forward vector and the vector between the camera position and
-     * the center of the mesh instance's axis-aligned bounding box. This option can be particularly useful for rendering transparent meshes in a better order than default.
+    Set this callback to override the default distance calculation, which gives the dot product of the camera forward vector and the vector between the camera position and
+    the center of the mesh instance's axis-aligned bounding box. This option can be particularly useful for rendering transparent meshes in a better order than default.
     */
     calculateSortDistance: callbacks.CalculateSortDistance;
     /**
@@ -15443,9 +15502,9 @@ export class Mesh {
     finally {@link Mesh#update} to rebuild the mesh, allowing different {@link VertexFormat}.
      * @param [verticesDynamic] - Indicates the {@link VertexBuffer} should be created with {@link BUFFER_DYNAMIC} usage. If not specified, {@link BUFFER_STATIC} is used.
      * @param [indicesDynamic] - Indicates the {@link IndexBuffer} should be created with {@link BUFFER_DYNAMIC} usage. If not specified, {@link BUFFER_STATIC} is used.
-     * @param [maxVertices] - {@link VertexBuffer} will be allocated with at least maxVertices, allowing additional vertices to be added to it without the allocation. If
+     * @param [maxVertices] - A {@link VertexBuffer} will be allocated with at least maxVertices, allowing additional vertices to be added to it without the allocation. If
     no value is provided, a size to fit the provided vertices will be allocated.
-     * @param [maxIndices] - {@link IndexBuffer} will be allocated with at least maxIndices, allowing additional indices to be added to it without the allocation. If
+     * @param [maxIndices] - An {@link IndexBuffer} will be allocated with at least maxIndices, allowing additional indices to be added to it without the allocation. If
     no value is provided, a size to fit the provided indices will be allocated.
      */
     clear(verticesDynamic?: boolean, indicesDynamic?: boolean, maxVertices?: number, maxIndices?: number): void;
@@ -15597,7 +15656,7 @@ export class Mesh {
  * Creates a new model.
  * @example
  * // Create a new model
-var model = new pc.Model();
+ * var model = new pc.Model();
  * @property graph - The root node of the model's graph node hierarchy.
  * @property meshInstances - An array of MeshInstances contained in this model.
  * @property skinInstances - An array of SkinInstances contained in this model.
@@ -15606,8 +15665,8 @@ var model = new pc.Model();
 export class Model {
     /**
      * Clones a model. The returned model has a newly created hierarchy
-    and mesh instances, but meshes are shared between the clone and the specified
-    model.
+     * and mesh instances, but meshes are shared between the clone and the specified
+     * model.
      * @example
      * var clonedModel = model.clone();
      * @returns A clone of the specified model.
@@ -15615,21 +15674,21 @@ export class Model {
     clone(): Model;
     /**
      * Destroys skinning texture and possibly deletes vertex/index buffers of a model.
-    Mesh is reference-counted, so buffers are only deleted if all models with referencing mesh instances were deleted.
-    That means all in-scene models + the "base" one (asset.resource) which is created when the model is parsed.
-    It is recommended to use asset.unload() instead, which will also remove the model from the scene.
+     * Mesh is reference-counted, so buffers are only deleted if all models with referencing mesh instances were deleted.
+     * That means all in-scene models + the "base" one (asset.resource) which is created when the model is parsed.
+     * It is recommended to use asset.unload() instead, which will also remove the model from the scene.
      */
     destroy(): void;
     /**
      * Generates the necessary internal data for a model to be
-    renderable as wireframe. Once this function has been called, any mesh
-    instance in the model can have its renderStyle property set to
-    {@link RENDERSTYLE_WIREFRAME}.
+     * renderable as wireframe. Once this function has been called, any mesh
+     * instance in the model can have its renderStyle property set to
+     * {@link RENDERSTYLE_WIREFRAME}.
      * @example
      * model.generateWireframe();
-    for (var i = 0; i < model.meshInstances.length; i++) {
-        model.meshInstances[i].renderStyle = pc.RENDERSTYLE_WIREFRAME;
-    }
+     * for (var i = 0; i < model.meshInstances.length; i++) {
+     *     model.meshInstances[i].renderStyle = pc.RENDERSTYLE_WIREFRAME;
+     * }
      */
     generateWireframe(): void;
     /**
@@ -15685,7 +15744,7 @@ export class MorphInstance {
 
 /**
  * A Morph Target (also known as Blend Shape) contains deformation data to apply to existing mesh.
-Multiple morph targets can be blended together on a mesh. This is useful for effects that are hard to achieve with conventional animation and skinning.
+ * Multiple morph targets can be blended together on a mesh. This is useful for effects that are hard to achieve with conventional animation and skinning.
  * @param options - Object for passing optional arguments.
  * @param options.deltaPositions - An array of 3-dimensional vertex position offsets.
  * @param options.deltaPositionsType - A format to store position offsets inside {@link VertexBuffer}. Defaults to {@link TYPE_FLOAT32} if not provided.
@@ -15705,13 +15764,21 @@ export class MorphTarget {
         aabb?: BoundingBox;
         defaultWeight?: number;
     });
+    /**
+     * The name of the morph target.
+     */
+    readonly name: string;
+    /**
+     * The default weight of the morph target.
+     */
+    readonly defaultWeight: number;
 }
 
 /**
  * Contains a list of {@link MorphTarget}, a combined delta AABB and some associated data.
  * @param targets - A list of morph targets.
  * @param graphicsDevice - The graphics device used to manage this morph target. If it is not provided, a device is obtained
-from the {@link Application}.
+ * from the {@link Application}.
  */
 export class Morph {
     constructor(targets: MorphTarget[], graphicsDevice: GraphicsDevice);
@@ -15791,11 +15858,11 @@ export class Picker {
 
 /**
  * Generates normal information from the specified positions and
-triangle indices. See {@link createMesh}.
+ * triangle indices. See {@link createMesh}.
  * @example
  * var normals = pc.calculateNormals(positions, indices);
-var tangents = pc.calculateTangents(positions, normals, uvs, indices);
-var mesh = pc.createMesh(positions, normals, tangents, uvs, indices);
+ * var tangents = pc.calculateTangents(positions, normals, uvs, indices);
+ * var mesh = pc.createMesh(positions, normals, tangents, uvs, indices);
  * @param positions - An array of 3-dimensional vertex positions.
  * @param indices - An array of triangle indices.
  * @returns An array of 3-dimensional vertex normals.
@@ -15804,10 +15871,10 @@ export function calculateNormals(positions: number[], indices: number[]): number
 
 /**
  * Generates tangent information from the specified positions,
-normals, texture coordinates and triangle indices. See {@link createMesh}.
+ * normals, texture coordinates and triangle indices. See {@link createMesh}.
  * @example
  * var tangents = pc.calculateTangents(positions, normals, uvs, indices);
-var mesh = pc.createMesh(positions, normals, tangents, uvs, indices);
+ * var mesh = pc.createMesh(positions, normals, tangents, uvs, indices);
  * @param positions - An array of 3-dimensional vertex positions.
  * @param normals - An array of 3-dimensional vertex normals.
  * @param uvs - An array of 2-dimensional vertex texture coordinates.
@@ -15820,24 +15887,24 @@ export function calculateTangents(positions: number[], normals: number[], uvs: n
  * Creates a new mesh object from the supplied vertex information and topology.
  * @example
  * // Create a simple, indexed triangle (with texture coordinates and vertex normals)
-var mesh = pc.createMesh(graphicsDevice, [0, 0, 0, 1, 0, 0, 0, 1, 0], {
-    normals: [0, 0, 1, 0, 0, 1, 0, 0, 1],
-    uvs: [0, 0, 1, 0, 0, 1],
-    indices: [0, 1, 2]
-});
+ * var mesh = pc.createMesh(graphicsDevice, [0, 0, 0, 1, 0, 0, 0, 1, 0], {
+ *     normals: [0, 0, 1, 0, 0, 1, 0, 0, 1],
+ *     uvs: [0, 0, 1, 0, 0, 1],
+ *     indices: [0, 1, 2]
+ * });
  * @param device - The graphics device used to manage the mesh.
  * @param positions - An array of 3-dimensional vertex positions.
  * @param [opts] - An object that specifies optional inputs for the function as follows:
  * @param [opts.normals] - An array of 3-dimensional vertex normals.
  * @param [opts.tangents] - An array of 3-dimensional vertex tangents.
  * @param [opts.colors] - An array of 4-dimensional vertex colors where each
-component is an integer in the range 0 to 255.
+ * component is an integer in the range 0 to 255.
  * @param [opts.uvs] - An array of 2-dimensional vertex texture coordinates.
  * @param [opts.uvs1] - Same as opts.uvs, but for additional UV set
  * @param [opts.blendIndices] - An array of 4-dimensional bone indices where each
-component is an integer in the range 0 to 255.
+ * component is an integer in the range 0 to 255.
  * @param [opts.blendWeights] - An array of 4-dimensional bone weights where each
-component is in the range 0 to 1 and the sum of the weights should equal 1.
+ * component is in the range 0 to 1 and the sum of the weights should equal 1.
  * @param [opts.indices] - An array of triangle indices.
  * @returns A new Mesh constructed from the supplied vertex and triangle data.
  */
@@ -15854,13 +15921,13 @@ export function createMesh(device: GraphicsDevice, positions: number[], opts?: {
 
 /**
  * Creates a procedural torus-shaped mesh.
-
-The size, shape and tesselation properties of the torus can be controlled via function parameters.
-By default, the function will create a torus in the XZ-plane with a tube radius of 0.2, a ring radius
-of 0.3, 20 segments and 30 sides.
-
-Note that the torus is created with UVs in the range of 0 to 1. Additionally, tangent information
-is generated into the vertex buffer of the torus's mesh.
+ *
+ * The size, shape and tesselation properties of the torus can be controlled via function parameters.
+ * By default, the function will create a torus in the XZ-plane with a tube radius of 0.2, a ring radius
+ * of 0.3, 20 segments and 30 sides.
+ *
+ * Note that the torus is created with UVs in the range of 0 to 1. Additionally, tangent information
+ * is generated into the vertex buffer of the torus's mesh.
  * @param device - The graphics device used to manage the mesh.
  * @param [opts] - An object that specifies optional inputs for the function as follows:
  * @param [opts.tubeRadius] - The radius of the tube forming the body of the torus (defaults to 0.2).
@@ -15878,13 +15945,13 @@ export function createTorus(device: GraphicsDevice, opts?: {
 
 /**
  * Creates a procedural cylinder-shaped mesh.
-
-The size, shape and tesselation properties of the cylinder can be controlled via function parameters.
-By default, the function will create a cylinder standing vertically centered on the XZ-plane with a radius
-of 0.5, a height of 1.0, 1 height segment and 20 cap segments.
-
-Note that the cylinder is created with UVs in the range of 0 to 1. Additionally, tangent information
-is generated into the vertex buffer of the cylinder's mesh.
+ *
+ * The size, shape and tesselation properties of the cylinder can be controlled via function parameters.
+ * By default, the function will create a cylinder standing vertically centered on the XZ-plane with a radius
+ * of 0.5, a height of 1.0, 1 height segment and 20 cap segments.
+ *
+ * Note that the cylinder is created with UVs in the range of 0 to 1. Additionally, tangent information
+ * is generated into the vertex buffer of the cylinder's mesh.
  * @param device - The graphics device used to manage the mesh.
  * @param [opts] - An object that specifies optional inputs for the function as follows:
  * @param [opts.radius] - The radius of the tube forming the body of the cylinder (defaults to 0.5).
@@ -15902,14 +15969,14 @@ export function createCylinder(device: GraphicsDevice, opts?: {
 
 /**
  * Creates a procedural capsule-shaped mesh.
-
-The size, shape and tesselation properties of the capsule can be controlled via function
-parameters. By default, the function will create a capsule standing vertically centered
-on the XZ-plane with a radius of 0.25, a height of 1.0, 1 height segment and 10 cap
-segments.
-
-Note that the capsule is created with UVs in the range of 0 to 1. Additionally, tangent information
-is generated into the vertex buffer of the capsule's mesh.
+ *
+ * The size, shape and tesselation properties of the capsule can be controlled via function
+ * parameters. By default, the function will create a capsule standing vertically centered
+ * on the XZ-plane with a radius of 0.25, a height of 1.0, 1 height segment and 10 cap
+ * segments.
+ *
+ * Note that the capsule is created with UVs in the range of 0 to 1. Additionally, tangent information
+ * is generated into the vertex buffer of the capsule's mesh.
  * @param device - The graphics device used to manage the mesh.
  * @param [opts] - An object that specifies optional inputs for the function as follows:
  * @param [opts.radius] - The radius of the tube forming the body of the capsule (defaults to 0.3).
@@ -15927,14 +15994,14 @@ export function createCapsule(device: GraphicsDevice, opts?: {
 
 /**
  * Creates a procedural cone-shaped mesh.
-
-The size, shape and tesselation properties of the cone can be controlled via function
-parameters. By default, the function will create a cone standing vertically centered
-on the XZ-plane with a base radius of 0.5, a height of 1.0, 5 height segments and 20
-cap segments.
-
-Note that the cone is created with UVs in the range of 0 to 1. Additionally, tangent
-information is generated into the vertex buffer of the cone's mesh.
+ *
+ * The size, shape and tesselation properties of the cone can be controlled via function
+ * parameters. By default, the function will create a cone standing vertically centered
+ * on the XZ-plane with a base radius of 0.5, a height of 1.0, 5 height segments and 20
+ * cap segments.
+ *
+ * Note that the cone is created with UVs in the range of 0 to 1. Additionally, tangent
+ * information is generated into the vertex buffer of the cone's mesh.
  * @param device - The graphics device used to manage the mesh.
  * @param [opts] - An object that specifies optional inputs for the function as follows:
  * @param [opts.baseRadius] - The base radius of the cone (defaults to 0.5).
@@ -15954,18 +16021,18 @@ export function createCone(device: GraphicsDevice, opts?: {
 
 /**
  * Creates a procedural sphere-shaped mesh.
-
-The size and tesselation properties of the sphere can be controlled via function
-parameters. By default, the function will create a sphere centered on the object
-space origin with a radius of 0.5 and 16 segments in both longitude and latitude.
-
-Note that the sphere is created with UVs in the range of 0 to 1. Additionally, tangent
-information is generated into the vertex buffer of the sphere's mesh.
+ *
+ * The size and tesselation properties of the sphere can be controlled via function
+ * parameters. By default, the function will create a sphere centered on the object
+ * space origin with a radius of 0.5 and 16 segments in both longitude and latitude.
+ *
+ * Note that the sphere is created with UVs in the range of 0 to 1. Additionally, tangent
+ * information is generated into the vertex buffer of the sphere's mesh.
  * @param device - The graphics device used to manage the mesh.
  * @param [opts] - An object that specifies optional inputs for the function as follows:
  * @param [opts.radius] - The radius of the sphere (defaults to 0.5).
  * @param [opts.segments] - The number of divisions along the longitudinal
-and latitudinal axes of the sphere (defaults to 16).
+ * and latitudinal axes of the sphere (defaults to 16).
  * @returns A new sphere-shaped mesh.
  */
 export function createSphere(device: GraphicsDevice, opts?: {
@@ -15975,14 +16042,14 @@ export function createSphere(device: GraphicsDevice, opts?: {
 
 /**
  * Creates a procedural plane-shaped mesh.
-
-The size and tesselation properties of the plane can be controlled via function
-parameters. By default, the function will create a plane centered on the object
-space origin with a width and length of 1.0 and 5 segments in either axis (50
-triangles). The normal vector of the plane is aligned along the positive Y axis.
-
-Note that the plane is created with UVs in the range of 0 to 1. Additionally, tangent
-information is generated into the vertex buffer of the plane's mesh.
+ *
+ * The size and tesselation properties of the plane can be controlled via function
+ * parameters. By default, the function will create a plane centered on the object
+ * space origin with a width and length of 1.0 and 5 segments in either axis (50
+ * triangles). The normal vector of the plane is aligned along the positive Y axis.
+ *
+ * Note that the plane is created with UVs in the range of 0 to 1. Additionally, tangent
+ * information is generated into the vertex buffer of the plane's mesh.
  * @param device - The graphics device used to manage the mesh.
  * @param [opts] - An object that specifies optional inputs for the function as follows:
  * @param [opts.halfExtents] - The half dimensions of the plane in the X and Z axes (defaults to [0.5, 0.5]).
@@ -15998,13 +16065,13 @@ export function createPlane(device: GraphicsDevice, opts?: {
 
 /**
  * Creates a procedural box-shaped mesh.
-
-The size, shape and tesselation properties of the box can be controlled via function parameters. By
-default, the function will create a box centered on the object space origin with a width, length and
-height of 1.0 unit and 10 segments in either axis (50 triangles per face).
-
-Note that the box is created with UVs in the range of 0 to 1 on each face. Additionally, tangent
-information is generated into the vertex buffer of the box's mesh.
+ *
+ * The size, shape and tesselation properties of the box can be controlled via function parameters. By
+ * default, the function will create a box centered on the object space origin with a width, length and
+ * height of 1.0 unit and 10 segments in either axis (50 triangles per face).
+ *
+ * Note that the box is created with UVs in the range of 0 to 1 on each face. Additionally, tangent
+ * information is generated into the vertex buffer of the box's mesh.
  * @param device - The graphics device used to manage the mesh.
  * @param [opts] - An object that specifies optional inputs for the function as follows:
  * @param [opts.halfExtents] - The half dimensions of the box in each axis (defaults to [0.5, 0.5, 0.5]).
@@ -16023,42 +16090,42 @@ export function createBox(device: GraphicsDevice, opts?: {
 /**
  * Creates a new Scene.
  * @property ambientLight - The color of the scene's ambient light. Defaults
-to black (0, 0, 0).
+ * to black (0, 0, 0).
  * @property fog - The type of fog used by the scene. Can be:
-
-* {@link FOG_NONE}
-* {@link FOG_LINEAR}
-* {@link FOG_EXP}
-* {@link FOG_EXP2}
-
-Defaults to {@link FOG_NONE}.
+ *
+ * * {@link FOG_NONE}
+ * * {@link FOG_LINEAR}
+ * * {@link FOG_EXP}
+ * * {@link FOG_EXP2}
+ *
+ * Defaults to {@link FOG_NONE}.
  * @property fogColor - The color of the fog (if enabled). Defaults to black
-(0, 0, 0).
+ * (0, 0, 0).
  * @property fogDensity - The density of the fog (if enabled). This property
-is only valid if the fog property is set to {@link FOG_EXP} or {@link FOG_EXP2}. Defaults to 0.
+ * is only valid if the fog property is set to {@link FOG_EXP} or {@link FOG_EXP2}. Defaults to 0.
  * @property fogEnd - The distance from the viewpoint where linear fog reaches
-its maximum. This property is only valid if the fog property is set to {@link FOG_LINEAR}.
-Defaults to 1000.
+ * its maximum. This property is only valid if the fog property is set to {@link FOG_LINEAR}.
+ * Defaults to 1000.
  * @property fogStart - The distance from the viewpoint where linear fog begins.
-This property is only valid if the fog property is set to {@link FOG_LINEAR}. Defaults to 1.
+ * This property is only valid if the fog property is set to {@link FOG_LINEAR}. Defaults to 1.
  * @property gammaCorrection - The gamma correction to apply when rendering the
-scene. Can be:
-
-* {@link GAMMA_NONE}
-* {@link GAMMA_SRGB}
-
-Defaults to {@link GAMMA_NONE}.
+ * scene. Can be:
+ *
+ * * {@link GAMMA_NONE}
+ * * {@link GAMMA_SRGB}
+ *
+ * Defaults to {@link GAMMA_NONE}.
  * @property toneMapping - The tonemapping transform to apply when writing
-fragments to the frame buffer. Can be:
-
-* {@link TONEMAP_LINEAR}
-* {@link TONEMAP_FILMIC}
-* {@link TONEMAP_HEJL}
-* {@link TONEMAP_ACES}
-
-Defaults to {@link TONEMAP_LINEAR}.
+ * fragments to the frame buffer. Can be:
+ *
+ * * {@link TONEMAP_LINEAR}
+ * * {@link TONEMAP_FILMIC}
+ * * {@link TONEMAP_HEJL}
+ * * {@link TONEMAP_ACES}
+ *
+ * Defaults to {@link TONEMAP_LINEAR}.
  * @property exposure - The exposure value tweaks the overall brightness of
-the scene. Defaults to 1.
+ * the scene. Defaults to 1.
  * @property skybox - The base cubemap texture used as the scene's skybox, if mip level is 0. Defaults to null.
  * @property skyboxPrefiltered128 - The prefiltered cubemap texture (size 128x128) used as the scene's skybox, if mip level 1. Defaults to null.
  * @property skyboxPrefiltered64 - The prefiltered cubemap texture (size 64x64) used as the scene's skybox, if mip level 2. Defaults to null.
@@ -16069,90 +16136,96 @@ the scene. Defaults to 1.
  * @property skyboxIntensity - Multiplier for skybox intensity. Defaults to 1.
  * @property skyboxRotation - The rotation of the skybox to be displayed. Defaults to {@link Quat.IDENTITY}.
  * @property skyboxMip - The mip level of the skybox to be displayed. Only valid
-for prefiltered cubemap skyboxes. Defaults to 0 (base level).
+ * for prefiltered cubemap skyboxes. Defaults to 0 (base level).
  * @property lightmapSizeMultiplier - The lightmap resolution multiplier.
-Defaults to 1.
+ * Defaults to 1.
  * @property lightmapMaxResolution - The maximum lightmap resolution. Defaults to
-2048.
+ * 2048.
  * @property lightmapMode - The lightmap baking mode. Can be:
-
-* {@link BAKE_COLOR}: single color lightmap
-* {@link BAKE_COLORDIR}: single color lightmap + dominant light direction (used for
-bump/specular). Only lights with bakeDir=true will be used for generating the dominant
-light direction.
-
-Defaults to {@link BAKE_COLORDIR}.
+ *
+ * * {@link BAKE_COLOR}: single color lightmap
+ * * {@link BAKE_COLORDIR}: single color lightmap + dominant light direction (used for
+ * bump/specular). Only lights with bakeDir=true will be used for generating the dominant
+ * light direction.
+ *
+ * Defaults to {@link BAKE_COLORDIR}.
  * @property layers - A {@link LayerComposition} that defines
-rendering order of this scene.
+ * rendering order of this scene.
  * @property defaultMaterial - The default material used in case no
-other material is available.
+ * other material is available.
  * @property root - The root entity of the scene, which is usually the only
-child to the Application root entity.
+ * child to the Application root entity.
  */
 export class Scene extends EventHandler {
     /**
      * Sets the cubemap for the scene skybox.
      * @param [cubemaps] - An array of cubemaps corresponding to the skybox at different mip levels. If undefined, scene will remove skybox.
-    Cubemap array should be of size 7, with the first element (index 0) corresponding to the base cubemap (mip level 0) with original resolution.
-    Each remaining element (index 1-6) corresponds to a fixed prefiltered resolution (128x128, 64x64, 32x32, 16x16, 8x8, 4x4).
+     * Cubemap array should be of size 7, with the first element (index 0) corresponding to the base cubemap (mip level 0) with original resolution.
+     * Each remaining element (index 1-6) corresponds to a fixed prefiltered resolution (128x128, 64x64, 32x32, 16x16, 8x8, 4x4).
      */
     setSkybox(cubemaps?: Texture[]): void;
     /**
      * The color of the scene's ambient light. Defaults
-     * to black (0, 0, 0).
+    to black (0, 0, 0).
     */
     ambientLight: Color;
     /**
      * The type of fog used by the scene. Can be:
-     * * {@link FOG_NONE}
-     * * {@link FOG_LINEAR}
-     * * {@link FOG_EXP}
-     * * {@link FOG_EXP2}
-     * Defaults to {@link FOG_NONE}.
+    
+    * {@link FOG_NONE}
+    * {@link FOG_LINEAR}
+    * {@link FOG_EXP}
+    * {@link FOG_EXP2}
+    
+    Defaults to {@link FOG_NONE}.
     */
     fog: string;
     /**
      * The color of the fog (if enabled). Defaults to black
-     * (0, 0, 0).
+    (0, 0, 0).
     */
     fogColor: Color;
     /**
      * The density of the fog (if enabled). This property
-     * is only valid if the fog property is set to {@link FOG_EXP} or {@link FOG_EXP2}. Defaults to 0.
+    is only valid if the fog property is set to {@link FOG_EXP} or {@link FOG_EXP2}. Defaults to 0.
     */
     fogDensity: number;
     /**
      * The distance from the viewpoint where linear fog reaches
-     * its maximum. This property is only valid if the fog property is set to {@link FOG_LINEAR}.
-     * Defaults to 1000.
+    its maximum. This property is only valid if the fog property is set to {@link FOG_LINEAR}.
+    Defaults to 1000.
     */
     fogEnd: number;
     /**
      * The distance from the viewpoint where linear fog begins.
-     * This property is only valid if the fog property is set to {@link FOG_LINEAR}. Defaults to 1.
+    This property is only valid if the fog property is set to {@link FOG_LINEAR}. Defaults to 1.
     */
     fogStart: number;
     /**
      * The gamma correction to apply when rendering the
-     * scene. Can be:
-     * * {@link GAMMA_NONE}
-     * * {@link GAMMA_SRGB}
-     * Defaults to {@link GAMMA_NONE}.
+    scene. Can be:
+    
+    * {@link GAMMA_NONE}
+    * {@link GAMMA_SRGB}
+    
+    Defaults to {@link GAMMA_NONE}.
     */
     gammaCorrection: number;
     /**
      * The tonemapping transform to apply when writing
-     * fragments to the frame buffer. Can be:
-     * * {@link TONEMAP_LINEAR}
-     * * {@link TONEMAP_FILMIC}
-     * * {@link TONEMAP_HEJL}
-     * * {@link TONEMAP_ACES}
-     * Defaults to {@link TONEMAP_LINEAR}.
+    fragments to the frame buffer. Can be:
+    
+    * {@link TONEMAP_LINEAR}
+    * {@link TONEMAP_FILMIC}
+    * {@link TONEMAP_HEJL}
+    * {@link TONEMAP_ACES}
+    
+    Defaults to {@link TONEMAP_LINEAR}.
     */
     toneMapping: number;
     /**
      * The exposure value tweaks the overall brightness of
-     * the scene. Defaults to 1.
+    the scene. Defaults to 1.
     */
     exposure: number;
     /**
@@ -16193,51 +16266,53 @@ export class Scene extends EventHandler {
     skyboxRotation: Quat;
     /**
      * The mip level of the skybox to be displayed. Only valid
-     * for prefiltered cubemap skyboxes. Defaults to 0 (base level).
+    for prefiltered cubemap skyboxes. Defaults to 0 (base level).
     */
     skyboxMip: number;
     /**
      * The lightmap resolution multiplier.
-     * Defaults to 1.
+    Defaults to 1.
     */
     lightmapSizeMultiplier: number;
     /**
      * The maximum lightmap resolution. Defaults to
-     * 2048.
+    2048.
     */
     lightmapMaxResolution: number;
     /**
      * The lightmap baking mode. Can be:
-     * * {@link BAKE_COLOR}: single color lightmap
-     * * {@link BAKE_COLORDIR}: single color lightmap + dominant light direction (used for
-     * bump/specular). Only lights with bakeDir=true will be used for generating the dominant
-     * light direction.
-     * Defaults to {@link BAKE_COLORDIR}.
+    
+    * {@link BAKE_COLOR}: single color lightmap
+    * {@link BAKE_COLORDIR}: single color lightmap + dominant light direction (used for
+    bump/specular). Only lights with bakeDir=true will be used for generating the dominant
+    light direction.
+    
+    Defaults to {@link BAKE_COLORDIR}.
     */
     lightmapMode: number;
     /**
      * A {@link LayerComposition} that defines
-     * rendering order of this scene.
+    rendering order of this scene.
     */
     layers: LayerComposition;
     /**
      * The default material used in case no
-     * other material is available.
+    other material is available.
     */
     defaultMaterial: StandardMaterial;
     /**
      * The root entity of the scene, which is usually the only
-     * child to the Application root entity.
+    child to the Application root entity.
     */
     root: Entity;
 }
 
 /**
  * A skin instance is responsible for generating the matrix palette that is used to
-skin vertices from object space to world space.
+ * skin vertices from object space to world space.
  * @property bones - An array of nodes representing each bone in this skin instance.
  * @param skin - The skin that will provide the inverse bind pose matrices to
-generate the final matrix palette.
+ * generate the final matrix palette.
  */
 export class SkinInstance {
     constructor(skin: Skin);
@@ -16261,31 +16336,31 @@ export class Skin {
 
 /**
  * A Sprite is contains references to one or more frames of a {@link TextureAtlas}.
-It can be used by the {@link SpriteComponent} or the {@link ElementComponent} to render a
-single frame or a sprite animation.
+ * It can be used by the {@link SpriteComponent} or the {@link ElementComponent} to render a
+ * single frame or a sprite animation.
  * @property pixelsPerUnit - The number of pixels that map to one PlayCanvas unit.
  * @property atlas - The texture atlas.
  * @property renderMode - The rendering mode of the sprite. Can be:
-
-* {@link SPRITE_RENDERMODE_SIMPLE}
-* {@link SPRITE_RENDERMODE_SLICED}
-* {@link SPRITE_RENDERMODE_TILED}
+ *
+ * * {@link SPRITE_RENDERMODE_SIMPLE}
+ * * {@link SPRITE_RENDERMODE_SLICED}
+ * * {@link SPRITE_RENDERMODE_TILED}
  * @property frameKeys - The keys of the frames in the sprite atlas that this sprite is using.
  * @property meshes - An array that contains a mesh for each frame.
  * @param device - The graphics device of the application.
  * @param [options] - Options for creating the Sprite.
  * @param [options.pixelsPerUnit] - The number of pixels that map to one PlayCanvas unit.
-Defaults to 1.
+ * Defaults to 1.
  * @param [options.renderMode] - The rendering mode of the sprite. Can be:
-
-* {@link SPRITE_RENDERMODE_SIMPLE}
-* {@link SPRITE_RENDERMODE_SLICED}
-* {@link SPRITE_RENDERMODE_TILED}
-
-Defaults to {@link SPRITE_RENDERMODE_SIMPLE}.
+ *
+ * * {@link SPRITE_RENDERMODE_SIMPLE}
+ * * {@link SPRITE_RENDERMODE_SLICED}
+ * * {@link SPRITE_RENDERMODE_TILED}
+ *
+ * Defaults to {@link SPRITE_RENDERMODE_SIMPLE}.
  * @param [options.atlas] - The texture atlas. Defaults to null.
  * @param [options.frameKeys] - The keys of the frames in the sprite atlas that this sprite is
-using. Defaults to null.
+ * using. Defaults to null.
  */
 export class Sprite extends EventHandler {
     constructor(device: GraphicsDevice, options?: {
@@ -16308,9 +16383,10 @@ export class Sprite extends EventHandler {
     atlas: TextureAtlas;
     /**
      * The rendering mode of the sprite. Can be:
-     * * {@link SPRITE_RENDERMODE_SIMPLE}
-     * * {@link SPRITE_RENDERMODE_SLICED}
-     * * {@link SPRITE_RENDERMODE_TILED}
+    
+    * {@link SPRITE_RENDERMODE_SIMPLE}
+    * {@link SPRITE_RENDERMODE_SLICED}
+    * {@link SPRITE_RENDERMODE_TILED}
     */
     renderMode: number;
     /**
@@ -16368,25 +16444,25 @@ export class StencilParameters {
 
 /**
  * A pc.TextureAtlas contains a number of frames from a texture. Each frame
-defines a region in a texture. The TextureAtlas is referenced by {@link Sprite}s.
+ * defines a region in a texture. The TextureAtlas is referenced by {@link Sprite}s.
  * @example
  * var atlas = new pc.TextureAtlas();
-atlas.frames = {
-    '0': {
-        // rect has u, v, width and height in pixels
-        rect: new pc.Vec4(0, 0, 256, 256),
-        // pivot has x, y values between 0-1 which define the point
-        // within the frame around which rotation and scale is calculated
-        pivot: new pc.Vec2(0.5, 0.5),
-        // border has left, bottom, right and top in pixels defining regions for 9-slicing
-        border: new pc.Vec4(5, 5, 5, 5)
-    },
-    '1': {
-        rect: new pc.Vec4(256, 0, 256, 256),
-        pivot: new pc.Vec2(0.5, 0.5),
-        border: new pc.Vec4(5, 5, 5, 5)
-    }
-};
+ * atlas.frames = {
+ *     '0': {
+ *         // rect has u, v, width and height in pixels
+ *         rect: new pc.Vec4(0, 0, 256, 256),
+ *         // pivot has x, y values between 0-1 which define the point
+ *         // within the frame around which rotation and scale is calculated
+ *         pivot: new pc.Vec2(0.5, 0.5),
+ *         // border has left, bottom, right and top in pixels defining regions for 9-slicing
+ *         border: new pc.Vec4(5, 5, 5, 5)
+ *     },
+ *     '1': {
+ *         rect: new pc.Vec4(256, 0, 256, 256),
+ *         pivot: new pc.Vec2(0.5, 0.5),
+ *         border: new pc.Vec4(5, 5, 5, 5)
+ *     }
+ * };
  * @property texture - The texture atlas.
  * @property frames - Contains frames which define portions of the texture atlas.
  */
@@ -16394,16 +16470,16 @@ export class TextureAtlas extends EventHandler {
     /**
      * @example
      * atlas.setFrame('1', {
-        rect: new pc.Vec4(0, 0, 128, 128),
-        pivot: new pc.Vec2(0.5, 0.5),
-        border: new pc.Vec4(5, 5, 5, 5)
-    });
+     *     rect: new pc.Vec4(0, 0, 128, 128),
+     *     pivot: new pc.Vec2(0.5, 0.5),
+     *     border: new pc.Vec4(5, 5, 5, 5)
+     * });
      * @param key - The key of the frame.
      * @param data - The properties of the frame.
      * @param data.rect - The u, v, width, height properties of the frame in pixels.
      * @param data.pivot - The pivot of the frame - values are between 0-1.
      * @param data.border - The border of the frame for 9-slicing. Values are ordered
-    as follows: left, bottom, right, top border in pixels.
+     * as follows: left, bottom, right, top border in pixels.
      */
     setFrame(key: string, data: {
         rect: Vec4;
@@ -16432,7 +16508,7 @@ export class TextureAtlas extends EventHandler {
 
 /**
  * Container of Script Attribute definitions. Implements an interface to add/remove attributes and store their definition for a {@link ScriptType}.
-Note: An instance of ScriptAttributes is created automatically by each {@link ScriptType}.
+ * Note: An instance of ScriptAttributes is created automatically by each {@link ScriptType}.
  * @param scriptType - Script Type that attributes relate to.
  */
 export class ScriptAttributes {
@@ -16441,53 +16517,53 @@ export class ScriptAttributes {
      * Add Attribute.
      * @example
      * PlayerController.attributes.add('fullName', {
-        type: 'string'
-    });
+     *     type: 'string'
+     * });
      * @example
      * PlayerController.attributes.add('speed', {
-        type: 'number',
-        title: 'Speed',
-        placeholder: 'km/h',
-        default: 22.2
-    });
+     *     type: 'number',
+     *     title: 'Speed',
+     *     placeholder: 'km/h',
+     *     default: 22.2
+     * });
      * @example
      * PlayerController.attributes.add('resolution', {
-        type: 'number',
-        default: 32,
-        enum: [
-            { '32x32': 32 },
-            { '64x64': 64 },
-            { '128x128': 128 }
-        ]
-    });
+     *     type: 'number',
+     *     default: 32,
+     *     enum: [
+     *         { '32x32': 32 },
+     *         { '64x64': 64 },
+     *         { '128x128': 128 }
+     *     ]
+     * });
      * @example
      * PlayerController.attributes.add('config', {
-        type: 'json',
-        schema: [{
-            name: 'speed',
-            type: 'number',
-            title: 'Speed',
-            placeholder: 'km/h',
-            default: 22.2
-        }, {
-            name: 'resolution',
-            type: 'number',
-            default: 32,
-            enum: [
-                { '32x32': 32 },
-                { '64x64': 64 },
-                { '128x128': 128 }
-            ]
-        }]
-    });
+     *     type: 'json',
+     *     schema: [{
+     *         name: 'speed',
+     *         type: 'number',
+     *         title: 'Speed',
+     *         placeholder: 'km/h',
+     *         default: 22.2
+     *     }, {
+     *         name: 'resolution',
+     *         type: 'number',
+     *         default: 32,
+     *         enum: [
+     *             { '32x32': 32 },
+     *             { '64x64': 64 },
+     *             { '128x128': 128 }
+     *         ]
+     *     }]
+     * });
      * @param name - Name of an attribute.
      * @param args - Object with Arguments for an attribute.
-     * @param args.type - Type of an attribute value. Can be one of "boolean", "number", "string", "json", "asset", "entity", "rgb", "rgba", "vec2", "vec3", "vec4" or "curve".
+     * @param args.type - Type of an attribute value.  Can be one of "boolean", "number", "string", "json", "asset", "entity", "rgb", "rgba", "vec2", "vec3", "vec4" or "curve".
      * @param [args.default] - Default attribute value.
      * @param [args.title] - Title for Editor's for field UI.
      * @param [args.description] - Description for Editor's for field UI.
      * @param [args.placeholder] - Placeholder for Editor's for field UI.
-    For multi-field types, such as vec2, vec3, and others use array of strings.
+     * For multi-field types, such as vec2, vec3, and others use array of strings.
      * @param [args.array] - If attribute can hold single or multiple values.
      * @param [args.size] - If attribute is array, maximum number of values can be set.
      * @param [args.min] - Minimum value for type 'number', if max and min defined, slider will be rendered in Editor's UI.
@@ -16497,13 +16573,13 @@ export class ScriptAttributes {
      * @param [args.assetType] - Name of asset type to be used in 'asset' type attribute picker in Editor's UI, defaults to '*' (all).
      * @param [args.curves] - List of names for Curves for field type 'curve'.
      * @param [args.color] - String of color channels for Curves for field type 'curve', can be any combination of `rgba` characters.
-    Defining this property will render Gradient in Editor's field UI.
+     * Defining this property will render Gradient in Editor's field UI.
      * @param [args.enum] - List of fixed choices for field, defined as array of objects, where key in object is a title of an option.
      * @param [args.schema] - List of attributes for type 'json'. Each attribute description is an object with the same properties as regular script attributes
-    but with an added 'name' field to specify the name of each attribute in the JSON.
+     * but with an added 'name' field to specify the name of each attribute in the JSON.
      */
     add(name: string, args: {
-        type: string;
+        type: "boolean" | "number" | "string" | "json" | "asset" | "entity" | "rgb" | "rgba" | "vec2" | "vec3" | "vec4" | "curve";
         default?: any;
         title?: string;
         description?: string;
@@ -16532,19 +16608,19 @@ export class ScriptAttributes {
      * Detect if Attribute is added.
      * @example
      * if (PlayerController.attributes.has('fullName')) {
-        // attribute fullName is defined
-    }
+     *     // attribute fullName is defined
+     * }
      * @param name - Name of an attribute.
      * @returns True if Attribute is defined.
      */
     has(name: string): boolean;
     /**
      * Get object with attribute arguments.
-    Note: Changing argument properties will not affect existing Script Instances.
+     * Note: Changing argument properties will not affect existing Script Instances.
      * @example
      * // changing default value for an attribute 'fullName'
-    var attr = PlayerController.attributes.get('fullName');
-    if (attr) attr.default = 'Unknown';
+     * var attr = PlayerController.attributes.get('fullName');
+     * if (attr) attr.default = 'Unknown';
      * @param name - Name of an attribute.
      * @returns Arguments with attribute properties.
      */
@@ -16553,20 +16629,20 @@ export class ScriptAttributes {
 
 /**
  * Create an instance of a ScriptRegistry.
-Note: PlayCanvas scripts can access the Script Registry from inside the application with {@link Application#scripts} {@link ADDRESS_REPEAT}.
+ * Note: PlayCanvas scripts can access the Script Registry from inside the application with {@link Application#scripts} {@link ADDRESS_REPEAT}.
  * @param app - Application to attach registry to.
  */
 export class ScriptRegistry extends EventHandler {
     constructor(app: Application);
     /**
      * Add {@link ScriptType} to registry.
-    Note: when {@link createScript} is called, it will add the {@link ScriptType} to the registry automatically.
-    If a script already exists in registry, and the new script has a `swap` method defined,
-    it will perform code hot swapping automatically in async manner.
+     * Note: when {@link createScript} is called, it will add the {@link ScriptType} to the registry automatically.
+     * If a script already exists in registry, and the new script has a `swap` method defined,
+     * it will perform code hot swapping automatically in async manner.
      * @example
      * var PlayerController = pc.createScript('playerController');
-    // playerController Script Type will be added to pc.ScriptRegistry automatically
-    console.log(app.scripts.has('playerController')); // outputs true
+     * // playerController Script Type will be added to pc.ScriptRegistry automatically
+     * console.log(app.scripts.has('playerController')); // outputs true
      * @param script - Script Type that is created using {@link createScript}.
      * @returns True if added for the first time or false if script already exists.
      */
@@ -16591,8 +16667,8 @@ export class ScriptRegistry extends EventHandler {
      * Check if a {@link ScriptType} with the specified name is in the registry.
      * @example
      * if (app.scripts.has('playerController')) {
-        // playerController is in pc.ScriptRegistry
-    }
+     *     // playerController is in pc.ScriptRegistry
+     * }
      * @param nameOrType - The name or type of {@link ScriptType}.
      * @returns True if {@link ScriptType} is in registry.
      */
@@ -16601,9 +16677,9 @@ export class ScriptRegistry extends EventHandler {
      * Get list of all {@link ScriptType}s from registry.
      * @example
      * // logs array of all Script Type names available in registry
-    console.log(app.scripts.list().map(function (o) {
-        return o.name;
-    }));
+     * console.log(app.scripts.list().map(function (o) {
+     *     return o.name;
+     * }));
      * @returns list of all {@link ScriptType}s in registry.
      */
     list(): (typeof ScriptType)[];
@@ -16611,35 +16687,35 @@ export class ScriptRegistry extends EventHandler {
 
 /**
  * Represents the type of a script. It is returned by {@link createScript}.
-Also referred to as Script Type.
-
-The type is to be extended using its JavaScript prototype. There is a **list of methods**
-that will be executed by the engine on instances of this type, such as:
-
-* initialize
-* postInitialize
-* update
-* postUpdate
-* swap
-
-**initialize** and **postInitialize** - are called if defined when script is about to run
-for the first time - postInitialize will run after all initialize methods are executed in
-the same tick or enabling chain of actions.
-
-**update** and **postUpdate** - methods are called if defined for enabled (running state)
-scripts on each tick.
-
-**swap** - This method will be called when a {@link ScriptType} that already exists in
-the registry gets redefined. If the new {@link ScriptType} has a `swap` method in its
-prototype, then it will be executed to perform hot-reload at runtime.
+ * Also referred to as Script Type.
+ *
+ * The type is to be extended using its JavaScript prototype. There is a **list of methods**
+ * that will be executed by the engine on instances of this type, such as:
+ *
+ * * initialize
+ * * postInitialize
+ * * update
+ * * postUpdate
+ * * swap
+ *
+ * **initialize** and **postInitialize** - are called if defined when script is about to run
+ * for the first time - postInitialize will run after all initialize methods are executed in
+ * the same tick or enabling chain of actions.
+ *
+ * **update** and **postUpdate** - methods are called if defined for enabled (running state)
+ * scripts on each tick.
+ *
+ * **swap** - This method will be called when a {@link ScriptType} that already exists in
+ * the registry gets redefined. If the new {@link ScriptType} has a `swap` method in its
+ * prototype, then it will be executed to perform hot-reload at runtime.
  * @property app - The {@link Application} that the instance of this type
-belongs to.
+ * belongs to.
  * @property entity - The {@link Entity} that the instance of this type belongs to.
  * @property enabled - True if the instance of this type is in running state. False
-when script is not running, because the Entity or any of its parents are disabled or the
-Script Component is disabled or the Script Instance is disabled. When disabled no update
-methods will be called on each tick. initialize and postInitialize methods will run once
-when the script instance is in `enabled` state during app tick.
+ * when script is not running, because the Entity or any of its parents are disabled or the
+ * Script Component is disabled or the Script Instance is disabled. When disabled no update
+ * methods will be called on each tick. initialize and postInitialize methods will run once
+ * when the script instance is in `enabled` state during app tick.
  * @param args - The input arguments object
  * @param args.app - The {@link Application} that is running the script
  * @param args.entity - The {@link Entity} that the script is attached to
@@ -16650,35 +16726,35 @@ export class ScriptType extends EventHandler {
         entity: Entity;
     });
     /**
-     * Name of a Script Type
+     * Name of a Script Type.
      */
     static readonly scriptName: string | null;
     /**
      * The interface to define attributes for Script Types. Refer to {@link ScriptAttributes}.
      * @example
      * var PlayerController = pc.createScript('playerController');
-    
-    PlayerController.attributes.add('speed', {
-        type: 'number',
-        title: 'Speed',
-        placeholder: 'km/h',
-        default: 22.2
-    });
+     *
+     * PlayerController.attributes.add('speed', {
+     *     type: 'number',
+     *     title: 'Speed',
+     *     placeholder: 'km/h',
+     *     default: 22.2
+     * });
      */
     static readonly attributes: ScriptAttributes;
     /**
      * Shorthand function to extend Script Type prototype with list of methods.
      * @example
      * var PlayerController = pc.createScript('playerController');
-    
-    PlayerController.extend({
-        initialize: function () {
-            // called once on initialize
-        },
-        update: function (dt) {
-            // called each tick
-        }
-    });
+     *
+     * PlayerController.extend({
+     *     initialize: function () {
+     *         // called once on initialize
+     *     },
+     *     update: function (dt) {
+     *         // called each tick
+     *     }
+     * });
      * @param methods - Object with methods, where key - is name of method, and value - is function.
      */
     static extend(methods: any): void;
@@ -16702,14 +16778,14 @@ export class ScriptType extends EventHandler {
     postUpdate?(dt: number): void;
     /**
      * Called when a ScriptType that already exists in the registry
-    gets redefined. If the new ScriptType has a `swap` method in its prototype,
-    then it will be executed to perform hot-reload at runtime.
+     * gets redefined. If the new ScriptType has a `swap` method in its prototype,
+     * then it will be executed to perform hot-reload at runtime.
      * @param old - Old instance of the scriptType to copy data to the new instance.
      */
     swap?(old: ScriptType): void;
     /**
      * The {@link Application} that the instance of this type
-     * belongs to.
+    belongs to.
     */
     app: Application;
     /**
@@ -16718,75 +16794,75 @@ export class ScriptType extends EventHandler {
     entity: Entity;
     /**
      * True if the instance of this type is in running state. False
-     * when script is not running, because the Entity or any of its parents are disabled or the
-     * Script Component is disabled or the Script Instance is disabled. When disabled no update
-     * methods will be called on each tick. initialize and postInitialize methods will run once
-     * when the script instance is in `enabled` state during app tick.
+    when script is not running, because the Entity or any of its parents are disabled or the
+    Script Component is disabled or the Script Instance is disabled. When disabled no update
+    methods will be called on each tick. initialize and postInitialize methods will run once
+    when the script instance is in `enabled` state during app tick.
     */
     enabled: boolean;
 }
 
 /**
  * Create and register a new {@link ScriptType}.
-It returns new class type (constructor function), which is auto-registered to {@link ScriptRegistry} using it's name.
-This is the main interface to create Script Types, to define custom logic using JavaScript, that is used to create interaction for entities.
+ * It returns new class type (constructor function), which is auto-registered to {@link ScriptRegistry} using it's name.
+ * This is the main interface to create Script Types, to define custom logic using JavaScript, that is used to create interaction for entities.
  * @example
  * var Turning = pc.createScript('turn');
-
-// define `speed` attribute that is available in Editor UI
-Turning.attributes.add('speed', {
-    type: 'number',
-    default: 180,
-    placeholder: 'deg/s'
-});
-
-// runs every tick
-Turning.prototype.update = function (dt) {
-    this.entity.rotate(0, this.speed * dt, 0);
-};
+ *
+ * // define `speed` attribute that is available in Editor UI
+ * Turning.attributes.add('speed', {
+ *     type: 'number',
+ *     default: 180,
+ *     placeholder: 'deg/s'
+ * });
+ *
+ * // runs every tick
+ * Turning.prototype.update = function (dt) {
+ *     this.entity.rotate(0, this.speed * dt, 0);
+ * };
  * @param name - Unique Name of a Script Type.
-If a Script Type with the same name has already been registered and the new one has a `swap` method defined in its prototype,
-then it will perform hot swapping of existing Script Instances on entities using this new Script Type.
-Note: There is a reserved list of names that cannot be used, such as list below as well as some starting from `_` (underscore):
-system, entity, create, destroy, swap, move, scripts, onEnable, onDisable, onPostStateChange, has, on, off, fire, once, hasEvent.
+ * If a Script Type with the same name has already been registered and the new one has a `swap` method defined in its prototype,
+ * then it will perform hot swapping of existing Script Instances on entities using this new Script Type.
+ * Note: There is a reserved list of names that cannot be used, such as list below as well as some starting from `_` (underscore):
+ * system, entity, create, destroy, swap, move, scripts, onEnable, onDisable, onPostStateChange, has, on, off, fire, once, hasEvent.
  * @param [app] - Optional application handler, to choose which {@link ScriptRegistry} to add a script to.
-By default it will use `Application.getApplication()` to get current {@link Application}.
+ * By default it will use `Application.getApplication()` to get current {@link Application}.
  * @returns A class type (constructor function) that inherits {@link ScriptType},
-which the developer is meant to further extend by adding attributes and prototype methods.
+ * which the developer is meant to further extend by adding attributes and prototype methods.
  */
 export function createScript(name: string, app?: Application): typeof ScriptType;
 
 /**
  * Register a existing class type as a Script Type to {@link ScriptRegistry}.
-Useful when defining a ES6 script class that extends {@link ScriptType} (see example).
+ * Useful when defining a ES6 script class that extends {@link ScriptType} (see example).
  * @example
  * // define a ES6 script class
-class PlayerController extends pc.ScriptType {
-
-    initialize() {
-        // called once on initialize
-    }
-
-    update(dt) {
-        // called each tick
-    }
-}
-
-// register the class as a script
-pc.registerScript(PlayerController);
-
-// declare script attributes (Must be after pc.registerScript())
-PlayerController.attributes.add('attribute1', {type: 'number'});
+ * class PlayerController extends pc.ScriptType {
+ *
+ *     initialize() {
+ *         // called once on initialize
+ *     }
+ *
+ *     update(dt) {
+ *         // called each tick
+ *     }
+ * }
+ *
+ * // register the class as a script
+ * pc.registerScript(PlayerController);
+ *
+ * // declare script attributes (Must be after pc.registerScript())
+ * PlayerController.attributes.add('attribute1', {type: 'number'});
  * @param script - The existing class type (constructor function) to be registered as a Script Type.
-Class must extend {@link ScriptType} (see example). Please note: A class created using {@link createScript} is auto-registered,
-and should therefore not be pass into {@link registerScript} (which would result in swapping out all related script instances).
+ * Class must extend {@link ScriptType} (see example). Please note: A class created using {@link createScript} is auto-registered,
+ * and should therefore not be pass into {@link registerScript} (which would result in swapping out all related script instances).
  * @param [name] - Optional unique name of the Script Type. By default it will use the same name as the existing class.
-If a Script Type with the same name has already been registered and the new one has a `swap` method defined in its prototype,
-then it will perform hot swapping of existing Script Instances on entities using this new Script Type.
-Note: There is a reserved list of names that cannot be used, such as list below as well as some starting from `_` (underscore):
-system, entity, create, destroy, swap, move, scripts, onEnable, onDisable, onPostStateChange, has, on, off, fire, once, hasEvent.
+ * If a Script Type with the same name has already been registered and the new one has a `swap` method defined in its prototype,
+ * then it will perform hot swapping of existing Script Instances on entities using this new Script Type.
+ * Note: There is a reserved list of names that cannot be used, such as list below as well as some starting from `_` (underscore):
+ * system, entity, create, destroy, swap, move, scripts, onEnable, onDisable, onPostStateChange, has, on, off, fire, once, hasEvent.
  * @param [app] - Optional application handler, to choose which {@link ScriptRegistry} to register the script type to.
-By default it will use `Application.getApplication()` to get current {@link Application}.
+ * By default it will use `Application.getApplication()` to get current {@link Application}.
  */
 export function registerScript(script: typeof ScriptType, name?: string, app?: Application): void;
 
@@ -16810,7 +16886,7 @@ export class BoundingBox {
      */
     copy(src: BoundingBox): void;
     /**
-     * Returns a clone of the AABB
+     * Returns a clone of the AABB.
      * @returns A duplicate AABB.
      */
     clone(): BoundingBox;
@@ -16829,7 +16905,7 @@ export class BoundingBox {
     intersectsRay(ray: Ray, point?: Vec3): boolean;
     /**
      * Sets the minimum and maximum corner of the AABB.
-    Using this function is faster than assigning min and max separately.
+     * Using this function is faster than assigning min and max separately.
      * @param min - The minimum corner of the AABB.
      * @param max - The maximum corner of the AABB.
      */
@@ -16852,7 +16928,7 @@ export class BoundingBox {
     containsPoint(point: Vec3): boolean;
     /**
      * Set an AABB to enclose the specified AABB if it were to be
-    transformed by the specified 4x4 matrix.
+     * transformed by the specified 4x4 matrix.
      * @param aabb - Box to transform and enclose.
      * @param m - Transformation matrix to apply to source AABB.
      */
@@ -16883,7 +16959,7 @@ export class BoundingBox {
  * Creates a new bounding sphere.
  * @example
  * // Create a new bounding sphere centered on the origin with a radius of 0.5
-var sphere = new pc.BoundingSphere();
+ * var sphere = new pc.BoundingSphere();
  * @param [center] - The world space coordinate marking the center of the sphere. The constructor takes a reference of this parameter.
  * @param [radius] - The radius of the bounding sphere. Defaults to 0.5.
  */
@@ -16914,30 +16990,30 @@ export class Frustum {
      * Updates the frustum shape based on the supplied 4x4 matrix.
      * @example
      * // Create a perspective projection matrix
-    var projMat = pc.Mat4();
-    projMat.setPerspective(45, 16 / 9, 1, 1000);
-    
-    // Create a frustum shape that is represented by the matrix
-    var frustum = new pc.Frustum();
-    frustum.setFromMat4(projMat);
+     * var projMat = pc.Mat4();
+     * projMat.setPerspective(45, 16 / 9, 1, 1000);
+     *
+     * // Create a frustum shape that is represented by the matrix
+     * var frustum = new pc.Frustum();
+     * frustum.setFromMat4(projMat);
      * @param matrix - The matrix describing the shape of the frustum.
      */
     setFromMat4(matrix: Mat4): void;
     /**
      * Tests whether a point is inside the frustum. Note that points lying in a frustum plane are
-    considered to be outside the frustum.
+     * considered to be outside the frustum.
      * @param point - The point to test.
      * @returns True if the point is inside the frustum, false otherwise.
      */
     containsPoint(point: Vec3): boolean;
     /**
      * Tests whether a bounding sphere intersects the frustum. If the sphere is outside the frustum,
-    zero is returned. If the sphere intersects the frustum, 1 is returned. If the sphere is completely inside
-    the frustum, 2 is returned. Note that a sphere touching a frustum plane from the outside is considered to
-    be outside the frustum.
+     * zero is returned. If the sphere intersects the frustum, 1 is returned. If the sphere is completely inside
+     * the frustum, 2 is returned. Note that a sphere touching a frustum plane from the outside is considered to
+     * be outside the frustum.
      * @param sphere - The sphere to test.
      * @returns 0 if the bounding sphere is outside the frustum, 1 if it intersects the frustum and 2 if
-    it is contained by the frustum.
+     * it is contained by the frustum.
      */
     containsSphere(sphere: BoundingSphere): number;
 }
@@ -16979,14 +17055,14 @@ export class OrientedBox {
  * Creates a new infinite ray starting at a given origin and pointing in a given direction.
  * @example
  * // Create a new ray starting at the position of this entity and pointing down
-// the entity's negative Z axis
-var ray = new pc.Ray(this.entity.getPosition(), this.entity.forward);
+ * // the entity's negative Z axis
+ * var ray = new pc.Ray(this.entity.getPosition(), this.entity.forward);
  * @property origin - The starting point of the ray.
  * @property direction - The direction of the ray.
  * @param [origin] - The starting point of the ray. The constructor takes a reference of this parameter.
-Defaults to the origin (0, 0, 0).
+ * Defaults to the origin (0, 0, 0).
  * @param [direction] - The direction of the ray. The constructor takes a reference of this parameter.
-Defaults to a direction down the world negative Z axis (0, 0, -1).
+ * Defaults to a direction down the world negative Z axis (0, 0, -1).
  */
 export class Ray {
     constructor(origin?: Vec3, direction?: Vec3);
@@ -17050,7 +17126,7 @@ export class SoundInstance extends EventHandler {
     });
     /**
      * Begins playback of sound. If the sound is not loaded this will return false.
-    If the sound is already playing this will restart the sound.
+     * If the sound is already playing this will restart the sound.
      * @returns True if the sound was started.
      */
     play(): boolean;
@@ -17071,20 +17147,20 @@ export class SoundInstance extends EventHandler {
     stop(): boolean;
     /**
      * Connects external Web Audio API nodes. You need to pass
-    the first node of the node graph that you created externally and the last node of that graph. The first
-    node will be connected to the audio source and the last node will be connected to the destination of the
-    AudioContext (e.g. speakers). Requires Web Audio API support.
+     * the first node of the node graph that you created externally and the last node of that graph. The first
+     * node will be connected to the audio source and the last node will be connected to the destination of the
+     * AudioContext (e.g. speakers). Requires Web Audio API support.
      * @example
      * var context = app.systems.sound.context;
-    var analyzer = context.createAnalyzer();
-    var distortion = context.createWaveShaper();
-    var filter = context.createBiquadFilter();
-    analyzer.connect(distortion);
-    distortion.connect(filter);
-    instance.setExternalNodes(analyzer, filter);
+     * var analyzer = context.createAnalyzer();
+     * var distortion = context.createWaveShaper();
+     * var filter = context.createBiquadFilter();
+     * analyzer.connect(distortion);
+     * distortion.connect(filter);
+     * instance.setExternalNodes(analyzer, filter);
      * @param firstNode - The first node that will be connected to the audio source of sound instances.
      * @param [lastNode] - The last node that will be connected to the destination of the AudioContext.
-    If unspecified then the firstNode will be connected to the destination instead.
+     * If unspecified then the firstNode will be connected to the destination instead.
      */
     setExternalNodes(firstNode: AudioNode, lastNode?: AudioNode): void;
     /**
@@ -17151,12 +17227,12 @@ export class SoundInstance extends EventHandler {
  * @property position - The position of the sound in 3D space.
  * @property velocity - The velocity of the sound.
  * @property distanceModel - Determines which algorithm to use to reduce the volume of the audio as it moves away from the listener. Can be:
-
-* {@link DISTANCE_LINEAR}
-* {@link DISTANCE_INVERSE}
-* {@link DISTANCE_EXPONENTIAL}
-
-Default is {@link DISTANCE_LINEAR}.
+ *
+ * * {@link DISTANCE_LINEAR}
+ * * {@link DISTANCE_INVERSE}
+ * * {@link DISTANCE_EXPONENTIAL}
+ *
+ * Default is {@link DISTANCE_LINEAR}.
  * @property refDistance - The reference distance for reducing volume as the sound source moves further from the listener.
  * @property maxDistance - The maximum distance from the listener at which audio falloff stops. Note the volume of the audio is not 0 after this distance, but just doesn't fall off anymore.
  * @property rollOffFactor - The factor used in the falloff equation.
@@ -17171,12 +17247,12 @@ Default is {@link DISTANCE_LINEAR}.
  * @param [options.position = null] - The position of the sound in 3D space.
  * @param [options.velocity = null] - The velocity of the sound.
  * @param [options.distanceModel = DISTANCE_LINEAR] - Determines which algorithm to use to reduce the volume of the audio as it moves away from the listener. Can be:
-
-* {@link DISTANCE_LINEAR}
-* {@link DISTANCE_INVERSE}
-* {@link DISTANCE_EXPONENTIAL}
-
-Default is {@link DISTANCE_LINEAR}.
+ *
+ * * {@link DISTANCE_LINEAR}
+ * * {@link DISTANCE_INVERSE}
+ * * {@link DISTANCE_EXPONENTIAL}
+ *
+ * Default is {@link DISTANCE_LINEAR}.
  * @param [options.refDistance = 1] - The reference distance for reducing volume as the sound source moves further from the listener.
  * @param [options.maxDistance = 10000] - The maximum distance from the listener at which audio falloff stops. Note the volume of the audio is not 0 after this distance, but just doesn't fall off anymore.
  * @param [options.rollOffFactor = 1] - The factor used in the falloff equation.
@@ -17205,10 +17281,12 @@ export class SoundInstance3d extends SoundInstance {
     velocity: Vec3;
     /**
      * Determines which algorithm to use to reduce the volume of the audio as it moves away from the listener. Can be:
-     * * {@link DISTANCE_LINEAR}
-     * * {@link DISTANCE_INVERSE}
-     * * {@link DISTANCE_EXPONENTIAL}
-     * Default is {@link DISTANCE_LINEAR}.
+    
+    * {@link DISTANCE_LINEAR}
+    * {@link DISTANCE_INVERSE}
+    * {@link DISTANCE_EXPONENTIAL}
+    
+    Default is {@link DISTANCE_LINEAR}.
     */
     distanceModel: string;
     /**
@@ -17266,20 +17344,34 @@ export class Sound {
 }
 
 /**
+ * Create a Template resource from raw database data.
+ * @param app - The application.
+ * @param data - Asset data from the database.
+ */
+export class Template {
+    constructor(app: Application, data: any);
+    /**
+     * Create an instance of this template.
+     * @returns The root entity of the created instance.
+     */
+    instantiate(): Entity;
+}
+
+/**
  * Inline - always available type of session. It has limited features availability and is rendered
-into HTML element.
+ * into HTML element.
  */
 export const XRTYPE_INLINE: string;
 
 /**
  * Immersive VR - session that provides exclusive access to VR device with best available tracking
-features.
+ * features.
  */
 export const XRTYPE_VR: string;
 
 /**
  * Immersive AR - session that provides exclusive access to VR/AR device that is intended to be blended
-with real-world environment.
+ * with real-world environment.
  */
 export const XRTYPE_AR: string;
 
@@ -17290,39 +17382,39 @@ export const XRSPACE_VIEWER: string;
 
 /**
  * Local - represents a tracking space with a native origin near the viewer at the time of creation.
-The exact position and orientation will be initialized based on the conventions of the underlying platform.
-When using this reference space the user is not expected to move beyond their initial position much, if at all,
-and tracking is optimized for that purpose. For devices with 6DoF tracking, local reference spaces should
-emphasize keeping the origin stable relative to the user’s environment.
+ * The exact position and orientation will be initialized based on the conventions of the underlying platform.
+ * When using this reference space the user is not expected to move beyond their initial position much, if at all,
+ * and tracking is optimized for that purpose. For devices with 6DoF tracking, local reference spaces should
+ * emphasize keeping the origin stable relative to the user’s environment.
  */
 export const XRSPACE_LOCAL: string;
 
 /**
  * Local Floor - represents a tracking space with a native origin at the floor in a safe position for
-the user to stand. The y axis equals 0 at floor level, with the x and z position and orientation initialized
-based on the conventions of the underlying platform. Floor level value might be estimated by the underlying
-platform. When using this reference space, the user is not expected to move beyond their initial position much,
-if at all, and tracking is optimized for that purpose. For devices with 6DoF tracking, local-floor reference
-spaces should emphasize keeping the origin stable relative to the user’s environment.
+ * the user to stand. The y axis equals 0 at floor level, with the x and z position and orientation initialized
+ * based on the conventions of the underlying platform. Floor level value might be estimated by the underlying
+ * platform. When using this reference space, the user is not expected to move beyond their initial position much,
+ * if at all, and tracking is optimized for that purpose. For devices with 6DoF tracking, local-floor reference
+ * spaces should emphasize keeping the origin stable relative to the user’s environment.
  */
 export const XRSPACE_LOCALFLOOR: string;
 
 /**
  * Bounded Floor - represents a tracking space with its native origin at the floor, where the user
-is expected to move within a pre-established boundary. Tracking in a bounded-floor reference space is optimized
-for keeping the native origin and bounds geometry stable relative to the user’s environment.
+ * is expected to move within a pre-established boundary. Tracking in a bounded-floor reference space is optimized
+ * for keeping the native origin and bounds geometry stable relative to the user’s environment.
  */
 export const XRSPACE_BOUNDEDFLOOR: string;
 
 /**
  * Unbounded - represents a tracking space where the user is expected to move freely around their
-environment, potentially even long distances from their starting point. Tracking in an unbounded reference space
-is optimized for stability around the user’s current position, and as such the native origin may drift over time.
+ * environment, potentially even long distances from their starting point. Tracking in an unbounded reference space
+ * is optimized for stability around the user’s current position, and as such the native origin may drift over time.
  */
 export const XRSPACE_UNBOUNDED: string;
 
 /**
- * Gaze - indicates the target ray will originate at the viewer and follow the direction it is facing. (This is commonly referred to as a "gaze input" device in the context of head-mounted displays.)
+ * Gaze - indicates the target ray will originate at the viewer and follow the direction it is facing. This is commonly referred to as a "gaze input" device in the context of head-mounted displays.
  */
 export const XRTARGETRAY_GAZE: string;
 
@@ -17370,44 +17462,44 @@ export const XRTRACKABLE_MESH: string;
  * Depth Sensing provides depth information which is reconstructed using the underlying AR system. It provides the ability to query depth values (CPU path) or access a depth texture (GPU path). Depth information can be used (not limited to) for reconstructing real world geometry, virtual object placement, occlusion of virtual objects by real world geometry and more.
  * @example
  * // CPU path
-var depthSensing = app.xr.depthSensing;
-if (depthSensing.available) {
-    // get depth in the middle of the screen, value is in meters
-    var depth = depthSensing.getDepth(depthSensing.width / 2, depthSensing.height / 2);
-}
+ * var depthSensing = app.xr.depthSensing;
+ * if (depthSensing.available) {
+ *     // get depth in the middle of the screen, value is in meters
+ *     var depth = depthSensing.getDepth(depthSensing.width / 2, depthSensing.height / 2);
+ * }
  * @example
  * // GPU path, attaching texture to material
-material.diffuseMap = depthSensing.texture;
-material.setParameter('matrix_depth_uv', depthSensing.uvMatrix.data);
-material.update();
-
-// update UV transformation matrix on depth texture resize
-depthSensing.on('resize', function () {
-    material.setParameter('matrix_depth_uv', depthSensing.uvMatrix.data);
-});
+ * material.diffuseMap = depthSensing.texture;
+ * material.setParameter('matrix_depth_uv', depthSensing.uvMatrix.data);
+ * material.update();
+ *
+ * // update UV transformation matrix on depth texture resize
+ * depthSensing.on('resize', function () {
+ *     material.setParameter('matrix_depth_uv', depthSensing.uvMatrix.data);
+ * });
  * @example
  * // GLSL shader to unpack depth texture
-varying vec2 vUv0;
-
-uniform sampler2D texture_depthSensingMap;
-uniform mat4 matrix_depth_uv;
-
-void main(void) {
-    // transform UVs using depth matrix
-    vec2 texCoord = (matrix_depth_uv * vec4(vUv0.xy, 0.0, 1.0)).xy;
-
-    // get luminance alpha components from depth texture
-    vec2 packedDepth = texture2D(texture_depthSensingMap, texCoord).ra;
-
-    // unpack into single value in millimeters
-    float depth = dot(packedDepth, vec2(255.0, 256.0 * 255.0)); // mm
-
-    // normalize: 0m to 8m distance
-    depth = min(depth / 8000.0, 1.0); // 0..1 = 0m..8m
-
-    // paint scene from black to white based on distance
-    gl_FragColor = vec4(depth, depth, depth, 1.0);
-}
+ * varying vec2 vUv0;
+ *
+ * uniform sampler2D texture_depthSensingMap;
+ * uniform mat4 matrix_depth_uv;
+ *
+ * void main(void) {
+ *     // transform UVs using depth matrix
+ *     vec2 texCoord = (matrix_depth_uv * vec4(vUv0.xy, 0.0, 1.0)).xy;
+ *
+ *     // get luminance alpha components from depth texture
+ *     vec2 packedDepth = texture2D(texture_depthSensingMap, texCoord).ra;
+ *
+ *     // unpack into single value in millimeters
+ *     float depth = dot(packedDepth, vec2(255.0, 256.0 * 255.0)); // mm
+ *
+ *     // normalize: 0m to 8m distance
+ *     depth = min(depth / 8000.0, 1.0); // 0..1 = 0m..8m
+ *
+ *     // paint scene from black to white based on distance
+ *     gl_FragColor = vec4(depth, depth, depth, 1.0);
+ * }
  * @property supported - True if Depth Sensing is supported.
  * @property width - Width of depth texture or 0 if not available.
  * @property height - Height of depth texture or 0 if not available.
@@ -17419,11 +17511,11 @@ export class XrDepthSensing extends EventHandler {
      * Get depth value from depth information in meters. X and Y coordinates are in depth texture space, use {@link XrDepthSensing#width} and {@link XrDepthSensing#height}. This is not using a GPU texture and is a CPU path.
      * @example
      * var depth = app.xr.depthSensing.getDepth(x, y);
-    if (depth !== null) {
-        // depth in meters
-    }
-     * @param x - x coordinate of pixel in depth texture.
-     * @param y - y coordinate of pixel in depth texture.
+     * if (depth !== null) {
+     *     // depth in meters
+     * }
+     * @param x - X coordinate of pixel in depth texture.
+     * @param y - Y coordinate of pixel in depth texture.
      * @returns Depth in meters or null if depth information is not available.
      */
     getDepth(x: number, y: number): number | null;
@@ -17431,8 +17523,8 @@ export class XrDepthSensing extends EventHandler {
      * True if depth sensing information is available.
      * @example
      * if (app.xr.depthSensing.available) {
-        var depth = app.xr.depthSensing.getDepth(x, y);
-    }
+     *     var depth = app.xr.depthSensing.getDepth(x, y);
+     * }
      */
     available: boolean;
     /**
@@ -17441,27 +17533,27 @@ export class XrDepthSensing extends EventHandler {
      * material.diffuseMap = depthSensing.texture;
      * @example
      * // GLSL shader to unpack depth texture
-    varying vec2 vUv0;
-    
-    uniform sampler2D texture_depthSensingMap;
-    uniform mat4 matrix_depth_uv;
-    
-    void main(void) {
-        // transform UVs using depth matrix
-        vec2 texCoord = (matrix_depth_uv * vec4(vUv0.xy, 0.0, 1.0)).xy;
-    
-        // get luminance alpha components from depth texture
-        vec2 packedDepth = texture2D(texture_depthSensingMap, texCoord).ra;
-    
-        // unpack into single value in millimeters
-        float depth = dot(packedDepth, vec2(255.0, 256.0 * 255.0)); // mm
-    
-        // normalize: 0m to 8m distance
-        depth = min(depth / 8000.0, 1.0); // 0..1 = 0m..8m
-    
-        // paint scene from black to white based on distance
-        gl_FragColor = vec4(depth, depth, depth, 1.0);
-    }
+     * varying vec2 vUv0;
+     *
+     * uniform sampler2D texture_depthSensingMap;
+     * uniform mat4 matrix_depth_uv;
+     *
+     * void main(void) {
+     *     // transform UVs using depth matrix
+     *     vec2 texCoord = (matrix_depth_uv * vec4(vUv0.xy, 0.0, 1.0)).xy;
+     *
+     *     // get luminance alpha components from depth texture
+     *     vec2 packedDepth = texture2D(texture_depthSensingMap, texCoord).ra;
+     *
+     *     // unpack into single value in millimeters
+     *     float depth = dot(packedDepth, vec2(255.0, 256.0 * 255.0)); // mm
+     *
+     *     // normalize: 0m to 8m distance
+     *     depth = min(depth / 8000.0, 1.0); // 0..1 = 0m..8m
+     *
+     *     // paint scene from black to white based on distance
+     *     gl_FragColor = vec4(depth, depth, depth, 1.0);
+     * }
      */
     texture: Texture;
     /**
@@ -17488,20 +17580,20 @@ export class XrDepthSensing extends EventHandler {
  * DOM Overlay provides the ability to use DOM elements as an overlay in a WebXR AR session. It requires that the root DOM element is provided for session start. That way, input source select events are first tested against DOM Elements and then propagated down to the XR Session. If this propagation is not desirable, use the `beforexrselect` event on a DOM element and the `preventDefault` function to stop propagation.
  * @example
  * app.xr.domOverlay.root = element;
-app.xr.start(camera, pc.XRTYPE_AR, pc.XRSPACE_LOCALFLOOR);
+ * app.xr.start(camera, pc.XRTYPE_AR, pc.XRSPACE_LOCALFLOOR);
  * @example
  * // Disable input source firing `select` event when some descendant element of DOM overlay root is touched/clicked.
-// This is useful when the user interacts with UI elements and there should not be `select` events behind UI.
-someElement.addEventListener('beforexrselect', function (evt) {
-    evt.preventDefault();
-});
+ * // This is useful when the user interacts with UI elements and there should not be `select` events behind UI.
+ * someElement.addEventListener('beforexrselect', function (evt) {
+ *     evt.preventDefault();
+ * });
  * @property supported - True if DOM Overlay is supported.
  * @property available - True if DOM Overlay is available. It can only be available if it is supported, during a valid WebXR session and if a valid root element is provided.
  * @property state - State of the DOM Overlay, which defines how the root DOM element is rendered. Possible options:
-
-* screen: Screen - indicates that the DOM element is covering whole physical screen, matching XR viewports.
-* floating: Floating - indicates that the underlying platform renders the DOM element as floating in space, which can move during the WebXR session or allow the application to move the element.
-* head-locked: Head Locked - indicates that the DOM element follows the user's head movement consistently, appearing similar to a helmet heads-up display.
+ *
+ * * screen: Screen - indicates that the DOM element is covering whole physical screen, matching XR viewports.
+ * * floating: Floating - indicates that the underlying platform renders the DOM element as floating in space, which can move during the WebXR session or allow the application to move the element.
+ * * head-locked: Head Locked - indicates that the DOM element follows the user's head movement consistently, appearing similar to a helmet heads-up display.
  * @param manager - WebXR Manager.
  */
 export class XrDomOverlay {
@@ -17510,7 +17602,7 @@ export class XrDomOverlay {
      * The DOM element to be used as the root for DOM Overlay. Can be changed only outside of an active WebXR session.
      * @example
      * app.xr.domOverlay.root = element;
-    app.xr.start(camera, pc.XRTYPE_AR, pc.XRSPACE_LOCALFLOOR);
+     * app.xr.start(camera, pc.XRTYPE_AR, pc.XRSPACE_LOCALFLOOR);
      */
     root: any | null;
     /**
@@ -17523,77 +17615,78 @@ export class XrDomOverlay {
     available: boolean;
     /**
      * State of the DOM Overlay, which defines how the root DOM element is rendered. Possible options:
-     * * screen: Screen - indicates that the DOM element is covering whole physical screen, matching XR viewports.
-     * * floating: Floating - indicates that the underlying platform renders the DOM element as floating in space, which can move during the WebXR session or allow the application to move the element.
-     * * head-locked: Head Locked - indicates that the DOM element follows the user's head movement consistently, appearing similar to a helmet heads-up display.
+    
+    * screen: Screen - indicates that the DOM element is covering whole physical screen, matching XR viewports.
+    * floating: Floating - indicates that the underlying platform renders the DOM element as floating in space, which can move during the WebXR session or allow the application to move the element.
+    * head-locked: Head Locked - indicates that the DOM element follows the user's head movement consistently, appearing similar to a helmet heads-up display.
     */
     state: string | null;
 }
 
 /**
- * Represents finger with related joints and index
- * @property index - Index of a finger, numeration is: thumb, index, middle, ring, little
- * @property hand - Hand that finger relates to
- * @property joints - List of joints that relates to this finger, starting from joint closest to wrist all the way to the tip of a finger
- * @property tip - Tip of a finger, or null if not available
- * @param index - Index of a finger
- * @param hand - Hand that finger relates to
+ * Represents finger with related joints and index.
+ * @property index - Index of a finger, numeration is: thumb, index, middle, ring, little.
+ * @property hand - Hand that finger relates to.
+ * @property joints - List of joints that relates to this finger, starting from joint closest to wrist all the way to the tip of a finger.
+ * @property tip - Tip of a finger, or null if not available.
+ * @param index - Index of a finger.
+ * @param hand - Hand that finger relates to.
  */
 export class XrFinger {
     constructor(index: number, hand: XrHand);
     /**
-     * Index of a finger, numeration is: thumb, index, middle, ring, little
+     * Index of a finger, numeration is: thumb, index, middle, ring, little.
     */
     index: number;
     /**
-     * Hand that finger relates to
+     * Hand that finger relates to.
     */
     hand: XrHand;
     /**
-     * List of joints that relates to this finger, starting from joint closest to wrist all the way to the tip of a finger
+     * List of joints that relates to this finger, starting from joint closest to wrist all the way to the tip of a finger.
     */
     joints: XrJoint[];
     /**
-     * Tip of a finger, or null if not available
+     * Tip of a finger, or null if not available.
     */
     tip: XrJoint | null;
 }
 
 /**
- * Represents a hand with fingers and joints
- * @property fingers - List of fingers of a hand
- * @property joints - List of joints of hand
- * @property tips - List of joints that are tips of a fingers
- * @property wrist - Wrist of a hand, or null if it is not available by WebXR underlying system
- * @property tracking - True if tracking is available, otherwise tracking might be lost
- * @param inputSource - Input Source that hand is related to
+ * Represents a hand with fingers and joints.
+ * @property fingers - List of fingers of a hand.
+ * @property joints - List of joints of hand.
+ * @property tips - List of joints that are tips of a fingers.
+ * @property wrist - Wrist of a hand, or null if it is not available by WebXR underlying system.
+ * @property tracking - True if tracking is available, otherwise tracking might be lost.
+ * @param inputSource - Input Source that hand is related to.
  */
 export class XrHand {
     constructor(inputSource: XrInputSource);
     /**
-     * Returns joint by XRHand id from list in specs: https://immersive-web.github.io/webxr-hand-input/
-     * @param id - id of a joint based on specs ID's in XRHand: https://immersive-web.github.io/webxr-hand-input/
-     * @returns Joint or null if not available
+     * Returns joint by XRHand id from list in specs: https://immersive-web.github.io/webxr-hand-input/.
+     * @param id - Id of a joint based on specs ID's in XRHand: https://immersive-web.github.io/webxr-hand-input/.
+     * @returns Joint or null if not available.
      */
     getJointById(id: string): XrJoint | null;
     /**
-     * List of fingers of a hand
+     * List of fingers of a hand.
     */
     fingers: XrFinger[];
     /**
-     * List of joints of hand
+     * List of joints of hand.
     */
     joints: XrJoint[];
     /**
-     * List of joints that are tips of a fingers
+     * List of joints that are tips of a fingers.
     */
     tips: XrJoint[];
     /**
-     * Wrist of a hand, or null if it is not available by WebXR underlying system
+     * Wrist of a hand, or null if it is not available by WebXR underlying system.
     */
     wrist: XrJoint | null;
     /**
-     * True if tracking is available, otherwise tracking might be lost
+     * True if tracking is available, otherwise tracking might be lost.
     */
     tracking: boolean;
 }
@@ -17602,8 +17695,8 @@ export class XrHand {
  * Represents XR hit test source, which provides access to hit results of real world geometry from AR session.
  * @example
  * hitTestSource.on('result', function (position, rotation) {
-    target.setPosition(position);
-});
+ *     target.setPosition(position);
+ * });
  * @param manager - WebXR Manager.
  * @param xrHitTestSource - XRHitTestSource object that is created by WebXR API.
  * @param transient - True if XRHitTestSource created for input source profile.
@@ -17628,50 +17721,50 @@ export class XrHitTest extends EventHandler {
      * Attempts to start hit test with provided reference space.
      * @example
      * app.xr.hitTest.start({
-        spaceType: pc.XRSPACE_VIEWER,
-        callback: function (err, hitTestSource) {
-            if (err) return;
-            hitTestSource.on('result', function (position, rotation) {
-                // position and rotation of hit test result
-                // based on Ray facing forward from the Viewer reference space
-            });
-        }
-    });
+     *     spaceType: pc.XRSPACE_VIEWER,
+     *     callback: function (err, hitTestSource) {
+     *         if (err) return;
+     *         hitTestSource.on('result', function (position, rotation) {
+     *             // position and rotation of hit test result
+     *             // based on Ray facing forward from the Viewer reference space
+     *         });
+     *     }
+     * });
      * @example
      * var ray = new pc.Ray(new pc.Vec3(0, 0, 0), new pc.Vec3(0, -1, 0));
-    app.xr.hitTest.start({
-        spaceType: pc.XRSPACE_LOCAL,
-        offsetRay: ray,
-        callback: function (err, hitTestSource) {
-            // hit test source that will sample real world geometry straight down
-            // from the position where AR session started
-        }
-    });
+     * app.xr.hitTest.start({
+     *     spaceType: pc.XRSPACE_LOCAL,
+     *     offsetRay: ray,
+     *     callback: function (err, hitTestSource) {
+     *         // hit test source that will sample real world geometry straight down
+     *         // from the position where AR session started
+     *     }
+     * });
      * @example
      * app.xr.hitTest.start({
-        profile: 'generic-touchscreen',
-        callback: function (err, hitTestSource) {
-            if (err) return;
-            hitTestSource.on('result', function (position, rotation, inputSource) {
-                // position and rotation of hit test result
-                // that will be created from touch on mobile devices
-            });
-        }
-    });
+     *     profile: 'generic-touchscreen',
+     *     callback: function (err, hitTestSource) {
+     *         if (err) return;
+     *         hitTestSource.on('result', function (position, rotation, inputSource) {
+     *             // position and rotation of hit test result
+     *             // that will be created from touch on mobile devices
+     *         });
+     *     }
+     * });
      * @param [options] - Optional object for passing arguments.
      * @param [options.spaceType] - Reference space type. Defaults to {@link XRSPACE_VIEWER}. Can be one of the following:
-    
-    * {@link XRSPACE_VIEWER}: Viewer - hit test will be facing relative to viewers space.
-    * {@link XRSPACE_LOCAL}: Local - represents a tracking space with a native origin near the viewer at the time of creation.
-    * {@link XRSPACE_LOCALFLOOR}: Local Floor - represents a tracking space with a native origin at the floor in a safe position for the user to stand. The y axis equals 0 at floor level. Floor level value might be estimated by the underlying platform.
-    * {@link XRSPACE_BOUNDEDFLOOR}: Bounded Floor - represents a tracking space with its native origin at the floor, where the user is expected to move within a pre-established boundary.
-    * {@link XRSPACE_UNBOUNDED}: Unbounded - represents a tracking space where the user is expected to move freely around their environment, potentially long distances from their starting point.
+     *
+     * * {@link XRSPACE_VIEWER}: Viewer - hit test will be facing relative to viewers space.
+     * * {@link XRSPACE_LOCAL}: Local - represents a tracking space with a native origin near the viewer at the time of creation.
+     * * {@link XRSPACE_LOCALFLOOR}: Local Floor - represents a tracking space with a native origin at the floor in a safe position for the user to stand. The y axis equals 0 at floor level. Floor level value might be estimated by the underlying platform.
+     * * {@link XRSPACE_BOUNDEDFLOOR}: Bounded Floor - represents a tracking space with its native origin at the floor, where the user is expected to move within a pre-established boundary.
+     * * {@link XRSPACE_UNBOUNDED}: Unbounded - represents a tracking space where the user is expected to move freely around their environment, potentially long distances from their starting point.
      * @param [options.profile] - if hit test source meant to match input source instead of reference space, then name of profile of the {@link XrInputSource} should be provided.
      * @param [options.entityTypes] - Optional list of underlying entity types against which hit tests will be performed. Defaults to [ {@link XRTRACKABLE_PLANE} ]. Can be any combination of the following:
-    
-    * {@link XRTRACKABLE_POINT}: Point - indicates that the hit test results will be computed based on the feature points detected by the underlying Augmented Reality system.
-    * {@link XRTRACKABLE_PLANE}: Plane - indicates that the hit test results will be computed based on the planes detected by the underlying Augmented Reality system.
-    * {@link XRTRACKABLE_MESH}: Mesh - indicates that the hit test results will be computed based on the meshes detected by the underlying Augmented Reality system.
+     *
+     * * {@link XRTRACKABLE_POINT}: Point - indicates that the hit test results will be computed based on the feature points detected by the underlying Augmented Reality system.
+     * * {@link XRTRACKABLE_PLANE}: Plane - indicates that the hit test results will be computed based on the planes detected by the underlying Augmented Reality system.
+     * * {@link XRTRACKABLE_MESH}: Mesh - indicates that the hit test results will be computed based on the meshes detected by the underlying Augmented Reality system.
      * @param [options.offsetRay] - Optional ray by which hit test ray can be offset.
      * @param [options.callback] - Optional callback function called once hit test source is created or failed.
      */
@@ -17705,7 +17798,7 @@ export class XrImageTracking {
      * Add an image for image tracking. A width can also be provided to help the underlying system estimate the appropriate transformation. Modifying the tracked images list is only possible before an AR session is started.
      * @example
      * // image with width of 20cm (0.2m)
-    app.xr.imageTracking.add(bookCoverImg, 0.2);
+     * app.xr.imageTracking.add(bookCoverImg, 0.2);
      * @param image - Image that is matching real world image as close as possible. Resolution of images should be at least 300x300. High resolution does NOT improve tracking performance. Color of image is irrelevant, so greyscale images can be used. Images with too many geometric features or repeating patterns will reduce tracking stability.
      * @param width - Width (in meters) of image in the real world. Providing this value as close to the real value will improve tracking quality.
      * @returns Tracked image object that will contain tracking information.
@@ -17735,15 +17828,15 @@ export class XrImageTracking {
  * @property id - Unique number associated with instance of input source. Same physical devices when reconnected will not share this ID.
  * @property inputSource - XRInputSource object that is associated with this input source.
  * @property targetRayMode - Type of ray Input Device is based on. Can be one of the following:
-
-* {@link XRTARGETRAY_GAZE}: Gaze - indicates the target ray will originate at the viewer and follow the direction it is facing. (This is commonly referred to as a "gaze input" device in the context of head-mounted displays.)
-* {@link XRTARGETRAY_SCREEN}: Screen - indicates that the input source was an interaction with the canvas element associated with an inline session’s output context, such as a mouse click or touch event.
-* {@link XRTARGETRAY_POINTER}: Tracked Pointer - indicates that the target ray originates from either a handheld device or other hand-tracking mechanism and represents that the user is using their hands or the held device for pointing.
+ *
+ * * {@link XRTARGETRAY_GAZE}: Gaze - indicates the target ray will originate at the viewer and follow the direction it is facing. (This is commonly referred to as a "gaze input" device in the context of head-mounted displays.)
+ * * {@link XRTARGETRAY_SCREEN}: Screen - indicates that the input source was an interaction with the canvas element associated with an inline session’s output context, such as a mouse click or touch event.
+ * * {@link XRTARGETRAY_POINTER}: Tracked Pointer - indicates that the target ray originates from either a handheld device or other hand-tracking mechanism and represents that the user is using their hands or the held device for pointing.
  * @property handedness - Describes which hand input source is associated with. Can be one of the following:
-
-* {@link XRHAND_NONE}: None - input source is not meant to be held in hands.
-* {@link XRHAND_LEFT}: Left - indicates that input source is meant to be held in left hand.
-* {@link XRHAND_RIGHT}: Right - indicates that input source is meant to be held in right hand.
+ *
+ * * {@link XRHAND_NONE}: None - input source is not meant to be held in hands.
+ * * {@link XRHAND_LEFT}: Left - indicates that input source is meant to be held in left hand.
+ * * {@link XRHAND_RIGHT}: Right - indicates that input source is meant to be held in right hand.
  * @property profiles - List of input profile names indicating both the prefered visual representation and behavior of the input source.
  * @property grip - If input source can be held, then it will have node with its world transformation, that can be used to position and rotate virtual joystics based on it.
  * @property hand - If input source is a tracked hand, then it will point to {@link XrHand} otherwise it is null.
@@ -17792,30 +17885,30 @@ export class XrInputSource extends EventHandler {
      * Attempts to start hit test source based on this input source.
      * @example
      * app.xr.input.on('add', function (inputSource) {
-        inputSource.hitTestStart({
-            callback: function (err, hitTestSource) {
-                if (err) return;
-                hitTestSource.on('result', function (position, rotation) {
-                    // position and rotation of hit test result
-                    // that will be created from touch on mobile devices
-                });
-            }
-        });
-    });
+     *     inputSource.hitTestStart({
+     *         callback: function (err, hitTestSource) {
+     *             if (err) return;
+     *             hitTestSource.on('result', function (position, rotation) {
+     *                 // position and rotation of hit test result
+     *                 // that will be created from touch on mobile devices
+     *             });
+     *         }
+     *     });
+     * });
      * @param [options] - Object for passing optional arguments.
      * @param [options.entityTypes] - Optional list of underlying entity types
-    against which hit tests will be performed. Defaults to [ {@link XRTRACKABLE_PLANE} ].
-    Can be any combination of the following:
-    
-    * {@link XRTRACKABLE_POINT}: Point - indicates that the hit test results will be
-    computed based on the feature points detected by the underlying Augmented Reality system.
-    * {@link XRTRACKABLE_PLANE}: Plane - indicates that the hit test results will be
-    computed based on the planes detected by the underlying Augmented Reality system.
-    * {@link XRTRACKABLE_MESH}: Mesh - indicates that the hit test results will be
-    computed based on the meshes detected by the underlying Augmented Reality system.
+     * against which hit tests will be performed. Defaults to [ {@link XRTRACKABLE_PLANE} ].
+     * Can be any combination of the following:
+     *
+     * * {@link XRTRACKABLE_POINT}: Point - indicates that the hit test results will be
+     * computed based on the feature points detected by the underlying Augmented Reality system.
+     * * {@link XRTRACKABLE_PLANE}: Plane - indicates that the hit test results will be
+     * computed based on the planes detected by the underlying Augmented Reality system.
+     * * {@link XRTRACKABLE_MESH}: Mesh - indicates that the hit test results will be
+     * computed based on the meshes detected by the underlying Augmented Reality system.
      * @param [options.offsetRay] - Optional ray by which hit test ray can be offset.
      * @param [options.callback] - Optional callback function
-    called once hit test source is created or failed.
+     * called once hit test source is created or failed.
      */
     hitTestStart(options?: {
         entityTypes?: string[];
@@ -17832,16 +17925,18 @@ export class XrInputSource extends EventHandler {
     inputSource: any;
     /**
      * Type of ray Input Device is based on. Can be one of the following:
-     * * {@link XRTARGETRAY_GAZE}: Gaze - indicates the target ray will originate at the viewer and follow the direction it is facing. (This is commonly referred to as a "gaze input" device in the context of head-mounted displays.)
-     * * {@link XRTARGETRAY_SCREEN}: Screen - indicates that the input source was an interaction with the canvas element associated with an inline session’s output context, such as a mouse click or touch event.
-     * * {@link XRTARGETRAY_POINTER}: Tracked Pointer - indicates that the target ray originates from either a handheld device or other hand-tracking mechanism and represents that the user is using their hands or the held device for pointing.
+    
+    * {@link XRTARGETRAY_GAZE}: Gaze - indicates the target ray will originate at the viewer and follow the direction it is facing. (This is commonly referred to as a "gaze input" device in the context of head-mounted displays.)
+    * {@link XRTARGETRAY_SCREEN}: Screen - indicates that the input source was an interaction with the canvas element associated with an inline session’s output context, such as a mouse click or touch event.
+    * {@link XRTARGETRAY_POINTER}: Tracked Pointer - indicates that the target ray originates from either a handheld device or other hand-tracking mechanism and represents that the user is using their hands or the held device for pointing.
     */
     targetRayMode: string;
     /**
      * Describes which hand input source is associated with. Can be one of the following:
-     * * {@link XRHAND_NONE}: None - input source is not meant to be held in hands.
-     * * {@link XRHAND_LEFT}: Left - indicates that input source is meant to be held in left hand.
-     * * {@link XRHAND_RIGHT}: Right - indicates that input source is meant to be held in right hand.
+    
+    * {@link XRHAND_NONE}: None - input source is not meant to be held in hands.
+    * {@link XRHAND_LEFT}: Left - indicates that input source is meant to be held in left hand.
+    * {@link XRHAND_RIGHT}: Right - indicates that input source is meant to be held in right hand.
     */
     handedness: string;
     /**
@@ -17896,44 +17991,44 @@ export class XrInput extends EventHandler {
 }
 
 /**
- * Represents joint of a finger
- * @property index - Index of a joint within a finger, starting from 0 (root of a finger) all the way to tip of the finger
- * @property hand - Hand that joint relates to
- * @property finger - Finger that joint relates to
- * @property wrist - True if joint is a wrist
+ * Represents joint of a finger.
+ * @property index - Index of a joint within a finger, starting from 0 (root of a finger) all the way to tip of the finger.
+ * @property hand - Hand that joint relates to.
+ * @property finger - Finger that joint relates to.
+ * @property wrist - True if joint is a wrist.
  * @property tip - True if joint is a tip of a finger
  * @property radius - The radius of a joint, which is a distance from joint to the edge of a skin
- * @param index - Index of a joint within a finger
- * @param id - Id of a joint based on WebXR Hand Input Specs
- * @param hand - Hand that joint relates to
- * @param [finger] - Finger that joint is related to, can be null in case of wrist joint
+ * @param index - Index of a joint within a finger.
+ * @param id - Id of a joint based on WebXR Hand Input Specs.
+ * @param hand - Hand that joint relates to.
+ * @param [finger] - Finger that joint is related to, can be null in case of wrist joint.
  */
 export class XrJoint {
     constructor(index: number, id: string, hand: XrHand, finger?: XrFinger);
     /**
-     * Get the world space position of a joint
-     * @returns The world space position of a joint
+     * Get the world space position of a joint.
+     * @returns The world space position of a joint.
      */
     getPosition(): Vec3;
     /**
-     * Get the world space rotation of a joint
-     * @returns The world space rotation of a joint
+     * Get the world space rotation of a joint.
+     * @returns The world space rotation of a joint.
      */
     getRotation(): Quat;
     /**
-     * Index of a joint within a finger, starting from 0 (root of a finger) all the way to tip of the finger
+     * Index of a joint within a finger, starting from 0 (root of a finger) all the way to tip of the finger.
     */
     index: number;
     /**
-     * Hand that joint relates to
+     * Hand that joint relates to.
     */
     hand: XrHand;
     /**
-     * Finger that joint relates to
+     * Finger that joint relates to.
     */
     finger: XrFinger | null;
     /**
-     * True if joint is a wrist
+     * True if joint is a wrist.
     */
     wrist: boolean;
     /**
@@ -17958,14 +18053,14 @@ export class XrLightEstimation extends EventHandler {
     constructor(manager: XrManager);
     /**
      * Start estimation of illimunation data.
-    Availability of such data will come later and an `available` event will be fired.
-    If it failed to start estimation, an `error` event will be fired.
+     * Availability of such data will come later and an `available` event will be fired.
+     * If it failed to start estimation, an `error` event will be fired.
      * @example
      * app.xr.on('start', function () {
-        if (app.xr.lightEstimation.supported) {
-            app.xr.lightEstimation.start();
-        }
-    });
+     *     if (app.xr.lightEstimation.supported) {
+     *         app.xr.lightEstimation.start();
+     *     }
+     * });
      */
     start(): void;
     /**
@@ -17976,8 +18071,8 @@ export class XrLightEstimation extends EventHandler {
      * True if estimated light information is available.
      * @example
      * if (app.xr.lightEstimation.available) {
-        entity.light.intensity = app.xr.lightEstimation.intensity;
-    }
+     *     entity.light.intensity = app.xr.lightEstimation.intensity;
+     * }
      */
     available: boolean;
     /**
@@ -18003,13 +18098,13 @@ export class XrLightEstimation extends EventHandler {
  * @property supported - True if XR is supported.
  * @property active - True if XR session is running.
  * @property type - Returns type of currently running XR session or null if no session is running. Can be
-any of XRTYPE_*.
+ * any of XRTYPE_*.
  * @property spaceType - Returns reference space type of currently running XR session or null if no session
-is running. Can be any of XRSPACE_*.
+ * is running. Can be any of XRSPACE_*.
  * @property camera - Active camera for which XR session is running or null.
- * @property input - provides access to Input Sources.
- * @property hitTest - provides ability to hit test representation of real world geometry of underlying AR system.
- * @property session - provides access to XRSession of WebXR
+ * @property input - Provides access to Input Sources.
+ * @property hitTest - Provides ability to hit test representation of real world geometry of underlying AR system.
+ * @property session - Provides access to XRSession of WebXR.
  * @param app - The main application.
  */
 export class XrManager extends EventHandler {
@@ -18018,22 +18113,22 @@ export class XrManager extends EventHandler {
      * Attempts to start XR session for provided {@link CameraComponent} and optionally fires callback when session is created or failed to create.
      * @example
      * button.on('click', function () {
-        app.xr.start(camera, pc.XRTYPE_VR, pc.XRSPACE_LOCAL);
-    });
-     * @param camera - it will be used to render XR session and manipulated based on pose tracking
-     * @param type - session type. Can be one of the following:
-    
-    * {@link XRTYPE_INLINE}: Inline - always available type of session. It has limited features availability and is rendered into HTML element.
-    * {@link XRTYPE_VR}: Immersive VR - session that provides exclusive access to VR device with best available tracking features.
-    * {@link XRTYPE_AR}: Immersive AR - session that provides exclusive access to VR/AR device that is intended to be blended with real-world environment.
-     * @param spaceType - reference space type. Can be one of the following:
-    
-    * {@link XRSPACE_VIEWER}: Viewer - always supported space with some basic tracking capabilities.
-    * {@link XRSPACE_LOCAL}: Local - represents a tracking space with a native origin near the viewer at the time of creation. It is meant for seated or basic local XR sessions.
-    * {@link XRSPACE_LOCALFLOOR}: Local Floor - represents a tracking space with a native origin at the floor in a safe position for the user to stand. The y axis equals 0 at floor level. Floor level value might be estimated by the underlying platform. It is meant for seated or basic local XR sessions.
-    * {@link XRSPACE_BOUNDEDFLOOR}: Bounded Floor - represents a tracking space with its native origin at the floor, where the user is expected to move within a pre-established boundary.
-    * {@link XRSPACE_UNBOUNDED}: Unbounded - represents a tracking space where the user is expected to move freely around their environment, potentially long distances from their starting point.
-     * @param [options] - object with additional options for XR session initialization.
+     *     app.xr.start(camera, pc.XRTYPE_VR, pc.XRSPACE_LOCAL);
+     * });
+     * @param camera - It will be used to render XR session and manipulated based on pose tracking.
+     * @param type - Session type. Can be one of the following:
+     *
+     * * {@link XRTYPE_INLINE}: Inline - always available type of session. It has limited features availability and is rendered into HTML element.
+     * * {@link XRTYPE_VR}: Immersive VR - session that provides exclusive access to VR device with best available tracking features.
+     * * {@link XRTYPE_AR}: Immersive AR - session that provides exclusive access to VR/AR device that is intended to be blended with real-world environment.
+     * @param spaceType - Reference space type. Can be one of the following:
+     *
+     * * {@link XRSPACE_VIEWER}: Viewer - always supported space with some basic tracking capabilities.
+     * * {@link XRSPACE_LOCAL}: Local - represents a tracking space with a native origin near the viewer at the time of creation. It is meant for seated or basic local XR sessions.
+     * * {@link XRSPACE_LOCALFLOOR}: Local Floor - represents a tracking space with a native origin at the floor in a safe position for the user to stand. The y axis equals 0 at floor level. Floor level value might be estimated by the underlying platform. It is meant for seated or basic local XR sessions.
+     * * {@link XRSPACE_BOUNDEDFLOOR}: Bounded Floor - represents a tracking space with its native origin at the floor, where the user is expected to move within a pre-established boundary.
+     * * {@link XRSPACE_UNBOUNDED}: Unbounded - represents a tracking space where the user is expected to move freely around their environment, potentially long distances from their starting point.
+     * @param [options] - Object with additional options for XR session initialization.
      * @param [options.optionalFeatures] - Optional features for XRSession start. It is used for getting access to additional WebXR spec extensions.
      * @param [options.callback] - Optional callback function called once session is started. The callback has one argument Error - it is null if successfully started XR session.
      */
@@ -18045,24 +18140,24 @@ export class XrManager extends EventHandler {
      * Attempts to end XR session and optionally fires callback when session is ended or failed to end.
      * @example
      * app.keyboard.on('keydown', function (evt) {
-        if (evt.key === pc.KEY_ESCAPE && app.xr.active) {
-            app.xr.end();
-        }
-    });
+     *     if (evt.key === pc.KEY_ESCAPE && app.xr.active) {
+     *         app.xr.end();
+     *     }
+     * });
      * @param [callback] - Optional callback function called once session is started. The callback has one argument Error - it is null if successfully started XR session.
      */
     end(callback?: callbacks.XrError): void;
     /**
-     * Check if specific type of session is available
+     * Check if specific type of session is available.
      * @example
      * if (app.xr.isAvailable(pc.XRTYPE_VR)) {
-        // VR is available
-    }
-     * @param type - session type. Can be one of the following:
-    
-    * {@link XRTYPE_INLINE}: Inline - always available type of session. It has limited features availability and is rendered into HTML element.
-    * {@link XRTYPE_VR}: Immersive VR - session that provides exclusive access to VR device with best available tracking features.
-    * {@link XRTYPE_AR}: Immersive AR - session that provides exclusive access to VR/AR device that is intended to be blended with real-world environment.
+     *     // VR is available
+     * }
+     * @param type - Session type. Can be one of the following:
+     *
+     * * {@link XRTYPE_INLINE}: Inline - always available type of session. It has limited features availability and is rendered into HTML element.
+     * * {@link XRTYPE_VR}: Immersive VR - session that provides exclusive access to VR device with best available tracking features.
+     * * {@link XRTYPE_AR}: Immersive AR - session that provides exclusive access to VR/AR device that is intended to be blended with real-world environment.
      * @returns True if specified session type is available.
      */
     isAvailable(type: string): boolean;
@@ -18076,12 +18171,12 @@ export class XrManager extends EventHandler {
     active: boolean;
     /**
      * Returns type of currently running XR session or null if no session is running. Can be
-     * any of XRTYPE_*.
+    any of XRTYPE_*.
     */
     type: string | null;
     /**
      * Returns reference space type of currently running XR session or null if no session
-     * is running. Can be any of XRSPACE_*.
+    is running. Can be any of XRSPACE_*.
     */
     spaceType: string | null;
     /**
@@ -18089,15 +18184,15 @@ export class XrManager extends EventHandler {
     */
     camera: Entity | null;
     /**
-     * provides access to Input Sources.
+     * Provides access to Input Sources.
     */
     input: XrInput;
     /**
-     * provides ability to hit test representation of real world geometry of underlying AR system.
+     * Provides ability to hit test representation of real world geometry of underlying AR system.
     */
     hitTest: XrHitTest;
     /**
-     * provides access to XRSession of WebXR
+     * Provides access to XRSession of WebXR.
     */
     session: any | null;
 }
@@ -18118,7 +18213,7 @@ export class XrTrackedImage {
      * Get the position of the tracked image. The position is the most recent one based on the tracked image state.
      * @example
      * // update entity position to match tracked image position
-    entity.setPosition(trackedImage.getPosition());
+     * entity.setPosition(trackedImage.getPosition());
      * @returns Position in world space.
      */
     getPosition(): Vec3;
@@ -18126,7 +18221,7 @@ export class XrTrackedImage {
      * Get the rotation of the tracked image. The rotation is the most recent based on the tracked image state.
      * @example
      * // update entity rotation to match tracked image rotation
-    entity.setRotation(trackedImage.getRotation());
+     * entity.setRotation(trackedImage.getRotation());
      * @returns Rotation in world space.
      */
     getRotation(): Quat;
