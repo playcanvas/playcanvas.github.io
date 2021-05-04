@@ -2223,10 +2223,17 @@ export class CameraComponent extends Component {
      * @param [options.callback] - Optional callback function called once
     the session is started. The callback has one argument Error - it is null if the XR
     session started successfully.
+     * @param [options.depthSensing] - Optional object with depth sensing parameters to attempt to enable {@link XrDepthSensing}.
+     * @param [options.depthSensing.usagePreference] - Optional usage preference for depth sensing, can be 'cpu-optimized' or 'gpu-optimized' (XRDEPTHSENSINGUSAGE_*), defaults to 'cpu-optimized'. Most preferred and supported will be chosen by the underlying depth sensing system.
+     * @param [options.depthSensing.dataFormatPreference] - Optional data format preference for depth sensing, can be 'luminance-alpha' or 'float32' (XRDEPTHSENSINGFORMAT_*), defaults to 'luminance-alpha'. Most preferred and supported will be chosen by the underlying depth sensing system.
      */
     startXr(type: string, spaceType: string, options?: {
         optionalFeatures?: string[];
         callback?: callbacks.XrError;
+        depthSensing?: {
+            usagePreference?: string;
+            dataFormatPreference?: string;
+        };
     }): void;
     /**
      * Attempt to end XR session of this camera.
@@ -2458,6 +2465,8 @@ export class CameraComponentSystem extends ComponentSystem {
  * volume from tip to tip. Defaults to 2.
  * @property asset - The asset for the model of the mesh collision volume - can also be
  * an asset id. Defaults to null.
+ * @property renderAsset - The render asset of the mesh collision volume - can also be
+ * an asset id. Defaults to null. If not set then the asset property will be checked instead.
  * @property model - The model that is added to the scene graph for the mesh collision
  * volume.
  * @param system - The ComponentSystem that created this Component.
@@ -2506,6 +2515,11 @@ export class CollisionComponent extends Component {
     an asset id. Defaults to null.
     */
     asset: Asset | number;
+    /**
+     * The render asset of the mesh collision volume - can also be
+    an asset id. Defaults to null. If not set then the asset property will be checked instead.
+    */
+    renderAsset: Asset | number;
     /**
      * The model that is added to the scene graph for the mesh collision
     volume.
@@ -6992,15 +7006,6 @@ export class GraphicsDevice extends EventHandler {
      */
     setShader(shader: Shader): boolean;
     /**
-     * Sets the width and height of the canvas, then fires the 'resizecanvas' event.
-     * Note that the specified width and height values will be multiplied by the value of
-     * {@link GraphicsDevice#maxPixelRatio} to give the final resultant width and height for
-     * the canvas.
-     * @param width - The new width of the canvas.
-     * @param height - The new height of the canvas.
-     */
-    resizeCanvas(width: number, height: number): void;
-    /**
      * Frees memory from all shaders ever allocated with this device.
      */
     clearShaderCache(): void;
@@ -7185,8 +7190,14 @@ export const shaderChunks: any;
  *     depth: true
  * });
  *
- * // Set the render target on a layer
- * layer.renderTarget = renderTarget;
+ * // Set the render target on a camera component
+ * camera.renderTarget = renderTarget;
+ *
+ * // Destroy render target at a later stage. Note that the color buffer needs
+ * // to be destroyed separately.
+ * renderTarget.colorBuffer.destroy();
+ * renderTarget.destroy();
+ * camera.renderTarget = null;
  * @param options - Object for passing optional arguments.
  * @param [options.colorBuffer] - The texture that this render target will treat as a rendering surface.
  * @param [options.depth] - If set to true, depth buffer will be created. Defaults to true. Ignored if depthBuffer is defined.
@@ -10537,7 +10548,7 @@ export class Vec2 {
      */
     clone(): Vec2;
     /**
-     * Copied the contents of a source 2-dimensional vector to a destination 2-dimensional vector.
+     * Copies the contents of a source 2-dimensional vector to a destination 2-dimensional vector.
      * @example
      * var src = new pc.Vec2(10, 20);
     var dst = new pc.Vec2();
@@ -10733,6 +10744,33 @@ export class Vec2 {
      */
     normalize(): Vec2;
     /**
+     * Each element is set to the largest integer less than or equal to its value.
+     * @returns Self for chaining.
+     */
+    floor(): Vec2;
+    /**
+     * Each element is rounded up to the next largest integer.
+     * @returns Self for chaining.
+     */
+    ceil(): Vec2;
+    /**
+     * Each element is rounded up or down to the nearest integer.
+     * @returns Self for chaining.
+     */
+    round(): Vec2;
+    /**
+     * Each element is assigned a value from rhs parameter if it is smaller.
+     * @param rhs - The 2-dimensional vector used as the source of elements to compare to.
+     * @returns Self for chaining.
+     */
+    min(rhs: Vec2): Vec2;
+    /**
+     * Each element is assigned a value from rhs parameter if it is larger.
+     * @param rhs - The 2-dimensional vector used as the source of elements to compare to.
+     * @returns Self for chaining.
+     */
+    max(rhs: Vec2): Vec2;
+    /**
      * Sets the specified 2-dimensional vector to the supplied numerical values.
      * @example
      * var v = new pc.Vec2();
@@ -10922,7 +10960,7 @@ export class Vec3 {
      */
     clone(): Vec3;
     /**
-     * Copied the contents of a source 3-dimensional vector to a destination 3-dimensional vector.
+     * Copies the contents of a source 3-dimensional vector to a destination 3-dimensional vector.
      * @example
      * var src = new pc.Vec3(10, 20, 30);
     var dst = new pc.Vec3();
@@ -11116,6 +11154,33 @@ export class Vec3 {
      * @returns Self for chaining.
      */
     normalize(): Vec3;
+    /**
+     * Each element is set to the largest integer less than or equal to its value.
+     * @returns Self for chaining.
+     */
+    floor(): Vec3;
+    /**
+     * Each element is rounded up to the next largest integer.
+     * @returns Self for chaining.
+     */
+    ceil(): Vec3;
+    /**
+     * Each element is rounded up or down to the nearest integer.
+     * @returns Self for chaining.
+     */
+    round(): Vec3;
+    /**
+     * Each element is assigned a value from rhs parameter if it is smaller.
+     * @param rhs - The 3-dimensional vector used as the source of elements to compare to.
+     * @returns Self for chaining.
+     */
+    min(rhs: Vec3): Vec3;
+    /**
+     * Each element is assigned a value from rhs parameter if it is larger.
+     * @param rhs - The 3-dimensional vector used as the source of elements to compare to.
+     * @returns Self for chaining.
+     */
+    max(rhs: Vec3): Vec3;
     /**
      * Projects this 3-dimensional vector onto the specified vector.
      * @example
@@ -11342,7 +11407,7 @@ export class Vec4 {
      */
     clone(): Vec4;
     /**
-     * Copied the contents of a source 4-dimensional vector to a destination 4-dimensional vector.
+     * Copies the contents of a source 4-dimensional vector to a destination 4-dimensional vector.
      * @example
      * var src = new pc.Vec4(10, 20, 30, 40);
     var dst = new pc.Vec4();
@@ -11513,6 +11578,33 @@ export class Vec4 {
      * @returns Self for chaining.
      */
     normalize(): Vec4;
+    /**
+     * Each element is set to the largest integer less than or equal to its value.
+     * @returns Self for chaining.
+     */
+    floor(): Vec4;
+    /**
+     * Each element is rounded up to the next largest integer.
+     * @returns Self for chaining.
+     */
+    ceil(): Vec4;
+    /**
+     * Each element is rounded up or down to the nearest integer.
+     * @returns Self for chaining.
+     */
+    round(): Vec4;
+    /**
+     * Each element is assigned a value from rhs parameter if it is smaller.
+     * @param rhs - The 4-dimensional vector used as the source of elements to compare to.
+     * @returns Self for chaining.
+     */
+    min(rhs: Vec4): Vec4;
+    /**
+     * Each element is assigned a value from rhs parameter if it is larger.
+     * @param rhs - The 4-dimensional vector used as the source of elements to compare to.
+     * @returns Self for chaining.
+     */
+    max(rhs: Vec4): Vec4;
     /**
      * Sets the specified 4-dimensional vector to the supplied numerical values.
      * @example
@@ -11921,6 +12013,7 @@ export class AudioHandler implements ResourceHandler {
  * @property animations - Array of assets of animations in the GLB container.
  * @property textures - Array of assets of textures in the GLB container.
  * @property materials - Array of assets of materials in the GLB container.
+ * @property renders - Array of assets of renders in the GLB container.
  * @param data - The loaded GLB data.
  */
 export class ContainerResource {
@@ -11965,6 +12058,10 @@ export class ContainerResource {
      * Array of assets of materials in the GLB container.
     */
     materials: Asset[];
+    /**
+     * Array of assets of renders in the GLB container.
+    */
+    renders: Asset[];
 }
 
 export interface ContainerHandler extends ResourceHandler {
@@ -13759,10 +13856,12 @@ export class GraphNode extends EventHandler {
  * True means the layer is rendered, false means it's skipped.
  * @property cameras - A read-only array of {@link CameraComponent} that can be used during rendering. e.g. Inside
  * {@link Layer#onPreCull}, {@link Layer#onPostCull}, {@link Layer#onPreRender}, {@link Layer#onPostRender}.
+ * @param [graphicsDevice] - The graphics device used to manage this layer composition. If it is not provided, a device is obtained
+ * from the {@link Application}.
  * @param [name] - Optional non-unique name of the layer composition. Defaults to "Untitled" if not specified.
  */
 export class LayerComposition extends EventHandler {
-    constructor(name?: string);
+    constructor(graphicsDevice?: GraphicsDevice, name?: string);
     /**
      * Adds a layer (both opaque and semi-transparent parts) to the end of the {@link Layer#layerList}.
      * @param layer - A {@link Layer} to add.
@@ -15828,10 +15927,9 @@ export class Picker {
     in any way, {@link Picker#prepare} does not need to be called again.
      * @param camera - The camera component used to render the scene.
      * @param scene - The scene containing the pickable mesh instances.
-     * @param [arg] - Layer or RenderTarget from which objects will be picked.
-    If not supplied, all layers rendering to backbuffer before this layer will be used.
+     * @param [layers] - Layers from which objects will be picked. If not supplied, all layers of the specified camera will be used.
      */
-    prepare(camera: CameraComponent, scene: Scene, arg?: Layer | RenderTarget): void;
+    prepare(camera: CameraComponent, scene: Scene, layers?: Layer[]): void;
     /**
      * Sets the resolution of the pick buffer. The pick buffer resolution does not need
     to match the resolution of the corresponding frame buffer use for general rendering of the
@@ -16335,7 +16433,7 @@ export class Skin {
 }
 
 /**
- * A Sprite is contains references to one or more frames of a {@link TextureAtlas}.
+ * A Sprite contains references to one or more frames of a {@link TextureAtlas}.
  * It can be used by the {@link SpriteComponent} or the {@link ElementComponent} to render a
  * single frame or a sprite animation.
  * @property pixelsPerUnit - The number of pixels that map to one PlayCanvas unit.
@@ -17459,6 +17557,26 @@ export const XRTRACKABLE_PLANE: string;
 export const XRTRACKABLE_MESH: string;
 
 /**
+ * CPU - indicates that depth sensing preferred usage is CPU. This usage path is guaranteed to be supported.
+ */
+export const XRDEPTHSENSINGUSAGE_CPU: string;
+
+/**
+ * GPU - indicates that depth sensing preferred usage is GPU.
+ */
+export const XRDEPTHSENSINGUSAGE_GPU: string;
+
+/**
+ * Luminance Alpha - indicates that depth sensing preferred raw data format is Luminance Alpha. This format is guaranteed to be supported.
+ */
+export const XRDEPTHSENSINGFORMAT_L8A8: string;
+
+/**
+ * Float 32 - indicates that depth sensing preferred raw data format is Float 32.
+ */
+export const XRDEPTHSENSINGFORMAT_F32: string;
+
+/**
  * Depth Sensing provides depth information which is reconstructed using the underlying AR system. It provides the ability to query depth values (CPU path) or access a depth texture (GPU path). Depth information can be used (not limited to) for reconstructing real world geometry, virtual object placement, occlusion of virtual objects by real world geometry and more.
  * @example
  * // CPU path
@@ -17471,11 +17589,13 @@ export const XRTRACKABLE_MESH: string;
  * // GPU path, attaching texture to material
  * material.diffuseMap = depthSensing.texture;
  * material.setParameter('matrix_depth_uv', depthSensing.uvMatrix.data);
+ * material.setParameter('depth_raw_to_meters', depthSensing.rawValueToMeters);
  * material.update();
  *
  * // update UV transformation matrix on depth texture resize
  * depthSensing.on('resize', function () {
  *     material.setParameter('matrix_depth_uv', depthSensing.uvMatrix.data);
+ *     material.setParameter('depth_raw_to_meters', depthSensing.rawValueToMeters);
  * });
  * @example
  * // GLSL shader to unpack depth texture
@@ -17483,6 +17603,7 @@ export const XRTRACKABLE_MESH: string;
  *
  * uniform sampler2D texture_depthSensingMap;
  * uniform mat4 matrix_depth_uv;
+ * uniform float depth_raw_to_meters;
  *
  * void main(void) {
  *     // transform UVs using depth matrix
@@ -17492,10 +17613,10 @@ export const XRTRACKABLE_MESH: string;
  *     vec2 packedDepth = texture2D(texture_depthSensingMap, texCoord).ra;
  *
  *     // unpack into single value in millimeters
- *     float depth = dot(packedDepth, vec2(255.0, 256.0 * 255.0)); // mm
+ *     float depth = dot(packedDepth, vec2(255.0, 256.0 * 255.0)) * depth_raw_to_meters; // m
  *
  *     // normalize: 0m to 8m distance
- *     depth = min(depth / 8000.0, 1.0); // 0..1 = 0m..8m
+ *     depth = min(depth / 8.0, 1.0); // 0..1 = 0..8
  *
  *     // paint scene from black to white based on distance
  *     gl_FragColor = vec4(depth, depth, depth, 1.0);
@@ -17508,17 +17629,17 @@ export const XRTRACKABLE_MESH: string;
 export class XrDepthSensing extends EventHandler {
     constructor(manager: XrManager);
     /**
-     * Get depth value from depth information in meters. X and Y coordinates are in depth texture space, use {@link XrDepthSensing#width} and {@link XrDepthSensing#height}. This is not using a GPU texture and is a CPU path.
+     * Get depth value from depth information in meters. UV is in range of 0..1, with origin in top-left corner of a texture.
      * @example
-     * var depth = app.xr.depthSensing.getDepth(x, y);
+     * var depth = app.xr.depthSensing.getDepth(u, v);
      * if (depth !== null) {
      *     // depth in meters
      * }
-     * @param x - X coordinate of pixel in depth texture.
-     * @param y - Y coordinate of pixel in depth texture.
-     * @returns Depth in meters or null if depth information is not available.
+     * @param u - U coordinate of pixel in depth texture, which is in range from 0.0 to 1.0 (left to right).
+     * @param v - V coordinate of pixel in depth texture, which is in range from 0.0 to 1.0 (top to bottom).
+     * @returns Depth in meters or null if depth information is currently not available.
      */
-    getDepth(x: number, y: number): number | null;
+    getDepth(u: number, v: number): number | null;
     /**
      * True if depth sensing information is available.
      * @example
@@ -17537,6 +17658,7 @@ export class XrDepthSensing extends EventHandler {
      *
      * uniform sampler2D texture_depthSensingMap;
      * uniform mat4 matrix_depth_uv;
+     * uniform float depth_raw_to_meters;
      *
      * void main(void) {
      *     // transform UVs using depth matrix
@@ -17546,10 +17668,10 @@ export class XrDepthSensing extends EventHandler {
      *     vec2 packedDepth = texture2D(texture_depthSensingMap, texCoord).ra;
      *
      *     // unpack into single value in millimeters
-     *     float depth = dot(packedDepth, vec2(255.0, 256.0 * 255.0)); // mm
+     *     float depth = dot(packedDepth, vec2(255.0, 256.0 * 255.0)) * depth_raw_to_meters; // m
      *
      *     // normalize: 0m to 8m distance
-     *     depth = min(depth / 8000.0, 1.0); // 0..1 = 0m..8m
+     *     depth = min(depth / 8.0, 1.0); // 0..1 = 0m..8m
      *
      *     // paint scene from black to white based on distance
      *     gl_FragColor = vec4(depth, depth, depth, 1.0);
@@ -17562,6 +17684,12 @@ export class XrDepthSensing extends EventHandler {
      * material.setParameter('matrix_depth_uv', depthSensing.uvMatrix.data);
      */
     uvMatrix: Mat4;
+    /**
+     * Multiply this coefficient number by raw depth value to get depth in meters.
+     * @example
+     * material.setParameter('depth_raw_to_meters', depthSensing.rawValueToMeters);
+     */
+    rawValueToMeters: number;
     /**
      * True if Depth Sensing is supported.
     */
@@ -18110,10 +18238,16 @@ export class XrLightEstimation extends EventHandler {
 export class XrManager extends EventHandler {
     constructor(app: Application);
     /**
-     * Attempts to start XR session for provided {@link CameraComponent} and optionally fires callback when session is created or failed to create.
+     * Attempts to start XR session for provided {@link CameraComponent} and optionally fires callback when session is created or failed to create. Integrated XR APIs need to be enabled by providing relevant options.
      * @example
      * button.on('click', function () {
      *     app.xr.start(camera, pc.XRTYPE_VR, pc.XRSPACE_LOCAL);
+     * });
+     * @example
+     * button.on('click', function () {
+     *     app.xr.start(camera, pc.XRTYPE_AR, pc.XRSPACE_LOCALFLOOR, {
+     *         depthSensing: { }
+     *     });
      * });
      * @param camera - It will be used to render XR session and manipulated based on pose tracking.
      * @param type - Session type. Can be one of the following:
@@ -18131,10 +18265,17 @@ export class XrManager extends EventHandler {
      * @param [options] - Object with additional options for XR session initialization.
      * @param [options.optionalFeatures] - Optional features for XRSession start. It is used for getting access to additional WebXR spec extensions.
      * @param [options.callback] - Optional callback function called once session is started. The callback has one argument Error - it is null if successfully started XR session.
+     * @param [options.depthSensing] - Optional object with depth sensing parameters to attempt to enable {@link XrDepthSensing}.
+     * @param [options.depthSensing.usagePreference] - Optional usage preference for depth sensing, can be 'cpu-optimized' or 'gpu-optimized' (XRDEPTHSENSINGUSAGE_*), defaults to 'cpu-optimized'. Most preferred and supported will be chosen by the underlying depth sensing system.
+     * @param [options.depthSensing.dataFormatPreference] - Optional data format preference for depth sensing, can be 'luminance-alpha' or 'float32' (XRDEPTHSENSINGFORMAT_*), defaults to 'luminance-alpha'. Most preferred and supported will be chosen by the underlying depth sensing system.
      */
     start(camera: CameraComponent, type: string, spaceType: string, options?: {
         optionalFeatures?: string[];
         callback?: callbacks.XrError;
+        depthSensing?: {
+            usagePreference?: string;
+            dataFormatPreference?: string;
+        };
     }): void;
     /**
      * Attempts to end XR session and optionally fires callback when session is ended or failed to end.
