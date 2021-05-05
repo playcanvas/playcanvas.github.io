@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.41.0 revision bcf2a4ff9
+ * PlayCanvas Engine v1.41.1 revision d0edebc27
  * Copyright 2011-2021 PlayCanvas Ltd. All rights reserved.
  */
 (function (global, factory) {

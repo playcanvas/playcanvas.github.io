@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.41.0 revision bcf2a4ff9
+ * PlayCanvas Engine v1.41.1 revision d0edebc27
  * Copyright 2011-2021 PlayCanvas Ltd. All rights reserved.
  */
 if (!Array.prototype.fill) {
@@ -629,8 +629,8 @@ const _typeLookup = function () {
 	return result;
 }();
 
-const version = "1.41.0";
-const revision = "bcf2a4ff9";
+const version = "1.41.1";
+const revision = "d0edebc27";
 const config = {};
 const common = {};
 const apps = {};
@@ -5681,10 +5681,6 @@ var endPS = "\t#ifdef CLEARCOAT\n\tgl_FragColor.rgb = combineColorCC();\n\t#else
 
 var endVS = "\n";
 
-var envBrdfNonePS = "vec3 envBrdf(vec3 specularColor, float glossiness, vec3 normal) {\n\treturn specularColor;\n}\n";
-
-var envBrdfApproxPS = "\nvec3 envBrdf(vec3 specularColor, float glossiness, vec3 normal) {\n\tconst vec4 c0 = vec4(-1, -0.0275, -0.572, 0.022);\n\tconst vec4 c1 = vec4(1, 0.0425, 1.04, -0.04);\n\tvec4 r = (1.0 - glossiness) * c0 + c1;\n\tfloat a004 = min(r.x * r.x, exp2(-9.28 * dot(normal, dViewDirW))) * r.x + r.y;\n\tvec2 AB = vec2(-1.04, 1.04) * a004 + r.zw;\n\treturn specularColor * AB.x + AB.y;\n}\n";
-
 var envConstPS = "vec3 processEnvironment(vec3 color) {\n\treturn color;\n}\n";
 
 var envMultiplyPS = "uniform float skyboxIntensity;\nvec3 processEnvironment(vec3 color) {\n\treturn color * skyboxIntensity;\n}\n";
@@ -5877,15 +5873,15 @@ var reflDirPS = "void getReflDir() {\n\tdReflDirW = normalize(-reflect(dViewDirW
 
 var reflDirAnisoPS = "void getReflDir() {\n\tfloat roughness = sqrt(1.0 - min(dGlossiness, 1.0));\n\tfloat anisotropy = material_anisotropy * roughness;\n\tvec3 anisotropicDirection = anisotropy >= 0.0 ? dTBN[1] : dTBN[0];\n\tvec3 anisotropicTangent = cross(anisotropicDirection, dViewDirW);\n\tvec3 anisotropicNormal = cross(anisotropicTangent, anisotropicDirection);\n\tvec3 bentNormal = normalize(mix(normalize(dNormalW), normalize(anisotropicNormal), anisotropy));\n\tdReflDirW = reflect(-dViewDirW, bentNormal);\n}\n";
 
-var reflectionCCPS = "#ifdef CLEARCOAT\nuniform float material_clearCoatReflectivity;\nvoid addReflectionCC() {\n\tccReflection += vec4(envBrdf(calcReflection(ccReflDirW, ccGlossiness), ccGlossiness, ccNormalW), material_clearCoatReflectivity);\n}\n#endif\n";
+var reflectionCCPS = "#ifdef CLEARCOAT\nuniform float material_clearCoatReflectivity;\nvoid addReflectionCC() {\n\tccReflection += vec4(calcReflection(ccReflDirW, ccGlossiness), material_clearCoatReflectivity);\n}\n#endif\n";
 
 var reflectionCubePS = "uniform samplerCube texture_cubeMap;\nuniform float material_reflectivity;\nvec3 calcReflection(vec3 tReflDirW, float tGlossiness) {\n\tvec3 lookupVec = fixSeams(cubeMapProject(tReflDirW));\n#ifndef RIGHT_HANDED_CUBEMAP\n\tlookupVec.x *= -1.0;\n#endif\n\treturn $textureCubeSAMPLE(texture_cubeMap, lookupVec).rgb;\n}\nvoid addReflection() {\n\tdReflection += vec4(calcReflection(dReflDirW, dGlossiness), material_reflectivity);\n}\n";
 
 var reflectionDpAtlasPS = "uniform sampler2D texture_sphereMap;\nuniform float material_reflectivity;\nvec2 getDpAtlasUv(vec2 uv, float mip) {\n\tvec4 rect;\n\tfloat sx = saturate(mip - 2.0);\n\trect.x = sx * 0.5;\n\tfloat t = mip - rect.x * 6.0;\n\tfloat i = 1.0 - rect.x;\n\trect.y = min(t * 0.5, 0.75) * i + rect.x;\n\tfloat st = saturate(t);\n\trect.z = (1.0 - st * 0.5) * i;\n\trect.w = rect.z * 0.5;\n\tfloat rcRectZ = 1.0 / rect.z;\n\tfloat scaleFactor = 0.00390625 * rcRectZ;\n\tvec2 scale = vec2(scaleFactor, scaleFactor * 2.0);\n\tuv = uv * (vec2(1.0) - scale) + scale * 0.5;\n\tuv = uv * rect.zw + rect.xy;\n\treturn uv;\n}\nvec3 calcReflection(vec3 tReflDirW, float tGlossiness) {\n\tvec3 reflDir = normalize(cubeMapProject(tReflDirW));\n\tbool up = reflDir.y > 0.0;\n\tfloat scale = 0.90909090909090909090909090909091;\n\tvec3 reflDirWarp = reflDir.xzx * vec3(-0.25, 0.5, 0.25);\n\tfloat reflDirVer = abs(reflDir.y) + 1.0;\n\treflDirWarp /= reflDirVer;\n\treflDirWarp *= scale;\n\treflDirWarp = vec3(0.75, 0.5, 0.25) - reflDirWarp;\n\tvec2 tc = up? reflDirWarp.xy : reflDirWarp.zy;\n\tfloat bias = saturate(1.0 - tGlossiness) * 5.0;\n\tfloat mip = floor(bias);\n\tvec3 tex1 = $texture2DSAMPLE(texture_sphereMap, getDpAtlasUv(tc, mip)).rgb;\n\tmip = min(mip + 1.0, 5.0);\n\tvec3 tex2 = $texture2DSAMPLE(texture_sphereMap, getDpAtlasUv(tc, mip)).rgb;\n\ttex1 = mix(tex1, tex2, fract(bias));\n\ttex1 = processEnvironment(tex1);\n\treturn tex1;\n}\nvoid addReflection() {\n\tdReflection += vec4(calcReflection(dReflDirW, dGlossiness), material_reflectivity);\n}\n";
 
-var reflectionPrefilteredCubePS = "uniform samplerCube texture_prefilteredCubeMap128;\nuniform samplerCube texture_prefilteredCubeMap64;\nuniform samplerCube texture_prefilteredCubeMap32;\nuniform samplerCube texture_prefilteredCubeMap16;\nuniform samplerCube texture_prefilteredCubeMap8;\n#ifndef PMREM4\n#define PMREM4\nuniform samplerCube texture_prefilteredCubeMap4;\n#endif\nuniform float material_reflectivity;\nvec3 calcReflection(vec3 tReflDirW, float tGlossiness) {\n\tvec3 refl = cubeMapProject(tReflDirW);\n#ifndef RIGHT_HANDED_CUBEMAP\n\trefl.x *= -1.0;\n#endif\n\tvec3 seam = calcSeam(refl);\n\tvec4 c0 = textureCube(texture_prefilteredCubeMap128, applySeam(refl, seam, 1.0 / 128.0));\n\tvec4 c1 = textureCube(texture_prefilteredCubeMap64, applySeam(refl, seam, 2.0 / 128.0));\n\tvec4 c2 = textureCube(texture_prefilteredCubeMap32, applySeam(refl, seam, 4.0 / 128.0));\n\tvec4 c3 = textureCube(texture_prefilteredCubeMap16, applySeam(refl, seam, 8.0 / 128.0));\n\tvec4 c4 = textureCube(texture_prefilteredCubeMap8, applySeam(refl, seam, 16.0 / 128.0));\n\tvec4 c5 = textureCube(texture_prefilteredCubeMap4, applySeam(refl, seam, 32.0 / 128.0));\n\tfloat bias = saturate(1.0 - tGlossiness) * 5.0;\n\tvec4 cubes0;\n\tvec4 cubes1;\n\tif (bias < 1.0) {\n\t\tcubes0 = c0;\n\t\tcubes1 = c1;\n\t} else if (bias < 2.0) {\n\t\tcubes0 = c1;\n\t\tcubes1 = c2;\n\t} else if (bias < 3.0) {\n\t\tcubes0 = c2;\n\t\tcubes1 = c3;\n\t} else if (bias < 4.0) {\n\t\tcubes0 = c3;\n\t\tcubes1 = c4;\n\t} else {\n\t\tcubes0 = c4;\n\t\tcubes1 = c5;\n\t}\n\tvec4 cubeFinal = mix(cubes0, cubes1, fract(bias));\n\treturn processEnvironment($DECODE(cubeFinal).rgb);\n}\nvoid addReflection() {\n\tdReflection += vec4(envBrdf(calcReflection(dReflDirW, dGlossiness), dGlossiness, dNormalW), material_reflectivity);\n}\n";
+var reflectionPrefilteredCubePS = "uniform samplerCube texture_prefilteredCubeMap128;\nuniform samplerCube texture_prefilteredCubeMap64;\nuniform samplerCube texture_prefilteredCubeMap32;\nuniform samplerCube texture_prefilteredCubeMap16;\nuniform samplerCube texture_prefilteredCubeMap8;\n#ifndef PMREM4\n#define PMREM4\nuniform samplerCube texture_prefilteredCubeMap4;\n#endif\nuniform float material_reflectivity;\nvec3 calcReflection(vec3 tReflDirW, float tGlossiness) {\n\tvec3 refl = cubeMapProject(tReflDirW);\n#ifndef RIGHT_HANDED_CUBEMAP\n\trefl.x *= -1.0;\n#endif\n\tvec3 seam = calcSeam(refl);\n\tvec4 c0 = textureCube(texture_prefilteredCubeMap128, applySeam(refl, seam, 1.0 / 128.0));\n\tvec4 c1 = textureCube(texture_prefilteredCubeMap64, applySeam(refl, seam, 2.0 / 128.0));\n\tvec4 c2 = textureCube(texture_prefilteredCubeMap32, applySeam(refl, seam, 4.0 / 128.0));\n\tvec4 c3 = textureCube(texture_prefilteredCubeMap16, applySeam(refl, seam, 8.0 / 128.0));\n\tvec4 c4 = textureCube(texture_prefilteredCubeMap8, applySeam(refl, seam, 16.0 / 128.0));\n\tvec4 c5 = textureCube(texture_prefilteredCubeMap4, applySeam(refl, seam, 32.0 / 128.0));\n\tfloat bias = saturate(1.0 - tGlossiness) * 5.0;\n\tvec4 cubes0;\n\tvec4 cubes1;\n\tif (bias < 1.0) {\n\t\tcubes0 = c0;\n\t\tcubes1 = c1;\n\t} else if (bias < 2.0) {\n\t\tcubes0 = c1;\n\t\tcubes1 = c2;\n\t} else if (bias < 3.0) {\n\t\tcubes0 = c2;\n\t\tcubes1 = c3;\n\t} else if (bias < 4.0) {\n\t\tcubes0 = c3;\n\t\tcubes1 = c4;\n\t} else {\n\t\tcubes0 = c4;\n\t\tcubes1 = c5;\n\t}\n\tvec4 cubeFinal = mix(cubes0, cubes1, fract(bias));\n\treturn processEnvironment($DECODE(cubeFinal).rgb);\n}\nvoid addReflection() {\n\tdReflection += vec4(calcReflection(dReflDirW, dGlossiness), material_reflectivity);\n}\n";
 
-var reflectionPrefilteredCubeLodPS = "#ifndef PMREM4\n#define PMREM4\n#extension GL_EXT_shader_texture_lod : enable\nuniform samplerCube texture_prefilteredCubeMap128;\n#endif\nuniform float material_reflectivity;\nvec3 calcReflection(vec3 tReflDirW, float tGlossiness) {\n\tfloat bias = saturate(1.0 - tGlossiness) * 5.0;\n\tvec3 fixedReflDir = fixSeams(cubeMapProject(tReflDirW), bias);\n#ifndef RIGHT_HANDED_CUBEMAP\n\tfixedReflDir.x *= -1.0;\n#endif\n\tvec3 refl = processEnvironment($DECODE( textureCubeLodEXT(texture_prefilteredCubeMap128, fixedReflDir, bias) ).rgb);\n\treturn refl;\n}\nvoid addReflection() {\n\tdReflection += vec4(envBrdf(calcReflection(dReflDirW, dGlossiness), dGlossiness, dNormalW), material_reflectivity);\n}\n";
+var reflectionPrefilteredCubeLodPS = "#ifndef PMREM4\n#define PMREM4\n#extension GL_EXT_shader_texture_lod : enable\nuniform samplerCube texture_prefilteredCubeMap128;\n#endif\nuniform float material_reflectivity;\nvec3 calcReflection(vec3 tReflDirW, float tGlossiness) {\n\tfloat bias = saturate(1.0 - tGlossiness) * 5.0;\n\tvec3 fixedReflDir = fixSeams(cubeMapProject(tReflDirW), bias);\n#ifndef RIGHT_HANDED_CUBEMAP\n\tfixedReflDir.x *= -1.0;\n#endif\n\tvec3 refl = processEnvironment($DECODE( textureCubeLodEXT(texture_prefilteredCubeMap128, fixedReflDir, bias) ).rgb);\n\treturn refl;\n}\nvoid addReflection() {\n\tdReflection += vec4(calcReflection(dReflDirW, dGlossiness), material_reflectivity);\n}\n";
 
 var reflectionSpherePS = "#ifndef VIEWMATRIX\n#define VIEWMATRIX\nuniform mat4 matrix_view;\n#endif\nuniform sampler2D texture_sphereMap;\nuniform float material_reflectivity;\nvec3 calcReflection(vec3 tReflDirW, float tGlossiness) {\n\tvec3 reflDirV = (mat3(matrix_view) * tReflDirW).xyz;\n\tfloat m = 2.0 * sqrt( dot(reflDirV.xy, reflDirV.xy) + (reflDirV.z+1.0)*(reflDirV.z+1.0) );\n\tvec2 sphereMapUv = reflDirV.xy / m + 0.5;\n\treturn $texture2DSAMPLE(texture_sphereMap, sphereMapUv).rgb;\n}\nvoid addReflection() {\n\tdReflection += vec4(calcReflection(dReflDirW, dGlossiness), material_reflectivity);\n}\n";
 
@@ -6039,8 +6035,6 @@ var shaderChunks = {
 	emissivePS: emissivePS,
 	endPS: endPS,
 	endVS: endVS,
-	envBrdfApproxPS: envBrdfApproxPS,
-	envBrdfNonePS: envBrdfNonePS,
 	envConstPS: envConstPS,
 	envMultiplyPS: envMultiplyPS,
 	extensionPS: extensionPS,
@@ -10037,12 +10031,6 @@ var standard = {
 			code += scode;
 		} else if (cubemapReflection) {
 			if (options.prefilteredCubemap) {
-				if (options.useMetalness) {
-					code += chunks.envBrdfApproxPS;
-				} else {
-					code += chunks.envBrdfNonePS;
-				}
-
 				if (useTexCubeLod) {
 					code += chunks.reflectionPrefilteredCubeLodPS.replace(/\$DECODE/g, reflectionDecode);
 				} else {
