@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.41.1 revision d0edebc27
+ * PlayCanvas Engine v1.41.2 revision 84a4993c5
  * Copyright 2011-2021 PlayCanvas Ltd. All rights reserved.
  */
 if (!Array.prototype.fill) {
@@ -629,8 +629,8 @@ const _typeLookup = function () {
 	return result;
 }();
 
-const version = "1.41.1";
-const revision = "d0edebc27";
+const version = "1.41.2";
+const revision = "84a4993c5";
 const config = {};
 const common = {};
 const apps = {};
@@ -15123,8 +15123,8 @@ class GraphicsDevice extends EventHandler {
 		this._width = width;
 		this._height = height;
 		var ratio = Math.min(this._maxPixelRatio, window.devicePixelRatio);
-		width = Math.floor(width * ratio);
-		height = Math.floor(height * ratio);
+		width *= ratio;
+		height *= ratio;
 		if (this.canvas.width === width && this.canvas.height === height) return;
 		this.canvas.width = width;
 		this.canvas.height = height;
@@ -66377,6 +66377,11 @@ class Application extends EventHandler {
 
 		this.graphicsDevice.canvas.style.width = width + 'px';
 		this.graphicsDevice.canvas.style.height = height + 'px';
+
+		if (this._resolutionMode === RESOLUTION_AUTO) {
+			this.setCanvasResolution(RESOLUTION_AUTO);
+		}
+
 		return {
 			width: width,
 			height: height
@@ -66870,11 +66875,6 @@ var makeTick = function makeTick(_app) {
 		application.fire("framerender");
 
 		if (application.autoRender || application.renderNextFrame) {
-			if (application._resolutionMode === RESOLUTION_AUTO) {
-				const canvas = application.graphicsDevice.canvas;
-				application.graphicsDevice.resizeCanvas(canvas.clientWidth, canvas.clientHeight);
-			}
-
 			application.render();
 			application.renderNextFrame = false;
 		}

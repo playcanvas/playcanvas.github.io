@@ -7006,6 +7006,15 @@ export class GraphicsDevice extends EventHandler {
      */
     setShader(shader: Shader): boolean;
     /**
+     * Sets the width and height of the canvas, then fires the 'resizecanvas' event.
+     * Note that the specified width and height values will be multiplied by the value of
+     * {@link GraphicsDevice#maxPixelRatio} to give the final resultant width and height for
+     * the canvas.
+     * @param width - The new width of the canvas.
+     * @param height - The new height of the canvas.
+     */
+    resizeCanvas(width: number, height: number): void;
+    /**
      * Frees memory from all shaders ever allocated with this device.
      */
     clearShaderCache(): void;
