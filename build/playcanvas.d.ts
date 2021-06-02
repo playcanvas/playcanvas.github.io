@@ -1436,6 +1436,12 @@ export class Application extends EventHandler {
      */
     resizeCanvas(width?: number, height?: number): any;
     /**
+     * Updates the {@link GraphicsDevice} canvas size to match the canvas size on the document page.
+     * It is recommended to call this function when the canvas size changes (e.g on window resize and orientation change
+     * events) so that the canvas resolution is immediately updated.
+     */
+    updateCanvasSize(): void;
+    /**
      * Apply scene settings to the current scene. Useful when your scene settings are parsed or generated from a non-URL source.
      * @example
      * var settings = {
@@ -4117,9 +4123,11 @@ export class RenderComponentSystem extends ComponentSystem {
  * @property angularDamping - Controls the rate at which a body loses angular velocity over time.
  * Defaults to 0.
  * @property linearFactor - Scaling factor for linear movement of the body in each axis. Only
- * valid for rigid bodies of type {@link BODYTYPE_DYNAMIC}. Defaults to 1 in all axes.
+ * valid for rigid bodies of type {@link BODYTYPE_DYNAMIC}. Defaults to 1 in all axes (body can freely
+ * move).
  * @property angularFactor - Scaling factor for angular movement of the body in each axis. Only
- * valid for rigid bodies of type {@link BODYTYPE_DYNAMIC}. Defaults to 1 in all axes.
+ * valid for rigid bodies of type {@link BODYTYPE_DYNAMIC}. Defaults to 1 in all axes (body can freely
+ * rotate).
  * @property friction - The friction value used when contacts occur between two bodies. A higher
  * value indicates more friction. Should be set in the range 0 to 1. Defaults to 0.5.
  * @property rollingFriction - Sets a torsional friction orthogonal to the contact point. Defaults
@@ -4328,12 +4336,14 @@ export class RigidBodyComponent extends Component {
     angularDamping: number;
     /**
      * Scaling factor for linear movement of the body in each axis. Only
-    valid for rigid bodies of type {@link BODYTYPE_DYNAMIC}. Defaults to 1 in all axes.
+    valid for rigid bodies of type {@link BODYTYPE_DYNAMIC}. Defaults to 1 in all axes (body can freely
+    move).
     */
     linearFactor: Vec3;
     /**
      * Scaling factor for angular movement of the body in each axis. Only
-    valid for rigid bodies of type {@link BODYTYPE_DYNAMIC}. Defaults to 1 in all axes.
+    valid for rigid bodies of type {@link BODYTYPE_DYNAMIC}. Defaults to 1 in all axes (body can freely
+    rotate).
     */
     angularFactor: Vec3;
     /**
@@ -4468,14 +4478,14 @@ export class SingleContactResult {
  * @property point - The point on the entity where the contact occurred, in world space.
  * @property pointOther - The point on the other entity where the contact occurred, in world space.
  * @property normal - The normal vector of the contact on the other entity, in world space.
- * @param localPoint - The point on the entity where the contact occurred, relative to the entity.
- * @param localPointOther - The point on the other entity where the contact occurred, relative to the other entity.
- * @param point - The point on the entity where the contact occurred, in world space.
- * @param pointOther - The point on the other entity where the contact occurred, in world space.
- * @param normal - The normal vector of the contact on the other entity, in world space.
+ * @param [localPoint] - The point on the entity where the contact occurred, relative to the entity.
+ * @param [localPointOther] - The point on the other entity where the contact occurred, relative to the other entity.
+ * @param [point] - The point on the entity where the contact occurred, in world space.
+ * @param [pointOther] - The point on the other entity where the contact occurred, in world space.
+ * @param [normal] - The normal vector of the contact on the other entity, in world space.
  */
 export class ContactPoint {
-    constructor(localPoint: Vec3, localPointOther: Vec3, point: Vec3, pointOther: Vec3, normal: Vec3);
+    constructor(localPoint?: Vec3, localPointOther?: Vec3, point?: Vec3, pointOther?: Vec3, normal?: Vec3);
     /**
      * The point on the entity where the contact occurred, relative to the entity.
     */
@@ -5726,7 +5736,7 @@ export class SceneRegistryItem {
 }
 
 /**
- * Container for storing the name and url for scene files.
+ * Container for storing and loading of scenes. An instance of the registry is created on the {@link Application} object as {@link Application#scenes}.
  * @param app - The application.
  */
 export class SceneRegistry {
@@ -5763,16 +5773,26 @@ export class SceneRegistry {
     /**
      * Loads and stores the scene data to reduce the number of the network
      * requests when the same scenes are loaded multiple times. Can also be used to load data before calling
-     * {@link SceneRegistry.loadSceneHierarchy} and {@link SceneRegistry#loadSceneSettings} to make
+     * {@link SceneRegistry#loadSceneHierarchy} and {@link SceneRegistry#loadSceneSettings} to make
      * scene loading quicker for the user.
-     * @param sceneItem - The scene item or URL of the scene file. Usually this will be "scene_id.json".
+     * @example
+     * var sceneItem = app.scenes.find("Scene Name");
+     * app.scenes.loadSceneData(sceneItem, function (err, sceneItem) {
+     *     if (err) {
+     *         // error
+     *     }
+     * });
+     * @param sceneItem - The scene item (which can be found with {@link SceneRegistry#find} or URL of the scene file. Usually this will be "scene_id.json".
      * @param callback - The function to call after loading,
      * passed (err, sceneItem) where err is null if no errors occurred.
      */
     loadSceneData(sceneItem: SceneRegistryItem | string, callback: callbacks.LoadSceneData): void;
     /**
      * Unloads scene data that has been loaded previously using {@link SceneRegistry#loadSceneData}.
-     * @param sceneItem - The scene item or URL of the scene file. Usually this will be "scene_id.json".
+     * @example
+     * var sceneItem = app.scenes.find("Scene Name");
+     * app.scenes.unloadSceneData(sceneItem);
+     * @param sceneItem - The scene item (which can be found with {@link SceneRegistry#find} or URL of the scene file. Usually this will be "scene_id.json".
      */
     unloadSceneData(sceneItem: SceneRegistryItem | string): void;
     /**
@@ -5787,7 +5807,7 @@ export class SceneRegistry {
      *         // error
      *     }
      * });
-     * @param sceneItem - The scene item or URL of the scene file. Usually this will be "scene_id.json".
+     * @param sceneItem - The scene item (which can be found with {@link SceneRegistry#find} or URL of the scene file. Usually this will be "scene_id.json".
      * @param callback - The function to call after loading,
      * passed (err, entity) where err is null if no errors occurred.
      */
@@ -5803,7 +5823,7 @@ export class SceneRegistry {
      *         // error
      *     }
      * });
-     * @param sceneItem - The scene item or URL of the scene file. Usually this will be "scene_id.json".
+     * @param sceneItem - The scene item (which can be found with {@link SceneRegistry#find} or URL of the scene file. Usually this will be "scene_id.json".
      * @param callback - The function called after the settings
      * are applied. Passed (err) where err is null if no error occurred.
      */
@@ -7006,15 +7026,6 @@ export class GraphicsDevice extends EventHandler {
      */
     setShader(shader: Shader): boolean;
     /**
-     * Sets the width and height of the canvas, then fires the 'resizecanvas' event.
-     * Note that the specified width and height values will be multiplied by the value of
-     * {@link GraphicsDevice#maxPixelRatio} to give the final resultant width and height for
-     * the canvas.
-     * @param width - The new width of the canvas.
-     * @param height - The new height of the canvas.
-     */
-    resizeCanvas(width: number, height: number): void;
-    /**
      * Frees memory from all shaders ever allocated with this device.
      */
     clearShaderCache(): void;
@@ -7301,15 +7312,20 @@ export class RenderTarget {
  * function can read and write textures with pixel data in RGBE, RGBM, linear and sRGB formats. When
  * specularPower is specified it will perform a phong-weighted convolution of the source (for generating
  * a gloss maps).
- * @param device - The graphics device.
  * @param source - The source texture.
  * @param target - The target texture.
- * @param [specularPower] - Optional specular power. When specular power is specified,
+ * @param [options] - The options object.
+ * @param [options.specularPower] - Optional specular power. When specular power is specified,
  * the source is convolved by a phong-weighted kernel raised to the specified power. Otherwise
  * the function performs a standard resample.
- * @param [numSamples] - Optional number of samples (default is 1024).
+ * @param [options.numSamples] - Optional number of samples (default is 1024).
+ * @param [options.face] - Optional cubemap face to update (default is update all faces).
  */
-export function reprojectTexture(device: GraphicsDevice, source: Texture, target: Texture, specularPower?: number, numSamples?: number): void;
+export function reprojectTexture(source: Texture, target: Texture, options?: {
+    specularPower?: number;
+    numSamples?: number;
+    face?: number;
+}): void;
 
 /**
  * The scope for a variable.
@@ -13342,14 +13358,6 @@ export const ORIENTATION_HORIZONTAL: number;
 export const ORIENTATION_VERTICAL: number;
 
 /**
- * Creates a new forward renderer object.
- * @param graphicsDevice - The graphics device used by the renderer.
- */
-export class ForwardRenderer {
-    constructor(graphicsDevice: GraphicsDevice);
-}
-
-/**
  * A hierarchical scene node.
  * @property name - The non-unique name of a graph node.
  * @property tags - Interface for tagging graph nodes. Tag based searches can be performed using the {@link GraphNode#findByTag} function.
@@ -16193,6 +16201,14 @@ export function createBox(device: GraphicsDevice, opts?: {
     lengthSegments?: number;
     heightSegments?: number;
 }): Mesh;
+
+/**
+ * Creates a new forward renderer object.
+ * @param graphicsDevice - The graphics device used by the renderer.
+ */
+export class ForwardRenderer {
+    constructor(graphicsDevice: GraphicsDevice);
+}
 
 /**
  * Creates a new Scene.
