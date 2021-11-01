@@ -1,1 +1,43 @@
-export function wasmSupported(){try{if("object"==typeof WebAssembly&&"function"==typeof WebAssembly.instantiate){const n=new WebAssembly.Module(Uint8Array.of(0,97,115,109,1,0,0,0));if(n instanceof WebAssembly.Module)return new WebAssembly.Instance(n)instanceof WebAssembly.Instance}}catch(n){}return!1}export function loadScriptAsync(n,e){var t=document.createElement("script");t.onload=function(){e()},t.onerror=function(){throw new Error("failed to load "+n)},t.async=!0,t.src=n,document.head.appendChild(t)}export function loadWasmModuleAsync(n,e,t,o){loadScriptAsync(e,(function(){var e=window[n];window[n+"Lib"]=e,e({locateFile:function(){return t}}).then((function(e){window[n]=e,o()}))}))}
+/* eslint-disable no-unused-vars */
+
+// check for wasm module support
+export function wasmSupported() {
+    try {
+        if (typeof WebAssembly === "object" && typeof WebAssembly.instantiate === "function") {
+            const module = new WebAssembly.Module(Uint8Array.of(0x0, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00));
+            if (module instanceof WebAssembly.Module)
+                return new WebAssembly.Instance(module) instanceof WebAssembly.Instance;
+        }
+    } catch (e) { }
+    return false;
+}
+
+// load a script
+export function loadScriptAsync(url, doneCallback) {
+    var tag = document.createElement('script');
+    tag.onload = function () {
+        doneCallback();
+    };
+    tag.onerror = function () {
+        throw new Error('failed to load ' + url);
+    };
+    tag.async = true;
+    tag.src = url;
+    document.head.appendChild(tag);
+}
+
+// load and initialize a wasm module
+export function loadWasmModuleAsync(moduleName, jsUrl, binaryUrl, doneCallback) {
+    loadScriptAsync(jsUrl, function () {
+        var lib = window[moduleName];
+        window[moduleName + 'Lib'] = lib;
+        lib({
+            locateFile: function () {
+                return binaryUrl;
+            }
+        }).then(function (instance) {
+            window[moduleName] = instance;
+            doneCallback();
+        });
+    });
+}

@@ -1,1 +1,136 @@
-function ObjModelParser(e){this._device=e,this._defaultMaterial=new pc.StandardMaterial}Object.assign(ObjModelParser.prototype,{parse:function(e){var s,r={default:{verts:[],normals:[],uvs:[],indices:[]}},t="default",a=e.split("\n"),n=[],l=[],h=[];for(s=0;s<a.length;s++){var o=a[s].trim(),p=o.split(/\s+/);if("v"===o[0])"v"===p[0]?n.push(parseFloat(p[1]),parseFloat(p[2]),parseFloat(p[3])):"vn"===p[0]?l.push(parseFloat(p[1]),parseFloat(p[2]),parseFloat(p[3])):"vt"===p[0]&&h.push(parseFloat(p[1]),parseFloat(p[2]));else if("g"===o[0]||"o"===o[0]||"u"===o[0])r[t=p[1]]||(r[t]={verts:[],normals:[],uvs:[]});else if("f"===o[0]){var i,v;if(4===p.length)for(i=1;i<p.length;i++)v=this._parseIndices(p[i]),r[t].verts.push(n[3*v[0]],n[3*v[0]+1],n[3*v[0]+2]),2*v[1]<h.length&&r[t].uvs.push(h[2*v[1]],h[2*v[1]+1]),3*v[2]<l.length&&r[t].normals.push(l[3*v[2]],l[3*v[2]+1],l[3*v[2]+2]);else if(5===p.length){var u=[1,2,3,3,4,1];i=1;for(var c=0;c<u.length;c++)i=u[c],v=this._parseIndices(p[i]),r[t].verts.push(n[3*v[0]],n[3*v[0]+1],n[3*v[0]+2]),2*v[1]<h.length&&r[t].uvs.push(h[2*v[1]],h[2*v[1]+1]),3*v[2]<l.length&&r[t].normals.push(l[3*v[2]],l[3*v[2]+1],l[3*v[2]+2])}else console.error(pc.string.format("OBJ uses unsupported {0}-gons",p.length-1))}}var d=new pc.Model,g=Object.keys(r),f=new pc.GraphNode;for(s=0;s<g.length;s++){var m=r[g[s]];if(m.verts.length){m.verts.length>65535&&console.warn("Warning: mesh with more than 65535 vertices");var F={};m.normals.length>0&&(F.normals=m.normals),m.uvs.length>0&&(F.uvs=m.uvs);var M=pc.createMesh(this._device,m.verts,F),w=new pc.MeshInstance(M,this._defaultMaterial,new pc.GraphNode);d.meshInstances.push(w),f.addChild(w.node)}}return d.graph=f,d.getGraph().syncHierarchy(),d},_parseIndices:function(e){for(var s=[],r=e.split("/"),t=0;t<3;t++)r[t]&&(s[t]=parseInt(r[t],10)-1);return s}});
+// Sample Obj model parser. This is not added to built into the engine library by default.
+//
+// To use, first register the parser:
+//
+// // add parser to model resource handler
+// var objParser = new pc.ObjModelParser(this.app.graphicsDevice);
+// this.app.loader.getHandler("model").addParser(objParser, function (url) {
+//     return (pc.path.getExtension(url) === '.obj');
+// });
+//
+// Then load obj as a model asset:
+//
+// var asset = new pc.Asset("MyObj", "model", {
+//    url: "model.obj"
+// });
+// this.app.assets.add(asset);
+// this.app.assets.load(asset);
+function ObjModelParser(device) {
+    this._device = device;
+    this._defaultMaterial = new pc.StandardMaterial();
+}
+
+Object.assign(ObjModelParser.prototype, {
+    // First draft obj parser
+    // probably doesn't handle a lot of the obj spec
+    // Known issues:
+    // - can't handle meshes larger than 65535 verts
+    // - assigns default material to all meshes
+    // - doesn't created indexed geometry
+    parse: function (input) {
+        // expanded vert, uv and normal values from face indices
+        var parsed = {
+            default: {
+                verts: [],
+                normals: [],
+                uvs: [],
+                indices: []
+            }
+        };
+        var group = "default"; // current group
+        var lines = input.split("\n");
+        var verts = [], normals = [], uvs = [];
+        var i;
+
+        for (i = 0; i < lines.length; i++) {
+            var line = lines[i].trim();
+            var parts = line.split(/\s+/);
+
+            if (line[0] === 'v') {
+                if (parts[0] === 'v') {
+                    verts.push(parseFloat(parts[1]), parseFloat(parts[2]), parseFloat(parts[3]));
+                } else if (parts[0] === 'vn') {
+                    normals.push(parseFloat(parts[1]), parseFloat(parts[2]), parseFloat(parts[3]));
+                } else if (parts[0] === 'vt') {
+                    uvs.push(parseFloat(parts[1]), parseFloat(parts[2]));
+                }
+            } else if (line[0] === 'g' || line[0] === 'o' || line[0] === 'u') {
+                // split into groups for 'g' 'o' and 'usemtl' elements
+                group = parts[1]; // only first value for name for now
+                if (!parsed[group]) {
+                    parsed[group] = {
+                        verts: [],
+                        normals: [],
+                        uvs: []
+                    };
+                }
+            } else if (line[0] === 'f') {
+                var p, r;
+                if (parts.length === 4) {
+                    // triangles
+                    for (p = 1; p < parts.length; p++) {
+                        r = this._parseIndices(parts[p]);
+                        parsed[group].verts.push(verts[r[0] * 3], verts[r[0] * 3 + 1], verts[r[0] * 3 + 2]); // expand uvs from indices
+                        if (r[1] * 2 < uvs.length)
+                            parsed[group].uvs.push(uvs[r[1] * 2], uvs[r[1] * 2 + 1]); // expand uvs from indices
+                        if (r[2] * 3 < normals.length)
+                            parsed[group].normals.push(normals[r[2] * 3], normals[r[2] * 3 + 1], normals[r[2] * 3 + 2]); // expand normals from indices
+                    }
+
+                } else if (parts.length === 5) {
+                    // quads
+                    var order = [1, 2, 3, 3, 4, 1]; // split quad into to triangles;
+                    p = 1;
+                    for (var o = 0; o < order.length; o++) {
+                        p = order[o];
+                        r = this._parseIndices(parts[p]);
+                        parsed[group].verts.push(verts[r[0] * 3], verts[r[0] * 3 + 1], verts[r[0] * 3 + 2]); // expand uvs from indices
+                        if (r[1] * 2 < uvs.length)
+                            parsed[group].uvs.push(uvs[r[1] * 2], uvs[r[1] * 2 + 1]); // expand uvs from indices
+                        if (r[2] * 3 < normals.length)
+                            parsed[group].normals.push(normals[r[2] * 3], normals[r[2] * 3 + 1], normals[r[2] * 3 + 2]); // expand normals from indices
+                    }
+                } else {
+                    console.error(pc.string.format("OBJ uses unsupported {0}-gons", parts.length - 1));
+                }
+            }
+        }
+
+        var model = new pc.Model();
+        var groupNames = Object.keys(parsed);
+        var root = new pc.GraphNode();
+        // create a new mesh instance for each "group"
+        for (i = 0; i < groupNames.length; i++) {
+            var currentGroup = parsed[groupNames[i]];
+            if (!currentGroup.verts.length) continue;
+            if (currentGroup.verts.length > 65535) {
+                console.warn("Warning: mesh with more than 65535 vertices");
+            }
+
+            var meshOptions = {};
+            if (currentGroup.normals.length > 0)
+                meshOptions.normals = currentGroup.normals;
+            if (currentGroup.uvs.length > 0)
+                meshOptions.uvs = currentGroup.uvs;
+
+            var mesh = pc.createMesh(this._device, currentGroup.verts, meshOptions);
+            var mi = new pc.MeshInstance(mesh, this._defaultMaterial, new pc.GraphNode());
+            model.meshInstances.push(mi);
+            root.addChild(mi.node);
+        }
+        model.graph = root;
+        model.getGraph().syncHierarchy();
+        return model;
+    },
+
+    _parseIndices: function (str) {
+        var result = [];
+        var indices = str.split("/");
+        for (var i = 0; i < 3; i++) {
+            if (indices[i]) {
+                result[i] = parseInt(indices[i], 10) - 1; // convert to 0-indexed
+            }
+        }
+        return result;
+    }
+});

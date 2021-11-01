@@ -1,1 +1,42 @@
-function loadManifestAssets(s,a,t){var e,n=0;for(e in a)a.hasOwnProperty(e)&&n++;function o(s,e){n--,a[s].asset=e,0===n&&t&&t()}Object.keys(a).forEach((function(t){if(a.hasOwnProperty(t)){var e=a[t];if(e.data){var n=new pc.Asset(t,e.type,e.url,e.data);n.on("load",(function(s){o(t,s)})),s.assets.add(n),s.assets.load(n)}else s.assets.loadFromUrl(e.url,e.type,(function(s,a){!s&&a&&o(t,a)}))}}))}
+// asset loader function allowing to load multiple assets
+function loadManifestAssets(app, manifest, onLoadedAssets) {
+    // count of assets to load
+    var count = 0;
+    var key;
+    for (key in manifest) {
+        if (manifest.hasOwnProperty(key)) {
+            count++;
+        }
+    }
+
+    function onLoadedAsset(key, asset) {
+        count--;
+        manifest[key].asset = asset;
+        if (count === 0) {
+            if (onLoadedAssets) {
+                onLoadedAssets();
+            }
+        }
+    }
+
+    // load them all
+    Object.keys(manifest).forEach(function (key) {
+        if (manifest.hasOwnProperty(key)) {
+            var entry = manifest[key];
+            if (entry.data) {
+                var asset = new pc.Asset(key, entry.type, entry.url, entry.data);
+                asset.on('load', function (asset) {
+                    onLoadedAsset(key, asset);
+                });
+                app.assets.add(asset);
+                app.assets.load(asset);
+            } else {
+                app.assets.loadFromUrl(entry.url, entry.type, function (err, asset) {
+                    if (!err && asset) {
+                        onLoadedAsset(key, asset);
+                    }
+                });
+            }
+        }
+    });
+}
