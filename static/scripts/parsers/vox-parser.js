@@ -1,13 +1,13 @@
 /**
  * @license
- * PlayCanvas Engine v1.51.0-dev revision d64255f08
+ * PlayCanvas Engine v1.52.0-dev revision 3a1a3285c
  * Copyright 2011-2021 PlayCanvas Ltd. All rights reserved.
  */
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
 	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.VoxParser = {}));
-})(this, (function (exports) { 'use strict';
+}(this, (function (exports) { 'use strict';
 
 	function _defineProperties(target, props) {
 	  for (var i = 0; i < props.length; i++) {
@@ -1484,9 +1484,21 @@
 	          }
 
 	        case 'RGBA':
-	          voxModel.setPalette(new VoxPalette(new Uint8Array(arrayBuffer, rs.offset, 256 * 4)));
-	          rs.skip(256 * 6);
-	          break;
+	          {
+	            var tmp = new Uint8Array(arrayBuffer, rs.offset, 256 * 4);
+	            var data = new Uint8Array(256 * 4);
+
+	            for (var i = 0; i < 255; ++i) {
+	              data[(i + 1) * 4 + 0] = tmp[i * 4 + 0];
+	              data[(i + 1) * 4 + 1] = tmp[i * 4 + 1];
+	              data[(i + 1) * 4 + 2] = tmp[i * 4 + 2];
+	              data[(i + 1) * 4 + 3] = tmp[i * 4 + 3];
+	            }
+
+	            voxModel.setPalette(new VoxPalette(new Uint8Array(data.buffer)));
+	            rs.skip(256 * 6);
+	            break;
+	          }
 
 	        default:
 	          rs.skip(chunk.numBytes + chunk.numChildBytes);
@@ -1495,7 +1507,7 @@
 	    }
 
 	    if (!voxModel.palette) {
-	      voxModel.setPalette(defaultPalette);
+	      voxModel.setPalette(new VoxPalette(defaultPalette));
 	    }
 
 	    return voxModel;
@@ -1555,7 +1567,7 @@
 	      normals.push(normal[0], normal[1], normal[2]);
 	      normals.push(normal[0], normal[1], normal[2]);
 	      normals.push(normal[0], normal[1], normal[2]);
-	      var clr = voxMesh.palette.clr(paletteIndex - 1);
+	      var clr = voxMesh.palette.clr(paletteIndex);
 	      colors.push(clr[0], clr[1], clr[2], clr[3]);
 	      colors.push(clr[0], clr[1], clr[2], clr[3]);
 	      colors.push(clr[0], clr[1], clr[2], clr[3]);
@@ -1806,4 +1818,4 @@
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-}));
+})));
