@@ -1,13 +1,13 @@
 /**
  * @license
- * PlayCanvas Engine v1.52.0-dev revision 3a1a3285c
- * Copyright 2011-2021 PlayCanvas Ltd. All rights reserved.
+ * PlayCanvas Engine v1.51.5 revision 5a9a2396d
+ * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
 	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.VoxParser = {}));
-}(this, (function (exports) { 'use strict';
+})(this, (function (exports) { 'use strict';
 
 	function _defineProperties(target, props) {
 	  for (var i = 0; i < props.length; i++) {
@@ -1818,4 +1818,4 @@
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-})));
+}));
