@@ -2,7 +2,7 @@
 
 # Examples
 
-A selection of simple examples to get you up and running
+A selection of simple examples to get you up and running.
 
 See them <a href="https://playcanvas.github.io/">running live</a>
 
