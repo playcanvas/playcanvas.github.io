@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="../../build/playcanvas-extras.js"></script>
+    <script src="../../build/playcanvas-observer.js"></script>
+    <script src="../../build/wasm-loader.js"></script>
+    <script src="../../build/urlSearchParamsPolyfill.js"></script>
+    <script src="../../build/promisePolyfill.js"></script>
+    <script src="../../build/fetchPolyfill.js"></script>
+    <script src="../../build/regeneratorRuntimePolyfill.js"></script>
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        body {
+            margin: 0;
+            overflow-y: hidden;
+        }
+        #application-canvas {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div id="appInner">
+            <canvas id='application-canvas'></canvas>
+        </div>
+    </div>
+    <script>
+        // polyfill slice on UInt8Array
+        if (!Uint8Array.prototype.slice) {
+            Object.defineProperty(Uint8Array.prototype, 'slice', {
+                value: function (begin, end) {
+                    return new Uint8Array(Array.prototype.slice.call(this, begin, end));
+                }
+            });
+        }
+
+        // include any constants necessary for the example
+        var constValues = [];
+        for (var i = 0; i < constValues.length; i++) {
+            window[constValues[i].k] = constValues[i].v;
+        }
+
+        // include the example class which contains the example function to execute and any assets to load
+        "use strict";function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}function _defineProperties(target, props) {for (var i = 0; i < props.length; i++) {var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);}}function _createClass(Constructor, protoProps, staticProps) {if (protoProps) _defineProperties(Constructor.prototype, protoProps);if (staticProps) _defineProperties(Constructor, staticProps);Object.defineProperty(Constructor, "prototype", { writable: false });return Constructor;}function _defineProperty(obj, key, value) {if (key in obj) {Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true });} else {obj[key] = value;}return obj;}var Example = /*#__PURE__*/function () {function Example() {_classCallCheck(this, Example);}_createClass(Example, [{ key: "load", value:
+
+
+
+    function load() {
+      return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/
+      React.createElement("div", { name: "helipad.dds", type: "cubemap", url: "/../../static/assets/cubemaps/helipad.dds", data: { type: pc.TEXTURETYPE_RGBM } }));
+
+    } }, { key: "example", value:
+
+    function example(app, canvas, assets) {
+
+      // Create the application and start the update loop
+      
+      app.start();
+
+      // setup skydome
+      app.scene.skyboxMip = 2;
+      app.scene.exposure = 0.2;
+      app.scene.setSkybox(assets['helipad.dds'].resources);
+      app.scene.skyboxRotation = new pc.Quat().setFromEulerAngles(0, 30, 0);
+
+      // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
+      app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
+      app.setCanvasResolution(pc.RESOLUTION_AUTO);
+
+      // Create an Entity with a camera component
+      var camera = new pc.Entity();
+      camera.addComponent("camera", {
+        clearColor: new pc.Color(0.1, 0.1, 0.1) });
+
+      camera.setLocalPosition(80, 40, 80);
+      camera.lookAt(new pc.Vec3(0, -35, 0));
+      app.root.addChild(camera);
+
+      // Create a directional light
+      var directionallight = new pc.Entity();
+      directionallight.addComponent("light", {
+        type: "directional",
+        color: pc.Color.WHITE,
+        castShadows: false });
+
+      app.root.addChild(directionallight);
+
+      // create a circle of meshes
+      var meshes = [];
+      var numMeshes = 10;
+      for (var i = 0; i < numMeshes; i++) {
+        var entity = new pc.Entity();
+        entity.setLocalScale(4, 4, 4);
+
+        // use material with random color
+        var material = new pc.StandardMaterial();
+        material.diffuse = new pc.Color(Math.random(), Math.random(), Math.random());
+        material.update();
+
+        // create render component
+        entity.addComponent("render", {
+          type: i % 2 ? "sphere" : "cylinder",
+          material: material });
+
+
+        if (!(i % 2)) {
+          entity.setLocalScale(3, 5, 3);
+        }
+
+        // add entity for rendering
+        app.root.addChild(entity);
+        meshes.push(entity);
+      }
+
+      // helper function to generate elevation of a point with [x, y] coordinates
+      function groundElevation(time, x, z) {
+        return Math.sin(time + 0.2 * x) * 2 + Math.cos(time * 0.2 + 0.5 * z + 0.2 * x);
+      }
+
+      // helper function to generate a color for 3d point by lerping between green and red color
+      // based on its y coordinate
+      function groundColor(color, point) {
+        color.lerp(pc.Color.GREEN, pc.Color.RED, pc.math.clamp((point.y + 3) * 0.25, 0, 1));
+      }
+
+      // Set an update function on the app's update event
+      var time = 0;
+      app.on("update", function (dt) {
+        time += dt;
+
+        // generate grid of lines - store positions and colors as an arrays of numbers instead of
+        // Vec3s and Colors to improve performance
+        var positions = [];
+        var colors = [];
+
+        // temporary instances for calculations
+        var pt1 = new pc.Vec3();
+        var pt2 = new pc.Vec3();
+        var pt3 = new pc.Vec3();
+        var c1 = new pc.Color();
+        var c2 = new pc.Color();
+        var c3 = new pc.Color();
+
+        for (var x = 1; x < 60; x++) {
+          for (var z = 1; z < 60; z++) {
+
+            // generate 3 points: one start point, one along x and one along z axis
+            pt1.set(x, groundElevation(time, x, z), z);
+            pt2.set(x - 1, groundElevation(time, x - 1, z), z);
+            pt3.set(x, groundElevation(time, x, z - 1), z - 1);
+
+            // generate colors for the 3 points
+            groundColor(c1, pt1);
+            groundColor(c2, pt2);
+            groundColor(c3, pt3);
+
+            // add line connecting points along z axis
+            if (x > 1) {
+              positions.push(pt1.x, pt1.y, pt1.z, pt2.x, pt2.y, pt2.z);
+              colors.push(c1.r, c1.g, c1.b, c1.a, c2.r, c2.g, c2.b, c2.a);
+            }
+
+            // add line connecting points along x axis
+            if (z > 1) {
+              positions.push(pt1.x, pt1.y, pt1.z, pt3.x, pt3.y, pt3.z);
+              colors.push(c1.r, c1.g, c1.b, c1.a, c3.r, c3.g, c3.b, c3.a);
+            }
+          }
+        }
+
+        // submit the generated arrays of lines and colors for rendering
+        app.drawLineArrays(positions, colors);
+
+        // array of Vec3 and Color classes for different way to render lines
+        var grayLinePositions = [];
+        var grayLineColors = [];
+
+        // handle the array of meshes
+        for (var _i = 0; _i < numMeshes; _i++) {
+
+          // move them equally spaced out around in the circle
+          var offset = _i * Math.PI * 2 / numMeshes;
+          var _entity = meshes[_i];
+          _entity.setLocalPosition(
+          30 + 20 * Math.sin(time * 0.2 + offset),
+          5 + 2 * Math.sin(time + 3 * _i / numMeshes),
+          30 + 20 * Math.cos(time * 0.2 + offset));
+
+
+          // rotate the meshes
+          _entity.rotate((_i + 1) * dt, 4 * (_i + 1) * dt, 6 * (_i + 1) * dt);
+
+          // draw a single magenta line from this mesh to the next mesh
+          var nextEntity = meshes[(_i + 1) % meshes.length];
+          app.drawLine(_entity.getPosition(), nextEntity.getPosition(), pc.Color.MAGENTA);
+
+          // store positions and colors of lines connecting objects to a center point
+          grayLinePositions.push(_entity.getPosition(), new pc.Vec3(0, 10, 0));
+          grayLineColors.push(pc.Color.GRAY, pc.Color.GRAY);
+        }
+
+        // render all gray lines
+        app.drawLines(grayLinePositions, grayLineColors);
+      });
+    } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'Graphics');_defineProperty(Example, "NAME", 'Lines');
+        var example = new Example();
+
+        var useTypeScript = window.top.localStorage.getItem('useTypeScript') === 'true';
+        window.exampleFunction = window.top.localStorage.getItem(window.top.location.hash.replace('#', ''));
+        if (!window.exampleFunction) {
+            window.exampleFunction = example.example
+        } else {
+            if (useTypeScript) {
+                window.exampleFunction = window.top.Babel.transform(exampleFunction, {
+                    retainLines: true,
+                    filename: 'transformedScript.tsx',
+                    presets: ["react", "typescript", "env"]
+                }).code;
+            }
+            window.exampleFunction = new Function('app', 'canvas', 'assets', 'data', exampleFunction);
+        }
+        window.loadFunction = example.load;
+
+        // get url parameters
+        var queryString = window.location.search;
+        var urlParams = new URLSearchParams(queryString);
+    </script>
+    <script>
+        function loadEngine(callback) {
+            const enginePath = urlParams.get('use_local_engine') || "../../build/playcanvas.js";
+
+            fetch(enginePath)
+                .then(function(response) { return response.text() })
+                .then(function(data) {
+                    var module = {
+                        exports: {}
+                    };
+                    window.pc = (Function('module', 'exports', data).call(module, module, module.exports), module).exports;
+                    window.top.pc = window.pc;
+                    callback();
+                });
+        }
+
+        function createApplication(canvas) {
+            // create the app
+            var app = new pc.Application(canvas, {
+                mouse: new pc.Mouse(document.body),
+                touch: new pc.TouchDevice(document.body),
+                elementInput: new pc.ElementInput(canvas),
+                gamepads: new pc.GamePads(),
+                keyboard: new pc.Keyboard(window),
+                graphicsDeviceOptions: {
+                    alpha: true
+                }
+            });
+
+            // set up miniStats
+            var miniStats = new pcx.MiniStats(app);
+            if (urlParams.get('miniStats') === 'false') {
+                miniStats.enabled = false;
+            }
+            app.on('update', function () {
+                if (window.top._showMiniStats !== undefined) miniStats.enabled = window.top._showMiniStats;
+            });
+
+            // handle resizing
+            var canvasContainerElement = canvas.parentElement;
+            canvas.setAttribute('width', window.innerWidth + 'px');
+            canvas.setAttribute('height', window.innerHeight + 'px');
+            var resizeTimeout = null;
+            app.setCanvasResolution(pc.RESOLUTION_AUTO);
+            if (window.ResizeObserver) {
+                new ResizeObserver(function() {
+                    canvas.width = canvasContainerElement.clientWidth;
+                    canvas.height = canvasContainerElement.clientHeight;
+                }).observe(canvasContainerElement);
+            }
+
+            return app;
+        }
+
+        function hasBasisAssets (assets) {
+        for (let i = 0; i < assets.length; i++) {
+            if (assets[i].url && assets[i].url.includes('.basis')) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+        function loadResource(app, resource, callback) {
+            if (!resource.type) {
+                fetch(resource.url)
+                    .then(function(response) { return response.text() })
+                    .then(function(data) {
+                        var module = {
+                            exports: {}
+                        };
+                        window[resource.name] = (Function('module', 'exports', data).call(module, module, module.exports), module).exports;
+                        callback({});
+                    });
+                return;
+            }
+            if (resource.data) {
+                var asset = new pc.Asset(
+                    resource.name,
+                    resource.type,
+                    resource.type === "cubemap" ? {
+                        url: resource.url
+                    } : null,
+                    resource.data
+                );
+                asset.on("load", function (asset) {
+                    callback(asset);
+                });
+                app.assets.add(asset);
+                app.assets.load(asset);
+            } else {
+                app.assets.loadFromUrl(resource.url, resource.type, function (
+                    err,
+                    asset
+                ) {
+                    if (!err && asset) {
+                        callback(asset);
+                    }
+                });
+            }
+        }
+
+        function loadResources(app, callback) {
+            var assets = [];
+            var assetManifest = {};
+
+            // stub out react
+            window.React = { createElement: function(type, props) { if (type === 'div') assets.push(props); } };
+            // call the stubbed load function to add all assets to the assets list
+            window.loadFunction();
+
+            // if we have any basis assets then initialize basis
+            if (hasBasisAssets(assets)) {
+                pc.basisInitialize({
+                    glueUrl: '/static/lib/basis/basis.wasm.js',
+                    wasmUrl: '/static/lib/basis/basis.wasm.wasm',
+                    fallbackUrl: '/static/lib/basis/basis.js'
+                });
+            }
+
+            var count = assets.length;
+            function onLoadedResource(key, asset) {
+                count--;
+                if (key) {
+                    assetManifest[key] = asset;
+                }
+                if (count <= 0) {
+                    callback(assetManifest);
+                }
+            }
+
+            assets.forEach(function (resource) {
+                loadResource(app, resource, function(asset) {
+                    onLoadedResource(resource.name, asset);
+                });
+            });
+        }
+
+        function callExample(app, canvas, assetManifest, data) {
+            if (location.pathname.indexOf('misc/mini-stats') !== -1) {
+                window.exampleFunction(app, canvas, pcx);
+            } else {
+                window.exampleFunction(app, canvas, assetManifest, data, wasmSupported, loadWasmModuleAsync);
+            }
+            if (window.top.location.pathname.indexOf('iframe') === -1) {
+                var event = new CustomEvent("exampleLoad");
+                window.top.dispatchEvent(event);
+            }
+        }
+    </script>
+    <script>
+        // create the example observer 
+        var data = new observer.Observer({});
+        window.top.observerData = data;
+
+        // load the engine, create the application, load the resources if necessary, then call the example
+        loadEngine(function() {
+            var canvas = document.getElementById('application-canvas');
+
+            const app = createApplication(canvas);
+
+            if (!window.loadFunction) {
+                callExample(app, canvas, {}, data);
+            } else {
+                loadResources(app, function(assetManifest) {
+                    callExample(app, canvas, assetManifest, data);
+                });
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="../../build/playcanvas-extras.js"></script>
+    <script src="../../build/playcanvas-observer.js"></script>
+    <script src="../../build/wasm-loader.js"></script>
+    <script src="../../build/urlSearchParamsPolyfill.js"></script>
+    <script src="../../build/promisePolyfill.js"></script>
+    <script src="../../build/fetchPolyfill.js"></script>
+    <script src="../../build/regeneratorRuntimePolyfill.js"></script>
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        body {
+            margin: 0;
+            overflow-y: hidden;
+        }
+        #application-canvas {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div id="appInner">
+            <canvas id='application-canvas'></canvas>
+        </div>
+    </div>
+    <script>
+        // polyfill slice on UInt8Array
+        if (!Uint8Array.prototype.slice) {
+            Object.defineProperty(Uint8Array.prototype, 'slice', {
+                value: function (begin, end) {
+                    return new Uint8Array(Array.prototype.slice.call(this, begin, end));
+                }
+            });
+        }
+
+        // include any constants necessary for the example
+        var constValues = [];
+        for (var i = 0; i < constValues.length; i++) {
+            window[constValues[i].k] = constValues[i].v;
+        }
+
+        // include the example class which contains the example function to execute and any assets to load
+        "use strict";function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}function _defineProperties(target, props) {for (var i = 0; i < props.length; i++) {var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);}}function _createClass(Constructor, protoProps, staticProps) {if (protoProps) _defineProperties(Constructor.prototype, protoProps);if (staticProps) _defineProperties(Constructor, staticProps);Object.defineProperty(Constructor, "prototype", { writable: false });return Constructor;}function _defineProperty(obj, key, value) {if (key in obj) {Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true });} else {obj[key] = value;}return obj;}var Example = /*#__PURE__*/function () {function Example() {_classCallCheck(this, Example);}_createClass(Example, [{ key: "load", value:
+
+
+
+    function load() {
+      return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/
+      React.createElement("div", { name: "bloom", type: "script", url: "/../../static/scripts/posteffects/posteffect-bloom.js" }), /*#__PURE__*/
+      React.createElement("div", { name: "bokeh", type: "script", url: "/../../static/scripts/posteffects/posteffect-bokeh.js" }), /*#__PURE__*/
+      React.createElement("div", { name: "sepia", type: "script", url: "/../../static/scripts/posteffects/posteffect-sepia.js" }), /*#__PURE__*/
+      React.createElement("div", { name: "vignette", type: "script", url: "/../../static/scripts/posteffects/posteffect-vignette.js" }), /*#__PURE__*/
+      React.createElement("div", { name: "ssao", type: "script", url: "/../../static/scripts/posteffects/posteffect-ssao.js" }), /*#__PURE__*/
+      React.createElement("div", { name: "font", type: "font", url: "/../../static/assets/fonts/arial.json" }), /*#__PURE__*/
+      React.createElement("div", { name: "helipad.dds", type: "cubemap", url: "/../../static/assets/cubemaps/helipad.dds", data: { type: pc.TEXTURETYPE_RGBM } }));
+
+    } }, { key: "controls", value:
+
+    function controls(data) {
+      return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/
+      React.createElement(Panel, { headerText: "BLOOM [KEY_1]" }, /*#__PURE__*/
+      React.createElement(LabelGroup, { text: "enabled" }, /*#__PURE__*/
+      React.createElement(BooleanInput, { type: "toggle", binding: new BindingTwoWay(), link: { observer: data, path: 'scripts.bloom.enabled' } })), /*#__PURE__*/
+
+      React.createElement(LabelGroup, { text: "intensity" }, /*#__PURE__*/
+      React.createElement(SliderInput, { binding: new BindingTwoWay(), link: { observer: data, path: 'scripts.bloom.bloomIntensity' } })), /*#__PURE__*/
+
+      React.createElement(LabelGroup, { text: "threshold" }, /*#__PURE__*/
+      React.createElement(SliderInput, { binding: new BindingTwoWay(), link: { observer: data, path: 'scripts.bloom.bloomThreshold' } })), /*#__PURE__*/
+
+      React.createElement(LabelGroup, { text: "blur amount" }, /*#__PURE__*/
+      React.createElement(SliderInput, { binding: new BindingTwoWay(), link: { observer: data, path: 'scripts.bloom.blurAmount' }, min: 1, max: 30 }))), /*#__PURE__*/
+
+
+      React.createElement(Panel, { headerText: "SEPIA [KEY_2]" }, /*#__PURE__*/
+      React.createElement(LabelGroup, { text: "enabled" }, /*#__PURE__*/
+      React.createElement(BooleanInput, { type: "toggle", binding: new BindingTwoWay(), link: { observer: data, path: 'scripts.sepia.enabled' } })), /*#__PURE__*/
+
+      React.createElement(LabelGroup, { text: "amount" }, /*#__PURE__*/
+      React.createElement(SliderInput, { binding: new BindingTwoWay(), link: { observer: data, path: 'scripts.sepia.amount' } }))), /*#__PURE__*/
+
+
+      React.createElement(Panel, { headerText: "VIGNETTE [KEY_3]" }, /*#__PURE__*/
+      React.createElement(LabelGroup, { text: "enabled" }, /*#__PURE__*/
+      React.createElement(BooleanInput, { type: "toggle", binding: new BindingTwoWay(), link: { observer: data, path: 'scripts.vignette.enabled' } })), /*#__PURE__*/
+
+      React.createElement(LabelGroup, { text: "darkness" }, /*#__PURE__*/
+      React.createElement(SliderInput, { binding: new BindingTwoWay(), link: { observer: data, path: 'scripts.vignette.darkness' } })), /*#__PURE__*/
+
+      React.createElement(LabelGroup, { text: "offset" }, /*#__PURE__*/
+      React.createElement(SliderInput, { binding: new BindingTwoWay(), link: { observer: data, path: 'scripts.vignette.offset' }, max: 2 }))), /*#__PURE__*/
+
+
+      React.createElement(Panel, { headerText: "BOKEH [KEY_4]" }, /*#__PURE__*/
+      React.createElement(LabelGroup, { text: "enabled" }, /*#__PURE__*/
+      React.createElement(BooleanInput, { type: "toggle", binding: new BindingTwoWay(), link: { observer: data, path: 'scripts.bokeh.enabled' } })), /*#__PURE__*/
+
+      React.createElement(LabelGroup, { text: "aperture" }, /*#__PURE__*/
+      React.createElement(SliderInput, { binding: new BindingTwoWay(), link: { observer: data, path: 'scripts.bokeh.aperture' }, max: 0.2 })), /*#__PURE__*/
+
+      React.createElement(LabelGroup, { text: "max blur" }, /*#__PURE__*/
+      React.createElement(SliderInput, { binding: new BindingTwoWay(), link: { observer: data, path: 'scripts.bokeh.maxBlur' }, max: 0.1 }))), /*#__PURE__*/
+
+
+      React.createElement(Panel, { headerText: "SSAO [KEY_5]" }, /*#__PURE__*/
+      React.createElement(LabelGroup, { text: "enabled" }, /*#__PURE__*/
+      React.createElement(BooleanInput, { type: "toggle", binding: new BindingTwoWay(), link: { observer: data, path: 'scripts.ssao.enabled' } })), /*#__PURE__*/
+
+      React.createElement(LabelGroup, { text: "radius" }, /*#__PURE__*/
+      React.createElement(SliderInput, { binding: new BindingTwoWay(), link: { observer: data, path: 'scripts.ssao.radius' }, max: 10 })), /*#__PURE__*/
+
+      React.createElement(LabelGroup, { text: "samples" }, /*#__PURE__*/
+      React.createElement(SliderInput, { binding: new BindingTwoWay(), link: { observer: data, path: 'scripts.ssao.samples' }, max: 32 })), /*#__PURE__*/
+
+      React.createElement(LabelGroup, { text: "brightness" }, /*#__PURE__*/
+      React.createElement(SliderInput, { binding: new BindingTwoWay(), link: { observer: data, path: 'scripts.ssao.brightness' } }))), /*#__PURE__*/
+
+
+      React.createElement(Panel, { headerText: "POST-PROCESS UI [KEY_6]" }, /*#__PURE__*/
+      React.createElement(LabelGroup, { text: "enabled" }, /*#__PURE__*/
+      React.createElement(BooleanInput, { type: "toggle", binding: new BindingTwoWay(), link: { observer: data, path: 'data.postProcessUI.enabled' } }))));
+
+
+
+    } }, { key: "example", value:
+
+    function example(app, canvas, assets, data) {
+      
+
+      app.start();
+
+      // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
+      app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
+      app.setCanvasResolution(pc.RESOLUTION_AUTO);
+
+      // setup skydome
+      app.scene.setSkybox(assets['helipad.dds'].resources);
+      app.scene.skyboxMip = 3;
+      app.scene.exposure = 1;
+
+      // helper function to create a 3d primitive including its material
+      function createPrimitive(primitiveType, position, scale, brightness) {var allowEmissive = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : true;
+
+        // create a material
+        var material = new pc.StandardMaterial();
+        material.shininess = 40;
+        material.metalness = 0.6;
+        material.useMetalness = true;
+
+        // random diffuse and emissive color
+        material.diffuse = new pc.Color(brightness, brightness, brightness);
+        if (allowEmissive && Math.random() < 0.15) {
+          material.emissive = new pc.Color(Math.random(), Math.random(), Math.random());
+        }
+        material.update();
+
+        // create the primitive using the material
+        var primitive = new pc.Entity();
+        primitive.addComponent('render', {
+          type: primitiveType,
+          material: material });
+
+
+        // set position and scale and add it to scene
+        primitive.setLocalPosition(position);
+        primitive.setLocalScale(scale);
+        app.root.addChild(primitive);
+
+        return primitive;
+      }
+
+      // create the ground plane from the boxes
+      for (var x = -2; x <= 2; x += 0.5) {
+        for (var z = 0; z <= 10; z += 0.5) {
+          createPrimitive("box", new pc.Vec3(x * 40, -5, z * 40), new pc.Vec3(18, 2, 18), Math.random());
+        }
+      }
+
+      // create the towers from the boxes
+      var scale = 16;
+      for (var y = 0; y <= 7; y++) {
+        for (var _x = -1; _x <= 1; _x += 2) {
+          for (var _z = 0; _z <= 10; _z += 2) {
+            var prim = createPrimitive("box", new pc.Vec3(_x * 40, 2 + y * 10, _z * 40), new pc.Vec3(scale, scale, scale), Math.random());
+            prim.setLocalEulerAngles(Math.random() * 360, Math.random() * 360, Math.random() * 360);
+          }
+        }
+        scale -= 1.5;
+      }
+
+      // create a sphere which represents the point of focus for the bokeh filter
+      var focusPrimitive = createPrimitive("sphere", pc.Vec3.ZERO, new pc.Vec3(10, 10, 10), 1.5, false);
+
+      // add an omni light as a child of this sphere
+      var light = new pc.Entity();
+      light.addComponent("light", {
+        type: "omni",
+        color: pc.Color.WHITE,
+        intensity: 4,
+        range: 100,
+        castShadows: false });
+
+      focusPrimitive.addChild(light);
+
+      // Create an Entity with a camera component, and attach postprocessing effects scripts on it
+      var camera = new pc.Entity();
+      camera.addComponent("camera", {
+        clearColor: new pc.Color(0.4, 0.45, 0.5),
+        farClip: 500 });
+
+      camera.addComponent("script");
+      data.set('scripts', {
+        ssao: {
+          enabled: true,
+          radius: 5,
+          samples: 16,
+          brightness: 0 },
+
+        bloom: {
+          enabled: true,
+          bloomIntensity: 0.8,
+          bloomThreshold: 0.8,
+          blurAmount: 15 },
+
+        sepia: {
+          enabled: true,
+          amount: 0.4 },
+
+        vignette: {
+          enabled: true,
+          darkness: 1,
+          offset: 1.2 },
+
+        bokeh: {
+          enabled: true,
+          aperture: 0.1,
+          maxBlur: 0.01 } });
+
+
+
+      Object.keys(data.get('scripts')).forEach(function (key) {
+        camera.script.create(key, {
+          attributes: data.get("scripts.".concat(key)) });
+
+      });
+
+      // position the camera in the world
+      camera.setLocalPosition(0, 30, -60);
+      camera.lookAt(0, 0, 100);
+      app.root.addChild(camera);
+
+      // Allow user to toggle individual post effects
+      app.keyboard.on("keydown", function (e) {
+        // if the user is editing an input field, ignore key presses
+        if (e.element.constructor.name === 'HTMLInputElement') return;
+        switch (e.key) {
+          case pc.KEY_1:
+            data.set('scripts.bloom.enabled', !data.get('scripts.bloom.enabled'));
+            break;
+          case pc.KEY_2:
+            data.set('scripts.sepia.enabled', !data.get('scripts.sepia.enabled'));
+            break;
+          case pc.KEY_3:
+            data.set('scripts.vignette.enabled', !data.get('scripts.vignette.enabled'));
+            break;
+          case pc.KEY_4:
+            data.set('scripts.bokeh.enabled', !data.get('scripts.bokeh.enabled'));
+            break;
+          case pc.KEY_5:
+            data.set('scripts.ssao.enabled', !data.get('scripts.ssao.enabled'));
+            break;
+          case pc.KEY_6:
+            data.set('data.postProcessUI.enabled', !data.get('data.postProcessUI.enabled'));
+            break;}
+
+      }, this);
+
+      // Create a 2D screen to place UI on
+      var screen = new pc.Entity();
+      screen.addComponent("screen", {
+        referenceResolution: new pc.Vec2(1280, 720),
+        scaleBlend: 0.5,
+        scaleMode: pc.SCALEMODE_BLEND,
+        screenSpace: true });
+
+      app.root.addChild(screen);
+
+      // create a text element to show which effects are enabled
+      var text = new pc.Entity();
+      text.addComponent("element", {
+        anchor: new pc.Vec4(0.1, 0.1, 0.5, 0.5),
+        fontAsset: assets.font,
+        fontSize: 28,
+        pivot: new pc.Vec2(0.5, 0.1),
+        type: pc.ELEMENTTYPE_TEXT,
+        alignment: pc.Vec2.ZERO });
+
+      screen.addChild(text);
+
+      // Display some UI text which the post processing can be tested against
+      text.element.text = 'Test UI Text';
+
+      // update things every frame
+      var angle = 0;
+      app.on("update", function (dt) {
+        angle += dt;
+
+        // rotate the skydome
+        app.scene.skyboxRotation = new pc.Quat().setFromEulerAngles(0, angle * 20, 0);
+
+        // move the focus sphere in the world closer and further away
+        var focusPosition = new pc.Vec3(0, 10, Math.abs(Math.sin(angle * 0.1)) * 400);
+        focusPrimitive.setPosition(focusPosition);
+
+        // set the focus distance to the bokeh effect
+        // - it's a negative distance between the camera and the focus sphere
+        camera.script.bokeh.focus = -focusPosition.sub(camera.getPosition()).length();
+
+        // display the depth texture if bokeh is enabled
+        if (camera.script.bokeh.enabled) {
+          // @ts-ignore engine-tsd
+          app.drawDepthTexture(0.7, -0.7, 0.5, 0.5);
+        }
+      });
+
+      data.on('*:set', function (path, value) {
+        var pathArray = path.split('.');
+        if (pathArray[0] === 'scripts') {
+          camera.script[pathArray[1]][pathArray[2]] = value;
+        } else {
+          camera.camera.disablePostEffectsLayer = camera.camera.disablePostEffectsLayer === pc.LAYERID_UI ? undefined : pc.LAYERID_UI;
+        }
+      });
+    } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'Graphics');_defineProperty(Example, "NAME", 'Post Effects');
+        var example = new Example();
+
+        var useTypeScript = window.top.localStorage.getItem('useTypeScript') === 'true';
+        window.exampleFunction = window.top.localStorage.getItem(window.top.location.hash.replace('#', ''));
+        if (!window.exampleFunction) {
+            window.exampleFunction = example.example
+        } else {
+            if (useTypeScript) {
+                window.exampleFunction = window.top.Babel.transform(exampleFunction, {
+                    retainLines: true,
+                    filename: 'transformedScript.tsx',
+                    presets: ["react", "typescript", "env"]
+                }).code;
+            }
+            window.exampleFunction = new Function('app', 'canvas', 'assets', 'data', exampleFunction);
+        }
+        window.loadFunction = example.load;
+
+        // get url parameters
+        var queryString = window.location.search;
+        var urlParams = new URLSearchParams(queryString);
+    </script>
+    <script>
+        function loadEngine(callback) {
+            const enginePath = urlParams.get('use_local_engine') || "../../build/playcanvas.js";
+
+            fetch(enginePath)
+                .then(function(response) { return response.text() })
+                .then(function(data) {
+                    var module = {
+                        exports: {}
+                    };
+                    window.pc = (Function('module', 'exports', data).call(module, module, module.exports), module).exports;
+                    window.top.pc = window.pc;
+                    callback();
+                });
+        }
+
+        function createApplication(canvas) {
+            // create the app
+            var app = new pc.Application(canvas, {
+                mouse: new pc.Mouse(document.body),
+                touch: new pc.TouchDevice(document.body),
+                elementInput: new pc.ElementInput(canvas),
+                gamepads: new pc.GamePads(),
+                keyboard: new pc.Keyboard(window),
+                graphicsDeviceOptions: {
+                    alpha: true
+                }
+            });
+
+            // set up miniStats
+            var miniStats = new pcx.MiniStats(app);
+            if (urlParams.get('miniStats') === 'false') {
+                miniStats.enabled = false;
+            }
+            app.on('update', function () {
+                if (window.top._showMiniStats !== undefined) miniStats.enabled = window.top._showMiniStats;
+            });
+
+            // handle resizing
+            var canvasContainerElement = canvas.parentElement;
+            canvas.setAttribute('width', window.innerWidth + 'px');
+            canvas.setAttribute('height', window.innerHeight + 'px');
+            var resizeTimeout = null;
+            app.setCanvasResolution(pc.RESOLUTION_AUTO);
+            if (window.ResizeObserver) {
+                new ResizeObserver(function() {
+                    canvas.width = canvasContainerElement.clientWidth;
+                    canvas.height = canvasContainerElement.clientHeight;
+                }).observe(canvasContainerElement);
+            }
+
+            return app;
+        }
+
+        function hasBasisAssets (assets) {
+        for (let i = 0; i < assets.length; i++) {
+            if (assets[i].url && assets[i].url.includes('.basis')) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+        function loadResource(app, resource, callback) {
+            if (!resource.type) {
+                fetch(resource.url)
+                    .then(function(response) { return response.text() })
+                    .then(function(data) {
+                        var module = {
+                            exports: {}
+                        };
+                        window[resource.name] = (Function('module', 'exports', data).call(module, module, module.exports), module).exports;
+                        callback({});
+                    });
+                return;
+            }
+            if (resource.data) {
+                var asset = new pc.Asset(
+                    resource.name,
+                    resource.type,
+                    resource.type === "cubemap" ? {
+                        url: resource.url
+                    } : null,
+                    resource.data
+                );
+                asset.on("load", function (asset) {
+                    callback(asset);
+                });
+                app.assets.add(asset);
+                app.assets.load(asset);
+            } else {
+                app.assets.loadFromUrl(resource.url, resource.type, function (
+                    err,
+                    asset
+                ) {
+                    if (!err && asset) {
+                        callback(asset);
+                    }
+                });
+            }
+        }
+
+        function loadResources(app, callback) {
+            var assets = [];
+            var assetManifest = {};
+
+            // stub out react
+            window.React = { createElement: function(type, props) { if (type === 'div') assets.push(props); } };
+            // call the stubbed load function to add all assets to the assets list
+            window.loadFunction();
+
+            // if we have any basis assets then initialize basis
+            if (hasBasisAssets(assets)) {
+                pc.basisInitialize({
+                    glueUrl: '/static/lib/basis/basis.wasm.js',
+                    wasmUrl: '/static/lib/basis/basis.wasm.wasm',
+                    fallbackUrl: '/static/lib/basis/basis.js'
+                });
+            }
+
+            var count = assets.length;
+            function onLoadedResource(key, asset) {
+                count--;
+                if (key) {
+                    assetManifest[key] = asset;
+                }
+                if (count <= 0) {
+                    callback(assetManifest);
+                }
+            }
+
+            assets.forEach(function (resource) {
+                loadResource(app, resource, function(asset) {
+                    onLoadedResource(resource.name, asset);
+                });
+            });
+        }
+
+        function callExample(app, canvas, assetManifest, data) {
+            if (location.pathname.indexOf('misc/mini-stats') !== -1) {
+                window.exampleFunction(app, canvas, pcx);
+            } else {
+                window.exampleFunction(app, canvas, assetManifest, data, wasmSupported, loadWasmModuleAsync);
+            }
+            if (window.top.location.pathname.indexOf('iframe') === -1) {
+                var event = new CustomEvent("exampleLoad");
+                window.top.dispatchEvent(event);
+            }
+        }
+    </script>
+    <script>
+        // create the example observer 
+        var data = new observer.Observer({});
+        window.top.observerData = data;
+
+        // load the engine, create the application, load the resources if necessary, then call the example
+        loadEngine(function() {
+            var canvas = document.getElementById('application-canvas');
+
+            const app = createApplication(canvas);
+
+            if (!window.loadFunction) {
+                callExample(app, canvas, {}, data);
+            } else {
+                loadResources(app, function(assetManifest) {
+                    callExample(app, canvas, assetManifest, data);
+                });
+            }
+        });
+    </script>
+</body>
+</html>

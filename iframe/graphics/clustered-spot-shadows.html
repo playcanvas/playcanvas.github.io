@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="../../build/playcanvas-extras.js"></script>
+    <script src="../../build/playcanvas-observer.js"></script>
+    <script src="../../build/wasm-loader.js"></script>
+    <script src="../../build/urlSearchParamsPolyfill.js"></script>
+    <script src="../../build/promisePolyfill.js"></script>
+    <script src="../../build/fetchPolyfill.js"></script>
+    <script src="../../build/regeneratorRuntimePolyfill.js"></script>
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        body {
+            margin: 0;
+            overflow-y: hidden;
+        }
+        #application-canvas {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div id="appInner">
+            <canvas id='application-canvas'></canvas>
+        </div>
+    </div>
+    <script>
+        // polyfill slice on UInt8Array
+        if (!Uint8Array.prototype.slice) {
+            Object.defineProperty(Uint8Array.prototype, 'slice', {
+                value: function (begin, end) {
+                    return new Uint8Array(Array.prototype.slice.call(this, begin, end));
+                }
+            });
+        }
+
+        // include any constants necessary for the example
+        var constValues = [];
+        for (var i = 0; i < constValues.length; i++) {
+            window[constValues[i].k] = constValues[i].v;
+        }
+
+        // include the example class which contains the example function to execute and any assets to load
+        "use strict";function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}function _defineProperties(target, props) {for (var i = 0; i < props.length; i++) {var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);}}function _createClass(Constructor, protoProps, staticProps) {if (protoProps) _defineProperties(Constructor.prototype, protoProps);if (staticProps) _defineProperties(Constructor, staticProps);Object.defineProperty(Constructor, "prototype", { writable: false });return Constructor;}function _defineProperty(obj, key, value) {if (key in obj) {Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true });} else {obj[key] = value;}return obj;}var Example = /*#__PURE__*/function () {function Example() {_classCallCheck(this, Example);}_createClass(Example, [{ key: "load", value:
+
+
+
+
+    function load() {
+      return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/
+      React.createElement("div", { name: "script", type: "script", url: "/../../static/scripts/camera/orbit-camera.js" }), /*#__PURE__*/
+      React.createElement("div", { name: "channels", type: "texture", url: "/../../static/assets/textures/channels.png" }), /*#__PURE__*/
+      React.createElement("div", { name: "heart", type: "texture", url: "/../../static/assets/textures/heart.png" }), /*#__PURE__*/
+      React.createElement("div", { name: "normal", type: "texture", url: "/../../static/assets/textures/normal-map.png" }), /*#__PURE__*/
+      React.createElement("div", { name: "cubemap", type: "cubemap", url: "/../../static/assets/cubemaps/helipad.dds", data: { type: pc.TEXTURETYPE_RGBM } }));
+
+    } }, { key: "controls", value:
+
+    function controls(data) {
+      return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/
+      React.createElement(Panel, { headerText: "Atlas" }, /*#__PURE__*/
+      React.createElement(LabelGroup, { text: "Resolution" }, /*#__PURE__*/
+      React.createElement(SliderInput, { binding: new BindingTwoWay(), link: { observer: data, path: 'settings.shadowAtlasResolution' }, min: 256, max: 4096, precision: 0 })), /*#__PURE__*/
+
+      React.createElement(LabelGroup, { text: "Split" }, /*#__PURE__*/
+      React.createElement(SelectInput, { binding: new BindingTwoWay(), link: { observer: data, path: 'settings.atlasSplit' }, type: "number", options: [
+        { v: 0, t: 'Automatic' },
+        { v: 1, t: '7 Shadows' },
+        { v: 2, t: '12 Shadows' },
+        { v: 3, t: '16 Shadows' }] })), /*#__PURE__*/
+
+
+      React.createElement(LabelGroup, { text: "Filter" }, /*#__PURE__*/
+      React.createElement(SelectInput, { binding: new BindingTwoWay(), link: { observer: data, path: 'settings.shadowType' }, type: "number", options: [
+        { v: pc.SHADOW_PCF1, t: 'PCF1' },
+        { v: pc.SHADOW_PCF3, t: 'PCF3' },
+        { v: pc.SHADOW_PCF5, t: 'PCF5' }] }))), /*#__PURE__*/
+
+
+
+      React.createElement(Panel, { headerText: "Lights" }, /*#__PURE__*/
+      React.createElement(LabelGroup, { text: "Shadows On" }, /*#__PURE__*/
+      React.createElement(BooleanInput, { type: "toggle", binding: new BindingTwoWay(), link: { observer: data, path: 'settings.shadowsEnabled' }, value: data.get('settings.shadowsEnabled') })), /*#__PURE__*/
+
+      React.createElement(LabelGroup, { text: "Cookies On" }, /*#__PURE__*/
+      React.createElement(BooleanInput, { type: "toggle", binding: new BindingTwoWay(), link: { observer: data, path: 'settings.cookiesEnabled' }, value: data.get('settings.cookiesEnabled') })), /*#__PURE__*/
+
+      React.createElement(LabelGroup, { text: "Static" }, /*#__PURE__*/
+      React.createElement(BooleanInput, { type: "toggle", binding: new BindingTwoWay(), link: { observer: data, path: 'settings.static' }, value: data.get('settings.static') })), /*#__PURE__*/
+
+      React.createElement(Button, { text: "Add Light", onClick: function onClick() {return data.emit('add');} }), /*#__PURE__*/
+      React.createElement(Button, { text: "Remove Light", onClick: function onClick() {return data.emit('remove');} }), /*#__PURE__*/
+      React.createElement(LabelGroup, { text: "Light Count" }, /*#__PURE__*/
+      React.createElement(Label, { binding: new BindingTwoWay(), link: { observer: data, path: 'settings.numLights' }, value: data.get('settings.numLights') }))), /*#__PURE__*/
+
+
+      React.createElement(Panel, { headerText: "Debug" }, /*#__PURE__*/
+      React.createElement(LabelGroup, { text: "Cells" }, /*#__PURE__*/
+      React.createElement(BooleanInput, { type: "toggle", binding: new BindingTwoWay(), link: { observer: data, path: 'settings.debug' }, value: data.get('settings.debug') })), /*#__PURE__*/
+
+      React.createElement(LabelGroup, { text: "Atlas" }, /*#__PURE__*/
+      React.createElement(BooleanInput, { type: "toggle", binding: new BindingTwoWay(), link: { observer: data, path: 'settings.debugAtlas' }, value: data.get('settings.debugAtlas') }))));
+
+
+
+    } }, { key: "example", value:
+
+    function example(app, canvas, assets, data) {
+
+      // Create the application and start the update loop
+      
+      app.start();
+
+      data.set('settings', {
+        shadowAtlasResolution: 1024, // shadow map resolution storing all shadows
+        shadowType: pc.SHADOW_PCF3, // shadow filter type
+        shadowsEnabled: true,
+        cookiesEnabled: true,
+        numLights: 0,
+        debug: false,
+        debugAtlas: false,
+        splitOptions: 0,
+        "static": false });
+
+
+      // setup skydome as ambient light
+      app.scene.skyboxMip = 3;
+      app.scene.skyboxIntensity = 0.1;
+      app.scene.setSkybox(assets.cubemap.resources);
+
+      // enabled clustered lighting. This is a temporary API and will change in the future
+      // @ts-ignore engine-tsd
+      app.scene.clusteredLightingEnabled = true;
+
+      // adjust default clustered lighting parameters to handle many lights:
+      // @ts-ignore
+      var lighting = app.scene.lighting;
+
+      // 1) subdivide space with lights into this many cells:
+      // @ts-ignore engine-tsd
+      lighting.cells = new pc.Vec3(12, 4, 12);
+
+      // 2) and allow this many lights per cell:
+      // @ts-ignore engine-tsd
+      var maxLights = 24;
+      lighting.maxLightsPerCell = maxLights;
+
+      // enable clustered shadows (it's enabled by default as well)
+      // @ts-ignore engine-tsd
+      lighting.shadowsEnabled = true;
+
+      // enable clustered cookies
+      // @ts-ignore engine-tsd
+      lighting.cookiesEnabled = true;
+
+      // resolution of the shadow and cookie atlas
+      lighting.shadowAtlasResolution = data.get('settings.shadowAtlasResolution');
+      lighting.cookieAtlasResolution = 1500;
+
+      var splitOptions = [
+      null, // automatic - split atlas each frame to give all required lights an equal size
+      [2, 1, 1, 2, 1], // 7 shadows: split atlas to 2x2 (first number), and split created quarters to 1x1, 1x1, 2x2, 1x1
+      [3, 2], // 12 shadows: split atlas to 3x3 (first number), and split one of the created parts to 2x2
+      [4] // 16 shadows: split atlas to 4x4
+      ];
+
+      // lights are static (not moving and so do not need to update shadows) or dynamic
+      var lightsStatic = false;
+
+      // debug rendering is enabled
+      var debugAtlas = false;
+
+      // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
+      app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
+      app.setCanvasResolution(pc.RESOLUTION_AUTO);
+
+      window.addEventListener("resize", function () {
+        app.resizeCanvas(canvas.width, canvas.height);
+      });
+
+      // ground material
+      var groundMaterial = new pc.StandardMaterial();
+      groundMaterial.shininess = 25;
+      groundMaterial.metalness = 0.4;
+      groundMaterial.useMetalness = true;
+
+      // normal map
+      groundMaterial.normalMap = assets.normal.resource;
+      groundMaterial.normalMapTiling.set(10, 10);
+      groundMaterial.bumpiness = 0.5;
+
+      groundMaterial.update();
+
+      // helper function to create a 3d primitive including its material
+      function createPrimitive(primitiveType, position, scale) {
+
+        // create the primitive using the material
+        var primitive = new pc.Entity();
+        primitive.addComponent('render', {
+          type: primitiveType,
+          castShadows: true,
+          material: groundMaterial });
+
+
+        // set position and scale and add it to scene
+        primitive.setLocalPosition(position);
+        primitive.setLocalScale(scale);
+        app.root.addChild(primitive);
+
+        return primitive;
+      }
+
+      // create some visible geometry
+      var ground = createPrimitive("box", new pc.Vec3(0, 0, 0), new pc.Vec3(500, 0, 500));
+
+      var numTowers = 8;
+      for (var i = 0; i < numTowers; i++) {
+        var scale = 12;
+        var fraction = i / numTowers * Math.PI * 2;
+        var radius = 200;
+        var numCubes = 12;
+        for (var y = 0; y <= 10; y++) {
+          var elevationRadius = radius * (1 - y / numCubes);
+          var pos = new pc.Vec3(elevationRadius * Math.sin(fraction), y * 6, elevationRadius * Math.cos(fraction));
+          var prim = createPrimitive("box", pos, new pc.Vec3(scale, scale, scale));
+          prim.setLocalEulerAngles(Math.random() * 360, Math.random() * 360, Math.random() * 360);
+        }
+        scale -= 1.5;
+      }
+
+      var spotLightList = [];
+      var cookieChannels = ["r", "g", "b", "a", "rgb"];
+
+      // helper function to create a light
+      function createLight(index) {
+        var intensity = 1.5;
+        var color = new pc.Color(intensity * Math.random(), intensity * Math.random(), intensity * Math.random(), 1);
+        var lightSpot = new pc.Entity("Spot-".concat(index));
+        var heartTexture = Math.random() < 0.5;
+        var cookieTexture = heartTexture ? assets.heart : assets.channels;
+        var cookieChannel = heartTexture ? "a" : cookieChannels[Math.floor(Math.random() * cookieChannels.length)];
+
+        lightSpot.addComponent("light", {
+          type: "spot",
+          color: color,
+          intensity: 3,
+          innerConeAngle: 30,
+          outerConeAngle: 35,
+          range: 150,
+          castShadows: true,
+          shadowBias: 0.4,
+          normalOffsetBias: 0.1,
+          shadowResolution: 512, // only used when clustering is off
+
+          // when lights are static, only render shadows one time (or as needed when they use different atlas slot)
+          shadowUpdateMode: lightsStatic ? pc.SHADOWUPDATE_THISFRAME : pc.SHADOWUPDATE_REALTIME,
+
+          // cookie texture
+          cookie: cookieTexture.resource,
+          cookieChannel: cookieChannel,
+          cookieIntensity: 0.5 });
+
+
+        // attach a render component with a small cone to each light
+        var material = new pc.StandardMaterial();
+        material.emissive = color;
+        material.update();
+
+        lightSpot.addComponent('render', {
+          type: "cone",
+          material: material,
+          castShadows: false });
+
+        lightSpot.setLocalScale(5, 5, 5);
+        app.root.addChild(lightSpot);
+        spotLightList.push(lightSpot);
+      }
+
+      // create many spot lights
+      var count = 10;
+      for (var _i = 0; _i < count; _i++) {
+        createLight(_i);
+      }
+      updateLightCount();
+
+      // Create an entity with a camera component
+      var camera = new pc.Entity();
+      camera.addComponent("camera", {
+        clearColor: new pc.Color(0.2, 0.2, 0.2),
+        farClip: 2000,
+        nearClip: 1 });
+
+      app.root.addChild(camera);
+      camera.setLocalPosition(300 * Math.sin(0), 150, 300 * Math.cos(0));
+
+      // add orbit camera script with mouse and touch support
+      camera.addComponent("script");
+      camera.script.create("orbitCamera", {
+        attributes: {
+          inertiaFactor: 0.2,
+          focusEntity: ground,
+          distanceMax: 1200,
+          frameOnStart: false } });
+
+
+      camera.script.create("orbitCameraInputMouse");
+      camera.script.create("orbitCameraInputTouch");
+
+      // handle HUD changes - update properties on the scene
+      data.on('*:set', function (path, value) {
+        var pathArray = path.split('.');
+        if (pathArray[1] === 'static') {
+
+          lightsStatic = value;
+          updateLightCount();
+
+        } else if (pathArray[1] === 'atlasSplit') {
+
+          // assign atlas split option
+          lighting.atlasSplit = splitOptions[value];
+
+        } else if (pathArray[1] === 'debug') {
+
+          // debug rendering of lighting clusters on world layer
+          lighting.debugLayer = value ? app.scene.layers.getLayerByName("World").id : undefined;
+
+        } else if (pathArray[1] === 'debugAtlas') {
+
+          // show debug atlas
+          debugAtlas = value;
+
+        } else {
+          // @ts-ignore
+          lighting[pathArray[1]] = value;
+        }
+      });
+
+      function updateLightCount() {
+
+        // update the number on HUD
+        data.set('settings.numLights', spotLightList.length);
+
+        // shadow update mode (need to force render shadow when we add / remove light, as they all move)
+        spotLightList.forEach(function (spot) {
+          spot.light.shadowUpdateMode = lightsStatic ? pc.SHADOWUPDATE_THISFRAME : pc.SHADOWUPDATE_REALTIME;
+        });
+      }
+
+      // add light button handler
+      data.on('add', function () {
+        if (spotLightList.length < maxLights) {
+          createLight(spotLightList.length);
+          updateLightCount();
+        }
+      });
+
+      // remove light button handler
+      data.on('remove', function () {
+        if (spotLightList.length) {
+          var light = spotLightList.pop();
+          app.root.removeChild(light);
+          light.destroy();
+          updateLightCount();
+        }
+      });
+
+      // Set an update function on the app's update event
+      var time = 0;
+      app.on("update", function (dt) {
+
+        // don't move lights around when they're static
+        if (!lightsStatic) {
+          time += dt * 0.15;
+        }
+
+        // rotate spot lights around
+        var lightPos = new pc.Vec3();
+        spotLightList.forEach(function (spotlight, i) {
+          var angle = i / spotLightList.length * Math.PI * 2;
+          var x = 130 * Math.sin(angle + time);
+          var z = 130 * Math.cos(angle + time);
+          lightPos.set(x, 100, z);
+          spotlight.setLocalPosition(lightPos);
+
+          lightPos.y = 0;
+          spotlight.lookAt(lightPos, pc.Vec3.RIGHT);
+
+          spotlight.rotateLocal(90, 0, 0);
+        });
+
+        // display shadow texture (debug feature, only works when depth is stored as color, which is webgl1)
+        // app.drawTexture(-0.7, 0.7, 0.4, 0.4, app.renderer.lightTextureAtlas.shadowAtlas.texture);
+
+        // display cookie texture (debug feature)
+        if (debugAtlas) {
+          // @ts-ignore engine-tsd
+          app.drawTexture(-0.7, 0.2, 0.4, 0.4, app.renderer.lightTextureAtlas.cookieAtlas);
+        }
+      });
+    } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'Graphics');_defineProperty(Example, "NAME", 'Clustered Spot Shadows');_defineProperty(Example, "ENGINE", 'DEBUG');
+        var example = new Example();
+
+        var useTypeScript = window.top.localStorage.getItem('useTypeScript') === 'true';
+        window.exampleFunction = window.top.localStorage.getItem(window.top.location.hash.replace('#', ''));
+        if (!window.exampleFunction) {
+            window.exampleFunction = example.example
+        } else {
+            if (useTypeScript) {
+                window.exampleFunction = window.top.Babel.transform(exampleFunction, {
+                    retainLines: true,
+                    filename: 'transformedScript.tsx',
+                    presets: ["react", "typescript", "env"]
+                }).code;
+            }
+            window.exampleFunction = new Function('app', 'canvas', 'assets', 'data', exampleFunction);
+        }
+        window.loadFunction = example.load;
+
+        // get url parameters
+        var queryString = window.location.search;
+        var urlParams = new URLSearchParams(queryString);
+    </script>
+    <script>
+        function loadEngine(callback) {
+            const enginePath = urlParams.get('use_local_engine') || "../../build/playcanvas.js";
+
+            fetch(enginePath)
+                .then(function(response) { return response.text() })
+                .then(function(data) {
+                    var module = {
+                        exports: {}
+                    };
+                    window.pc = (Function('module', 'exports', data).call(module, module, module.exports), module).exports;
+                    window.top.pc = window.pc;
+                    callback();
+                });
+        }
+
+        function createApplication(canvas) {
+            // create the app
+            var app = new pc.Application(canvas, {
+                mouse: new pc.Mouse(document.body),
+                touch: new pc.TouchDevice(document.body),
+                elementInput: new pc.ElementInput(canvas),
+                gamepads: new pc.GamePads(),
+                keyboard: new pc.Keyboard(window),
+                graphicsDeviceOptions: {
+                    alpha: true
+                }
+            });
+
+            // set up miniStats
+            var miniStats = new pcx.MiniStats(app);
+            if (urlParams.get('miniStats') === 'false') {
+                miniStats.enabled = false;
+            }
+            app.on('update', function () {
+                if (window.top._showMiniStats !== undefined) miniStats.enabled = window.top._showMiniStats;
+            });
+
+            // handle resizing
+            var canvasContainerElement = canvas.parentElement;
+            canvas.setAttribute('width', window.innerWidth + 'px');
+            canvas.setAttribute('height', window.innerHeight + 'px');
+            var resizeTimeout = null;
+            app.setCanvasResolution(pc.RESOLUTION_AUTO);
+            if (window.ResizeObserver) {
+                new ResizeObserver(function() {
+                    canvas.width = canvasContainerElement.clientWidth;
+                    canvas.height = canvasContainerElement.clientHeight;
+                }).observe(canvasContainerElement);
+            }
+
+            return app;
+        }
+
+        function hasBasisAssets (assets) {
+        for (let i = 0; i < assets.length; i++) {
+            if (assets[i].url && assets[i].url.includes('.basis')) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+        function loadResource(app, resource, callback) {
+            if (!resource.type) {
+                fetch(resource.url)
+                    .then(function(response) { return response.text() })
+                    .then(function(data) {
+                        var module = {
+                            exports: {}
+                        };
+                        window[resource.name] = (Function('module', 'exports', data).call(module, module, module.exports), module).exports;
+                        callback({});
+                    });
+                return;
+            }
+            if (resource.data) {
+                var asset = new pc.Asset(
+                    resource.name,
+                    resource.type,
+                    resource.type === "cubemap" ? {
+                        url: resource.url
+                    } : null,
+                    resource.data
+                );
+                asset.on("load", function (asset) {
+                    callback(asset);
+                });
+                app.assets.add(asset);
+                app.assets.load(asset);
+            } else {
+                app.assets.loadFromUrl(resource.url, resource.type, function (
+                    err,
+                    asset
+                ) {
+                    if (!err && asset) {
+                        callback(asset);
+                    }
+                });
+            }
+        }
+
+        function loadResources(app, callback) {
+            var assets = [];
+            var assetManifest = {};
+
+            // stub out react
+            window.React = { createElement: function(type, props) { if (type === 'div') assets.push(props); } };
+            // call the stubbed load function to add all assets to the assets list
+            window.loadFunction();
+
+            // if we have any basis assets then initialize basis
+            if (hasBasisAssets(assets)) {
+                pc.basisInitialize({
+                    glueUrl: '/static/lib/basis/basis.wasm.js',
+                    wasmUrl: '/static/lib/basis/basis.wasm.wasm',
+                    fallbackUrl: '/static/lib/basis/basis.js'
+                });
+            }
+
+            var count = assets.length;
+            function onLoadedResource(key, asset) {
+                count--;
+                if (key) {
+                    assetManifest[key] = asset;
+                }
+                if (count <= 0) {
+                    callback(assetManifest);
+                }
+            }
+
+            assets.forEach(function (resource) {
+                loadResource(app, resource, function(asset) {
+                    onLoadedResource(resource.name, asset);
+                });
+            });
+        }
+
+        function callExample(app, canvas, assetManifest, data) {
+            if (location.pathname.indexOf('misc/mini-stats') !== -1) {
+                window.exampleFunction(app, canvas, pcx);
+            } else {
+                window.exampleFunction(app, canvas, assetManifest, data, wasmSupported, loadWasmModuleAsync);
+            }
+            if (window.top.location.pathname.indexOf('iframe') === -1) {
+                var event = new CustomEvent("exampleLoad");
+                window.top.dispatchEvent(event);
+            }
+        }
+    </script>
+    <script>
+        // create the example observer 
+        var data = new observer.Observer({});
+        window.top.observerData = data;
+
+        // load the engine, create the application, load the resources if necessary, then call the example
+        loadEngine(function() {
+            var canvas = document.getElementById('application-canvas');
+
+            const app = createApplication(canvas);
+
+            if (!window.loadFunction) {
+                callExample(app, canvas, {}, data);
+            } else {
+                loadResources(app, function(assetManifest) {
+                    callExample(app, canvas, assetManifest, data);
+                });
+            }
+        });
+    </script>
+</body>
+</html>

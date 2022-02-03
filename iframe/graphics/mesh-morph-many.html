@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="../../build/playcanvas-extras.js"></script>
+    <script src="../../build/playcanvas-observer.js"></script>
+    <script src="../../build/wasm-loader.js"></script>
+    <script src="../../build/urlSearchParamsPolyfill.js"></script>
+    <script src="../../build/promisePolyfill.js"></script>
+    <script src="../../build/fetchPolyfill.js"></script>
+    <script src="../../build/regeneratorRuntimePolyfill.js"></script>
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        body {
+            margin: 0;
+            overflow-y: hidden;
+        }
+        #application-canvas {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div id="appInner">
+            <canvas id='application-canvas'></canvas>
+        </div>
+    </div>
+    <script>
+        // polyfill slice on UInt8Array
+        if (!Uint8Array.prototype.slice) {
+            Object.defineProperty(Uint8Array.prototype, 'slice', {
+                value: function (begin, end) {
+                    return new Uint8Array(Array.prototype.slice.call(this, begin, end));
+                }
+            });
+        }
+
+        // include any constants necessary for the example
+        var constValues = [];
+        for (var i = 0; i < constValues.length; i++) {
+            window[constValues[i].k] = constValues[i].v;
+        }
+
+        // include the example class which contains the example function to execute and any assets to load
+        "use strict";function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}function _defineProperties(target, props) {for (var i = 0; i < props.length; i++) {var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);}}function _createClass(Constructor, protoProps, staticProps) {if (protoProps) _defineProperties(Constructor.prototype, protoProps);if (staticProps) _defineProperties(Constructor, staticProps);Object.defineProperty(Constructor, "prototype", { writable: false });return Constructor;}function _defineProperty(obj, key, value) {if (key in obj) {Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true });} else {obj[key] = value;}return obj;}var Example = /*#__PURE__*/function () {function Example() {_classCallCheck(this, Example);}_createClass(Example, [{ key: "load", value:
+
+
+
+    function load() {
+      return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/
+      React.createElement("div", { name: "helipad.dds", type: "cubemap", url: "/../../static/assets/cubemaps/helipad.dds", data: { type: pc.TEXTURETYPE_RGBM } }));
+
+    } }, { key: "example", value:
+
+    function example(app, canvas, assets) {
+
+      // Create the application and start the update loop
+      
+      app.start();
+
+      // setup skydome
+      app.scene.skyboxMip = 2;
+      app.scene.exposure = 0.6;
+      app.scene.setSkybox(assets['helipad.dds'].resources);
+
+      // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
+      app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
+      app.setCanvasResolution(pc.RESOLUTION_AUTO);
+
+      // Create an entity with a directional light component
+      var light = new pc.Entity();
+      light.addComponent("light", {
+        type: "directional",
+        castShadows: true,
+        shadowBias: 0.5,
+        shadowDistance: 25,
+        color: new pc.Color(0.5, 0.5, 0.5) });
+
+      app.root.addChild(light);
+      light.setLocalEulerAngles(45, 45, 0);
+
+      // Create an entity with a camera component
+      var camera = new pc.Entity();
+      camera.addComponent("camera", {
+        clearColor: new pc.Color(0.1, 0.1, 0.1) });
+
+      app.root.addChild(camera);
+
+      // position the camera
+      camera.setLocalPosition(0, 4, 14);
+      camera.lookAt(pc.Vec3.ZERO);
+
+      // helper function to return the shortest distance from point [x, y, z] to a plane defined by [a, b, c] normal and constant d
+      var shortestDistance = function shortestDistance(x, y, z, a, b, c, d) {
+        d = Math.abs(a * x + b * y + c * z + d);
+        var e = Math.sqrt(a * a + b * b + c * c);
+        return d / e;
+      };
+
+      // helper function that creates a morph target from original positions, normals and indices, and a plane normal [nx, ny, nz]
+      var createMorphTarget = function createMorphTarget(positions, normals, indices, offset, nx, ny, nz) {
+
+        // modify vertices to separate array
+        var modifiedPositions = new Float32Array(positions.length);
+        var dist;
+        var i;
+        var displacement;
+        var limit = 0.2 + Math.random() * 0.5;
+        var range = 1 + 2 * Math.random();
+        for (i = 0; i < positions.length; i += 3) {
+          // distance of the point to the specified plane
+          dist = shortestDistance(positions[i], positions[i + 1], positions[i + 2], nx, ny, nz, offset);
+
+          // modify distance to displacement amount - displace nearby points more than distant points
+          displacement = pc.math.smoothstep(0, limit, dist);
+          displacement = 1 - displacement;
+          displacement *= range;
+
+          // generate new position by extruding vertex along normal by displacement
+          modifiedPositions[i] = positions[i] + normals[i] * displacement;
+          modifiedPositions[i + 1] = positions[i + 1] + normals[i + 1] * displacement;
+          modifiedPositions[i + 2] = positions[i + 2] + normals[i + 2] * displacement;
+        }
+
+        // generate normals based on modified positions and indices
+        // @ts-ignore engine-tsd
+        var modifiedNormals = new Float32Array(pc.calculateNormals(modifiedPositions, indices));
+
+        // generate delta positions and normals - as morph targets store delta between base position / normal and modified position / normal
+        for (i = 0; i < modifiedNormals.length; i++) {
+          modifiedPositions[i] -= positions[i];
+          modifiedNormals[i] -= normals[i];
+        }
+
+        // create a morph target
+        // @ts-ignore engine-tsd
+        return new pc.MorphTarget({
+          deltaPositions: modifiedPositions,
+          deltaNormals: modifiedNormals });
+
+      };
+
+      // create the base mesh - a sphere, with higher amount of vertices / triangles
+      var mesh = pc.createCylinder(app.graphicsDevice, { height: 10, heightSegments: 200, capSegments: 100 });
+
+      // obtain base mesh vertex / index data
+      var srcPositions = [],srcNormals = [],indices = [];
+      mesh.getPositions(srcPositions);
+      mesh.getNormals(srcNormals);
+      mesh.getIndices(indices);
+
+      // build morph targets by expanding a part of cylinder by the normal
+      var targets = [];
+      var startOffset = -4.5;
+      var endOffset = 4.5;
+      var count = 12;
+      var deltaOffset = (endOffset - startOffset) / (count - 1);
+      for (var o = 0; o < count; o++) {
+        targets.push(createMorphTarget(srcPositions, srcNormals, indices, startOffset, 0, 1, 0));
+        startOffset += deltaOffset;
+      }
+
+      // create a morph using these targets
+      mesh.morph = new pc.Morph(targets, app.graphicsDevice);
+
+      // material
+      var material = new pc.StandardMaterial();
+      material.shininess = 50;
+      material.metalness = 0.3;
+      material.useMetalness = true;
+      material.update();
+
+      // Create the mesh instance
+      var meshInstance = new pc.MeshInstance(mesh, material);
+
+      // add morph instance - this is where currently set weights are stored
+      var morphInstance = new pc.MorphInstance(mesh.morph);
+      meshInstance.morphInstance = morphInstance;
+
+      // Create Entity and add it to the scene
+      var entity = new pc.Entity();
+      entity.addComponent("render", {
+        material: material,
+        meshInstances: [meshInstance] });
+
+      entity.setLocalPosition(0, 0, 0);
+      app.root.addChild(entity);
+
+      // update function called once per frame
+      var time = 0;
+      app.on("update", function (dt) {
+        time += dt;
+
+        // modify weights of all morph targets along sin curve with different frequency
+        for (var i = 0; i < targets.length; i++) {
+          morphInstance.setWeight(i, Math.abs(Math.sin(time * 2 * (i + 5) / targets.length)));
+        }
+      });
+    } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'Graphics');_defineProperty(Example, "NAME", 'Mesh Morph Many');
+        var example = new Example();
+
+        var useTypeScript = window.top.localStorage.getItem('useTypeScript') === 'true';
+        window.exampleFunction = window.top.localStorage.getItem(window.top.location.hash.replace('#', ''));
+        if (!window.exampleFunction) {
+            window.exampleFunction = example.example
+        } else {
+            if (useTypeScript) {
+                window.exampleFunction = window.top.Babel.transform(exampleFunction, {
+                    retainLines: true,
+                    filename: 'transformedScript.tsx',
+                    presets: ["react", "typescript", "env"]
+                }).code;
+            }
+            window.exampleFunction = new Function('app', 'canvas', 'assets', 'data', exampleFunction);
+        }
+        window.loadFunction = example.load;
+
+        // get url parameters
+        var queryString = window.location.search;
+        var urlParams = new URLSearchParams(queryString);
+    </script>
+    <script>
+        function loadEngine(callback) {
+            const enginePath = urlParams.get('use_local_engine') || "../../build/playcanvas.js";
+
+            fetch(enginePath)
+                .then(function(response) { return response.text() })
+                .then(function(data) {
+                    var module = {
+                        exports: {}
+                    };
+                    window.pc = (Function('module', 'exports', data).call(module, module, module.exports), module).exports;
+                    window.top.pc = window.pc;
+                    callback();
+                });
+        }
+
+        function createApplication(canvas) {
+            // create the app
+            var app = new pc.Application(canvas, {
+                mouse: new pc.Mouse(document.body),
+                touch: new pc.TouchDevice(document.body),
+                elementInput: new pc.ElementInput(canvas),
+                gamepads: new pc.GamePads(),
+                keyboard: new pc.Keyboard(window),
+                graphicsDeviceOptions: {
+                    alpha: true
+                }
+            });
+
+            // set up miniStats
+            var miniStats = new pcx.MiniStats(app);
+            if (urlParams.get('miniStats') === 'false') {
+                miniStats.enabled = false;
+            }
+            app.on('update', function () {
+                if (window.top._showMiniStats !== undefined) miniStats.enabled = window.top._showMiniStats;
+            });
+
+            // handle resizing
+            var canvasContainerElement = canvas.parentElement;
+            canvas.setAttribute('width', window.innerWidth + 'px');
+            canvas.setAttribute('height', window.innerHeight + 'px');
+            var resizeTimeout = null;
+            app.setCanvasResolution(pc.RESOLUTION_AUTO);
+            if (window.ResizeObserver) {
+                new ResizeObserver(function() {
+                    canvas.width = canvasContainerElement.clientWidth;
+                    canvas.height = canvasContainerElement.clientHeight;
+                }).observe(canvasContainerElement);
+            }
+
+            return app;
+        }
+
+        function hasBasisAssets (assets) {
+        for (let i = 0; i < assets.length; i++) {
+            if (assets[i].url && assets[i].url.includes('.basis')) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+        function loadResource(app, resource, callback) {
+            if (!resource.type) {
+                fetch(resource.url)
+                    .then(function(response) { return response.text() })
+                    .then(function(data) {
+                        var module = {
+                            exports: {}
+                        };
+                        window[resource.name] = (Function('module', 'exports', data).call(module, module, module.exports), module).exports;
+                        callback({});
+                    });
+                return;
+            }
+            if (resource.data) {
+                var asset = new pc.Asset(
+                    resource.name,
+                    resource.type,
+                    resource.type === "cubemap" ? {
+                        url: resource.url
+                    } : null,
+                    resource.data
+                );
+                asset.on("load", function (asset) {
+                    callback(asset);
+                });
+                app.assets.add(asset);
+                app.assets.load(asset);
+            } else {
+                app.assets.loadFromUrl(resource.url, resource.type, function (
+                    err,
+                    asset
+                ) {
+                    if (!err && asset) {
+                        callback(asset);
+                    }
+                });
+            }
+        }
+
+        function loadResources(app, callback) {
+            var assets = [];
+            var assetManifest = {};
+
+            // stub out react
+            window.React = { createElement: function(type, props) { if (type === 'div') assets.push(props); } };
+            // call the stubbed load function to add all assets to the assets list
+            window.loadFunction();
+
+            // if we have any basis assets then initialize basis
+            if (hasBasisAssets(assets)) {
+                pc.basisInitialize({
+                    glueUrl: '/static/lib/basis/basis.wasm.js',
+                    wasmUrl: '/static/lib/basis/basis.wasm.wasm',
+                    fallbackUrl: '/static/lib/basis/basis.js'
+                });
+            }
+
+            var count = assets.length;
+            function onLoadedResource(key, asset) {
+                count--;
+                if (key) {
+                    assetManifest[key] = asset;
+                }
+                if (count <= 0) {
+                    callback(assetManifest);
+                }
+            }
+
+            assets.forEach(function (resource) {
+                loadResource(app, resource, function(asset) {
+                    onLoadedResource(resource.name, asset);
+                });
+            });
+        }
+
+        function callExample(app, canvas, assetManifest, data) {
+            if (location.pathname.indexOf('misc/mini-stats') !== -1) {
+                window.exampleFunction(app, canvas, pcx);
+            } else {
+                window.exampleFunction(app, canvas, assetManifest, data, wasmSupported, loadWasmModuleAsync);
+            }
+            if (window.top.location.pathname.indexOf('iframe') === -1) {
+                var event = new CustomEvent("exampleLoad");
+                window.top.dispatchEvent(event);
+            }
+        }
+    </script>
+    <script>
+        // create the example observer 
+        var data = new observer.Observer({});
+        window.top.observerData = data;
+
+        // load the engine, create the application, load the resources if necessary, then call the example
+        loadEngine(function() {
+            var canvas = document.getElementById('application-canvas');
+
+            const app = createApplication(canvas);
+
+            if (!window.loadFunction) {
+                callExample(app, canvas, {}, data);
+            } else {
+                loadResources(app, function(assetManifest) {
+                    callExample(app, canvas, assetManifest, data);
+                });
+            }
+        });
+    </script>
+</body>
+</html>

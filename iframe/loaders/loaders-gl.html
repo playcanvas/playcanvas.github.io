@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="../../build/playcanvas-extras.js"></script>
+    <script src="../../build/playcanvas-observer.js"></script>
+    <script src="../../build/wasm-loader.js"></script>
+    <script src="../../build/urlSearchParamsPolyfill.js"></script>
+    <script src="../../build/promisePolyfill.js"></script>
+    <script src="../../build/fetchPolyfill.js"></script>
+    <script src="../../build/regeneratorRuntimePolyfill.js"></script>
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        body {
+            margin: 0;
+            overflow-y: hidden;
+        }
+        #application-canvas {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div id="appInner">
+            <canvas id='application-canvas'></canvas>
+        </div>
+    </div>
+    <script>
+        // polyfill slice on UInt8Array
+        if (!Uint8Array.prototype.slice) {
+            Object.defineProperty(Uint8Array.prototype, 'slice', {
+                value: function (begin, end) {
+                    return new Uint8Array(Array.prototype.slice.call(this, begin, end));
+                }
+            });
+        }
+
+        // include any constants necessary for the example
+        var constValues = [{"k":"vshader","v":"\n    // Attributes per vertex: position\n    attribute vec4 aPosition;\n    attribute vec4 aColor;\n\n    uniform mat4   matrix_viewProjection;\n    uniform mat4   matrix_model;\n\n    // Color to fragment program\n    varying vec4 outColor;\n\n    void main(void)\n    {\n        mat4 modelViewProj = matrix_viewProjection * matrix_model;\n        gl_Position = modelViewProj * aPosition;\n\n        gl_PointSize = 1.5;\n        outColor = aColor;\n    }\n"},{"k":"fshader","v":"\n    precision lowp float;\n    varying vec4 outColor;\n\n    void main(void)\n    {\n        // just output color supplied by vertex shader\n        gl_FragColor = outColor;\n    }\n"}];
+        for (var i = 0; i < constValues.length; i++) {
+            window[constValues[i].k] = constValues[i].v;
+        }
+
+        // include the example class which contains the example function to execute and any assets to load
+        "use strict";function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) {try {var info = gen[key](arg);var value = info.value;} catch (error) {reject(error);return;}if (info.done) {resolve(value);} else {Promise.resolve(value).then(_next, _throw);}}function _asyncToGenerator(fn) {return function () {var self = this,args = arguments;return new Promise(function (resolve, reject) {var gen = fn.apply(self, args);function _next(value) {asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value);}function _throw(err) {asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err);}_next(undefined);});};}function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}function _defineProperties(target, props) {for (var i = 0; i < props.length; i++) {var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);}}function _createClass(Constructor, protoProps, staticProps) {if (protoProps) _defineProperties(Constructor.prototype, protoProps);if (staticProps) _defineProperties(Constructor, staticProps);Object.defineProperty(Constructor, "prototype", { writable: false });return Constructor;}function _defineProperty(obj, key, value) {if (key in obj) {Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true });} else {obj[key] = value;}return obj;}var Example = /*#__PURE__*/function () {function Example() {_classCallCheck(this, Example);}_createClass(Example, [{ key: "load", value:
+
+
+
+    function load() {
+      return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/
+      React.createElement("div", { name: "shader.vert", type: "shader", data: vshader }), /*#__PURE__*/
+      React.createElement("div", { name: "shader.frag", type: "shader", data: fshader }), /*#__PURE__*/
+      React.createElement("div", { name: "CORE", url: "https://cdn.jsdelivr.net/npm/@loaders.gl/core@2.3.6/dist/dist.min.js" }), /*#__PURE__*/
+      React.createElement("div", { name: "DRACO", url: "https://cdn.jsdelivr.net/npm/@loaders.gl/draco@2.3.6/dist/dist.min.js" }));
+
+    } }, { key: "example", value:
+
+    function example(app, canvas, assets) {
+      // This example uses draco point cloud loader library from https://loaders.gl/
+      // Note that many additional formats are supported by the library and can be used.
+
+      // Create the app
+      function
+
+      loadModel(_x) {return _loadModel.apply(this, arguments);}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      // Create an Entity with a camera component
+      function _loadModel() {_loadModel = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(url) {var modelData, srcColors, numVertices, colors32, i, mesh, shaderDefinition, shader, material, entity;return regeneratorRuntime.wrap(function _callee$(_context) {while (1) {switch (_context.prev = _context.next) {case 0:_context.next = 2;return CORE.load(url, DRACO.DracoLoader);case 2:modelData = _context.sent; // loaded colors only contain RGB, convert it to an array of RGBA with alpha of 255
+                  srcColors = modelData.attributes.COLOR_0.value;numVertices = srcColors.length / modelData.attributes.COLOR_0.size;colors32 = new Uint8Array(numVertices * 4);for (i = 0; i < numVertices; i++) {colors32[i * 4 + 0] = srcColors[i * 3 + 0];colors32[i * 4 + 1] = srcColors[i * 3 + 1];colors32[i * 4 + 2] = srcColors[i * 3 + 2];colors32[i * 4 + 3] = 255;} // based on the loaded data, create the mesh with position and color vertex data
+                  mesh = new pc.Mesh(app.graphicsDevice);mesh.clear(true, false);mesh.setPositions(modelData.attributes.POSITION.value, modelData.attributes.POSITION.size);mesh.setColors32(colors32);mesh.update(pc.PRIMITIVE_POINTS); // Create shader to render mesh as circular points with color
+                  shaderDefinition = { attributes: { aPosition: pc.SEMANTIC_POSITION, aColor: pc.SEMANTIC_COLOR }, vshader: assets['shader.vert'].data, fshader: assets['shader.frag'].data };shader = new pc.Shader(app.graphicsDevice, shaderDefinition); // create material using the shader
+                  material = new pc.Material();material.shader = shader;material.blendType = pc.BLENDMODE_ONE_MINUS_DST_ALPHA;material.cull = pc.CULLFACE_NONE; // Add an entity with a render component to render the mesh
+                  entity = new pc.Entity();entity.addComponent('render', { material: material, meshInstances: [new pc.MeshInstance(mesh, material)] });app.root.addChild(entity);case 21:case "end":return _context.stop();}}}, _callee);}));return _loadModel.apply(this, arguments);}var camera = new pc.Entity();camera.addComponent("camera", { clearColor: new pc.Color(0.1, 0.1, 0.1), farClip: 100 });camera.translate(-20, 15, 20);
+      camera.lookAt(0, 7, 0);
+      app.root.addChild(camera);
+
+      // load the draco model, and then start the application
+      loadModel("/../../static/assets/models/park_points.drc").then(function () {
+        app.start();
+      });
+
+      // update things each frame
+      var time = 0;
+      app.on("update", function (dt) {
+        time += dt;
+
+        // orbit the camera
+        if (camera) {
+          camera.setLocalPosition(40 * Math.sin(time * 0.5), 10, 20 * Math.cos(time * 0.5));
+          camera.lookAt(pc.Vec3.ZERO);
+        }
+      });
+    } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'Loaders');_defineProperty(Example, "NAME", 'Loaders.gl');
+        var example = new Example();
+
+        var useTypeScript = window.top.localStorage.getItem('useTypeScript') === 'true';
+        window.exampleFunction = window.top.localStorage.getItem(window.top.location.hash.replace('#', ''));
+        if (!window.exampleFunction) {
+            window.exampleFunction = example.example
+        } else {
+            if (useTypeScript) {
+                window.exampleFunction = window.top.Babel.transform(exampleFunction, {
+                    retainLines: true,
+                    filename: 'transformedScript.tsx',
+                    presets: ["react", "typescript", "env"]
+                }).code;
+            }
+            window.exampleFunction = new Function('app', 'canvas', 'assets', 'data', exampleFunction);
+        }
+        window.loadFunction = example.load;
+
+        // get url parameters
+        var queryString = window.location.search;
+        var urlParams = new URLSearchParams(queryString);
+    </script>
+    <script>
+        function loadEngine(callback) {
+            const enginePath = urlParams.get('use_local_engine') || "../../build/playcanvas.js";
+
+            fetch(enginePath)
+                .then(function(response) { return response.text() })
+                .then(function(data) {
+                    var module = {
+                        exports: {}
+                    };
+                    window.pc = (Function('module', 'exports', data).call(module, module, module.exports), module).exports;
+                    window.top.pc = window.pc;
+                    callback();
+                });
+        }
+
+        function createApplication(canvas) {
+            // create the app
+            var app = new pc.Application(canvas, {
+                mouse: new pc.Mouse(document.body),
+                touch: new pc.TouchDevice(document.body),
+                elementInput: new pc.ElementInput(canvas),
+                gamepads: new pc.GamePads(),
+                keyboard: new pc.Keyboard(window),
+                graphicsDeviceOptions: {
+                    alpha: true
+                }
+            });
+
+            // set up miniStats
+            var miniStats = new pcx.MiniStats(app);
+            if (urlParams.get('miniStats') === 'false') {
+                miniStats.enabled = false;
+            }
+            app.on('update', function () {
+                if (window.top._showMiniStats !== undefined) miniStats.enabled = window.top._showMiniStats;
+            });
+
+            // handle resizing
+            var canvasContainerElement = canvas.parentElement;
+            canvas.setAttribute('width', window.innerWidth + 'px');
+            canvas.setAttribute('height', window.innerHeight + 'px');
+            var resizeTimeout = null;
+            app.setCanvasResolution(pc.RESOLUTION_AUTO);
+            if (window.ResizeObserver) {
+                new ResizeObserver(function() {
+                    canvas.width = canvasContainerElement.clientWidth;
+                    canvas.height = canvasContainerElement.clientHeight;
+                }).observe(canvasContainerElement);
+            }
+
+            return app;
+        }
+
+        function hasBasisAssets (assets) {
+        for (let i = 0; i < assets.length; i++) {
+            if (assets[i].url && assets[i].url.includes('.basis')) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+        function loadResource(app, resource, callback) {
+            if (!resource.type) {
+                fetch(resource.url)
+                    .then(function(response) { return response.text() })
+                    .then(function(data) {
+                        var module = {
+                            exports: {}
+                        };
+                        window[resource.name] = (Function('module', 'exports', data).call(module, module, module.exports), module).exports;
+                        callback({});
+                    });
+                return;
+            }
+            if (resource.data) {
+                var asset = new pc.Asset(
+                    resource.name,
+                    resource.type,
+                    resource.type === "cubemap" ? {
+                        url: resource.url
+                    } : null,
+                    resource.data
+                );
+                asset.on("load", function (asset) {
+                    callback(asset);
+                });
+                app.assets.add(asset);
+                app.assets.load(asset);
+            } else {
+                app.assets.loadFromUrl(resource.url, resource.type, function (
+                    err,
+                    asset
+                ) {
+                    if (!err && asset) {
+                        callback(asset);
+                    }
+                });
+            }
+        }
+
+        function loadResources(app, callback) {
+            var assets = [];
+            var assetManifest = {};
+
+            // stub out react
+            window.React = { createElement: function(type, props) { if (type === 'div') assets.push(props); } };
+            // call the stubbed load function to add all assets to the assets list
+            window.loadFunction();
+
+            // if we have any basis assets then initialize basis
+            if (hasBasisAssets(assets)) {
+                pc.basisInitialize({
+                    glueUrl: '/static/lib/basis/basis.wasm.js',
+                    wasmUrl: '/static/lib/basis/basis.wasm.wasm',
+                    fallbackUrl: '/static/lib/basis/basis.js'
+                });
+            }
+
+            var count = assets.length;
+            function onLoadedResource(key, asset) {
+                count--;
+                if (key) {
+                    assetManifest[key] = asset;
+                }
+                if (count <= 0) {
+                    callback(assetManifest);
+                }
+            }
+
+            assets.forEach(function (resource) {
+                loadResource(app, resource, function(asset) {
+                    onLoadedResource(resource.name, asset);
+                });
+            });
+        }
+
+        function callExample(app, canvas, assetManifest, data) {
+            if (location.pathname.indexOf('misc/mini-stats') !== -1) {
+                window.exampleFunction(app, canvas, pcx);
+            } else {
+                window.exampleFunction(app, canvas, assetManifest, data, wasmSupported, loadWasmModuleAsync);
+            }
+            if (window.top.location.pathname.indexOf('iframe') === -1) {
+                var event = new CustomEvent("exampleLoad");
+                window.top.dispatchEvent(event);
+            }
+        }
+    </script>
+    <script>
+        // create the example observer 
+        var data = new observer.Observer({});
+        window.top.observerData = data;
+
+        // load the engine, create the application, load the resources if necessary, then call the example
+        loadEngine(function() {
+            var canvas = document.getElementById('application-canvas');
+
+            const app = createApplication(canvas);
+
+            if (!window.loadFunction) {
+                callExample(app, canvas, {}, data);
+            } else {
+                loadResources(app, function(assetManifest) {
+                    callExample(app, canvas, assetManifest, data);
+                });
+            }
+        });
+    </script>
+</body>
+</html>

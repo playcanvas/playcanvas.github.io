@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="../../build/playcanvas-extras.js"></script>
+    <script src="../../build/playcanvas-observer.js"></script>
+    <script src="../../build/wasm-loader.js"></script>
+    <script src="../../build/urlSearchParamsPolyfill.js"></script>
+    <script src="../../build/promisePolyfill.js"></script>
+    <script src="../../build/fetchPolyfill.js"></script>
+    <script src="../../build/regeneratorRuntimePolyfill.js"></script>
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        body {
+            margin: 0;
+            overflow-y: hidden;
+        }
+        #application-canvas {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div id="appInner">
+            <canvas id='application-canvas'></canvas>
+        </div>
+    </div>
+    <script>
+        // polyfill slice on UInt8Array
+        if (!Uint8Array.prototype.slice) {
+            Object.defineProperty(Uint8Array.prototype, 'slice', {
+                value: function (begin, end) {
+                    return new Uint8Array(Array.prototype.slice.call(this, begin, end));
+                }
+            });
+        }
+
+        // include any constants necessary for the example
+        var constValues = [];
+        for (var i = 0; i < constValues.length; i++) {
+            window[constValues[i].k] = constValues[i].v;
+        }
+
+        // include the example class which contains the example function to execute and any assets to load
+        "use strict";function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}function _defineProperties(target, props) {for (var i = 0; i < props.length; i++) {var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);}}function _createClass(Constructor, protoProps, staticProps) {if (protoProps) _defineProperties(Constructor.prototype, protoProps);if (staticProps) _defineProperties(Constructor, staticProps);Object.defineProperty(Constructor, "prototype", { writable: false });return Constructor;}function _defineProperty(obj, key, value) {if (key in obj) {Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true });} else {obj[key] = value;}return obj;}var Example = /*#__PURE__*/function () {function Example() {_classCallCheck(this, Example);}_createClass(Example, [{ key: "load", value:
+
+
+
+    function load() {
+      return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/
+      React.createElement("div", { name: "playcanvasGrey", type: "texture", url: "/../../static/assets/textures/playcanvas-grey.png" }));
+
+    } }, { key: "example", value:
+
+    function example(app, canvas, assets) {
+
+      // Create the application
+      
+
+      // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
+      app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
+      app.setCanvasResolution(pc.RESOLUTION_AUTO);
+
+      app.scene.ambientLight = new pc.Color(0.1, 0.1, 0.1);
+
+      // helper function to create a light
+      function createLight(color, scale) {
+
+        // Create an Entity with a omni light component, which is casting shadows (using rendering to cubemap)
+        var light = new pc.Entity();
+        light.addComponent("light", {
+          type: "omni",
+          color: color,
+          radius: 10,
+          castShadows: false });
+
+
+        // create material of specified color
+        var material = new pc.StandardMaterial();
+        material.emissive = color;
+        material.update();
+
+        // add sphere at the position of light
+        light.addComponent("render", {
+          type: "sphere",
+          material: material });
+
+
+        // Scale the sphere
+        light.setLocalScale(scale, scale, scale);
+
+        app.root.addChild(light);
+        return light;
+      }
+
+      // create 4 lights that will move in the scene and deform the mesh as well
+      var lights = [
+      { radius: 7, speed: 1.0, scale: 2.5, light: createLight(new pc.Color(0.3, 0.9, 0.6), 1.0) },
+      { radius: 3, speed: 1.2, scale: 3.0, light: createLight(new pc.Color(0.7, 0.2, 0.3), 1.3) },
+      { radius: 5, speed: -0.8, scale: 4.0, light: createLight(new pc.Color(0.2, 0.2, 0.9), 1.5) },
+      { radius: 4, speed: -0.3, scale: 5.5, light: createLight(new pc.Color(0.8, 0.9, 0.4), 1.7) }];
+
+
+      // Create an Entity with a camera component
+      var camera = new pc.Entity();
+      camera.addComponent("camera", {
+        clearColor: new pc.Color(0.2, 0.2, 0.2) });
+
+
+      // Add the new Entity to the hierarchy
+      app.root.addChild(camera);
+
+      // Position the camera
+      camera.translate(0, 5, 20);
+      camera.lookAt(pc.Vec3.ZERO);
+
+      // Generate a 3D grid plane with world size of 20, and resolution of 60
+      var resolution = 60;
+      var extent = 20;
+      var scale = extent / resolution;
+
+      // Generate positions and uv coordinates for vertices, store them in Float32Arrays
+      var positions = new Float32Array(3 * resolution * resolution);
+      var uvs = new Float32Array(2 * resolution * resolution);
+      var index = 0;
+      for (var x = 0; x < resolution; x++) {
+        for (var z = 0; z < resolution; z++) {
+          positions[3 * index] = scale * (x - resolution * 0.5);
+          positions[3 * index + 1] = 0; // no elevation, flat grid
+          positions[3 * index + 2] = scale * (z - resolution * 0.5);
+          uvs[2 * index] = x / resolution;
+          uvs[2 * index + 1] = 1 - z / resolution;
+          index++;
+        }
+      }
+
+      // Generate array of indices to form triangle list - two triangles per grid square
+      var indexArray = [];
+      for (var _x = 0; _x < resolution - 1; _x++) {
+        for (var y = 0; y < resolution - 1; y++) {
+          indexArray.push(_x * resolution + y + 1, (_x + 1) * resolution + y, _x * resolution + y,
+          (_x + 1) * resolution + y, _x * resolution + y + 1, (_x + 1) * resolution + y + 1);
+        }
+      }
+
+      // helper function to update required vertex / index streams
+      function updateMesh(mesh, initAll) {
+
+        // Set updated positions and normal each frame
+        mesh.setPositions(positions);
+        // @ts-ignore engine-tsd
+        mesh.setNormals(pc.calculateNormals(positions, indexArray));
+
+        // update mesh Uvs and Indices only one time, as they do not change each frame
+        if (initAll) {
+          mesh.setUvs(0, uvs);
+          mesh.setIndices(indexArray);
+        }
+
+        // Let mesh update Vertex and Index buffer as needed
+        mesh.update(pc.PRIMITIVE_TRIANGLES);
+      }
+
+      // Create a mesh with dynamic vertex buffer and static index buffer
+      var mesh = new pc.Mesh(app.graphicsDevice);
+      mesh.clear(true, false);
+      updateMesh(mesh, true);
+
+      // create material
+      var material = new pc.StandardMaterial();
+      material.diffuseMap = assets.playcanvasGrey.resource;
+      material.shininess = 50;
+      material.metalness = 0.3;
+      material.useMetalness = true;
+      material.update();
+
+      // Create the mesh instance
+      var meshInstance = new pc.MeshInstance(mesh, material);
+
+      // Create the entity with render component using meshInstances
+      var entity = new pc.Entity();
+      entity.addComponent("render", {
+        meshInstances: [meshInstance] });
+
+      app.root.addChild(entity);
+
+      // Set an update function on the app's update event
+      var time = 0;
+      app.on("update", function (dt) {
+        time += dt;
+
+        // Move the lights along circles, also keep separate list of their position for faster update in next block of code
+        var lightPositions = [];
+        for (var l = 0; l < lights.length; l++) {
+          var element = lights[l];
+          var lightPos = new pc.Vec2(element.radius * Math.sin(time * element.speed), element.radius * Math.cos(time * element.speed));
+          lightPositions.push(lightPos);
+          element.light.setLocalPosition(lightPos.x, 3, lightPos.y);
+        }
+
+        // animate .y coordinate of grid vertices by moving them up when lights are close
+        var index = 0;
+        for (var _x2 = 0; _x2 < resolution; _x2++) {
+          for (var _z = 0; _z < resolution; _z++) {
+
+            var elevation = 0;
+
+            // Evaluate distance of grid vertex to each light position, and increase elevation if light is within the range
+            for (var _l = 0; _l < lightPositions.length; _l++) {
+              var dx = positions[index] - lightPositions[_l].x;
+              var dz = positions[index + 2] - lightPositions[_l].y;
+              var dist = Math.sqrt(dx * dx + dz * dz);
+              dist = pc.math.clamp(dist, 0, lights[_l].scale);
+              dist = pc.math.smoothstep(0, lights[_l].scale, dist);
+              elevation += 1 - dist;
+            }
+
+            // Store elevation in .y element
+            positions[index + 1] = elevation;
+            index += 3;
+          }
+        }
+
+        // update the mesh
+        updateMesh(mesh);
+      });
+
+      // start application update loop when texture is loaded
+      app.start();
+    } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'Graphics');_defineProperty(Example, "NAME", 'Mesh Generation');
+        var example = new Example();
+
+        var useTypeScript = window.top.localStorage.getItem('useTypeScript') === 'true';
+        window.exampleFunction = window.top.localStorage.getItem(window.top.location.hash.replace('#', ''));
+        if (!window.exampleFunction) {
+            window.exampleFunction = example.example
+        } else {
+            if (useTypeScript) {
+                window.exampleFunction = window.top.Babel.transform(exampleFunction, {
+                    retainLines: true,
+                    filename: 'transformedScript.tsx',
+                    presets: ["react", "typescript", "env"]
+                }).code;
+            }
+            window.exampleFunction = new Function('app', 'canvas', 'assets', 'data', exampleFunction);
+        }
+        window.loadFunction = example.load;
+
+        // get url parameters
+        var queryString = window.location.search;
+        var urlParams = new URLSearchParams(queryString);
+    </script>
+    <script>
+        function loadEngine(callback) {
+            const enginePath = urlParams.get('use_local_engine') || "../../build/playcanvas.js";
+
+            fetch(enginePath)
+                .then(function(response) { return response.text() })
+                .then(function(data) {
+                    var module = {
+                        exports: {}
+                    };
+                    window.pc = (Function('module', 'exports', data).call(module, module, module.exports), module).exports;
+                    window.top.pc = window.pc;
+                    callback();
+                });
+        }
+
+        function createApplication(canvas) {
+            // create the app
+            var app = new pc.Application(canvas, {
+                mouse: new pc.Mouse(document.body),
+                touch: new pc.TouchDevice(document.body),
+                elementInput: new pc.ElementInput(canvas),
+                gamepads: new pc.GamePads(),
+                keyboard: new pc.Keyboard(window),
+                graphicsDeviceOptions: {
+                    alpha: true
+                }
+            });
+
+            // set up miniStats
+            var miniStats = new pcx.MiniStats(app);
+            if (urlParams.get('miniStats') === 'false') {
+                miniStats.enabled = false;
+            }
+            app.on('update', function () {
+                if (window.top._showMiniStats !== undefined) miniStats.enabled = window.top._showMiniStats;
+            });
+
+            // handle resizing
+            var canvasContainerElement = canvas.parentElement;
+            canvas.setAttribute('width', window.innerWidth + 'px');
+            canvas.setAttribute('height', window.innerHeight + 'px');
+            var resizeTimeout = null;
+            app.setCanvasResolution(pc.RESOLUTION_AUTO);
+            if (window.ResizeObserver) {
+                new ResizeObserver(function() {
+                    canvas.width = canvasContainerElement.clientWidth;
+                    canvas.height = canvasContainerElement.clientHeight;
+                }).observe(canvasContainerElement);
+            }
+
+            return app;
+        }
+
+        function hasBasisAssets (assets) {
+        for (let i = 0; i < assets.length; i++) {
+            if (assets[i].url && assets[i].url.includes('.basis')) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+        function loadResource(app, resource, callback) {
+            if (!resource.type) {
+                fetch(resource.url)
+                    .then(function(response) { return response.text() })
+                    .then(function(data) {
+                        var module = {
+                            exports: {}
+                        };
+                        window[resource.name] = (Function('module', 'exports', data).call(module, module, module.exports), module).exports;
+                        callback({});
+                    });
+                return;
+            }
+            if (resource.data) {
+                var asset = new pc.Asset(
+                    resource.name,
+                    resource.type,
+                    resource.type === "cubemap" ? {
+                        url: resource.url
+                    } : null,
+                    resource.data
+                );
+                asset.on("load", function (asset) {
+                    callback(asset);
+                });
+                app.assets.add(asset);
+                app.assets.load(asset);
+            } else {
+                app.assets.loadFromUrl(resource.url, resource.type, function (
+                    err,
+                    asset
+                ) {
+                    if (!err && asset) {
+                        callback(asset);
+                    }
+                });
+            }
+        }
+
+        function loadResources(app, callback) {
+            var assets = [];
+            var assetManifest = {};
+
+            // stub out react
+            window.React = { createElement: function(type, props) { if (type === 'div') assets.push(props); } };
+            // call the stubbed load function to add all assets to the assets list
+            window.loadFunction();
+
+            // if we have any basis assets then initialize basis
+            if (hasBasisAssets(assets)) {
+                pc.basisInitialize({
+                    glueUrl: '/static/lib/basis/basis.wasm.js',
+                    wasmUrl: '/static/lib/basis/basis.wasm.wasm',
+                    fallbackUrl: '/static/lib/basis/basis.js'
+                });
+            }
+
+            var count = assets.length;
+            function onLoadedResource(key, asset) {
+                count--;
+                if (key) {
+                    assetManifest[key] = asset;
+                }
+                if (count <= 0) {
+                    callback(assetManifest);
+                }
+            }
+
+            assets.forEach(function (resource) {
+                loadResource(app, resource, function(asset) {
+                    onLoadedResource(resource.name, asset);
+                });
+            });
+        }
+
+        function callExample(app, canvas, assetManifest, data) {
+            if (location.pathname.indexOf('misc/mini-stats') !== -1) {
+                window.exampleFunction(app, canvas, pcx);
+            } else {
+                window.exampleFunction(app, canvas, assetManifest, data, wasmSupported, loadWasmModuleAsync);
+            }
+            if (window.top.location.pathname.indexOf('iframe') === -1) {
+                var event = new CustomEvent("exampleLoad");
+                window.top.dispatchEvent(event);
+            }
+        }
+    </script>
+    <script>
+        // create the example observer 
+        var data = new observer.Observer({});
+        window.top.observerData = data;
+
+        // load the engine, create the application, load the resources if necessary, then call the example
+        loadEngine(function() {
+            var canvas = document.getElementById('application-canvas');
+
+            const app = createApplication(canvas);
+
+            if (!window.loadFunction) {
+                callExample(app, canvas, {}, data);
+            } else {
+                loadResources(app, function(assetManifest) {
+                    callExample(app, canvas, assetManifest, data);
+                });
+            }
+        });
+    </script>
+</body>
+</html>

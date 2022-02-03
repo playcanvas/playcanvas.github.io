@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="../../build/playcanvas-extras.js"></script>
+    <script src="../../build/playcanvas-observer.js"></script>
+    <script src="../../build/wasm-loader.js"></script>
+    <script src="../../build/urlSearchParamsPolyfill.js"></script>
+    <script src="../../build/promisePolyfill.js"></script>
+    <script src="../../build/fetchPolyfill.js"></script>
+    <script src="../../build/regeneratorRuntimePolyfill.js"></script>
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        body {
+            margin: 0;
+            overflow-y: hidden;
+        }
+        #application-canvas {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div id="appInner">
+            <canvas id='application-canvas'></canvas>
+        </div>
+    </div>
+    <script>
+        // polyfill slice on UInt8Array
+        if (!Uint8Array.prototype.slice) {
+            Object.defineProperty(Uint8Array.prototype, 'slice', {
+                value: function (begin, end) {
+                    return new Uint8Array(Array.prototype.slice.call(this, begin, end));
+                }
+            });
+        }
+
+        // include any constants necessary for the example
+        var constValues = [{"k":"vshader","v":"\nattribute vec3 aPosition;\nattribute vec2 aUv;\n\nuniform mat4 matrix_model;\nuniform mat4 matrix_viewProjection;\n\nvarying vec2 texCoord;\n\nvoid main(void)\n{\n    // project the position\n    vec4 pos = matrix_model * vec4(aPosition, 1.0);\n    gl_Position = matrix_viewProjection * pos;\n\n\n    texCoord = aUv;\n}\n"},{"k":"fshader","v":"\nprecision mediump float;\n\n// use the special texture_grabPass texture, which is a built-in texture. Each time this texture is used\n// for rendering, the engine will copy color framebuffer to it which represents already rendered scene\nuniform sampler2D texture_grabPass;\n\n// normal map providing offsets\nuniform sampler2D uOffsetMap;\n\n// roughness map\nuniform sampler2D uRoughnessMap;\n\n// engine built-in constant storing render target size in .xy and inverse size in .zw\nuniform vec4 uScreenSize;\n\nvarying vec2 texCoord;\n\nvoid main(void)\n{\n    float roughness = 1.0 - texture2D(uRoughnessMap, texCoord).r;\n\n    // sample offset texture - used to add distortion to the sampled background\n    vec2 offset = texture2D(uOffsetMap, texCoord).rg;\n    offset = 2.0 * offset - 1.0;\n\n    // offset strength\n    offset *= (0.2 + roughness) * 0.015;\n\n    // get normalized uv coordinates for canvas\n    vec2 grabUv = gl_FragCoord.xy * uScreenSize.zw;\n\n    // roughness dictates which mipmap level gets used, in 0..4 range\n    float mipmap = roughness * 5.0;\n\n    // get background pixel color with distorted offset\n    #ifdef GL2\n        // only webgl2 (and webgl1 extension - not handled here) supports reading specified mipmap\n        vec3 grabColor = texture2D(texture_grabPass, grabUv + offset, mipmap).rgb;\n    #else\n        vec3 grabColor = texture2D(texture_grabPass, grabUv + offset).rgb;\n    #endif\n\n    // brighten the refracted texture a little bit\n    // brighten even more the rough parts of the glass\n    gl_FragColor = vec4(grabColor * 1.1, 1.0) + roughness * 0.09;\n}\n"}];
+        for (var i = 0; i < constValues.length; i++) {
+            window[constValues[i].k] = constValues[i].v;
+        }
+
+        // include the example class which contains the example function to execute and any assets to load
+        "use strict";function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}function _defineProperties(target, props) {for (var i = 0; i < props.length; i++) {var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);}}function _createClass(Constructor, protoProps, staticProps) {if (protoProps) _defineProperties(Constructor.prototype, protoProps);if (staticProps) _defineProperties(Constructor, staticProps);Object.defineProperty(Constructor, "prototype", { writable: false });return Constructor;}function _defineProperty(obj, key, value) {if (key in obj) {Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true });} else {obj[key] = value;}return obj;}var Example = /*#__PURE__*/function () {function Example() {_classCallCheck(this, Example);}_createClass(Example, [{ key: "load", value:
+
+
+
+    function load() {
+      return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/
+      React.createElement("div", { name: "shader.vert", type: "shader", data: vshader }), /*#__PURE__*/
+      React.createElement("div", { name: "shader.frag", type: "shader", data: fshader }), /*#__PURE__*/
+      React.createElement("div", { name: "normal", type: "texture", url: "/../../static/assets/textures/normal-map.png" }), /*#__PURE__*/
+      React.createElement("div", { name: "roughness", type: "texture", url: "/../../static/assets/textures/pc-gray.png" }), /*#__PURE__*/
+      React.createElement("div", { name: "helipad.dds", type: "cubemap", url: "/../../static/assets/cubemaps/helipad.dds", data: { type: pc.TEXTURETYPE_RGBM } }));
+
+    } }, { key: "example", value:
+
+    function example(app, canvas, assets) {
+
+      // Create the app and start the update loop
+      
+
+      // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
+      app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
+      app.setCanvasResolution(pc.RESOLUTION_AUTO);
+
+      // setup skydome
+      app.scene.skyboxMip = 0;
+      app.scene.exposure = 2;
+      app.scene.setSkybox(assets['helipad.dds'].resources);
+
+      app.scene.toneMapping = pc.TONEMAP_ACES;
+
+      // Render meshes to immediate layer, which renders after skybox - to include skybox in the refraction.
+      // Set up front to back sorting for those meshes - so when we get to render the glass,
+      // object behind it would be rendered already
+      var immediateLayer = app.scene.layers.getLayerByName("Immediate");
+      immediateLayer.opaqueSortMode = pc.SORTMODE_BACK2FRONT;
+
+      // helper function to create a primitive with shape type, position, scale, color
+      function createPrimitive(primitiveType, position, scale, color) {
+        // create material of specified color
+        var material = new pc.StandardMaterial();
+        material.diffuse = color;
+        material.shininess = 60;
+        material.metalness = 0.4;
+        material.useMetalness = true;
+        material.update();
+
+        // create primitive
+        var primitive = new pc.Entity();
+        primitive.addComponent('render', {
+          type: primitiveType,
+          material: material,
+          layers: [immediateLayer.id] });
+
+
+        // set position and scale and add it to scene
+        primitive.setLocalPosition(position);
+        primitive.setLocalScale(scale);
+        app.root.addChild(primitive);
+
+        return primitive;
+      }
+
+      // create few primitives, keep their references to rotate them later
+      var primitives = [];
+      var count = 7;
+      var shapes = ["box", "cone", "cylinder", "sphere", "capsule"];
+      for (var i = 0; i < count; i++) {
+        var shapeName = shapes[Math.floor(Math.random() * shapes.length)];
+        var color = new pc.Color(Math.random(), Math.random(), Math.random());
+        var angle = 2 * Math.PI * i / count;
+        var pos = new pc.Vec3(12 * Math.sin(angle), 0, 12 * Math.cos(angle));
+        primitives.push(createPrimitive(shapeName, pos, new pc.Vec3(4, 8, 4), color));
+      }
+
+      // Create the camera, which renders entities
+      var camera = new pc.Entity();
+      camera.addComponent("camera", {
+        clearColor: new pc.Color(0.2, 0.2, 0.2) });
+
+      app.root.addChild(camera);
+      camera.setLocalPosition(0, 10, 20);
+      camera.lookAt(pc.Vec3.ZERO);
+
+      // create a primitive which uses refraction shader to distort the view behind it
+      var glass = createPrimitive("box", new pc.Vec3(1, 3, 0), new pc.Vec3(10, 10, 10), new pc.Color(1, 1, 1));
+      glass.render.castShadows = false;
+      glass.render.receiveShadows = false;
+
+      // @ts-ignore create shader using vertex and fragment shaders
+      var webgl2def = app.graphicsDevice.webgl2 ? "#define GL2\n" : "";
+      var shaderDefinition = {
+        attributes: {
+          aPosition: pc.SEMANTIC_POSITION,
+          aUv: pc.SEMANTIC_TEXCOORD0 },
+
+        vshader: assets['shader.vert'].data,
+        fshader: webgl2def + assets['shader.frag'].data };
+
+
+      // reflection material using the shader
+      var refractionMaterial = new pc.Material();
+      refractionMaterial.shader = new pc.Shader(app.graphicsDevice, shaderDefinition);
+      glass.render.material = refractionMaterial;
+
+      // set an offset map on the material
+      refractionMaterial.setParameter('uOffsetMap', assets.normal.resource);
+
+      // set roughness map
+      refractionMaterial.setParameter('uRoughnessMap', assets.roughness.resource);
+
+      refractionMaterial.update();
+      app.start();
+
+      // update things each frame
+      var time = 0;
+      app.on("update", function (dt) {
+        time += dt;
+
+        // rotate the primitives
+        primitives.forEach(function (prim) {
+          prim.rotate(0.3, 0.2, 0.1);
+        });
+
+        glass.rotate(-0.1, 0.1, -0.15);
+
+        // orbit the camera
+        camera.setLocalPosition(20 * Math.sin(time * 0.2), 7, 20 * Math.cos(time * 0.2));
+        camera.lookAt(new pc.Vec3(0, 2, 0));
+      });
+    } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'Graphics');_defineProperty(Example, "NAME", 'Grab Pass');
+        var example = new Example();
+
+        var useTypeScript = window.top.localStorage.getItem('useTypeScript') === 'true';
+        window.exampleFunction = window.top.localStorage.getItem(window.top.location.hash.replace('#', ''));
+        if (!window.exampleFunction) {
+            window.exampleFunction = example.example
+        } else {
+            if (useTypeScript) {
+                window.exampleFunction = window.top.Babel.transform(exampleFunction, {
+                    retainLines: true,
+                    filename: 'transformedScript.tsx',
+                    presets: ["react", "typescript", "env"]
+                }).code;
+            }
+            window.exampleFunction = new Function('app', 'canvas', 'assets', 'data', exampleFunction);
+        }
+        window.loadFunction = example.load;
+
+        // get url parameters
+        var queryString = window.location.search;
+        var urlParams = new URLSearchParams(queryString);
+    </script>
+    <script>
+        function loadEngine(callback) {
+            const enginePath = urlParams.get('use_local_engine') || "../../build/playcanvas.js";
+
+            fetch(enginePath)
+                .then(function(response) { return response.text() })
+                .then(function(data) {
+                    var module = {
+                        exports: {}
+                    };
+                    window.pc = (Function('module', 'exports', data).call(module, module, module.exports), module).exports;
+                    window.top.pc = window.pc;
+                    callback();
+                });
+        }
+
+        function createApplication(canvas) {
+            // create the app
+            var app = new pc.Application(canvas, {
+                mouse: new pc.Mouse(document.body),
+                touch: new pc.TouchDevice(document.body),
+                elementInput: new pc.ElementInput(canvas),
+                gamepads: new pc.GamePads(),
+                keyboard: new pc.Keyboard(window),
+                graphicsDeviceOptions: {
+                    alpha: true
+                }
+            });
+
+            // set up miniStats
+            var miniStats = new pcx.MiniStats(app);
+            if (urlParams.get('miniStats') === 'false') {
+                miniStats.enabled = false;
+            }
+            app.on('update', function () {
+                if (window.top._showMiniStats !== undefined) miniStats.enabled = window.top._showMiniStats;
+            });
+
+            // handle resizing
+            var canvasContainerElement = canvas.parentElement;
+            canvas.setAttribute('width', window.innerWidth + 'px');
+            canvas.setAttribute('height', window.innerHeight + 'px');
+            var resizeTimeout = null;
+            app.setCanvasResolution(pc.RESOLUTION_AUTO);
+            if (window.ResizeObserver) {
+                new ResizeObserver(function() {
+                    canvas.width = canvasContainerElement.clientWidth;
+                    canvas.height = canvasContainerElement.clientHeight;
+                }).observe(canvasContainerElement);
+            }
+
+            return app;
+        }
+
+        function hasBasisAssets (assets) {
+        for (let i = 0; i < assets.length; i++) {
+            if (assets[i].url && assets[i].url.includes('.basis')) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+        function loadResource(app, resource, callback) {
+            if (!resource.type) {
+                fetch(resource.url)
+                    .then(function(response) { return response.text() })
+                    .then(function(data) {
+                        var module = {
+                            exports: {}
+                        };
+                        window[resource.name] = (Function('module', 'exports', data).call(module, module, module.exports), module).exports;
+                        callback({});
+                    });
+                return;
+            }
+            if (resource.data) {
+                var asset = new pc.Asset(
+                    resource.name,
+                    resource.type,
+                    resource.type === "cubemap" ? {
+                        url: resource.url
+                    } : null,
+                    resource.data
+                );
+                asset.on("load", function (asset) {
+                    callback(asset);
+                });
+                app.assets.add(asset);
+                app.assets.load(asset);
+            } else {
+                app.assets.loadFromUrl(resource.url, resource.type, function (
+                    err,
+                    asset
+                ) {
+                    if (!err && asset) {
+                        callback(asset);
+                    }
+                });
+            }
+        }
+
+        function loadResources(app, callback) {
+            var assets = [];
+            var assetManifest = {};
+
+            // stub out react
+            window.React = { createElement: function(type, props) { if (type === 'div') assets.push(props); } };
+            // call the stubbed load function to add all assets to the assets list
+            window.loadFunction();
+
+            // if we have any basis assets then initialize basis
+            if (hasBasisAssets(assets)) {
+                pc.basisInitialize({
+                    glueUrl: '/static/lib/basis/basis.wasm.js',
+                    wasmUrl: '/static/lib/basis/basis.wasm.wasm',
+                    fallbackUrl: '/static/lib/basis/basis.js'
+                });
+            }
+
+            var count = assets.length;
+            function onLoadedResource(key, asset) {
+                count--;
+                if (key) {
+                    assetManifest[key] = asset;
+                }
+                if (count <= 0) {
+                    callback(assetManifest);
+                }
+            }
+
+            assets.forEach(function (resource) {
+                loadResource(app, resource, function(asset) {
+                    onLoadedResource(resource.name, asset);
+                });
+            });
+        }
+
+        function callExample(app, canvas, assetManifest, data) {
+            if (location.pathname.indexOf('misc/mini-stats') !== -1) {
+                window.exampleFunction(app, canvas, pcx);
+            } else {
+                window.exampleFunction(app, canvas, assetManifest, data, wasmSupported, loadWasmModuleAsync);
+            }
+            if (window.top.location.pathname.indexOf('iframe') === -1) {
+                var event = new CustomEvent("exampleLoad");
+                window.top.dispatchEvent(event);
+            }
+        }
+    </script>
+    <script>
+        // create the example observer 
+        var data = new observer.Observer({});
+        window.top.observerData = data;
+
+        // load the engine, create the application, load the resources if necessary, then call the example
+        loadEngine(function() {
+            var canvas = document.getElementById('application-canvas');
+
+            const app = createApplication(canvas);
+
+            if (!window.loadFunction) {
+                callExample(app, canvas, {}, data);
+            } else {
+                loadResources(app, function(assetManifest) {
+                    callExample(app, canvas, assetManifest, data);
+                });
+            }
+        });
+    </script>
+</body>
+</html>

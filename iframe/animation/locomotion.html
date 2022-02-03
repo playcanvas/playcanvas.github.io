@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="../../build/playcanvas-extras.js"></script>
+    <script src="../../build/playcanvas-observer.js"></script>
+    <script src="../../build/wasm-loader.js"></script>
+    <script src="../../build/urlSearchParamsPolyfill.js"></script>
+    <script src="../../build/promisePolyfill.js"></script>
+    <script src="../../build/fetchPolyfill.js"></script>
+    <script src="../../build/regeneratorRuntimePolyfill.js"></script>
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        body {
+            margin: 0;
+            overflow-y: hidden;
+        }
+        #application-canvas {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div id="appInner">
+            <canvas id='application-canvas'></canvas>
+        </div>
+    </div>
+    <script>
+        // polyfill slice on UInt8Array
+        if (!Uint8Array.prototype.slice) {
+            Object.defineProperty(Uint8Array.prototype, 'slice', {
+                value: function (begin, end) {
+                    return new Uint8Array(Array.prototype.slice.call(this, begin, end));
+                }
+            });
+        }
+
+        // include any constants necessary for the example
+        var constValues = [];
+        for (var i = 0; i < constValues.length; i++) {
+            window[constValues[i].k] = constValues[i].v;
+        }
+
+        // include the example class which contains the example function to execute and any assets to load
+        "use strict";function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}function _defineProperties(target, props) {for (var i = 0; i < props.length; i++) {var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);}}function _createClass(Constructor, protoProps, staticProps) {if (protoProps) _defineProperties(Constructor.prototype, protoProps);if (staticProps) _defineProperties(Constructor, staticProps);Object.defineProperty(Constructor, "prototype", { writable: false });return Constructor;}function _defineProperty(obj, key, value) {if (key in obj) {Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true });} else {obj[key] = value;}return obj;}var Example = /*#__PURE__*/function () {function Example() {_classCallCheck(this, Example);}_createClass(Example, [{ key: "load", value:
+
+
+
+    function load() {
+      return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/
+      React.createElement("div", { name: "playcanvasGreyTexture", type: "texture", url: "/../../static/assets/textures/playcanvas-grey.png" }), /*#__PURE__*/
+      React.createElement("div", { name: "model", type: "container", url: "/../../static/assets/models/bitmoji.glb" }), /*#__PURE__*/
+      React.createElement("div", { name: "idleAnim", type: "container", url: "/../../static/assets/animations/bitmoji/idle.glb" }), /*#__PURE__*/
+      React.createElement("div", { name: "walkAnim", type: "container", url: "/../../static/assets/animations/bitmoji/walk.glb" }), /*#__PURE__*/
+      React.createElement("div", { name: "jogAnim", type: "container", url: "/../../static/assets/animations/bitmoji/run.glb" }), /*#__PURE__*/
+      React.createElement("div", { name: "jumpAnim", type: "container", url: "/../../static/assets/animations/bitmoji/jump-flip.glb" }), /*#__PURE__*/
+      React.createElement("div", { name: "cubemap", type: "cubemap", url: "/../../static/assets/cubemaps/helipad.dds", data: { type: pc.TEXTURETYPE_RGBM } }));
+
+    } }, { key: "controls", value:
+
+    function controls(data) {
+      return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/
+      React.createElement(Button, { text: "Jump", onClick: function onClick() {return data.emit('jump');} }), /*#__PURE__*/
+      React.createElement(LabelGroup, { text: "Run: " }, /*#__PURE__*/
+      React.createElement(BooleanInput, { type: "toggle", binding: new BindingTwoWay(), link: { observer: data, path: 'jogToggle' } })));
+
+
+    } }, { key: "example", value:
+
+    function example(app, canvas, assets, data, wasmSupported, loadWasmModuleAsync) {
+
+      if (window.wasmSupported()) {
+        window.loadWasmModuleAsync('Ammo', '/../../static/lib/ammo/ammo.wasm.js', '/../../static/lib/ammo/ammo.wasm.wasm', run);
+      } else {
+        loadWasmModuleAsync('Ammo', '/../../static/lib/ammo/ammo.js', '', run);
+      }
+
+      function run() {
+
+        // Create the application and start the update loop
+        
+
+        // setup skydome
+        app.scene.skyboxMip = 2;
+        app.scene.skyboxIntensity = 0.7;
+        app.scene.setSkybox(assets.cubemap.resources);
+        app.scene.toneMapping = pc.TONEMAP_ACES;
+
+        // Create an Entity with a camera component
+        var cameraEntity = new pc.Entity();
+        cameraEntity.name = "Camera";
+        cameraEntity.addComponent("camera", {
+          clearColor: new pc.Color(0.1, 0.15, 0.2) });
+
+
+        cameraEntity.translateLocal(0.5, 3, 8);
+        cameraEntity.rotateLocal(-30, 0, 0);
+        app.root.addChild(cameraEntity);
+
+        // Create an entity with a light component
+        var light = new pc.Entity();
+        light.addComponent("light", {
+          type: "directional",
+          color: new pc.Color(1, 1, 1),
+          castShadows: true,
+          intensity: 2,
+          shadowBias: 0.2,
+          shadowDistance: 16,
+          normalOffsetBias: 0.05,
+          shadowResolution: 2048 });
+
+        light.setLocalEulerAngles(60, 30, 0);
+        app.root.addChild(light);
+
+        app.start();
+
+        var characterEntity = new pc.Entity();
+
+        // create an entity from the loaded model using the render component
+        var renderEntity = assets.model.resource.instantiateRenderEntity({
+          castShadows: true });
+
+
+        // assign the renderEntity as the child of character entity. All transforms of the
+        // renderEntity and its children are driven by the anim component.
+        // The characterEntity transform will be controlled by the Locomotion script.
+        characterEntity.addChild(renderEntity);
+
+        // add an anim component to the entity
+        characterEntity.addComponent('anim', {
+          activate: true });
+
+
+        // create an anim state graph
+        var animStateGraphData = {
+          "layers": [
+          {
+            "name": "locomotion",
+            "states": [
+            {
+              "name": "START" },
+
+            {
+              "name": "Idle",
+              "speed": 1.0 },
+
+            {
+              "name": "Walk",
+              "speed": 1.0 },
+
+            {
+              "name": "Jump",
+              "speed": 1 },
+
+            {
+              "name": "Jog",
+              "speed": 1.0 },
+
+            {
+              "name": "END" }],
+
+
+            "transitions": [
+            {
+              "from": "START",
+              "to": "Idle",
+              "time": 0,
+              "priority": 0 },
+
+            {
+              "from": "Idle",
+              "to": "Walk",
+              "time": 0.1,
+              "priority": 0,
+              "conditions": [
+              {
+                "parameterName": "speed",
+                "predicate": pc.ANIM_GREATER_THAN,
+                "value": 0 }] },
+
+
+
+            {
+              "from": "ANY",
+              "to": "Jump",
+              "time": 0.1,
+              "priority": 0,
+              "conditions": [
+              {
+                "parameterName": "jump",
+                "predicate": pc.ANIM_EQUAL_TO,
+                "value": true }] },
+
+
+
+            {
+              "from": "Jump",
+              "to": "Idle",
+              "time": 0.2,
+              "priority": 0,
+              "exitTime": 0.8 },
+
+            {
+              "from": "Jump",
+              "to": "Walk",
+              "time": 0.2,
+              "priority": 0,
+              "exitTime": 0.8 },
+
+            {
+              "from": "Walk",
+              "to": "Idle",
+              "time": 0.1,
+              "priority": 0,
+              "conditions": [
+              {
+                "parameterName": "speed",
+                "predicate": pc.ANIM_LESS_THAN_EQUAL_TO,
+                "value": 0 }] },
+
+
+
+            {
+              "from": "Walk",
+              "to": "Jog",
+              "time": 0.1,
+              "priority": 0,
+              "conditions": [
+              {
+                "parameterName": "speed",
+                "predicate": pc.ANIM_GREATER_THAN,
+                "value": 1 }] },
+
+
+
+            {
+              "from": "Jog",
+              "to": "Walk",
+              "time": 0.1,
+              "priority": 0,
+              "conditions": [
+              {
+                "parameterName": "speed",
+                "predicate": pc.ANIM_LESS_THAN,
+                "value": 2 }] }] }],
+
+
+
+
+
+
+          "parameters": {
+            "speed": {
+              "name": "speed",
+              "type": pc.ANIM_PARAMETER_INTEGER,
+              "value": 0 },
+
+            "jump": {
+              "name": "jump",
+              "type": pc.ANIM_PARAMETER_TRIGGER,
+              "value": false } } };
+
+
+
+
+        // load the state graph into the anim component
+        characterEntity.anim.loadStateGraph(animStateGraphData);
+
+        // assign the loaded animation assets to each of the states present in the state graph
+        var locomotionLayer = characterEntity.anim.baseLayer;
+        locomotionLayer.assignAnimation('Idle', assets.idleAnim.resource.animations[0].resource);
+        locomotionLayer.assignAnimation('Walk', assets.walkAnim.resource.animations[0].resource);
+        locomotionLayer.assignAnimation('Jog', assets.jogAnim.resource.animations[0].resource);
+        locomotionLayer.assignAnimation('Jump', assets.jumpAnim.resource.animations[0].resource);
+
+        app.root.addChild(characterEntity);
+
+        var planeEntity = new pc.Entity();
+        planeEntity.name = 'Plane';
+        planeEntity.addComponent("render", {
+          type: "plane" });
+
+        planeEntity.addComponent("collision", {
+          type: 'box',
+          halfExtents: new pc.Vec3(7.5, 0, 7.5) });
+
+        planeEntity.addComponent("rigidbody", {
+          type: 'static' });
+
+        planeEntity.setLocalScale(15, 1, 15);
+        planeEntity.setPosition(0, 0, 0);
+        var material = new pc.StandardMaterial();
+        material.diffuseMap = assets.playcanvasGreyTexture.resource;
+        material.update();
+        planeEntity.render.meshInstances[0].material = material;
+        app.root.addChild(planeEntity);
+
+        data.on('jump', function () {
+          var isJumping = characterEntity.anim.baseLayer.activeState === 'Jump';
+          if (!isJumping) {
+            characterEntity.anim.setTrigger('jump');
+          }
+        });
+
+        // create a Locomotion script and initialize some variables
+        var Locomotion = pc.createScript('Locomotion');
+
+        var characterDirection;
+        var targetPosition;
+
+        // initialize code called once per entity
+        Locomotion.prototype.initialize = function () {
+          characterDirection = new pc.Vec3(1, 0, 0);
+          targetPosition = new pc.Vec3(2, 0, 2);
+          document.addEventListener("mousedown", this.onMouseDown);
+        };
+
+        // @ts-ignore engine-tsd
+        Locomotion.prototype.onMouseDown = function (event) {
+          if (event.button !== 0) return;
+          // Set the character target position to a position on the plane that the user has clicked
+          var cameraEntity = app.root.findByName('Camera');
+          var near = cameraEntity.camera.screenToWorld(event.x, event.y, cameraEntity.camera.nearClip);
+          var far = cameraEntity.camera.screenToWorld(event.x, event.y, cameraEntity.camera.farClip);
+          var result = app.systems.rigidbody.raycastFirst(far, near);
+          if (result) {
+            targetPosition = new pc.Vec3(result.point.x, 0, result.point.z);
+            characterEntity.anim.setInteger('speed', data.get('jogToggle') ? 2 : 1);
+          }
+        };
+
+        // defines how many units the character should move per second given its current animation state
+        function speedForState(state) {
+          switch (state) {
+            case 'Walk':
+              return 1.0;
+            case 'Jog':
+              return 4.0;
+            case 'Jump':
+            case 'Idle':
+            default:
+              return 0.0;}
+
+        }
+
+        var currentPosition = new pc.Vec3(0, 0, 0);
+
+        // update code called every frame
+        Locomotion.prototype.update = function (dt) {
+          if (characterEntity.anim.getInteger('speed')) {
+            // Update position if target position is not the same as entity position. Base the movement speed on the current state
+            // Move the character along X & Z axis based on click target position & make character face click direction
+            var moveSpeed = speedForState(characterEntity.anim.baseLayer.activeState);
+            if (characterEntity.anim.baseLayer.transitioning) {
+              var prevMoveSpeed = speedForState(characterEntity.anim.baseLayer.previousState);
+              var progress = characterEntity.anim.baseLayer.transitionProgress;
+              moveSpeed = prevMoveSpeed * (1.0 - progress) + moveSpeed * progress;
+            }
+            var distance = targetPosition.clone().sub(currentPosition);
+            var direction = distance.clone().normalize();
+            characterDirection = new pc.Vec3().sub(direction);
+            var movement = direction.clone().mulScalar(dt * moveSpeed);
+            if (movement.length() < distance.length()) {
+              currentPosition.add(movement);
+              characterEntity.setPosition(currentPosition);
+              characterEntity.lookAt(characterEntity.getPosition().clone().add(characterDirection));
+            } else {
+              currentPosition.copy(targetPosition);
+              characterEntity.setPosition(currentPosition);
+              characterEntity.anim.setInteger('speed', 0);
+            }
+          }
+
+        };
+
+        characterEntity.addComponent("script");
+        characterEntity.script.create('Locomotion', {});
+      }
+    } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'Animation');_defineProperty(Example, "NAME", 'Locomotion');
+        var example = new Example();
+
+        var useTypeScript = window.top.localStorage.getItem('useTypeScript') === 'true';
+        window.exampleFunction = window.top.localStorage.getItem(window.top.location.hash.replace('#', ''));
+        if (!window.exampleFunction) {
+            window.exampleFunction = example.example
+        } else {
+            if (useTypeScript) {
+                window.exampleFunction = window.top.Babel.transform(exampleFunction, {
+                    retainLines: true,
+                    filename: 'transformedScript.tsx',
+                    presets: ["react", "typescript", "env"]
+                }).code;
+            }
+            window.exampleFunction = new Function('app', 'canvas', 'assets', 'data', exampleFunction);
+        }
+        window.loadFunction = example.load;
+
+        // get url parameters
+        var queryString = window.location.search;
+        var urlParams = new URLSearchParams(queryString);
+    </script>
+    <script>
+        function loadEngine(callback) {
+            const enginePath = urlParams.get('use_local_engine') || "../../build/playcanvas.js";
+
+            fetch(enginePath)
+                .then(function(response) { return response.text() })
+                .then(function(data) {
+                    var module = {
+                        exports: {}
+                    };
+                    window.pc = (Function('module', 'exports', data).call(module, module, module.exports), module).exports;
+                    window.top.pc = window.pc;
+                    callback();
+                });
+        }
+
+        function createApplication(canvas) {
+            // create the app
+            var app = new pc.Application(canvas, {
+                mouse: new pc.Mouse(document.body),
+                touch: new pc.TouchDevice(document.body),
+                elementInput: new pc.ElementInput(canvas),
+                gamepads: new pc.GamePads(),
+                keyboard: new pc.Keyboard(window),
+                graphicsDeviceOptions: {
+                    alpha: true
+                }
+            });
+
+            // set up miniStats
+            var miniStats = new pcx.MiniStats(app);
+            if (urlParams.get('miniStats') === 'false') {
+                miniStats.enabled = false;
+            }
+            app.on('update', function () {
+                if (window.top._showMiniStats !== undefined) miniStats.enabled = window.top._showMiniStats;
+            });
+
+            // handle resizing
+            var canvasContainerElement = canvas.parentElement;
+            canvas.setAttribute('width', window.innerWidth + 'px');
+            canvas.setAttribute('height', window.innerHeight + 'px');
+            var resizeTimeout = null;
+            app.setCanvasResolution(pc.RESOLUTION_AUTO);
+            if (window.ResizeObserver) {
+                new ResizeObserver(function() {
+                    canvas.width = canvasContainerElement.clientWidth;
+                    canvas.height = canvasContainerElement.clientHeight;
+                }).observe(canvasContainerElement);
+            }
+
+            return app;
+        }
+
+        function hasBasisAssets (assets) {
+        for (let i = 0; i < assets.length; i++) {
+            if (assets[i].url && assets[i].url.includes('.basis')) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+        function loadResource(app, resource, callback) {
+            if (!resource.type) {
+                fetch(resource.url)
+                    .then(function(response) { return response.text() })
+                    .then(function(data) {
+                        var module = {
+                            exports: {}
+                        };
+                        window[resource.name] = (Function('module', 'exports', data).call(module, module, module.exports), module).exports;
+                        callback({});
+                    });
+                return;
+            }
+            if (resource.data) {
+                var asset = new pc.Asset(
+                    resource.name,
+                    resource.type,
+                    resource.type === "cubemap" ? {
+                        url: resource.url
+                    } : null,
+                    resource.data
+                );
+                asset.on("load", function (asset) {
+                    callback(asset);
+                });
+                app.assets.add(asset);
+                app.assets.load(asset);
+            } else {
+                app.assets.loadFromUrl(resource.url, resource.type, function (
+                    err,
+                    asset
+                ) {
+                    if (!err && asset) {
+                        callback(asset);
+                    }
+                });
+            }
+        }
+
+        function loadResources(app, callback) {
+            var assets = [];
+            var assetManifest = {};
+
+            // stub out react
+            window.React = { createElement: function(type, props) { if (type === 'div') assets.push(props); } };
+            // call the stubbed load function to add all assets to the assets list
+            window.loadFunction();
+
+            // if we have any basis assets then initialize basis
+            if (hasBasisAssets(assets)) {
+                pc.basisInitialize({
+                    glueUrl: '/static/lib/basis/basis.wasm.js',
+                    wasmUrl: '/static/lib/basis/basis.wasm.wasm',
+                    fallbackUrl: '/static/lib/basis/basis.js'
+                });
+            }
+
+            var count = assets.length;
+            function onLoadedResource(key, asset) {
+                count--;
+                if (key) {
+                    assetManifest[key] = asset;
+                }
+                if (count <= 0) {
+                    callback(assetManifest);
+                }
+            }
+
+            assets.forEach(function (resource) {
+                loadResource(app, resource, function(asset) {
+                    onLoadedResource(resource.name, asset);
+                });
+            });
+        }
+
+        function callExample(app, canvas, assetManifest, data) {
+            if (location.pathname.indexOf('misc/mini-stats') !== -1) {
+                window.exampleFunction(app, canvas, pcx);
+            } else {
+                window.exampleFunction(app, canvas, assetManifest, data, wasmSupported, loadWasmModuleAsync);
+            }
+            if (window.top.location.pathname.indexOf('iframe') === -1) {
+                var event = new CustomEvent("exampleLoad");
+                window.top.dispatchEvent(event);
+            }
+        }
+    </script>
+    <script>
+        // create the example observer 
+        var data = new observer.Observer({});
+        window.top.observerData = data;
+
+        // load the engine, create the application, load the resources if necessary, then call the example
+        loadEngine(function() {
+            var canvas = document.getElementById('application-canvas');
+
+            const app = createApplication(canvas);
+
+            if (!window.loadFunction) {
+                callExample(app, canvas, {}, data);
+            } else {
+                loadResources(app, function(assetManifest) {
+                    callExample(app, canvas, assetManifest, data);
+                });
+            }
+        });
+    </script>
+</body>
+</html>

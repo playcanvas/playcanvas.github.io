@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="../../build/playcanvas-extras.js"></script>
+    <script src="../../build/playcanvas-observer.js"></script>
+    <script src="../../build/wasm-loader.js"></script>
+    <script src="../../build/urlSearchParamsPolyfill.js"></script>
+    <script src="../../build/promisePolyfill.js"></script>
+    <script src="../../build/fetchPolyfill.js"></script>
+    <script src="../../build/regeneratorRuntimePolyfill.js"></script>
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        body {
+            margin: 0;
+            overflow-y: hidden;
+        }
+        #application-canvas {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div id="appInner">
+            <canvas id='application-canvas'></canvas>
+        </div>
+    </div>
+    <script>
+        // polyfill slice on UInt8Array
+        if (!Uint8Array.prototype.slice) {
+            Object.defineProperty(Uint8Array.prototype, 'slice', {
+                value: function (begin, end) {
+                    return new Uint8Array(Array.prototype.slice.call(this, begin, end));
+                }
+            });
+        }
+
+        // include any constants necessary for the example
+        var constValues = [];
+        for (var i = 0; i < constValues.length; i++) {
+            window[constValues[i].k] = constValues[i].v;
+        }
+
+        // include the example class which contains the example function to execute and any assets to load
+        "use strict";function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}function _defineProperties(target, props) {for (var i = 0; i < props.length; i++) {var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);}}function _createClass(Constructor, protoProps, staticProps) {if (protoProps) _defineProperties(Constructor.prototype, protoProps);if (staticProps) _defineProperties(Constructor, staticProps);Object.defineProperty(Constructor, "prototype", { writable: false });return Constructor;}function _defineProperty(obj, key, value) {if (key in obj) {Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true });} else {obj[key] = value;}return obj;}var Example = /*#__PURE__*/function () {function Example() {_classCallCheck(this, Example);}_createClass(Example, [{ key: "load", value:
+
+
+
+    function load() {
+      return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/
+      React.createElement("div", { name: "checkboard", type: "texture", url: "/../../static/assets/textures/checkboard.png" }), /*#__PURE__*/
+      React.createElement("div", { name: "font", type: "font", url: "/../../static/assets/fonts/courier.json" }), /*#__PURE__*/
+      React.createElement("div", { name: "script", type: "script", url: "/../../static/scripts/camera/orbit-camera.js" }));
+
+    } }, { key: "example", value:
+
+    function example(app, canvas, assets) {
+
+      // Create the application with input and start the update loop
+      
+
+      app.start();
+
+      // Create an Entity with a camera component and simple orbiter script
+      var camera = new pc.Entity();
+      camera.addComponent("camera", {
+        clearColor: new pc.Color(30 / 255, 30 / 255, 30 / 255) });
+
+      camera.rotateLocal(-30, 0, 0);
+      camera.translateLocal(0, 0, 7);
+      camera.addComponent("script");
+      camera.script.create("orbitCamera", {
+        attributes: {
+          inertiaFactor: 0.2 // Override default of 0 (no inertia)
+        } });
+
+      camera.script.create("orbitCameraInputMouse");
+      camera.script.create("orbitCameraInputTouch");
+      app.root.addChild(camera);
+
+      // Create an Entity for the ground
+      var material = new pc.StandardMaterial();
+      material.diffuse = pc.Color.WHITE;
+      material.diffuseMap = assets.checkboard.resource;
+      material.diffuseMapTiling = new pc.Vec2(50, 50);
+      material.update();
+
+      var ground = new pc.Entity();
+      ground.addComponent("render", {
+        type: "box",
+        material: material });
+
+      ground.setLocalScale(50, 1, 50);
+      ground.setLocalPosition(0, -0.5, 0);
+      app.root.addChild(ground);
+
+      // Create an entity with a light component
+      var light = new pc.Entity();
+      light.addComponent("light", {
+        type: "directional",
+        color: new pc.Color(1, 1, 1),
+        castShadows: true,
+        intensity: 1,
+        shadowBias: 0.2,
+        shadowDistance: 16,
+        normalOffsetBias: 0.05,
+        shadowResolution: 2048 });
+
+      light.setLocalEulerAngles(45, 30, 0);
+      app.root.addChild(light);
+
+      // Create a 3D world screen, which is basically a `screen` with `screenSpace` set to false
+      var screen = new pc.Entity();
+      screen.setLocalScale(0.01, 0.01, 0.01);
+      screen.setPosition(0, 0.01, 0); // place UI slightly above the ground
+      screen.setLocalRotation(new pc.Quat().setFromEulerAngles(-90, 0, 0));
+      screen.addComponent("screen", {
+        referenceResolution: new pc.Vec2(1280, 720),
+        screenSpace: false });
+
+      app.root.addChild(screen);
+
+      // Text
+      var text = new pc.Entity();
+      text.setLocalPosition(0, 25, 0);
+      text.addComponent("element", {
+        pivot: new pc.Vec2(0.5, 0.5),
+        anchor: new pc.Vec4(0.5, 0.5, 0.5, 0.5),
+        fontAsset: assets.font.id,
+        fontSize: 18,
+        text: "this is a UI screen placed in the 3D world",
+        width: 200,
+        height: 100,
+        autoWidth: false,
+        autoHeight: false,
+        wrapLines: true,
+        enableMarkup: true,
+        type: pc.ELEMENTTYPE_TEXT });
+
+      screen.addChild(text);
+
+      // Button
+      var button = new pc.Entity();
+      button.setLocalPosition(0, -25, 0);
+      button.addComponent("button", {
+        imageEntity: button });
+
+      button.addComponent("element", {
+        anchor: [0.5, 0.5, 0.5, 0.5],
+        width: 100,
+        height: 25,
+        pivot: [0.5, 0.5],
+        type: pc.ELEMENTTYPE_IMAGE,
+        useInput: true });
+
+      screen.addChild(button);
+
+      // Create a label for the button
+      var buttonText = new pc.Entity();
+      buttonText.addComponent("element", {
+        pivot: new pc.Vec2(0.5, 0.5),
+        anchor: new pc.Vec4(0, 0, 1, 1),
+        margin: new pc.Vec4(0, 0, 0, 0),
+        color: new pc.Color(0, 0, 0),
+        fontAsset: assets.font.id,
+        fontSize: 12,
+        text: "and this is a button",
+        type: pc.ELEMENTTYPE_TEXT,
+        wrapLines: true });
+
+      button.addChild(buttonText);
+
+      // Change the background color every time the button is clicked
+      button.button.on('click', function (e) {
+        camera.camera.clearColor = new pc.Color(Math.random(), Math.random(), Math.random());
+      });
+    } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'User Interface');_defineProperty(Example, "NAME", 'World UI');
+        var example = new Example();
+
+        var useTypeScript = window.top.localStorage.getItem('useTypeScript') === 'true';
+        window.exampleFunction = window.top.localStorage.getItem(window.top.location.hash.replace('#', ''));
+        if (!window.exampleFunction) {
+            window.exampleFunction = example.example
+        } else {
+            if (useTypeScript) {
+                window.exampleFunction = window.top.Babel.transform(exampleFunction, {
+                    retainLines: true,
+                    filename: 'transformedScript.tsx',
+                    presets: ["react", "typescript", "env"]
+                }).code;
+            }
+            window.exampleFunction = new Function('app', 'canvas', 'assets', 'data', exampleFunction);
+        }
+        window.loadFunction = example.load;
+
+        // get url parameters
+        var queryString = window.location.search;
+        var urlParams = new URLSearchParams(queryString);
+    </script>
+    <script>
+        function loadEngine(callback) {
+            const enginePath = urlParams.get('use_local_engine') || "../../build/playcanvas.js";
+
+            fetch(enginePath)
+                .then(function(response) { return response.text() })
+                .then(function(data) {
+                    var module = {
+                        exports: {}
+                    };
+                    window.pc = (Function('module', 'exports', data).call(module, module, module.exports), module).exports;
+                    window.top.pc = window.pc;
+                    callback();
+                });
+        }
+
+        function createApplication(canvas) {
+            // create the app
+            var app = new pc.Application(canvas, {
+                mouse: new pc.Mouse(document.body),
+                touch: new pc.TouchDevice(document.body),
+                elementInput: new pc.ElementInput(canvas),
+                gamepads: new pc.GamePads(),
+                keyboard: new pc.Keyboard(window),
+                graphicsDeviceOptions: {
+                    alpha: true
+                }
+            });
+
+            // set up miniStats
+            var miniStats = new pcx.MiniStats(app);
+            if (urlParams.get('miniStats') === 'false') {
+                miniStats.enabled = false;
+            }
+            app.on('update', function () {
+                if (window.top._showMiniStats !== undefined) miniStats.enabled = window.top._showMiniStats;
+            });
+
+            // handle resizing
+            var canvasContainerElement = canvas.parentElement;
+            canvas.setAttribute('width', window.innerWidth + 'px');
+            canvas.setAttribute('height', window.innerHeight + 'px');
+            var resizeTimeout = null;
+            app.setCanvasResolution(pc.RESOLUTION_AUTO);
+            if (window.ResizeObserver) {
+                new ResizeObserver(function() {
+                    canvas.width = canvasContainerElement.clientWidth;
+                    canvas.height = canvasContainerElement.clientHeight;
+                }).observe(canvasContainerElement);
+            }
+
+            return app;
+        }
+
+        function hasBasisAssets (assets) {
+        for (let i = 0; i < assets.length; i++) {
+            if (assets[i].url && assets[i].url.includes('.basis')) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+        function loadResource(app, resource, callback) {
+            if (!resource.type) {
+                fetch(resource.url)
+                    .then(function(response) { return response.text() })
+                    .then(function(data) {
+                        var module = {
+                            exports: {}
+                        };
+                        window[resource.name] = (Function('module', 'exports', data).call(module, module, module.exports), module).exports;
+                        callback({});
+                    });
+                return;
+            }
+            if (resource.data) {
+                var asset = new pc.Asset(
+                    resource.name,
+                    resource.type,
+                    resource.type === "cubemap" ? {
+                        url: resource.url
+                    } : null,
+                    resource.data
+                );
+                asset.on("load", function (asset) {
+                    callback(asset);
+                });
+                app.assets.add(asset);
+                app.assets.load(asset);
+            } else {
+                app.assets.loadFromUrl(resource.url, resource.type, function (
+                    err,
+                    asset
+                ) {
+                    if (!err && asset) {
+                        callback(asset);
+                    }
+                });
+            }
+        }
+
+        function loadResources(app, callback) {
+            var assets = [];
+            var assetManifest = {};
+
+            // stub out react
+            window.React = { createElement: function(type, props) { if (type === 'div') assets.push(props); } };
+            // call the stubbed load function to add all assets to the assets list
+            window.loadFunction();
+
+            // if we have any basis assets then initialize basis
+            if (hasBasisAssets(assets)) {
+                pc.basisInitialize({
+                    glueUrl: '/static/lib/basis/basis.wasm.js',
+                    wasmUrl: '/static/lib/basis/basis.wasm.wasm',
+                    fallbackUrl: '/static/lib/basis/basis.js'
+                });
+            }
+
+            var count = assets.length;
+            function onLoadedResource(key, asset) {
+                count--;
+                if (key) {
+                    assetManifest[key] = asset;
+                }
+                if (count <= 0) {
+                    callback(assetManifest);
+                }
+            }
+
+            assets.forEach(function (resource) {
+                loadResource(app, resource, function(asset) {
+                    onLoadedResource(resource.name, asset);
+                });
+            });
+        }
+
+        function callExample(app, canvas, assetManifest, data) {
+            if (location.pathname.indexOf('misc/mini-stats') !== -1) {
+                window.exampleFunction(app, canvas, pcx);
+            } else {
+                window.exampleFunction(app, canvas, assetManifest, data, wasmSupported, loadWasmModuleAsync);
+            }
+            if (window.top.location.pathname.indexOf('iframe') === -1) {
+                var event = new CustomEvent("exampleLoad");
+                window.top.dispatchEvent(event);
+            }
+        }
+    </script>
+    <script>
+        // create the example observer 
+        var data = new observer.Observer({});
+        window.top.observerData = data;
+
+        // load the engine, create the application, load the resources if necessary, then call the example
+        loadEngine(function() {
+            var canvas = document.getElementById('application-canvas');
+
+            const app = createApplication(canvas);
+
+            if (!window.loadFunction) {
+                callExample(app, canvas, {}, data);
+            } else {
+                loadResources(app, function(assetManifest) {
+                    callExample(app, canvas, assetManifest, data);
+                });
+            }
+        });
+    </script>
+</body>
+</html>

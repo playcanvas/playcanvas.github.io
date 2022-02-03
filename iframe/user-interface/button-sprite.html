@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="../../build/playcanvas-extras.js"></script>
+    <script src="../../build/playcanvas-observer.js"></script>
+    <script src="../../build/wasm-loader.js"></script>
+    <script src="../../build/urlSearchParamsPolyfill.js"></script>
+    <script src="../../build/promisePolyfill.js"></script>
+    <script src="../../build/fetchPolyfill.js"></script>
+    <script src="../../build/regeneratorRuntimePolyfill.js"></script>
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        body {
+            margin: 0;
+            overflow-y: hidden;
+        }
+        #application-canvas {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div id="appInner">
+            <canvas id='application-canvas'></canvas>
+        </div>
+    </div>
+    <script>
+        // polyfill slice on UInt8Array
+        if (!Uint8Array.prototype.slice) {
+            Object.defineProperty(Uint8Array.prototype, 'slice', {
+                value: function (begin, end) {
+                    return new Uint8Array(Array.prototype.slice.call(this, begin, end));
+                }
+            });
+        }
+
+        // include any constants necessary for the example
+        var constValues = [];
+        for (var i = 0; i < constValues.length; i++) {
+            window[constValues[i].k] = constValues[i].v;
+        }
+
+        // include the example class which contains the example function to execute and any assets to load
+        "use strict";function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}function _defineProperties(target, props) {for (var i = 0; i < props.length; i++) {var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);}}function _createClass(Constructor, protoProps, staticProps) {if (protoProps) _defineProperties(Constructor.prototype, protoProps);if (staticProps) _defineProperties(Constructor, staticProps);Object.defineProperty(Constructor, "prototype", { writable: false });return Constructor;}function _defineProperty(obj, key, value) {if (key in obj) {Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true });} else {obj[key] = value;}return obj;}var Example = /*#__PURE__*/function () {function Example() {_classCallCheck(this, Example);}_createClass(Example, [{ key: "load", value:
+
+
+
+    function load() {
+      return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/
+      React.createElement("div", { name: "font", type: "font", url: "/../../static/assets/fonts/courier.json" }), /*#__PURE__*/
+      React.createElement("div", { name: "red_button_atlas", type: "texture", url: "/../../static/assets/button/red_button_atlas.png" }));
+
+    } }, { key: "example", value:
+
+    function example(app, canvas, assets) {
+
+      // Create the application with input and start the update loop
+      
+
+      app.start();
+
+      // Create a camera
+      var camera = new pc.Entity();
+      camera.addComponent("camera", {
+        clearColor: new pc.Color(30 / 255, 30 / 255, 30 / 255) });
+
+      app.root.addChild(camera);
+
+      // Create a 2D screen
+      var screen = new pc.Entity();
+      screen.addComponent("screen", {
+        referenceResolution: new pc.Vec2(1280, 720),
+        scaleBlend: 0.5,
+        scaleMode: pc.SCALEMODE_BLEND,
+        screenSpace: true });
+
+      app.root.addChild(screen);
+
+      // Create a simple button
+      var button = new pc.Entity();
+      button.addComponent("button", {
+        active: true,
+        imageEntity: button,
+        transitionMode: pc.BUTTON_TRANSITION_MODE_SPRITE_CHANGE });
+
+      button.addComponent("element", {
+        anchor: [0.5, 0.5, 0.5, 0.5],
+        height: 64,
+        pivot: [0.5, 0.5],
+        type: pc.ELEMENTTYPE_IMAGE,
+        width: 175,
+        useInput: true });
+
+      screen.addChild(button);
+
+      // Create a label for the button
+      var label = new pc.Entity();
+      label.addComponent("element", {
+        anchor: [0.5, 0.5, 0.5, 0.5],
+        color: new pc.Color(1, 1, 1),
+        fontAsset: assets.font.id,
+        fontSize: 32,
+        height: 64,
+        opacity: 0.5,
+        pivot: [0.5, 0.5],
+        text: "CLICK ME",
+        type: pc.ELEMENTTYPE_TEXT,
+        width: 128,
+        wrapLines: true });
+
+      button.addChild(label);
+
+      // Change the background color every time the button is clicked
+      button.button.on('click', function () {
+        var r = Math.random();
+        camera.camera.clearColor = new pc.Color(r, r, r);
+      });
+
+      // Move the button's label with the animation of the sprite
+      button.button.on('pressedstart', function () {
+        label.translateLocal(0, -4, 0);
+      });
+      button.button.on('pressedend', function () {
+        label.translateLocal(0, 4, 0);
+      });
+
+      // Apply the font to the text element
+      var texture = assets.red_button_atlas.resource;
+      texture.addressU = pc.ADDRESS_CLAMP_TO_EDGE;
+      texture.addressV = pc.ADDRESS_CLAMP_TO_EDGE;
+      texture.minFilter = pc.FILTER_NEAREST;
+      texture.magFilter = pc.FILTER_NEAREST;
+
+      var atlas = new pc.TextureAtlas();
+      atlas.frames = {
+        "0": {
+          rect: new pc.Vec4(0, 147, 190, 49),
+          pivot: new pc.Vec2(0.5, 0.5),
+          border: new pc.Vec4(7, 11, 7, 7) },
+
+        "1": {
+          rect: new pc.Vec4(0, 98, 190, 49),
+          pivot: new pc.Vec2(0.5, 0.5),
+          border: new pc.Vec4(7, 11, 7, 7) },
+
+        "2": {
+          rect: new pc.Vec4(0, 49, 190, 49),
+          pivot: new pc.Vec2(0.5, 0.5),
+          border: new pc.Vec4(7, 11, 7, 7) },
+
+        "3": {
+          rect: new pc.Vec4(0, 0, 190, 49),
+          pivot: new pc.Vec2(0.5, 0.5),
+          border: new pc.Vec4(7, 11, 7, 7) } };
+
+
+      atlas.texture = texture;
+
+      var createSpriteAsset = function createSpriteAsset(frame) {
+        var sprite = new pc.Sprite(app.graphicsDevice, {
+          atlas: atlas,
+          frameKeys: [frame],
+          pixelsPerUnit: 1,
+          renderMode: pc.SPRITE_RENDERMODE_SIMPLE });
+
+
+        var spriteAsset = new pc.Asset('sprite', 'sprite', { url: '' });
+        spriteAsset.resource = sprite;
+        spriteAsset.loaded = true;
+        app.assets.add(spriteAsset);
+        return spriteAsset;
+      };
+
+      button.element.spriteAsset = createSpriteAsset('0').id;
+      button.button.hoverSpriteAsset = createSpriteAsset('1');
+      button.button.pressedSpriteAsset = createSpriteAsset('2');
+      button.button.inactiveSpriteAsset = createSpriteAsset('3');
+    } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'User Interface');_defineProperty(Example, "NAME", 'Button Sprite');
+        var example = new Example();
+
+        var useTypeScript = window.top.localStorage.getItem('useTypeScript') === 'true';
+        window.exampleFunction = window.top.localStorage.getItem(window.top.location.hash.replace('#', ''));
+        if (!window.exampleFunction) {
+            window.exampleFunction = example.example
+        } else {
+            if (useTypeScript) {
+                window.exampleFunction = window.top.Babel.transform(exampleFunction, {
+                    retainLines: true,
+                    filename: 'transformedScript.tsx',
+                    presets: ["react", "typescript", "env"]
+                }).code;
+            }
+            window.exampleFunction = new Function('app', 'canvas', 'assets', 'data', exampleFunction);
+        }
+        window.loadFunction = example.load;
+
+        // get url parameters
+        var queryString = window.location.search;
+        var urlParams = new URLSearchParams(queryString);
+    </script>
+    <script>
+        function loadEngine(callback) {
+            const enginePath = urlParams.get('use_local_engine') || "../../build/playcanvas.js";
+
+            fetch(enginePath)
+                .then(function(response) { return response.text() })
+                .then(function(data) {
+                    var module = {
+                        exports: {}
+                    };
+                    window.pc = (Function('module', 'exports', data).call(module, module, module.exports), module).exports;
+                    window.top.pc = window.pc;
+                    callback();
+                });
+        }
+
+        function createApplication(canvas) {
+            // create the app
+            var app = new pc.Application(canvas, {
+                mouse: new pc.Mouse(document.body),
+                touch: new pc.TouchDevice(document.body),
+                elementInput: new pc.ElementInput(canvas),
+                gamepads: new pc.GamePads(),
+                keyboard: new pc.Keyboard(window),
+                graphicsDeviceOptions: {
+                    alpha: true
+                }
+            });
+
+            // set up miniStats
+            var miniStats = new pcx.MiniStats(app);
+            if (urlParams.get('miniStats') === 'false') {
+                miniStats.enabled = false;
+            }
+            app.on('update', function () {
+                if (window.top._showMiniStats !== undefined) miniStats.enabled = window.top._showMiniStats;
+            });
+
+            // handle resizing
+            var canvasContainerElement = canvas.parentElement;
+            canvas.setAttribute('width', window.innerWidth + 'px');
+            canvas.setAttribute('height', window.innerHeight + 'px');
+            var resizeTimeout = null;
+            app.setCanvasResolution(pc.RESOLUTION_AUTO);
+            if (window.ResizeObserver) {
+                new ResizeObserver(function() {
+                    canvas.width = canvasContainerElement.clientWidth;
+                    canvas.height = canvasContainerElement.clientHeight;
+                }).observe(canvasContainerElement);
+            }
+
+            return app;
+        }
+
+        function hasBasisAssets (assets) {
+        for (let i = 0; i < assets.length; i++) {
+            if (assets[i].url && assets[i].url.includes('.basis')) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+        function loadResource(app, resource, callback) {
+            if (!resource.type) {
+                fetch(resource.url)
+                    .then(function(response) { return response.text() })
+                    .then(function(data) {
+                        var module = {
+                            exports: {}
+                        };
+                        window[resource.name] = (Function('module', 'exports', data).call(module, module, module.exports), module).exports;
+                        callback({});
+                    });
+                return;
+            }
+            if (resource.data) {
+                var asset = new pc.Asset(
+                    resource.name,
+                    resource.type,
+                    resource.type === "cubemap" ? {
+                        url: resource.url
+                    } : null,
+                    resource.data
+                );
+                asset.on("load", function (asset) {
+                    callback(asset);
+                });
+                app.assets.add(asset);
+                app.assets.load(asset);
+            } else {
+                app.assets.loadFromUrl(resource.url, resource.type, function (
+                    err,
+                    asset
+                ) {
+                    if (!err && asset) {
+                        callback(asset);
+                    }
+                });
+            }
+        }
+
+        function loadResources(app, callback) {
+            var assets = [];
+            var assetManifest = {};
+
+            // stub out react
+            window.React = { createElement: function(type, props) { if (type === 'div') assets.push(props); } };
+            // call the stubbed load function to add all assets to the assets list
+            window.loadFunction();
+
+            // if we have any basis assets then initialize basis
+            if (hasBasisAssets(assets)) {
+                pc.basisInitialize({
+                    glueUrl: '/static/lib/basis/basis.wasm.js',
+                    wasmUrl: '/static/lib/basis/basis.wasm.wasm',
+                    fallbackUrl: '/static/lib/basis/basis.js'
+                });
+            }
+
+            var count = assets.length;
+            function onLoadedResource(key, asset) {
+                count--;
+                if (key) {
+                    assetManifest[key] = asset;
+                }
+                if (count <= 0) {
+                    callback(assetManifest);
+                }
+            }
+
+            assets.forEach(function (resource) {
+                loadResource(app, resource, function(asset) {
+                    onLoadedResource(resource.name, asset);
+                });
+            });
+        }
+
+        function callExample(app, canvas, assetManifest, data) {
+            if (location.pathname.indexOf('misc/mini-stats') !== -1) {
+                window.exampleFunction(app, canvas, pcx);
+            } else {
+                window.exampleFunction(app, canvas, assetManifest, data, wasmSupported, loadWasmModuleAsync);
+            }
+            if (window.top.location.pathname.indexOf('iframe') === -1) {
+                var event = new CustomEvent("exampleLoad");
+                window.top.dispatchEvent(event);
+            }
+        }
+    </script>
+    <script>
+        // create the example observer 
+        var data = new observer.Observer({});
+        window.top.observerData = data;
+
+        // load the engine, create the application, load the resources if necessary, then call the example
+        loadEngine(function() {
+            var canvas = document.getElementById('application-canvas');
+
+            const app = createApplication(canvas);
+
+            if (!window.loadFunction) {
+                callExample(app, canvas, {}, data);
+            } else {
+                loadResources(app, function(assetManifest) {
+                    callExample(app, canvas, assetManifest, data);
+                });
+            }
+        });
+    </script>
+</body>
+</html>

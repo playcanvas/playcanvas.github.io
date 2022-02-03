@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="../../build/playcanvas-extras.js"></script>
+    <script src="../../build/playcanvas-observer.js"></script>
+    <script src="../../build/wasm-loader.js"></script>
+    <script src="../../build/urlSearchParamsPolyfill.js"></script>
+    <script src="../../build/promisePolyfill.js"></script>
+    <script src="../../build/fetchPolyfill.js"></script>
+    <script src="../../build/regeneratorRuntimePolyfill.js"></script>
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        body {
+            margin: 0;
+            overflow-y: hidden;
+        }
+        #application-canvas {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div id="appInner">
+            <canvas id='application-canvas'></canvas>
+        </div>
+    </div>
+    <script>
+        // polyfill slice on UInt8Array
+        if (!Uint8Array.prototype.slice) {
+            Object.defineProperty(Uint8Array.prototype, 'slice', {
+                value: function (begin, end) {
+                    return new Uint8Array(Array.prototype.slice.call(this, begin, end));
+                }
+            });
+        }
+
+        // include any constants necessary for the example
+        var constValues = [];
+        for (var i = 0; i < constValues.length; i++) {
+            window[constValues[i].k] = constValues[i].v;
+        }
+
+        // include the example class which contains the example function to execute and any assets to load
+        "use strict";function ownKeys(object, enumerableOnly) {var keys = Object.keys(object);if (Object.getOwnPropertySymbols) {var symbols = Object.getOwnPropertySymbols(object);enumerableOnly && (symbols = symbols.filter(function (sym) {return Object.getOwnPropertyDescriptor(object, sym).enumerable;})), keys.push.apply(keys, symbols);}return keys;}function _objectSpread(target) {for (var i = 1; i < arguments.length; i++) {var source = null != arguments[i] ? arguments[i] : {};i % 2 ? ownKeys(Object(source), !0).forEach(function (key) {_defineProperty(target, key, source[key]);}) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys(Object(source)).forEach(function (key) {Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));});}return target;}function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}function _defineProperties(target, props) {for (var i = 0; i < props.length; i++) {var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);}}function _createClass(Constructor, protoProps, staticProps) {if (protoProps) _defineProperties(Constructor.prototype, protoProps);if (staticProps) _defineProperties(Constructor, staticProps);Object.defineProperty(Constructor, "prototype", { writable: false });return Constructor;}function _defineProperty(obj, key, value) {if (key in obj) {Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true });} else {obj[key] = value;}return obj;}var Example = /*#__PURE__*/function () {function Example() {_classCallCheck(this, Example);}_createClass(Example, [{ key: "load", value:
+
+
+
+    function load() {
+      return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/
+      React.createElement("div", { name: "statue", type: "container", url: "/../../static/assets/models/statue.glb" }), /*#__PURE__*/
+      React.createElement("div", { name: "heart", type: "texture", url: "/../../static/assets/textures/heart.png" }), /*#__PURE__*/
+      React.createElement("div", { name: "xmas_negx", type: "texture", url: "/../../static/assets/cubemaps/xmas_faces/xmas_negx.png" }), /*#__PURE__*/
+      React.createElement("div", { name: "xmas_negy", type: "texture", url: "/../../static/assets/cubemaps/xmas_faces/xmas_negy.png" }), /*#__PURE__*/
+      React.createElement("div", { name: "xmas_negz", type: "texture", url: "/../../static/assets/cubemaps/xmas_faces/xmas_negz.png" }), /*#__PURE__*/
+      React.createElement("div", { name: "xmas_posx", type: "texture", url: "/../../static/assets/cubemaps/xmas_faces/xmas_posx.png" }), /*#__PURE__*/
+      React.createElement("div", { name: "xmas_posy", type: "texture", url: "/../../static/assets/cubemaps/xmas_faces/xmas_posy.png" }), /*#__PURE__*/
+      React.createElement("div", { name: "xmas_posz", type: "texture", url: "/../../static/assets/cubemaps/xmas_faces/xmas_posz.png" }));
+
+    } }, { key: "controls", value:
+
+    function controls(data) {
+      return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/
+      React.createElement(Panel, { headerText: "OMNI LIGHT [KEY_1]" }, /*#__PURE__*/
+      React.createElement(LabelGroup, { text: "enabled" }, /*#__PURE__*/
+      React.createElement(BooleanInput, { type: "toggle", binding: new BindingTwoWay(), link: { observer: data, path: 'lights.omni.enabled' } })), /*#__PURE__*/
+
+      React.createElement(LabelGroup, { text: "intensity" }, /*#__PURE__*/
+      React.createElement(SliderInput, { binding: new BindingTwoWay(), link: { observer: data, path: 'lights.omni.intensity' } })), /*#__PURE__*/
+
+      React.createElement(LabelGroup, { text: "cookie" }, /*#__PURE__*/
+      React.createElement(SliderInput, { binding: new BindingTwoWay(), link: { observer: data, path: 'lights.omni.cookieIntensity' } }))), /*#__PURE__*/
+
+
+      React.createElement(Panel, { headerText: "SPOT LIGHT [KEY_2]" }, /*#__PURE__*/
+      React.createElement(LabelGroup, { text: "enabled" }, /*#__PURE__*/
+      React.createElement(BooleanInput, { type: "toggle", binding: new BindingTwoWay(), link: { observer: data, path: 'lights.spot.enabled' } })), /*#__PURE__*/
+
+      React.createElement(LabelGroup, { text: "intensity" }, /*#__PURE__*/
+      React.createElement(SliderInput, { binding: new BindingTwoWay(), link: { observer: data, path: 'lights.spot.intensity' } })), /*#__PURE__*/
+
+      React.createElement(LabelGroup, { text: "cookie" }, /*#__PURE__*/
+      React.createElement(SliderInput, { binding: new BindingTwoWay(), link: { observer: data, path: 'lights.spot.cookieIntensity' } }))), /*#__PURE__*/
+
+
+      React.createElement(Panel, { headerText: "DIRECTIONAL LIGHT [KEY_3]" }, /*#__PURE__*/
+      React.createElement(LabelGroup, { text: "enabled" }, /*#__PURE__*/
+      React.createElement(BooleanInput, { type: "toggle", binding: new BindingTwoWay(), link: { observer: data, path: 'lights.directional.enabled' } })), /*#__PURE__*/
+
+      React.createElement(LabelGroup, { text: "intensity" }, /*#__PURE__*/
+      React.createElement(SliderInput, { binding: new BindingTwoWay(), link: { observer: data, path: 'lights.directional.intensity' } }))));
+
+
+
+    }
+
+    // @ts-ignore: override class function$
+  }, { key: "example", value: function example(app, canvas, assets, data) {
+      function createMaterial(colors) {
+        var material = new pc.StandardMaterial();
+        for (var param in colors) {
+          material[param] = colors[param];
+        }
+        material.update();
+        return material;
+      }
+
+      // Create the application and start the update loop
+      
+
+      app.start();
+
+      // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
+      app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
+      app.setCanvasResolution(pc.RESOLUTION_AUTO);
+
+      app.scene.ambientLight = new pc.Color(0.2, 0.2, 0.2);
+
+      // create an entity with the statue
+      var entity = assets.statue.resource.instantiateRenderEntity();
+
+      app.root.addChild(entity);
+
+      // Create an Entity with a camera component
+      var camera = new pc.Entity();
+      camera.addComponent("camera", {
+        clearColor: new pc.Color(0.4, 0.45, 0.5) });
+
+      camera.translate(0, 15, 35);
+      camera.rotate(-14, 0, 0);
+      app.root.addChild(camera);
+
+      // ground material
+      var material = createMaterial({
+        ambient: pc.Color.GRAY,
+        diffuse: pc.Color.GRAY });
+
+
+      // Create an Entity for the ground
+      var ground = new pc.Entity();
+      ground.addComponent("render", {
+        type: "box",
+        material: material });
+
+      ground.setLocalScale(70, 1, 70);
+      ground.setLocalPosition(0, -0.5, 0);
+      app.root.addChild(ground);
+
+      // setup light data
+      data.set('lights', {
+        spot: {
+          enabled: true,
+          intensity: 0.8,
+          cookieIntensity: 1 },
+
+        omni: {
+          enabled: true,
+          intensity: 0.8,
+          cookieIntensity: 1 },
+
+        directional: {
+          enabled: true,
+          intensity: 0.8 } });
+
+
+
+      var lights = {};
+
+      // Create an spot light
+      lights.spot = new pc.Entity();
+      lights.spot.addComponent("light", _objectSpread(_objectSpread({},
+      {
+        type: "spot",
+        color: pc.Color.WHITE,
+        innerConeAngle: 30,
+        outerConeAngle: 31,
+        range: 100,
+        castShadows: true,
+        shadowBias: 0.05,
+        normalOffsetBias: 0.03,
+        shadowResolution: 2048,
+        // heart texture's alpha channel as a cookie texture
+        cookie: assets.heart.resource,
+        cookieChannel: "a" }),
+
+      data.get('lights.spot')));
+
+
+      var cone = new pc.Entity();
+      cone.addComponent("render", {
+        type: "cone",
+        castShadows: false,
+        material: createMaterial({ emissive: pc.Color.WHITE }) });
+
+      lights.spot.addChild(cone);
+      app.root.addChild(lights.spot);
+
+      // construct the cubemap asset for the omni light cookie texture
+      // Note: the textures array could contain 6 texture asset names to load instead as well
+      var cubemapAsset = new pc.Asset('xmas_cubemap', 'cubemap', null, {
+        textures: [
+        assets.xmas_posx.id, assets.xmas_negx.id,
+        assets.xmas_posy.id, assets.xmas_negy.id,
+        assets.xmas_posz.id, assets.xmas_negz.id] });
+
+
+      // @ts-ignore engine-tsd
+      cubemapAsset.loadFaces = true;
+      app.assets.add(cubemapAsset);
+
+      // Create a omni light
+      lights.omni = new pc.Entity();
+      lights.omni.addComponent("light", _objectSpread(_objectSpread({},
+      {
+        type: "omni",
+        color: pc.Color.YELLOW,
+        castShadows: true,
+        range: 111,
+        cookieAsset: cubemapAsset,
+        cookieChannel: "rgb" }),
+
+      data.get('lights.omni')));
+
+      lights.omni.addComponent("render", {
+        type: "sphere",
+        castShadows: false,
+        material: createMaterial({ diffuse: pc.Color.BLACK, emissive: pc.Color.YELLOW }) });
+
+      app.root.addChild(lights.omni);
+
+      // Create a directional light
+      lights.directional = new pc.Entity();
+      lights.directional.addComponent("light", _objectSpread(_objectSpread({},
+      {
+        type: "directional",
+        color: pc.Color.CYAN,
+        range: 100,
+        shadowDistance: 50,
+        castShadows: true,
+        shadowBias: 0.1,
+        normalOffsetBias: 0.2 }),
+
+      data.get('lights.directional')));
+
+      app.root.addChild(lights.directional);
+
+      // Allow user to toggle individual lights
+      app.keyboard.on("keydown", function (e) {
+        // if the user is editing an input field, ignore key presses
+        if (e.element.constructor.name === 'HTMLInputElement') return;
+        switch (e.key) {
+          case pc.KEY_1:
+            data.set('lights.omni.enabled', !data.get('lights.omni.enabled'));
+            break;
+          case pc.KEY_2:
+            data.set('lights.spot.enabled', !data.get('lights.spot.enabled'));
+            break;
+          case pc.KEY_3:
+            data.set('lights.directional.enabled', !data.get('lights.directional.enabled'));
+            break;}
+
+      }, this);
+
+      // Simple update loop to rotate the light
+      var angleRad = 1;
+      app.on("update", function (dt) {
+        angleRad += 0.3 * dt;
+        if (entity) {
+
+          lights.spot.lookAt(new pc.Vec3(0, -5, 0));
+          lights.spot.rotateLocal(90, 0, 0);
+          lights.spot.setLocalPosition(15 * Math.sin(angleRad), 25, 15 * Math.cos(angleRad));
+
+          lights.omni.setLocalPosition(5 * Math.sin(-2 * angleRad), 10, 5 * Math.cos(-2 * angleRad));
+          lights.omni.rotate(0, 50 * dt, 0);
+
+          lights.directional.setLocalEulerAngles(45, -60 * angleRad, 0);
+        }
+      });
+
+      data.on('*:set', function (path, value) {
+        var pathArray = path.split('.');
+        if (pathArray[2] === 'enabled') {
+          lights[pathArray[1]].enabled = value;
+        } else {
+          // @ts-ignore
+          lights[pathArray[1]].light[pathArray[2]] = value;
+        }
+      });
+    } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'Graphics');_defineProperty(Example, "NAME", 'Lights');
+        var example = new Example();
+
+        var useTypeScript = window.top.localStorage.getItem('useTypeScript') === 'true';
+        window.exampleFunction = window.top.localStorage.getItem(window.top.location.hash.replace('#', ''));
+        if (!window.exampleFunction) {
+            window.exampleFunction = example.example
+        } else {
+            if (useTypeScript) {
+                window.exampleFunction = window.top.Babel.transform(exampleFunction, {
+                    retainLines: true,
+                    filename: 'transformedScript.tsx',
+                    presets: ["react", "typescript", "env"]
+                }).code;
+            }
+            window.exampleFunction = new Function('app', 'canvas', 'assets', 'data', exampleFunction);
+        }
+        window.loadFunction = example.load;
+
+        // get url parameters
+        var queryString = window.location.search;
+        var urlParams = new URLSearchParams(queryString);
+    </script>
+    <script>
+        function loadEngine(callback) {
+            const enginePath = urlParams.get('use_local_engine') || "../../build/playcanvas.js";
+
+            fetch(enginePath)
+                .then(function(response) { return response.text() })
+                .then(function(data) {
+                    var module = {
+                        exports: {}
+                    };
+                    window.pc = (Function('module', 'exports', data).call(module, module, module.exports), module).exports;
+                    window.top.pc = window.pc;
+                    callback();
+                });
+        }
+
+        function createApplication(canvas) {
+            // create the app
+            var app = new pc.Application(canvas, {
+                mouse: new pc.Mouse(document.body),
+                touch: new pc.TouchDevice(document.body),
+                elementInput: new pc.ElementInput(canvas),
+                gamepads: new pc.GamePads(),
+                keyboard: new pc.Keyboard(window),
+                graphicsDeviceOptions: {
+                    alpha: true
+                }
+            });
+
+            // set up miniStats
+            var miniStats = new pcx.MiniStats(app);
+            if (urlParams.get('miniStats') === 'false') {
+                miniStats.enabled = false;
+            }
+            app.on('update', function () {
+                if (window.top._showMiniStats !== undefined) miniStats.enabled = window.top._showMiniStats;
+            });
+
+            // handle resizing
+            var canvasContainerElement = canvas.parentElement;
+            canvas.setAttribute('width', window.innerWidth + 'px');
+            canvas.setAttribute('height', window.innerHeight + 'px');
+            var resizeTimeout = null;
+            app.setCanvasResolution(pc.RESOLUTION_AUTO);
+            if (window.ResizeObserver) {
+                new ResizeObserver(function() {
+                    canvas.width = canvasContainerElement.clientWidth;
+                    canvas.height = canvasContainerElement.clientHeight;
+                }).observe(canvasContainerElement);
+            }
+
+            return app;
+        }
+
+        function hasBasisAssets (assets) {
+        for (let i = 0; i < assets.length; i++) {
+            if (assets[i].url && assets[i].url.includes('.basis')) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+        function loadResource(app, resource, callback) {
+            if (!resource.type) {
+                fetch(resource.url)
+                    .then(function(response) { return response.text() })
+                    .then(function(data) {
+                        var module = {
+                            exports: {}
+                        };
+                        window[resource.name] = (Function('module', 'exports', data).call(module, module, module.exports), module).exports;
+                        callback({});
+                    });
+                return;
+            }
+            if (resource.data) {
+                var asset = new pc.Asset(
+                    resource.name,
+                    resource.type,
+                    resource.type === "cubemap" ? {
+                        url: resource.url
+                    } : null,
+                    resource.data
+                );
+                asset.on("load", function (asset) {
+                    callback(asset);
+                });
+                app.assets.add(asset);
+                app.assets.load(asset);
+            } else {
+                app.assets.loadFromUrl(resource.url, resource.type, function (
+                    err,
+                    asset
+                ) {
+                    if (!err && asset) {
+                        callback(asset);
+                    }
+                });
+            }
+        }
+
+        function loadResources(app, callback) {
+            var assets = [];
+            var assetManifest = {};
+
+            // stub out react
+            window.React = { createElement: function(type, props) { if (type === 'div') assets.push(props); } };
+            // call the stubbed load function to add all assets to the assets list
+            window.loadFunction();
+
+            // if we have any basis assets then initialize basis
+            if (hasBasisAssets(assets)) {
+                pc.basisInitialize({
+                    glueUrl: '/static/lib/basis/basis.wasm.js',
+                    wasmUrl: '/static/lib/basis/basis.wasm.wasm',
+                    fallbackUrl: '/static/lib/basis/basis.js'
+                });
+            }
+
+            var count = assets.length;
+            function onLoadedResource(key, asset) {
+                count--;
+                if (key) {
+                    assetManifest[key] = asset;
+                }
+                if (count <= 0) {
+                    callback(assetManifest);
+                }
+            }
+
+            assets.forEach(function (resource) {
+                loadResource(app, resource, function(asset) {
+                    onLoadedResource(resource.name, asset);
+                });
+            });
+        }
+
+        function callExample(app, canvas, assetManifest, data) {
+            if (location.pathname.indexOf('misc/mini-stats') !== -1) {
+                window.exampleFunction(app, canvas, pcx);
+            } else {
+                window.exampleFunction(app, canvas, assetManifest, data, wasmSupported, loadWasmModuleAsync);
+            }
+            if (window.top.location.pathname.indexOf('iframe') === -1) {
+                var event = new CustomEvent("exampleLoad");
+                window.top.dispatchEvent(event);
+            }
+        }
+    </script>
+    <script>
+        // create the example observer 
+        var data = new observer.Observer({});
+        window.top.observerData = data;
+
+        // load the engine, create the application, load the resources if necessary, then call the example
+        loadEngine(function() {
+            var canvas = document.getElementById('application-canvas');
+
+            const app = createApplication(canvas);
+
+            if (!window.loadFunction) {
+                callExample(app, canvas, {}, data);
+            } else {
+                loadResources(app, function(assetManifest) {
+                    callExample(app, canvas, assetManifest, data);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
