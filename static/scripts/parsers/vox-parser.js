@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.52.1 revision 0f56653b1
+ * PlayCanvas Engine v1.52.2 revision 610e6669f
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 (function (global, factory) {
@@ -170,6 +170,8 @@
 			var _this;
 
 			_this = _EventHandler.call(this) || this;
+			_this.system = void 0;
+			_this.entity = void 0;
 			_this.system = system;
 			_this.entity = entity;
 

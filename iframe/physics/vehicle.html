@@ -238,7 +238,7 @@
     </script>
     <script>
         function loadEngine(callback) {
-            const enginePath = urlParams.get('use_local_engine') || "../../build/playcanvas.js";
+            const enginePath = urlParams.get('use_local_engine') || "/build/playcanvas.dbg.js";
 
             fetch(enginePath)
                 .then(function(response) { return response.text() })

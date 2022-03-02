@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.52.1 revision 0f56653b1
+ * PlayCanvas Engine v1.52.2 revision 610e6669f
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 if (!Array.prototype.fill) {
@@ -617,8 +617,8 @@ const setupVertexArrayObject = function setupVertexArrayObject(gl) {
 	};
 };
 
-const version = "1.52.1";
-const revision = "0f56653b1";
+const version = "1.52.2";
+const revision = "610e6669f";
 const config = {};
 const common = {};
 const apps = {};
@@ -5264,7 +5264,7 @@ class VertexBuffer {
 		this.numVertices = numVertices;
 		this.usage = usage;
 		this.id = id$3++;
-		this._vao = null;
+		this.impl = graphicsDevice.createVertexBufferImpl(this, format);
 		this.instancing = false;
 		this.numBytes = format.verticesByteSize ? format.verticesByteSize : format.size * numVertices;
 		graphicsDevice._vram.vb += this.numBytes;
@@ -5286,19 +5286,12 @@ class VertexBuffer {
 			device.buffers.splice(idx, 1);
 		}
 
-		if (this.bufferId) {
-			const gl = device.gl;
-			device.boundVao = null;
-			gl.bindVertexArray(null);
-			gl.deleteBuffer(this.bufferId);
-			device._vram.vb -= this.storage.byteLength;
-			this.bufferId = null;
-		}
+		this.impl.destroy(device);
+		device._vram.vb -= this.storage.byteLength;
 	}
 
 	loseContext() {
-		this.bufferId = undefined;
-		this._vao = null;
+		this.impl.loseContext();
 	}
 
 	getFormat() {
@@ -5318,39 +5311,7 @@ class VertexBuffer {
 	}
 
 	unlock() {
-		const gl = this.device.gl;
-
-		if (!this.bufferId) {
-			this.bufferId = gl.createBuffer();
-		}
-
-		let glUsage;
-
-		switch (this.usage) {
-			case BUFFER_STATIC:
-				glUsage = gl.STATIC_DRAW;
-				break;
-
-			case BUFFER_DYNAMIC:
-				glUsage = gl.DYNAMIC_DRAW;
-				break;
-
-			case BUFFER_STREAM:
-				glUsage = gl.STREAM_DRAW;
-				break;
-
-			case BUFFER_GPUDYNAMIC:
-				if (this.device.webgl2) {
-					glUsage = gl.DYNAMIC_COPY;
-				} else {
-					glUsage = gl.STATIC_DRAW;
-				}
-
-				break;
-		}
-
-		gl.bindBuffer(gl.ARRAY_BUFFER, this.bufferId);
-		gl.bufferData(gl.ARRAY_BUFFER, this.storage, glUsage);
+		this.impl.unlock(this);
 	}
 
 	setData(data) {
@@ -5378,7 +5339,7 @@ function hashCode(str) {
 
 class VertexFormat {
 	constructor(graphicsDevice, description, vertexCount) {
-		this.elements = [];
+		this._elements = [];
 		this.hasUv0 = false;
 		this.hasUv1 = false;
 		this.hasColor = false;
@@ -5409,7 +5370,8 @@ class VertexFormat {
 				normalize: elementDesc.normalize === undefined ? false : elementDesc.normalize,
 				size: elementSize
 			};
-			this.elements.push(element);
+
+			this._elements.push(element);
 
 			if (vertexCount) {
 				offset += elementSize * vertexCount;
@@ -5432,36 +5394,35 @@ class VertexFormat {
 			this.verticesByteSize = offset;
 		}
 
-		this.update();
+		this._evaluateHash();
 	}
 
-	static init(graphicsDevice) {
-		const formatDesc = [{
-			semantic: SEMANTIC_ATTR12,
-			components: 4,
-			type: TYPE_FLOAT32
-		}, {
-			semantic: SEMANTIC_ATTR13,
-			components: 4,
-			type: TYPE_FLOAT32
-		}, {
-			semantic: SEMANTIC_ATTR14,
-			components: 4,
-			type: TYPE_FLOAT32
-		}, {
-			semantic: SEMANTIC_ATTR15,
-			components: 4,
-			type: TYPE_FLOAT32
-		}];
-		VertexFormat._defaultInstancingFormat = new VertexFormat(graphicsDevice, formatDesc);
+	get elements() {
+		return this._elements;
 	}
 
 	static get defaultInstancingFormat() {
-		return VertexFormat._defaultInstancingFormat;
-	}
+		if (!VertexFormat._defaultInstancingFormat) {
+			VertexFormat._defaultInstancingFormat = new VertexFormat(null, [{
+				semantic: SEMANTIC_ATTR12,
+				components: 4,
+				type: TYPE_FLOAT32
+			}, {
+				semantic: SEMANTIC_ATTR13,
+				components: 4,
+				type: TYPE_FLOAT32
+			}, {
+				semantic: SEMANTIC_ATTR14,
+				components: 4,
+				type: TYPE_FLOAT32
+			}, {
+				semantic: SEMANTIC_ATTR15,
+				components: 4,
+				type: TYPE_FLOAT32
+			}]);
+		}
 
-	update() {
-		this._evaluateHash();
+		return VertexFormat._defaultInstancingFormat;
 	}
 
 	_evaluateHash() {
@@ -5469,10 +5430,10 @@ class VertexFormat {
 		const stringElementsBatch = [];
 		let stringElementRender;
 		const stringElementsRender = [];
-		const len = this.elements.length;
+		const len = this._elements.length;
 
 		for (let i = 0; i < len; i++) {
-			const element = this.elements[i];
+			const element = this._elements[i];
 			stringElementBatch = element.name;
 			stringElementBatch += element.dataType;
 			stringElementBatch += element.numComponents;
@@ -5494,16 +5455,39 @@ class VertexFormat {
 
 VertexFormat._defaultInstancingFormat = null;
 
-let _postEffectQuadVB = null;
+class DeviceCache {
+	constructor() {
+		this._cache = new Map();
+	}
+
+	get(device, onCreate) {
+		if (!this._cache.has(device)) {
+			this._cache.set(device, onCreate());
+
+			device.on('destroy', () => {
+				var _this$_cache$get;
+
+				(_this$_cache$get = this._cache.get(device)) == null ? void 0 : _this$_cache$get.destroy();
+
+				this._cache.delete(device);
+			});
+		}
+
+		return this._cache.get(device);
+	}
+
+}
+
 const _postEffectQuadDraw = {
 	type: PRIMITIVE_TRISTRIP,
 	base: 0,
 	count: 4,
 	indexed: false
 };
+const postEffectDeviceCache = new DeviceCache();
 
-function drawQuadWithShader(device, target, shader, rect, scissorRect, useBlend = false) {
-	if (_postEffectQuadVB === null) {
+function getPostEffectQuadVB(device) {
+	return postEffectDeviceCache.get(device, () => {
 		const vertexFormat = new VertexFormat(device, [{
 			semantic: SEMANTIC_POSITION,
 			components: 2,
@@ -5511,9 +5495,11 @@ function drawQuadWithShader(device, target, shader, rect, scissorRect, useBlend 
 		}]);
 		const positions = new Float32Array(8);
 		positions.set([-1, -1, 1, -1, -1, 1, 1, 1]);
-		_postEffectQuadVB = new VertexBuffer(device, vertexFormat, 4, BUFFER_STATIC, positions);
-	}
+		return new VertexBuffer(device, vertexFormat, 4, BUFFER_STATIC, positions);
+	});
+}
 
+function drawQuadWithShader(device, target, shader, rect, scissorRect, useBlend = false) {
 	const oldRt = device.renderTarget;
 	device.setRenderTarget(target);
 	device.updateBegin();
@@ -5566,7 +5552,7 @@ function drawQuadWithShader(device, target, shader, rect, scissorRect, useBlend 
 	device.setCullMode(CULLFACE_NONE);
 	device.setColorWrite(true, true, true, true);
 	if (!useBlend) device.setBlending(false);
-	device.setVertexBuffer(_postEffectQuadVB, 0);
+	device.setVertexBuffer(getPostEffectQuadVB(device), 0);
 	device.setShader(shader);
 	device.draw(_postEffectQuadDraw);
 	device.setDepthTest(oldDepthTest);
@@ -5580,14 +5566,6 @@ function drawQuadWithShader(device, target, shader, rect, scissorRect, useBlend 
 	device.setScissor(oldSx, oldSy, oldSw, oldSh);
 }
 
-function destroyPostEffectQuad() {
-	if (_postEffectQuadVB) {
-		_postEffectQuadVB.destroy();
-
-		_postEffectQuadVB = null;
-	}
-}
-
 function drawTexture(device, texture, target, shader, rect, scissorRect, useBlend = false) {
 	shader = shader || device.getCopyShader();
 	device.constantTexSource.setValue(texture);
@@ -5599,7 +5577,7 @@ class Shader {
 		this.device = graphicsDevice;
 		this.definition = definition;
 		this.init();
-		this.device.createShader(this);
+		this.impl = graphicsDevice.createShaderImpl(this);
 	}
 
 	init() {
@@ -5611,11 +5589,15 @@ class Shader {
 	}
 
 	destroy() {
-		this.device.destroyShader(this);
+		this.impl.destroy(this);
 	}
 
 	loseContext() {
 		this.init();
+	}
+
+	restoreContext() {
+		this.impl.restoreContext(this.device, this);
 	}
 
 }
@@ -5624,7 +5606,7 @@ var alphaTestPS = "uniform float alpha_ref;\nvoid alphaTest(float a) {\n\tif (a 
 
 var ambientConstantPS = "void addAmbient() {\n\tdDiffuseLight += light_globalAmbient;\n}\n";
 
-var ambientEnvPS = "#ifndef ENV_ATLAS\n#define ENV_ATLAS\nuniform sampler2D texture_envAtlas;\n#endif\nvoid addAmbient() {\n\tvec3 dir = cubeMapRotate(dNormalW) * vec3(-1.0, 1.0, 1.0);\n\tvec2 uv = mapUv(toSphericalUv(dir), vec4(128.0, 256.0 + 128.0, 64.0, 32.0) / atlasSize);\n\tvec4 raw = texture2D(texture_envAtlas, uv);\n\tvec3 linear = $DECODE(raw);\n\tdDiffuseLight += processEnvironment(linear);\n}\n";
+var ambientEnvPS = "#ifndef ENV_ATLAS\n#define ENV_ATLAS\nuniform sampler2D texture_envAtlas;\n#endif\nvoid addAmbient() {\n\tvec3 dir = normalize(cubeMapRotate(dNormalW) * vec3(-1.0, 1.0, 1.0));\n\tvec2 uv = mapUv(toSphericalUv(dir), vec4(128.0, 256.0 + 128.0, 64.0, 32.0) / atlasSize);\n\tvec4 raw = texture2D(texture_envAtlas, uv);\n\tvec3 linear = $DECODE(raw);\n\tdDiffuseLight += processEnvironment(linear);\n}\n";
 
 var ambientSHPS = "uniform vec3 ambientSH[9];\nvoid addAmbient() {\n\tvec3 n = cubeMapRotate(dNormalW);\n\tvec3 color =\n\t\tambientSH[0] +\n\t\tambientSH[1] * n.x +\n\t\tambientSH[2] * n.y +\n\t\tambientSH[3] * n.z +\n\t\tambientSH[4] * n.x * n.z +\n\t\tambientSH[5] * n.z * n.y +\n\t\tambientSH[6] * n.y * n.x +\n\t\tambientSH[7] * (3.0 * n.z * n.z - 1.0) +\n\t\tambientSH[8] * (n.x * n.x - n.y * n.y);\n\tdDiffuseLight += processEnvironment(max(color, vec3(0.0)));\n}\n";
 
@@ -6367,6 +6349,87 @@ shaderChunks.collectAttribs = collectAttribs;
 shaderChunks.createShader = createShader;
 shaderChunks.createShaderFromCode = createShaderFromCode;
 
+class Version {
+	constructor() {
+		this.globalId = 0;
+		this.revision = 0;
+	}
+
+	equals(other) {
+		return this.globalId === other.globalId && this.revision === other.revision;
+	}
+
+	copy(other) {
+		this.globalId = other.globalId;
+		this.revision = other.revision;
+	}
+
+	reset() {
+		this.globalId = 0;
+		this.revision = 0;
+	}
+
+}
+
+let idCounter = 0;
+
+class VersionedObject {
+	constructor() {
+		idCounter++;
+		this.version = new Version();
+		this.version.globalId = idCounter;
+	}
+
+	increment() {
+		this.version.revision++;
+	}
+
+}
+
+class ScopeId {
+	constructor(name) {
+		this.name = name;
+		this.value = null;
+		this.versionObject = new VersionedObject();
+	}
+
+	setValue(value) {
+		this.value = value;
+		this.versionObject.increment();
+	}
+
+	getValue() {
+		return this.value;
+	}
+
+}
+
+class ScopeSpace {
+	constructor(name) {
+		this.name = name;
+		this.variables = new Map();
+	}
+
+	resolve(name) {
+		if (!this.variables.has(name)) {
+			this.variables.set(name, new ScopeId(name));
+		}
+
+		return this.variables.get(name);
+	}
+
+	removeValue(value) {
+		for (const uniformName in this.variables) {
+			const uniform = this.variables[uniformName];
+
+			if (uniform.value === value) {
+				uniform.value = null;
+			}
+		}
+	}
+
+}
+
 const basic = {
 	generateKey: function (options) {
 		let key = 'basic';
@@ -6831,6 +6894,34 @@ class Texture {
 
 		this.dirtyAll();
 		this._gpuSize = 0;
+		this.impl = graphicsDevice.createTextureImpl(this);
+		graphicsDevice.textures.push(this);
+	}
+
+	destroy() {
+		if (this.device) {
+			const device = this.device;
+			const idx = device.textures.indexOf(this);
+
+			if (idx !== -1) {
+				device.textures.splice(idx, 1);
+			}
+
+			device.scope.removeValue(this);
+			this.impl.destroy(device);
+			this.adjustVramSizeTracking(device._vram, -this._gpuSize);
+			this._levels = null;
+			this.device = null;
+		}
+	}
+
+	loseContext() {
+		this.impl.loseContext();
+		this.dirtyAll();
+	}
+
+	adjustVramSizeTracking(vram, size) {
+		vram.tex += size;
 	}
 
 	set minFilter(v) {
@@ -7086,15 +7177,6 @@ class Texture {
 		}
 
 		return result * (cubemap ? 6 : 1);
-	}
-
-	destroy() {
-		if (this.device) {
-			this.device.destroyTexture(this);
-		}
-
-		this.device = null;
-		this._levels = this._cubemap ? [[null, null, null, null, null, null]] : [null];
 	}
 
 	dirtyAll() {
@@ -7876,8 +7958,13 @@ class GraphNode extends EventHandler {
 
 	set enabled(enabled) {
 		if (this._enabled !== enabled) {
+			var _this$_parent;
+
 			this._enabled = enabled;
-			if (!this._parent || this._parent.enabled) this._notifyHierarchyStateChanged(this, enabled);
+
+			if (enabled && (_this$_parent = this._parent) != null && _this$_parent.enabled || !enabled) {
+				this._notifyHierarchyStateChanged(this, enabled);
+			}
 		}
 	}
 
@@ -8399,6 +8486,10 @@ class GraphNode extends EventHandler {
 		this._children.splice(index, 1);
 
 		child._parent = null;
+
+		if (child._enabledInHierarchy) {
+			child._notifyHierarchyStateChanged(child, false);
+		}
 
 		child._fireOnHierarchy('remove', 'removehierarchy', this);
 
@@ -9186,7 +9277,7 @@ const standard = {
 		subCode = this._addMapDefs(isFloatTint, isVecTint, vertexColorOption, textureOption) + subCode;
 		return subCode.replace(/\$/g, "");
 	},
-	_directionalShadowMapProjection: function (light, shadowCoordArgs, shadowParamArg, lightIndex, coordsFunctioName) {
+	_directionalShadowMapProjection: function (light, shadowCoordArgs, shadowParamArg, lightIndex, coordsFunctionName) {
 		let code = "";
 
 		if (light.numCascades > 1) {
@@ -9194,7 +9285,7 @@ const standard = {
 			shadowCoordArgs = `(cascadeShadowMat, ${shadowParamArg});\n`;
 		}
 
-		code += coordsFunctioName + shadowCoordArgs;
+		code += coordsFunctionName + shadowCoordArgs;
 		code += `fadeShadow(light${lightIndex}_shadowCascadeDistances);\n`;
 		return code;
 	},
@@ -10906,8 +10997,17 @@ const createSamplesTex = (device, name, samples) => {
 };
 
 class SimpleCache {
-	constructor() {
+	constructor(destroyContent = true) {
 		this.map = new Map();
+		this.destroyContent = destroyContent;
+	}
+
+	destroy() {
+		if (this.destroyContent) {
+			this.map.forEach((value, key) => {
+				value.destroy();
+			});
+		}
 	}
 
 	get(key, missFunc) {
@@ -10920,63 +11020,38 @@ class SimpleCache {
 		return this.map.get(key);
 	}
 
-	clear() {
-		this.map.clear();
-	}
-
 }
 
-class DeviceCache {
-	constructor() {
-		this.cache = new SimpleCache();
-	}
+const samplesCache = new SimpleCache(false);
+const deviceCache = new DeviceCache();
 
-	get(device, key, missFunc) {
-		return this.cache.get(device, () => {
-			const cache = new SimpleCache();
-			device.on('destroy', () => {
-				cache.map.forEach((value, key) => {
-					value.destroy();
-				});
-				this.cache.map.delete(device);
-			});
-			return cache;
-		}).get(key, missFunc);
-	}
-
-	clear() {
-		this.cache.clear();
-	}
-
-}
-
-const samplesCache = new SimpleCache();
-const samplesTexCache = new DeviceCache();
+const getCachedTexture = (device, key, getSamplesFnc) => {
+	const cache = deviceCache.get(device, () => {
+		return new SimpleCache();
+	});
+	return cache.get(key, () => {
+		return createSamplesTex(device, key, samplesCache.get(key, getSamplesFnc));
+	});
+};
 
 const generateLambertSamplesTex = (device, numSamples, sourceTotalPixels) => {
 	const key = `lambert-samples-${numSamples}-${sourceTotalPixels}`;
-	return samplesTexCache.get(device, key, () => {
-		return createSamplesTex(device, key, samplesCache.get(key, () => {
-			return generateLambertSamples(numSamples, sourceTotalPixels);
-		}));
+	return getCachedTexture(device, key, () => {
+		return generateLambertSamples(numSamples, sourceTotalPixels);
 	});
 };
 
 const generatePhongSamplesTex = (device, numSamples, specularPower) => {
 	const key = `phong-samples-${numSamples}-${specularPower}`;
-	return samplesTexCache.get(device, key, () => {
-		return createSamplesTex(device, key, samplesCache.get(key, () => {
-			return generatePhongSamples(numSamples, specularPower);
-		}));
+	return getCachedTexture(device, key, () => {
+		return generatePhongSamples(numSamples, specularPower);
 	});
 };
 
 const generateGGXSamplesTex = (device, numSamples, specularPower, sourceTotalPixels) => {
 	const key = `ggx-samples-${numSamples}-${specularPower}-${sourceTotalPixels}`;
-	return samplesTexCache.get(device, key, () => {
-		return createSamplesTex(device, key, samplesCache.get(key, () => {
-			return generateGGXSamples(numSamples, specularPower, sourceTotalPixels);
-		}));
+	return getCachedTexture(device, key, () => {
+		return generateGGXSamples(numSamples, specularPower, sourceTotalPixels);
 	});
 };
 
@@ -11273,23 +11348,17 @@ class EnvLighting {
 
 }
 
-class DefaultMaterial {
-	static get(device) {
-		const material = this.cache.get(device);
-		return material;
-	}
+const defaultMaterialDeviceCache = new DeviceCache();
 
-	static add(device, material) {
-		this.cache.set(device, material);
-	}
-
-	static remove(device) {
-		this.cache.delete(device);
-	}
-
+function getDefaultMaterial(device) {
+	return defaultMaterialDeviceCache.get(device);
 }
 
-DefaultMaterial.cache = new Map();
+function setDefaultMaterial(device, material) {
+	defaultMaterialDeviceCache.get(device, () => {
+		return material;
+	});
+}
 
 let id$2 = 0;
 
@@ -11502,7 +11571,7 @@ class Material {
 
 	updateUniforms(device, scene) {}
 
-	updateShader(device, scene, objDefs) {}
+	updateShader(device, scene, objDefs, staticLightList, pass, sortedLights) {}
 
 	update() {
 		this.dirty = true;
@@ -11598,7 +11667,7 @@ class Material {
 			meshInstance._material = null;
 
 			if (meshInstance.mesh) {
-				const defaultMaterial = DefaultMaterial.get(meshInstance.mesh.device);
+				const defaultMaterial = getDefaultMaterial(meshInstance.mesh.device);
 
 				if (this !== defaultMaterial) {
 					meshInstance.material = defaultMaterial;
@@ -11784,7 +11853,6 @@ class StandardMaterialOptionsBuilder {
 		options.toneMap = stdMat.useGammaTonemap ? scene.toneMapping : -1;
 		options.useRgbm = stdMat.emissiveMap && stdMat.emissiveMap.type === TEXTURETYPE_RGBM || stdMat.lightMap && stdMat.lightMap.type === TEXTURETYPE_RGBM;
 		options.fixSeams = stdMat.cubeMap ? stdMat.cubeMap.fixCubemapSeams : false;
-		options.skyboxIntensity = scene.skyboxIntensity !== 1;
 		const isPhong = stdMat.shadingModel === SPECULAR_PHONG;
 		let usingSceneEnv = false;
 
@@ -11821,6 +11889,7 @@ class StandardMaterialOptionsBuilder {
 			}
 		}
 
+		options.skyboxIntensity = usingSceneEnv && scene.skyboxIntensity !== 1;
 		options.useCubeMapRotation = usingSceneEnv && scene.skyboxRotation && !scene.skyboxRotation.equals(Quat.IDENTITY);
 	}
 
@@ -12980,631 +13049,29 @@ class ProgramLibrary {
 
 }
 
-class Version {
-	constructor() {
-		this.globalId = 0;
-		this.revision = 0;
-	}
-
-	equals(other) {
-		return this.globalId === other.globalId && this.revision === other.revision;
-	}
-
-	copy(other) {
-		this.globalId = other.globalId;
-		this.revision = other.revision;
-	}
-
-	reset() {
-		this.globalId = 0;
-		this.revision = 0;
-	}
-
-}
-
-let idCounter = 0;
-
-class VersionedObject {
-	constructor() {
-		idCounter++;
-		this.version = new Version();
-		this.version.globalId = idCounter;
-	}
-
-	increment() {
-		this.version.revision++;
-	}
-
-}
-
-class ScopeId {
-	constructor(name) {
-		this.name = name;
-		this.value = null;
-		this.versionObject = new VersionedObject();
-	}
-
-	setValue(value) {
-		this.value = value;
-		this.versionObject.increment();
-	}
-
-	getValue() {
-		return this.value;
-	}
-
-}
-
-class ScopeSpace {
-	constructor(name) {
-		this.name = name;
-		this.variables = new Map();
-	}
-
-	resolve(name) {
-		if (!this.variables.has(name)) {
-			this.variables.set(name, new ScopeId(name));
-		}
-
-		return this.variables.get(name);
-	}
-
-	removeValue(value) {
-		for (const uniformName in this.variables) {
-			const uniform = this.variables[uniformName];
-
-			if (uniform.value === value) {
-				uniform.value = null;
-			}
-		}
-	}
-
-}
-
-class ShaderInput {
-	constructor(graphicsDevice, name, type, locationId) {
-		this.locationId = locationId;
-		this.scopeId = graphicsDevice.scope.resolve(name);
-		this.version = new Version();
-
-		if (name.substr(name.length - 3) === "[0]") {
-			switch (type) {
-				case UNIFORMTYPE_FLOAT:
-					type = UNIFORMTYPE_FLOATARRAY;
-					break;
-
-				case UNIFORMTYPE_VEC2:
-					type = UNIFORMTYPE_VEC2ARRAY;
-					break;
-
-				case UNIFORMTYPE_VEC3:
-					type = UNIFORMTYPE_VEC3ARRAY;
-					break;
-
-				case UNIFORMTYPE_VEC4:
-					type = UNIFORMTYPE_VEC4ARRAY;
-					break;
-			}
-		}
-
-		this.dataType = type;
-		this.value = [null, null, null, null];
-		this.array = [];
-	}
-
-}
-
-class GrabPass {
-	constructor(device, useAlpha) {
-		this.device = device;
-		this.useAlpha = useAlpha;
-		this.useMipmaps = device.webgl2;
-		this.texture = null;
-		this.renderTarget = null;
-		this.textureId = null;
-	}
-
-	destroy() {
-		this.textureId = null;
-
-		if (this.renderTarget) {
-			this.renderTarget.destroy();
-			this.renderTarget = null;
-		}
-
-		if (this.texture) {
-			this.texture.destroy();
-			this.texture = null;
-		}
-	}
-
-	create() {
-		if (!this.texture) {
-			const texture = new Texture(this.device, {
-				name: 'texture_grabPass',
-				format: this.useAlpha ? PIXELFORMAT_R8_G8_B8_A8 : PIXELFORMAT_R8_G8_B8,
-				minFilter: this.useMipmaps ? FILTER_LINEAR_MIPMAP_LINEAR : FILTER_LINEAR,
-				magFilter: FILTER_LINEAR,
-				addressU: ADDRESS_CLAMP_TO_EDGE,
-				addressV: ADDRESS_CLAMP_TO_EDGE,
-				mipmaps: this.useMipmaps
-			});
-			this.texture = texture;
-			this.renderTarget = new RenderTarget({
-				colorBuffer: texture,
-				depth: false
-			});
-			this.textureId = this.device.scope.resolve(texture.name);
-			this.textureId.setValue(texture);
-		}
-	}
-
-	update() {
-		const device = this.device;
-		const gl = device.gl;
-
-		if (!device.grabPassAvailable) {
-			return false;
-		}
-
-		const renderTarget = device.renderTarget;
-		const resolveRenderTarget = renderTarget && renderTarget._glResolveFrameBuffer;
-		const texture = this.texture;
-		const width = device.width;
-		const height = device.height;
-
-		if (device.webgl2 && !device._tempMacChromeBlitFramebufferWorkaround && width === texture._width && height === texture._height) {
-			if (resolveRenderTarget) {
-				renderTarget.resolve(true);
-			}
-
-			const currentFrameBuffer = renderTarget ? renderTarget._glFrameBuffer : null;
-			const resolvedFrameBuffer = renderTarget ? renderTarget._glResolveFrameBuffer || renderTarget._glFrameBuffer : null;
-			device.initRenderTarget(this.renderTarget);
-			const grabPassFrameBuffer = this.renderTarget._glFrameBuffer;
-			gl.bindFramebuffer(gl.READ_FRAMEBUFFER, resolvedFrameBuffer);
-			gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, grabPassFrameBuffer);
-			gl.blitFramebuffer(0, 0, width, height, 0, 0, width, height, gl.COLOR_BUFFER_BIT, gl.NEAREST);
-			gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, currentFrameBuffer);
-		} else {
-			if (resolveRenderTarget) {
-				renderTarget.resolve(true);
-				gl.bindFramebuffer(gl.FRAMEBUFFER, renderTarget._glResolveFrameBuffer);
-			}
-
-			const format = texture._glFormat;
-			gl.copyTexImage2D(gl.TEXTURE_2D, 0, format, 0, 0, width, height, 0);
-			texture._width = width;
-			texture._height = height;
-
-			if (resolveRenderTarget) {
-				gl.bindFramebuffer(gl.FRAMEBUFFER, renderTarget._glFrameBuffer);
-			}
-		}
-
-		return true;
-	}
-
-	generateMipmaps() {
-		if (this.useMipmaps) {
-			this.device.gl.generateMipmap(this.texture._glTarget);
-		}
-	}
-
-	prepareTexture() {
-		const updated = this.update();
-
-		if (updated) {
-			this.generateMipmaps();
-		}
-
-		return updated;
-	}
-
-}
-
 const EVENT_RESIZE = 'resizecanvas';
 
-function downsampleImage(image, size) {
-	const srcW = image.width;
-	const srcH = image.height;
-
-	if (srcW > size || srcH > size) {
-		const scale = size / Math.max(srcW, srcH);
-		const dstW = Math.floor(srcW * scale);
-		const dstH = Math.floor(srcH * scale);
-		const canvas = document.createElement('canvas');
-		canvas.width = dstW;
-		canvas.height = dstH;
-		const context = canvas.getContext('2d');
-		context.drawImage(image, 0, 0, srcW, srcH, 0, 0, dstW, dstH);
-		return canvas;
-	}
-
-	return image;
-}
-
-function testRenderable(gl, pixelFormat) {
-	let result = true;
-	const texture = gl.createTexture();
-	gl.bindTexture(gl.TEXTURE_2D, texture);
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 2, 2, 0, gl.RGBA, pixelFormat, null);
-	const framebuffer = gl.createFramebuffer();
-	gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
-	gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
-
-	if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) {
-		result = false;
-	}
-
-	gl.bindTexture(gl.TEXTURE_2D, null);
-	gl.deleteTexture(texture);
-	gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-	gl.deleteFramebuffer(framebuffer);
-	return result;
-}
-
-function testTextureHalfFloatUpdatable(gl, pixelFormat) {
-	let result = true;
-	const texture = gl.createTexture();
-	gl.bindTexture(gl.TEXTURE_2D, texture);
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-	const data = new Uint16Array(4 * 2 * 2);
-	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 2, 2, 0, gl.RGBA, pixelFormat, data);
-
-	if (gl.getError() !== gl.NO_ERROR) {
-		result = false;
-		console.log("Above error related to HALF_FLOAT_OES can be ignored, it was triggered by testing half float texture support");
-	}
-
-	gl.bindTexture(gl.TEXTURE_2D, null);
-	gl.deleteTexture(texture);
-	return result;
-}
-
-function testTextureFloatHighPrecision(device) {
-	if (!device.textureFloatRenderable) return false;
-	const test1 = createShaderFromCode(device, shaderChunks.fullscreenQuadVS, shaderChunks.precisionTestPS, "ptest1");
-	const test2 = createShaderFromCode(device, shaderChunks.fullscreenQuadVS, shaderChunks.precisionTest2PS, "ptest2");
-	const textureOptions = {
-		format: PIXELFORMAT_RGBA32F,
-		width: 1,
-		height: 1,
-		mipmaps: false,
-		minFilter: FILTER_NEAREST,
-		magFilter: FILTER_NEAREST
-	};
-	const tex1 = new Texture(device, textureOptions);
-	tex1.name = 'testFHP';
-	const targ1 = new RenderTarget({
-		colorBuffer: tex1,
-		depth: false
-	});
-	drawQuadWithShader(device, targ1, test1);
-	textureOptions.format = PIXELFORMAT_R8_G8_B8_A8;
-	const tex2 = new Texture(device, textureOptions);
-	tex2.name = 'testFHP';
-	const targ2 = new RenderTarget({
-		colorBuffer: tex2,
-		depth: false
-	});
-	device.constantTexSource.setValue(tex1);
-	drawQuadWithShader(device, targ2, test2);
-	const prevFramebuffer = device.activeFramebuffer;
-	device.setFramebuffer(targ2._glFrameBuffer);
-	const pixels = new Uint8Array(4);
-	device.readPixels(0, 0, 1, 1, pixels);
-	device.setFramebuffer(prevFramebuffer);
-	const x = pixels[0] / 255;
-	const y = pixels[1] / 255;
-	const z = pixels[2] / 255;
-	const w = pixels[3] / 255;
-	const f = x / (256 * 256 * 256) + y / (256 * 256) + z / 256 + w;
-	tex1.destroy();
-	targ1.destroy();
-	tex2.destroy();
-	targ2.destroy();
-	return f === 0;
-}
-
 class GraphicsDevice extends EventHandler {
-	constructor(canvas, options = {}) {
+	constructor(canvas) {
 		super();
 		this.canvas = void 0;
-		this.gl = void 0;
+		this.scope = void 0;
 		this.maxAnisotropy = void 0;
 		this.maxCubeMapSize = void 0;
 		this.maxTextureSize = void 0;
 		this.maxVolumeSize = void 0;
 		this.precision = void 0;
-		this.scope = void 0;
 		this.supportsInstancing = void 0;
 		this.textureFloatRenderable = void 0;
 		this.textureHalfFloatRenderable = void 0;
-		this.webgl2 = void 0;
 		this.canvas = canvas;
-		this._enableAutoInstancing = false;
-		this.autoInstancingMaxObjects = 16384;
-		this.defaultFramebuffer = null;
-		this._maxPixelRatio = 1;
 		this._width = 0;
 		this._height = 0;
-		this.updateClientRect();
+		this._maxPixelRatio = 1;
 		this.shaders = [];
 		this.buffers = [];
 		this.textures = [];
 		this.targets = [];
-		this.contextLost = false;
-
-		this._contextLostHandler = event => {
-			event.preventDefault();
-			this.contextLost = true;
-			this.loseContext();
-			this.fire('devicelost');
-		};
-
-		this._contextRestoredHandler = () => {
-			this.restoreContext();
-			this.contextLost = false;
-			this.fire('devicerestored');
-		};
-
-		options.stencil = true;
-
-		if (!options.powerPreference) {
-			options.powerPreference = 'high-performance';
-		}
-
-		const preferWebGl2 = options.preferWebGl2 !== undefined ? options.preferWebGl2 : true;
-		const names = preferWebGl2 ? ["webgl2", "webgl", "experimental-webgl"] : ["webgl", "experimental-webgl"];
-		let gl = null;
-
-		for (let i = 0; i < names.length; i++) {
-			gl = canvas.getContext(names[i], options);
-
-			if (gl) {
-				this.webgl2 = names[i] === 'webgl2';
-				break;
-			}
-		}
-
-		if (!gl) {
-			throw new Error("WebGL not supported");
-		}
-
-		const isChrome = platform.browser && !!window.chrome;
-		const isMac = platform.browser && navigator.appVersion.indexOf("Mac") !== -1;
-		this.gl = gl;
-		this._tempEnableSafariTextureUnitWorkaround = platform.browser && !!window.safari;
-		this._tempMacChromeBlitFramebufferWorkaround = isMac && isChrome && !options.alpha;
-
-		if (!this.webgl2) {
-			setupVertexArrayObject(gl);
-		}
-
-		canvas.addEventListener("webglcontextlost", this._contextLostHandler, false);
-		canvas.addEventListener("webglcontextrestored", this._contextRestoredHandler, false);
-		this.initializeExtensions();
-		this.initializeCapabilities();
-		this.initializeRenderState();
-		this.initializeContextCaches();
-		this.defaultClearOptions = {
-			color: [0, 0, 0, 1],
-			depth: 1,
-			stencil: 0,
-			flags: CLEARFLAG_COLOR | CLEARFLAG_DEPTH
-		};
-		this.glAddress = [gl.REPEAT, gl.CLAMP_TO_EDGE, gl.MIRRORED_REPEAT];
-		this.glBlendEquation = [gl.FUNC_ADD, gl.FUNC_SUBTRACT, gl.FUNC_REVERSE_SUBTRACT, this.webgl2 ? gl.MIN : this.extBlendMinmax ? this.extBlendMinmax.MIN_EXT : gl.FUNC_ADD, this.webgl2 ? gl.MAX : this.extBlendMinmax ? this.extBlendMinmax.MAX_EXT : gl.FUNC_ADD];
-		this.glBlendFunction = [gl.ZERO, gl.ONE, gl.SRC_COLOR, gl.ONE_MINUS_SRC_COLOR, gl.DST_COLOR, gl.ONE_MINUS_DST_COLOR, gl.SRC_ALPHA, gl.SRC_ALPHA_SATURATE, gl.ONE_MINUS_SRC_ALPHA, gl.DST_ALPHA, gl.ONE_MINUS_DST_ALPHA];
-		this.glComparison = [gl.NEVER, gl.LESS, gl.EQUAL, gl.LEQUAL, gl.GREATER, gl.NOTEQUAL, gl.GEQUAL, gl.ALWAYS];
-		this.glStencilOp = [gl.KEEP, gl.ZERO, gl.REPLACE, gl.INCR, gl.INCR_WRAP, gl.DECR, gl.DECR_WRAP, gl.INVERT];
-		this.glClearFlag = [0, gl.COLOR_BUFFER_BIT, gl.DEPTH_BUFFER_BIT, gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT, gl.STENCIL_BUFFER_BIT, gl.STENCIL_BUFFER_BIT | gl.COLOR_BUFFER_BIT, gl.STENCIL_BUFFER_BIT | gl.DEPTH_BUFFER_BIT, gl.STENCIL_BUFFER_BIT | gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT];
-		this.glCull = [0, gl.BACK, gl.FRONT, gl.FRONT_AND_BACK];
-		this.glFilter = [gl.NEAREST, gl.LINEAR, gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST_MIPMAP_LINEAR, gl.LINEAR_MIPMAP_NEAREST, gl.LINEAR_MIPMAP_LINEAR];
-		this.glPrimitive = [gl.POINTS, gl.LINES, gl.LINE_LOOP, gl.LINE_STRIP, gl.TRIANGLES, gl.TRIANGLE_STRIP, gl.TRIANGLE_FAN];
-		this.glType = [gl.BYTE, gl.UNSIGNED_BYTE, gl.SHORT, gl.UNSIGNED_SHORT, gl.INT, gl.UNSIGNED_INT, gl.FLOAT];
-		this.pcUniformType = {};
-		this.pcUniformType[gl.BOOL] = UNIFORMTYPE_BOOL;
-		this.pcUniformType[gl.INT] = UNIFORMTYPE_INT;
-		this.pcUniformType[gl.FLOAT] = UNIFORMTYPE_FLOAT;
-		this.pcUniformType[gl.FLOAT_VEC2] = UNIFORMTYPE_VEC2;
-		this.pcUniformType[gl.FLOAT_VEC3] = UNIFORMTYPE_VEC3;
-		this.pcUniformType[gl.FLOAT_VEC4] = UNIFORMTYPE_VEC4;
-		this.pcUniformType[gl.INT_VEC2] = UNIFORMTYPE_IVEC2;
-		this.pcUniformType[gl.INT_VEC3] = UNIFORMTYPE_IVEC3;
-		this.pcUniformType[gl.INT_VEC4] = UNIFORMTYPE_IVEC4;
-		this.pcUniformType[gl.BOOL_VEC2] = UNIFORMTYPE_BVEC2;
-		this.pcUniformType[gl.BOOL_VEC3] = UNIFORMTYPE_BVEC3;
-		this.pcUniformType[gl.BOOL_VEC4] = UNIFORMTYPE_BVEC4;
-		this.pcUniformType[gl.FLOAT_MAT2] = UNIFORMTYPE_MAT2;
-		this.pcUniformType[gl.FLOAT_MAT3] = UNIFORMTYPE_MAT3;
-		this.pcUniformType[gl.FLOAT_MAT4] = UNIFORMTYPE_MAT4;
-		this.pcUniformType[gl.SAMPLER_2D] = UNIFORMTYPE_TEXTURE2D;
-		this.pcUniformType[gl.SAMPLER_CUBE] = UNIFORMTYPE_TEXTURECUBE;
-
-		if (this.webgl2) {
-			this.pcUniformType[gl.SAMPLER_2D_SHADOW] = UNIFORMTYPE_TEXTURE2D_SHADOW;
-			this.pcUniformType[gl.SAMPLER_CUBE_SHADOW] = UNIFORMTYPE_TEXTURECUBE_SHADOW;
-			this.pcUniformType[gl.SAMPLER_3D] = UNIFORMTYPE_TEXTURE3D;
-		}
-
-		this.targetToSlot = {};
-		this.targetToSlot[gl.TEXTURE_2D] = 0;
-		this.targetToSlot[gl.TEXTURE_CUBE_MAP] = 1;
-		this.targetToSlot[gl.TEXTURE_3D] = 2;
-		let scopeX, scopeY, scopeZ, scopeW;
-		let uniformValue;
-		this.commitFunction = [];
-
-		this.commitFunction[UNIFORMTYPE_BOOL] = function (uniform, value) {
-			if (uniform.value !== value) {
-				gl.uniform1i(uniform.locationId, value);
-				uniform.value = value;
-			}
-		};
-
-		this.commitFunction[UNIFORMTYPE_INT] = this.commitFunction[UNIFORMTYPE_BOOL];
-
-		this.commitFunction[UNIFORMTYPE_FLOAT] = function (uniform, value) {
-			if (uniform.value !== value) {
-				gl.uniform1f(uniform.locationId, value);
-				uniform.value = value;
-			}
-		};
-
-		this.commitFunction[UNIFORMTYPE_VEC2] = function (uniform, value) {
-			uniformValue = uniform.value;
-			scopeX = value[0];
-			scopeY = value[1];
-
-			if (uniformValue[0] !== scopeX || uniformValue[1] !== scopeY) {
-				gl.uniform2fv(uniform.locationId, value);
-				uniformValue[0] = scopeX;
-				uniformValue[1] = scopeY;
-			}
-		};
-
-		this.commitFunction[UNIFORMTYPE_VEC3] = function (uniform, value) {
-			uniformValue = uniform.value;
-			scopeX = value[0];
-			scopeY = value[1];
-			scopeZ = value[2];
-
-			if (uniformValue[0] !== scopeX || uniformValue[1] !== scopeY || uniformValue[2] !== scopeZ) {
-				gl.uniform3fv(uniform.locationId, value);
-				uniformValue[0] = scopeX;
-				uniformValue[1] = scopeY;
-				uniformValue[2] = scopeZ;
-			}
-		};
-
-		this.commitFunction[UNIFORMTYPE_VEC4] = function (uniform, value) {
-			uniformValue = uniform.value;
-			scopeX = value[0];
-			scopeY = value[1];
-			scopeZ = value[2];
-			scopeW = value[3];
-
-			if (uniformValue[0] !== scopeX || uniformValue[1] !== scopeY || uniformValue[2] !== scopeZ || uniformValue[3] !== scopeW) {
-				gl.uniform4fv(uniform.locationId, value);
-				uniformValue[0] = scopeX;
-				uniformValue[1] = scopeY;
-				uniformValue[2] = scopeZ;
-				uniformValue[3] = scopeW;
-			}
-		};
-
-		this.commitFunction[UNIFORMTYPE_IVEC2] = function (uniform, value) {
-			uniformValue = uniform.value;
-			scopeX = value[0];
-			scopeY = value[1];
-
-			if (uniformValue[0] !== scopeX || uniformValue[1] !== scopeY) {
-				gl.uniform2iv(uniform.locationId, value);
-				uniformValue[0] = scopeX;
-				uniformValue[1] = scopeY;
-			}
-		};
-
-		this.commitFunction[UNIFORMTYPE_BVEC2] = this.commitFunction[UNIFORMTYPE_IVEC2];
-
-		this.commitFunction[UNIFORMTYPE_IVEC3] = function (uniform, value) {
-			uniformValue = uniform.value;
-			scopeX = value[0];
-			scopeY = value[1];
-			scopeZ = value[2];
-
-			if (uniformValue[0] !== scopeX || uniformValue[1] !== scopeY || uniformValue[2] !== scopeZ) {
-				gl.uniform3iv(uniform.locationId, value);
-				uniformValue[0] = scopeX;
-				uniformValue[1] = scopeY;
-				uniformValue[2] = scopeZ;
-			}
-		};
-
-		this.commitFunction[UNIFORMTYPE_BVEC3] = this.commitFunction[UNIFORMTYPE_IVEC3];
-
-		this.commitFunction[UNIFORMTYPE_IVEC4] = function (uniform, value) {
-			uniformValue = uniform.value;
-			scopeX = value[0];
-			scopeY = value[1];
-			scopeZ = value[2];
-			scopeW = value[3];
-
-			if (uniformValue[0] !== scopeX || uniformValue[1] !== scopeY || uniformValue[2] !== scopeZ || uniformValue[3] !== scopeW) {
-				gl.uniform4iv(uniform.locationId, value);
-				uniformValue[0] = scopeX;
-				uniformValue[1] = scopeY;
-				uniformValue[2] = scopeZ;
-				uniformValue[3] = scopeW;
-			}
-		};
-
-		this.commitFunction[UNIFORMTYPE_BVEC4] = this.commitFunction[UNIFORMTYPE_IVEC4];
-
-		this.commitFunction[UNIFORMTYPE_MAT2] = function (uniform, value) {
-			gl.uniformMatrix2fv(uniform.locationId, false, value);
-		};
-
-		this.commitFunction[UNIFORMTYPE_MAT3] = function (uniform, value) {
-			gl.uniformMatrix3fv(uniform.locationId, false, value);
-		};
-
-		this.commitFunction[UNIFORMTYPE_MAT4] = function (uniform, value) {
-			gl.uniformMatrix4fv(uniform.locationId, false, value);
-		};
-
-		this.commitFunction[UNIFORMTYPE_FLOATARRAY] = function (uniform, value) {
-			gl.uniform1fv(uniform.locationId, value);
-		};
-
-		this.commitFunction[UNIFORMTYPE_VEC2ARRAY] = function (uniform, value) {
-			gl.uniform2fv(uniform.locationId, value);
-		};
-
-		this.commitFunction[UNIFORMTYPE_VEC3ARRAY] = function (uniform, value) {
-			gl.uniform3fv(uniform.locationId, value);
-		};
-
-		this.commitFunction[UNIFORMTYPE_VEC4ARRAY] = function (uniform, value) {
-			gl.uniform4fv(uniform.locationId, value);
-		};
-
-		this.scope = new ScopeSpace("Device");
-		this.programLib = new ProgramLibrary(this);
-
-		for (const generator in programlib) this.programLib.register(generator, programlib[generator]);
-
-		this.supportsBoneTextures = this.extTextureFloat && this.maxVertexTextures > 0;
-		let numUniforms = this.vertexUniformsCount;
-		numUniforms -= 4 * 4;
-		numUniforms -= 8;
-		numUniforms -= 1;
-		numUniforms -= 4 * 4;
-		this.boneLimit = Math.floor(numUniforms / 3);
-		this.boneLimit = Math.min(this.boneLimit, 128);
-
-		if (this.unmaskedRenderer === 'Mali-450 MP') {
-			this.boneLimit = 34;
-		}
-
-		this._drawCallsPerFrame = 0;
-		this._shaderSwitchesPerFrame = 0;
-		this._primsPerFrame = [];
-
-		for (let i = PRIMITIVE_POINTS; i <= PRIMITIVE_TRIFAN; i++) {
-			this._primsPerFrame[i] = 0;
-		}
-
-		this._renderTargetCreationTime = 0;
 		this._vram = {
 			tex: 0,
 			vb: 0,
@@ -13617,369 +13084,40 @@ class GraphicsDevice extends EventHandler {
 			materialShaders: 0,
 			compileTime: 0
 		};
-		this.constantTexSource = this.scope.resolve("source");
+		this.initializeContextCaches();
+		this._drawCallsPerFrame = 0;
+		this._shaderSwitchesPerFrame = 0;
+		this._primsPerFrame = [];
 
-		if (this.extTextureFloat) {
-			if (this.webgl2) {
-				this.textureFloatRenderable = !!this.extColorBufferFloat;
-			} else {
-				this.textureFloatRenderable = testRenderable(gl, gl.FLOAT);
-			}
-		} else {
-			this.textureFloatRenderable = false;
+		for (let i = PRIMITIVE_POINTS; i <= PRIMITIVE_TRIFAN; i++) {
+			this._primsPerFrame[i] = 0;
 		}
 
-		if (this.extColorBufferHalfFloat) {
-			this.textureHalfFloatRenderable = !!this.extColorBufferHalfFloat;
-		} else if (this.extTextureHalfFloat) {
-			if (this.webgl2) {
-				this.textureHalfFloatRenderable = !!this.extColorBufferFloat;
-			} else {
-				this.textureHalfFloatRenderable = testRenderable(gl, this.extTextureHalfFloat.HALF_FLOAT_OES);
-			}
-		} else {
-			this.textureHalfFloatRenderable = false;
-		}
+		this._renderTargetCreationTime = 0;
+		this.scope = new ScopeSpace("Device");
+		this.programLib = new ProgramLibrary(this);
 
-		this.supportsMorphTargetTexturesCore = this.maxPrecision === "highp" && this.maxVertexTextures >= 2;
-		this._textureFloatHighPrecision = undefined;
-		this._textureHalfFloatUpdatable = undefined;
-		this.grabPassAvailable = true;
-		this.grabPass = new GrabPass(this, options.alpha);
-		this.grabPass.create();
-		VertexFormat.init(this);
-		this.areaLightLutFormat = PIXELFORMAT_R8_G8_B8_A8;
-
-		if (this.extTextureHalfFloat && this.textureHalfFloatUpdatable && this.extTextureHalfFloatLinear) {
-			this.areaLightLutFormat = PIXELFORMAT_RGBA16F;
-		} else if (this.extTextureFloat && this.extTextureFloatLinear) {
-			this.areaLightLutFormat = PIXELFORMAT_RGBA32F;
-		}
+		for (const generator in programlib) this.programLib.register(generator, programlib[generator]);
 	}
 
 	destroy() {
-		const gl = this.gl;
 		this.fire('destroy');
-		this.grabPass.destroy();
+	}
 
-		if (this.webgl2 && this.feedback) {
-			gl.deleteTransformFeedback(this.feedback);
-		}
-
-		this.clearShaderCache();
-		this.clearVertexArrayObjectCache();
-		this.canvas.removeEventListener('webglcontextlost', this._contextLostHandler, false);
-		this.canvas.removeEventListener('webglcontextrestored', this._contextRestoredHandler, false);
-		this._contextLostHandler = null;
-		this._contextRestoredHandler = null;
+	postDestroy() {
 		this.scope = null;
 		this.canvas = null;
-		this.gl = null;
 	}
 
 	toJSON(key) {
 		return undefined;
 	}
 
-	getPrecision() {
-		const gl = this.gl;
-		let precision = "highp";
-
-		if (gl.getShaderPrecisionFormat) {
-			const vertexShaderPrecisionHighpFloat = gl.getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.HIGH_FLOAT);
-			const vertexShaderPrecisionMediumpFloat = gl.getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.MEDIUM_FLOAT);
-			const fragmentShaderPrecisionHighpFloat = gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.HIGH_FLOAT);
-			const fragmentShaderPrecisionMediumpFloat = gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.MEDIUM_FLOAT);
-			const highpAvailable = vertexShaderPrecisionHighpFloat.precision > 0 && fragmentShaderPrecisionHighpFloat.precision > 0;
-			const mediumpAvailable = vertexShaderPrecisionMediumpFloat.precision > 0 && fragmentShaderPrecisionMediumpFloat.precision > 0;
-
-			if (!highpAvailable) {
-				if (mediumpAvailable) {
-					precision = "mediump";
-				} else {
-					precision = "lowp";
-				}
-			}
-		}
-
-		return precision;
-	}
-
-	initializeExtensions() {
-		const gl = this.gl;
-		const supportedExtensions = gl.getSupportedExtensions();
-
-		const getExtension = function getExtension() {
-			for (let i = 0; i < arguments.length; i++) {
-				if (supportedExtensions.indexOf(arguments[i]) !== -1) {
-					return gl.getExtension(arguments[i]);
-				}
-			}
-
-			return null;
-		};
-
-		if (this.webgl2) {
-			this.extBlendMinmax = true;
-			this.extDrawBuffers = true;
-			this.extInstancing = true;
-			this.extStandardDerivatives = true;
-			this.extTextureFloat = true;
-			this.extTextureHalfFloat = true;
-			this.extTextureLod = true;
-			this.extUintElement = true;
-			this.extVertexArrayObject = true;
-			this.extColorBufferFloat = getExtension('EXT_color_buffer_float');
-			this.extDisjointTimerQuery = getExtension('EXT_disjoint_timer_query_webgl2', 'EXT_disjoint_timer_query');
-		} else {
-			this.extBlendMinmax = getExtension("EXT_blend_minmax");
-			this.extDrawBuffers = getExtension('EXT_draw_buffers');
-			this.extInstancing = getExtension("ANGLE_instanced_arrays");
-
-			if (this.extInstancing) {
-				const ext = this.extInstancing;
-				gl.drawArraysInstanced = ext.drawArraysInstancedANGLE.bind(ext);
-				gl.drawElementsInstanced = ext.drawElementsInstancedANGLE.bind(ext);
-				gl.vertexAttribDivisor = ext.vertexAttribDivisorANGLE.bind(ext);
-			}
-
-			this.extStandardDerivatives = getExtension("OES_standard_derivatives");
-			this.extTextureFloat = getExtension("OES_texture_float");
-			this.extTextureHalfFloat = getExtension("OES_texture_half_float");
-			this.extTextureLod = getExtension('EXT_shader_texture_lod');
-			this.extUintElement = getExtension("OES_element_index_uint");
-			this.extVertexArrayObject = getExtension("OES_vertex_array_object");
-
-			if (this.extVertexArrayObject) {
-				const ext = this.extVertexArrayObject;
-				gl.createVertexArray = ext.createVertexArrayOES.bind(ext);
-				gl.deleteVertexArray = ext.deleteVertexArrayOES.bind(ext);
-				gl.isVertexArray = ext.isVertexArrayOES.bind(ext);
-				gl.bindVertexArray = ext.bindVertexArrayOES.bind(ext);
-			}
-
-			this.extColorBufferFloat = null;
-			this.extDisjointTimerQuery = null;
-		}
-
-		this.extDebugRendererInfo = getExtension('WEBGL_debug_renderer_info');
-		this.extTextureFloatLinear = getExtension("OES_texture_float_linear");
-		this.extTextureHalfFloatLinear = getExtension("OES_texture_half_float_linear");
-		this.extFloatBlend = getExtension("EXT_float_blend");
-		this.extTextureFilterAnisotropic = getExtension('EXT_texture_filter_anisotropic', 'WEBKIT_EXT_texture_filter_anisotropic');
-		this.extCompressedTextureETC1 = getExtension('WEBGL_compressed_texture_etc1');
-		this.extCompressedTextureETC = getExtension('WEBGL_compressed_texture_etc');
-		this.extCompressedTexturePVRTC = getExtension('WEBGL_compressed_texture_pvrtc', 'WEBKIT_WEBGL_compressed_texture_pvrtc');
-		this.extCompressedTextureS3TC = getExtension('WEBGL_compressed_texture_s3tc', 'WEBKIT_WEBGL_compressed_texture_s3tc');
-		this.extCompressedTextureATC = getExtension('WEBGL_compressed_texture_atc');
-		this.extCompressedTextureASTC = getExtension('WEBGL_compressed_texture_astc');
-		this.extParallelShaderCompile = getExtension('KHR_parallel_shader_compile');
-		this.extColorBufferHalfFloat = getExtension("EXT_color_buffer_half_float");
-		this.supportsInstancing = !!this.extInstancing;
-	}
-
-	initializeCapabilities() {
-		const gl = this.gl;
-		let ext;
-		this.maxPrecision = this.precision = this.getPrecision();
-		const contextAttribs = gl.getContextAttributes();
-		this.supportsMsaa = contextAttribs.antialias;
-		this.supportsStencil = contextAttribs.stencil;
-		this.maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
-		this.maxCubeMapSize = gl.getParameter(gl.MAX_CUBE_MAP_TEXTURE_SIZE);
-		this.maxRenderBufferSize = gl.getParameter(gl.MAX_RENDERBUFFER_SIZE);
-		this.maxTextures = gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS);
-		this.maxCombinedTextures = gl.getParameter(gl.MAX_COMBINED_TEXTURE_IMAGE_UNITS);
-		this.maxVertexTextures = gl.getParameter(gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS);
-		this.vertexUniformsCount = gl.getParameter(gl.MAX_VERTEX_UNIFORM_VECTORS);
-		this.fragmentUniformsCount = gl.getParameter(gl.MAX_FRAGMENT_UNIFORM_VECTORS);
-
-		if (this.webgl2) {
-			this.maxDrawBuffers = gl.getParameter(gl.MAX_DRAW_BUFFERS);
-			this.maxColorAttachments = gl.getParameter(gl.MAX_COLOR_ATTACHMENTS);
-			this.maxVolumeSize = gl.getParameter(gl.MAX_3D_TEXTURE_SIZE);
-		} else {
-			ext = this.extDrawBuffers;
-			this.maxDrawBuffers = ext ? gl.getParameter(ext.MAX_DRAW_BUFFERS_EXT) : 1;
-			this.maxColorAttachments = ext ? gl.getParameter(ext.MAX_COLOR_ATTACHMENTS_EXT) : 1;
-			this.maxVolumeSize = 1;
-		}
-
-		ext = this.extDebugRendererInfo;
-		this.unmaskedRenderer = ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : '';
-		this.unmaskedVendor = ext ? gl.getParameter(ext.UNMASKED_VENDOR_WEBGL) : '';
-		ext = this.extTextureFilterAnisotropic;
-		this.maxAnisotropy = ext ? gl.getParameter(ext.MAX_TEXTURE_MAX_ANISOTROPY_EXT) : 1;
-		this.samples = gl.getParameter(gl.SAMPLES);
-		this.maxSamples = this.webgl2 ? gl.getParameter(gl.MAX_SAMPLES) : 1;
-		this.supportsAreaLights = this.webgl2 || !platform.android;
-
-		if (this.maxTextures <= 8) {
-			this.supportsAreaLights = false;
-		}
-	}
-
-	initializeRenderState() {
-		const gl = this.gl;
-		this.blending = false;
-		gl.disable(gl.BLEND);
-		this.blendSrc = BLENDMODE_ONE;
-		this.blendDst = BLENDMODE_ZERO;
-		this.blendSrcAlpha = BLENDMODE_ONE;
-		this.blendDstAlpha = BLENDMODE_ZERO;
-		this.separateAlphaBlend = false;
-		this.blendEquation = BLENDEQUATION_ADD;
-		this.blendAlphaEquation = BLENDEQUATION_ADD;
-		this.separateAlphaEquation = false;
-		gl.blendFunc(gl.ONE, gl.ZERO);
-		gl.blendEquation(gl.FUNC_ADD);
-		this.writeRed = true;
-		this.writeGreen = true;
-		this.writeBlue = true;
-		this.writeAlpha = true;
-		gl.colorMask(true, true, true, true);
-		this.cullMode = CULLFACE_BACK;
-		gl.enable(gl.CULL_FACE);
-		gl.cullFace(gl.BACK);
-		this.depthTest = true;
-		gl.enable(gl.DEPTH_TEST);
-		this.depthFunc = FUNC_LESSEQUAL;
-		gl.depthFunc(gl.LEQUAL);
-		this.depthWrite = true;
-		gl.depthMask(true);
-		this.stencil = false;
-		gl.disable(gl.STENCIL_TEST);
-		this.stencilFuncFront = this.stencilFuncBack = FUNC_ALWAYS;
-		this.stencilRefFront = this.stencilRefBack = 0;
-		this.stencilMaskFront = this.stencilMaskBack = 0xFF;
-		gl.stencilFunc(gl.ALWAYS, 0, 0xFF);
-		this.stencilFailFront = this.stencilFailBack = STENCILOP_KEEP;
-		this.stencilZfailFront = this.stencilZfailBack = STENCILOP_KEEP;
-		this.stencilZpassFront = this.stencilZpassBack = STENCILOP_KEEP;
-		this.stencilWriteMaskFront = 0xFF;
-		this.stencilWriteMaskBack = 0xFF;
-		gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
-		gl.stencilMask(0xFF);
-		this.alphaToCoverage = false;
-		this.raster = true;
-
-		if (this.webgl2) {
-			gl.disable(gl.SAMPLE_ALPHA_TO_COVERAGE);
-			gl.disable(gl.RASTERIZER_DISCARD);
-		}
-
-		this.depthBiasEnabled = false;
-		gl.disable(gl.POLYGON_OFFSET_FILL);
-		this.clearDepth = 1;
-		gl.clearDepth(1);
-		this.clearRed = 0;
-		this.clearBlue = 0;
-		this.clearGreen = 0;
-		this.clearAlpha = 0;
-		gl.clearColor(0, 0, 0, 0);
-		this.clearStencil = 0;
-		gl.clearStencil(0);
-		this.vx = this.vy = this.vw = this.vh = 0;
-		this.sx = this.sy = this.sw = this.sh = 0;
-
-		if (this.webgl2) {
-			gl.hint(gl.FRAGMENT_SHADER_DERIVATIVE_HINT, gl.NICEST);
-		} else {
-			if (this.extStandardDerivatives) {
-				gl.hint(this.extStandardDerivatives.FRAGMENT_SHADER_DERIVATIVE_HINT_OES, gl.NICEST);
-			}
-		}
-
-		gl.enable(gl.SCISSOR_TEST);
-		gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.NONE);
-		this.unpackFlipY = false;
-		gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-		this.unpackPremultiplyAlpha = false;
-		gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
-		gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
-	}
-
 	initializeContextCaches() {
-		this.vertexShaderCache = {};
-		this.fragmentShaderCache = {};
-		this._vaoMap = new Map();
-		this.boundVao = null;
 		this.indexBuffer = null;
 		this.vertexBuffers = [];
 		this.shader = null;
 		this.renderTarget = null;
-		this.activeFramebuffer = null;
-		this.feedback = null;
-		this.transformFeedbackBuffer = null;
-		this.textureUnit = 0;
-		this.textureUnits = [];
-
-		for (let i = 0; i < this.maxCombinedTextures; i++) {
-			this.textureUnits.push([null, null, null]);
-		}
-	}
-
-	loseContext() {
-		for (const shader of this.shaders) {
-			shader.loseContext();
-		}
-
-		this.grabPass.destroy();
-
-		while (this.textures.length > 0) {
-			const texture = this.textures[0];
-			this.destroyTexture(texture);
-			texture.dirtyAll();
-		}
-
-		for (const buffer of this.buffers) {
-			buffer.loseContext();
-		}
-
-		for (const target of this.targets) {
-			target.loseContext();
-		}
-	}
-
-	restoreContext() {
-		this.initializeExtensions();
-		this.initializeCapabilities();
-		this.initializeRenderState();
-		this.initializeContextCaches();
-
-		for (const shader of this.shaders) {
-			this.compileAndLinkShader(shader);
-		}
-
-		for (const buffer of this.buffers) {
-			buffer.unlock();
-		}
-
-		this.grabPass.create();
-	}
-
-	updateClientRect() {
-		this.clientRect = this.canvas.getBoundingClientRect();
-	}
-
-	setViewport(x, y, w, h) {
-		if (this.vx !== x || this.vy !== y || this.vw !== w || this.vh !== h) {
-			this.gl.viewport(x, y, w, h);
-			this.vx = x;
-			this.vy = y;
-			this.vw = w;
-			this.vh = h;
-		}
-	}
-
-	setScissor(x, y, w, h) {
-		if (this.sx !== x || this.sy !== y || this.sw !== w || this.sh !== h) {
-			this.gl.scissor(x, y, w, h);
-			this.sx = x;
-			this.sy = y;
-			this.sw = w;
-			this.sh = h;
-		}
 	}
 
 	getProgramLibrary() {
@@ -13990,1017 +13128,6 @@ class GraphicsDevice extends EventHandler {
 		this.programLib = programLib;
 	}
 
-	setFramebuffer(fb) {
-		if (this.activeFramebuffer !== fb) {
-			const gl = this.gl;
-			gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
-			this.activeFramebuffer = fb;
-		}
-	}
-
-	_checkFbo() {
-		const gl = this.gl;
-		const status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
-
-		switch (status) {
-			case gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
-				console.error("ERROR: FRAMEBUFFER_INCOMPLETE_ATTACHMENT");
-				break;
-
-			case gl.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
-				console.error("ERROR: FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT");
-				break;
-
-			case gl.FRAMEBUFFER_INCOMPLETE_DIMENSIONS:
-				console.error("ERROR: FRAMEBUFFER_INCOMPLETE_DIMENSIONS");
-				break;
-
-			case gl.FRAMEBUFFER_UNSUPPORTED:
-				console.error("ERROR: FRAMEBUFFER_UNSUPPORTED");
-				break;
-
-			case gl.FRAMEBUFFER_COMPLETE:
-				break;
-		}
-	}
-
-	copyRenderTarget(source, dest, color, depth) {
-		const gl = this.gl;
-
-		if (!this.webgl2 && depth) {
-			return false;
-		}
-
-		if (color) {
-			if (!dest) {
-				if (!source._colorBuffer) {
-					return false;
-				}
-			} else {
-				if (!source._colorBuffer || !dest._colorBuffer) {
-					return false;
-				}
-
-				if (source._colorBuffer._format !== dest._colorBuffer._format) {
-					return false;
-				}
-			}
-		}
-
-		if (depth) {
-			if (!source._depthBuffer || !dest._depthBuffer) {
-				return false;
-			}
-
-			if (source._depthBuffer._format !== dest._depthBuffer._format) {
-				return false;
-			}
-		}
-
-		if (this.webgl2 && dest) {
-			const prevRt = this.renderTarget;
-			this.renderTarget = dest;
-			this.updateBegin();
-			gl.bindFramebuffer(gl.READ_FRAMEBUFFER, source ? source._glFrameBuffer : null);
-			gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, dest._glFrameBuffer);
-			const w = source ? source.width : dest.width;
-			const h = source ? source.height : dest.height;
-			gl.blitFramebuffer(0, 0, w, h, 0, 0, w, h, (color ? gl.COLOR_BUFFER_BIT : 0) | (depth ? gl.DEPTH_BUFFER_BIT : 0), gl.NEAREST);
-			this.renderTarget = prevRt;
-			gl.bindFramebuffer(gl.FRAMEBUFFER, prevRt ? prevRt._glFrameBuffer : null);
-		} else {
-			const shader = this.getCopyShader();
-			this.constantTexSource.setValue(source._colorBuffer);
-			drawQuadWithShader(this, dest, shader);
-		}
-
-		return true;
-	}
-
-	initRenderTarget(target) {
-		if (target._glFrameBuffer) return;
-		const gl = this.gl;
-		target._glFrameBuffer = gl.createFramebuffer();
-		this.setFramebuffer(target._glFrameBuffer);
-		const colorBuffer = target._colorBuffer;
-
-		if (colorBuffer) {
-			if (!colorBuffer._glTexture) {
-				colorBuffer._width = Math.min(colorBuffer.width, this.maxRenderBufferSize);
-				colorBuffer._height = Math.min(colorBuffer.height, this.maxRenderBufferSize);
-				this.setTexture(colorBuffer, 0);
-			}
-
-			gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, colorBuffer._cubemap ? gl.TEXTURE_CUBE_MAP_POSITIVE_X + target._face : gl.TEXTURE_2D, colorBuffer._glTexture, 0);
-		}
-
-		const depthBuffer = target._depthBuffer;
-
-		if (depthBuffer && this.webgl2) {
-			if (!depthBuffer._glTexture) {
-				depthBuffer._width = Math.min(depthBuffer.width, this.maxRenderBufferSize);
-				depthBuffer._height = Math.min(depthBuffer.height, this.maxRenderBufferSize);
-				this.setTexture(depthBuffer, 0);
-			}
-
-			if (target._stencil) {
-				gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, depthBuffer._cubemap ? gl.TEXTURE_CUBE_MAP_POSITIVE_X + target._face : gl.TEXTURE_2D, target._depthBuffer._glTexture, 0);
-			} else {
-				gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, depthBuffer._cubemap ? gl.TEXTURE_CUBE_MAP_POSITIVE_X + target._face : gl.TEXTURE_2D, target._depthBuffer._glTexture, 0);
-			}
-		} else if (target._depth) {
-			const willRenderMsaa = target._samples > 1 && this.webgl2;
-
-			if (!willRenderMsaa) {
-				if (!target._glDepthBuffer) {
-					target._glDepthBuffer = gl.createRenderbuffer();
-				}
-
-				gl.bindRenderbuffer(gl.RENDERBUFFER, target._glDepthBuffer);
-
-				if (target._stencil) {
-					gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_STENCIL, target.width, target.height);
-					gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, target._glDepthBuffer);
-				} else {
-					gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, target.width, target.height);
-					gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, target._glDepthBuffer);
-				}
-
-				gl.bindRenderbuffer(gl.RENDERBUFFER, null);
-			}
-		}
-
-		if (this.webgl2 && target._samples > 1) {
-			target._glResolveFrameBuffer = target._glFrameBuffer;
-			target._glFrameBuffer = gl.createFramebuffer();
-			this.setFramebuffer(target._glFrameBuffer);
-
-			if (colorBuffer) {
-				if (!target._glMsaaColorBuffer) {
-					target._glMsaaColorBuffer = gl.createRenderbuffer();
-				}
-
-				gl.bindRenderbuffer(gl.RENDERBUFFER, target._glMsaaColorBuffer);
-				gl.renderbufferStorageMultisample(gl.RENDERBUFFER, target._samples, colorBuffer._glInternalFormat, target.width, target.height);
-				gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, target._glMsaaColorBuffer);
-			}
-
-			if (target._depth) {
-				if (!target._glMsaaDepthBuffer) {
-					target._glMsaaDepthBuffer = gl.createRenderbuffer();
-				}
-
-				gl.bindRenderbuffer(gl.RENDERBUFFER, target._glMsaaDepthBuffer);
-
-				if (target._stencil) {
-					gl.renderbufferStorageMultisample(gl.RENDERBUFFER, target._samples, gl.DEPTH24_STENCIL8, target.width, target.height);
-					gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, target._glMsaaDepthBuffer);
-				} else {
-					gl.renderbufferStorageMultisample(gl.RENDERBUFFER, target._samples, gl.DEPTH_COMPONENT32F, target.width, target.height);
-					gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, target._glMsaaDepthBuffer);
-				}
-			}
-		}
-
-		this.targets.push(target);
-	}
-
-	getCopyShader() {
-		if (!this._copyShader) {
-			const vs = shaderChunks.fullscreenQuadVS;
-			const fs = shaderChunks.outputTex2DPS;
-			this._copyShader = createShaderFromCode(this, vs, fs, "outputTex2D");
-		}
-
-		return this._copyShader;
-	}
-
-	updateBegin() {
-		this.boundVao = null;
-
-		if (this._tempEnableSafariTextureUnitWorkaround) {
-			for (let unit = 0; unit < this.textureUnits.length; ++unit) {
-				for (let slot = 0; slot < 3; ++slot) {
-					this.textureUnits[unit][slot] = null;
-				}
-			}
-		}
-
-		const target = this.renderTarget;
-
-		if (target) {
-			if (!target._glFrameBuffer) {
-				this.initRenderTarget(target);
-			} else {
-				this.setFramebuffer(target._glFrameBuffer);
-			}
-		} else {
-			this.setFramebuffer(this.defaultFramebuffer);
-		}
-	}
-
-	updateEnd() {
-		const gl = this.gl;
-
-		if (this.boundVao) {
-			this.boundVao = null;
-			this.gl.bindVertexArray(null);
-		}
-
-		const target = this.renderTarget;
-
-		if (target) {
-			const colorBuffer = target._colorBuffer;
-
-			if (colorBuffer && colorBuffer._glTexture && colorBuffer.mipmaps && (colorBuffer.pot || this.webgl2)) {
-				this.activeTexture(this.maxCombinedTextures - 1);
-				this.bindTexture(colorBuffer);
-				gl.generateMipmap(colorBuffer._glTarget);
-			}
-
-			if (this.webgl2 && target._samples > 1 && target.autoResolve) {
-				target.resolve();
-			}
-		}
-	}
-
-	initializeTexture(texture) {
-		const gl = this.gl;
-		let ext;
-		texture._glTexture = gl.createTexture();
-		texture._glTarget = texture._cubemap ? gl.TEXTURE_CUBE_MAP : texture._volume ? gl.TEXTURE_3D : gl.TEXTURE_2D;
-
-		switch (texture._format) {
-			case PIXELFORMAT_A8:
-				texture._glFormat = gl.ALPHA;
-				texture._glInternalFormat = gl.ALPHA;
-				texture._glPixelType = gl.UNSIGNED_BYTE;
-				break;
-
-			case PIXELFORMAT_L8:
-				texture._glFormat = gl.LUMINANCE;
-				texture._glInternalFormat = gl.LUMINANCE;
-				texture._glPixelType = gl.UNSIGNED_BYTE;
-				break;
-
-			case PIXELFORMAT_L8_A8:
-				texture._glFormat = gl.LUMINANCE_ALPHA;
-				texture._glInternalFormat = gl.LUMINANCE_ALPHA;
-				texture._glPixelType = gl.UNSIGNED_BYTE;
-				break;
-
-			case PIXELFORMAT_R5_G6_B5:
-				texture._glFormat = gl.RGB;
-				texture._glInternalFormat = gl.RGB;
-				texture._glPixelType = gl.UNSIGNED_SHORT_5_6_5;
-				break;
-
-			case PIXELFORMAT_R5_G5_B5_A1:
-				texture._glFormat = gl.RGBA;
-				texture._glInternalFormat = gl.RGBA;
-				texture._glPixelType = gl.UNSIGNED_SHORT_5_5_5_1;
-				break;
-
-			case PIXELFORMAT_R4_G4_B4_A4:
-				texture._glFormat = gl.RGBA;
-				texture._glInternalFormat = gl.RGBA;
-				texture._glPixelType = gl.UNSIGNED_SHORT_4_4_4_4;
-				break;
-
-			case PIXELFORMAT_R8_G8_B8:
-				texture._glFormat = gl.RGB;
-				texture._glInternalFormat = this.webgl2 ? gl.RGB8 : gl.RGB;
-				texture._glPixelType = gl.UNSIGNED_BYTE;
-				break;
-
-			case PIXELFORMAT_R8_G8_B8_A8:
-				texture._glFormat = gl.RGBA;
-				texture._glInternalFormat = this.webgl2 ? gl.RGBA8 : gl.RGBA;
-				texture._glPixelType = gl.UNSIGNED_BYTE;
-				break;
-
-			case PIXELFORMAT_DXT1:
-				ext = this.extCompressedTextureS3TC;
-				texture._glFormat = gl.RGB;
-				texture._glInternalFormat = ext.COMPRESSED_RGB_S3TC_DXT1_EXT;
-				break;
-
-			case PIXELFORMAT_DXT3:
-				ext = this.extCompressedTextureS3TC;
-				texture._glFormat = gl.RGBA;
-				texture._glInternalFormat = ext.COMPRESSED_RGBA_S3TC_DXT3_EXT;
-				break;
-
-			case PIXELFORMAT_DXT5:
-				ext = this.extCompressedTextureS3TC;
-				texture._glFormat = gl.RGBA;
-				texture._glInternalFormat = ext.COMPRESSED_RGBA_S3TC_DXT5_EXT;
-				break;
-
-			case PIXELFORMAT_ETC1:
-				ext = this.extCompressedTextureETC1;
-				texture._glFormat = gl.RGB;
-				texture._glInternalFormat = ext.COMPRESSED_RGB_ETC1_WEBGL;
-				break;
-
-			case PIXELFORMAT_PVRTC_2BPP_RGB_1:
-				ext = this.extCompressedTexturePVRTC;
-				texture._glFormat = gl.RGB;
-				texture._glInternalFormat = ext.COMPRESSED_RGB_PVRTC_2BPPV1_IMG;
-				break;
-
-			case PIXELFORMAT_PVRTC_2BPP_RGBA_1:
-				ext = this.extCompressedTexturePVRTC;
-				texture._glFormat = gl.RGBA;
-				texture._glInternalFormat = ext.COMPRESSED_RGBA_PVRTC_2BPPV1_IMG;
-				break;
-
-			case PIXELFORMAT_PVRTC_4BPP_RGB_1:
-				ext = this.extCompressedTexturePVRTC;
-				texture._glFormat = gl.RGB;
-				texture._glInternalFormat = ext.COMPRESSED_RGB_PVRTC_4BPPV1_IMG;
-				break;
-
-			case PIXELFORMAT_PVRTC_4BPP_RGBA_1:
-				ext = this.extCompressedTexturePVRTC;
-				texture._glFormat = gl.RGBA;
-				texture._glInternalFormat = ext.COMPRESSED_RGBA_PVRTC_4BPPV1_IMG;
-				break;
-
-			case PIXELFORMAT_ETC2_RGB:
-				ext = this.extCompressedTextureETC;
-				texture._glFormat = gl.RGB;
-				texture._glInternalFormat = ext.COMPRESSED_RGB8_ETC2;
-				break;
-
-			case PIXELFORMAT_ETC2_RGBA:
-				ext = this.extCompressedTextureETC;
-				texture._glFormat = gl.RGBA;
-				texture._glInternalFormat = ext.COMPRESSED_RGBA8_ETC2_EAC;
-				break;
-
-			case PIXELFORMAT_ASTC_4x4:
-				ext = this.extCompressedTextureASTC;
-				texture._glFormat = gl.RGBA;
-				texture._glInternalFormat = ext.COMPRESSED_RGBA_ASTC_4x4_KHR;
-				break;
-
-			case PIXELFORMAT_ATC_RGB:
-				ext = this.extCompressedTextureATC;
-				texture._glFormat = gl.RGB;
-				texture._glInternalFormat = ext.COMPRESSED_RGB_ATC_WEBGL;
-				break;
-
-			case PIXELFORMAT_ATC_RGBA:
-				ext = this.extCompressedTextureATC;
-				texture._glFormat = gl.RGBA;
-				texture._glInternalFormat = ext.COMPRESSED_RGBA_ATC_INTERPOLATED_ALPHA_WEBGL;
-				break;
-
-			case PIXELFORMAT_RGB16F:
-				ext = this.extTextureHalfFloat;
-				texture._glFormat = gl.RGB;
-
-				if (this.webgl2) {
-					texture._glInternalFormat = gl.RGB16F;
-					texture._glPixelType = gl.HALF_FLOAT;
-				} else {
-					texture._glInternalFormat = gl.RGB;
-					texture._glPixelType = ext.HALF_FLOAT_OES;
-				}
-
-				break;
-
-			case PIXELFORMAT_RGBA16F:
-				ext = this.extTextureHalfFloat;
-				texture._glFormat = gl.RGBA;
-
-				if (this.webgl2) {
-					texture._glInternalFormat = gl.RGBA16F;
-					texture._glPixelType = gl.HALF_FLOAT;
-				} else {
-					texture._glInternalFormat = gl.RGBA;
-					texture._glPixelType = ext.HALF_FLOAT_OES;
-				}
-
-				break;
-
-			case PIXELFORMAT_RGB32F:
-				texture._glFormat = gl.RGB;
-
-				if (this.webgl2) {
-					texture._glInternalFormat = gl.RGB32F;
-				} else {
-					texture._glInternalFormat = gl.RGB;
-				}
-
-				texture._glPixelType = gl.FLOAT;
-				break;
-
-			case PIXELFORMAT_RGBA32F:
-				texture._glFormat = gl.RGBA;
-
-				if (this.webgl2) {
-					texture._glInternalFormat = gl.RGBA32F;
-				} else {
-					texture._glInternalFormat = gl.RGBA;
-				}
-
-				texture._glPixelType = gl.FLOAT;
-				break;
-
-			case PIXELFORMAT_R32F:
-				texture._glFormat = gl.RED;
-				texture._glInternalFormat = gl.R32F;
-				texture._glPixelType = gl.FLOAT;
-				break;
-
-			case PIXELFORMAT_DEPTH:
-				if (this.webgl2) {
-					texture._glFormat = gl.DEPTH_COMPONENT;
-					texture._glInternalFormat = gl.DEPTH_COMPONENT32F;
-					texture._glPixelType = gl.FLOAT;
-				} else {
-					texture._glFormat = gl.DEPTH_COMPONENT;
-					texture._glInternalFormat = gl.DEPTH_COMPONENT;
-					texture._glPixelType = gl.UNSIGNED_SHORT;
-				}
-
-				break;
-
-			case PIXELFORMAT_DEPTHSTENCIL:
-				texture._glFormat = gl.DEPTH_STENCIL;
-				texture._glInternalFormat = gl.DEPTH24_STENCIL8;
-				texture._glPixelType = gl.UNSIGNED_INT_24_8;
-				break;
-
-			case PIXELFORMAT_111110F:
-				texture._glFormat = gl.RGB;
-				texture._glInternalFormat = gl.R11F_G11F_B10F;
-				texture._glPixelType = gl.UNSIGNED_INT_10F_11F_11F_REV;
-				break;
-
-			case PIXELFORMAT_SRGB:
-				texture._glFormat = gl.RGB;
-				texture._glInternalFormat = gl.SRGB8;
-				texture._glPixelType = gl.UNSIGNED_BYTE;
-				break;
-
-			case PIXELFORMAT_SRGBA:
-				texture._glFormat = gl.RGBA;
-				texture._glInternalFormat = gl.SRGB8_ALPHA8;
-				texture._glPixelType = gl.UNSIGNED_BYTE;
-				break;
-		}
-
-		this.textures.push(texture);
-	}
-
-	destroyTexture(texture) {
-		if (texture._glTexture) {
-			const idx = this.textures.indexOf(texture);
-
-			if (idx !== -1) {
-				this.textures.splice(idx, 1);
-			}
-
-			this.scope.removeValue(texture);
-
-			for (let i = 0; i < this.textureUnits.length; i++) {
-				const textureUnit = this.textureUnits[i];
-
-				for (let j = 0; j < textureUnit.length; j++) {
-					if (textureUnit[j] === texture._glTexture) {
-						textureUnit[j] = null;
-					}
-				}
-			}
-
-			const gl = this.gl;
-			gl.deleteTexture(texture._glTexture);
-			delete texture._glTexture;
-			delete texture._glTarget;
-			delete texture._glFormat;
-			delete texture._glInternalFormat;
-			delete texture._glPixelType;
-			this._vram.tex -= texture._gpuSize;
-		}
-	}
-
-	setUnpackFlipY(flipY) {
-		if (this.unpackFlipY !== flipY) {
-			this.unpackFlipY = flipY;
-			const gl = this.gl;
-			gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, flipY);
-		}
-	}
-
-	setUnpackPremultiplyAlpha(premultiplyAlpha) {
-		if (this.unpackPremultiplyAlpha !== premultiplyAlpha) {
-			this.unpackPremultiplyAlpha = premultiplyAlpha;
-			const gl = this.gl;
-			gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, premultiplyAlpha);
-		}
-	}
-
-	_isBrowserInterface(texture) {
-		return typeof HTMLCanvasElement !== 'undefined' && texture instanceof HTMLCanvasElement || typeof HTMLImageElement !== 'undefined' && texture instanceof HTMLImageElement || typeof HTMLVideoElement !== 'undefined' && texture instanceof HTMLVideoElement || typeof ImageBitmap !== 'undefined' && texture instanceof ImageBitmap;
-	}
-
-	uploadTexture(texture) {
-		const gl = this.gl;
-		if (!texture._needsUpload && (texture._needsMipmapsUpload && texture._mipmapsUploaded || !texture.pot)) return;
-		let mipLevel = 0;
-		let mipObject;
-		let resMult;
-		const requiredMipLevels = Math.log2(Math.max(texture._width, texture._height)) + 1;
-
-		while (texture._levels[mipLevel] || mipLevel === 0) {
-			if (!texture._needsUpload && mipLevel === 0) {
-				mipLevel++;
-				continue;
-			} else if (mipLevel && (!texture._needsMipmapsUpload || !texture._mipmaps)) {
-				break;
-			}
-
-			mipObject = texture._levels[mipLevel];
-
-			if (mipLevel === 1 && !texture._compressed && texture._levels.length < requiredMipLevels) {
-				gl.generateMipmap(texture._glTarget);
-				texture._mipmapsUploaded = true;
-			}
-
-			if (texture._cubemap) {
-				let face;
-
-				if (this._isBrowserInterface(mipObject[0])) {
-					for (face = 0; face < 6; face++) {
-						if (!texture._levelsUpdated[0][face]) continue;
-						let src = mipObject[face];
-
-						if (src instanceof HTMLImageElement) {
-							if (src.width > this.maxCubeMapSize || src.height > this.maxCubeMapSize) {
-								src = downsampleImage(src, this.maxCubeMapSize);
-
-								if (mipLevel === 0) {
-									texture._width = src.width;
-									texture._height = src.height;
-								}
-							}
-						}
-
-						this.setUnpackFlipY(false);
-						this.setUnpackPremultiplyAlpha(texture._premultiplyAlpha);
-						gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + face, mipLevel, texture._glInternalFormat, texture._glFormat, texture._glPixelType, src);
-					}
-				} else {
-					resMult = 1 / Math.pow(2, mipLevel);
-
-					for (face = 0; face < 6; face++) {
-						if (!texture._levelsUpdated[0][face]) continue;
-						const texData = mipObject[face];
-
-						if (texture._compressed) {
-							gl.compressedTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + face, mipLevel, texture._glInternalFormat, Math.max(texture._width * resMult, 1), Math.max(texture._height * resMult, 1), 0, texData);
-						} else {
-							this.setUnpackFlipY(false);
-							this.setUnpackPremultiplyAlpha(texture._premultiplyAlpha);
-							gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + face, mipLevel, texture._glInternalFormat, Math.max(texture._width * resMult, 1), Math.max(texture._height * resMult, 1), 0, texture._glFormat, texture._glPixelType, texData);
-						}
-					}
-				}
-			} else if (texture._volume) {
-				resMult = 1 / Math.pow(2, mipLevel);
-
-				if (texture._compressed) {
-					gl.compressedTexImage3D(gl.TEXTURE_3D, mipLevel, texture._glInternalFormat, Math.max(texture._width * resMult, 1), Math.max(texture._height * resMult, 1), Math.max(texture._depth * resMult, 1), 0, mipObject);
-				} else {
-					this.setUnpackFlipY(false);
-					this.setUnpackPremultiplyAlpha(texture._premultiplyAlpha);
-					gl.texImage3D(gl.TEXTURE_3D, mipLevel, texture._glInternalFormat, Math.max(texture._width * resMult, 1), Math.max(texture._height * resMult, 1), Math.max(texture._depth * resMult, 1), 0, texture._glFormat, texture._glPixelType, mipObject);
-				}
-			} else {
-				if (this._isBrowserInterface(mipObject)) {
-					if (mipObject instanceof HTMLImageElement) {
-						if (mipObject.width > this.maxTextureSize || mipObject.height > this.maxTextureSize) {
-							mipObject = downsampleImage(mipObject, this.maxTextureSize);
-
-							if (mipLevel === 0) {
-								texture._width = mipObject.width;
-								texture._height = mipObject.height;
-							}
-						}
-					}
-
-					this.setUnpackFlipY(texture._flipY);
-					this.setUnpackPremultiplyAlpha(texture._premultiplyAlpha);
-					gl.texImage2D(gl.TEXTURE_2D, mipLevel, texture._glInternalFormat, texture._glFormat, texture._glPixelType, mipObject);
-				} else {
-					resMult = 1 / Math.pow(2, mipLevel);
-
-					if (texture._compressed) {
-						gl.compressedTexImage2D(gl.TEXTURE_2D, mipLevel, texture._glInternalFormat, Math.max(Math.floor(texture._width * resMult), 1), Math.max(Math.floor(texture._height * resMult), 1), 0, mipObject);
-					} else {
-						this.setUnpackFlipY(false);
-						this.setUnpackPremultiplyAlpha(texture._premultiplyAlpha);
-						gl.texImage2D(gl.TEXTURE_2D, mipLevel, texture._glInternalFormat, Math.max(texture._width * resMult, 1), Math.max(texture._height * resMult, 1), 0, texture._glFormat, texture._glPixelType, mipObject);
-					}
-				}
-
-				if (mipLevel === 0) {
-					texture._mipmapsUploaded = false;
-				} else {
-					texture._mipmapsUploaded = true;
-				}
-			}
-
-			mipLevel++;
-		}
-
-		if (texture._needsUpload) {
-			if (texture._cubemap) {
-				for (let i = 0; i < 6; i++) texture._levelsUpdated[0][i] = false;
-			} else {
-				texture._levelsUpdated[0] = false;
-			}
-		}
-
-		if (!texture._compressed && texture._mipmaps && texture._needsMipmapsUpload && (texture.pot || this.webgl2) && texture._levels.length === 1) {
-			gl.generateMipmap(texture._glTarget);
-			texture._mipmapsUploaded = true;
-		}
-
-		if (texture._gpuSize) {
-			this._vram.tex -= texture._gpuSize;
-		}
-
-		texture._gpuSize = texture.gpuSize;
-		this._vram.tex += texture._gpuSize;
-	}
-
-	activeTexture(textureUnit) {
-		if (this.textureUnit !== textureUnit) {
-			this.gl.activeTexture(this.gl.TEXTURE0 + textureUnit);
-			this.textureUnit = textureUnit;
-		}
-	}
-
-	bindTexture(texture) {
-		const textureTarget = texture._glTarget;
-		const textureObject = texture._glTexture;
-		const textureUnit = this.textureUnit;
-		const slot = this.targetToSlot[textureTarget];
-
-		if (this.textureUnits[textureUnit][slot] !== textureObject) {
-			this.gl.bindTexture(textureTarget, textureObject);
-			this.textureUnits[textureUnit][slot] = textureObject;
-		}
-	}
-
-	bindTextureOnUnit(texture, textureUnit) {
-		const textureTarget = texture._glTarget;
-		const textureObject = texture._glTexture;
-		const slot = this.targetToSlot[textureTarget];
-
-		if (this.textureUnits[textureUnit][slot] !== textureObject) {
-			this.activeTexture(textureUnit);
-			this.gl.bindTexture(textureTarget, textureObject);
-			this.textureUnits[textureUnit][slot] = textureObject;
-		}
-	}
-
-	setTextureParameters(texture) {
-		const gl = this.gl;
-		const flags = texture._parameterFlags;
-		const target = texture._glTarget;
-
-		if (flags & 1) {
-			let filter = texture._minFilter;
-
-			if (!texture.pot && !this.webgl2 || !texture._mipmaps || texture._compressed && texture._levels.length === 1) {
-				if (filter === FILTER_NEAREST_MIPMAP_NEAREST || filter === FILTER_NEAREST_MIPMAP_LINEAR) {
-					filter = FILTER_NEAREST;
-				} else if (filter === FILTER_LINEAR_MIPMAP_NEAREST || filter === FILTER_LINEAR_MIPMAP_LINEAR) {
-					filter = FILTER_LINEAR;
-				}
-			}
-
-			gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, this.glFilter[filter]);
-		}
-
-		if (flags & 2) {
-			gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, this.glFilter[texture._magFilter]);
-		}
-
-		if (flags & 4) {
-			if (this.webgl2) {
-				gl.texParameteri(target, gl.TEXTURE_WRAP_S, this.glAddress[texture._addressU]);
-			} else {
-				gl.texParameteri(target, gl.TEXTURE_WRAP_S, this.glAddress[texture.pot ? texture._addressU : ADDRESS_CLAMP_TO_EDGE]);
-			}
-		}
-
-		if (flags & 8) {
-			if (this.webgl2) {
-				gl.texParameteri(target, gl.TEXTURE_WRAP_T, this.glAddress[texture._addressV]);
-			} else {
-				gl.texParameteri(target, gl.TEXTURE_WRAP_T, this.glAddress[texture.pot ? texture._addressV : ADDRESS_CLAMP_TO_EDGE]);
-			}
-		}
-
-		if (flags & 16) {
-			if (this.webgl2) {
-				gl.texParameteri(target, gl.TEXTURE_WRAP_R, this.glAddress[texture._addressW]);
-			}
-		}
-
-		if (flags & 32) {
-			if (this.webgl2) {
-				gl.texParameteri(target, gl.TEXTURE_COMPARE_MODE, texture._compareOnRead ? gl.COMPARE_REF_TO_TEXTURE : gl.NONE);
-			}
-		}
-
-		if (flags & 64) {
-			if (this.webgl2) {
-				gl.texParameteri(target, gl.TEXTURE_COMPARE_FUNC, this.glComparison[texture._compareFunc]);
-			}
-		}
-
-		if (flags & 128) {
-			const ext = this.extTextureFilterAnisotropic;
-
-			if (ext) {
-				gl.texParameterf(target, ext.TEXTURE_MAX_ANISOTROPY_EXT, Math.max(1, Math.min(Math.round(texture._anisotropy), this.maxAnisotropy)));
-			}
-		}
-	}
-
-	setTexture(texture, textureUnit) {
-		if (!texture._glTexture) this.initializeTexture(texture);
-
-		if (texture._parameterFlags > 0 || texture._needsUpload || texture._needsMipmapsUpload || texture === this.grabPass.texture) {
-			this.activeTexture(textureUnit);
-			this.bindTexture(texture);
-
-			if (texture._parameterFlags) {
-				this.setTextureParameters(texture);
-				texture._parameterFlags = 0;
-			}
-
-			const processed = texture === this.grabPass.texture && this.grabPass.prepareTexture();
-
-			if (!processed && (texture._needsUpload || texture._needsMipmapsUpload)) {
-				this.uploadTexture(texture);
-				texture._needsUpload = false;
-				texture._needsMipmapsUpload = false;
-			}
-		} else {
-			this.bindTextureOnUnit(texture, textureUnit);
-		}
-	}
-
-	createVertexArray(vertexBuffers) {
-		let key, vao;
-		const useCache = vertexBuffers.length > 1;
-
-		if (useCache) {
-			key = "";
-
-			for (let i = 0; i < vertexBuffers.length; i++) {
-				const vertexBuffer = vertexBuffers[i];
-				key += vertexBuffer.id + vertexBuffer.format.renderingingHash;
-			}
-
-			vao = this._vaoMap.get(key);
-		}
-
-		if (!vao) {
-			const gl = this.gl;
-			vao = gl.createVertexArray();
-			gl.bindVertexArray(vao);
-			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
-
-			for (let i = 0; i < vertexBuffers.length; i++) {
-				const vertexBuffer = vertexBuffers[i];
-				gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer.bufferId);
-				const elements = vertexBuffer.format.elements;
-
-				for (let j = 0; j < elements.length; j++) {
-					const e = elements[j];
-					const loc = semanticToLocation[e.name];
-
-					gl.vertexAttribPointer(loc, e.numComponents, this.glType[e.dataType], e.normalize, e.stride, e.offset);
-					gl.enableVertexAttribArray(loc);
-
-					if (vertexBuffer.instancing) {
-						gl.vertexAttribDivisor(loc, 1);
-					}
-				}
-			}
-
-			gl.bindVertexArray(null);
-			gl.bindBuffer(gl.ARRAY_BUFFER, null);
-
-			if (useCache) {
-				this._vaoMap.set(key, vao);
-			}
-		}
-
-		return vao;
-	}
-
-	setBuffers() {
-		const gl = this.gl;
-		let vao;
-
-		if (this.vertexBuffers.length === 1) {
-			const vertexBuffer = this.vertexBuffers[0];
-
-			if (!vertexBuffer._vao) {
-				vertexBuffer._vao = this.createVertexArray(this.vertexBuffers);
-			}
-
-			vao = vertexBuffer._vao;
-		} else {
-			vao = this.createVertexArray(this.vertexBuffers);
-		}
-
-		if (this.boundVao !== vao) {
-			this.boundVao = vao;
-			gl.bindVertexArray(vao);
-		}
-
-		this.vertexBuffers.length = 0;
-		const bufferId = this.indexBuffer ? this.indexBuffer.bufferId : null;
-		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, bufferId);
-	}
-
-	draw(primitive, numInstances, keepBuffers) {
-		const gl = this.gl;
-		let sampler, samplerValue, texture, numTextures;
-		let uniform, scopeId, uniformVersion, programVersion;
-		const shader = this.shader;
-		if (!shader) return;
-		const samplers = shader.samplers;
-		const uniforms = shader.uniforms;
-
-		if (!keepBuffers) {
-			this.setBuffers();
-		}
-
-		let textureUnit = 0;
-
-		for (let i = 0, len = samplers.length; i < len; i++) {
-			sampler = samplers[i];
-			samplerValue = sampler.scopeId.value;
-
-			if (!samplerValue) {
-				continue;
-			}
-
-			if (samplerValue instanceof Texture) {
-				texture = samplerValue;
-				this.setTexture(texture, textureUnit);
-
-				if (sampler.slot !== textureUnit) {
-					gl.uniform1i(sampler.locationId, textureUnit);
-					sampler.slot = textureUnit;
-				}
-
-				textureUnit++;
-			} else {
-				sampler.array.length = 0;
-				numTextures = samplerValue.length;
-
-				for (let j = 0; j < numTextures; j++) {
-					texture = samplerValue[j];
-					this.setTexture(texture, textureUnit);
-					sampler.array[j] = textureUnit;
-					textureUnit++;
-				}
-
-				gl.uniform1iv(sampler.locationId, sampler.array);
-			}
-		}
-
-		for (let i = 0, len = uniforms.length; i < len; i++) {
-			uniform = uniforms[i];
-			scopeId = uniform.scopeId;
-			uniformVersion = uniform.version;
-			programVersion = scopeId.versionObject.version;
-
-			if (uniformVersion.globalId !== programVersion.globalId || uniformVersion.revision !== programVersion.revision) {
-				uniformVersion.globalId = programVersion.globalId;
-				uniformVersion.revision = programVersion.revision;
-
-				if (scopeId.value !== null) {
-					this.commitFunction[uniform.dataType](uniform, scopeId.value);
-				}
-			}
-		}
-
-		if (this.webgl2 && this.transformFeedbackBuffer) {
-			gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, this.transformFeedbackBuffer.bufferId);
-			gl.beginTransformFeedback(gl.POINTS);
-		}
-
-		const mode = this.glPrimitive[primitive.type];
-		const count = primitive.count;
-
-		if (primitive.indexed) {
-			const indexBuffer = this.indexBuffer;
-			const format = indexBuffer.glFormat;
-			const offset = primitive.base * indexBuffer.bytesPerIndex;
-
-			if (numInstances > 0) {
-				gl.drawElementsInstanced(mode, count, format, offset, numInstances);
-			} else {
-				gl.drawElements(mode, count, format, offset);
-			}
-		} else {
-			const first = primitive.base;
-
-			if (numInstances > 0) {
-				gl.drawArraysInstanced(mode, first, count, numInstances);
-			} else {
-				gl.drawArrays(mode, first, count);
-			}
-		}
-
-		if (this.webgl2 && this.transformFeedbackBuffer) {
-			gl.endTransformFeedback();
-			gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, null);
-		}
-
-		this._drawCallsPerFrame++;
-	}
-
-	clear(options) {
-		const defaultOptions = this.defaultClearOptions;
-		options = options || defaultOptions;
-		const flags = options.flags == undefined ? defaultOptions.flags : options.flags;
-
-		if (flags !== 0) {
-			const gl = this.gl;
-
-			if (flags & CLEARFLAG_COLOR) {
-				const color = options.color == undefined ? defaultOptions.color : options.color;
-				this.setClearColor(color[0], color[1], color[2], color[3]);
-			}
-
-			if (flags & CLEARFLAG_DEPTH) {
-				const depth = options.depth == undefined ? defaultOptions.depth : options.depth;
-				this.setClearDepth(depth);
-
-				if (!this.depthWrite) {
-					gl.depthMask(true);
-				}
-			}
-
-			if (flags & CLEARFLAG_STENCIL) {
-				const stencil = options.stencil == undefined ? defaultOptions.stencil : options.stencil;
-				this.setClearStencil(stencil);
-			}
-
-			gl.clear(this.glClearFlag[flags]);
-
-			if (flags & CLEARFLAG_DEPTH) {
-				if (!this.depthWrite) {
-					gl.depthMask(false);
-				}
-			}
-		}
-	}
-
-	readPixels(x, y, w, h, pixels) {
-		const gl = this.gl;
-		gl.readPixels(x, y, w, h, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-	}
-
-	setClearDepth(depth) {
-		if (depth !== this.clearDepth) {
-			this.gl.clearDepth(depth);
-			this.clearDepth = depth;
-		}
-	}
-
-	setClearColor(r, g, b, a) {
-		if (r !== this.clearRed || g !== this.clearGreen || b !== this.clearBlue || a !== this.clearAlpha) {
-			this.gl.clearColor(r, g, b, a);
-			this.clearRed = r;
-			this.clearGreen = g;
-			this.clearBlue = b;
-			this.clearAlpha = a;
-		}
-	}
-
-	setClearStencil(value) {
-		if (value !== this.clearStencil) {
-			this.gl.clearStencil(value);
-			this.clearStencil = value;
-		}
-	}
-
 	setRenderTarget(renderTarget) {
 		this.renderTarget = renderTarget;
 	}
@@ -15009,487 +13136,8 @@ class GraphicsDevice extends EventHandler {
 		return this.renderTarget;
 	}
 
-	getDepthTest() {
-		return this.depthTest;
-	}
-
-	setDepthTest(depthTest) {
-		if (this.depthTest !== depthTest) {
-			const gl = this.gl;
-
-			if (depthTest) {
-				gl.enable(gl.DEPTH_TEST);
-			} else {
-				gl.disable(gl.DEPTH_TEST);
-			}
-
-			this.depthTest = depthTest;
-		}
-	}
-
-	setDepthFunc(func) {
-		if (this.depthFunc === func) return;
-		this.gl.depthFunc(this.glComparison[func]);
-		this.depthFunc = func;
-	}
-
-	getDepthWrite() {
-		return this.depthWrite;
-	}
-
-	setDepthWrite(writeDepth) {
-		if (this.depthWrite !== writeDepth) {
-			this.gl.depthMask(writeDepth);
-			this.depthWrite = writeDepth;
-		}
-	}
-
-	setColorWrite(writeRed, writeGreen, writeBlue, writeAlpha) {
-		if (this.writeRed !== writeRed || this.writeGreen !== writeGreen || this.writeBlue !== writeBlue || this.writeAlpha !== writeAlpha) {
-			this.gl.colorMask(writeRed, writeGreen, writeBlue, writeAlpha);
-			this.writeRed = writeRed;
-			this.writeGreen = writeGreen;
-			this.writeBlue = writeBlue;
-			this.writeAlpha = writeAlpha;
-		}
-	}
-
-	setAlphaToCoverage(state) {
-		if (!this.webgl2) return;
-		if (this.alphaToCoverage === state) return;
-		this.alphaToCoverage = state;
-
-		if (state) {
-			this.gl.enable(this.gl.SAMPLE_ALPHA_TO_COVERAGE);
-		} else {
-			this.gl.disable(this.gl.SAMPLE_ALPHA_TO_COVERAGE);
-		}
-	}
-
-	setTransformFeedbackBuffer(tf) {
-		if (this.transformFeedbackBuffer === tf) return;
-		this.transformFeedbackBuffer = tf;
-
-		if (this.webgl2) {
-			const gl = this.gl;
-
-			if (tf) {
-				if (!this.feedback) {
-					this.feedback = gl.createTransformFeedback();
-				}
-
-				gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, this.feedback);
-			} else {
-				gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, null);
-			}
-		}
-	}
-
-	setRaster(on) {
-		if (this.raster === on) return;
-		this.raster = on;
-
-		if (this.webgl2) {
-			if (on) {
-				this.gl.disable(this.gl.RASTERIZER_DISCARD);
-			} else {
-				this.gl.enable(this.gl.RASTERIZER_DISCARD);
-			}
-		}
-	}
-
-	setDepthBias(on) {
-		if (this.depthBiasEnabled === on) return;
-		this.depthBiasEnabled = on;
-
-		if (on) {
-			this.gl.enable(this.gl.POLYGON_OFFSET_FILL);
-		} else {
-			this.gl.disable(this.gl.POLYGON_OFFSET_FILL);
-		}
-	}
-
-	setDepthBiasValues(constBias, slopeBias) {
-		this.gl.polygonOffset(slopeBias, constBias);
-	}
-
-	getBlending() {
-		return this.blending;
-	}
-
-	setBlending(blending) {
-		if (this.blending !== blending) {
-			const gl = this.gl;
-
-			if (blending) {
-				gl.enable(gl.BLEND);
-			} else {
-				gl.disable(gl.BLEND);
-			}
-
-			this.blending = blending;
-		}
-	}
-
-	setStencilTest(enable) {
-		if (this.stencil !== enable) {
-			const gl = this.gl;
-
-			if (enable) {
-				gl.enable(gl.STENCIL_TEST);
-			} else {
-				gl.disable(gl.STENCIL_TEST);
-			}
-
-			this.stencil = enable;
-		}
-	}
-
-	setStencilFunc(func, ref, mask) {
-		if (this.stencilFuncFront !== func || this.stencilRefFront !== ref || this.stencilMaskFront !== mask || this.stencilFuncBack !== func || this.stencilRefBack !== ref || this.stencilMaskBack !== mask) {
-			const gl = this.gl;
-			gl.stencilFunc(this.glComparison[func], ref, mask);
-			this.stencilFuncFront = this.stencilFuncBack = func;
-			this.stencilRefFront = this.stencilRefBack = ref;
-			this.stencilMaskFront = this.stencilMaskBack = mask;
-		}
-	}
-
-	setStencilFuncFront(func, ref, mask) {
-		if (this.stencilFuncFront !== func || this.stencilRefFront !== ref || this.stencilMaskFront !== mask) {
-			const gl = this.gl;
-			gl.stencilFuncSeparate(gl.FRONT, this.glComparison[func], ref, mask);
-			this.stencilFuncFront = func;
-			this.stencilRefFront = ref;
-			this.stencilMaskFront = mask;
-		}
-	}
-
-	setStencilFuncBack(func, ref, mask) {
-		if (this.stencilFuncBack !== func || this.stencilRefBack !== ref || this.stencilMaskBack !== mask) {
-			const gl = this.gl;
-			gl.stencilFuncSeparate(gl.BACK, this.glComparison[func], ref, mask);
-			this.stencilFuncBack = func;
-			this.stencilRefBack = ref;
-			this.stencilMaskBack = mask;
-		}
-	}
-
-	setStencilOperation(fail, zfail, zpass, writeMask) {
-		if (this.stencilFailFront !== fail || this.stencilZfailFront !== zfail || this.stencilZpassFront !== zpass || this.stencilFailBack !== fail || this.stencilZfailBack !== zfail || this.stencilZpassBack !== zpass) {
-			this.gl.stencilOp(this.glStencilOp[fail], this.glStencilOp[zfail], this.glStencilOp[zpass]);
-			this.stencilFailFront = this.stencilFailBack = fail;
-			this.stencilZfailFront = this.stencilZfailBack = zfail;
-			this.stencilZpassFront = this.stencilZpassBack = zpass;
-		}
-
-		if (this.stencilWriteMaskFront !== writeMask || this.stencilWriteMaskBack !== writeMask) {
-			this.gl.stencilMask(writeMask);
-			this.stencilWriteMaskFront = writeMask;
-			this.stencilWriteMaskBack = writeMask;
-		}
-	}
-
-	setStencilOperationFront(fail, zfail, zpass, writeMask) {
-		if (this.stencilFailFront !== fail || this.stencilZfailFront !== zfail || this.stencilZpassFront !== zpass) {
-			this.gl.stencilOpSeparate(this.gl.FRONT, this.glStencilOp[fail], this.glStencilOp[zfail], this.glStencilOp[zpass]);
-			this.stencilFailFront = fail;
-			this.stencilZfailFront = zfail;
-			this.stencilZpassFront = zpass;
-		}
-
-		if (this.stencilWriteMaskFront !== writeMask) {
-			this.gl.stencilMaskSeparate(this.gl.FRONT, writeMask);
-			this.stencilWriteMaskFront = writeMask;
-		}
-	}
-
-	setStencilOperationBack(fail, zfail, zpass, writeMask) {
-		if (this.stencilFailBack !== fail || this.stencilZfailBack !== zfail || this.stencilZpassBack !== zpass) {
-			this.gl.stencilOpSeparate(this.gl.BACK, this.glStencilOp[fail], this.glStencilOp[zfail], this.glStencilOp[zpass]);
-			this.stencilFailBack = fail;
-			this.stencilZfailBack = zfail;
-			this.stencilZpassBack = zpass;
-		}
-
-		if (this.stencilWriteMaskBack !== writeMask) {
-			this.gl.stencilMaskSeparate(this.gl.BACK, writeMask);
-			this.stencilWriteMaskBack = writeMask;
-		}
-	}
-
-	setBlendFunction(blendSrc, blendDst) {
-		if (this.blendSrc !== blendSrc || this.blendDst !== blendDst || this.separateAlphaBlend) {
-			this.gl.blendFunc(this.glBlendFunction[blendSrc], this.glBlendFunction[blendDst]);
-			this.blendSrc = blendSrc;
-			this.blendDst = blendDst;
-			this.separateAlphaBlend = false;
-		}
-	}
-
-	setBlendFunctionSeparate(blendSrc, blendDst, blendSrcAlpha, blendDstAlpha) {
-		if (this.blendSrc !== blendSrc || this.blendDst !== blendDst || this.blendSrcAlpha !== blendSrcAlpha || this.blendDstAlpha !== blendDstAlpha || !this.separateAlphaBlend) {
-			this.gl.blendFuncSeparate(this.glBlendFunction[blendSrc], this.glBlendFunction[blendDst], this.glBlendFunction[blendSrcAlpha], this.glBlendFunction[blendDstAlpha]);
-			this.blendSrc = blendSrc;
-			this.blendDst = blendDst;
-			this.blendSrcAlpha = blendSrcAlpha;
-			this.blendDstAlpha = blendDstAlpha;
-			this.separateAlphaBlend = true;
-		}
-	}
-
-	setBlendEquation(blendEquation) {
-		if (this.blendEquation !== blendEquation || this.separateAlphaEquation) {
-			this.gl.blendEquation(this.glBlendEquation[blendEquation]);
-			this.blendEquation = blendEquation;
-			this.separateAlphaEquation = false;
-		}
-	}
-
-	setBlendEquationSeparate(blendEquation, blendAlphaEquation) {
-		if (this.blendEquation !== blendEquation || this.blendAlphaEquation !== blendAlphaEquation || !this.separateAlphaEquation) {
-			this.gl.blendEquationSeparate(this.glBlendEquation[blendEquation], this.glBlendEquation[blendAlphaEquation]);
-			this.blendEquation = blendEquation;
-			this.blendAlphaEquation = blendAlphaEquation;
-			this.separateAlphaEquation = true;
-		}
-	}
-
-	setCullMode(cullMode) {
-		if (this.cullMode !== cullMode) {
-			if (cullMode === CULLFACE_NONE) {
-				this.gl.disable(this.gl.CULL_FACE);
-			} else {
-				if (this.cullMode === CULLFACE_NONE) {
-					this.gl.enable(this.gl.CULL_FACE);
-				}
-
-				const mode = this.glCull[cullMode];
-
-				if (this.cullFace !== mode) {
-					this.gl.cullFace(mode);
-					this.cullFace = mode;
-				}
-			}
-
-			this.cullMode = cullMode;
-		}
-	}
-
-	getCullMode() {
-		return this.cullMode;
-	}
-
-	setIndexBuffer(indexBuffer) {
-		this.indexBuffer = indexBuffer;
-	}
-
-	setVertexBuffer(vertexBuffer) {
-		if (vertexBuffer) {
-			this.vertexBuffers.push(vertexBuffer);
-		}
-	}
-
-	compileShaderSource(src, isVertexShader) {
-		const gl = this.gl;
-		let glShader = isVertexShader ? this.vertexShaderCache[src] : this.fragmentShaderCache[src];
-
-		if (!glShader) {
-			glShader = gl.createShader(isVertexShader ? gl.VERTEX_SHADER : gl.FRAGMENT_SHADER);
-			gl.shaderSource(glShader, src);
-			gl.compileShader(glShader);
-
-			if (isVertexShader) {
-				this.vertexShaderCache[src] = glShader;
-			} else {
-				this.fragmentShaderCache[src] = glShader;
-			}
-		}
-
-		return glShader;
-	}
-
-	compileAndLinkShader(shader) {
-		const definition = shader.definition;
-		const glVertexShader = this.compileShaderSource(definition.vshader, true);
-		const glFragmentShader = this.compileShaderSource(definition.fshader, false);
-		const gl = this.gl;
-		const glProgram = gl.createProgram();
-		gl.attachShader(glProgram, glVertexShader);
-		gl.attachShader(glProgram, glFragmentShader);
-		const attrs = definition.attributes;
-
-		if (this.webgl2 && definition.useTransformFeedback) {
-			const outNames = [];
-
-			for (const attr in attrs) {
-				if (attrs.hasOwnProperty(attr)) {
-					outNames.push("out_" + attr);
-				}
-			}
-
-			gl.transformFeedbackVaryings(glProgram, outNames, gl.INTERLEAVED_ATTRIBS);
-		}
-
-		const locations = {};
-
-		for (const attr in attrs) {
-			if (attrs.hasOwnProperty(attr)) {
-				const semantic = attrs[attr];
-				const loc = semanticToLocation[semantic];
-				locations[loc] = attr;
-				gl.bindAttribLocation(glProgram, loc, attr);
-			}
-		}
-
-		gl.linkProgram(glProgram);
-		shader._glVertexShader = glVertexShader;
-		shader._glFragmentShader = glFragmentShader;
-		shader._glProgram = glProgram;
-	}
-
-	createShader(shader) {
-		this.compileAndLinkShader(shader);
-		this.shaders.push(shader);
-	}
-
-	destroyShader(shader) {
-		const idx = this.shaders.indexOf(shader);
-
-		if (idx !== -1) {
-			this.shaders.splice(idx, 1);
-		}
-
-		if (shader._glProgram) {
-			this.gl.deleteProgram(shader._glProgram);
-			shader._glProgram = null;
-			this.removeShaderFromCache(shader);
-		}
-	}
-
-	_processError(src, infoLog) {
-		if (!src) return "";
-		const lines = src.split('\n');
-		const error = {};
-		let code = '';
-		let from = 0;
-		let to = lines.length;
-
-		if (infoLog && infoLog.startsWith('ERROR:')) {
-			const match = infoLog.match(/^ERROR:\s([0-9]+):([0-9]+):\s*(.+)/);
-
-			if (match) {
-				error.message = match[3];
-				error.line = parseInt(match[2], 10);
-				from = Math.max(0, error.line - 6);
-				to = Math.min(lines.length, error.line + 5);
-			}
-		}
-
-		for (let i = from; i < to; i++) {
-			code += i + 1 + ":\t" + lines[i] + '\n';
-		}
-
-		error.source = src;
-		return [code, error];
-	}
-
-	_isShaderCompiled(shader, glShader, source, shaderType) {
-		const gl = this.gl;
-
-		if (!gl.getShaderParameter(glShader, gl.COMPILE_STATUS)) {
-			const infoLog = gl.getShaderInfoLog(glShader);
-
-			const [code, error] = this._processError(source, infoLog);
-
-			const message = `Failed to compile ${shaderType} shader:\n\n${infoLog}\n${code}`;
-			console.error(message);
-			return false;
-		}
-
-		return true;
-	}
-
-	postLink(shader) {
-		const gl = this.gl;
-		const glProgram = shader._glProgram;
-		const definition = shader.definition;
-		if (!this._isShaderCompiled(shader, shader._glVertexShader, definition.vshader, "vertex")) return false;
-		if (!this._isShaderCompiled(shader, shader._glFragmentShader, definition.fshader, "fragment")) return false;
-
-		if (!gl.getProgramParameter(glProgram, gl.LINK_STATUS)) {
-			const message = "Failed to link shader program. Error: " + gl.getProgramInfoLog(glProgram);
-			console.error(message);
-			return false;
-		}
-
-		let i, info, location, shaderInput;
-		i = 0;
-		const numAttributes = gl.getProgramParameter(glProgram, gl.ACTIVE_ATTRIBUTES);
-
-		while (i < numAttributes) {
-			info = gl.getActiveAttrib(glProgram, i++);
-			location = gl.getAttribLocation(glProgram, info.name);
-
-			if (definition.attributes[info.name] === undefined) {
-				console.error(`Vertex shader attribute "${info.name}" is not mapped to a semantic in shader definition.`);
-			}
-
-			shaderInput = new ShaderInput(this, definition.attributes[info.name], this.pcUniformType[info.type], location);
-			shader.attributes.push(shaderInput);
-		}
-
-		i = 0;
-		const numUniforms = gl.getProgramParameter(glProgram, gl.ACTIVE_UNIFORMS);
-
-		while (i < numUniforms) {
-			info = gl.getActiveUniform(glProgram, i++);
-			location = gl.getUniformLocation(glProgram, info.name);
-			shaderInput = new ShaderInput(this, info.name, this.pcUniformType[info.type], location);
-
-			if (info.type === gl.SAMPLER_2D || info.type === gl.SAMPLER_CUBE || this.webgl2 && (info.type === gl.SAMPLER_2D_SHADOW || info.type === gl.SAMPLER_CUBE_SHADOW || info.type === gl.SAMPLER_3D)) {
-				shader.samplers.push(shaderInput);
-			} else {
-				shader.uniforms.push(shaderInput);
-			}
-		}
-
-		shader.ready = true;
-		return true;
-	}
-
-	setShader(shader) {
-		if (shader !== this.shader) {
-			if (!shader.ready) {
-				if (!this.postLink(shader)) {
-					return false;
-				}
-			}
-
-			this.shader = shader;
-			this.gl.useProgram(shader._glProgram);
-			this.attributesInvalidated = true;
-		}
-
-		return true;
-	}
-
-	getHdrFormat() {
-		if (this.textureHalfFloatRenderable) {
-			return PIXELFORMAT_RGBA16F;
-		} else if (this.textureFloatRenderable) {
-			return PIXELFORMAT_RGBA32F;
-		}
-
-		return PIXELFORMAT_R8_G8_B8_A8;
-	}
-
-	getBoneLimit() {
-		return this.boneLimit;
-	}
-
-	setBoneLimit(maxBones) {
-		this.boneLimit = maxBones;
+	_isBrowserInterface(texture) {
+		return typeof HTMLCanvasElement !== 'undefined' && texture instanceof HTMLCanvasElement || typeof HTMLImageElement !== 'undefined' && texture instanceof HTMLImageElement || typeof HTMLVideoElement !== 'undefined' && texture instanceof HTMLVideoElement || typeof ImageBitmap !== 'undefined' && texture instanceof ImageBitmap;
 	}
 
 	resizeCanvas(width, height) {
@@ -15514,63 +13162,22 @@ class GraphicsDevice extends EventHandler {
 		this.fire(EVENT_RESIZE, width, height);
 	}
 
-	clearShaderCache() {
-		const gl = this.gl;
-
-		for (const shaderSrc in this.fragmentShaderCache) {
-			gl.deleteShader(this.fragmentShaderCache[shaderSrc]);
-			delete this.fragmentShaderCache[shaderSrc];
-		}
-
-		for (const shaderSrc in this.vertexShaderCache) {
-			gl.deleteShader(this.vertexShaderCache[shaderSrc]);
-			delete this.vertexShaderCache[shaderSrc];
-		}
-
-		this.programLib.clearCache();
-	}
-
-	clearVertexArrayObjectCache() {
-		const gl = this.gl;
-
-		this._vaoMap.forEach((item, key, mapObj) => {
-			gl.deleteVertexArray(item);
-		});
-
-		this._vaoMap.clear();
-	}
-
-	removeShaderFromCache(shader) {
-		this.programLib.removeFromCache(shader);
+	updateClientRect() {
+		this.clientRect = this.canvas.getBoundingClientRect();
 	}
 
 	get width() {
-		return this.gl.drawingBufferWidth || this.canvas.width;
+		return this.canvas.width;
 	}
 
 	get height() {
-		return this.gl.drawingBufferHeight || this.canvas.height;
+		return this.canvas.height;
 	}
 
-	set fullscreen(fullscreen) {
-		if (fullscreen) {
-			const canvas = this.gl.canvas;
-			canvas.requestFullscreen();
-		} else {
-			document.exitFullscreen();
-		}
-	}
+	set fullscreen(fullscreen) {}
 
 	get fullscreen() {
-		return !!document.fullscreenElement;
-	}
-
-	set enableAutoInstancing(value) {
-		this._enableAutoInstancing = value && this.extInstancing;
-	}
-
-	get enableAutoInstancing() {
-		return this._enableAutoInstancing;
+		return false;
 	}
 
 	set maxPixelRatio(ratio) {
@@ -15580,26 +13187,6 @@ class GraphicsDevice extends EventHandler {
 
 	get maxPixelRatio() {
 		return this._maxPixelRatio;
-	}
-
-	get textureFloatHighPrecision() {
-		if (this._textureFloatHighPrecision === undefined) {
-			this._textureFloatHighPrecision = testTextureFloatHighPrecision(this);
-		}
-
-		return this._textureFloatHighPrecision;
-	}
-
-	get textureHalfFloatUpdatable() {
-		if (this._textureHalfFloatUpdatable === undefined) {
-			if (this.webgl2) {
-				this._textureHalfFloatUpdatable = true;
-			} else {
-				this._textureHalfFloatUpdatable = testTextureHalfFloatUpdatable(this.gl, this.extTextureHalfFloat.HALF_FLOAT_OES);
-			}
-		}
-
-		return this._textureHalfFloatUpdatable;
 	}
 
 }
@@ -15981,20 +13568,8 @@ class IndexBuffer {
 		this.format = format;
 		this.numIndices = numIndices;
 		this.usage = usage;
-		const gl = this.device.gl;
-		let bytesPerIndex;
-
-		if (format === INDEXFORMAT_UINT8) {
-			bytesPerIndex = 1;
-			this.glFormat = gl.UNSIGNED_BYTE;
-		} else if (format === INDEXFORMAT_UINT16) {
-			bytesPerIndex = 2;
-			this.glFormat = gl.UNSIGNED_SHORT;
-		} else if (format === INDEXFORMAT_UINT32) {
-			bytesPerIndex = 4;
-			this.glFormat = gl.UNSIGNED_INT;
-		}
-
+		this.impl = graphicsDevice.createIndexBufferImpl(this);
+		const bytesPerIndex = typedArrayIndexFormatsByteSize[format];
 		this.bytesPerIndex = bytesPerIndex;
 		this.numBytes = this.numIndices * bytesPerIndex;
 
@@ -16016,20 +13591,16 @@ class IndexBuffer {
 			device.buffers.splice(idx, 1);
 		}
 
-		if (this.bufferId) {
-			const gl = this.device.gl;
-			gl.deleteBuffer(this.bufferId);
-			this.device._vram.ib -= this.storage.byteLength;
-			this.bufferId = null;
-
-			if (this.device.indexBuffer === this) {
-				this.device.indexBuffer = null;
-			}
+		if (this.device.indexBuffer === this) {
+			this.device.indexBuffer = null;
 		}
+
+		this.impl.destroy(device);
+		this.device._vram.ib -= this.storage.byteLength;
 	}
 
 	loseContext() {
-		this.bufferId = undefined;
+		this.impl.loseContext();
 	}
 
 	getFormat() {
@@ -16045,39 +13616,7 @@ class IndexBuffer {
 	}
 
 	unlock() {
-		const gl = this.device.gl;
-
-		if (!this.bufferId) {
-			this.bufferId = gl.createBuffer();
-		}
-
-		let glUsage;
-
-		switch (this.usage) {
-			case BUFFER_STATIC:
-				glUsage = gl.STATIC_DRAW;
-				break;
-
-			case BUFFER_DYNAMIC:
-				glUsage = gl.DYNAMIC_DRAW;
-				break;
-
-			case BUFFER_STREAM:
-				glUsage = gl.STREAM_DRAW;
-				break;
-
-			case BUFFER_GPUDYNAMIC:
-				if (this.device.webgl2) {
-					glUsage = gl.DYNAMIC_COPY;
-				} else {
-					glUsage = gl.STATIC_DRAW;
-				}
-
-				break;
-		}
-
-		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.bufferId);
-		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.storage, glUsage);
+		this.impl.unlock(this);
 	}
 
 	setData(data) {
@@ -16449,7 +13988,7 @@ class TransformFeedback {
 		this._inputBuffer = inputBuffer;
 
 		if (usage === BUFFER_GPUDYNAMIC && inputBuffer.usage !== usage) {
-			gl.bindBuffer(gl.ARRAY_BUFFER, inputBuffer.bufferId);
+			gl.bindBuffer(gl.ARRAY_BUFFER, inputBuffer.impl.bufferId);
 			gl.bufferData(gl.ARRAY_BUFFER, inputBuffer.storage, gl.DYNAMIC_COPY);
 		}
 
@@ -16485,12 +14024,12 @@ class TransformFeedback {
 		device.setRenderTarget(oldRt);
 
 		if (swap) {
-			let tmp = this._inputBuffer.bufferId;
-			this._inputBuffer.bufferId = this._outputBuffer.bufferId;
-			this._outputBuffer.bufferId = tmp;
-			tmp = this._inputBuffer._vao;
-			this._inputBuffer._vao = this._outputBuffer._vao;
-			this._outputBuffer._vao = tmp;
+			let tmp = this._inputBuffer.impl.bufferId;
+			this._inputBuffer.impl.bufferId = this._outputBuffer.impl.bufferId;
+			this._outputBuffer.impl.bufferId = tmp;
+			tmp = this._inputBuffer.impl.vao;
+			this._inputBuffer.impl.vao = this._outputBuffer.impl.vao;
+			this._outputBuffer.impl.vao = tmp;
 		}
 	}
 
@@ -16500,6 +14039,2556 @@ class TransformFeedback {
 
 	get outputBuffer() {
 		return this._outputBuffer;
+	}
+
+}
+
+class GrabPass {
+	constructor(device, useAlpha) {
+		this.device = device;
+		this.useAlpha = useAlpha;
+		this.useMipmaps = device.webgl2;
+		this.texture = null;
+		this.renderTarget = null;
+		this.textureId = null;
+	}
+
+	destroy() {
+		this.textureId = null;
+
+		if (this.renderTarget) {
+			this.renderTarget.destroy();
+			this.renderTarget = null;
+		}
+
+		if (this.texture) {
+			this.texture.destroy();
+			this.texture = null;
+		}
+	}
+
+	create() {
+		if (!this.texture) {
+			const texture = new Texture(this.device, {
+				name: 'texture_grabPass',
+				format: this.useAlpha ? PIXELFORMAT_R8_G8_B8_A8 : PIXELFORMAT_R8_G8_B8,
+				minFilter: this.useMipmaps ? FILTER_LINEAR_MIPMAP_LINEAR : FILTER_LINEAR,
+				magFilter: FILTER_LINEAR,
+				addressU: ADDRESS_CLAMP_TO_EDGE,
+				addressV: ADDRESS_CLAMP_TO_EDGE,
+				mipmaps: this.useMipmaps
+			});
+			this.texture = texture;
+			this.renderTarget = new RenderTarget({
+				colorBuffer: texture,
+				depth: false
+			});
+			this.textureId = this.device.scope.resolve(texture.name);
+			this.textureId.setValue(texture);
+		}
+	}
+
+	update() {
+		const device = this.device;
+		const gl = device.gl;
+
+		if (!device.grabPassAvailable) {
+			return false;
+		}
+
+		const renderTarget = device.renderTarget;
+		const resolveRenderTarget = renderTarget && renderTarget._glResolveFrameBuffer;
+		const texture = this.texture;
+		const width = device.width;
+		const height = device.height;
+
+		if (device.webgl2 && !device._tempMacChromeBlitFramebufferWorkaround && width === texture._width && height === texture._height) {
+			if (resolveRenderTarget) {
+				renderTarget.resolve(true);
+			}
+
+			const currentFrameBuffer = renderTarget ? renderTarget._glFrameBuffer : null;
+			const resolvedFrameBuffer = renderTarget ? renderTarget._glResolveFrameBuffer || renderTarget._glFrameBuffer : null;
+			device.initRenderTarget(this.renderTarget);
+			const grabPassFrameBuffer = this.renderTarget._glFrameBuffer;
+			gl.bindFramebuffer(gl.READ_FRAMEBUFFER, resolvedFrameBuffer);
+			gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, grabPassFrameBuffer);
+			gl.blitFramebuffer(0, 0, width, height, 0, 0, width, height, gl.COLOR_BUFFER_BIT, gl.NEAREST);
+			gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, currentFrameBuffer);
+		} else {
+			if (resolveRenderTarget) {
+				renderTarget.resolve(true);
+				gl.bindFramebuffer(gl.FRAMEBUFFER, renderTarget._glResolveFrameBuffer);
+			}
+
+			const format = texture.impl._glFormat;
+			gl.copyTexImage2D(gl.TEXTURE_2D, 0, format, 0, 0, width, height, 0);
+			texture._width = width;
+			texture._height = height;
+
+			if (resolveRenderTarget) {
+				gl.bindFramebuffer(gl.FRAMEBUFFER, renderTarget._glFrameBuffer);
+			}
+		}
+
+		return true;
+	}
+
+	generateMipmaps() {
+		if (this.useMipmaps) {
+			this.device.gl.generateMipmap(this.texture.impl._glTarget);
+		}
+	}
+
+	prepareTexture() {
+		const updated = this.update();
+
+		if (updated) {
+			this.generateMipmaps();
+		}
+
+		return updated;
+	}
+
+}
+
+class WebglBuffer {
+	constructor() {
+		this.bufferId = null;
+	}
+
+	destroy(device) {
+		if (this.bufferId) {
+			device.gl.deleteBuffer(this.bufferId);
+			this.bufferId = null;
+		}
+	}
+
+	loseContext() {
+		this.bufferId = null;
+	}
+
+	unlock(device, usage, target, storage) {
+		const gl = device.gl;
+
+		if (!this.bufferId) {
+			this.bufferId = gl.createBuffer();
+		}
+
+		let glUsage;
+
+		switch (usage) {
+			case BUFFER_STATIC:
+				glUsage = gl.STATIC_DRAW;
+				break;
+
+			case BUFFER_DYNAMIC:
+				glUsage = gl.DYNAMIC_DRAW;
+				break;
+
+			case BUFFER_STREAM:
+				glUsage = gl.STREAM_DRAW;
+				break;
+
+			case BUFFER_GPUDYNAMIC:
+				if (device.webgl2) {
+					glUsage = gl.DYNAMIC_COPY;
+				} else {
+					glUsage = gl.STATIC_DRAW;
+				}
+
+				break;
+		}
+
+		gl.bindBuffer(target, this.bufferId);
+		gl.bufferData(target, storage, glUsage);
+	}
+
+}
+
+class WebglVertexBuffer extends WebglBuffer {
+	constructor(...args) {
+		super(...args);
+		this.vao = null;
+	}
+
+	destroy(device) {
+		super.destroy(device);
+		device.boundVao = null;
+		device.gl.bindVertexArray(null);
+	}
+
+	loseContext() {
+		super.loseContext();
+		this.vao = null;
+	}
+
+	unlock(vertexBuffer) {
+		const device = vertexBuffer.device;
+		super.unlock(device, vertexBuffer.usage, device.gl.ARRAY_BUFFER, vertexBuffer.storage);
+	}
+
+}
+
+class WebglIndexBuffer extends WebglBuffer {
+	constructor(indexBuffer) {
+		super();
+		const gl = indexBuffer.device.gl;
+		const format = indexBuffer.format;
+
+		if (format === INDEXFORMAT_UINT8) {
+			this.glFormat = gl.UNSIGNED_BYTE;
+		} else if (format === INDEXFORMAT_UINT16) {
+			this.glFormat = gl.UNSIGNED_SHORT;
+		} else if (format === INDEXFORMAT_UINT32) {
+			this.glFormat = gl.UNSIGNED_INT;
+		}
+	}
+
+	unlock(indexBuffer) {
+		const device = indexBuffer.device;
+		super.unlock(device, indexBuffer.usage, device.gl.ELEMENT_ARRAY_BUFFER, indexBuffer.storage);
+	}
+
+}
+
+class ShaderInput {
+	constructor(graphicsDevice, name, type, locationId) {
+		this.locationId = locationId;
+		this.scopeId = graphicsDevice.scope.resolve(name);
+		this.version = new Version();
+
+		if (name.substr(name.length - 3) === "[0]") {
+			switch (type) {
+				case UNIFORMTYPE_FLOAT:
+					type = UNIFORMTYPE_FLOATARRAY;
+					break;
+
+				case UNIFORMTYPE_VEC2:
+					type = UNIFORMTYPE_VEC2ARRAY;
+					break;
+
+				case UNIFORMTYPE_VEC3:
+					type = UNIFORMTYPE_VEC3ARRAY;
+					break;
+
+				case UNIFORMTYPE_VEC4:
+					type = UNIFORMTYPE_VEC4ARRAY;
+					break;
+			}
+		}
+
+		this.dataType = type;
+		this.value = [null, null, null, null];
+		this.array = [];
+	}
+
+}
+
+class WebglShader {
+	constructor(shader) {
+		this.glProgram = null;
+		this.glVertexShader = null;
+		this.glFragmentShader = null;
+		this.compileAndLink(shader.device, shader);
+		shader.device.shaders.push(shader);
+	}
+
+	destroy(shader) {
+		const device = shader.device;
+		const idx = device.shaders.indexOf(shader);
+
+		if (idx !== -1) {
+			device.shaders.splice(idx, 1);
+		}
+
+		if (this.glProgram) {
+			device.gl.deleteProgram(this.glProgram);
+			this.glProgram = null;
+			device.removeShaderFromCache(shader);
+		}
+	}
+
+	restoreContext(device, shader) {
+		this.compileAndLink(device, shader);
+	}
+
+	compileAndLink(device, shader) {
+		const definition = shader.definition;
+
+		const glVertexShader = this._compileShaderSource(device, definition.vshader, true);
+
+		const glFragmentShader = this._compileShaderSource(device, definition.fshader, false);
+
+		const gl = device.gl;
+		const glProgram = gl.createProgram();
+		gl.attachShader(glProgram, glVertexShader);
+		gl.attachShader(glProgram, glFragmentShader);
+		const attrs = definition.attributes;
+
+		if (device.webgl2 && definition.useTransformFeedback) {
+			const outNames = [];
+
+			for (const attr in attrs) {
+				if (attrs.hasOwnProperty(attr)) {
+					outNames.push("out_" + attr);
+				}
+			}
+
+			gl.transformFeedbackVaryings(glProgram, outNames, gl.INTERLEAVED_ATTRIBS);
+		}
+
+		const locations = {};
+
+		for (const attr in attrs) {
+			if (attrs.hasOwnProperty(attr)) {
+				const semantic = attrs[attr];
+				const loc = semanticToLocation[semantic];
+				locations[loc] = attr;
+				gl.bindAttribLocation(glProgram, loc, attr);
+			}
+		}
+
+		gl.linkProgram(glProgram);
+		this.glVertexShader = glVertexShader;
+		this.glFragmentShader = glFragmentShader;
+		this.glProgram = glProgram;
+	}
+
+	_compileShaderSource(device, src, isVertexShader) {
+		const gl = device.gl;
+		const shaderCache = isVertexShader ? device.vertexShaderCache : device.fragmentShaderCache;
+		let glShader = shaderCache[src];
+
+		if (!glShader) {
+			glShader = gl.createShader(isVertexShader ? gl.VERTEX_SHADER : gl.FRAGMENT_SHADER);
+			gl.shaderSource(glShader, src);
+			gl.compileShader(glShader);
+			shaderCache[src] = glShader;
+		}
+
+		return glShader;
+	}
+
+	postLink(device, shader) {
+		const gl = device.gl;
+		const glProgram = this.glProgram;
+		const definition = shader.definition;
+		if (!this._isCompiled(device, shader, this.glVertexShader, definition.vshader, "vertex")) return false;
+		if (!this._isCompiled(device, shader, this.glFragmentShader, definition.fshader, "fragment")) return false;
+
+		if (!gl.getProgramParameter(glProgram, gl.LINK_STATUS)) {
+			const message = "Failed to link shader program. Error: " + gl.getProgramInfoLog(glProgram);
+			console.error(message);
+			return false;
+		}
+
+		let i, info, location, shaderInput;
+		i = 0;
+		const numAttributes = gl.getProgramParameter(glProgram, gl.ACTIVE_ATTRIBUTES);
+
+		while (i < numAttributes) {
+			info = gl.getActiveAttrib(glProgram, i++);
+			location = gl.getAttribLocation(glProgram, info.name);
+
+			if (definition.attributes[info.name] === undefined) {
+				console.error(`Vertex shader attribute "${info.name}" is not mapped to a semantic in shader definition.`);
+			}
+
+			shaderInput = new ShaderInput(device, definition.attributes[info.name], device.pcUniformType[info.type], location);
+			shader.attributes.push(shaderInput);
+		}
+
+		i = 0;
+		const numUniforms = gl.getProgramParameter(glProgram, gl.ACTIVE_UNIFORMS);
+
+		while (i < numUniforms) {
+			info = gl.getActiveUniform(glProgram, i++);
+			location = gl.getUniformLocation(glProgram, info.name);
+			shaderInput = new ShaderInput(device, info.name, device.pcUniformType[info.type], location);
+
+			if (info.type === gl.SAMPLER_2D || info.type === gl.SAMPLER_CUBE || device.webgl2 && (info.type === gl.SAMPLER_2D_SHADOW || info.type === gl.SAMPLER_CUBE_SHADOW || info.type === gl.SAMPLER_3D)) {
+				shader.samplers.push(shaderInput);
+			} else {
+				shader.uniforms.push(shaderInput);
+			}
+		}
+
+		shader.ready = true;
+		return true;
+	}
+
+	_isCompiled(device, shader, glShader, source, shaderType) {
+		const gl = device.gl;
+
+		if (!gl.getShaderParameter(glShader, gl.COMPILE_STATUS)) {
+			const infoLog = gl.getShaderInfoLog(glShader);
+
+			const [code, error] = this._processError(source, infoLog);
+
+			const message = `Failed to compile ${shaderType} shader:\n\n${infoLog}\n${code}`;
+			console.error(message);
+			return false;
+		}
+
+		return true;
+	}
+
+	_processError(src, infoLog) {
+		if (!src) return "";
+		const lines = src.split('\n');
+		const error = {};
+		let code = '';
+		let from = 0;
+		let to = lines.length;
+
+		if (infoLog && infoLog.startsWith('ERROR:')) {
+			const match = infoLog.match(/^ERROR:\s([0-9]+):([0-9]+):\s*(.+)/);
+
+			if (match) {
+				error.message = match[3];
+				error.line = parseInt(match[2], 10);
+				from = Math.max(0, error.line - 6);
+				to = Math.min(lines.length, error.line + 5);
+			}
+		}
+
+		for (let i = from; i < to; i++) {
+			code += i + 1 + ":\t" + lines[i] + '\n';
+		}
+
+		error.source = src;
+		return [code, error];
+	}
+
+}
+
+function downsampleImage(image, size) {
+	const srcW = image.width;
+	const srcH = image.height;
+
+	if (srcW > size || srcH > size) {
+		const scale = size / Math.max(srcW, srcH);
+		const dstW = Math.floor(srcW * scale);
+		const dstH = Math.floor(srcH * scale);
+		const canvas = document.createElement('canvas');
+		canvas.width = dstW;
+		canvas.height = dstH;
+		const context = canvas.getContext('2d');
+		context.drawImage(image, 0, 0, srcW, srcH, 0, 0, dstW, dstH);
+		return canvas;
+	}
+
+	return image;
+}
+
+class WebglTexture {
+	constructor() {
+		this._glTexture = null;
+		this._glTarget = void 0;
+		this._glFormat = void 0;
+		this._glInternalFormat = void 0;
+		this._glPixelType = void 0;
+	}
+
+	destroy(device) {
+		if (this._glTexture) {
+			for (let i = 0; i < device.textureUnits.length; i++) {
+				const textureUnit = device.textureUnits[i];
+
+				for (let j = 0; j < textureUnit.length; j++) {
+					if (textureUnit[j] === this._glTexture) {
+						textureUnit[j] = null;
+					}
+				}
+			}
+
+			device.gl.deleteTexture(this._glTexture);
+			this._glTexture = null;
+		}
+	}
+
+	loseContext() {
+		this._glTexture = null;
+	}
+
+	initialize(device, texture) {
+		const gl = device.gl;
+		let ext;
+		this._glTexture = gl.createTexture();
+		this._glTarget = texture._cubemap ? gl.TEXTURE_CUBE_MAP : texture._volume ? gl.TEXTURE_3D : gl.TEXTURE_2D;
+
+		switch (texture._format) {
+			case PIXELFORMAT_A8:
+				this._glFormat = gl.ALPHA;
+				this._glInternalFormat = gl.ALPHA;
+				this._glPixelType = gl.UNSIGNED_BYTE;
+				break;
+
+			case PIXELFORMAT_L8:
+				this._glFormat = gl.LUMINANCE;
+				this._glInternalFormat = gl.LUMINANCE;
+				this._glPixelType = gl.UNSIGNED_BYTE;
+				break;
+
+			case PIXELFORMAT_L8_A8:
+				this._glFormat = gl.LUMINANCE_ALPHA;
+				this._glInternalFormat = gl.LUMINANCE_ALPHA;
+				this._glPixelType = gl.UNSIGNED_BYTE;
+				break;
+
+			case PIXELFORMAT_R5_G6_B5:
+				this._glFormat = gl.RGB;
+				this._glInternalFormat = gl.RGB;
+				this._glPixelType = gl.UNSIGNED_SHORT_5_6_5;
+				break;
+
+			case PIXELFORMAT_R5_G5_B5_A1:
+				this._glFormat = gl.RGBA;
+				this._glInternalFormat = gl.RGBA;
+				this._glPixelType = gl.UNSIGNED_SHORT_5_5_5_1;
+				break;
+
+			case PIXELFORMAT_R4_G4_B4_A4:
+				this._glFormat = gl.RGBA;
+				this._glInternalFormat = gl.RGBA;
+				this._glPixelType = gl.UNSIGNED_SHORT_4_4_4_4;
+				break;
+
+			case PIXELFORMAT_R8_G8_B8:
+				this._glFormat = gl.RGB;
+				this._glInternalFormat = device.webgl2 ? gl.RGB8 : gl.RGB;
+				this._glPixelType = gl.UNSIGNED_BYTE;
+				break;
+
+			case PIXELFORMAT_R8_G8_B8_A8:
+				this._glFormat = gl.RGBA;
+				this._glInternalFormat = device.webgl2 ? gl.RGBA8 : gl.RGBA;
+				this._glPixelType = gl.UNSIGNED_BYTE;
+				break;
+
+			case PIXELFORMAT_DXT1:
+				ext = device.extCompressedTextureS3TC;
+				this._glFormat = gl.RGB;
+				this._glInternalFormat = ext.COMPRESSED_RGB_S3TC_DXT1_EXT;
+				break;
+
+			case PIXELFORMAT_DXT3:
+				ext = device.extCompressedTextureS3TC;
+				this._glFormat = gl.RGBA;
+				this._glInternalFormat = ext.COMPRESSED_RGBA_S3TC_DXT3_EXT;
+				break;
+
+			case PIXELFORMAT_DXT5:
+				ext = device.extCompressedTextureS3TC;
+				this._glFormat = gl.RGBA;
+				this._glInternalFormat = ext.COMPRESSED_RGBA_S3TC_DXT5_EXT;
+				break;
+
+			case PIXELFORMAT_ETC1:
+				ext = device.extCompressedTextureETC1;
+				this._glFormat = gl.RGB;
+				this._glInternalFormat = ext.COMPRESSED_RGB_ETC1_WEBGL;
+				break;
+
+			case PIXELFORMAT_PVRTC_2BPP_RGB_1:
+				ext = device.extCompressedTexturePVRTC;
+				this._glFormat = gl.RGB;
+				this._glInternalFormat = ext.COMPRESSED_RGB_PVRTC_2BPPV1_IMG;
+				break;
+
+			case PIXELFORMAT_PVRTC_2BPP_RGBA_1:
+				ext = device.extCompressedTexturePVRTC;
+				this._glFormat = gl.RGBA;
+				this._glInternalFormat = ext.COMPRESSED_RGBA_PVRTC_2BPPV1_IMG;
+				break;
+
+			case PIXELFORMAT_PVRTC_4BPP_RGB_1:
+				ext = device.extCompressedTexturePVRTC;
+				this._glFormat = gl.RGB;
+				this._glInternalFormat = ext.COMPRESSED_RGB_PVRTC_4BPPV1_IMG;
+				break;
+
+			case PIXELFORMAT_PVRTC_4BPP_RGBA_1:
+				ext = device.extCompressedTexturePVRTC;
+				this._glFormat = gl.RGBA;
+				this._glInternalFormat = ext.COMPRESSED_RGBA_PVRTC_4BPPV1_IMG;
+				break;
+
+			case PIXELFORMAT_ETC2_RGB:
+				ext = device.extCompressedTextureETC;
+				this._glFormat = gl.RGB;
+				this._glInternalFormat = ext.COMPRESSED_RGB8_ETC2;
+				break;
+
+			case PIXELFORMAT_ETC2_RGBA:
+				ext = device.extCompressedTextureETC;
+				this._glFormat = gl.RGBA;
+				this._glInternalFormat = ext.COMPRESSED_RGBA8_ETC2_EAC;
+				break;
+
+			case PIXELFORMAT_ASTC_4x4:
+				ext = device.extCompressedTextureASTC;
+				this._glFormat = gl.RGBA;
+				this._glInternalFormat = ext.COMPRESSED_RGBA_ASTC_4x4_KHR;
+				break;
+
+			case PIXELFORMAT_ATC_RGB:
+				ext = device.extCompressedTextureATC;
+				this._glFormat = gl.RGB;
+				this._glInternalFormat = ext.COMPRESSED_RGB_ATC_WEBGL;
+				break;
+
+			case PIXELFORMAT_ATC_RGBA:
+				ext = device.extCompressedTextureATC;
+				this._glFormat = gl.RGBA;
+				this._glInternalFormat = ext.COMPRESSED_RGBA_ATC_INTERPOLATED_ALPHA_WEBGL;
+				break;
+
+			case PIXELFORMAT_RGB16F:
+				ext = device.extTextureHalfFloat;
+				this._glFormat = gl.RGB;
+
+				if (device.webgl2) {
+					this._glInternalFormat = gl.RGB16F;
+					this._glPixelType = gl.HALF_FLOAT;
+				} else {
+					this._glInternalFormat = gl.RGB;
+					this._glPixelType = ext.HALF_FLOAT_OES;
+				}
+
+				break;
+
+			case PIXELFORMAT_RGBA16F:
+				ext = device.extTextureHalfFloat;
+				this._glFormat = gl.RGBA;
+
+				if (device.webgl2) {
+					this._glInternalFormat = gl.RGBA16F;
+					this._glPixelType = gl.HALF_FLOAT;
+				} else {
+					this._glInternalFormat = gl.RGBA;
+					this._glPixelType = ext.HALF_FLOAT_OES;
+				}
+
+				break;
+
+			case PIXELFORMAT_RGB32F:
+				this._glFormat = gl.RGB;
+
+				if (device.webgl2) {
+					this._glInternalFormat = gl.RGB32F;
+				} else {
+					this._glInternalFormat = gl.RGB;
+				}
+
+				this._glPixelType = gl.FLOAT;
+				break;
+
+			case PIXELFORMAT_RGBA32F:
+				this._glFormat = gl.RGBA;
+
+				if (device.webgl2) {
+					this._glInternalFormat = gl.RGBA32F;
+				} else {
+					this._glInternalFormat = gl.RGBA;
+				}
+
+				this._glPixelType = gl.FLOAT;
+				break;
+
+			case PIXELFORMAT_R32F:
+				this._glFormat = gl.RED;
+				this._glInternalFormat = gl.R32F;
+				this._glPixelType = gl.FLOAT;
+				break;
+
+			case PIXELFORMAT_DEPTH:
+				if (device.webgl2) {
+					this._glFormat = gl.DEPTH_COMPONENT;
+					this._glInternalFormat = gl.DEPTH_COMPONENT32F;
+					this._glPixelType = gl.FLOAT;
+				} else {
+					this._glFormat = gl.DEPTH_COMPONENT;
+					this._glInternalFormat = gl.DEPTH_COMPONENT;
+					this._glPixelType = gl.UNSIGNED_SHORT;
+				}
+
+				break;
+
+			case PIXELFORMAT_DEPTHSTENCIL:
+				this._glFormat = gl.DEPTH_STENCIL;
+				this._glInternalFormat = gl.DEPTH24_STENCIL8;
+				this._glPixelType = gl.UNSIGNED_INT_24_8;
+				break;
+
+			case PIXELFORMAT_111110F:
+				this._glFormat = gl.RGB;
+				this._glInternalFormat = gl.R11F_G11F_B10F;
+				this._glPixelType = gl.UNSIGNED_INT_10F_11F_11F_REV;
+				break;
+
+			case PIXELFORMAT_SRGB:
+				this._glFormat = gl.RGB;
+				this._glInternalFormat = gl.SRGB8;
+				this._glPixelType = gl.UNSIGNED_BYTE;
+				break;
+
+			case PIXELFORMAT_SRGBA:
+				this._glFormat = gl.RGBA;
+				this._glInternalFormat = gl.SRGB8_ALPHA8;
+				this._glPixelType = gl.UNSIGNED_BYTE;
+				break;
+		}
+	}
+
+	upload(device, texture) {
+		const gl = device.gl;
+		if (!texture._needsUpload && (texture._needsMipmapsUpload && texture._mipmapsUploaded || !texture.pot)) return;
+		let mipLevel = 0;
+		let mipObject;
+		let resMult;
+		const requiredMipLevels = Math.log2(Math.max(texture._width, texture._height)) + 1;
+
+		while (texture._levels[mipLevel] || mipLevel === 0) {
+			if (!texture._needsUpload && mipLevel === 0) {
+				mipLevel++;
+				continue;
+			} else if (mipLevel && (!texture._needsMipmapsUpload || !texture._mipmaps)) {
+				break;
+			}
+
+			mipObject = texture._levels[mipLevel];
+
+			if (mipLevel === 1 && !texture._compressed && texture._levels.length < requiredMipLevels) {
+				gl.generateMipmap(this._glTarget);
+				texture._mipmapsUploaded = true;
+			}
+
+			if (texture._cubemap) {
+				let face;
+
+				if (device._isBrowserInterface(mipObject[0])) {
+					for (face = 0; face < 6; face++) {
+						if (!texture._levelsUpdated[0][face]) continue;
+						let src = mipObject[face];
+
+						if (src instanceof HTMLImageElement) {
+							if (src.width > device.maxCubeMapSize || src.height > device.maxCubeMapSize) {
+								src = downsampleImage(src, device.maxCubeMapSize);
+
+								if (mipLevel === 0) {
+									texture._width = src.width;
+									texture._height = src.height;
+								}
+							}
+						}
+
+						device.setUnpackFlipY(false);
+						device.setUnpackPremultiplyAlpha(texture._premultiplyAlpha);
+						gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + face, mipLevel, this._glInternalFormat, this._glFormat, this._glPixelType, src);
+					}
+				} else {
+					resMult = 1 / Math.pow(2, mipLevel);
+
+					for (face = 0; face < 6; face++) {
+						if (!texture._levelsUpdated[0][face]) continue;
+						const texData = mipObject[face];
+
+						if (texture._compressed) {
+							gl.compressedTexImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + face, mipLevel, this._glInternalFormat, Math.max(texture._width * resMult, 1), Math.max(texture._height * resMult, 1), 0, texData);
+						} else {
+							device.setUnpackFlipY(false);
+							device.setUnpackPremultiplyAlpha(texture._premultiplyAlpha);
+							gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + face, mipLevel, this._glInternalFormat, Math.max(texture._width * resMult, 1), Math.max(texture._height * resMult, 1), 0, this._glFormat, this._glPixelType, texData);
+						}
+					}
+				}
+			} else if (texture._volume) {
+				resMult = 1 / Math.pow(2, mipLevel);
+
+				if (texture._compressed) {
+					gl.compressedTexImage3D(gl.TEXTURE_3D, mipLevel, this._glInternalFormat, Math.max(texture._width * resMult, 1), Math.max(texture._height * resMult, 1), Math.max(texture._depth * resMult, 1), 0, mipObject);
+				} else {
+					device.setUnpackFlipY(false);
+					device.setUnpackPremultiplyAlpha(texture._premultiplyAlpha);
+					gl.texImage3D(gl.TEXTURE_3D, mipLevel, this._glInternalFormat, Math.max(texture._width * resMult, 1), Math.max(texture._height * resMult, 1), Math.max(texture._depth * resMult, 1), 0, this._glFormat, this._glPixelType, mipObject);
+				}
+			} else {
+				if (device._isBrowserInterface(mipObject)) {
+					if (mipObject instanceof HTMLImageElement) {
+						if (mipObject.width > device.maxTextureSize || mipObject.height > device.maxTextureSize) {
+							mipObject = downsampleImage(mipObject, device.maxTextureSize);
+
+							if (mipLevel === 0) {
+								texture._width = mipObject.width;
+								texture._height = mipObject.height;
+							}
+						}
+					}
+
+					device.setUnpackFlipY(texture._flipY);
+					device.setUnpackPremultiplyAlpha(texture._premultiplyAlpha);
+					gl.texImage2D(gl.TEXTURE_2D, mipLevel, this._glInternalFormat, this._glFormat, this._glPixelType, mipObject);
+				} else {
+					resMult = 1 / Math.pow(2, mipLevel);
+
+					if (texture._compressed) {
+						gl.compressedTexImage2D(gl.TEXTURE_2D, mipLevel, this._glInternalFormat, Math.max(Math.floor(texture._width * resMult), 1), Math.max(Math.floor(texture._height * resMult), 1), 0, mipObject);
+					} else {
+						device.setUnpackFlipY(false);
+						device.setUnpackPremultiplyAlpha(texture._premultiplyAlpha);
+						gl.texImage2D(gl.TEXTURE_2D, mipLevel, this._glInternalFormat, Math.max(texture._width * resMult, 1), Math.max(texture._height * resMult, 1), 0, this._glFormat, this._glPixelType, mipObject);
+					}
+				}
+
+				if (mipLevel === 0) {
+					texture._mipmapsUploaded = false;
+				} else {
+					texture._mipmapsUploaded = true;
+				}
+			}
+
+			mipLevel++;
+		}
+
+		if (texture._needsUpload) {
+			if (texture._cubemap) {
+				for (let i = 0; i < 6; i++) texture._levelsUpdated[0][i] = false;
+			} else {
+				texture._levelsUpdated[0] = false;
+			}
+		}
+
+		if (!texture._compressed && texture._mipmaps && texture._needsMipmapsUpload && (texture.pot || device.webgl2) && texture._levels.length === 1) {
+			gl.generateMipmap(this._glTarget);
+			texture._mipmapsUploaded = true;
+		}
+
+		if (texture._gpuSize) {
+			texture.adjustVramSizeTracking(device._vram, -texture._gpuSize);
+		}
+
+		texture._gpuSize = texture.gpuSize;
+		texture.adjustVramSizeTracking(device._vram, texture._gpuSize);
+	}
+
+}
+
+function testRenderable(gl, pixelFormat) {
+	let result = true;
+	const texture = gl.createTexture();
+	gl.bindTexture(gl.TEXTURE_2D, texture);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 2, 2, 0, gl.RGBA, pixelFormat, null);
+	const framebuffer = gl.createFramebuffer();
+	gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+	gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+
+	if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) {
+		result = false;
+	}
+
+	gl.bindTexture(gl.TEXTURE_2D, null);
+	gl.deleteTexture(texture);
+	gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+	gl.deleteFramebuffer(framebuffer);
+	return result;
+}
+
+function testTextureHalfFloatUpdatable(gl, pixelFormat) {
+	let result = true;
+	const texture = gl.createTexture();
+	gl.bindTexture(gl.TEXTURE_2D, texture);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+	const data = new Uint16Array(4 * 2 * 2);
+	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 2, 2, 0, gl.RGBA, pixelFormat, data);
+
+	if (gl.getError() !== gl.NO_ERROR) {
+		result = false;
+		console.log("Above error related to HALF_FLOAT_OES can be ignored, it was triggered by testing half float texture support");
+	}
+
+	gl.bindTexture(gl.TEXTURE_2D, null);
+	gl.deleteTexture(texture);
+	return result;
+}
+
+function testTextureFloatHighPrecision(device) {
+	if (!device.textureFloatRenderable) return false;
+	const test1 = createShaderFromCode(device, shaderChunks.fullscreenQuadVS, shaderChunks.precisionTestPS, "ptest1");
+	const test2 = createShaderFromCode(device, shaderChunks.fullscreenQuadVS, shaderChunks.precisionTest2PS, "ptest2");
+	const textureOptions = {
+		format: PIXELFORMAT_RGBA32F,
+		width: 1,
+		height: 1,
+		mipmaps: false,
+		minFilter: FILTER_NEAREST,
+		magFilter: FILTER_NEAREST
+	};
+	const tex1 = new Texture(device, textureOptions);
+	tex1.name = 'testFHP';
+	const targ1 = new RenderTarget({
+		colorBuffer: tex1,
+		depth: false
+	});
+	drawQuadWithShader(device, targ1, test1);
+	textureOptions.format = PIXELFORMAT_R8_G8_B8_A8;
+	const tex2 = new Texture(device, textureOptions);
+	tex2.name = 'testFHP';
+	const targ2 = new RenderTarget({
+		colorBuffer: tex2,
+		depth: false
+	});
+	device.constantTexSource.setValue(tex1);
+	drawQuadWithShader(device, targ2, test2);
+	const prevFramebuffer = device.activeFramebuffer;
+	device.setFramebuffer(targ2._glFrameBuffer);
+	const pixels = new Uint8Array(4);
+	device.readPixels(0, 0, 1, 1, pixels);
+	device.setFramebuffer(prevFramebuffer);
+	const x = pixels[0] / 255;
+	const y = pixels[1] / 255;
+	const z = pixels[2] / 255;
+	const w = pixels[3] / 255;
+	const f = x / (256 * 256 * 256) + y / (256 * 256) + z / 256 + w;
+	tex1.destroy();
+	targ1.destroy();
+	tex2.destroy();
+	targ2.destroy();
+	return f === 0;
+}
+
+class WebglGraphicsDevice extends GraphicsDevice {
+	constructor(canvas, options = {}) {
+		super(canvas);
+		this.gl = void 0;
+		this.webgl2 = void 0;
+		this.defaultFramebuffer = null;
+		this.updateClientRect();
+		this.contextLost = false;
+
+		this._contextLostHandler = event => {
+			event.preventDefault();
+			this.contextLost = true;
+			this.loseContext();
+			this.fire('devicelost');
+		};
+
+		this._contextRestoredHandler = () => {
+			this.restoreContext();
+			this.contextLost = false;
+			this.fire('devicerestored');
+		};
+
+		options.stencil = true;
+
+		if (!options.powerPreference) {
+			options.powerPreference = 'high-performance';
+		}
+
+		const preferWebGl2 = options.preferWebGl2 !== undefined ? options.preferWebGl2 : true;
+		const names = preferWebGl2 ? ["webgl2", "webgl", "experimental-webgl"] : ["webgl", "experimental-webgl"];
+		let gl = null;
+
+		for (let i = 0; i < names.length; i++) {
+			gl = canvas.getContext(names[i], options);
+
+			if (gl) {
+				this.webgl2 = names[i] === 'webgl2';
+				break;
+			}
+		}
+
+		if (!gl) {
+			throw new Error("WebGL not supported");
+		}
+
+		const isChrome = platform.browser && !!window.chrome;
+		const isMac = platform.browser && navigator.appVersion.indexOf("Mac") !== -1;
+		this.gl = gl;
+		this._tempEnableSafariTextureUnitWorkaround = platform.browser && !!window.safari;
+		this._tempMacChromeBlitFramebufferWorkaround = isMac && isChrome && !options.alpha;
+
+		if (!this.webgl2) {
+			setupVertexArrayObject(gl);
+		}
+
+		canvas.addEventListener("webglcontextlost", this._contextLostHandler, false);
+		canvas.addEventListener("webglcontextrestored", this._contextRestoredHandler, false);
+		this.initializeExtensions();
+		this.initializeCapabilities();
+		this.initializeRenderState();
+		this.initializeContextCaches();
+		this.defaultClearOptions = {
+			color: [0, 0, 0, 1],
+			depth: 1,
+			stencil: 0,
+			flags: CLEARFLAG_COLOR | CLEARFLAG_DEPTH
+		};
+		this.glAddress = [gl.REPEAT, gl.CLAMP_TO_EDGE, gl.MIRRORED_REPEAT];
+		this.glBlendEquation = [gl.FUNC_ADD, gl.FUNC_SUBTRACT, gl.FUNC_REVERSE_SUBTRACT, this.webgl2 ? gl.MIN : this.extBlendMinmax ? this.extBlendMinmax.MIN_EXT : gl.FUNC_ADD, this.webgl2 ? gl.MAX : this.extBlendMinmax ? this.extBlendMinmax.MAX_EXT : gl.FUNC_ADD];
+		this.glBlendFunction = [gl.ZERO, gl.ONE, gl.SRC_COLOR, gl.ONE_MINUS_SRC_COLOR, gl.DST_COLOR, gl.ONE_MINUS_DST_COLOR, gl.SRC_ALPHA, gl.SRC_ALPHA_SATURATE, gl.ONE_MINUS_SRC_ALPHA, gl.DST_ALPHA, gl.ONE_MINUS_DST_ALPHA];
+		this.glComparison = [gl.NEVER, gl.LESS, gl.EQUAL, gl.LEQUAL, gl.GREATER, gl.NOTEQUAL, gl.GEQUAL, gl.ALWAYS];
+		this.glStencilOp = [gl.KEEP, gl.ZERO, gl.REPLACE, gl.INCR, gl.INCR_WRAP, gl.DECR, gl.DECR_WRAP, gl.INVERT];
+		this.glClearFlag = [0, gl.COLOR_BUFFER_BIT, gl.DEPTH_BUFFER_BIT, gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT, gl.STENCIL_BUFFER_BIT, gl.STENCIL_BUFFER_BIT | gl.COLOR_BUFFER_BIT, gl.STENCIL_BUFFER_BIT | gl.DEPTH_BUFFER_BIT, gl.STENCIL_BUFFER_BIT | gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT];
+		this.glCull = [0, gl.BACK, gl.FRONT, gl.FRONT_AND_BACK];
+		this.glFilter = [gl.NEAREST, gl.LINEAR, gl.NEAREST_MIPMAP_NEAREST, gl.NEAREST_MIPMAP_LINEAR, gl.LINEAR_MIPMAP_NEAREST, gl.LINEAR_MIPMAP_LINEAR];
+		this.glPrimitive = [gl.POINTS, gl.LINES, gl.LINE_LOOP, gl.LINE_STRIP, gl.TRIANGLES, gl.TRIANGLE_STRIP, gl.TRIANGLE_FAN];
+		this.glType = [gl.BYTE, gl.UNSIGNED_BYTE, gl.SHORT, gl.UNSIGNED_SHORT, gl.INT, gl.UNSIGNED_INT, gl.FLOAT];
+		this.pcUniformType = {};
+		this.pcUniformType[gl.BOOL] = UNIFORMTYPE_BOOL;
+		this.pcUniformType[gl.INT] = UNIFORMTYPE_INT;
+		this.pcUniformType[gl.FLOAT] = UNIFORMTYPE_FLOAT;
+		this.pcUniformType[gl.FLOAT_VEC2] = UNIFORMTYPE_VEC2;
+		this.pcUniformType[gl.FLOAT_VEC3] = UNIFORMTYPE_VEC3;
+		this.pcUniformType[gl.FLOAT_VEC4] = UNIFORMTYPE_VEC4;
+		this.pcUniformType[gl.INT_VEC2] = UNIFORMTYPE_IVEC2;
+		this.pcUniformType[gl.INT_VEC3] = UNIFORMTYPE_IVEC3;
+		this.pcUniformType[gl.INT_VEC4] = UNIFORMTYPE_IVEC4;
+		this.pcUniformType[gl.BOOL_VEC2] = UNIFORMTYPE_BVEC2;
+		this.pcUniformType[gl.BOOL_VEC3] = UNIFORMTYPE_BVEC3;
+		this.pcUniformType[gl.BOOL_VEC4] = UNIFORMTYPE_BVEC4;
+		this.pcUniformType[gl.FLOAT_MAT2] = UNIFORMTYPE_MAT2;
+		this.pcUniformType[gl.FLOAT_MAT3] = UNIFORMTYPE_MAT3;
+		this.pcUniformType[gl.FLOAT_MAT4] = UNIFORMTYPE_MAT4;
+		this.pcUniformType[gl.SAMPLER_2D] = UNIFORMTYPE_TEXTURE2D;
+		this.pcUniformType[gl.SAMPLER_CUBE] = UNIFORMTYPE_TEXTURECUBE;
+
+		if (this.webgl2) {
+			this.pcUniformType[gl.SAMPLER_2D_SHADOW] = UNIFORMTYPE_TEXTURE2D_SHADOW;
+			this.pcUniformType[gl.SAMPLER_CUBE_SHADOW] = UNIFORMTYPE_TEXTURECUBE_SHADOW;
+			this.pcUniformType[gl.SAMPLER_3D] = UNIFORMTYPE_TEXTURE3D;
+		}
+
+		this.targetToSlot = {};
+		this.targetToSlot[gl.TEXTURE_2D] = 0;
+		this.targetToSlot[gl.TEXTURE_CUBE_MAP] = 1;
+		this.targetToSlot[gl.TEXTURE_3D] = 2;
+		let scopeX, scopeY, scopeZ, scopeW;
+		let uniformValue;
+		this.commitFunction = [];
+
+		this.commitFunction[UNIFORMTYPE_BOOL] = function (uniform, value) {
+			if (uniform.value !== value) {
+				gl.uniform1i(uniform.locationId, value);
+				uniform.value = value;
+			}
+		};
+
+		this.commitFunction[UNIFORMTYPE_INT] = this.commitFunction[UNIFORMTYPE_BOOL];
+
+		this.commitFunction[UNIFORMTYPE_FLOAT] = function (uniform, value) {
+			if (uniform.value !== value) {
+				gl.uniform1f(uniform.locationId, value);
+				uniform.value = value;
+			}
+		};
+
+		this.commitFunction[UNIFORMTYPE_VEC2] = function (uniform, value) {
+			uniformValue = uniform.value;
+			scopeX = value[0];
+			scopeY = value[1];
+
+			if (uniformValue[0] !== scopeX || uniformValue[1] !== scopeY) {
+				gl.uniform2fv(uniform.locationId, value);
+				uniformValue[0] = scopeX;
+				uniformValue[1] = scopeY;
+			}
+		};
+
+		this.commitFunction[UNIFORMTYPE_VEC3] = function (uniform, value) {
+			uniformValue = uniform.value;
+			scopeX = value[0];
+			scopeY = value[1];
+			scopeZ = value[2];
+
+			if (uniformValue[0] !== scopeX || uniformValue[1] !== scopeY || uniformValue[2] !== scopeZ) {
+				gl.uniform3fv(uniform.locationId, value);
+				uniformValue[0] = scopeX;
+				uniformValue[1] = scopeY;
+				uniformValue[2] = scopeZ;
+			}
+		};
+
+		this.commitFunction[UNIFORMTYPE_VEC4] = function (uniform, value) {
+			uniformValue = uniform.value;
+			scopeX = value[0];
+			scopeY = value[1];
+			scopeZ = value[2];
+			scopeW = value[3];
+
+			if (uniformValue[0] !== scopeX || uniformValue[1] !== scopeY || uniformValue[2] !== scopeZ || uniformValue[3] !== scopeW) {
+				gl.uniform4fv(uniform.locationId, value);
+				uniformValue[0] = scopeX;
+				uniformValue[1] = scopeY;
+				uniformValue[2] = scopeZ;
+				uniformValue[3] = scopeW;
+			}
+		};
+
+		this.commitFunction[UNIFORMTYPE_IVEC2] = function (uniform, value) {
+			uniformValue = uniform.value;
+			scopeX = value[0];
+			scopeY = value[1];
+
+			if (uniformValue[0] !== scopeX || uniformValue[1] !== scopeY) {
+				gl.uniform2iv(uniform.locationId, value);
+				uniformValue[0] = scopeX;
+				uniformValue[1] = scopeY;
+			}
+		};
+
+		this.commitFunction[UNIFORMTYPE_BVEC2] = this.commitFunction[UNIFORMTYPE_IVEC2];
+
+		this.commitFunction[UNIFORMTYPE_IVEC3] = function (uniform, value) {
+			uniformValue = uniform.value;
+			scopeX = value[0];
+			scopeY = value[1];
+			scopeZ = value[2];
+
+			if (uniformValue[0] !== scopeX || uniformValue[1] !== scopeY || uniformValue[2] !== scopeZ) {
+				gl.uniform3iv(uniform.locationId, value);
+				uniformValue[0] = scopeX;
+				uniformValue[1] = scopeY;
+				uniformValue[2] = scopeZ;
+			}
+		};
+
+		this.commitFunction[UNIFORMTYPE_BVEC3] = this.commitFunction[UNIFORMTYPE_IVEC3];
+
+		this.commitFunction[UNIFORMTYPE_IVEC4] = function (uniform, value) {
+			uniformValue = uniform.value;
+			scopeX = value[0];
+			scopeY = value[1];
+			scopeZ = value[2];
+			scopeW = value[3];
+
+			if (uniformValue[0] !== scopeX || uniformValue[1] !== scopeY || uniformValue[2] !== scopeZ || uniformValue[3] !== scopeW) {
+				gl.uniform4iv(uniform.locationId, value);
+				uniformValue[0] = scopeX;
+				uniformValue[1] = scopeY;
+				uniformValue[2] = scopeZ;
+				uniformValue[3] = scopeW;
+			}
+		};
+
+		this.commitFunction[UNIFORMTYPE_BVEC4] = this.commitFunction[UNIFORMTYPE_IVEC4];
+
+		this.commitFunction[UNIFORMTYPE_MAT2] = function (uniform, value) {
+			gl.uniformMatrix2fv(uniform.locationId, false, value);
+		};
+
+		this.commitFunction[UNIFORMTYPE_MAT3] = function (uniform, value) {
+			gl.uniformMatrix3fv(uniform.locationId, false, value);
+		};
+
+		this.commitFunction[UNIFORMTYPE_MAT4] = function (uniform, value) {
+			gl.uniformMatrix4fv(uniform.locationId, false, value);
+		};
+
+		this.commitFunction[UNIFORMTYPE_FLOATARRAY] = function (uniform, value) {
+			gl.uniform1fv(uniform.locationId, value);
+		};
+
+		this.commitFunction[UNIFORMTYPE_VEC2ARRAY] = function (uniform, value) {
+			gl.uniform2fv(uniform.locationId, value);
+		};
+
+		this.commitFunction[UNIFORMTYPE_VEC3ARRAY] = function (uniform, value) {
+			gl.uniform3fv(uniform.locationId, value);
+		};
+
+		this.commitFunction[UNIFORMTYPE_VEC4ARRAY] = function (uniform, value) {
+			gl.uniform4fv(uniform.locationId, value);
+		};
+
+		this.supportsBoneTextures = this.extTextureFloat && this.maxVertexTextures > 0;
+		let numUniforms = this.vertexUniformsCount;
+		numUniforms -= 4 * 4;
+		numUniforms -= 8;
+		numUniforms -= 1;
+		numUniforms -= 4 * 4;
+		this.boneLimit = Math.floor(numUniforms / 3);
+		this.boneLimit = Math.min(this.boneLimit, 128);
+
+		if (this.unmaskedRenderer === 'Mali-450 MP') {
+			this.boneLimit = 34;
+		}
+
+		this.constantTexSource = this.scope.resolve("source");
+
+		if (this.extTextureFloat) {
+			if (this.webgl2) {
+				this.textureFloatRenderable = !!this.extColorBufferFloat;
+			} else {
+				this.textureFloatRenderable = testRenderable(gl, gl.FLOAT);
+			}
+		} else {
+			this.textureFloatRenderable = false;
+		}
+
+		if (this.extColorBufferHalfFloat) {
+			this.textureHalfFloatRenderable = !!this.extColorBufferHalfFloat;
+		} else if (this.extTextureHalfFloat) {
+			if (this.webgl2) {
+				this.textureHalfFloatRenderable = !!this.extColorBufferFloat;
+			} else {
+				this.textureHalfFloatRenderable = testRenderable(gl, this.extTextureHalfFloat.HALF_FLOAT_OES);
+			}
+		} else {
+			this.textureHalfFloatRenderable = false;
+		}
+
+		this.supportsMorphTargetTexturesCore = this.maxPrecision === "highp" && this.maxVertexTextures >= 2;
+		this._textureFloatHighPrecision = undefined;
+		this._textureHalfFloatUpdatable = undefined;
+		this.grabPassAvailable = true;
+		this.grabPass = new GrabPass(this, options.alpha);
+		this.grabPass.create();
+		this.areaLightLutFormat = PIXELFORMAT_R8_G8_B8_A8;
+
+		if (this.extTextureHalfFloat && this.textureHalfFloatUpdatable && this.extTextureHalfFloatLinear) {
+			this.areaLightLutFormat = PIXELFORMAT_RGBA16F;
+		} else if (this.extTextureFloat && this.extTextureFloatLinear) {
+			this.areaLightLutFormat = PIXELFORMAT_RGBA32F;
+		}
+	}
+
+	destroy() {
+		super.destroy();
+		const gl = this.gl;
+		this.grabPass.destroy();
+
+		if (this.webgl2 && this.feedback) {
+			gl.deleteTransformFeedback(this.feedback);
+		}
+
+		this.clearShaderCache();
+		this.clearVertexArrayObjectCache();
+		this.canvas.removeEventListener('webglcontextlost', this._contextLostHandler, false);
+		this.canvas.removeEventListener('webglcontextrestored', this._contextRestoredHandler, false);
+		this._contextLostHandler = null;
+		this._contextRestoredHandler = null;
+		this.gl = null;
+		super.postDestroy();
+	}
+
+	createVertexBufferImpl(vertexBuffer, format) {
+		return new WebglVertexBuffer();
+	}
+
+	createIndexBufferImpl(indexBuffer) {
+		return new WebglIndexBuffer(indexBuffer);
+	}
+
+	createShaderImpl(shader) {
+		return new WebglShader(shader);
+	}
+
+	createTextureImpl(texture) {
+		return new WebglTexture(texture);
+	}
+
+	getPrecision() {
+		const gl = this.gl;
+		let precision = "highp";
+
+		if (gl.getShaderPrecisionFormat) {
+			const vertexShaderPrecisionHighpFloat = gl.getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.HIGH_FLOAT);
+			const vertexShaderPrecisionMediumpFloat = gl.getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.MEDIUM_FLOAT);
+			const fragmentShaderPrecisionHighpFloat = gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.HIGH_FLOAT);
+			const fragmentShaderPrecisionMediumpFloat = gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.MEDIUM_FLOAT);
+			const highpAvailable = vertexShaderPrecisionHighpFloat.precision > 0 && fragmentShaderPrecisionHighpFloat.precision > 0;
+			const mediumpAvailable = vertexShaderPrecisionMediumpFloat.precision > 0 && fragmentShaderPrecisionMediumpFloat.precision > 0;
+
+			if (!highpAvailable) {
+				if (mediumpAvailable) {
+					precision = "mediump";
+				} else {
+					precision = "lowp";
+				}
+			}
+		}
+
+		return precision;
+	}
+
+	initializeExtensions() {
+		const gl = this.gl;
+		const supportedExtensions = gl.getSupportedExtensions();
+
+		const getExtension = function getExtension() {
+			for (let i = 0; i < arguments.length; i++) {
+				if (supportedExtensions.indexOf(arguments[i]) !== -1) {
+					return gl.getExtension(arguments[i]);
+				}
+			}
+
+			return null;
+		};
+
+		if (this.webgl2) {
+			this.extBlendMinmax = true;
+			this.extDrawBuffers = true;
+			this.extInstancing = true;
+			this.extStandardDerivatives = true;
+			this.extTextureFloat = true;
+			this.extTextureHalfFloat = true;
+			this.extTextureLod = true;
+			this.extUintElement = true;
+			this.extVertexArrayObject = true;
+			this.extColorBufferFloat = getExtension('EXT_color_buffer_float');
+			this.extDisjointTimerQuery = getExtension('EXT_disjoint_timer_query_webgl2', 'EXT_disjoint_timer_query');
+		} else {
+			this.extBlendMinmax = getExtension("EXT_blend_minmax");
+			this.extDrawBuffers = getExtension('EXT_draw_buffers');
+			this.extInstancing = getExtension("ANGLE_instanced_arrays");
+
+			if (this.extInstancing) {
+				const ext = this.extInstancing;
+				gl.drawArraysInstanced = ext.drawArraysInstancedANGLE.bind(ext);
+				gl.drawElementsInstanced = ext.drawElementsInstancedANGLE.bind(ext);
+				gl.vertexAttribDivisor = ext.vertexAttribDivisorANGLE.bind(ext);
+			}
+
+			this.extStandardDerivatives = getExtension("OES_standard_derivatives");
+			this.extTextureFloat = getExtension("OES_texture_float");
+			this.extTextureHalfFloat = getExtension("OES_texture_half_float");
+			this.extTextureLod = getExtension('EXT_shader_texture_lod');
+			this.extUintElement = getExtension("OES_element_index_uint");
+			this.extVertexArrayObject = getExtension("OES_vertex_array_object");
+
+			if (this.extVertexArrayObject) {
+				const ext = this.extVertexArrayObject;
+				gl.createVertexArray = ext.createVertexArrayOES.bind(ext);
+				gl.deleteVertexArray = ext.deleteVertexArrayOES.bind(ext);
+				gl.isVertexArray = ext.isVertexArrayOES.bind(ext);
+				gl.bindVertexArray = ext.bindVertexArrayOES.bind(ext);
+			}
+
+			this.extColorBufferFloat = null;
+			this.extDisjointTimerQuery = null;
+		}
+
+		this.extDebugRendererInfo = getExtension('WEBGL_debug_renderer_info');
+		this.extTextureFloatLinear = getExtension("OES_texture_float_linear");
+		this.extTextureHalfFloatLinear = getExtension("OES_texture_half_float_linear");
+		this.extFloatBlend = getExtension("EXT_float_blend");
+		this.extTextureFilterAnisotropic = getExtension('EXT_texture_filter_anisotropic', 'WEBKIT_EXT_texture_filter_anisotropic');
+		this.extCompressedTextureETC1 = getExtension('WEBGL_compressed_texture_etc1');
+		this.extCompressedTextureETC = getExtension('WEBGL_compressed_texture_etc');
+		this.extCompressedTexturePVRTC = getExtension('WEBGL_compressed_texture_pvrtc', 'WEBKIT_WEBGL_compressed_texture_pvrtc');
+		this.extCompressedTextureS3TC = getExtension('WEBGL_compressed_texture_s3tc', 'WEBKIT_WEBGL_compressed_texture_s3tc');
+		this.extCompressedTextureATC = getExtension('WEBGL_compressed_texture_atc');
+		this.extCompressedTextureASTC = getExtension('WEBGL_compressed_texture_astc');
+		this.extParallelShaderCompile = getExtension('KHR_parallel_shader_compile');
+		this.extColorBufferHalfFloat = getExtension("EXT_color_buffer_half_float");
+		this.supportsInstancing = !!this.extInstancing;
+	}
+
+	initializeCapabilities() {
+		const gl = this.gl;
+		let ext;
+		this.maxPrecision = this.precision = this.getPrecision();
+		const contextAttribs = gl.getContextAttributes();
+		this.supportsMsaa = contextAttribs.antialias;
+		this.supportsStencil = contextAttribs.stencil;
+		this.maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+		this.maxCubeMapSize = gl.getParameter(gl.MAX_CUBE_MAP_TEXTURE_SIZE);
+		this.maxRenderBufferSize = gl.getParameter(gl.MAX_RENDERBUFFER_SIZE);
+		this.maxTextures = gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS);
+		this.maxCombinedTextures = gl.getParameter(gl.MAX_COMBINED_TEXTURE_IMAGE_UNITS);
+		this.maxVertexTextures = gl.getParameter(gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS);
+		this.vertexUniformsCount = gl.getParameter(gl.MAX_VERTEX_UNIFORM_VECTORS);
+		this.fragmentUniformsCount = gl.getParameter(gl.MAX_FRAGMENT_UNIFORM_VECTORS);
+
+		if (this.webgl2) {
+			this.maxDrawBuffers = gl.getParameter(gl.MAX_DRAW_BUFFERS);
+			this.maxColorAttachments = gl.getParameter(gl.MAX_COLOR_ATTACHMENTS);
+			this.maxVolumeSize = gl.getParameter(gl.MAX_3D_TEXTURE_SIZE);
+		} else {
+			ext = this.extDrawBuffers;
+			this.maxDrawBuffers = ext ? gl.getParameter(ext.MAX_DRAW_BUFFERS_EXT) : 1;
+			this.maxColorAttachments = ext ? gl.getParameter(ext.MAX_COLOR_ATTACHMENTS_EXT) : 1;
+			this.maxVolumeSize = 1;
+		}
+
+		ext = this.extDebugRendererInfo;
+		this.unmaskedRenderer = ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : '';
+		this.unmaskedVendor = ext ? gl.getParameter(ext.UNMASKED_VENDOR_WEBGL) : '';
+		ext = this.extTextureFilterAnisotropic;
+		this.maxAnisotropy = ext ? gl.getParameter(ext.MAX_TEXTURE_MAX_ANISOTROPY_EXT) : 1;
+		this.samples = gl.getParameter(gl.SAMPLES);
+		this.maxSamples = this.webgl2 ? gl.getParameter(gl.MAX_SAMPLES) : 1;
+		this.supportsAreaLights = this.webgl2 || !platform.android;
+
+		if (this.maxTextures <= 8) {
+			this.supportsAreaLights = false;
+		}
+	}
+
+	initializeRenderState() {
+		const gl = this.gl;
+		this.blending = false;
+		gl.disable(gl.BLEND);
+		this.blendSrc = BLENDMODE_ONE;
+		this.blendDst = BLENDMODE_ZERO;
+		this.blendSrcAlpha = BLENDMODE_ONE;
+		this.blendDstAlpha = BLENDMODE_ZERO;
+		this.separateAlphaBlend = false;
+		this.blendEquation = BLENDEQUATION_ADD;
+		this.blendAlphaEquation = BLENDEQUATION_ADD;
+		this.separateAlphaEquation = false;
+		gl.blendFunc(gl.ONE, gl.ZERO);
+		gl.blendEquation(gl.FUNC_ADD);
+		this.writeRed = true;
+		this.writeGreen = true;
+		this.writeBlue = true;
+		this.writeAlpha = true;
+		gl.colorMask(true, true, true, true);
+		this.cullMode = CULLFACE_BACK;
+		gl.enable(gl.CULL_FACE);
+		gl.cullFace(gl.BACK);
+		this.depthTest = true;
+		gl.enable(gl.DEPTH_TEST);
+		this.depthFunc = FUNC_LESSEQUAL;
+		gl.depthFunc(gl.LEQUAL);
+		this.depthWrite = true;
+		gl.depthMask(true);
+		this.stencil = false;
+		gl.disable(gl.STENCIL_TEST);
+		this.stencilFuncFront = this.stencilFuncBack = FUNC_ALWAYS;
+		this.stencilRefFront = this.stencilRefBack = 0;
+		this.stencilMaskFront = this.stencilMaskBack = 0xFF;
+		gl.stencilFunc(gl.ALWAYS, 0, 0xFF);
+		this.stencilFailFront = this.stencilFailBack = STENCILOP_KEEP;
+		this.stencilZfailFront = this.stencilZfailBack = STENCILOP_KEEP;
+		this.stencilZpassFront = this.stencilZpassBack = STENCILOP_KEEP;
+		this.stencilWriteMaskFront = 0xFF;
+		this.stencilWriteMaskBack = 0xFF;
+		gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
+		gl.stencilMask(0xFF);
+		this.alphaToCoverage = false;
+		this.raster = true;
+
+		if (this.webgl2) {
+			gl.disable(gl.SAMPLE_ALPHA_TO_COVERAGE);
+			gl.disable(gl.RASTERIZER_DISCARD);
+		}
+
+		this.depthBiasEnabled = false;
+		gl.disable(gl.POLYGON_OFFSET_FILL);
+		this.clearDepth = 1;
+		gl.clearDepth(1);
+		this.clearRed = 0;
+		this.clearBlue = 0;
+		this.clearGreen = 0;
+		this.clearAlpha = 0;
+		gl.clearColor(0, 0, 0, 0);
+		this.clearStencil = 0;
+		gl.clearStencil(0);
+		this.vx = this.vy = this.vw = this.vh = 0;
+		this.sx = this.sy = this.sw = this.sh = 0;
+
+		if (this.webgl2) {
+			gl.hint(gl.FRAGMENT_SHADER_DERIVATIVE_HINT, gl.NICEST);
+		} else {
+			if (this.extStandardDerivatives) {
+				gl.hint(this.extStandardDerivatives.FRAGMENT_SHADER_DERIVATIVE_HINT_OES, gl.NICEST);
+			}
+		}
+
+		gl.enable(gl.SCISSOR_TEST);
+		gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.NONE);
+		this.unpackFlipY = false;
+		gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+		this.unpackPremultiplyAlpha = false;
+		gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+		gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+	}
+
+	initializeContextCaches() {
+		super.initializeContextCaches();
+		this.vertexShaderCache = {};
+		this.fragmentShaderCache = {};
+		this._vaoMap = new Map();
+		this.boundVao = null;
+		this.activeFramebuffer = null;
+		this.feedback = null;
+		this.transformFeedbackBuffer = null;
+		this.textureUnit = 0;
+		this.textureUnits = [];
+
+		for (let i = 0; i < this.maxCombinedTextures; i++) {
+			this.textureUnits.push([null, null, null]);
+		}
+	}
+
+	loseContext() {
+		for (const shader of this.shaders) {
+			shader.loseContext();
+		}
+
+		this.grabPass.destroy();
+
+		for (const texture of this.textures) {
+			texture.loseContext();
+		}
+
+		for (const buffer of this.buffers) {
+			buffer.loseContext();
+		}
+
+		for (const target of this.targets) {
+			target.loseContext();
+		}
+	}
+
+	restoreContext() {
+		this.initializeExtensions();
+		this.initializeCapabilities();
+		this.initializeRenderState();
+		this.initializeContextCaches();
+
+		for (const shader of this.shaders) {
+			shader.restoreContext();
+		}
+
+		for (const buffer of this.buffers) {
+			buffer.unlock();
+		}
+
+		this.grabPass.create();
+	}
+
+	setViewport(x, y, w, h) {
+		if (this.vx !== x || this.vy !== y || this.vw !== w || this.vh !== h) {
+			this.gl.viewport(x, y, w, h);
+			this.vx = x;
+			this.vy = y;
+			this.vw = w;
+			this.vh = h;
+		}
+	}
+
+	setScissor(x, y, w, h) {
+		if (this.sx !== x || this.sy !== y || this.sw !== w || this.sh !== h) {
+			this.gl.scissor(x, y, w, h);
+			this.sx = x;
+			this.sy = y;
+			this.sw = w;
+			this.sh = h;
+		}
+	}
+
+	setFramebuffer(fb) {
+		if (this.activeFramebuffer !== fb) {
+			const gl = this.gl;
+			gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+			this.activeFramebuffer = fb;
+		}
+	}
+
+	_checkFbo() {
+		const gl = this.gl;
+		const status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+
+		switch (status) {
+			case gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+				console.error("ERROR: FRAMEBUFFER_INCOMPLETE_ATTACHMENT");
+				break;
+
+			case gl.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+				console.error("ERROR: FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT");
+				break;
+
+			case gl.FRAMEBUFFER_INCOMPLETE_DIMENSIONS:
+				console.error("ERROR: FRAMEBUFFER_INCOMPLETE_DIMENSIONS");
+				break;
+
+			case gl.FRAMEBUFFER_UNSUPPORTED:
+				console.error("ERROR: FRAMEBUFFER_UNSUPPORTED");
+				break;
+
+			case gl.FRAMEBUFFER_COMPLETE:
+				break;
+		}
+	}
+
+	copyRenderTarget(source, dest, color, depth) {
+		const gl = this.gl;
+
+		if (!this.webgl2 && depth) {
+			return false;
+		}
+
+		if (color) {
+			if (!dest) {
+				if (!source._colorBuffer) {
+					return false;
+				}
+			} else {
+				if (!source._colorBuffer || !dest._colorBuffer) {
+					return false;
+				}
+
+				if (source._colorBuffer._format !== dest._colorBuffer._format) {
+					return false;
+				}
+			}
+		}
+
+		if (depth) {
+			if (!source._depthBuffer || !dest._depthBuffer) {
+				return false;
+			}
+
+			if (source._depthBuffer._format !== dest._depthBuffer._format) {
+				return false;
+			}
+		}
+
+		if (this.webgl2 && dest) {
+			const prevRt = this.renderTarget;
+			this.renderTarget = dest;
+			this.updateBegin();
+			gl.bindFramebuffer(gl.READ_FRAMEBUFFER, source ? source._glFrameBuffer : null);
+			gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, dest._glFrameBuffer);
+			const w = source ? source.width : dest.width;
+			const h = source ? source.height : dest.height;
+			gl.blitFramebuffer(0, 0, w, h, 0, 0, w, h, (color ? gl.COLOR_BUFFER_BIT : 0) | (depth ? gl.DEPTH_BUFFER_BIT : 0), gl.NEAREST);
+			this.renderTarget = prevRt;
+			gl.bindFramebuffer(gl.FRAMEBUFFER, prevRt ? prevRt._glFrameBuffer : null);
+		} else {
+			const shader = this.getCopyShader();
+			this.constantTexSource.setValue(source._colorBuffer);
+			drawQuadWithShader(this, dest, shader);
+		}
+
+		return true;
+	}
+
+	initRenderTarget(target) {
+		if (target._glFrameBuffer) return;
+		const gl = this.gl;
+		target._glFrameBuffer = gl.createFramebuffer();
+		this.setFramebuffer(target._glFrameBuffer);
+		const colorBuffer = target._colorBuffer;
+
+		if (colorBuffer) {
+			if (!colorBuffer.impl._glTexture) {
+				colorBuffer._width = Math.min(colorBuffer.width, this.maxRenderBufferSize);
+				colorBuffer._height = Math.min(colorBuffer.height, this.maxRenderBufferSize);
+				this.setTexture(colorBuffer, 0);
+			}
+
+			gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, colorBuffer._cubemap ? gl.TEXTURE_CUBE_MAP_POSITIVE_X + target._face : gl.TEXTURE_2D, colorBuffer.impl._glTexture, 0);
+		}
+
+		const depthBuffer = target._depthBuffer;
+
+		if (depthBuffer && this.webgl2) {
+			if (!depthBuffer.impl._glTexture) {
+				depthBuffer._width = Math.min(depthBuffer.width, this.maxRenderBufferSize);
+				depthBuffer._height = Math.min(depthBuffer.height, this.maxRenderBufferSize);
+				this.setTexture(depthBuffer, 0);
+			}
+
+			if (target._stencil) {
+				gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, depthBuffer._cubemap ? gl.TEXTURE_CUBE_MAP_POSITIVE_X + target._face : gl.TEXTURE_2D, target._depthBuffer.impl._glTexture, 0);
+			} else {
+				gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, depthBuffer._cubemap ? gl.TEXTURE_CUBE_MAP_POSITIVE_X + target._face : gl.TEXTURE_2D, target._depthBuffer.impl._glTexture, 0);
+			}
+		} else if (target._depth) {
+			const willRenderMsaa = target._samples > 1 && this.webgl2;
+
+			if (!willRenderMsaa) {
+				if (!target._glDepthBuffer) {
+					target._glDepthBuffer = gl.createRenderbuffer();
+				}
+
+				gl.bindRenderbuffer(gl.RENDERBUFFER, target._glDepthBuffer);
+
+				if (target._stencil) {
+					gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_STENCIL, target.width, target.height);
+					gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, target._glDepthBuffer);
+				} else {
+					const depthFormat = this.webgl2 ? gl.DEPTH_COMPONENT32F : gl.DEPTH_COMPONENT16;
+					gl.renderbufferStorage(gl.RENDERBUFFER, depthFormat, target.width, target.height);
+					gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, target._glDepthBuffer);
+				}
+
+				gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+			}
+		}
+
+		if (this.webgl2 && target._samples > 1) {
+			target._glResolveFrameBuffer = target._glFrameBuffer;
+			target._glFrameBuffer = gl.createFramebuffer();
+			this.setFramebuffer(target._glFrameBuffer);
+
+			if (colorBuffer) {
+				if (!target._glMsaaColorBuffer) {
+					target._glMsaaColorBuffer = gl.createRenderbuffer();
+				}
+
+				gl.bindRenderbuffer(gl.RENDERBUFFER, target._glMsaaColorBuffer);
+				gl.renderbufferStorageMultisample(gl.RENDERBUFFER, target._samples, colorBuffer.impl._glInternalFormat, target.width, target.height);
+				gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, target._glMsaaColorBuffer);
+			}
+
+			if (target._depth) {
+				if (!target._glMsaaDepthBuffer) {
+					target._glMsaaDepthBuffer = gl.createRenderbuffer();
+				}
+
+				gl.bindRenderbuffer(gl.RENDERBUFFER, target._glMsaaDepthBuffer);
+
+				if (target._stencil) {
+					gl.renderbufferStorageMultisample(gl.RENDERBUFFER, target._samples, gl.DEPTH24_STENCIL8, target.width, target.height);
+					gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, target._glMsaaDepthBuffer);
+				} else {
+					gl.renderbufferStorageMultisample(gl.RENDERBUFFER, target._samples, gl.DEPTH_COMPONENT32F, target.width, target.height);
+					gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, target._glMsaaDepthBuffer);
+				}
+			}
+		}
+
+		this.targets.push(target);
+	}
+
+	getCopyShader() {
+		if (!this._copyShader) {
+			const vs = shaderChunks.fullscreenQuadVS;
+			const fs = shaderChunks.outputTex2DPS;
+			this._copyShader = createShaderFromCode(this, vs, fs, "outputTex2D");
+		}
+
+		return this._copyShader;
+	}
+
+	updateBegin() {
+		this.boundVao = null;
+
+		if (this._tempEnableSafariTextureUnitWorkaround) {
+			for (let unit = 0; unit < this.textureUnits.length; ++unit) {
+				for (let slot = 0; slot < 3; ++slot) {
+					this.textureUnits[unit][slot] = null;
+				}
+			}
+		}
+
+		const target = this.renderTarget;
+
+		if (target) {
+			if (!target._glFrameBuffer) {
+				this.initRenderTarget(target);
+			} else {
+				this.setFramebuffer(target._glFrameBuffer);
+			}
+		} else {
+			this.setFramebuffer(this.defaultFramebuffer);
+		}
+	}
+
+	updateEnd() {
+		const gl = this.gl;
+
+		if (this.boundVao) {
+			this.boundVao = null;
+			this.gl.bindVertexArray(null);
+		}
+
+		const target = this.renderTarget;
+
+		if (target) {
+			const colorBuffer = target._colorBuffer;
+
+			if (colorBuffer && colorBuffer.impl._glTexture && colorBuffer.mipmaps && (colorBuffer.pot || this.webgl2)) {
+				this.activeTexture(this.maxCombinedTextures - 1);
+				this.bindTexture(colorBuffer);
+				gl.generateMipmap(colorBuffer.impl._glTarget);
+			}
+
+			if (this.webgl2 && target._samples > 1 && target.autoResolve) {
+				target.resolve();
+			}
+		}
+	}
+
+	setUnpackFlipY(flipY) {
+		if (this.unpackFlipY !== flipY) {
+			this.unpackFlipY = flipY;
+			const gl = this.gl;
+			gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, flipY);
+		}
+	}
+
+	setUnpackPremultiplyAlpha(premultiplyAlpha) {
+		if (this.unpackPremultiplyAlpha !== premultiplyAlpha) {
+			this.unpackPremultiplyAlpha = premultiplyAlpha;
+			const gl = this.gl;
+			gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, premultiplyAlpha);
+		}
+	}
+
+	activeTexture(textureUnit) {
+		if (this.textureUnit !== textureUnit) {
+			this.gl.activeTexture(this.gl.TEXTURE0 + textureUnit);
+			this.textureUnit = textureUnit;
+		}
+	}
+
+	bindTexture(texture) {
+		const impl = texture.impl;
+		const textureTarget = impl._glTarget;
+		const textureObject = impl._glTexture;
+		const textureUnit = this.textureUnit;
+		const slot = this.targetToSlot[textureTarget];
+
+		if (this.textureUnits[textureUnit][slot] !== textureObject) {
+			this.gl.bindTexture(textureTarget, textureObject);
+			this.textureUnits[textureUnit][slot] = textureObject;
+		}
+	}
+
+	bindTextureOnUnit(texture, textureUnit) {
+		const impl = texture.impl;
+		const textureTarget = impl._glTarget;
+		const textureObject = impl._glTexture;
+		const slot = this.targetToSlot[textureTarget];
+
+		if (this.textureUnits[textureUnit][slot] !== textureObject) {
+			this.activeTexture(textureUnit);
+			this.gl.bindTexture(textureTarget, textureObject);
+			this.textureUnits[textureUnit][slot] = textureObject;
+		}
+	}
+
+	setTextureParameters(texture) {
+		const gl = this.gl;
+		const flags = texture._parameterFlags;
+		const target = texture.impl._glTarget;
+
+		if (flags & 1) {
+			let filter = texture._minFilter;
+
+			if (!texture.pot && !this.webgl2 || !texture._mipmaps || texture._compressed && texture._levels.length === 1) {
+				if (filter === FILTER_NEAREST_MIPMAP_NEAREST || filter === FILTER_NEAREST_MIPMAP_LINEAR) {
+					filter = FILTER_NEAREST;
+				} else if (filter === FILTER_LINEAR_MIPMAP_NEAREST || filter === FILTER_LINEAR_MIPMAP_LINEAR) {
+					filter = FILTER_LINEAR;
+				}
+			}
+
+			gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, this.glFilter[filter]);
+		}
+
+		if (flags & 2) {
+			gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, this.glFilter[texture._magFilter]);
+		}
+
+		if (flags & 4) {
+			if (this.webgl2) {
+				gl.texParameteri(target, gl.TEXTURE_WRAP_S, this.glAddress[texture._addressU]);
+			} else {
+				gl.texParameteri(target, gl.TEXTURE_WRAP_S, this.glAddress[texture.pot ? texture._addressU : ADDRESS_CLAMP_TO_EDGE]);
+			}
+		}
+
+		if (flags & 8) {
+			if (this.webgl2) {
+				gl.texParameteri(target, gl.TEXTURE_WRAP_T, this.glAddress[texture._addressV]);
+			} else {
+				gl.texParameteri(target, gl.TEXTURE_WRAP_T, this.glAddress[texture.pot ? texture._addressV : ADDRESS_CLAMP_TO_EDGE]);
+			}
+		}
+
+		if (flags & 16) {
+			if (this.webgl2) {
+				gl.texParameteri(target, gl.TEXTURE_WRAP_R, this.glAddress[texture._addressW]);
+			}
+		}
+
+		if (flags & 32) {
+			if (this.webgl2) {
+				gl.texParameteri(target, gl.TEXTURE_COMPARE_MODE, texture._compareOnRead ? gl.COMPARE_REF_TO_TEXTURE : gl.NONE);
+			}
+		}
+
+		if (flags & 64) {
+			if (this.webgl2) {
+				gl.texParameteri(target, gl.TEXTURE_COMPARE_FUNC, this.glComparison[texture._compareFunc]);
+			}
+		}
+
+		if (flags & 128) {
+			const ext = this.extTextureFilterAnisotropic;
+
+			if (ext) {
+				gl.texParameterf(target, ext.TEXTURE_MAX_ANISOTROPY_EXT, Math.max(1, Math.min(Math.round(texture._anisotropy), this.maxAnisotropy)));
+			}
+		}
+	}
+
+	setTexture(texture, textureUnit) {
+		if (!texture.impl._glTexture) texture.impl.initialize(this, texture);
+
+		if (texture._parameterFlags > 0 || texture._needsUpload || texture._needsMipmapsUpload || texture === this.grabPass.texture) {
+			this.activeTexture(textureUnit);
+			this.bindTexture(texture);
+
+			if (texture._parameterFlags) {
+				this.setTextureParameters(texture);
+				texture._parameterFlags = 0;
+			}
+
+			const processed = texture === this.grabPass.texture && this.grabPass.prepareTexture();
+
+			if (!processed && (texture._needsUpload || texture._needsMipmapsUpload)) {
+				texture.impl.upload(this, texture);
+				texture._needsUpload = false;
+				texture._needsMipmapsUpload = false;
+			}
+		} else {
+			this.bindTextureOnUnit(texture, textureUnit);
+		}
+	}
+
+	createVertexArray(vertexBuffers) {
+		let key, vao;
+		const useCache = vertexBuffers.length > 1;
+
+		if (useCache) {
+			key = "";
+
+			for (let i = 0; i < vertexBuffers.length; i++) {
+				const vertexBuffer = vertexBuffers[i];
+				key += vertexBuffer.id + vertexBuffer.format.renderingingHash;
+			}
+
+			vao = this._vaoMap.get(key);
+		}
+
+		if (!vao) {
+			const gl = this.gl;
+			vao = gl.createVertexArray();
+			gl.bindVertexArray(vao);
+			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+
+			for (let i = 0; i < vertexBuffers.length; i++) {
+				const vertexBuffer = vertexBuffers[i];
+				gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer.impl.bufferId);
+				const elements = vertexBuffer.format.elements;
+
+				for (let j = 0; j < elements.length; j++) {
+					const e = elements[j];
+					const loc = semanticToLocation[e.name];
+
+					gl.vertexAttribPointer(loc, e.numComponents, this.glType[e.dataType], e.normalize, e.stride, e.offset);
+					gl.enableVertexAttribArray(loc);
+
+					if (vertexBuffer.instancing) {
+						gl.vertexAttribDivisor(loc, 1);
+					}
+				}
+			}
+
+			gl.bindVertexArray(null);
+			gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+			if (useCache) {
+				this._vaoMap.set(key, vao);
+			}
+		}
+
+		return vao;
+	}
+
+	setBuffers() {
+		const gl = this.gl;
+		let vao;
+
+		if (this.vertexBuffers.length === 1) {
+			const vertexBuffer = this.vertexBuffers[0];
+
+			if (!vertexBuffer.impl.vao) {
+				vertexBuffer.impl.vao = this.createVertexArray(this.vertexBuffers);
+			}
+
+			vao = vertexBuffer.impl.vao;
+		} else {
+			vao = this.createVertexArray(this.vertexBuffers);
+		}
+
+		if (this.boundVao !== vao) {
+			this.boundVao = vao;
+			gl.bindVertexArray(vao);
+		}
+
+		this.vertexBuffers.length = 0;
+		const bufferId = this.indexBuffer ? this.indexBuffer.impl.bufferId : null;
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, bufferId);
+	}
+
+	draw(primitive, numInstances, keepBuffers) {
+		const gl = this.gl;
+		let sampler, samplerValue, texture, numTextures;
+		let uniform, scopeId, uniformVersion, programVersion;
+		const shader = this.shader;
+		if (!shader) return;
+		const samplers = shader.samplers;
+		const uniforms = shader.uniforms;
+
+		if (!keepBuffers) {
+			this.setBuffers();
+		}
+
+		let textureUnit = 0;
+
+		for (let i = 0, len = samplers.length; i < len; i++) {
+			sampler = samplers[i];
+			samplerValue = sampler.scopeId.value;
+
+			if (!samplerValue) {
+				continue;
+			}
+
+			if (samplerValue instanceof Texture) {
+				texture = samplerValue;
+				this.setTexture(texture, textureUnit);
+
+				if (sampler.slot !== textureUnit) {
+					gl.uniform1i(sampler.locationId, textureUnit);
+					sampler.slot = textureUnit;
+				}
+
+				textureUnit++;
+			} else {
+				sampler.array.length = 0;
+				numTextures = samplerValue.length;
+
+				for (let j = 0; j < numTextures; j++) {
+					texture = samplerValue[j];
+					this.setTexture(texture, textureUnit);
+					sampler.array[j] = textureUnit;
+					textureUnit++;
+				}
+
+				gl.uniform1iv(sampler.locationId, sampler.array);
+			}
+		}
+
+		for (let i = 0, len = uniforms.length; i < len; i++) {
+			uniform = uniforms[i];
+			scopeId = uniform.scopeId;
+			uniformVersion = uniform.version;
+			programVersion = scopeId.versionObject.version;
+
+			if (uniformVersion.globalId !== programVersion.globalId || uniformVersion.revision !== programVersion.revision) {
+				uniformVersion.globalId = programVersion.globalId;
+				uniformVersion.revision = programVersion.revision;
+
+				if (scopeId.value !== null) {
+					this.commitFunction[uniform.dataType](uniform, scopeId.value);
+				}
+			}
+		}
+
+		if (this.webgl2 && this.transformFeedbackBuffer) {
+			gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, this.transformFeedbackBuffer.impl.bufferId);
+			gl.beginTransformFeedback(gl.POINTS);
+		}
+
+		const mode = this.glPrimitive[primitive.type];
+		const count = primitive.count;
+
+		if (primitive.indexed) {
+			const indexBuffer = this.indexBuffer;
+			const format = indexBuffer.impl.glFormat;
+			const offset = primitive.base * indexBuffer.bytesPerIndex;
+
+			if (numInstances > 0) {
+				gl.drawElementsInstanced(mode, count, format, offset, numInstances);
+			} else {
+				gl.drawElements(mode, count, format, offset);
+			}
+		} else {
+			const first = primitive.base;
+
+			if (numInstances > 0) {
+				gl.drawArraysInstanced(mode, first, count, numInstances);
+			} else {
+				gl.drawArrays(mode, first, count);
+			}
+		}
+
+		if (this.webgl2 && this.transformFeedbackBuffer) {
+			gl.endTransformFeedback();
+			gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, null);
+		}
+
+		this._drawCallsPerFrame++;
+	}
+
+	clear(options) {
+		const defaultOptions = this.defaultClearOptions;
+		options = options || defaultOptions;
+		const flags = options.flags == undefined ? defaultOptions.flags : options.flags;
+
+		if (flags !== 0) {
+			const gl = this.gl;
+
+			if (flags & CLEARFLAG_COLOR) {
+				const color = options.color == undefined ? defaultOptions.color : options.color;
+				this.setClearColor(color[0], color[1], color[2], color[3]);
+			}
+
+			if (flags & CLEARFLAG_DEPTH) {
+				const depth = options.depth == undefined ? defaultOptions.depth : options.depth;
+				this.setClearDepth(depth);
+
+				if (!this.depthWrite) {
+					gl.depthMask(true);
+				}
+			}
+
+			if (flags & CLEARFLAG_STENCIL) {
+				const stencil = options.stencil == undefined ? defaultOptions.stencil : options.stencil;
+				this.setClearStencil(stencil);
+			}
+
+			gl.clear(this.glClearFlag[flags]);
+
+			if (flags & CLEARFLAG_DEPTH) {
+				if (!this.depthWrite) {
+					gl.depthMask(false);
+				}
+			}
+		}
+	}
+
+	readPixels(x, y, w, h, pixels) {
+		const gl = this.gl;
+		gl.readPixels(x, y, w, h, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+	}
+
+	setClearDepth(depth) {
+		if (depth !== this.clearDepth) {
+			this.gl.clearDepth(depth);
+			this.clearDepth = depth;
+		}
+	}
+
+	setClearColor(r, g, b, a) {
+		if (r !== this.clearRed || g !== this.clearGreen || b !== this.clearBlue || a !== this.clearAlpha) {
+			this.gl.clearColor(r, g, b, a);
+			this.clearRed = r;
+			this.clearGreen = g;
+			this.clearBlue = b;
+			this.clearAlpha = a;
+		}
+	}
+
+	setClearStencil(value) {
+		if (value !== this.clearStencil) {
+			this.gl.clearStencil(value);
+			this.clearStencil = value;
+		}
+	}
+
+	getDepthTest() {
+		return this.depthTest;
+	}
+
+	setDepthTest(depthTest) {
+		if (this.depthTest !== depthTest) {
+			const gl = this.gl;
+
+			if (depthTest) {
+				gl.enable(gl.DEPTH_TEST);
+			} else {
+				gl.disable(gl.DEPTH_TEST);
+			}
+
+			this.depthTest = depthTest;
+		}
+	}
+
+	setDepthFunc(func) {
+		if (this.depthFunc === func) return;
+		this.gl.depthFunc(this.glComparison[func]);
+		this.depthFunc = func;
+	}
+
+	getDepthWrite() {
+		return this.depthWrite;
+	}
+
+	setDepthWrite(writeDepth) {
+		if (this.depthWrite !== writeDepth) {
+			this.gl.depthMask(writeDepth);
+			this.depthWrite = writeDepth;
+		}
+	}
+
+	setColorWrite(writeRed, writeGreen, writeBlue, writeAlpha) {
+		if (this.writeRed !== writeRed || this.writeGreen !== writeGreen || this.writeBlue !== writeBlue || this.writeAlpha !== writeAlpha) {
+			this.gl.colorMask(writeRed, writeGreen, writeBlue, writeAlpha);
+			this.writeRed = writeRed;
+			this.writeGreen = writeGreen;
+			this.writeBlue = writeBlue;
+			this.writeAlpha = writeAlpha;
+		}
+	}
+
+	setAlphaToCoverage(state) {
+		if (!this.webgl2) return;
+		if (this.alphaToCoverage === state) return;
+		this.alphaToCoverage = state;
+
+		if (state) {
+			this.gl.enable(this.gl.SAMPLE_ALPHA_TO_COVERAGE);
+		} else {
+			this.gl.disable(this.gl.SAMPLE_ALPHA_TO_COVERAGE);
+		}
+	}
+
+	setTransformFeedbackBuffer(tf) {
+		if (this.transformFeedbackBuffer === tf) return;
+		this.transformFeedbackBuffer = tf;
+
+		if (this.webgl2) {
+			const gl = this.gl;
+
+			if (tf) {
+				if (!this.feedback) {
+					this.feedback = gl.createTransformFeedback();
+				}
+
+				gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, this.feedback);
+			} else {
+				gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, null);
+			}
+		}
+	}
+
+	setRaster(on) {
+		if (this.raster === on) return;
+		this.raster = on;
+
+		if (this.webgl2) {
+			if (on) {
+				this.gl.disable(this.gl.RASTERIZER_DISCARD);
+			} else {
+				this.gl.enable(this.gl.RASTERIZER_DISCARD);
+			}
+		}
+	}
+
+	setDepthBias(on) {
+		if (this.depthBiasEnabled === on) return;
+		this.depthBiasEnabled = on;
+
+		if (on) {
+			this.gl.enable(this.gl.POLYGON_OFFSET_FILL);
+		} else {
+			this.gl.disable(this.gl.POLYGON_OFFSET_FILL);
+		}
+	}
+
+	setDepthBiasValues(constBias, slopeBias) {
+		this.gl.polygonOffset(slopeBias, constBias);
+	}
+
+	getBlending() {
+		return this.blending;
+	}
+
+	setBlending(blending) {
+		if (this.blending !== blending) {
+			const gl = this.gl;
+
+			if (blending) {
+				gl.enable(gl.BLEND);
+			} else {
+				gl.disable(gl.BLEND);
+			}
+
+			this.blending = blending;
+		}
+	}
+
+	setStencilTest(enable) {
+		if (this.stencil !== enable) {
+			const gl = this.gl;
+
+			if (enable) {
+				gl.enable(gl.STENCIL_TEST);
+			} else {
+				gl.disable(gl.STENCIL_TEST);
+			}
+
+			this.stencil = enable;
+		}
+	}
+
+	setStencilFunc(func, ref, mask) {
+		if (this.stencilFuncFront !== func || this.stencilRefFront !== ref || this.stencilMaskFront !== mask || this.stencilFuncBack !== func || this.stencilRefBack !== ref || this.stencilMaskBack !== mask) {
+			const gl = this.gl;
+			gl.stencilFunc(this.glComparison[func], ref, mask);
+			this.stencilFuncFront = this.stencilFuncBack = func;
+			this.stencilRefFront = this.stencilRefBack = ref;
+			this.stencilMaskFront = this.stencilMaskBack = mask;
+		}
+	}
+
+	setStencilFuncFront(func, ref, mask) {
+		if (this.stencilFuncFront !== func || this.stencilRefFront !== ref || this.stencilMaskFront !== mask) {
+			const gl = this.gl;
+			gl.stencilFuncSeparate(gl.FRONT, this.glComparison[func], ref, mask);
+			this.stencilFuncFront = func;
+			this.stencilRefFront = ref;
+			this.stencilMaskFront = mask;
+		}
+	}
+
+	setStencilFuncBack(func, ref, mask) {
+		if (this.stencilFuncBack !== func || this.stencilRefBack !== ref || this.stencilMaskBack !== mask) {
+			const gl = this.gl;
+			gl.stencilFuncSeparate(gl.BACK, this.glComparison[func], ref, mask);
+			this.stencilFuncBack = func;
+			this.stencilRefBack = ref;
+			this.stencilMaskBack = mask;
+		}
+	}
+
+	setStencilOperation(fail, zfail, zpass, writeMask) {
+		if (this.stencilFailFront !== fail || this.stencilZfailFront !== zfail || this.stencilZpassFront !== zpass || this.stencilFailBack !== fail || this.stencilZfailBack !== zfail || this.stencilZpassBack !== zpass) {
+			this.gl.stencilOp(this.glStencilOp[fail], this.glStencilOp[zfail], this.glStencilOp[zpass]);
+			this.stencilFailFront = this.stencilFailBack = fail;
+			this.stencilZfailFront = this.stencilZfailBack = zfail;
+			this.stencilZpassFront = this.stencilZpassBack = zpass;
+		}
+
+		if (this.stencilWriteMaskFront !== writeMask || this.stencilWriteMaskBack !== writeMask) {
+			this.gl.stencilMask(writeMask);
+			this.stencilWriteMaskFront = writeMask;
+			this.stencilWriteMaskBack = writeMask;
+		}
+	}
+
+	setStencilOperationFront(fail, zfail, zpass, writeMask) {
+		if (this.stencilFailFront !== fail || this.stencilZfailFront !== zfail || this.stencilZpassFront !== zpass) {
+			this.gl.stencilOpSeparate(this.gl.FRONT, this.glStencilOp[fail], this.glStencilOp[zfail], this.glStencilOp[zpass]);
+			this.stencilFailFront = fail;
+			this.stencilZfailFront = zfail;
+			this.stencilZpassFront = zpass;
+		}
+
+		if (this.stencilWriteMaskFront !== writeMask) {
+			this.gl.stencilMaskSeparate(this.gl.FRONT, writeMask);
+			this.stencilWriteMaskFront = writeMask;
+		}
+	}
+
+	setStencilOperationBack(fail, zfail, zpass, writeMask) {
+		if (this.stencilFailBack !== fail || this.stencilZfailBack !== zfail || this.stencilZpassBack !== zpass) {
+			this.gl.stencilOpSeparate(this.gl.BACK, this.glStencilOp[fail], this.glStencilOp[zfail], this.glStencilOp[zpass]);
+			this.stencilFailBack = fail;
+			this.stencilZfailBack = zfail;
+			this.stencilZpassBack = zpass;
+		}
+
+		if (this.stencilWriteMaskBack !== writeMask) {
+			this.gl.stencilMaskSeparate(this.gl.BACK, writeMask);
+			this.stencilWriteMaskBack = writeMask;
+		}
+	}
+
+	setBlendFunction(blendSrc, blendDst) {
+		if (this.blendSrc !== blendSrc || this.blendDst !== blendDst || this.separateAlphaBlend) {
+			this.gl.blendFunc(this.glBlendFunction[blendSrc], this.glBlendFunction[blendDst]);
+			this.blendSrc = blendSrc;
+			this.blendDst = blendDst;
+			this.separateAlphaBlend = false;
+		}
+	}
+
+	setBlendFunctionSeparate(blendSrc, blendDst, blendSrcAlpha, blendDstAlpha) {
+		if (this.blendSrc !== blendSrc || this.blendDst !== blendDst || this.blendSrcAlpha !== blendSrcAlpha || this.blendDstAlpha !== blendDstAlpha || !this.separateAlphaBlend) {
+			this.gl.blendFuncSeparate(this.glBlendFunction[blendSrc], this.glBlendFunction[blendDst], this.glBlendFunction[blendSrcAlpha], this.glBlendFunction[blendDstAlpha]);
+			this.blendSrc = blendSrc;
+			this.blendDst = blendDst;
+			this.blendSrcAlpha = blendSrcAlpha;
+			this.blendDstAlpha = blendDstAlpha;
+			this.separateAlphaBlend = true;
+		}
+	}
+
+	setBlendEquation(blendEquation) {
+		if (this.blendEquation !== blendEquation || this.separateAlphaEquation) {
+			this.gl.blendEquation(this.glBlendEquation[blendEquation]);
+			this.blendEquation = blendEquation;
+			this.separateAlphaEquation = false;
+		}
+	}
+
+	setBlendEquationSeparate(blendEquation, blendAlphaEquation) {
+		if (this.blendEquation !== blendEquation || this.blendAlphaEquation !== blendAlphaEquation || !this.separateAlphaEquation) {
+			this.gl.blendEquationSeparate(this.glBlendEquation[blendEquation], this.glBlendEquation[blendAlphaEquation]);
+			this.blendEquation = blendEquation;
+			this.blendAlphaEquation = blendAlphaEquation;
+			this.separateAlphaEquation = true;
+		}
+	}
+
+	setCullMode(cullMode) {
+		if (this.cullMode !== cullMode) {
+			if (cullMode === CULLFACE_NONE) {
+				this.gl.disable(this.gl.CULL_FACE);
+			} else {
+				if (this.cullMode === CULLFACE_NONE) {
+					this.gl.enable(this.gl.CULL_FACE);
+				}
+
+				const mode = this.glCull[cullMode];
+
+				if (this.cullFace !== mode) {
+					this.gl.cullFace(mode);
+					this.cullFace = mode;
+				}
+			}
+
+			this.cullMode = cullMode;
+		}
+	}
+
+	getCullMode() {
+		return this.cullMode;
+	}
+
+	setIndexBuffer(indexBuffer) {
+		this.indexBuffer = indexBuffer;
+	}
+
+	setVertexBuffer(vertexBuffer) {
+		if (vertexBuffer) {
+			this.vertexBuffers.push(vertexBuffer);
+		}
+	}
+
+	setShader(shader) {
+		if (shader !== this.shader) {
+			if (shader.failed) {
+				return false;
+			} else if (!shader.ready && !shader.impl.postLink(this, shader)) {
+				shader.failed = true;
+				return false;
+			}
+
+			this.shader = shader;
+			this.gl.useProgram(shader.impl.glProgram);
+			this.attributesInvalidated = true;
+		}
+
+		return true;
+	}
+
+	getHdrFormat() {
+		if (this.textureHalfFloatRenderable) {
+			return PIXELFORMAT_RGBA16F;
+		} else if (this.textureFloatRenderable) {
+			return PIXELFORMAT_RGBA32F;
+		}
+
+		return PIXELFORMAT_R8_G8_B8_A8;
+	}
+
+	getBoneLimit() {
+		return this.boneLimit;
+	}
+
+	setBoneLimit(maxBones) {
+		this.boneLimit = maxBones;
+	}
+
+	clearShaderCache() {
+		const gl = this.gl;
+
+		for (const shaderSrc in this.fragmentShaderCache) {
+			gl.deleteShader(this.fragmentShaderCache[shaderSrc]);
+			delete this.fragmentShaderCache[shaderSrc];
+		}
+
+		for (const shaderSrc in this.vertexShaderCache) {
+			gl.deleteShader(this.vertexShaderCache[shaderSrc]);
+			delete this.vertexShaderCache[shaderSrc];
+		}
+
+		this.programLib.clearCache();
+	}
+
+	clearVertexArrayObjectCache() {
+		const gl = this.gl;
+
+		this._vaoMap.forEach((item, key, mapObj) => {
+			gl.deleteVertexArray(item);
+		});
+
+		this._vaoMap.clear();
+	}
+
+	removeShaderFromCache(shader) {
+		this.programLib.removeFromCache(shader);
+	}
+
+	get width() {
+		return this.gl.drawingBufferWidth || this.canvas.width;
+	}
+
+	get height() {
+		return this.gl.drawingBufferHeight || this.canvas.height;
+	}
+
+	set fullscreen(fullscreen) {
+		if (fullscreen) {
+			const canvas = this.gl.canvas;
+			canvas.requestFullscreen();
+		} else {
+			document.exitFullscreen();
+		}
+	}
+
+	get fullscreen() {
+		return !!document.fullscreenElement;
+	}
+
+	get textureFloatHighPrecision() {
+		if (this._textureFloatHighPrecision === undefined) {
+			this._textureFloatHighPrecision = testTextureFloatHighPrecision(this);
+		}
+
+		return this._textureFloatHighPrecision;
+	}
+
+	get textureHalfFloatUpdatable() {
+		if (this._textureHalfFloatUpdatable === undefined) {
+			if (this.webgl2) {
+				this._textureHalfFloatUpdatable = true;
+			} else {
+				this._textureHalfFloatUpdatable = testTextureHalfFloatUpdatable(this.gl, this.extTextureHalfFloat.HALF_FLOAT_OES);
+			}
+		}
+
+		return this._textureHalfFloatUpdatable;
 	}
 
 }
@@ -19807,17 +19896,6 @@ class WorldClusters {
 
 }
 
-class DepthMaterial extends Material {
-	updateShader(device) {
-		const options = {
-			skin: !!this.meshInstances[0].skinInstance
-		};
-		const library = device.getProgramLibrary();
-		this.shader = library.getProgram('depth', options);
-	}
-
-}
-
 const textureBlitVertexShader = `
 		attribute vec2 vertex_position;
 		varying vec2 uv0;
@@ -20818,7 +20896,7 @@ class ShadowRenderer {
 			forwardRenderer.setMorphing(device, meshInstance.morphInstance);
 			const style = meshInstance.renderStyle;
 			device.setIndexBuffer(mesh.indexBuffer[style]);
-			i += forwardRenderer.drawInstance(device, meshInstance, mesh, style);
+			forwardRenderer.drawInstance(device, meshInstance, mesh, style);
 			forwardRenderer._shadowDrawCalls++;
 		}
 	}
@@ -21209,7 +21287,6 @@ const tempSphere$1 = new BoundingSphere();
 const boneTextureSize = [0, 0, 0, 0];
 let boneTexture, instancingData, modelMatrix, normalMatrix;
 let keyA$1, keyB$1;
-let _autoInstanceBuffer = null;
 let _skinUpdateIndex = 0;
 const _drawCallList = {
 	drawCalls: [],
@@ -21238,14 +21315,11 @@ class ForwardRenderer {
 		this._sortTime = 0;
 		this._skinTime = 0;
 		this._morphTime = 0;
-		this._instancingTime = 0;
-		this._removedByInstancing = 0;
 		this._layerCompositionUpdateTime = 0;
 		this._lightClustersTime = 0;
 		this._lightClusters = 0;
 		const device = this.device;
-		const library = device.getProgramLibrary();
-		this.library = library;
+		this.library = device.getProgramLibrary();
 		this.lightTextureAtlas = new LightTextureAtlas(device);
 		this._shadowRenderer = new ShadowRenderer(this, this.lightTextureAtlas);
 		this._cookieRenderer = new CookieRenderer(device, this.lightTextureAtlas);
@@ -21624,7 +21698,7 @@ class ForwardRenderer {
 		this.shadowCascadeCountId[i] = scope.resolve(light + "_shadowCascadeCount");
 	}
 
-	setLTCDirectionallLight(wtm, cnt, dir, campos, far) {
+	setLTCDirectionalLight(wtm, cnt, dir, campos, far) {
 		this.lightPos[cnt][0] = campos.x - dir.x * far;
 		this.lightPos[cnt][1] = campos.y - dir.y * far;
 		this.lightPos[cnt][2] = campos.z - dir.z * far;
@@ -21666,7 +21740,7 @@ class ForwardRenderer {
 			this.lightDirId[cnt].setValue(this.lightDir[cnt]);
 
 			if (directional.shape !== LIGHTSHAPE_PUNCTUAL) {
-				this.setLTCDirectionallLight(wtm, cnt, directional._direction, camera._node.getPosition(), camera.farClip);
+				this.setLTCDirectionalLight(wtm, cnt, directional._direction, camera._node.getPosition(), camera.farClip);
 			}
 
 			if (directional.castShadows) {
@@ -22014,12 +22088,6 @@ class ForwardRenderer {
 				this._instancedDrawCalls++;
 				device.setVertexBuffer(instancingData.vertexBuffer);
 				device.draw(mesh.primitive[style], instancingData.count);
-
-				if (instancingData.vertexBuffer === _autoInstanceBuffer) {
-					this._removedByInstancing += instancingData.count;
-					meshInstance.instancingData = null;
-					return instancingData.count - 1;
-				}
 			}
 		} else {
 			modelMatrix = meshInstance.node.worldTransform;
@@ -22039,8 +22107,6 @@ class ForwardRenderer {
 
 			device.draw(mesh.primitive[style]);
 		}
-
-		return 0;
 	}
 
 	drawInstance2(device, meshInstance, mesh, style) {
@@ -22050,18 +22116,10 @@ class ForwardRenderer {
 			if (instancingData.count > 0) {
 				this._instancedDrawCalls++;
 				device.draw(mesh.primitive[style], instancingData.count, true);
-
-				if (instancingData.vertexBuffer === _autoInstanceBuffer) {
-					this._removedByInstancing += instancingData.count;
-					meshInstance.instancingData = null;
-					return instancingData.count - 1;
-				}
 			}
 		} else {
 			device.draw(mesh.primitive[style], undefined, true);
 		}
-
-		return 0;
 	}
 
 	renderShadows(lights, camera) {
@@ -22221,7 +22279,7 @@ class ForwardRenderer {
 			if (drawCall.command) {
 				addCall(drawCall, false, false);
 			} else {
-				if (!drawCall.material) drawCall.material = DefaultMaterial.get(device);
+				if (!drawCall.material) drawCall.material = getDefaultMaterial(device);
 				const material = drawCall.material;
 				const objDefs = drawCall._shaderDefs;
 				const lightMask = drawCall.mask;
@@ -22295,9 +22353,7 @@ class ForwardRenderer {
 				if (newMaterial) {
 					const shader = drawCall._shader[pass];
 
-					if (!shader.failed && !device.setShader(shader)) {
-						shader.failed = true;
-					}
+					if (!shader.failed && !device.setShader(shader)) ;
 
 					material.setParameters(device);
 
@@ -22392,7 +22448,7 @@ class ForwardRenderer {
 					this.viewId3.setValue(viewMat3L.data);
 					this.viewProjId.setValue(viewProjMatL.data);
 					this.dispatchViewPos(viewPosL);
-					i += this.drawInstance(device, drawCall, mesh, style, true);
+					this.drawInstance(device, drawCall, mesh, style, true);
 					this._forwardDrawCalls++;
 					device.setViewport(halfWidth, 0, halfWidth, device.height);
 					this.projId.setValue(projR.data);
@@ -22402,7 +22458,7 @@ class ForwardRenderer {
 					this.viewId3.setValue(viewMat3R.data);
 					this.viewProjId.setValue(viewProjMatR.data);
 					this.dispatchViewPos(viewPosR);
-					i += this.drawInstance2(device, drawCall, mesh, style);
+					this.drawInstance2(device, drawCall, mesh, style);
 					this._forwardDrawCalls++;
 				} else if (camera.xr && camera.xr.session && camera.xr.views.length) {
 					const views = camera.xr.views;
@@ -22419,15 +22475,15 @@ class ForwardRenderer {
 						this.viewPosId.setValue(view.position);
 
 						if (v === 0) {
-							i += this.drawInstance(device, drawCall, mesh, style, true);
+							this.drawInstance(device, drawCall, mesh, style, true);
 						} else {
-							i += this.drawInstance2(device, drawCall, mesh, style);
+							this.drawInstance2(device, drawCall, mesh, style);
 						}
 
 						this._forwardDrawCalls++;
 					}
 				} else {
-					i += this.drawInstance(device, drawCall, mesh, style, true);
+					this.drawInstance(device, drawCall, mesh, style, true);
 					this._forwardDrawCalls++;
 				}
 
@@ -22439,14 +22495,6 @@ class ForwardRenderer {
 
 		device.updateEnd();
 		_drawCallList.length = 0;
-	}
-
-	setupInstancing(device) {
-		if (device.enableAutoInstancing) {
-			if (!_autoInstanceBuffer) {
-				_autoInstanceBuffer = new VertexBuffer(device, VertexFormat.defaultInstancingFormat, device.autoInstancingMaxObjects, BUFFER_DYNAMIC);
-			}
-		}
 	}
 
 	updateShaders(drawCalls, onlyLitShaders) {
@@ -22894,6 +22942,8 @@ class InstanceList {
 
 class Layer {
 	constructor(options = {}) {
+		this.name = void 0;
+
 		if (options.id !== undefined) {
 			this.id = options.id;
 			layerCounter = Math.max(this.id + 1, layerCounter);
@@ -23318,6 +23368,10 @@ const set = {
 	}
 };
 
+const cmpPriority = (a, b) => a.priority - b.priority;
+
+const sortPriority = arr => arr.sort(cmpPriority);
+
 class RenderAction {
 	constructor() {
 		this.layerIndex = 0;
@@ -23584,7 +23638,7 @@ class LayerComposition extends EventHandler {
 			}
 
 			if (this.cameras.length > 1) {
-				this.cameras.sort((a, b) => a.priority - b.priority);
+				sortPriority(this.cameras);
 			}
 
 			const cameraLayers = [];
@@ -25072,1724 +25126,6 @@ class AreaLightLuts {
 
 }
 
-let nonUniformScale;
-let uniformScale = 1;
-const particleTexChannels$1 = 4;
-const rotMat = new Mat4();
-const rotMatInv = new Mat4();
-const randomPosTformed = new Vec3();
-const randomPos = new Vec3();
-const rndFactor3Vec = new Vec3();
-const particlePosPrev = new Vec3();
-const velocityVec = new Vec3();
-const localVelocityVec = new Vec3();
-const velocityVec2 = new Vec3();
-const localVelocityVec2 = new Vec3();
-const radialVelocityVec = new Vec3();
-const particlePos = new Vec3();
-const particleFinalPos = new Vec3();
-const moveDirVec = new Vec3();
-const tmpVec3$1 = new Vec3();
-
-function frac(f) {
-	return f - Math.floor(f);
-}
-
-function saturate$1(x) {
-	return Math.max(Math.min(x, 1), 0);
-}
-
-function glMod(x, y) {
-	return x - y * Math.floor(x / y);
-}
-
-function encodeFloatRGBA(v) {
-	let encX = frac(v);
-	let encY = frac(255.0 * v);
-	let encZ = frac(65025.0 * v);
-	let encW = frac(160581375.0 * v);
-	encX -= encY / 255.0;
-	encY -= encZ / 255.0;
-	encZ -= encW / 255.0;
-	encW -= encW / 255.0;
-	return [encX, encY, encZ, encW];
-}
-
-function encodeFloatRG(v) {
-	let encX = frac(v);
-	let encY = frac(255.0 * v);
-	encX -= encY / 255.0;
-	encY -= encY / 255.0;
-	return [encX, encY];
-}
-
-class ParticleCPUUpdater {
-	constructor(emitter) {
-		this._emitter = emitter;
-	}
-
-	calcSpawnPosition(particleTex, spawnMatrix, extentsInnerRatioUniform, emitterPos, i) {
-		const emitter = this._emitter;
-		const rX = Math.random();
-		const rY = Math.random();
-		const rZ = Math.random();
-		const rW = Math.random();
-
-		if (emitter.useCpu) {
-			particleTex[i * particleTexChannels$1 + 0 + emitter.numParticlesPot * 2 * particleTexChannels$1] = rX;
-			particleTex[i * particleTexChannels$1 + 1 + emitter.numParticlesPot * 2 * particleTexChannels$1] = rY;
-			particleTex[i * particleTexChannels$1 + 2 + emitter.numParticlesPot * 2 * particleTexChannels$1] = rZ;
-		}
-
-		randomPos.x = rX - 0.5;
-		randomPos.y = rY - 0.5;
-		randomPos.z = rZ - 0.5;
-
-		if (emitter.emitterShape === EMITTERSHAPE_BOX) {
-			const max = Math.max(Math.abs(randomPos.x), Math.max(Math.abs(randomPos.y), Math.abs(randomPos.z)));
-			const edgeX = max + (0.5 - max) * extentsInnerRatioUniform[0];
-			const edgeY = max + (0.5 - max) * extentsInnerRatioUniform[1];
-			const edgeZ = max + (0.5 - max) * extentsInnerRatioUniform[2];
-			randomPos.x = edgeX * (max === Math.abs(randomPos.x) ? Math.sign(randomPos.x) : 2 * randomPos.x);
-			randomPos.y = edgeY * (max === Math.abs(randomPos.y) ? Math.sign(randomPos.y) : 2 * randomPos.y);
-			randomPos.z = edgeZ * (max === Math.abs(randomPos.z) ? Math.sign(randomPos.z) : 2 * randomPos.z);
-			if (!emitter.localSpace) randomPosTformed.copy(emitterPos).add(spawnMatrix.transformPoint(randomPos));else randomPosTformed.copy(spawnMatrix.transformPoint(randomPos));
-		} else {
-			randomPos.normalize();
-			const spawnBoundsSphereInnerRatio = emitter.emitterRadius === 0 ? 0 : emitter.emitterRadiusInner / emitter.emitterRadius;
-			const r = rW * (1.0 - spawnBoundsSphereInnerRatio) + spawnBoundsSphereInnerRatio;
-			if (!emitter.localSpace) randomPosTformed.copy(emitterPos).add(randomPos.mulScalar(r * emitter.emitterRadius));else randomPosTformed.copy(randomPos.mulScalar(r * emitter.emitterRadius));
-		}
-
-		const particleRate = math.lerp(emitter.rate, emitter.rate2, rX);
-		let startSpawnTime = -particleRate * i;
-
-		if (emitter.pack8) {
-			const packX = (randomPosTformed.x - emitter.worldBounds.center.x) / emitter.worldBoundsSize.x + 0.5;
-			const packY = (randomPosTformed.y - emitter.worldBounds.center.y) / emitter.worldBoundsSize.y + 0.5;
-			const packZ = (randomPosTformed.z - emitter.worldBounds.center.z) / emitter.worldBoundsSize.z + 0.5;
-			let packA = math.lerp(emitter.startAngle * math.DEG_TO_RAD, emitter.startAngle2 * math.DEG_TO_RAD, rX);
-			packA = packA % (Math.PI * 2) / (Math.PI * 2);
-			const rg0 = encodeFloatRG(packX);
-			particleTex[i * particleTexChannels$1] = rg0[0];
-			particleTex[i * particleTexChannels$1 + 1] = rg0[1];
-			const ba0 = encodeFloatRG(packY);
-			particleTex[i * particleTexChannels$1 + 2] = ba0[0];
-			particleTex[i * particleTexChannels$1 + 3] = ba0[1];
-			const rg1 = encodeFloatRG(packZ);
-			particleTex[i * particleTexChannels$1 + 0 + emitter.numParticlesPot * particleTexChannels$1] = rg1[0];
-			particleTex[i * particleTexChannels$1 + 1 + emitter.numParticlesPot * particleTexChannels$1] = rg1[1];
-			const ba1 = encodeFloatRG(packA);
-			particleTex[i * particleTexChannels$1 + 2 + emitter.numParticlesPot * particleTexChannels$1] = ba1[0];
-			particleTex[i * particleTexChannels$1 + 3 + emitter.numParticlesPot * particleTexChannels$1] = ba1[1];
-			const a2 = 1.0;
-			particleTex[i * particleTexChannels$1 + 3 + emitter.numParticlesPot * particleTexChannels$1 * 2] = a2;
-			const maxNegLife = Math.max(emitter.lifetime, (emitter.numParticles - 1.0) * Math.max(emitter.rate, emitter.rate2));
-			const maxPosLife = emitter.lifetime + 1.0;
-			startSpawnTime = (startSpawnTime + maxNegLife) / (maxNegLife + maxPosLife);
-			const rgba3 = encodeFloatRGBA(startSpawnTime);
-			particleTex[i * particleTexChannels$1 + 0 + emitter.numParticlesPot * particleTexChannels$1 * 3] = rgba3[0];
-			particleTex[i * particleTexChannels$1 + 1 + emitter.numParticlesPot * particleTexChannels$1 * 3] = rgba3[1];
-			particleTex[i * particleTexChannels$1 + 2 + emitter.numParticlesPot * particleTexChannels$1 * 3] = rgba3[2];
-			particleTex[i * particleTexChannels$1 + 3 + emitter.numParticlesPot * particleTexChannels$1 * 3] = rgba3[3];
-		} else {
-			particleTex[i * particleTexChannels$1] = randomPosTformed.x;
-			particleTex[i * particleTexChannels$1 + 1] = randomPosTformed.y;
-			particleTex[i * particleTexChannels$1 + 2] = randomPosTformed.z;
-			particleTex[i * particleTexChannels$1 + 3] = math.lerp(emitter.startAngle * math.DEG_TO_RAD, emitter.startAngle2 * math.DEG_TO_RAD, rX);
-			particleTex[i * particleTexChannels$1 + 3 + emitter.numParticlesPot * particleTexChannels$1] = startSpawnTime;
-		}
-	}
-
-	update(data, vbToSort, particleTex, spawnMatrix, extentsInnerRatioUniform, emitterPos, delta, isOnStop) {
-		let a, b, c;
-		const emitter = this._emitter;
-
-		if (emitter.meshInstance.node) {
-			const fullMat = emitter.meshInstance.node.worldTransform;
-
-			for (let j = 0; j < 12; j++) {
-				rotMat.data[j] = fullMat.data[j];
-			}
-
-			rotMatInv.copy(rotMat);
-			rotMatInv.invert();
-			nonUniformScale = emitter.meshInstance.node.localScale;
-			uniformScale = Math.max(Math.max(nonUniformScale.x, nonUniformScale.y), nonUniformScale.z);
-		}
-
-		emitterPos = emitter.meshInstance.node === null || emitter.localSpace ? Vec3.ZERO : emitter.meshInstance.node.getPosition();
-		const posCam = emitter.camera ? emitter.camera._node.getPosition() : Vec3.ZERO;
-		const vertSize = !emitter.useMesh ? 15 : 17;
-		let cf, cc;
-		let rotSpeed, rotSpeed2, scale2, alpha, alpha2, radialSpeed, radialSpeed2;
-		const precision1 = emitter.precision - 1;
-
-		for (let i = 0; i < emitter.numParticles; i++) {
-			const id = Math.floor(emitter.vbCPU[i * emitter.numParticleVerts * (emitter.useMesh ? 6 : 4) + 3]);
-			const rndFactor = particleTex[id * particleTexChannels$1 + 0 + emitter.numParticlesPot * 2 * particleTexChannels$1];
-			rndFactor3Vec.x = rndFactor;
-			rndFactor3Vec.y = particleTex[id * particleTexChannels$1 + 1 + emitter.numParticlesPot * 2 * particleTexChannels$1];
-			rndFactor3Vec.z = particleTex[id * particleTexChannels$1 + 2 + emitter.numParticlesPot * 2 * particleTexChannels$1];
-			const particleRate = emitter.rate + (emitter.rate2 - emitter.rate) * rndFactor;
-			const particleLifetime = emitter.lifetime;
-			let life = particleTex[id * particleTexChannels$1 + 3 + emitter.numParticlesPot * particleTexChannels$1] + delta;
-			const nlife = saturate$1(life / particleLifetime);
-			let scale = 0;
-			let alphaDiv = 0;
-			const angle = 0;
-			const respawn = life - delta <= 0.0 || life >= particleLifetime;
-
-			if (respawn) {
-				this.calcSpawnPosition(particleTex, spawnMatrix, extentsInnerRatioUniform, emitterPos, id);
-			}
-
-			let particleEnabled = life > 0.0 && life < particleLifetime;
-
-			if (particleEnabled) {
-				c = nlife * precision1;
-				cf = Math.floor(c);
-				cc = Math.ceil(c);
-				c %= 1;
-				a = emitter.qRotSpeed[cf];
-				b = emitter.qRotSpeed[cc];
-				rotSpeed = a + (b - a) * c;
-				a = emitter.qRotSpeed2[cf];
-				b = emitter.qRotSpeed2[cc];
-				rotSpeed2 = a + (b - a) * c;
-				a = emitter.qScale[cf];
-				b = emitter.qScale[cc];
-				scale = a + (b - a) * c;
-				a = emitter.qScale2[cf];
-				b = emitter.qScale2[cc];
-				scale2 = a + (b - a) * c;
-				a = emitter.qAlpha[cf];
-				b = emitter.qAlpha[cc];
-				alpha = a + (b - a) * c;
-				a = emitter.qAlpha2[cf];
-				b = emitter.qAlpha2[cc];
-				alpha2 = a + (b - a) * c;
-				a = emitter.qRadialSpeed[cf];
-				b = emitter.qRadialSpeed[cc];
-				radialSpeed = a + (b - a) * c;
-				a = emitter.qRadialSpeed2[cf];
-				b = emitter.qRadialSpeed2[cc];
-				radialSpeed2 = a + (b - a) * c;
-				radialSpeed += (radialSpeed2 - radialSpeed) * (rndFactor * 100.0 % 1.0);
-				particlePosPrev.x = particleTex[id * particleTexChannels$1];
-				particlePosPrev.y = particleTex[id * particleTexChannels$1 + 1];
-				particlePosPrev.z = particleTex[id * particleTexChannels$1 + 2];
-				if (!emitter.localSpace) radialVelocityVec.copy(particlePosPrev).sub(emitterPos);else radialVelocityVec.copy(particlePosPrev);
-				radialVelocityVec.normalize().mulScalar(radialSpeed);
-				cf *= 3;
-				cc *= 3;
-				a = emitter.qLocalVelocity[cf];
-				b = emitter.qLocalVelocity[cc];
-				localVelocityVec.x = a + (b - a) * c;
-				a = emitter.qLocalVelocity[cf + 1];
-				b = emitter.qLocalVelocity[cc + 1];
-				localVelocityVec.y = a + (b - a) * c;
-				a = emitter.qLocalVelocity[cf + 2];
-				b = emitter.qLocalVelocity[cc + 2];
-				localVelocityVec.z = a + (b - a) * c;
-				a = emitter.qLocalVelocity2[cf];
-				b = emitter.qLocalVelocity2[cc];
-				localVelocityVec2.x = a + (b - a) * c;
-				a = emitter.qLocalVelocity2[cf + 1];
-				b = emitter.qLocalVelocity2[cc + 1];
-				localVelocityVec2.y = a + (b - a) * c;
-				a = emitter.qLocalVelocity2[cf + 2];
-				b = emitter.qLocalVelocity2[cc + 2];
-				localVelocityVec2.z = a + (b - a) * c;
-				a = emitter.qVelocity[cf];
-				b = emitter.qVelocity[cc];
-				velocityVec.x = a + (b - a) * c;
-				a = emitter.qVelocity[cf + 1];
-				b = emitter.qVelocity[cc + 1];
-				velocityVec.y = a + (b - a) * c;
-				a = emitter.qVelocity[cf + 2];
-				b = emitter.qVelocity[cc + 2];
-				velocityVec.z = a + (b - a) * c;
-				a = emitter.qVelocity2[cf];
-				b = emitter.qVelocity2[cc];
-				velocityVec2.x = a + (b - a) * c;
-				a = emitter.qVelocity2[cf + 1];
-				b = emitter.qVelocity2[cc + 1];
-				velocityVec2.y = a + (b - a) * c;
-				a = emitter.qVelocity2[cf + 2];
-				b = emitter.qVelocity2[cc + 2];
-				velocityVec2.z = a + (b - a) * c;
-				localVelocityVec.x += (localVelocityVec2.x - localVelocityVec.x) * rndFactor3Vec.x;
-				localVelocityVec.y += (localVelocityVec2.y - localVelocityVec.y) * rndFactor3Vec.y;
-				localVelocityVec.z += (localVelocityVec2.z - localVelocityVec.z) * rndFactor3Vec.z;
-
-				if (emitter.initialVelocity > 0) {
-					if (emitter.emitterShape === EMITTERSHAPE_SPHERE) {
-						randomPos.copy(rndFactor3Vec).mulScalar(2).sub(Vec3.ONE).normalize();
-						localVelocityVec.add(randomPos.mulScalar(emitter.initialVelocity));
-					} else {
-						localVelocityVec.add(Vec3.FORWARD.mulScalar(emitter.initialVelocity));
-					}
-				}
-
-				velocityVec.x += (velocityVec2.x - velocityVec.x) * rndFactor3Vec.x;
-				velocityVec.y += (velocityVec2.y - velocityVec.y) * rndFactor3Vec.y;
-				velocityVec.z += (velocityVec2.z - velocityVec.z) * rndFactor3Vec.z;
-				rotSpeed += (rotSpeed2 - rotSpeed) * rndFactor3Vec.y;
-				scale = (scale + (scale2 - scale) * (rndFactor * 10000.0 % 1.0)) * uniformScale;
-				alphaDiv = (alpha2 - alpha) * (rndFactor * 1000.0 % 1.0);
-
-				if (emitter.meshInstance.node) {
-					if (!emitter.localSpace) {
-						rotMat.transformPoint(localVelocityVec, localVelocityVec);
-					} else {
-						localVelocityVec.x /= nonUniformScale.x;
-						localVelocityVec.y /= nonUniformScale.y;
-						localVelocityVec.z /= nonUniformScale.z;
-					}
-				}
-
-				if (!emitter.localSpace) {
-					localVelocityVec.add(velocityVec.mul(nonUniformScale));
-					localVelocityVec.add(radialVelocityVec.mul(nonUniformScale));
-				} else {
-					rotMatInv.transformPoint(velocityVec, velocityVec);
-					localVelocityVec.add(velocityVec).add(radialVelocityVec);
-				}
-
-				moveDirVec.copy(localVelocityVec);
-				particlePos.copy(particlePosPrev).add(localVelocityVec.mulScalar(delta));
-				particleFinalPos.copy(particlePos);
-				particleTex[id * particleTexChannels$1] = particleFinalPos.x;
-				particleTex[id * particleTexChannels$1 + 1] = particleFinalPos.y;
-				particleTex[id * particleTexChannels$1 + 2] = particleFinalPos.z;
-				particleTex[id * particleTexChannels$1 + 3] += rotSpeed * delta;
-
-				if (emitter.wrap && emitter.wrapBounds) {
-					if (!emitter.localSpace) particleFinalPos.sub(emitterPos);
-					particleFinalPos.x = glMod(particleFinalPos.x, emitter.wrapBounds.x) - emitter.wrapBounds.x * 0.5;
-					particleFinalPos.y = glMod(particleFinalPos.y, emitter.wrapBounds.y) - emitter.wrapBounds.y * 0.5;
-					particleFinalPos.z = glMod(particleFinalPos.z, emitter.wrapBounds.z) - emitter.wrapBounds.z * 0.5;
-					if (!emitter.localSpace) particleFinalPos.add(emitterPos);
-				}
-
-				if (emitter.sort > 0) {
-					if (emitter.sort === 1) {
-						tmpVec3$1.copy(particleFinalPos).sub(posCam);
-						emitter.particleDistance[id] = -(tmpVec3$1.x * tmpVec3$1.x + tmpVec3$1.y * tmpVec3$1.y + tmpVec3$1.z * tmpVec3$1.z);
-					} else if (emitter.sort === 2) {
-						emitter.particleDistance[id] = life;
-					} else if (emitter.sort === 3) {
-						emitter.particleDistance[id] = -life;
-					}
-				}
-			}
-
-			if (isOnStop) {
-				if (life < 0) {
-					particleTex[id * particleTexChannels$1 + 3 + emitter.numParticlesPot * 2 * particleTexChannels$1] = -1;
-				}
-			} else {
-				if (life >= particleLifetime) {
-					life -= Math.max(particleLifetime, (emitter.numParticles - 1) * particleRate);
-					particleTex[id * particleTexChannels$1 + 3 + emitter.numParticlesPot * 2 * particleTexChannels$1] = emitter.loop ? 1 : -1;
-				}
-
-				if (life < 0 && emitter.loop) {
-					particleTex[id * particleTexChannels$1 + 3 + emitter.numParticlesPot * 2 * particleTexChannels$1] = 1;
-				}
-			}
-
-			if (particleTex[id * particleTexChannels$1 + 3 + emitter.numParticlesPot * 2 * particleTexChannels$1] < 0) particleEnabled = false;
-			particleTex[id * particleTexChannels$1 + 3 + emitter.numParticlesPot * particleTexChannels$1] = life;
-
-			for (let v = 0; v < emitter.numParticleVerts; v++) {
-				const vbOffset = (i * emitter.numParticleVerts + v) * (emitter.useMesh ? 6 : 4);
-				let quadX = emitter.vbCPU[vbOffset];
-				let quadY = emitter.vbCPU[vbOffset + 1];
-				let quadZ = emitter.vbCPU[vbOffset + 2];
-
-				if (!particleEnabled) {
-					quadX = quadY = quadZ = 0;
-				}
-
-				const w = i * emitter.numParticleVerts * vertSize + v * vertSize;
-				data[w] = particleFinalPos.x;
-				data[w + 1] = particleFinalPos.y;
-				data[w + 2] = particleFinalPos.z;
-				data[w + 3] = nlife;
-				data[w + 4] = emitter.alignToMotion ? angle : particleTex[id * particleTexChannels$1 + 3];
-				data[w + 5] = scale;
-				data[w + 6] = alphaDiv;
-				data[w + 7] = moveDirVec.x;
-				data[w + 8] = quadX;
-				data[w + 9] = quadY;
-				data[w + 10] = quadZ;
-				data[w + 11] = moveDirVec.y;
-				data[w + 12] = id;
-				data[w + 13] = moveDirVec.z;
-				data[w + 14] = emitter.vbCPU[vbOffset + 3];
-
-				if (emitter.useMesh) {
-					data[w + 15] = emitter.vbCPU[vbOffset + 4];
-					data[w + 16] = emitter.vbCPU[vbOffset + 5];
-				}
-			}
-		}
-
-		if (emitter.sort > PARTICLESORT_NONE && emitter.camera) {
-			const vbStride = emitter.useMesh ? 6 : 4;
-			const particleDistance = emitter.particleDistance;
-
-			for (let i = 0; i < emitter.numParticles; i++) {
-				vbToSort[i][0] = i;
-				vbToSort[i][1] = particleDistance[Math.floor(emitter.vbCPU[i * emitter.numParticleVerts * vbStride + 3])];
-			}
-
-			emitter.vbOld.set(emitter.vbCPU);
-			vbToSort.sort(function (p1, p2) {
-				return p1[1] - p2[1];
-			});
-
-			for (let i = 0; i < emitter.numParticles; i++) {
-				const src = vbToSort[i][0] * emitter.numParticleVerts * vbStride;
-				const dest = i * emitter.numParticleVerts * vbStride;
-
-				for (let j = 0; j < emitter.numParticleVerts * vbStride; j++) {
-					emitter.vbCPU[dest + j] = emitter.vbOld[src + j];
-				}
-			}
-		}
-	}
-
-}
-
-const spawnMatrix3 = new Mat3();
-const emitterMatrix3 = new Mat3();
-const emitterMatrix3Inv = new Mat3();
-
-class ParticleGPUUpdater {
-	constructor(emitter, gd) {
-		this._emitter = emitter;
-		this.frameRandomUniform = new Float32Array(3);
-		this.emitterPosUniform = new Float32Array(3);
-		this.emitterScaleUniform = new Float32Array([1, 1, 1]);
-		this.worldBoundsMulUniform = new Float32Array(3);
-		this.worldBoundsAddUniform = new Float32Array(3);
-		this.inBoundsSizeUniform = new Float32Array(3);
-		this.inBoundsCenterUniform = new Float32Array(3);
-		this.constantParticleTexIN = gd.scope.resolve("particleTexIN");
-		this.constantParticleTexOUT = gd.scope.resolve("particleTexOUT");
-		this.constantEmitterPos = gd.scope.resolve("emitterPos");
-		this.constantEmitterScale = gd.scope.resolve("emitterScale");
-		this.constantSpawnBounds = gd.scope.resolve("spawnBounds");
-		this.constantSpawnPosInnerRatio = gd.scope.resolve("spawnPosInnerRatio");
-		this.constantSpawnBoundsSphere = gd.scope.resolve("spawnBoundsSphere");
-		this.constantSpawnBoundsSphereInnerRatio = gd.scope.resolve("spawnBoundsSphereInnerRatio");
-		this.constantInitialVelocity = gd.scope.resolve("initialVelocity");
-		this.constantFrameRandom = gd.scope.resolve("frameRandom");
-		this.constantDelta = gd.scope.resolve("delta");
-		this.constantRate = gd.scope.resolve("rate");
-		this.constantRateDiv = gd.scope.resolve("rateDiv");
-		this.constantLifetime = gd.scope.resolve("lifetime");
-		this.constantGraphSampleSize = gd.scope.resolve("graphSampleSize");
-		this.constantGraphNumSamples = gd.scope.resolve("graphNumSamples");
-		this.constantInternalTex0 = gd.scope.resolve("internalTex0");
-		this.constantInternalTex1 = gd.scope.resolve("internalTex1");
-		this.constantInternalTex2 = gd.scope.resolve("internalTex2");
-		this.constantInternalTex3 = gd.scope.resolve("internalTex3");
-		this.constantEmitterMatrix = gd.scope.resolve("emitterMatrix");
-		this.constantEmitterMatrixInv = gd.scope.resolve("emitterMatrixInv");
-		this.constantNumParticles = gd.scope.resolve("numParticles");
-		this.constantNumParticlesPot = gd.scope.resolve("numParticlesPot");
-		this.constantLocalVelocityDivMult = gd.scope.resolve("localVelocityDivMult");
-		this.constantVelocityDivMult = gd.scope.resolve("velocityDivMult");
-		this.constantRotSpeedDivMult = gd.scope.resolve("rotSpeedDivMult");
-		this.constantSeed = gd.scope.resolve("seed");
-		this.constantStartAngle = gd.scope.resolve("startAngle");
-		this.constantStartAngle2 = gd.scope.resolve("startAngle2");
-		this.constantOutBoundsMul = gd.scope.resolve("outBoundsMul");
-		this.constantOutBoundsAdd = gd.scope.resolve("outBoundsAdd");
-		this.constantInBoundsSize = gd.scope.resolve("inBoundsSize");
-		this.constantInBoundsCenter = gd.scope.resolve("inBoundsCenter");
-		this.constantMaxVel = gd.scope.resolve("maxVel");
-		this.constantFaceTangent = gd.scope.resolve("faceTangent");
-		this.constantFaceBinorm = gd.scope.resolve("faceBinorm");
-	}
-
-	_setInputBounds() {
-		this.inBoundsSizeUniform[0] = this._emitter.prevWorldBoundsSize.x;
-		this.inBoundsSizeUniform[1] = this._emitter.prevWorldBoundsSize.y;
-		this.inBoundsSizeUniform[2] = this._emitter.prevWorldBoundsSize.z;
-		this.constantInBoundsSize.setValue(this.inBoundsSizeUniform);
-		this.inBoundsCenterUniform[0] = this._emitter.prevWorldBoundsCenter.x;
-		this.inBoundsCenterUniform[1] = this._emitter.prevWorldBoundsCenter.y;
-		this.inBoundsCenterUniform[2] = this._emitter.prevWorldBoundsCenter.z;
-		this.constantInBoundsCenter.setValue(this.inBoundsCenterUniform);
-	}
-
-	randomize() {
-		this.frameRandomUniform[0] = Math.random();
-		this.frameRandomUniform[1] = Math.random();
-		this.frameRandomUniform[2] = Math.random();
-	}
-
-	update(device, spawnMatrix, extentsInnerRatioUniform, delta, isOnStop) {
-		const emitter = this._emitter;
-		device.setBlending(false);
-		device.setColorWrite(true, true, true, true);
-		device.setCullMode(CULLFACE_NONE);
-		device.setDepthTest(false);
-		device.setDepthWrite(false);
-		this.randomize();
-		this.constantGraphSampleSize.setValue(1.0 / emitter.precision);
-		this.constantGraphNumSamples.setValue(emitter.precision);
-		this.constantNumParticles.setValue(emitter.numParticles);
-		this.constantNumParticlesPot.setValue(emitter.numParticlesPot);
-		this.constantInternalTex0.setValue(emitter.internalTex0);
-		this.constantInternalTex1.setValue(emitter.internalTex1);
-		this.constantInternalTex2.setValue(emitter.internalTex2);
-		this.constantInternalTex3.setValue(emitter.internalTex3);
-		const node = emitter.meshInstance.node;
-		const emitterScale = node === null ? Vec3.ONE : node.localScale;
-
-		if (emitter.pack8) {
-			this.worldBoundsMulUniform[0] = emitter.worldBoundsMul.x;
-			this.worldBoundsMulUniform[1] = emitter.worldBoundsMul.y;
-			this.worldBoundsMulUniform[2] = emitter.worldBoundsMul.z;
-			this.constantOutBoundsMul.setValue(this.worldBoundsMulUniform);
-			this.worldBoundsAddUniform[0] = emitter.worldBoundsAdd.x;
-			this.worldBoundsAddUniform[1] = emitter.worldBoundsAdd.y;
-			this.worldBoundsAddUniform[2] = emitter.worldBoundsAdd.z;
-			this.constantOutBoundsAdd.setValue(this.worldBoundsAddUniform);
-
-			this._setInputBounds();
-
-			let maxVel = emitter.maxVel * Math.max(Math.max(emitterScale.x, emitterScale.y), emitterScale.z);
-			maxVel = Math.max(maxVel, 1);
-			this.constantMaxVel.setValue(maxVel);
-		}
-
-		const emitterPos = node === null || emitter.localSpace ? Vec3.ZERO : node.getPosition();
-		const emitterMatrix = node === null ? Mat4.IDENTITY : node.getWorldTransform();
-
-		if (emitter.emitterShape === EMITTERSHAPE_BOX) {
-			spawnMatrix3.setFromMat4(spawnMatrix);
-			this.constantSpawnBounds.setValue(spawnMatrix3.data);
-			this.constantSpawnPosInnerRatio.setValue(extentsInnerRatioUniform);
-		} else {
-			this.constantSpawnBoundsSphere.setValue(emitter.emitterRadius);
-			this.constantSpawnBoundsSphereInnerRatio.setValue(emitter.emitterRadius === 0 ? 0 : emitter.emitterRadiusInner / emitter.emitterRadius);
-		}
-
-		this.constantInitialVelocity.setValue(emitter.initialVelocity);
-		emitterMatrix3.setFromMat4(emitterMatrix);
-		emitterMatrix.invertTo3x3(emitterMatrix3Inv);
-		this.emitterPosUniform[0] = emitterPos.x;
-		this.emitterPosUniform[1] = emitterPos.y;
-		this.emitterPosUniform[2] = emitterPos.z;
-		this.constantEmitterPos.setValue(this.emitterPosUniform);
-		this.constantFrameRandom.setValue(this.frameRandomUniform);
-		this.constantDelta.setValue(delta);
-		this.constantRate.setValue(emitter.rate);
-		this.constantRateDiv.setValue(emitter.rate2 - emitter.rate);
-		this.constantStartAngle.setValue(emitter.startAngle * math.DEG_TO_RAD);
-		this.constantStartAngle2.setValue(emitter.startAngle2 * math.DEG_TO_RAD);
-		this.constantSeed.setValue(emitter.seed);
-		this.constantLifetime.setValue(emitter.lifetime);
-		this.emitterScaleUniform[0] = emitterScale.x;
-		this.emitterScaleUniform[1] = emitterScale.y;
-		this.emitterScaleUniform[2] = emitterScale.z;
-		this.constantEmitterScale.setValue(this.emitterScaleUniform);
-		this.constantEmitterMatrix.setValue(emitterMatrix3.data);
-		this.constantEmitterMatrixInv.setValue(emitterMatrix3Inv.data);
-		this.constantLocalVelocityDivMult.setValue(emitter.localVelocityUMax);
-		this.constantVelocityDivMult.setValue(emitter.velocityUMax);
-		this.constantRotSpeedDivMult.setValue(emitter.rotSpeedUMax[0]);
-		let texIN = emitter.swapTex ? emitter.particleTexOUT : emitter.particleTexIN;
-		texIN = emitter.beenReset ? emitter.particleTexStart : texIN;
-		const texOUT = emitter.swapTex ? emitter.particleTexIN : emitter.particleTexOUT;
-		this.constantParticleTexIN.setValue(texIN);
-		drawQuadWithShader(device, emitter.swapTex ? emitter.rtParticleTexIN : emitter.rtParticleTexOUT, !isOnStop ? emitter.loop ? emitter.shaderParticleUpdateRespawn : emitter.shaderParticleUpdateNoRespawn : emitter.shaderParticleUpdateOnStop);
-		emitter.material.setParameter("particleTexOUT", texIN);
-		emitter.material.setParameter("particleTexIN", texOUT);
-		emitter.beenReset = false;
-		emitter.swapTex = !emitter.swapTex;
-		device.setDepthTest(true);
-		device.setDepthWrite(true);
-		emitter.prevWorldBoundsSize.copy(emitter.worldBoundsSize);
-		emitter.prevWorldBoundsCenter.copy(emitter.worldBounds.center);
-		if (emitter.pack8) this._setInputBounds();
-	}
-
-}
-
-const particleVerts = [[-1, -1], [1, -1], [1, 1], [-1, 1]];
-
-function _createTexture(device, width, height, pixelData, format = PIXELFORMAT_RGBA32F, mult8Bit, filter) {
-	let mipFilter = FILTER_NEAREST;
-	if (filter && format === PIXELFORMAT_R8_G8_B8_A8) mipFilter = FILTER_LINEAR;
-	const texture = new Texture(device, {
-		width: width,
-		height: height,
-		format: format,
-		cubemap: false,
-		mipmaps: false,
-		minFilter: mipFilter,
-		magFilter: mipFilter,
-		addressU: ADDRESS_CLAMP_TO_EDGE,
-		addressV: ADDRESS_CLAMP_TO_EDGE
-	});
-	texture.name = "PSTexture";
-	const pixels = texture.lock();
-
-	if (format === PIXELFORMAT_R8_G8_B8_A8) {
-		const temp = new Uint8Array(pixelData.length);
-
-		for (let i = 0; i < pixelData.length; i++) {
-			temp[i] = pixelData[i] * mult8Bit * 255;
-		}
-
-		pixelData = temp;
-	}
-
-	pixels.set(pixelData);
-	texture.unlock();
-	return texture;
-}
-
-function saturate(x) {
-	return Math.max(Math.min(x, 1), 0);
-}
-
-const default0Curve = new Curve([0, 0, 1, 0]);
-const default1Curve = new Curve([0, 1, 1, 1]);
-const default0Curve3 = new CurveSet([0, 0, 1, 0], [0, 0, 1, 0], [0, 0, 1, 0]);
-const default1Curve3 = new CurveSet([0, 1, 1, 1], [0, 1, 1, 1], [0, 1, 1, 1]);
-let particleTexHeight = 2;
-const particleTexChannels = 4;
-const extentsInnerRatioUniform = new Float32Array(3);
-const spawnMatrix = new Mat4();
-const tmpVec3 = new Vec3();
-const bMin = new Vec3();
-const bMax = new Vec3();
-let setPropertyTarget;
-let setPropertyOptions;
-
-function setProperty(pName, defaultVal) {
-	if (setPropertyOptions[pName] !== undefined && setPropertyOptions[pName] !== null) {
-		setPropertyTarget[pName] = setPropertyOptions[pName];
-	} else {
-		setPropertyTarget[pName] = defaultVal;
-	}
-}
-
-function pack3NFloats(a, b, c) {
-	const packed = a * 255 << 16 | b * 255 << 8 | c * 255;
-	return packed / (1 << 24);
-}
-
-function packTextureXYZ_NXYZ(qXYZ, qXYZ2) {
-	const num = qXYZ.length / 3;
-	const colors = new Array(num * 4);
-
-	for (let i = 0; i < num; i++) {
-		colors[i * 4] = qXYZ[i * 3];
-		colors[i * 4 + 1] = qXYZ[i * 3 + 1];
-		colors[i * 4 + 2] = qXYZ[i * 3 + 2];
-		colors[i * 4 + 3] = pack3NFloats(qXYZ2[i * 3], qXYZ2[i * 3 + 1], qXYZ2[i * 3 + 2]);
-	}
-
-	return colors;
-}
-
-function packTextureRGBA(qRGB, qA) {
-	const colors = new Array(qA.length * 4);
-
-	for (let i = 0; i < qA.length; i++) {
-		colors[i * 4] = qRGB[i * 3];
-		colors[i * 4 + 1] = qRGB[i * 3 + 1];
-		colors[i * 4 + 2] = qRGB[i * 3 + 2];
-		colors[i * 4 + 3] = qA[i];
-	}
-
-	return colors;
-}
-
-function packTexture5Floats(qA, qB, qC, qD, qE) {
-	const colors = new Array(qA.length * 4);
-
-	for (let i = 0; i < qA.length; i++) {
-		colors[i * 4] = qA[i];
-		colors[i * 4 + 1] = qB[i];
-		colors[i * 4 + 2] = 0;
-		colors[i * 4 + 3] = pack3NFloats(qC[i], qD[i], qE[i]);
-	}
-
-	return colors;
-}
-
-function packTexture2Floats(qA, qB) {
-	const colors = new Array(qA.length * 4);
-
-	for (let i = 0; i < qA.length; i++) {
-		colors[i * 4] = qA[i];
-		colors[i * 4 + 1] = qB[i];
-		colors[i * 4 + 2] = 0;
-		colors[i * 4 + 3] = 0;
-	}
-
-	return colors;
-}
-
-function calcEndTime(emitter) {
-	const interval = Math.max(emitter.rate, emitter.rate2) * emitter.numParticles + emitter.lifetime;
-	return Date.now() + interval * 1000;
-}
-
-function subGraph(A, B) {
-	const r = new Float32Array(A.length);
-
-	for (let i = 0; i < A.length; i++) {
-		r[i] = A[i] - B[i];
-	}
-
-	return r;
-}
-
-function maxUnsignedGraphValue(A, outUMax) {
-	const chans = outUMax.length;
-	const values = A.length / chans;
-
-	for (let i = 0; i < values; i++) {
-		for (let j = 0; j < chans; j++) {
-			const a = Math.abs(A[i * chans + j]);
-			outUMax[j] = Math.max(outUMax[j], a);
-		}
-	}
-}
-
-function normalizeGraph(A, uMax) {
-	const chans = uMax.length;
-	const values = A.length / chans;
-
-	for (let i = 0; i < values; i++) {
-		for (let j = 0; j < chans; j++) {
-			A[i * chans + j] /= uMax[j] === 0 ? 1 : uMax[j];
-			A[i * chans + j] *= 0.5;
-			A[i * chans + j] += 0.5;
-		}
-	}
-}
-
-function divGraphFrom2Curves(curve1, curve2, outUMax) {
-	const sub = subGraph(curve2, curve1);
-	maxUnsignedGraphValue(sub, outUMax);
-	normalizeGraph(sub, outUMax);
-	return sub;
-}
-
-class ParticleEmitter {
-	constructor(graphicsDevice, options) {
-		this.graphicsDevice = graphicsDevice;
-		const gd = graphicsDevice;
-		const precision = 32;
-		this.precision = precision;
-		this._addTimeTime = 0;
-		ParticleEmitter.staticInit(gd);
-		setPropertyTarget = this;
-		setPropertyOptions = options;
-		setProperty("numParticles", 1);
-
-		if (this.numParticles > graphicsDevice.maxTextureSize) {
-			this.numParticles = graphicsDevice.maxTextureSize;
-		}
-
-		setProperty("rate", 1);
-		setProperty("rate2", this.rate);
-		setProperty("lifetime", 50);
-		setProperty("emitterExtents", new Vec3(0, 0, 0));
-		setProperty("emitterExtentsInner", new Vec3(0, 0, 0));
-		setProperty("emitterRadius", 0);
-		setProperty("emitterRadiusInner", 0);
-		setProperty("emitterShape", EMITTERSHAPE_BOX);
-		setProperty("initialVelocity", 1);
-		setProperty("wrap", false);
-		setProperty("localSpace", false);
-		setProperty("screenSpace", false);
-		setProperty("wrapBounds", null);
-		setProperty("colorMap", ParticleEmitter.DEFAULT_PARAM_TEXTURE);
-		setProperty("normalMap", null);
-		setProperty("loop", true);
-		setProperty("preWarm", false);
-		setProperty("sort", PARTICLESORT_NONE);
-		setProperty("mode", PARTICLEMODE_GPU);
-		setProperty("scene", null);
-		setProperty("lighting", false);
-		setProperty("halfLambert", false);
-		setProperty("intensity", 1.0);
-		setProperty("stretch", 0.0);
-		setProperty("alignToMotion", false);
-		setProperty("depthSoftening", 0);
-		setProperty("mesh", null);
-		setProperty("particleNormal", new Vec3(0, 1, 0));
-		setProperty("orientation", PARTICLEORIENTATION_SCREEN);
-		setProperty("depthWrite", false);
-		setProperty("noFog", false);
-		setProperty("blendType", BLEND_NORMAL);
-		setProperty("node", null);
-		setProperty("startAngle", 0);
-		setProperty("startAngle2", this.startAngle);
-		setProperty("animTilesX", 1);
-		setProperty("animTilesY", 1);
-		setProperty("animStartFrame", 0);
-		setProperty("animNumFrames", 1);
-		setProperty("animNumAnimations", 1);
-		setProperty("animIndex", 0);
-		setProperty("randomizeAnimIndex", false);
-		setProperty("animSpeed", 1);
-		setProperty("animLoop", true);
-		this._gpuUpdater = new ParticleGPUUpdater(this, gd);
-		this._cpuUpdater = new ParticleCPUUpdater(this);
-		this.constantLightCube = gd.scope.resolve("lightCube[0]");
-		this.emitterPosUniform = new Float32Array(3);
-		this.wrapBoundsUniform = new Float32Array(3);
-		this.emitterScaleUniform = new Float32Array([1, 1, 1]);
-		setProperty("colorGraph", default1Curve3);
-		setProperty("colorGraph2", this.colorGraph);
-		setProperty("scaleGraph", default1Curve);
-		setProperty("scaleGraph2", this.scaleGraph);
-		setProperty("alphaGraph", default1Curve);
-		setProperty("alphaGraph2", this.alphaGraph);
-		setProperty("localVelocityGraph", default0Curve3);
-		setProperty("localVelocityGraph2", this.localVelocityGraph);
-		setProperty("velocityGraph", default0Curve3);
-		setProperty("velocityGraph2", this.velocityGraph);
-		setProperty("rotationSpeedGraph", default0Curve);
-		setProperty("rotationSpeedGraph2", this.rotationSpeedGraph);
-		setProperty("radialSpeedGraph", default0Curve);
-		setProperty("radialSpeedGraph2", this.radialSpeedGraph);
-		this.lightCube = new Float32Array(6 * 3);
-		this.lightCubeDir = new Array(6);
-		this.lightCubeDir[0] = new Vec3(-1, 0, 0);
-		this.lightCubeDir[1] = new Vec3(1, 0, 0);
-		this.lightCubeDir[2] = new Vec3(0, -1, 0);
-		this.lightCubeDir[3] = new Vec3(0, 1, 0);
-		this.lightCubeDir[4] = new Vec3(0, 0, -1);
-		this.lightCubeDir[5] = new Vec3(0, 0, 1);
-		this.animTilesParams = new Float32Array(2);
-		this.animParams = new Float32Array(4);
-		this.animIndexParams = new Float32Array(2);
-		this.internalTex0 = null;
-		this.internalTex1 = null;
-		this.internalTex2 = null;
-		this.colorParam = null;
-		this.vbToSort = null;
-		this.vbOld = null;
-		this.particleDistance = null;
-		this.camera = null;
-		this.swapTex = false;
-		this.useMesh = true;
-		this.useCpu = false;
-		this.pack8 = true;
-		this.localBounds = new BoundingBox();
-		this.worldBoundsNoTrail = new BoundingBox();
-		this.worldBoundsTrail = [new BoundingBox(), new BoundingBox()];
-		this.worldBounds = new BoundingBox();
-		this.worldBoundsSize = new Vec3();
-		this.prevWorldBoundsSize = new Vec3();
-		this.prevWorldBoundsCenter = new Vec3();
-		this.prevEmitterExtents = this.emitterExtents;
-		this.prevEmitterRadius = this.emitterRadius;
-		this.worldBoundsMul = new Vec3();
-		this.worldBoundsAdd = new Vec3();
-		this.timeToSwitchBounds = 0;
-		this.shaderParticleUpdateRespawn = null;
-		this.shaderParticleUpdateNoRespawn = null;
-		this.shaderParticleUpdateOnStop = null;
-		this.numParticleVerts = 0;
-		this.numParticleIndices = 0;
-		this.material = null;
-		this.meshInstance = null;
-		this.drawOrder = 0;
-		this.seed = Math.random();
-		this.fixedTimeStep = 1.0 / 60;
-		this.maxSubSteps = 10;
-		this.simTime = 0;
-		this.simTimeTotal = 0;
-		this.beenReset = false;
-		this._layer = null;
-		this.rebuild();
-	}
-
-	static staticInit(device) {
-		if (!ParticleEmitter.DEFAULT_PARAM_TEXTURE) {
-			const resolution = 16;
-			const centerPoint = resolution * 0.5 + 0.5;
-			const dtex = new Float32Array(resolution * resolution * 4);
-
-			for (let y = 0; y < resolution; y++) {
-				for (let x = 0; x < resolution; x++) {
-					const xgrad = x + 1 - centerPoint;
-					const ygrad = y + 1 - centerPoint;
-					const c = saturate(1 - saturate(Math.sqrt(xgrad * xgrad + ygrad * ygrad) / resolution) - 0.5);
-					const p = y * resolution + x;
-					dtex[p * 4] = 1;
-					dtex[p * 4 + 1] = 1;
-					dtex[p * 4 + 2] = 1;
-					dtex[p * 4 + 3] = c;
-				}
-			}
-
-			ParticleEmitter.DEFAULT_PARAM_TEXTURE = _createTexture(device, resolution, resolution, dtex, PIXELFORMAT_R8_G8_B8_A8, 1.0, true);
-			ParticleEmitter.DEFAULT_PARAM_TEXTURE.minFilter = FILTER_LINEAR;
-			ParticleEmitter.DEFAULT_PARAM_TEXTURE.magFilter = FILTER_LINEAR;
-		}
-	}
-
-	static staticDestroy() {
-		if (ParticleEmitter.DEFAULT_PARAM_TEXTURE) {
-			ParticleEmitter.DEFAULT_PARAM_TEXTURE.destroy();
-			ParticleEmitter.DEFAULT_PARAM_TEXTURE = null;
-		}
-	}
-
-	onChangeCamera() {
-		this.regenShader();
-		this.resetMaterial();
-	}
-
-	calculateBoundsMad() {
-		this.worldBoundsMul.x = 1.0 / this.worldBoundsSize.x;
-		this.worldBoundsMul.y = 1.0 / this.worldBoundsSize.y;
-		this.worldBoundsMul.z = 1.0 / this.worldBoundsSize.z;
-		this.worldBoundsAdd.copy(this.worldBounds.center).mul(this.worldBoundsMul).mulScalar(-1);
-		this.worldBoundsAdd.x += 0.5;
-		this.worldBoundsAdd.y += 0.5;
-		this.worldBoundsAdd.z += 0.5;
-	}
-
-	calculateWorldBounds() {
-		if (!this.node) return;
-		this.prevWorldBoundsSize.copy(this.worldBoundsSize);
-		this.prevWorldBoundsCenter.copy(this.worldBounds.center);
-
-		if (!this.useCpu) {
-			let recalculateLocalBounds = false;
-
-			if (this.emitterShape === EMITTERSHAPE_BOX) {
-				recalculateLocalBounds = !this.emitterExtents.equals(this.prevEmitterExtents);
-			} else {
-				recalculateLocalBounds = !(this.emitterRadius === this.prevEmitterRadius);
-			}
-
-			if (recalculateLocalBounds) {
-				this.calculateLocalBounds();
-			}
-		}
-
-		const nodeWT = this.node.getWorldTransform();
-
-		if (this.localSpace) {
-			this.worldBoundsNoTrail.copy(this.localBounds);
-		} else {
-			this.worldBoundsNoTrail.setFromTransformedAabb(this.localBounds, nodeWT);
-		}
-
-		this.worldBoundsTrail[0].add(this.worldBoundsNoTrail);
-		this.worldBoundsTrail[1].add(this.worldBoundsNoTrail);
-		const now = this.simTimeTotal;
-
-		if (now >= this.timeToSwitchBounds) {
-			this.worldBoundsTrail[0].copy(this.worldBoundsTrail[1]);
-			this.worldBoundsTrail[1].copy(this.worldBoundsNoTrail);
-			this.timeToSwitchBounds = now + this.lifetime;
-		}
-
-		this.worldBounds.copy(this.worldBoundsTrail[0]);
-		this.worldBoundsSize.copy(this.worldBounds.halfExtents).mulScalar(2);
-
-		if (this.localSpace) {
-			this.meshInstance.aabb.setFromTransformedAabb(this.worldBounds, nodeWT);
-			this.meshInstance.mesh.aabb.setFromTransformedAabb(this.worldBounds, nodeWT);
-		} else {
-			this.meshInstance.aabb.copy(this.worldBounds);
-			this.meshInstance.mesh.aabb.copy(this.worldBounds);
-		}
-
-		this.meshInstance._aabbVer = 1 - this.meshInstance._aabbVer;
-		if (this.pack8) this.calculateBoundsMad();
-	}
-
-	resetWorldBounds() {
-		if (!this.node) return;
-		this.worldBoundsNoTrail.setFromTransformedAabb(this.localBounds, this.localSpace ? Mat4.IDENTITY : this.node.getWorldTransform());
-		this.worldBoundsTrail[0].copy(this.worldBoundsNoTrail);
-		this.worldBoundsTrail[1].copy(this.worldBoundsNoTrail);
-		this.worldBounds.copy(this.worldBoundsTrail[0]);
-		this.worldBoundsSize.copy(this.worldBounds.halfExtents).mulScalar(2);
-		this.prevWorldBoundsSize.copy(this.worldBoundsSize);
-		this.prevWorldBoundsCenter.copy(this.worldBounds.center);
-		this.simTimeTotal = 0;
-		this.timeToSwitchBounds = 0;
-	}
-
-	calculateLocalBounds() {
-		let minx = Number.MAX_VALUE;
-		let miny = Number.MAX_VALUE;
-		let minz = Number.MAX_VALUE;
-		let maxx = -Number.MAX_VALUE;
-		let maxy = -Number.MAX_VALUE;
-		let maxz = -Number.MAX_VALUE;
-		let maxR = 0;
-		let maxScale = 0;
-		const stepWeight = this.lifetime / this.precision;
-		const wVels = [this.qVelocity, this.qVelocity2];
-		const lVels = [this.qLocalVelocity, this.qLocalVelocity2];
-		const accumX = [0, 0];
-		const accumY = [0, 0];
-		const accumZ = [0, 0];
-		const accumR = [0, 0];
-		const accumW = [0, 0];
-		let x, y, z;
-
-		for (let i = 0; i < this.precision + 1; i++) {
-			const index = Math.min(i, this.precision - 1);
-
-			for (let j = 0; j < 2; j++) {
-				x = lVels[j][index * 3 + 0] * stepWeight + accumX[j];
-				y = lVels[j][index * 3 + 1] * stepWeight + accumY[j];
-				z = lVels[j][index * 3 + 2] * stepWeight + accumZ[j];
-				minx = Math.min(x, minx);
-				miny = Math.min(y, miny);
-				minz = Math.min(z, minz);
-				maxx = Math.max(x, maxx);
-				maxy = Math.max(y, maxy);
-				maxz = Math.max(z, maxz);
-				accumX[j] = x;
-				accumY[j] = y;
-				accumZ[j] = z;
-			}
-
-			for (let j = 0; j < 2; j++) {
-				accumW[j] += stepWeight * Math.sqrt(wVels[j][index * 3 + 0] * wVels[j][index * 3 + 0] + wVels[j][index * 3 + 1] * wVels[j][index * 3 + 1] + wVels[j][index * 3 + 2] * wVels[j][index * 3 + 2]);
-			}
-
-			accumR[0] += this.qRadialSpeed[index] * stepWeight;
-			accumR[1] += this.qRadialSpeed2[index] * stepWeight;
-			maxR = Math.max(maxR, Math.max(Math.abs(accumR[0]), Math.abs(accumR[1])));
-			maxScale = Math.max(maxScale, this.qScale[index]);
-		}
-
-		if (this.emitterShape === EMITTERSHAPE_BOX) {
-			x = this.emitterExtents.x * 0.5;
-			y = this.emitterExtents.y * 0.5;
-			z = this.emitterExtents.z * 0.5;
-		} else {
-			x = this.emitterRadius;
-			y = this.emitterRadius;
-			z = this.emitterRadius;
-		}
-
-		const w = Math.max(accumW[0], accumW[1]);
-		bMin.x = minx - maxScale - x - maxR - w;
-		bMin.y = miny - maxScale - y - maxR - w;
-		bMin.z = minz - maxScale - z - maxR - w;
-		bMax.x = maxx + maxScale + x + maxR + w;
-		bMax.y = maxy + maxScale + y + maxR + w;
-		bMax.z = maxz + maxScale + z + maxR + w;
-		this.localBounds.setMinMax(bMin, bMax);
-	}
-
-	rebuild() {
-		const gd = this.graphicsDevice;
-		if (this.colorMap === null) this.colorMap = ParticleEmitter.DEFAULT_PARAM_TEXTURE;
-		this.spawnBounds = this.emitterShape === EMITTERSHAPE_BOX ? this.emitterExtents : this.emitterRadius;
-		this.useCpu = this.useCpu || this.sort > PARTICLESORT_NONE || gd.maxVertexTextures <= 1 || gd.fragmentUniformsCount < 64 || gd.forceCpuParticles || !gd.extTextureFloat;
-
-		this._destroyResources();
-
-		this.pack8 = (this.pack8 || !gd.textureFloatRenderable) && !this.useCpu;
-		particleTexHeight = this.useCpu || this.pack8 ? 4 : 2;
-		this.useMesh = false;
-
-		if (this.mesh) {
-			const totalVertCount = this.numParticles * this.mesh.vertexBuffer.numVertices;
-
-			if (totalVertCount > 65535) ; else {
-				this.useMesh = true;
-			}
-		}
-
-		this.numParticlesPot = math.nextPowerOfTwo(this.numParticles);
-		this.rebuildGraphs();
-		this.calculateLocalBounds();
-		this.resetWorldBounds();
-
-		if (this.node) {
-			this.worldBounds.setFromTransformedAabb(this.localBounds, this.localSpace ? Mat4.IDENTITY : this.node.getWorldTransform());
-			this.worldBoundsTrail[0].copy(this.worldBounds);
-			this.worldBoundsTrail[1].copy(this.worldBounds);
-			this.worldBoundsSize.copy(this.worldBounds.halfExtents).mulScalar(2);
-			this.prevWorldBoundsSize.copy(this.worldBoundsSize);
-			this.prevWorldBoundsCenter.copy(this.worldBounds.center);
-			if (this.pack8) this.calculateBoundsMad();
-		}
-
-		this.vbToSort = new Array(this.numParticles);
-
-		for (let iSort = 0; iSort < this.numParticles; iSort++) this.vbToSort[iSort] = [0, 0];
-
-		this.particleDistance = new Float32Array(this.numParticles);
-
-		this._gpuUpdater.randomize();
-
-		this.particleTex = new Float32Array(this.numParticlesPot * particleTexHeight * particleTexChannels);
-		const emitterPos = this.node === null || this.localSpace ? Vec3.ZERO : this.node.getPosition();
-
-		if (this.emitterShape === EMITTERSHAPE_BOX) {
-			if (this.node === null || this.localSpace) {
-				spawnMatrix.setTRS(Vec3.ZERO, Quat.IDENTITY, this.spawnBounds);
-			} else {
-				spawnMatrix.setTRS(Vec3.ZERO, this.node.getRotation(), tmpVec3.copy(this.spawnBounds).mul(this.node.localScale));
-			}
-
-			extentsInnerRatioUniform[0] = this.emitterExtents.x !== 0 ? this.emitterExtentsInner.x / this.emitterExtents.x : 0;
-			extentsInnerRatioUniform[1] = this.emitterExtents.y !== 0 ? this.emitterExtentsInner.y / this.emitterExtents.y : 0;
-			extentsInnerRatioUniform[2] = this.emitterExtents.z !== 0 ? this.emitterExtentsInner.z / this.emitterExtents.z : 0;
-		}
-
-		for (let i = 0; i < this.numParticles; i++) {
-			this._cpuUpdater.calcSpawnPosition(this.particleTex, spawnMatrix, extentsInnerRatioUniform, emitterPos, i);
-
-			if (this.useCpu) this.particleTex[i * particleTexChannels + 3 + this.numParticlesPot * 2 * particleTexChannels] = 1;
-		}
-
-		this.particleTexStart = new Float32Array(this.numParticlesPot * particleTexHeight * particleTexChannels);
-
-		for (let i = 0; i < this.particleTexStart.length; i++) {
-			this.particleTexStart[i] = this.particleTex[i];
-		}
-
-		if (!this.useCpu) {
-			if (this.pack8) {
-				this.particleTexIN = _createTexture(gd, this.numParticlesPot, particleTexHeight, this.particleTex, PIXELFORMAT_R8_G8_B8_A8, 1, false);
-				this.particleTexOUT = _createTexture(gd, this.numParticlesPot, particleTexHeight, this.particleTex, PIXELFORMAT_R8_G8_B8_A8, 1, false);
-				this.particleTexStart = _createTexture(gd, this.numParticlesPot, particleTexHeight, this.particleTexStart, PIXELFORMAT_R8_G8_B8_A8, 1, false);
-			} else {
-				this.particleTexIN = _createTexture(gd, this.numParticlesPot, particleTexHeight, this.particleTex);
-				this.particleTexOUT = _createTexture(gd, this.numParticlesPot, particleTexHeight, this.particleTex);
-				this.particleTexStart = _createTexture(gd, this.numParticlesPot, particleTexHeight, this.particleTexStart);
-			}
-
-			this.rtParticleTexIN = new RenderTarget({
-				colorBuffer: this.particleTexIN,
-				depth: false
-			});
-			this.rtParticleTexOUT = new RenderTarget({
-				colorBuffer: this.particleTexOUT,
-				depth: false
-			});
-			this.swapTex = false;
-		}
-
-		const shaderCodeStart = (this.localSpace ? '#define LOCAL_SPACE\n' : '') + shaderChunks.particleUpdaterInitPS + (this.pack8 ? shaderChunks.particleInputRgba8PS + shaderChunks.particleOutputRgba8PS : shaderChunks.particleInputFloatPS + shaderChunks.particleOutputFloatPS) + (this.emitterShape === EMITTERSHAPE_BOX ? shaderChunks.particleUpdaterAABBPS : shaderChunks.particleUpdaterSpherePS) + shaderChunks.particleUpdaterStartPS;
-		const shaderCodeRespawn = shaderCodeStart + shaderChunks.particleUpdaterRespawnPS + shaderChunks.particleUpdaterEndPS;
-		const shaderCodeNoRespawn = shaderCodeStart + shaderChunks.particleUpdaterNoRespawnPS + shaderChunks.particleUpdaterEndPS;
-		const shaderCodeOnStop = shaderCodeStart + shaderChunks.particleUpdaterOnStopPS + shaderChunks.particleUpdaterEndPS;
-		const params = this.emitterShape + "" + this.pack8 + "" + this.localSpace;
-		this.shaderParticleUpdateRespawn = createShaderFromCode(gd, shaderChunks.fullscreenQuadVS, shaderCodeRespawn, "fsQuad0" + params);
-		this.shaderParticleUpdateNoRespawn = createShaderFromCode(gd, shaderChunks.fullscreenQuadVS, shaderCodeNoRespawn, "fsQuad1" + params);
-		this.shaderParticleUpdateOnStop = createShaderFromCode(gd, shaderChunks.fullscreenQuadVS, shaderCodeOnStop, "fsQuad2" + params);
-		this.numParticleVerts = this.useMesh ? this.mesh.vertexBuffer.numVertices : 4;
-		this.numParticleIndices = this.useMesh ? this.mesh.indexBuffer[0].numIndices : 6;
-
-		this._allocate(this.numParticles);
-
-		const mesh = new Mesh(gd);
-		mesh.vertexBuffer = this.vertexBuffer;
-		mesh.indexBuffer[0] = this.indexBuffer;
-		mesh.primitive[0].type = PRIMITIVE_TRIANGLES;
-		mesh.primitive[0].base = 0;
-		mesh.primitive[0].count = this.numParticles * this.numParticleIndices;
-		mesh.primitive[0].indexed = true;
-		this.material = new Material();
-		this.material.name = this.node.name;
-		this.material.cull = CULLFACE_NONE;
-		this.material.alphaWrite = false;
-		this.material.blend = true;
-		this.material.blendType = this.blendType;
-		this.material.depthWrite = this.depthWrite;
-		this.material.emitter = this;
-		this.regenShader();
-		this.resetMaterial();
-		const wasVisible = this.meshInstance ? this.meshInstance.visible : true;
-		this.meshInstance = new MeshInstance(mesh, this.material, this.node);
-		this.meshInstance.pick = false;
-		this.meshInstance.updateKey();
-		this.meshInstance.cull = true;
-		this.meshInstance._noDepthDrawGl1 = true;
-
-		if (this.localSpace) {
-			this.meshInstance.aabb.setFromTransformedAabb(this.worldBounds, this.node.getWorldTransform());
-		} else {
-			this.meshInstance.aabb.copy(this.worldBounds);
-		}
-
-		this.meshInstance._updateAabb = false;
-		this.meshInstance.visible = wasVisible;
-
-		this._initializeTextures();
-
-		this.resetTime();
-		this.addTime(0, false);
-		if (this.preWarm) this.prewarm(this.lifetime);
-	}
-
-	_isAnimated() {
-		return this.animNumFrames >= 1 && (this.animTilesX > 1 || this.animTilesY > 1) && (this.colorMap && this.colorMap !== ParticleEmitter.DEFAULT_PARAM_TEXTURE || this.normalMap);
-	}
-
-	rebuildGraphs() {
-		const precision = this.precision;
-		const gd = this.graphicsDevice;
-		this.qLocalVelocity = this.localVelocityGraph.quantize(precision);
-		this.qVelocity = this.velocityGraph.quantize(precision);
-		this.qColor = this.colorGraph.quantizeClamped(precision, 0, 1);
-		this.qRotSpeed = this.rotationSpeedGraph.quantize(precision);
-		this.qScale = this.scaleGraph.quantize(precision);
-		this.qAlpha = this.alphaGraph.quantize(precision);
-		this.qRadialSpeed = this.radialSpeedGraph.quantize(precision);
-		this.qLocalVelocity2 = this.localVelocityGraph2.quantize(precision);
-		this.qVelocity2 = this.velocityGraph2.quantize(precision);
-		this.qColor2 = this.colorGraph2.quantizeClamped(precision, 0, 1);
-		this.qRotSpeed2 = this.rotationSpeedGraph2.quantize(precision);
-		this.qScale2 = this.scaleGraph2.quantize(precision);
-		this.qAlpha2 = this.alphaGraph2.quantize(precision);
-		this.qRadialSpeed2 = this.radialSpeedGraph2.quantize(precision);
-
-		for (let i = 0; i < precision; i++) {
-			this.qRotSpeed[i] *= math.DEG_TO_RAD;
-			this.qRotSpeed2[i] *= math.DEG_TO_RAD;
-		}
-
-		this.localVelocityUMax = new Float32Array(3);
-		this.velocityUMax = new Float32Array(3);
-		this.colorUMax = new Float32Array(3);
-		this.rotSpeedUMax = [0];
-		this.scaleUMax = [0];
-		this.alphaUMax = [0];
-		this.radialSpeedUMax = [0];
-		this.qLocalVelocityDiv = divGraphFrom2Curves(this.qLocalVelocity, this.qLocalVelocity2, this.localVelocityUMax);
-		this.qVelocityDiv = divGraphFrom2Curves(this.qVelocity, this.qVelocity2, this.velocityUMax);
-		this.qColorDiv = divGraphFrom2Curves(this.qColor, this.qColor2, this.colorUMax);
-		this.qRotSpeedDiv = divGraphFrom2Curves(this.qRotSpeed, this.qRotSpeed2, this.rotSpeedUMax);
-		this.qScaleDiv = divGraphFrom2Curves(this.qScale, this.qScale2, this.scaleUMax);
-		this.qAlphaDiv = divGraphFrom2Curves(this.qAlpha, this.qAlpha2, this.alphaUMax);
-		this.qRadialSpeedDiv = divGraphFrom2Curves(this.qRadialSpeed, this.qRadialSpeed2, this.radialSpeedUMax);
-
-		if (this.pack8) {
-			const umax = [0, 0, 0];
-			maxUnsignedGraphValue(this.qVelocity, umax);
-			const umax2 = [0, 0, 0];
-			maxUnsignedGraphValue(this.qVelocity2, umax2);
-			const lumax = [0, 0, 0];
-			maxUnsignedGraphValue(this.qLocalVelocity, lumax);
-			const lumax2 = [0, 0, 0];
-			maxUnsignedGraphValue(this.qLocalVelocity2, lumax2);
-			const rumax = [0];
-			maxUnsignedGraphValue(this.qRadialSpeed, rumax);
-			const rumax2 = [0];
-			maxUnsignedGraphValue(this.qRadialSpeed2, rumax2);
-			let maxVel = Math.max(umax[0], umax2[0]);
-			maxVel = Math.max(maxVel, umax[1]);
-			maxVel = Math.max(maxVel, umax2[1]);
-			maxVel = Math.max(maxVel, umax[2]);
-			maxVel = Math.max(maxVel, umax2[2]);
-			let lmaxVel = Math.max(lumax[0], lumax2[0]);
-			lmaxVel = Math.max(lmaxVel, lumax[1]);
-			lmaxVel = Math.max(lmaxVel, lumax2[1]);
-			lmaxVel = Math.max(lmaxVel, lumax[2]);
-			lmaxVel = Math.max(lmaxVel, lumax2[2]);
-			const maxRad = Math.max(rumax[0], rumax2[0]);
-			this.maxVel = maxVel + lmaxVel + maxRad;
-		}
-
-		if (!this.useCpu) {
-			this.internalTex0 = _createTexture(gd, precision, 1, packTextureXYZ_NXYZ(this.qLocalVelocity, this.qLocalVelocityDiv));
-			this.internalTex1 = _createTexture(gd, precision, 1, packTextureXYZ_NXYZ(this.qVelocity, this.qVelocityDiv));
-			this.internalTex2 = _createTexture(gd, precision, 1, packTexture5Floats(this.qRotSpeed, this.qScale, this.qScaleDiv, this.qRotSpeedDiv, this.qAlphaDiv));
-			this.internalTex3 = _createTexture(gd, precision, 1, packTexture2Floats(this.qRadialSpeed, this.qRadialSpeedDiv));
-		}
-
-		this.colorParam = _createTexture(gd, precision, 1, packTextureRGBA(this.qColor, this.qAlpha), PIXELFORMAT_R8_G8_B8_A8, 1.0, true);
-	}
-
-	_initializeTextures() {
-		if (this.colorMap) {
-			this.material.setParameter('colorMap', this.colorMap);
-
-			if (this.lighting && this.normalMap) {
-				this.material.setParameter('normalMap', this.normalMap);
-			}
-		}
-	}
-
-	regenShader() {
-		const programLib = this.graphicsDevice.getProgramLibrary();
-		const hasNormal = this.normalMap !== null;
-		this.normalOption = 0;
-
-		if (this.lighting) {
-			this.normalOption = hasNormal ? 2 : 1;
-		}
-
-		this.material.updateShader = function () {
-			if (this.emitter.scene) {
-				if (this.emitter.camera !== this.emitter.scene._activeCamera) {
-					this.emitter.camera = this.emitter.scene._activeCamera;
-					this.emitter.onChangeCamera();
-				}
-			}
-
-			const inTools = this.emitter.inTools;
-			const shader = programLib.getProgram("particle", {
-				useCpu: this.emitter.useCpu,
-				normal: this.emitter.normalOption,
-				halflambert: this.emitter.halfLambert,
-				stretch: this.emitter.stretch,
-				alignToMotion: this.emitter.alignToMotion,
-				soft: this.emitter.depthSoftening,
-				mesh: this.emitter.useMesh,
-				gamma: this.emitter.scene ? this.emitter.scene.gammaCorrection : 0,
-				toneMap: this.emitter.scene ? this.emitter.scene.toneMapping : 0,
-				fog: this.emitter.scene && !this.emitter.noFog ? this.emitter.scene.fog : "none",
-				wrap: this.emitter.wrap && this.emitter.wrapBounds,
-				localSpace: this.emitter.localSpace,
-				screenSpace: inTools ? false : this.emitter.screenSpace,
-				blend: this.blendType,
-				animTex: this.emitter._isAnimated(),
-				animTexLoop: this.emitter.animLoop,
-				pack8: this.emitter.pack8,
-				customFace: this.emitter.orientation !== PARTICLEORIENTATION_SCREEN
-			});
-			this.shader = shader;
-		};
-
-		this.material.updateShader();
-	}
-
-	resetMaterial() {
-		const material = this.material;
-		material.setParameter('stretch', this.stretch);
-
-		if (this._isAnimated()) {
-			material.setParameter('animTexTilesParams', this.animTilesParams);
-			material.setParameter('animTexParams', this.animParams);
-			material.setParameter('animTexIndexParams', this.animIndexParams);
-		}
-
-		material.setParameter('colorMult', this.intensity);
-
-		if (!this.useCpu) {
-			material.setParameter('internalTex0', this.internalTex0);
-			material.setParameter('internalTex1', this.internalTex1);
-			material.setParameter('internalTex2', this.internalTex2);
-			material.setParameter('internalTex3', this.internalTex3);
-		}
-
-		material.setParameter('colorParam', this.colorParam);
-		material.setParameter('numParticles', this.numParticles);
-		material.setParameter('numParticlesPot', this.numParticlesPot);
-		material.setParameter('lifetime', this.lifetime);
-		material.setParameter('rate', this.rate);
-		material.setParameter('rateDiv', this.rate2 - this.rate);
-		material.setParameter('seed', this.seed);
-		material.setParameter('scaleDivMult', this.scaleUMax[0]);
-		material.setParameter('alphaDivMult', this.alphaUMax[0]);
-		material.setParameter('radialSpeedDivMult', this.radialSpeedUMax[0]);
-		material.setParameter("graphNumSamples", this.precision);
-		material.setParameter("graphSampleSize", 1.0 / this.precision);
-		material.setParameter("emitterScale", new Float32Array([1, 1, 1]));
-
-		if (this.pack8) {
-			this._gpuUpdater._setInputBounds();
-
-			material.setParameter("inBoundsSize", this._gpuUpdater.inBoundsSizeUniform);
-			material.setParameter("inBoundsCenter", this._gpuUpdater.inBoundsCenterUniform);
-			material.setParameter("maxVel", this.maxVel);
-		}
-
-		if (this.wrap && this.wrapBounds) {
-			this.wrapBoundsUniform[0] = this.wrapBounds.x;
-			this.wrapBoundsUniform[1] = this.wrapBounds.y;
-			this.wrapBoundsUniform[2] = this.wrapBounds.z;
-			material.setParameter('wrapBounds', this.wrapBoundsUniform);
-		}
-
-		if (this.colorMap) {
-			material.setParameter('colorMap', this.colorMap);
-		}
-
-		if (this.lighting) {
-			if (this.normalMap) {
-				material.setParameter('normalMap', this.normalMap);
-			}
-		}
-
-		if (this.depthSoftening > 0) {
-			material.setParameter('softening', 1.0 / (this.depthSoftening * this.depthSoftening * 100));
-		}
-
-		if (this.stretch > 0.0) material.cull = CULLFACE_NONE;
-
-		this._compParticleFaceParams();
-	}
-
-	_compParticleFaceParams() {
-		let tangent, binormal;
-
-		if (this.orientation === PARTICLEORIENTATION_SCREEN) {
-			tangent = new Float32Array([1, 0, 0]);
-			binormal = new Float32Array([0, 0, 1]);
-		} else {
-			let n;
-
-			if (this.orientation === PARTICLEORIENTATION_WORLD) {
-				n = this.particleNormal.normalize();
-			} else {
-				const emitterMat = this.node === null ? Mat4.IDENTITY : this.node.getWorldTransform();
-				n = emitterMat.transformVector(this.particleNormal).normalize();
-			}
-
-			const t = new Vec3(1, 0, 0);
-			if (Math.abs(t.dot(n)) === 1) t.set(0, 0, 1);
-			const b = new Vec3().cross(n, t).normalize();
-			t.cross(b, n).normalize();
-			tangent = new Float32Array([t.x, t.y, t.z]);
-			binormal = new Float32Array([b.x, b.y, b.z]);
-		}
-
-		this.material.setParameter("faceTangent", tangent);
-		this.material.setParameter("faceBinorm", binormal);
-	}
-
-	_allocate(numParticles) {
-		const psysVertCount = numParticles * this.numParticleVerts;
-		const psysIndexCount = numParticles * this.numParticleIndices;
-
-		if (this.vertexBuffer === undefined || this.vertexBuffer.getNumVertices() !== psysVertCount) {
-			if (!this.useCpu) {
-				const elements = [{
-					semantic: SEMANTIC_ATTR0,
-					components: 4,
-					type: TYPE_FLOAT32
-				}];
-
-				if (this.useMesh) {
-					elements.push({
-						semantic: SEMANTIC_ATTR1,
-						components: 2,
-						type: TYPE_FLOAT32
-					});
-				}
-
-				const particleFormat = new VertexFormat(this.graphicsDevice, elements);
-				this.vertexBuffer = new VertexBuffer(this.graphicsDevice, particleFormat, psysVertCount, BUFFER_DYNAMIC);
-				this.indexBuffer = new IndexBuffer(this.graphicsDevice, INDEXFORMAT_UINT16, psysIndexCount);
-			} else {
-				const elements = [{
-					semantic: SEMANTIC_ATTR0,
-					components: 4,
-					type: TYPE_FLOAT32
-				}, {
-					semantic: SEMANTIC_ATTR1,
-					components: 4,
-					type: TYPE_FLOAT32
-				}, {
-					semantic: SEMANTIC_ATTR2,
-					components: 4,
-					type: TYPE_FLOAT32
-				}, {
-					semantic: SEMANTIC_ATTR3,
-					components: 1,
-					type: TYPE_FLOAT32
-				}, {
-					semantic: SEMANTIC_ATTR4,
-					components: this.useMesh ? 4 : 2,
-					type: TYPE_FLOAT32
-				}];
-				const particleFormat = new VertexFormat(this.graphicsDevice, elements);
-				this.vertexBuffer = new VertexBuffer(this.graphicsDevice, particleFormat, psysVertCount, BUFFER_DYNAMIC);
-				this.indexBuffer = new IndexBuffer(this.graphicsDevice, INDEXFORMAT_UINT16, psysIndexCount);
-			}
-
-			const data = new Float32Array(this.vertexBuffer.lock());
-			let meshData, stride, texCoordOffset;
-
-			if (this.useMesh) {
-				meshData = new Float32Array(this.mesh.vertexBuffer.lock());
-				stride = meshData.length / this.mesh.vertexBuffer.numVertices;
-
-				for (let elem = 0; elem < this.mesh.vertexBuffer.format.elements.length; elem++) {
-					if (this.mesh.vertexBuffer.format.elements[elem].name === SEMANTIC_TEXCOORD0) {
-						texCoordOffset = this.mesh.vertexBuffer.format.elements[elem].offset / 4;
-						break;
-					}
-				}
-			}
-
-			for (let i = 0; i < psysVertCount; i++) {
-				const id = Math.floor(i / this.numParticleVerts);
-
-				if (!this.useMesh) {
-					const vertID = i % 4;
-					data[i * 4] = particleVerts[vertID][0];
-					data[i * 4 + 1] = particleVerts[vertID][1];
-					data[i * 4 + 2] = 0;
-					data[i * 4 + 3] = id;
-				} else {
-					const vert = i % this.numParticleVerts;
-					data[i * 6] = meshData[vert * stride];
-					data[i * 6 + 1] = meshData[vert * stride + 1];
-					data[i * 6 + 2] = meshData[vert * stride + 2];
-					data[i * 6 + 3] = id;
-					data[i * 6 + 4] = meshData[vert * stride + texCoordOffset + 0];
-					data[i * 6 + 5] = 1.0 - meshData[vert * stride + texCoordOffset + 1];
-				}
-			}
-
-			if (this.useCpu) {
-				this.vbCPU = new Float32Array(data);
-				this.vbOld = new Float32Array(this.vbCPU.length);
-			}
-
-			this.vertexBuffer.unlock();
-
-			if (this.useMesh) {
-				this.mesh.vertexBuffer.unlock();
-			}
-
-			let dst = 0;
-			const indices = new Uint16Array(this.indexBuffer.lock());
-			if (this.useMesh) meshData = new Uint16Array(this.mesh.indexBuffer[0].lock());
-
-			for (let i = 0; i < numParticles; i++) {
-				if (!this.useMesh) {
-					const baseIndex = i * 4;
-					indices[dst++] = baseIndex;
-					indices[dst++] = baseIndex + 1;
-					indices[dst++] = baseIndex + 2;
-					indices[dst++] = baseIndex;
-					indices[dst++] = baseIndex + 2;
-					indices[dst++] = baseIndex + 3;
-				} else {
-					for (let j = 0; j < this.numParticleIndices; j++) {
-						indices[i * this.numParticleIndices + j] = meshData[j] + i * this.numParticleVerts;
-					}
-				}
-			}
-
-			this.indexBuffer.unlock();
-			if (this.useMesh) this.mesh.indexBuffer[0].unlock();
-		}
-	}
-
-	reset() {
-		this.beenReset = true;
-		this.seed = Math.random();
-		this.material.setParameter('seed', this.seed);
-
-		if (this.useCpu) {
-			for (let i = 0; i < this.particleTexStart.length; i++) {
-				this.particleTex[i] = this.particleTexStart[i];
-			}
-		} else {
-			this._initializeTextures();
-		}
-
-		this.resetWorldBounds();
-		this.resetTime();
-		const origLoop = this.loop;
-		this.loop = true;
-		this.addTime(0, false);
-		this.loop = origLoop;
-
-		if (this.preWarm) {
-			this.prewarm(this.lifetime);
-		}
-	}
-
-	prewarm(time) {
-		const lifetimeFraction = time / this.lifetime;
-		const iterations = Math.min(Math.floor(lifetimeFraction * this.precision), this.precision);
-		const stepDelta = time / iterations;
-
-		for (let i = 0; i < iterations; i++) {
-			this.addTime(stepDelta, false);
-		}
-	}
-
-	resetTime() {
-		this.endTime = calcEndTime(this);
-	}
-
-	finishFrame() {
-		if (this.useCpu) this.vertexBuffer.unlock();
-	}
-
-	addTime(delta, isOnStop) {
-		const device = this.graphicsDevice;
-		this.simTimeTotal += delta;
-		this.calculateWorldBounds();
-
-		if (this._isAnimated()) {
-			const tilesParams = this.animTilesParams;
-			tilesParams[0] = 1.0 / this.animTilesX;
-			tilesParams[1] = 1.0 / this.animTilesY;
-			const params = this.animParams;
-			params[0] = this.animStartFrame;
-			params[1] = this.animNumFrames * this.animSpeed;
-			params[2] = this.animNumFrames - 1;
-			params[3] = this.animNumAnimations - 1;
-			const animIndexParams = this.animIndexParams;
-			animIndexParams[0] = this.animIndex;
-			animIndexParams[1] = this.randomizeAnimIndex;
-		}
-
-		if (this.scene) {
-			if (this.camera !== this.scene._activeCamera) {
-				this.camera = this.scene._activeCamera;
-				this.onChangeCamera();
-			}
-		}
-
-		if (this.emitterShape === EMITTERSHAPE_BOX) {
-			extentsInnerRatioUniform[0] = this.emitterExtents.x !== 0 ? this.emitterExtentsInner.x / this.emitterExtents.x : 0;
-			extentsInnerRatioUniform[1] = this.emitterExtents.y !== 0 ? this.emitterExtentsInner.y / this.emitterExtents.y : 0;
-			extentsInnerRatioUniform[2] = this.emitterExtents.z !== 0 ? this.emitterExtentsInner.z / this.emitterExtents.z : 0;
-
-			if (this.meshInstance.node === null) {
-				spawnMatrix.setTRS(Vec3.ZERO, Quat.IDENTITY, this.emitterExtents);
-			} else {
-				spawnMatrix.setTRS(Vec3.ZERO, this.meshInstance.node.getRotation(), tmpVec3.copy(this.emitterExtents).mul(this.meshInstance.node.localScale));
-			}
-		}
-
-		let emitterPos;
-		const emitterScale = this.meshInstance.node === null ? Vec3.ONE : this.meshInstance.node.localScale;
-		this.emitterScaleUniform[0] = emitterScale.x;
-		this.emitterScaleUniform[1] = emitterScale.y;
-		this.emitterScaleUniform[2] = emitterScale.z;
-		this.material.setParameter("emitterScale", this.emitterScaleUniform);
-
-		if (this.localSpace && this.meshInstance.node) {
-			emitterPos = this.meshInstance.node.getPosition();
-			this.emitterPosUniform[0] = emitterPos.x;
-			this.emitterPosUniform[1] = emitterPos.y;
-			this.emitterPosUniform[2] = emitterPos.z;
-			this.material.setParameter("emitterPos", this.emitterPosUniform);
-		}
-
-		this._compParticleFaceParams();
-
-		if (!this.useCpu) {
-			this._gpuUpdater.update(device, spawnMatrix, extentsInnerRatioUniform, delta, isOnStop);
-		} else {
-			const data = new Float32Array(this.vertexBuffer.lock());
-
-			this._cpuUpdater.update(data, this.vbToSort, this.particleTex, spawnMatrix, extentsInnerRatioUniform, emitterPos, delta, isOnStop);
-		}
-
-		if (!this.loop) {
-			if (Date.now() > this.endTime) {
-				if (this.onFinished) this.onFinished();
-				this.meshInstance.visible = false;
-			}
-		}
-
-		if (this.meshInstance) {
-			this.meshInstance.drawOrder = this.drawOrder;
-		}
-	}
-
-	_destroyResources() {
-		if (this.particleTexIN) {
-			this.particleTexIN.destroy();
-			this.particleTexIN = null;
-		}
-
-		if (this.particleTexOUT) {
-			this.particleTexOUT.destroy();
-			this.particleTexOUT = null;
-		}
-
-		if (this.particleTexStart && this.particleTexStart.destroy) {
-			this.particleTexStart.destroy();
-			this.particleTexStart = null;
-		}
-
-		if (this.rtParticleTexIN) {
-			this.rtParticleTexIN.destroy();
-			this.rtParticleTexIN = null;
-		}
-
-		if (this.rtParticleTexOUT) {
-			this.rtParticleTexOUT.destroy();
-			this.rtParticleTexOUT = null;
-		}
-
-		if (this.internalTex0) {
-			this.internalTex0.destroy();
-			this.internalTex0 = null;
-		}
-
-		if (this.internalTex1) {
-			this.internalTex1.destroy();
-			this.internalTex1 = null;
-		}
-
-		if (this.internalTex2) {
-			this.internalTex2.destroy();
-			this.internalTex2 = null;
-		}
-
-		if (this.internalTex3) {
-			this.internalTex3.destroy();
-			this.internalTex3 = null;
-		}
-
-		if (this.colorParam) {
-			this.colorParam.destroy();
-			this.colorParam = null;
-		}
-
-		if (this.vertexBuffer) {
-			this.vertexBuffer.destroy();
-			this.vertexBuffer = undefined;
-		}
-
-		if (this.indexBuffer) {
-			this.indexBuffer.destroy();
-			this.indexBuffer = undefined;
-		}
-
-		if (this.material) {
-			this.material.destroy();
-			this.material = null;
-		}
-	}
-
-	destroy() {
-		this.camera = null;
-
-		this._destroyResources();
-	}
-
-}
-
-ParticleEmitter.DEFAULT_PARAM_TEXTURE = null;
-
 const _floatRounding = 0.2;
 
 class Morph extends RefCountedObject {
@@ -28041,26 +26377,35 @@ class Scene extends EventHandler {
 	}
 
 	applySettings(settings) {
-		this._gravity.set(settings.physics.gravity[0], settings.physics.gravity[1], settings.physics.gravity[2]);
+		const physics = settings.physics;
+		const render = settings.render;
 
-		this.ambientLight.set(settings.render.global_ambient[0], settings.render.global_ambient[1], settings.render.global_ambient[2]);
-		this._fog = settings.render.fog;
-		this.fogColor.set(settings.render.fog_color[0], settings.render.fog_color[1], settings.render.fog_color[2]);
-		this.fogStart = settings.render.fog_start;
-		this.fogEnd = settings.render.fog_end;
-		this.fogDensity = settings.render.fog_density;
-		this._gammaCorrection = settings.render.gamma_correction;
-		this._toneMapping = settings.render.tonemapping;
-		this.lightmapSizeMultiplier = settings.render.lightmapSizeMultiplier;
-		this.lightmapMaxResolution = settings.render.lightmapMaxResolution;
-		this.lightmapMode = settings.render.lightmapMode;
-		this.exposure = settings.render.exposure;
-		this._skyboxIntensity = settings.render.skyboxIntensity === undefined ? 1 : settings.render.skyboxIntensity;
-		this._skyboxMip = settings.render.skyboxMip === undefined ? 0 : settings.render.skyboxMip;
+		this._gravity.set(physics.gravity[0], physics.gravity[1], physics.gravity[2]);
 
-		if (settings.render.skyboxRotation) {
-			this._skyboxRotation.setFromEulerAngles(settings.render.skyboxRotation[0], settings.render.skyboxRotation[1], settings.render.skyboxRotation[2]);
+		this.ambientLight.set(render.global_ambient[0], render.global_ambient[1], render.global_ambient[2]);
+		this._fog = render.fog;
+		this.fogColor.set(render.fog_color[0], render.fog_color[1], render.fog_color[2]);
+		this.fogStart = render.fog_start;
+		this.fogEnd = render.fog_end;
+		this.fogDensity = render.fog_density;
+		this._gammaCorrection = render.gamma_correction;
+		this._toneMapping = render.tonemapping;
+		this.lightmapSizeMultiplier = render.lightmapSizeMultiplier;
+		this.lightmapMaxResolution = render.lightmapMaxResolution;
+		this.lightmapMode = render.lightmapMode;
+		this.exposure = render.exposure;
+		this._skyboxIntensity = render.skyboxIntensity === undefined ? 1 : render.skyboxIntensity;
+		this._skyboxMip = render.skyboxMip === undefined ? 0 : render.skyboxMip;
+
+		if (render.skyboxRotation) {
+			this._skyboxRotation.setFromEulerAngles(render.skyboxRotation[0], render.skyboxRotation[1], render.skyboxRotation[2]);
 		}
+
+		['lightmapFilterEnabled', 'lightmapFilterRange', 'lightmapFilterSmoothness', 'ambientBake', 'ambientBakeNumSamples', 'ambientBakeSpherePart', 'ambientBakeOcclusionBrightness', 'ambientBakeOcclusionContrast'].forEach(setting => {
+			if (render.hasOwnProperty(setting)) {
+				this[setting] = render[setting];
+			}
+		});
 
 		this._resetSkyboxModel();
 	}
@@ -28482,7 +26827,9 @@ class Channel3d extends Channel {
 
 	setPosition(position) {
 		this.position.copy(position);
-		this.panner.setPosition(position.x, position.y, position.z);
+		this.panner.positionX.value = position.x;
+		this.panner.positionY.value = position.y;
+		this.panner.positionZ.value = position.z;
 	}
 
 	setVelocity(velocity) {
@@ -28515,7 +26862,7 @@ class Channel3d extends Channel {
 	}
 
 	getDistanceModel() {
-		return this.pannel.distanceModel;
+		return this.panner.distanceModel;
 	}
 
 	setDistanceModel(distanceModel) {
@@ -28622,7 +26969,9 @@ class Listener {
 		const listener = this.listener;
 
 		if (listener) {
-			listener.setPosition(position.x, position.y, position.z);
+			listener.positionX.value = position.x;
+			listener.positionY.value = position.y;
+			listener.positionZ.value = position.z;
 		}
 	}
 
@@ -28635,7 +26984,9 @@ class Listener {
 		const listener = this.listener;
 
 		if (listener) {
-			listener.setPosition(velocity.x, velocity.y, velocity.z);
+			listener.positionX.value = velocity.x;
+			listener.positionY.value = velocity.y;
+			listener.positionZ.value = velocity.z;
 		}
 	}
 
@@ -28644,7 +26995,13 @@ class Listener {
 		const listener = this.listener;
 
 		if (listener) {
-			listener.setOrientation(-orientation.data[8], -orientation.data[9], -orientation.data[10], orientation.data[4], orientation.data[5], orientation.data[6]);
+			const m = orientation.data;
+			listener.forwardX.value = -m[8];
+			listener.forwardY.value = -m[9];
+			listener.forwardZ.value = -m[10];
+			listener.upX.value = m[4];
+			listener.upY.value = m[5];
+			listener.upZ.value = m[6];
 		}
 	}
 
@@ -28659,44 +27016,25 @@ class Listener {
 
 }
 
+const CONTEXT_STATE_NOT_CREATED = 'not created';
+const CONTEXT_STATE_RUNNING = 'running';
+const CONTEXT_STATE_SUSPENDED = 'suspended';
+const CONTEXT_STATE_INTERRUPTED = 'interrupted';
+const USER_INPUT_EVENTS = ['click', 'contextmenu', 'auxclick', 'dblclick', 'mousedown', 'mouseup', 'pointerup', 'touchend', 'keydown', 'keyup'];
+
 class SoundManager extends EventHandler {
 	constructor(options) {
 		super();
 		this._context = null;
+		this._state = CONTEXT_STATE_NOT_CREATED;
 		this._forceWebAudioApi = options.forceWebAudioApi;
 		this._resumeContext = null;
+		this._resumeContextAttached = false;
 		this._unlock = null;
+		this._unlockAttached = false;
 
 		if (hasAudioContext() || this._forceWebAudioApi) {
-			this._resumeContext = () => {
-				window.removeEventListener('mousedown', this._resumeContext);
-				window.removeEventListener('touchend', this._resumeContext);
-
-				if (this.context) {
-					this.context.resume();
-				}
-			};
-
-			window.addEventListener('mousedown', this._resumeContext);
-			window.addEventListener('touchend', this._resumeContext);
-
-			if (platform.ios) {
-				this._unlock = () => {
-					window.removeEventListener('touchend', this._unlock);
-					const context = this.context;
-
-					if (context) {
-						const buffer = context.createBuffer(1, 1, 44100);
-						const source = context.createBufferSource();
-						source.buffer = buffer;
-						source.connect(context.destination);
-						source.start(0);
-						source.disconnect();
-					}
-				};
-
-				window.addEventListener('touchend', this._unlock);
-			}
+			this._addAudioContextUserInteractionListeners();
 		} else {
 			console.warn('No support for 3D audio found');
 		}
@@ -28724,6 +27062,20 @@ class SoundManager extends EventHandler {
 				} else if (typeof webkitAudioContext !== 'undefined') {
 					this._context = new webkitAudioContext();
 				}
+
+				if (this._context) {
+					this._state = this._context.state;
+
+					this._context.onstatechange = () => {
+						if (!this._context) return;
+
+						if (this._state === CONTEXT_STATE_INTERRUPTED || this._state === CONTEXT_STATE_SUSPENDED) {
+							this._safelyResumeContext();
+						}
+
+						this._state = this._context.state;
+					};
+				}
 			}
 		}
 
@@ -28736,23 +27088,22 @@ class SoundManager extends EventHandler {
 	}
 
 	resume() {
-		const resumeFunction = () => {
-			this.suspended = false;
-			this.fire('resume');
-		};
+		this.suspended = false;
+		this.fire('resume');
 
-		if ((hasAudioContext() || this._forceWebAudioApi) && (this.context.state === 'interrupted' || this.context.state === 'suspended')) {
-			this.context.resume().then(resumeFunction);
-		} else resumeFunction();
+		if (this.context && (this._state === CONTEXT_STATE_INTERRUPTED || this._state === CONTEXT_STATE_SUSPENDED)) {
+			this._safelyResumeContext();
+		}
 	}
 
 	destroy() {
-		if (this._resumeContext) {
-			window.removeEventListener('mousedown', this._resumeContext);
-			window.removeEventListener('touchend', this._resumeContext);
+		if (this._resumeContext && this._resumeContextAttached) {
+			USER_INPUT_EVENTS.forEach(eventName => {
+				window.removeEventListener(eventName, this._resumeContext);
+			});
 		}
 
-		if (this._unlock) {
+		if (this._unlock && this._unlockAttached) {
 			window.removeEventListener('touchend', this._unlock);
 		}
 
@@ -28811,6 +27162,64 @@ class SoundManager extends EventHandler {
 		}
 
 		return channel;
+	}
+
+	_safelyResumeContext() {
+		if (!this._context) return;
+
+		this._context.resume().then(() => {
+			if (this._context.state !== CONTEXT_STATE_RUNNING) {
+				this._addAudioContextUserInteractionListeners();
+			}
+		}).catch(() => {
+			this._addAudioContextUserInteractionListeners();
+		});
+	}
+
+	_addAudioContextUserInteractionListeners() {
+		if (!this._resumeContext) {
+			this._resumeContext = () => {
+				if (!this.context || this.context.state === CONTEXT_STATE_RUNNING) {
+					USER_INPUT_EVENTS.forEach(eventName => {
+						window.removeEventListener(eventName, this._resumeContext);
+					});
+					this._resumeContextAttached = false;
+				} else {
+					this.context.resume();
+				}
+			};
+		}
+
+		if (!this._resumeContextAttached) {
+			USER_INPUT_EVENTS.forEach(eventName => {
+				window.addEventListener(eventName, this._resumeContext);
+			});
+			this._resumeContextAttached = true;
+		}
+
+		if (platform.ios) {
+			if (!this._unlock) {
+				this._unlock = () => {
+					window.removeEventListener('touchend', this._unlock);
+					this._unlockAttached = false;
+					const context = this.context;
+
+					if (context) {
+						const buffer = context.createBuffer(1, 1, 44100);
+						const source = context.createBufferSource();
+						source.buffer = buffer;
+						source.connect(context.destination);
+						source.start(0);
+						source.disconnect();
+					}
+				};
+			}
+
+			if (!this._unlockAttached) {
+				window.addEventListener('touchend', this._unlock);
+				this._unlockAttached = true;
+			}
+		}
 	}
 
 }
@@ -29750,13 +28159,14 @@ class GlbContainerResource {
 			return meshInstance;
 		};
 
-		const cloneHierarchy = function cloneHierarchy(root, node, glb) {
+		const cloneHierarchy = (root, node, glb) => {
 			const entity = new Entity();
 
 			node._cloneInternal(entity);
 
 			if (!root) root = entity;
 			let attachedMi = null;
+			let renderAsset = null;
 
 			for (let i = 0; i < glb.nodes.length; i++) {
 				const glbNode = glb.nodes[i];
@@ -29766,6 +28176,7 @@ class GlbContainerResource {
 
 					if (gltfNode.hasOwnProperty('mesh')) {
 						const meshGroup = glb.renders[gltfNode.mesh].meshes;
+						renderAsset = this.renders[gltfNode.mesh];
 
 						for (var mi = 0; mi < meshGroup.length; mi++) {
 							const mesh = meshGroup[mi];
@@ -29806,6 +28217,7 @@ class GlbContainerResource {
 					meshInstances: attachedMi,
 					rootBone: root
 				}, options));
+				entity.render.assignAsset(renderAsset);
 			}
 
 			const children = node.children;
@@ -32087,7 +30499,7 @@ class GlbParser {
 	constructor(device, assets, maxRetries) {
 		this._device = device;
 		this._assets = assets;
-		this._defaultMaterial = DefaultMaterial.get(device);
+		this._defaultMaterial = getDefaultMaterial(device);
 		this._maxRetries = maxRetries;
 	}
 
@@ -32404,6 +30816,9 @@ class AnimStateGraphHandler {
 
 class Sound {
 	constructor(resource) {
+		this.audio = void 0;
+		this.buffer = void 0;
+
 		if (resource instanceof Audio) {
 			this.audio = resource;
 		} else {
@@ -33661,8 +32076,7 @@ class SceneParser {
 	}
 
 	_createEntity(data, compressed) {
-		const entity = new Entity();
-		entity.name = data.name;
+		const entity = new Entity(data.name, this._app);
 		entity.setGuid(data.resource_id);
 
 		this._setPosRotScale(entity, data, compressed);
@@ -35241,7 +33655,7 @@ class ModelHandler {
 	constructor(device) {
 		this._device = device;
 		this._parsers = [];
-		this._defaultMaterial = DefaultMaterial.get(device);
+		this._defaultMaterial = getDefaultMaterial(device);
 		this.maxRetries = 0;
 		this.addParser(new JsonModelParser(this._device, this._defaultMaterial), function (url, data) {
 			return path.getExtension(url) === '.json';
@@ -39025,6 +37439,8 @@ ScriptAttributes.reservedNames = new Set(['app', 'entity', 'enabled', '_enabled'
 class Component extends EventHandler {
 	constructor(system, entity) {
 		super();
+		this.system = void 0;
+		this.entity = void 0;
 		this.system = system;
 		this.entity = entity;
 
@@ -39482,14 +37898,11 @@ class ScriptComponent extends Component {
 
 				return scriptInstance;
 			}
-
-			console.warn(`script '${scriptName}' is already added to entity '${this.entity.name}'`);
 		} else {
 			this._scriptsIndex[scriptName] = {
 				awaiting: true,
 				ind: this._scripts.length
 			};
-			console.warn(`script '${scriptName}' is not found, awaiting it to be added to registry`);
 		}
 
 		return null;
@@ -39699,11 +38112,17 @@ const funcNameRegex = new RegExp('^\\s*function(?:\\s|\\s*\\/\\*.*\\*\\/\\s*)+([
 class ScriptType extends EventHandler {
 	constructor(args) {
 		super();
-		this.initialize = void 0;
-		this.postInitialize = void 0;
-		this.update = void 0;
-		this.postUpdate = void 0;
-		this.swap = void 0;
+		this.app = void 0;
+		this.entity = void 0;
+		this._enabled = void 0;
+		this._enabledOld = void 0;
+		this._initialized = void 0;
+		this._postInitialized = void 0;
+		this.__destroyed = void 0;
+		this.__attributes = void 0;
+		this.__attributesRaw = void 0;
+		this.__scriptType = void 0;
+		this.__executionOrder = void 0;
 		this.initScriptType(args);
 	}
 
@@ -40275,6 +38694,9 @@ const RESOLUTION_FIXED = 'FIXED';
 class VrDisplay extends EventHandler {
 	constructor(app, display) {
 		super();
+		this.id = void 0;
+		this.display = void 0;
+		this.presenting = false;
 		this._app = app;
 		this._device = app.graphicsDevice;
 		this.id = display.displayId;
@@ -40301,7 +38723,6 @@ class VrDisplay extends EventHandler {
 		this.combinedViewInv = new Mat4();
 		this.combinedFov = 0;
 		this.combinedAspect = 0;
-		this.presenting = false;
 
 		this._presentChange = event => {
 			let display;
@@ -40492,11 +38913,12 @@ class VrDisplay extends EventHandler {
 class VrManager extends EventHandler {
 	constructor(app) {
 		super();
-		this.isSupported = VrManager.isSupported;
-		this._index = {};
 		this.displays = [];
 		this.display = null;
+		this.isSupported = void 0;
+		this._index = {};
 		this._app = app;
+		this.isSupported = VrManager.isSupported;
 		this._onDisplayConnect = this._onDisplayConnect.bind(this);
 		this._onDisplayDisconnect = this._onDisplayDisconnect.bind(this);
 
@@ -40624,6 +39046,9 @@ const poolQuat = [];
 class XrHitTestSource extends EventHandler {
 	constructor(manager, xrHitTestSource, transient) {
 		super();
+		this.manager = void 0;
+		this._xrHitTestSource = void 0;
+		this._transient = void 0;
 		this.manager = manager;
 		this._xrHitTestSource = xrHitTestSource;
 		this._transient = transient;
@@ -40681,10 +39106,11 @@ class XrHitTestSource extends EventHandler {
 class XrHitTest extends EventHandler {
 	constructor(manager) {
 		super();
-		this.manager = manager;
+		this.manager = void 0;
 		this._supported = platform.browser && !!(window.XRSession && window.XRSession.prototype.requestHitTestSource);
 		this._session = null;
 		this.sources = [];
+		this.manager = manager;
 
 		if (this._supported) {
 			this.manager.on('start', this._onSessionStart, this);
@@ -40723,8 +39149,7 @@ class XrHitTest extends EventHandler {
 		return true;
 	}
 
-	start(options) {
-		options = options || {};
+	start(options = {}) {
 		if (!this.isAvailable(options.callback, this)) return;
 		if (!options.profile && !options.spaceType) options.spaceType = XRSPACE_VIEWER;
 		let xrRay;
@@ -40798,13 +39223,14 @@ class XrHitTest extends EventHandler {
 
 class XrFinger {
 	constructor(index, hand) {
+		this._index = void 0;
+		this._hand = void 0;
+		this._joints = [];
+		this._tip = null;
 		this._index = index;
 		this._hand = hand;
 
 		this._hand._fingers.push(this);
-
-		this._joints = [];
-		this._tip = null;
 	}
 
 	get index() {
@@ -40834,12 +39260,12 @@ for (let i = 0; i < tipJointIds.length; i++) {
 
 class XrJoint {
 	constructor(index, id, hand, finger = null) {
-		this._index = index;
-		this._id = id;
-		this._hand = hand;
-		this._finger = finger;
-		this._wrist = id === 'wrist';
-		this._tip = this._finger && !!tipJointIdsIndex[id];
+		this._index = void 0;
+		this._id = void 0;
+		this._hand = void 0;
+		this._finger = void 0;
+		this._wrist = void 0;
+		this._tip = void 0;
 		this._radius = null;
 		this._localTransform = new Mat4();
 		this._worldTransform = new Mat4();
@@ -40848,6 +39274,12 @@ class XrJoint {
 		this._position = new Vec3();
 		this._rotation = new Quat();
 		this._dirtyLocal = true;
+		this._index = index;
+		this._id = id;
+		this._hand = hand;
+		this._finger = finger;
+		this._wrist = id === 'wrist';
+		this._tip = this._finger && !!tipJointIdsIndex[id];
 	}
 
 	update(pose) {
@@ -40930,15 +39362,17 @@ if (platform.browser && window.XRHand) {
 class XrHand extends EventHandler {
 	constructor(inputSource) {
 		super();
-		const xrHand = inputSource._xrInputSource.hand;
-		this._manager = inputSource._manager;
-		this._inputSource = inputSource;
+		this._manager = void 0;
+		this._inputSource = void 0;
 		this._tracking = false;
 		this._fingers = [];
 		this._joints = [];
 		this._jointsById = {};
 		this._tips = [];
 		this._wrist = null;
+		const xrHand = inputSource._xrInputSource.hand;
+		this._manager = inputSource._manager;
+		this._inputSource = inputSource;
 
 		if (xrHand.get('wrist')) {
 			const joint = new XrJoint(0, 'wrist', this, null);
@@ -41095,14 +39529,13 @@ let ids$1 = 0;
 class XrInputSource extends EventHandler {
 	constructor(manager, xrInputSource) {
 		super();
-		this._id = ++ids$1;
-		this._manager = manager;
-		this._xrInputSource = xrInputSource;
+		this._id = void 0;
+		this._manager = void 0;
+		this._xrInputSource = void 0;
 		this._ray = new Ray();
 		this._rayLocal = new Ray();
 		this._grip = false;
 		this._hand = null;
-		if (xrInputSource.hand) this._hand = new XrHand(this);
 		this._localTransform = null;
 		this._worldTransform = null;
 		this._position = new Vec3();
@@ -41110,11 +39543,16 @@ class XrInputSource extends EventHandler {
 		this._localPosition = null;
 		this._localRotation = null;
 		this._dirtyLocal = true;
+		this._dirtyRay = false;
 		this._selecting = false;
 		this._squeezing = false;
 		this._elementInput = true;
 		this._elementEntity = null;
 		this._hitTestSources = [];
+		this._id = ++ids$1;
+		this._manager = manager;
+		this._xrInputSource = xrInputSource;
+		if (xrInputSource.hand) this._hand = new XrHand(this);
 	}
 
 	get id() {
@@ -41331,9 +39769,10 @@ class XrInputSource extends EventHandler {
 class XrInput extends EventHandler {
 	constructor(manager) {
 		super();
-		this.manager = manager;
-		this._session = null;
+		this.manager = void 0;
 		this._inputSources = [];
+		this._onInputSourcesChangeEvt = void 0;
+		this.manager = manager;
 
 		this._onInputSourcesChangeEvt = evt => {
 			this._onInputSourcesChange(evt);
@@ -41344,19 +39783,16 @@ class XrInput extends EventHandler {
 	}
 
 	_onSessionStart() {
-		this._session = this.manager.session;
-
-		this._session.addEventListener('inputsourceschange', this._onInputSourcesChangeEvt);
-
-		this._session.addEventListener('select', evt => {
+		const session = this.manager.session;
+		session.addEventListener('inputsourceschange', this._onInputSourcesChangeEvt);
+		session.addEventListener('select', evt => {
 			const inputSource = this._getByInputSource(evt.inputSource);
 
 			inputSource.update(evt.frame);
 			inputSource.fire('select', evt);
 			this.fire('select', inputSource, evt);
 		});
-
-		this._session.addEventListener('selectstart', evt => {
+		session.addEventListener('selectstart', evt => {
 			const inputSource = this._getByInputSource(evt.inputSource);
 
 			inputSource.update(evt.frame);
@@ -41364,8 +39800,7 @@ class XrInput extends EventHandler {
 			inputSource.fire('selectstart', evt);
 			this.fire('selectstart', inputSource, evt);
 		});
-
-		this._session.addEventListener('selectend', evt => {
+		session.addEventListener('selectend', evt => {
 			const inputSource = this._getByInputSource(evt.inputSource);
 
 			inputSource.update(evt.frame);
@@ -41373,16 +39808,14 @@ class XrInput extends EventHandler {
 			inputSource.fire('selectend', evt);
 			this.fire('selectend', inputSource, evt);
 		});
-
-		this._session.addEventListener('squeeze', evt => {
+		session.addEventListener('squeeze', evt => {
 			const inputSource = this._getByInputSource(evt.inputSource);
 
 			inputSource.update(evt.frame);
 			inputSource.fire('squeeze', evt);
 			this.fire('squeeze', inputSource, evt);
 		});
-
-		this._session.addEventListener('squeezestart', evt => {
+		session.addEventListener('squeezestart', evt => {
 			const inputSource = this._getByInputSource(evt.inputSource);
 
 			inputSource.update(evt.frame);
@@ -41390,8 +39823,7 @@ class XrInput extends EventHandler {
 			inputSource.fire('squeezestart', evt);
 			this.fire('squeezestart', inputSource, evt);
 		});
-
-		this._session.addEventListener('squeezeend', evt => {
+		session.addEventListener('squeezeend', evt => {
 			const inputSource = this._getByInputSource(evt.inputSource);
 
 			inputSource.update(evt.frame);
@@ -41399,8 +39831,7 @@ class XrInput extends EventHandler {
 			inputSource.fire('squeezeend', evt);
 			this.fire('squeezeend', inputSource, evt);
 		});
-
-		const inputSources = this._session.inputSources;
+		const inputSources = session.inputSources;
 
 		for (let i = 0; i < inputSources.length; i++) {
 			this._addInputSource(inputSources[i]);
@@ -41419,9 +39850,8 @@ class XrInput extends EventHandler {
 			this.fire('remove', inputSource);
 		}
 
-		this._session.removeEventListener('inputsourceschange', this._onInputSourcesChangeEvt);
-
-		this._session = null;
+		const session = this.manager.session;
+		session.removeEventListener('inputsourceschange', this._onInputSourcesChangeEvt);
 	}
 
 	_onInputSourcesChange(evt) {
@@ -41492,7 +39922,7 @@ const mat4B = new Mat4();
 class XrLightEstimation extends EventHandler {
 	constructor(manager) {
 		super();
-		this._manager = manager;
+		this._manager = void 0;
 		this._supported = false;
 		this._available = false;
 		this._lightProbeRequested = false;
@@ -41501,6 +39931,7 @@ class XrLightEstimation extends EventHandler {
 		this._rotation = new Quat();
 		this._color = new Color();
 		this._sphericalHarmonics = new Float32Array(27);
+		this._manager = manager;
 
 		this._manager.on('start', this._onSessionStart, this);
 
@@ -41613,9 +40044,9 @@ class XrLightEstimation extends EventHandler {
 class XrTrackedImage extends EventHandler {
 	constructor(image, width) {
 		super();
-		this._image = image;
+		this._image = void 0;
+		this._width = void 0;
 		this._bitmap = null;
-		this._width = width;
 		this._measuredWidth = 0;
 		this._trackable = false;
 		this._tracking = false;
@@ -41623,6 +40054,8 @@ class XrTrackedImage extends EventHandler {
 		this._pose = null;
 		this._position = new Vec3();
 		this._rotation = new Quat();
+		this._image = image;
+		this._width = width;
 	}
 
 	get image() {
@@ -41692,10 +40125,11 @@ class XrTrackedImage extends EventHandler {
 class XrImageTracking extends EventHandler {
 	constructor(manager) {
 		super();
-		this._manager = manager;
+		this._manager = void 0;
 		this._supported = platform.browser && !!window.XRImageTrackingResult;
 		this._available = false;
 		this._images = [];
+		this._manager = manager;
 
 		if (this._supported) {
 			this._manager.on('start', this._onSessionStart, this);
@@ -41742,13 +40176,13 @@ class XrImageTracking extends EventHandler {
 		this._available = false;
 
 		for (let i = 0; i < this._images.length; i++) {
-			this._images[i]._pose = null;
-			this._images[i]._measuredWidth = 0;
+			const image = this._images[i];
+			image._pose = null;
+			image._measuredWidth = 0;
 
-			if (this._images[i]._tracking) {
-				this._images[i]._tracking = false;
-
-				this._images[i].fire('untracked');
+			if (image._tracking) {
+				image._tracking = false;
+				image.fire('untracked');
 			}
 		}
 	}
@@ -41777,7 +40211,6 @@ class XrImageTracking extends EventHandler {
 			const trackedImage = this._images[results[i].index];
 			trackedImage._emulated = results[i].trackingState === 'emulated';
 			trackedImage._measuredWidth = results[i].measuredWidthInMeters;
-			trackedImage._dirtyTransform = true;
 			trackedImage._pose = frame.getPose(results[i].imageSpace, this._manager._referenceSpace);
 		}
 
@@ -41810,9 +40243,10 @@ class XrImageTracking extends EventHandler {
 
 class XrDomOverlay {
 	constructor(manager) {
-		this._manager = manager;
+		this._manager = void 0;
 		this._supported = platform.browser && !!window.XRDOMOverlayState;
 		this._root = null;
+		this._manager = manager;
 	}
 
 	get supported() {
@@ -41842,7 +40276,7 @@ class XrDomOverlay {
 class XrDepthSensing extends EventHandler {
 	constructor(manager) {
 		super();
-		this._manager = manager;
+		this._manager = void 0;
 		this._available = false;
 		this._depthInfoCpu = null;
 		this._depthInfoGpu = null;
@@ -41852,6 +40286,8 @@ class XrDepthSensing extends EventHandler {
 		this._matrix = new Mat4();
 		this._emptyBuffer = new Uint8Array(32);
 		this._depthBuffer = null;
+		this._texture = void 0;
+		this._manager = manager;
 		this._texture = new Texture(this._manager.app.graphicsDevice, {
 			format: PIXELFORMAT_L8_A8,
 			mipmaps: false,
@@ -42028,14 +40464,18 @@ let ids = 0;
 class XrPlane extends EventHandler {
 	constructor(planeDetection, xrPlane) {
 		super();
-		this._id = ++ids;
-		this._planeDetection = planeDetection;
-		this._manager = this._planeDetection._manager;
-		this._xrPlane = xrPlane;
-		this._lastChangedTime = this._xrPlane.lastChangedTime;
-		this._orientation = this._xrPlane.orientation;
+		this._id = void 0;
+		this._planeDetection = void 0;
+		this._xrPlane = void 0;
+		this._lastChangedTime = void 0;
+		this._orientation = void 0;
 		this._position = new Vec3();
 		this._rotation = new Quat();
+		this._id = ++ids;
+		this._planeDetection = planeDetection;
+		this._xrPlane = xrPlane;
+		this._lastChangedTime = xrPlane.lastChangedTime;
+		this._orientation = xrPlane.orientation;
 	}
 
 	destroy() {
@@ -42043,7 +40483,8 @@ class XrPlane extends EventHandler {
 	}
 
 	update(frame) {
-		const pose = frame.getPose(this._xrPlane.planeSpace, this._manager._referenceSpace);
+		const manager = this._planeDetection._manager;
+		const pose = frame.getPose(this._xrPlane.planeSpace, manager._referenceSpace);
 
 		if (pose) {
 			this._position.copy(pose.transform.position);
@@ -42066,7 +40507,7 @@ class XrPlane extends EventHandler {
 	}
 
 	get id() {
-		return this.id;
+		return this._id;
 	}
 
 	get orientation() {
@@ -42082,11 +40523,12 @@ class XrPlane extends EventHandler {
 class XrPlaneDetection extends EventHandler {
 	constructor(manager) {
 		super();
-		this._manager = manager;
+		this._manager = void 0;
 		this._supported = platform.browser && !!window.XRPlane;
 		this._available = false;
 		this._planesIndex = new Map();
 		this._planes = null;
+		this._manager = manager;
 
 		if (this._supported) {
 			this._manager.on('end', this._onSessionEnd, this);
@@ -42172,24 +40614,21 @@ class XrPlaneDetection extends EventHandler {
 class XrManager extends EventHandler {
 	constructor(app) {
 		super();
-		this.app = app;
+		this.app = void 0;
 		this._supported = platform.browser && !!navigator.xr;
 		this._available = {};
-		this._available[XRTYPE_INLINE] = false;
-		this._available[XRTYPE_VR] = false;
-		this._available[XRTYPE_AR] = false;
 		this._type = null;
 		this._spaceType = null;
 		this._session = null;
 		this._baseLayer = null;
 		this._referenceSpace = null;
-		this.depthSensing = new XrDepthSensing(this);
-		this.domOverlay = new XrDomOverlay(this);
-		this.hitTest = new XrHitTest(this);
-		this.imageTracking = new XrImageTracking(this);
-		this.planeDetection = new XrPlaneDetection(this);
-		this.input = new XrInput(this);
-		this.lightEstimation = new XrLightEstimation(this);
+		this.depthSensing = void 0;
+		this.domOverlay = void 0;
+		this.hitTest = void 0;
+		this.imageTracking = void 0;
+		this.planeDetection = void 0;
+		this.input = void 0;
+		this.lightEstimation = void 0;
 		this._camera = null;
 		this.views = [];
 		this.viewsPool = [];
@@ -42199,6 +40638,17 @@ class XrManager extends EventHandler {
 		this._depthFar = 1000;
 		this._width = 0;
 		this._height = 0;
+		this.app = app;
+		this._available[XRTYPE_INLINE] = false;
+		this._available[XRTYPE_VR] = false;
+		this._available[XRTYPE_AR] = false;
+		this.depthSensing = new XrDepthSensing(this);
+		this.domOverlay = new XrDomOverlay(this);
+		this.hitTest = new XrHitTest(this);
+		this.imageTracking = new XrImageTracking(this);
+		this.planeDetection = new XrPlaneDetection(this);
+		this.input = new XrInput(this);
+		this.lightEstimation = new XrLightEstimation(this);
 
 		if (this._supported) {
 			navigator.xr.addEventListener('devicechange', () => {
@@ -42384,7 +40834,11 @@ class XrManager extends EventHandler {
 
 		this._camera.on('set_farClip', onClipPlanesChange);
 
-		this._baseLayer = new XRWebGLLayer(session, this.app.graphicsDevice.gl);
+		this._baseLayer = new XRWebGLLayer(session, this.app.graphicsDevice.gl, {
+			alpha: true,
+			depth: true,
+			stencil: true
+		});
 		session.updateRenderState({
 			baseLayer: this._baseLayer,
 			depthNear: this._depthNear,
@@ -44359,25 +42813,6 @@ class AnimationComponent extends Component {
 		}
 	}
 
-	onSetCurrentTime(name, oldValue, newValue) {
-		const data = this.data;
-
-		if (data.skeleton) {
-			const skeleton = data.skeleton;
-			skeleton.currentTime = newValue;
-			skeleton.addTime(0);
-			skeleton.updateGraph();
-		}
-
-		if (data.animEvaluator) {
-			const animEvaluator = data.animEvaluator;
-
-			for (let i = 0; i < animEvaluator.clips.length; ++i) {
-				animEvaluator.clips[i].time = newValue;
-			}
-		}
-	}
-
 	onEnable() {
 		super.onEnable();
 		const data = this.data;
@@ -44492,6 +42927,7 @@ class AnimationComponentSystem extends ComponentSystem {
 		}
 
 		clone.animation.animationsIndex = clonedAnimationsIndex;
+		return clone.animation;
 	}
 
 	onBeforeRemove(entity, component) {
@@ -45289,9 +43725,7 @@ class AnimController {
 			transitions = this._transitions.filter(function (transition) {
 				return transition.from === stateName;
 			});
-			transitions.sort(function (a, b) {
-				return a.priority < b.priority;
-			});
+			sortPriority(transitions);
 			this._findTransitionsFromStateCache[stateName] = transitions;
 		}
 
@@ -45305,9 +43739,7 @@ class AnimController {
 			transitions = this._transitions.filter(function (transition) {
 				return transition.from === sourceStateName && transition.to === destinationStateName;
 			});
-			transitions.sort(function (a, b) {
-				return a.priority < b.priority;
-			});
+			sortPriority(transitions);
 			this._findTransitionsBetweenStatesCache[sourceStateName + '->' + destinationStateName] = transitions;
 		}
 
@@ -46764,6 +45196,26 @@ class AnimComponentSystem extends ComponentSystem {
 	}
 
 	cloneComponent(entity, clone) {
+		let masks;
+
+		if (!entity.anim.rootBone || entity.anim.rootBone === entity) {
+			masks = {};
+			entity.anim.layers.forEach((layer, i) => {
+				if (layer.mask) {
+					const mask = {};
+					Object.keys(layer.mask).forEach(path => {
+						const pathArr = path.split('/');
+						pathArr.shift();
+						const clonePath = [clone.name, ...pathArr].join('/');
+						mask[clonePath] = layer.mask[path];
+					});
+					masks[i] = {
+						mask
+					};
+				}
+			});
+		}
+
 		const data = {
 			stateGraphAsset: entity.anim.stateGraphAsset,
 			animationAssets: entity.anim.animationAssets,
@@ -46774,9 +45226,10 @@ class AnimComponentSystem extends ComponentSystem {
 			stateGraph: entity.anim.stateGraph,
 			layers: entity.anim.layers,
 			layerIndices: entity.anim.layerIndices,
-			parameters: entity.anim.parameters
+			parameters: entity.anim.parameters,
+			masks
 		};
-		this.addComponent(clone, data);
+		return this.addComponent(clone, data);
 	}
 
 	onBeforeRemove(entity, component) {
@@ -47963,7 +46416,7 @@ class ButtonComponent extends Component {
 	}
 
 	_applyTintImmediately(tintColor) {
-		if (!tintColor || !this._imageReference.hasComponent('element')) return;
+		if (!tintColor || !this._imageReference.hasComponent('element') || this._imageReference.entity.element.type === ELEMENTTYPE_GROUP) return;
 		const color3 = toColor3(tintColor);
 		this._isApplyingTint = true;
 		if (!color3.equals(this._imageReference.entity.element.color)) this._imageReference.entity.element.color = color3;
@@ -47972,7 +46425,7 @@ class ButtonComponent extends Component {
 	}
 
 	_applyTintWithTween(tintColor) {
-		if (!tintColor || !this._imageReference.hasComponent('element')) return;
+		if (!tintColor || !this._imageReference.hasComponent('element') || this._imageReference.entity.element.type === ELEMENTTYPE_GROUP) return;
 		const color3 = toColor3(tintColor);
 		const color = this._imageReference.entity.element.color;
 		const opacity = this._imageReference.entity.element.opacity;
@@ -48158,6 +46611,7 @@ class PostEffectQueue {
 		const width = Math.floor(rect.z * this.app.graphicsDevice.width * this.renderTargetScale);
 		const height = Math.floor(rect.w * this.app.graphicsDevice.height * this.renderTargetScale);
 		const colorBuffer = new Texture(this.app.graphicsDevice, {
+			name: name,
 			format: format,
 			width: width,
 			height: height,
@@ -48167,7 +46621,6 @@ class PostEffectQueue {
 			addressU: ADDRESS_CLAMP_TO_EDGE,
 			addressV: ADDRESS_CLAMP_TO_EDGE
 		});
-		colorBuffer.name = name;
 		return colorBuffer;
 	}
 
@@ -48814,11 +47267,11 @@ const _schema$g = ['enabled'];
 class CameraComponentSystem extends ComponentSystem {
 	constructor(app) {
 		super(app);
+		this.cameras = [];
 		this.id = 'camera';
 		this.ComponentType = CameraComponent;
 		this.DataType = CameraComponentData;
 		this.schema = _schema$g;
-		this.cameras = [];
 		this.on('beforeremove', this.onBeforeRemove, this);
 		this.app.on('prerender', this.onAppPrerender, this);
 		this.app.systems.on('update', this.onUpdate, this);
@@ -48865,7 +47318,7 @@ class CameraComponentSystem extends ComponentSystem {
 
 	cloneComponent(entity, clone) {
 		const c = entity.camera;
-		this.addComponent(clone, {
+		return this.addComponent(clone, {
 			aspectRatio: c.aspectRatio,
 			aspectRatioMode: c.aspectRatioMode,
 			calculateProjection: c.calculateProjection,
@@ -48930,7 +47383,7 @@ class CameraComponentSystem extends ComponentSystem {
 
 	addCamera(camera) {
 		this.cameras.push(camera);
-		this.sortCamerasByPriority();
+		sortPriority(this.cameras);
 	}
 
 	removeCamera(camera) {
@@ -48938,14 +47391,8 @@ class CameraComponentSystem extends ComponentSystem {
 
 		if (index >= 0) {
 			this.cameras.splice(index, 1);
-			this.sortCamerasByPriority();
+			sortPriority(this.cameras);
 		}
-	}
-
-	sortCamerasByPriority() {
-		this.cameras.sort(function (a, b) {
-			return a.priority - b.priority;
-		});
 	}
 
 	destroy() {
@@ -57647,7 +56094,7 @@ class LightComponentSystem extends ComponentSystem {
 			}
 		}
 
-		this.addComponent(clone, data);
+		return this.addComponent(clone, data);
 	}
 
 	changeType(component, oldValue, newValue) {
@@ -57668,7 +56115,7 @@ class ModelComponent extends Component {
 		this._castShadows = true;
 		this._receiveShadows = true;
 		this._materialAsset = null;
-		this._material = system.defaultMaterial;
+		this._material = void 0;
 		this._castShadowsLightmap = true;
 		this._lightmapped = false;
 		this._lightmapSizeMultiplier = 1;
@@ -57677,11 +56124,9 @@ class ModelComponent extends Component {
 		this._batchGroupId = -1;
 		this._customAabb = null;
 		this._area = null;
-		this._assetOld = 0;
 		this._materialEvents = null;
-		this._dirtyModelAsset = false;
-		this._dirtyMaterialAsset = false;
 		this._clonedModel = false;
+		this._material = system.defaultMaterial;
 		entity.on('remove', this.onRemoveChild, this);
 		entity.on('removehierarchy', this.onRemoveChild, this);
 		entity.on('insert', this.onInsertChild, this);
@@ -58453,7 +56898,7 @@ class ModelComponentSystem extends ComponentSystem {
 		this.ComponentType = ModelComponent;
 		this.DataType = ModelComponentData;
 		this.schema = _schema$a;
-		this.defaultMaterial = DefaultMaterial.get(app.graphicsDevice);
+		this.defaultMaterial = getDefaultMaterial(app.graphicsDevice);
 		this.on('beforeremove', this.onRemove, this);
 	}
 
@@ -58532,6 +56977,8 @@ class ModelComponentSystem extends ComponentSystem {
 		if (entity.model.customAabb) {
 			component.customAabb = entity.model.customAabb.clone();
 		}
+
+		return component;
 	}
 
 	onRemove(entity, component) {
@@ -58553,11 +57000,15 @@ class RenderComponent extends Component {
 		this._lightmapSizeMultiplier = 1;
 		this._isStatic = false;
 		this._batchGroupId = -1;
-		this._meshInstances = [];
 		this._layers = [LAYERID_WORLD];
 		this._renderStyle = RENDERSTYLE_SOLID;
+		this._meshInstances = [];
 		this._customAabb = null;
 		this._area = null;
+		this._assetReference = [];
+		this._materialReferences = [];
+		this._material = void 0;
+		this._rootBone = void 0;
 		this._rootBone = new EntityReference(this, 'rootBone');
 
 		this._rootBone.on('set:entity', this._onSetRootBone, this);
@@ -58569,7 +57020,6 @@ class RenderComponent extends Component {
 			unload: this._onRenderAssetUnload
 		}, this);
 		this._material = system.defaultMaterial;
-		this._materialReferences = [];
 		entity.on('remove', this.onRemoveChild, this);
 		entity.on('removehierarchy', this.onRemoveChild, this);
 		entity.on('insert', this.onInsertChild, this);
@@ -58904,6 +57354,11 @@ class RenderComponent extends Component {
 		return this._assetReference.id;
 	}
 
+	assignAsset(asset) {
+		const id = asset instanceof Asset ? asset.id : asset;
+		this._assetReference.id = id;
+	}
+
 	_onSetRootBone(entity) {
 		if (entity) {
 			this._onRootBoneChanged();
@@ -59220,7 +57675,7 @@ class RenderComponentSystem extends ComponentSystem {
 		this.ComponentType = RenderComponent;
 		this.DataType = RenderComponentData;
 		this.schema = _schema$9;
-		this.defaultMaterial = DefaultMaterial.get(app.graphicsDevice);
+		this.defaultMaterial = getDefaultMaterial(app.graphicsDevice);
 		this.on('beforeremove', this.onRemove, this);
 	}
 
@@ -59253,6 +57708,7 @@ class RenderComponentSystem extends ComponentSystem {
 			data[_properties[i]] = entity.render[_properties[i]];
 		}
 
+		data.enabled = entity.render.enabled;
 		delete data.meshInstances;
 		const component = this.addComponent(clone, data);
 		const srcMeshInstances = entity.render.meshInstances;
@@ -59267,6 +57723,8 @@ class RenderComponentSystem extends ComponentSystem {
 		if (entity.render.customAabb) {
 			component.customAabb = entity.render.customAabb.clone();
 		}
+
+		return component;
 	}
 
 	onRemove(entity, component) {
@@ -59277,6 +57735,1718 @@ class RenderComponentSystem extends ComponentSystem {
 
 Component._buildAccessors(RenderComponent.prototype, _schema$9);
 
+let nonUniformScale;
+let uniformScale = 1;
+const particleTexChannels$1 = 4;
+const rotMat = new Mat4();
+const rotMatInv = new Mat4();
+const randomPosTformed = new Vec3();
+const randomPos = new Vec3();
+const rndFactor3Vec = new Vec3();
+const particlePosPrev = new Vec3();
+const velocityVec = new Vec3();
+const localVelocityVec = new Vec3();
+const velocityVec2 = new Vec3();
+const localVelocityVec2 = new Vec3();
+const radialVelocityVec = new Vec3();
+const particlePos = new Vec3();
+const particleFinalPos = new Vec3();
+const moveDirVec = new Vec3();
+const tmpVec3$1 = new Vec3();
+
+function frac(f) {
+	return f - Math.floor(f);
+}
+
+function saturate$1(x) {
+	return Math.max(Math.min(x, 1), 0);
+}
+
+function glMod(x, y) {
+	return x - y * Math.floor(x / y);
+}
+
+function encodeFloatRGBA(v) {
+	let encX = frac(v);
+	let encY = frac(255.0 * v);
+	let encZ = frac(65025.0 * v);
+	let encW = frac(160581375.0 * v);
+	encX -= encY / 255.0;
+	encY -= encZ / 255.0;
+	encZ -= encW / 255.0;
+	encW -= encW / 255.0;
+	return [encX, encY, encZ, encW];
+}
+
+function encodeFloatRG(v) {
+	let encX = frac(v);
+	let encY = frac(255.0 * v);
+	encX -= encY / 255.0;
+	encY -= encY / 255.0;
+	return [encX, encY];
+}
+
+class ParticleCPUUpdater {
+	constructor(emitter) {
+		this._emitter = emitter;
+	}
+
+	calcSpawnPosition(particleTex, spawnMatrix, extentsInnerRatioUniform, emitterPos, i) {
+		const emitter = this._emitter;
+		const rX = Math.random();
+		const rY = Math.random();
+		const rZ = Math.random();
+		const rW = Math.random();
+
+		if (emitter.useCpu) {
+			particleTex[i * particleTexChannels$1 + 0 + emitter.numParticlesPot * 2 * particleTexChannels$1] = rX;
+			particleTex[i * particleTexChannels$1 + 1 + emitter.numParticlesPot * 2 * particleTexChannels$1] = rY;
+			particleTex[i * particleTexChannels$1 + 2 + emitter.numParticlesPot * 2 * particleTexChannels$1] = rZ;
+		}
+
+		randomPos.x = rX - 0.5;
+		randomPos.y = rY - 0.5;
+		randomPos.z = rZ - 0.5;
+
+		if (emitter.emitterShape === EMITTERSHAPE_BOX) {
+			const max = Math.max(Math.abs(randomPos.x), Math.max(Math.abs(randomPos.y), Math.abs(randomPos.z)));
+			const edgeX = max + (0.5 - max) * extentsInnerRatioUniform[0];
+			const edgeY = max + (0.5 - max) * extentsInnerRatioUniform[1];
+			const edgeZ = max + (0.5 - max) * extentsInnerRatioUniform[2];
+			randomPos.x = edgeX * (max === Math.abs(randomPos.x) ? Math.sign(randomPos.x) : 2 * randomPos.x);
+			randomPos.y = edgeY * (max === Math.abs(randomPos.y) ? Math.sign(randomPos.y) : 2 * randomPos.y);
+			randomPos.z = edgeZ * (max === Math.abs(randomPos.z) ? Math.sign(randomPos.z) : 2 * randomPos.z);
+			if (!emitter.localSpace) randomPosTformed.copy(emitterPos).add(spawnMatrix.transformPoint(randomPos));else randomPosTformed.copy(spawnMatrix.transformPoint(randomPos));
+		} else {
+			randomPos.normalize();
+			const spawnBoundsSphereInnerRatio = emitter.emitterRadius === 0 ? 0 : emitter.emitterRadiusInner / emitter.emitterRadius;
+			const r = rW * (1.0 - spawnBoundsSphereInnerRatio) + spawnBoundsSphereInnerRatio;
+			if (!emitter.localSpace) randomPosTformed.copy(emitterPos).add(randomPos.mulScalar(r * emitter.emitterRadius));else randomPosTformed.copy(randomPos.mulScalar(r * emitter.emitterRadius));
+		}
+
+		const particleRate = math.lerp(emitter.rate, emitter.rate2, rX);
+		let startSpawnTime = -particleRate * i;
+
+		if (emitter.pack8) {
+			const packX = (randomPosTformed.x - emitter.worldBounds.center.x) / emitter.worldBoundsSize.x + 0.5;
+			const packY = (randomPosTformed.y - emitter.worldBounds.center.y) / emitter.worldBoundsSize.y + 0.5;
+			const packZ = (randomPosTformed.z - emitter.worldBounds.center.z) / emitter.worldBoundsSize.z + 0.5;
+			let packA = math.lerp(emitter.startAngle * math.DEG_TO_RAD, emitter.startAngle2 * math.DEG_TO_RAD, rX);
+			packA = packA % (Math.PI * 2) / (Math.PI * 2);
+			const rg0 = encodeFloatRG(packX);
+			particleTex[i * particleTexChannels$1] = rg0[0];
+			particleTex[i * particleTexChannels$1 + 1] = rg0[1];
+			const ba0 = encodeFloatRG(packY);
+			particleTex[i * particleTexChannels$1 + 2] = ba0[0];
+			particleTex[i * particleTexChannels$1 + 3] = ba0[1];
+			const rg1 = encodeFloatRG(packZ);
+			particleTex[i * particleTexChannels$1 + 0 + emitter.numParticlesPot * particleTexChannels$1] = rg1[0];
+			particleTex[i * particleTexChannels$1 + 1 + emitter.numParticlesPot * particleTexChannels$1] = rg1[1];
+			const ba1 = encodeFloatRG(packA);
+			particleTex[i * particleTexChannels$1 + 2 + emitter.numParticlesPot * particleTexChannels$1] = ba1[0];
+			particleTex[i * particleTexChannels$1 + 3 + emitter.numParticlesPot * particleTexChannels$1] = ba1[1];
+			const a2 = 1.0;
+			particleTex[i * particleTexChannels$1 + 3 + emitter.numParticlesPot * particleTexChannels$1 * 2] = a2;
+			const maxNegLife = Math.max(emitter.lifetime, (emitter.numParticles - 1.0) * Math.max(emitter.rate, emitter.rate2));
+			const maxPosLife = emitter.lifetime + 1.0;
+			startSpawnTime = (startSpawnTime + maxNegLife) / (maxNegLife + maxPosLife);
+			const rgba3 = encodeFloatRGBA(startSpawnTime);
+			particleTex[i * particleTexChannels$1 + 0 + emitter.numParticlesPot * particleTexChannels$1 * 3] = rgba3[0];
+			particleTex[i * particleTexChannels$1 + 1 + emitter.numParticlesPot * particleTexChannels$1 * 3] = rgba3[1];
+			particleTex[i * particleTexChannels$1 + 2 + emitter.numParticlesPot * particleTexChannels$1 * 3] = rgba3[2];
+			particleTex[i * particleTexChannels$1 + 3 + emitter.numParticlesPot * particleTexChannels$1 * 3] = rgba3[3];
+		} else {
+			particleTex[i * particleTexChannels$1] = randomPosTformed.x;
+			particleTex[i * particleTexChannels$1 + 1] = randomPosTformed.y;
+			particleTex[i * particleTexChannels$1 + 2] = randomPosTformed.z;
+			particleTex[i * particleTexChannels$1 + 3] = math.lerp(emitter.startAngle * math.DEG_TO_RAD, emitter.startAngle2 * math.DEG_TO_RAD, rX);
+			particleTex[i * particleTexChannels$1 + 3 + emitter.numParticlesPot * particleTexChannels$1] = startSpawnTime;
+		}
+	}
+
+	update(data, vbToSort, particleTex, spawnMatrix, extentsInnerRatioUniform, emitterPos, delta, isOnStop) {
+		let a, b, c;
+		const emitter = this._emitter;
+
+		if (emitter.meshInstance.node) {
+			const fullMat = emitter.meshInstance.node.worldTransform;
+
+			for (let j = 0; j < 12; j++) {
+				rotMat.data[j] = fullMat.data[j];
+			}
+
+			rotMatInv.copy(rotMat);
+			rotMatInv.invert();
+			nonUniformScale = emitter.meshInstance.node.localScale;
+			uniformScale = Math.max(Math.max(nonUniformScale.x, nonUniformScale.y), nonUniformScale.z);
+		}
+
+		emitterPos = emitter.meshInstance.node === null || emitter.localSpace ? Vec3.ZERO : emitter.meshInstance.node.getPosition();
+		const posCam = emitter.camera ? emitter.camera._node.getPosition() : Vec3.ZERO;
+		const vertSize = !emitter.useMesh ? 15 : 17;
+		let cf, cc;
+		let rotSpeed, rotSpeed2, scale2, alpha, alpha2, radialSpeed, radialSpeed2;
+		const precision1 = emitter.precision - 1;
+
+		for (let i = 0; i < emitter.numParticles; i++) {
+			const id = Math.floor(emitter.vbCPU[i * emitter.numParticleVerts * (emitter.useMesh ? 6 : 4) + 3]);
+			const rndFactor = particleTex[id * particleTexChannels$1 + 0 + emitter.numParticlesPot * 2 * particleTexChannels$1];
+			rndFactor3Vec.x = rndFactor;
+			rndFactor3Vec.y = particleTex[id * particleTexChannels$1 + 1 + emitter.numParticlesPot * 2 * particleTexChannels$1];
+			rndFactor3Vec.z = particleTex[id * particleTexChannels$1 + 2 + emitter.numParticlesPot * 2 * particleTexChannels$1];
+			const particleRate = emitter.rate + (emitter.rate2 - emitter.rate) * rndFactor;
+			const particleLifetime = emitter.lifetime;
+			let life = particleTex[id * particleTexChannels$1 + 3 + emitter.numParticlesPot * particleTexChannels$1] + delta;
+			const nlife = saturate$1(life / particleLifetime);
+			let scale = 0;
+			let alphaDiv = 0;
+			const angle = 0;
+			const respawn = life - delta <= 0.0 || life >= particleLifetime;
+
+			if (respawn) {
+				this.calcSpawnPosition(particleTex, spawnMatrix, extentsInnerRatioUniform, emitterPos, id);
+			}
+
+			let particleEnabled = life > 0.0 && life < particleLifetime;
+
+			if (particleEnabled) {
+				c = nlife * precision1;
+				cf = Math.floor(c);
+				cc = Math.ceil(c);
+				c %= 1;
+				a = emitter.qRotSpeed[cf];
+				b = emitter.qRotSpeed[cc];
+				rotSpeed = a + (b - a) * c;
+				a = emitter.qRotSpeed2[cf];
+				b = emitter.qRotSpeed2[cc];
+				rotSpeed2 = a + (b - a) * c;
+				a = emitter.qScale[cf];
+				b = emitter.qScale[cc];
+				scale = a + (b - a) * c;
+				a = emitter.qScale2[cf];
+				b = emitter.qScale2[cc];
+				scale2 = a + (b - a) * c;
+				a = emitter.qAlpha[cf];
+				b = emitter.qAlpha[cc];
+				alpha = a + (b - a) * c;
+				a = emitter.qAlpha2[cf];
+				b = emitter.qAlpha2[cc];
+				alpha2 = a + (b - a) * c;
+				a = emitter.qRadialSpeed[cf];
+				b = emitter.qRadialSpeed[cc];
+				radialSpeed = a + (b - a) * c;
+				a = emitter.qRadialSpeed2[cf];
+				b = emitter.qRadialSpeed2[cc];
+				radialSpeed2 = a + (b - a) * c;
+				radialSpeed += (radialSpeed2 - radialSpeed) * (rndFactor * 100.0 % 1.0);
+				particlePosPrev.x = particleTex[id * particleTexChannels$1];
+				particlePosPrev.y = particleTex[id * particleTexChannels$1 + 1];
+				particlePosPrev.z = particleTex[id * particleTexChannels$1 + 2];
+				if (!emitter.localSpace) radialVelocityVec.copy(particlePosPrev).sub(emitterPos);else radialVelocityVec.copy(particlePosPrev);
+				radialVelocityVec.normalize().mulScalar(radialSpeed);
+				cf *= 3;
+				cc *= 3;
+				a = emitter.qLocalVelocity[cf];
+				b = emitter.qLocalVelocity[cc];
+				localVelocityVec.x = a + (b - a) * c;
+				a = emitter.qLocalVelocity[cf + 1];
+				b = emitter.qLocalVelocity[cc + 1];
+				localVelocityVec.y = a + (b - a) * c;
+				a = emitter.qLocalVelocity[cf + 2];
+				b = emitter.qLocalVelocity[cc + 2];
+				localVelocityVec.z = a + (b - a) * c;
+				a = emitter.qLocalVelocity2[cf];
+				b = emitter.qLocalVelocity2[cc];
+				localVelocityVec2.x = a + (b - a) * c;
+				a = emitter.qLocalVelocity2[cf + 1];
+				b = emitter.qLocalVelocity2[cc + 1];
+				localVelocityVec2.y = a + (b - a) * c;
+				a = emitter.qLocalVelocity2[cf + 2];
+				b = emitter.qLocalVelocity2[cc + 2];
+				localVelocityVec2.z = a + (b - a) * c;
+				a = emitter.qVelocity[cf];
+				b = emitter.qVelocity[cc];
+				velocityVec.x = a + (b - a) * c;
+				a = emitter.qVelocity[cf + 1];
+				b = emitter.qVelocity[cc + 1];
+				velocityVec.y = a + (b - a) * c;
+				a = emitter.qVelocity[cf + 2];
+				b = emitter.qVelocity[cc + 2];
+				velocityVec.z = a + (b - a) * c;
+				a = emitter.qVelocity2[cf];
+				b = emitter.qVelocity2[cc];
+				velocityVec2.x = a + (b - a) * c;
+				a = emitter.qVelocity2[cf + 1];
+				b = emitter.qVelocity2[cc + 1];
+				velocityVec2.y = a + (b - a) * c;
+				a = emitter.qVelocity2[cf + 2];
+				b = emitter.qVelocity2[cc + 2];
+				velocityVec2.z = a + (b - a) * c;
+				localVelocityVec.x += (localVelocityVec2.x - localVelocityVec.x) * rndFactor3Vec.x;
+				localVelocityVec.y += (localVelocityVec2.y - localVelocityVec.y) * rndFactor3Vec.y;
+				localVelocityVec.z += (localVelocityVec2.z - localVelocityVec.z) * rndFactor3Vec.z;
+
+				if (emitter.initialVelocity > 0) {
+					if (emitter.emitterShape === EMITTERSHAPE_SPHERE) {
+						randomPos.copy(rndFactor3Vec).mulScalar(2).sub(Vec3.ONE).normalize();
+						localVelocityVec.add(randomPos.mulScalar(emitter.initialVelocity));
+					} else {
+						localVelocityVec.add(Vec3.FORWARD.mulScalar(emitter.initialVelocity));
+					}
+				}
+
+				velocityVec.x += (velocityVec2.x - velocityVec.x) * rndFactor3Vec.x;
+				velocityVec.y += (velocityVec2.y - velocityVec.y) * rndFactor3Vec.y;
+				velocityVec.z += (velocityVec2.z - velocityVec.z) * rndFactor3Vec.z;
+				rotSpeed += (rotSpeed2 - rotSpeed) * rndFactor3Vec.y;
+				scale = (scale + (scale2 - scale) * (rndFactor * 10000.0 % 1.0)) * uniformScale;
+				alphaDiv = (alpha2 - alpha) * (rndFactor * 1000.0 % 1.0);
+
+				if (emitter.meshInstance.node) {
+					if (!emitter.localSpace) {
+						rotMat.transformPoint(localVelocityVec, localVelocityVec);
+					} else {
+						localVelocityVec.x /= nonUniformScale.x;
+						localVelocityVec.y /= nonUniformScale.y;
+						localVelocityVec.z /= nonUniformScale.z;
+					}
+				}
+
+				if (!emitter.localSpace) {
+					localVelocityVec.add(velocityVec.mul(nonUniformScale));
+					localVelocityVec.add(radialVelocityVec.mul(nonUniformScale));
+				} else {
+					rotMatInv.transformPoint(velocityVec, velocityVec);
+					localVelocityVec.add(velocityVec).add(radialVelocityVec);
+				}
+
+				moveDirVec.copy(localVelocityVec);
+				particlePos.copy(particlePosPrev).add(localVelocityVec.mulScalar(delta));
+				particleFinalPos.copy(particlePos);
+				particleTex[id * particleTexChannels$1] = particleFinalPos.x;
+				particleTex[id * particleTexChannels$1 + 1] = particleFinalPos.y;
+				particleTex[id * particleTexChannels$1 + 2] = particleFinalPos.z;
+				particleTex[id * particleTexChannels$1 + 3] += rotSpeed * delta;
+
+				if (emitter.wrap && emitter.wrapBounds) {
+					if (!emitter.localSpace) particleFinalPos.sub(emitterPos);
+					particleFinalPos.x = glMod(particleFinalPos.x, emitter.wrapBounds.x) - emitter.wrapBounds.x * 0.5;
+					particleFinalPos.y = glMod(particleFinalPos.y, emitter.wrapBounds.y) - emitter.wrapBounds.y * 0.5;
+					particleFinalPos.z = glMod(particleFinalPos.z, emitter.wrapBounds.z) - emitter.wrapBounds.z * 0.5;
+					if (!emitter.localSpace) particleFinalPos.add(emitterPos);
+				}
+
+				if (emitter.sort > 0) {
+					if (emitter.sort === 1) {
+						tmpVec3$1.copy(particleFinalPos).sub(posCam);
+						emitter.particleDistance[id] = -(tmpVec3$1.x * tmpVec3$1.x + tmpVec3$1.y * tmpVec3$1.y + tmpVec3$1.z * tmpVec3$1.z);
+					} else if (emitter.sort === 2) {
+						emitter.particleDistance[id] = life;
+					} else if (emitter.sort === 3) {
+						emitter.particleDistance[id] = -life;
+					}
+				}
+			}
+
+			if (isOnStop) {
+				if (life < 0) {
+					particleTex[id * particleTexChannels$1 + 3 + emitter.numParticlesPot * 2 * particleTexChannels$1] = -1;
+				}
+			} else {
+				if (life >= particleLifetime) {
+					life -= Math.max(particleLifetime, (emitter.numParticles - 1) * particleRate);
+					particleTex[id * particleTexChannels$1 + 3 + emitter.numParticlesPot * 2 * particleTexChannels$1] = emitter.loop ? 1 : -1;
+				}
+
+				if (life < 0 && emitter.loop) {
+					particleTex[id * particleTexChannels$1 + 3 + emitter.numParticlesPot * 2 * particleTexChannels$1] = 1;
+				}
+			}
+
+			if (particleTex[id * particleTexChannels$1 + 3 + emitter.numParticlesPot * 2 * particleTexChannels$1] < 0) particleEnabled = false;
+			particleTex[id * particleTexChannels$1 + 3 + emitter.numParticlesPot * particleTexChannels$1] = life;
+
+			for (let v = 0; v < emitter.numParticleVerts; v++) {
+				const vbOffset = (i * emitter.numParticleVerts + v) * (emitter.useMesh ? 6 : 4);
+				let quadX = emitter.vbCPU[vbOffset];
+				let quadY = emitter.vbCPU[vbOffset + 1];
+				let quadZ = emitter.vbCPU[vbOffset + 2];
+
+				if (!particleEnabled) {
+					quadX = quadY = quadZ = 0;
+				}
+
+				const w = i * emitter.numParticleVerts * vertSize + v * vertSize;
+				data[w] = particleFinalPos.x;
+				data[w + 1] = particleFinalPos.y;
+				data[w + 2] = particleFinalPos.z;
+				data[w + 3] = nlife;
+				data[w + 4] = emitter.alignToMotion ? angle : particleTex[id * particleTexChannels$1 + 3];
+				data[w + 5] = scale;
+				data[w + 6] = alphaDiv;
+				data[w + 7] = moveDirVec.x;
+				data[w + 8] = quadX;
+				data[w + 9] = quadY;
+				data[w + 10] = quadZ;
+				data[w + 11] = moveDirVec.y;
+				data[w + 12] = id;
+				data[w + 13] = moveDirVec.z;
+				data[w + 14] = emitter.vbCPU[vbOffset + 3];
+
+				if (emitter.useMesh) {
+					data[w + 15] = emitter.vbCPU[vbOffset + 4];
+					data[w + 16] = emitter.vbCPU[vbOffset + 5];
+				}
+			}
+		}
+
+		if (emitter.sort > PARTICLESORT_NONE && emitter.camera) {
+			const vbStride = emitter.useMesh ? 6 : 4;
+			const particleDistance = emitter.particleDistance;
+
+			for (let i = 0; i < emitter.numParticles; i++) {
+				vbToSort[i][0] = i;
+				vbToSort[i][1] = particleDistance[Math.floor(emitter.vbCPU[i * emitter.numParticleVerts * vbStride + 3])];
+			}
+
+			emitter.vbOld.set(emitter.vbCPU);
+			vbToSort.sort(function (p1, p2) {
+				return p1[1] - p2[1];
+			});
+
+			for (let i = 0; i < emitter.numParticles; i++) {
+				const src = vbToSort[i][0] * emitter.numParticleVerts * vbStride;
+				const dest = i * emitter.numParticleVerts * vbStride;
+
+				for (let j = 0; j < emitter.numParticleVerts * vbStride; j++) {
+					emitter.vbCPU[dest + j] = emitter.vbOld[src + j];
+				}
+			}
+		}
+	}
+
+}
+
+const spawnMatrix3 = new Mat3();
+const emitterMatrix3 = new Mat3();
+const emitterMatrix3Inv = new Mat3();
+
+class ParticleGPUUpdater {
+	constructor(emitter, gd) {
+		this._emitter = emitter;
+		this.frameRandomUniform = new Float32Array(3);
+		this.emitterPosUniform = new Float32Array(3);
+		this.emitterScaleUniform = new Float32Array([1, 1, 1]);
+		this.worldBoundsMulUniform = new Float32Array(3);
+		this.worldBoundsAddUniform = new Float32Array(3);
+		this.inBoundsSizeUniform = new Float32Array(3);
+		this.inBoundsCenterUniform = new Float32Array(3);
+		this.constantParticleTexIN = gd.scope.resolve("particleTexIN");
+		this.constantParticleTexOUT = gd.scope.resolve("particleTexOUT");
+		this.constantEmitterPos = gd.scope.resolve("emitterPos");
+		this.constantEmitterScale = gd.scope.resolve("emitterScale");
+		this.constantSpawnBounds = gd.scope.resolve("spawnBounds");
+		this.constantSpawnPosInnerRatio = gd.scope.resolve("spawnPosInnerRatio");
+		this.constantSpawnBoundsSphere = gd.scope.resolve("spawnBoundsSphere");
+		this.constantSpawnBoundsSphereInnerRatio = gd.scope.resolve("spawnBoundsSphereInnerRatio");
+		this.constantInitialVelocity = gd.scope.resolve("initialVelocity");
+		this.constantFrameRandom = gd.scope.resolve("frameRandom");
+		this.constantDelta = gd.scope.resolve("delta");
+		this.constantRate = gd.scope.resolve("rate");
+		this.constantRateDiv = gd.scope.resolve("rateDiv");
+		this.constantLifetime = gd.scope.resolve("lifetime");
+		this.constantGraphSampleSize = gd.scope.resolve("graphSampleSize");
+		this.constantGraphNumSamples = gd.scope.resolve("graphNumSamples");
+		this.constantInternalTex0 = gd.scope.resolve("internalTex0");
+		this.constantInternalTex1 = gd.scope.resolve("internalTex1");
+		this.constantInternalTex2 = gd.scope.resolve("internalTex2");
+		this.constantInternalTex3 = gd.scope.resolve("internalTex3");
+		this.constantEmitterMatrix = gd.scope.resolve("emitterMatrix");
+		this.constantEmitterMatrixInv = gd.scope.resolve("emitterMatrixInv");
+		this.constantNumParticles = gd.scope.resolve("numParticles");
+		this.constantNumParticlesPot = gd.scope.resolve("numParticlesPot");
+		this.constantLocalVelocityDivMult = gd.scope.resolve("localVelocityDivMult");
+		this.constantVelocityDivMult = gd.scope.resolve("velocityDivMult");
+		this.constantRotSpeedDivMult = gd.scope.resolve("rotSpeedDivMult");
+		this.constantSeed = gd.scope.resolve("seed");
+		this.constantStartAngle = gd.scope.resolve("startAngle");
+		this.constantStartAngle2 = gd.scope.resolve("startAngle2");
+		this.constantOutBoundsMul = gd.scope.resolve("outBoundsMul");
+		this.constantOutBoundsAdd = gd.scope.resolve("outBoundsAdd");
+		this.constantInBoundsSize = gd.scope.resolve("inBoundsSize");
+		this.constantInBoundsCenter = gd.scope.resolve("inBoundsCenter");
+		this.constantMaxVel = gd.scope.resolve("maxVel");
+		this.constantFaceTangent = gd.scope.resolve("faceTangent");
+		this.constantFaceBinorm = gd.scope.resolve("faceBinorm");
+	}
+
+	_setInputBounds() {
+		this.inBoundsSizeUniform[0] = this._emitter.prevWorldBoundsSize.x;
+		this.inBoundsSizeUniform[1] = this._emitter.prevWorldBoundsSize.y;
+		this.inBoundsSizeUniform[2] = this._emitter.prevWorldBoundsSize.z;
+		this.constantInBoundsSize.setValue(this.inBoundsSizeUniform);
+		this.inBoundsCenterUniform[0] = this._emitter.prevWorldBoundsCenter.x;
+		this.inBoundsCenterUniform[1] = this._emitter.prevWorldBoundsCenter.y;
+		this.inBoundsCenterUniform[2] = this._emitter.prevWorldBoundsCenter.z;
+		this.constantInBoundsCenter.setValue(this.inBoundsCenterUniform);
+	}
+
+	randomize() {
+		this.frameRandomUniform[0] = Math.random();
+		this.frameRandomUniform[1] = Math.random();
+		this.frameRandomUniform[2] = Math.random();
+	}
+
+	update(device, spawnMatrix, extentsInnerRatioUniform, delta, isOnStop) {
+		const emitter = this._emitter;
+		device.setBlending(false);
+		device.setColorWrite(true, true, true, true);
+		device.setCullMode(CULLFACE_NONE);
+		device.setDepthTest(false);
+		device.setDepthWrite(false);
+		this.randomize();
+		this.constantGraphSampleSize.setValue(1.0 / emitter.precision);
+		this.constantGraphNumSamples.setValue(emitter.precision);
+		this.constantNumParticles.setValue(emitter.numParticles);
+		this.constantNumParticlesPot.setValue(emitter.numParticlesPot);
+		this.constantInternalTex0.setValue(emitter.internalTex0);
+		this.constantInternalTex1.setValue(emitter.internalTex1);
+		this.constantInternalTex2.setValue(emitter.internalTex2);
+		this.constantInternalTex3.setValue(emitter.internalTex3);
+		const node = emitter.meshInstance.node;
+		const emitterScale = node === null ? Vec3.ONE : node.localScale;
+
+		if (emitter.pack8) {
+			this.worldBoundsMulUniform[0] = emitter.worldBoundsMul.x;
+			this.worldBoundsMulUniform[1] = emitter.worldBoundsMul.y;
+			this.worldBoundsMulUniform[2] = emitter.worldBoundsMul.z;
+			this.constantOutBoundsMul.setValue(this.worldBoundsMulUniform);
+			this.worldBoundsAddUniform[0] = emitter.worldBoundsAdd.x;
+			this.worldBoundsAddUniform[1] = emitter.worldBoundsAdd.y;
+			this.worldBoundsAddUniform[2] = emitter.worldBoundsAdd.z;
+			this.constantOutBoundsAdd.setValue(this.worldBoundsAddUniform);
+
+			this._setInputBounds();
+
+			let maxVel = emitter.maxVel * Math.max(Math.max(emitterScale.x, emitterScale.y), emitterScale.z);
+			maxVel = Math.max(maxVel, 1);
+			this.constantMaxVel.setValue(maxVel);
+		}
+
+		const emitterPos = node === null || emitter.localSpace ? Vec3.ZERO : node.getPosition();
+		const emitterMatrix = node === null ? Mat4.IDENTITY : node.getWorldTransform();
+
+		if (emitter.emitterShape === EMITTERSHAPE_BOX) {
+			spawnMatrix3.setFromMat4(spawnMatrix);
+			this.constantSpawnBounds.setValue(spawnMatrix3.data);
+			this.constantSpawnPosInnerRatio.setValue(extentsInnerRatioUniform);
+		} else {
+			this.constantSpawnBoundsSphere.setValue(emitter.emitterRadius);
+			this.constantSpawnBoundsSphereInnerRatio.setValue(emitter.emitterRadius === 0 ? 0 : emitter.emitterRadiusInner / emitter.emitterRadius);
+		}
+
+		this.constantInitialVelocity.setValue(emitter.initialVelocity);
+		emitterMatrix3.setFromMat4(emitterMatrix);
+		emitterMatrix.invertTo3x3(emitterMatrix3Inv);
+		this.emitterPosUniform[0] = emitterPos.x;
+		this.emitterPosUniform[1] = emitterPos.y;
+		this.emitterPosUniform[2] = emitterPos.z;
+		this.constantEmitterPos.setValue(this.emitterPosUniform);
+		this.constantFrameRandom.setValue(this.frameRandomUniform);
+		this.constantDelta.setValue(delta);
+		this.constantRate.setValue(emitter.rate);
+		this.constantRateDiv.setValue(emitter.rate2 - emitter.rate);
+		this.constantStartAngle.setValue(emitter.startAngle * math.DEG_TO_RAD);
+		this.constantStartAngle2.setValue(emitter.startAngle2 * math.DEG_TO_RAD);
+		this.constantSeed.setValue(emitter.seed);
+		this.constantLifetime.setValue(emitter.lifetime);
+		this.emitterScaleUniform[0] = emitterScale.x;
+		this.emitterScaleUniform[1] = emitterScale.y;
+		this.emitterScaleUniform[2] = emitterScale.z;
+		this.constantEmitterScale.setValue(this.emitterScaleUniform);
+		this.constantEmitterMatrix.setValue(emitterMatrix3.data);
+		this.constantEmitterMatrixInv.setValue(emitterMatrix3Inv.data);
+		this.constantLocalVelocityDivMult.setValue(emitter.localVelocityUMax);
+		this.constantVelocityDivMult.setValue(emitter.velocityUMax);
+		this.constantRotSpeedDivMult.setValue(emitter.rotSpeedUMax[0]);
+		let texIN = emitter.swapTex ? emitter.particleTexOUT : emitter.particleTexIN;
+		texIN = emitter.beenReset ? emitter.particleTexStart : texIN;
+		const texOUT = emitter.swapTex ? emitter.particleTexIN : emitter.particleTexOUT;
+		this.constantParticleTexIN.setValue(texIN);
+		drawQuadWithShader(device, emitter.swapTex ? emitter.rtParticleTexIN : emitter.rtParticleTexOUT, !isOnStop ? emitter.loop ? emitter.shaderParticleUpdateRespawn : emitter.shaderParticleUpdateNoRespawn : emitter.shaderParticleUpdateOnStop);
+		emitter.material.setParameter("particleTexOUT", texIN);
+		emitter.material.setParameter("particleTexIN", texOUT);
+		emitter.beenReset = false;
+		emitter.swapTex = !emitter.swapTex;
+		device.setDepthTest(true);
+		device.setDepthWrite(true);
+		emitter.prevWorldBoundsSize.copy(emitter.worldBoundsSize);
+		emitter.prevWorldBoundsCenter.copy(emitter.worldBounds.center);
+		if (emitter.pack8) this._setInputBounds();
+	}
+
+}
+
+const particleVerts = [[-1, -1], [1, -1], [1, 1], [-1, 1]];
+
+function _createTexture(device, width, height, pixelData, format = PIXELFORMAT_RGBA32F, mult8Bit, filter) {
+	let mipFilter = FILTER_NEAREST;
+	if (filter && format === PIXELFORMAT_R8_G8_B8_A8) mipFilter = FILTER_LINEAR;
+	const texture = new Texture(device, {
+		width: width,
+		height: height,
+		format: format,
+		cubemap: false,
+		mipmaps: false,
+		minFilter: mipFilter,
+		magFilter: mipFilter,
+		addressU: ADDRESS_CLAMP_TO_EDGE,
+		addressV: ADDRESS_CLAMP_TO_EDGE
+	});
+	texture.name = "PSTexture";
+	const pixels = texture.lock();
+
+	if (format === PIXELFORMAT_R8_G8_B8_A8) {
+		const temp = new Uint8Array(pixelData.length);
+
+		for (let i = 0; i < pixelData.length; i++) {
+			temp[i] = pixelData[i] * mult8Bit * 255;
+		}
+
+		pixelData = temp;
+	}
+
+	pixels.set(pixelData);
+	texture.unlock();
+	return texture;
+}
+
+function saturate(x) {
+	return Math.max(Math.min(x, 1), 0);
+}
+
+const default0Curve = new Curve([0, 0, 1, 0]);
+const default1Curve = new Curve([0, 1, 1, 1]);
+const default0Curve3 = new CurveSet([0, 0, 1, 0], [0, 0, 1, 0], [0, 0, 1, 0]);
+const default1Curve3 = new CurveSet([0, 1, 1, 1], [0, 1, 1, 1], [0, 1, 1, 1]);
+let particleTexHeight = 2;
+const particleTexChannels = 4;
+const extentsInnerRatioUniform = new Float32Array(3);
+const spawnMatrix = new Mat4();
+const tmpVec3 = new Vec3();
+const bMin = new Vec3();
+const bMax = new Vec3();
+let setPropertyTarget;
+let setPropertyOptions;
+
+function setProperty(pName, defaultVal) {
+	if (setPropertyOptions[pName] !== undefined && setPropertyOptions[pName] !== null) {
+		setPropertyTarget[pName] = setPropertyOptions[pName];
+	} else {
+		setPropertyTarget[pName] = defaultVal;
+	}
+}
+
+function pack3NFloats(a, b, c) {
+	const packed = a * 255 << 16 | b * 255 << 8 | c * 255;
+	return packed / (1 << 24);
+}
+
+function packTextureXYZ_NXYZ(qXYZ, qXYZ2) {
+	const num = qXYZ.length / 3;
+	const colors = new Array(num * 4);
+
+	for (let i = 0; i < num; i++) {
+		colors[i * 4] = qXYZ[i * 3];
+		colors[i * 4 + 1] = qXYZ[i * 3 + 1];
+		colors[i * 4 + 2] = qXYZ[i * 3 + 2];
+		colors[i * 4 + 3] = pack3NFloats(qXYZ2[i * 3], qXYZ2[i * 3 + 1], qXYZ2[i * 3 + 2]);
+	}
+
+	return colors;
+}
+
+function packTextureRGBA(qRGB, qA) {
+	const colors = new Array(qA.length * 4);
+
+	for (let i = 0; i < qA.length; i++) {
+		colors[i * 4] = qRGB[i * 3];
+		colors[i * 4 + 1] = qRGB[i * 3 + 1];
+		colors[i * 4 + 2] = qRGB[i * 3 + 2];
+		colors[i * 4 + 3] = qA[i];
+	}
+
+	return colors;
+}
+
+function packTexture5Floats(qA, qB, qC, qD, qE) {
+	const colors = new Array(qA.length * 4);
+
+	for (let i = 0; i < qA.length; i++) {
+		colors[i * 4] = qA[i];
+		colors[i * 4 + 1] = qB[i];
+		colors[i * 4 + 2] = 0;
+		colors[i * 4 + 3] = pack3NFloats(qC[i], qD[i], qE[i]);
+	}
+
+	return colors;
+}
+
+function packTexture2Floats(qA, qB) {
+	const colors = new Array(qA.length * 4);
+
+	for (let i = 0; i < qA.length; i++) {
+		colors[i * 4] = qA[i];
+		colors[i * 4 + 1] = qB[i];
+		colors[i * 4 + 2] = 0;
+		colors[i * 4 + 3] = 0;
+	}
+
+	return colors;
+}
+
+function calcEndTime(emitter) {
+	const interval = Math.max(emitter.rate, emitter.rate2) * emitter.numParticles + emitter.lifetime;
+	return Date.now() + interval * 1000;
+}
+
+function subGraph(A, B) {
+	const r = new Float32Array(A.length);
+
+	for (let i = 0; i < A.length; i++) {
+		r[i] = A[i] - B[i];
+	}
+
+	return r;
+}
+
+function maxUnsignedGraphValue(A, outUMax) {
+	const chans = outUMax.length;
+	const values = A.length / chans;
+
+	for (let i = 0; i < values; i++) {
+		for (let j = 0; j < chans; j++) {
+			const a = Math.abs(A[i * chans + j]);
+			outUMax[j] = Math.max(outUMax[j], a);
+		}
+	}
+}
+
+function normalizeGraph(A, uMax) {
+	const chans = uMax.length;
+	const values = A.length / chans;
+
+	for (let i = 0; i < values; i++) {
+		for (let j = 0; j < chans; j++) {
+			A[i * chans + j] /= uMax[j] === 0 ? 1 : uMax[j];
+			A[i * chans + j] *= 0.5;
+			A[i * chans + j] += 0.5;
+		}
+	}
+}
+
+function divGraphFrom2Curves(curve1, curve2, outUMax) {
+	const sub = subGraph(curve2, curve1);
+	maxUnsignedGraphValue(sub, outUMax);
+	normalizeGraph(sub, outUMax);
+	return sub;
+}
+
+const particleEmitterDeviceCache = new DeviceCache();
+
+class ParticleEmitter {
+	constructor(graphicsDevice, options) {
+		this.graphicsDevice = graphicsDevice;
+		const gd = graphicsDevice;
+		const precision = 32;
+		this.precision = precision;
+		this._addTimeTime = 0;
+		setPropertyTarget = this;
+		setPropertyOptions = options;
+		setProperty("numParticles", 1);
+
+		if (this.numParticles > graphicsDevice.maxTextureSize) {
+			this.numParticles = graphicsDevice.maxTextureSize;
+		}
+
+		setProperty("rate", 1);
+		setProperty("rate2", this.rate);
+		setProperty("lifetime", 50);
+		setProperty("emitterExtents", new Vec3(0, 0, 0));
+		setProperty("emitterExtentsInner", new Vec3(0, 0, 0));
+		setProperty("emitterRadius", 0);
+		setProperty("emitterRadiusInner", 0);
+		setProperty("emitterShape", EMITTERSHAPE_BOX);
+		setProperty("initialVelocity", 1);
+		setProperty("wrap", false);
+		setProperty("localSpace", false);
+		setProperty("screenSpace", false);
+		setProperty("wrapBounds", null);
+		setProperty("colorMap", this.defaultParamTexture);
+		setProperty("normalMap", null);
+		setProperty("loop", true);
+		setProperty("preWarm", false);
+		setProperty("sort", PARTICLESORT_NONE);
+		setProperty("mode", PARTICLEMODE_GPU);
+		setProperty("scene", null);
+		setProperty("lighting", false);
+		setProperty("halfLambert", false);
+		setProperty("intensity", 1.0);
+		setProperty("stretch", 0.0);
+		setProperty("alignToMotion", false);
+		setProperty("depthSoftening", 0);
+		setProperty("mesh", null);
+		setProperty("particleNormal", new Vec3(0, 1, 0));
+		setProperty("orientation", PARTICLEORIENTATION_SCREEN);
+		setProperty("depthWrite", false);
+		setProperty("noFog", false);
+		setProperty("blendType", BLEND_NORMAL);
+		setProperty("node", null);
+		setProperty("startAngle", 0);
+		setProperty("startAngle2", this.startAngle);
+		setProperty("animTilesX", 1);
+		setProperty("animTilesY", 1);
+		setProperty("animStartFrame", 0);
+		setProperty("animNumFrames", 1);
+		setProperty("animNumAnimations", 1);
+		setProperty("animIndex", 0);
+		setProperty("randomizeAnimIndex", false);
+		setProperty("animSpeed", 1);
+		setProperty("animLoop", true);
+		this._gpuUpdater = new ParticleGPUUpdater(this, gd);
+		this._cpuUpdater = new ParticleCPUUpdater(this);
+		this.constantLightCube = gd.scope.resolve("lightCube[0]");
+		this.emitterPosUniform = new Float32Array(3);
+		this.wrapBoundsUniform = new Float32Array(3);
+		this.emitterScaleUniform = new Float32Array([1, 1, 1]);
+		setProperty("colorGraph", default1Curve3);
+		setProperty("colorGraph2", this.colorGraph);
+		setProperty("scaleGraph", default1Curve);
+		setProperty("scaleGraph2", this.scaleGraph);
+		setProperty("alphaGraph", default1Curve);
+		setProperty("alphaGraph2", this.alphaGraph);
+		setProperty("localVelocityGraph", default0Curve3);
+		setProperty("localVelocityGraph2", this.localVelocityGraph);
+		setProperty("velocityGraph", default0Curve3);
+		setProperty("velocityGraph2", this.velocityGraph);
+		setProperty("rotationSpeedGraph", default0Curve);
+		setProperty("rotationSpeedGraph2", this.rotationSpeedGraph);
+		setProperty("radialSpeedGraph", default0Curve);
+		setProperty("radialSpeedGraph2", this.radialSpeedGraph);
+		this.lightCube = new Float32Array(6 * 3);
+		this.lightCubeDir = new Array(6);
+		this.lightCubeDir[0] = new Vec3(-1, 0, 0);
+		this.lightCubeDir[1] = new Vec3(1, 0, 0);
+		this.lightCubeDir[2] = new Vec3(0, -1, 0);
+		this.lightCubeDir[3] = new Vec3(0, 1, 0);
+		this.lightCubeDir[4] = new Vec3(0, 0, -1);
+		this.lightCubeDir[5] = new Vec3(0, 0, 1);
+		this.animTilesParams = new Float32Array(2);
+		this.animParams = new Float32Array(4);
+		this.animIndexParams = new Float32Array(2);
+		this.internalTex0 = null;
+		this.internalTex1 = null;
+		this.internalTex2 = null;
+		this.colorParam = null;
+		this.vbToSort = null;
+		this.vbOld = null;
+		this.particleDistance = null;
+		this.camera = null;
+		this.swapTex = false;
+		this.useMesh = true;
+		this.useCpu = false;
+		this.pack8 = true;
+		this.localBounds = new BoundingBox();
+		this.worldBoundsNoTrail = new BoundingBox();
+		this.worldBoundsTrail = [new BoundingBox(), new BoundingBox()];
+		this.worldBounds = new BoundingBox();
+		this.worldBoundsSize = new Vec3();
+		this.prevWorldBoundsSize = new Vec3();
+		this.prevWorldBoundsCenter = new Vec3();
+		this.prevEmitterExtents = this.emitterExtents;
+		this.prevEmitterRadius = this.emitterRadius;
+		this.worldBoundsMul = new Vec3();
+		this.worldBoundsAdd = new Vec3();
+		this.timeToSwitchBounds = 0;
+		this.shaderParticleUpdateRespawn = null;
+		this.shaderParticleUpdateNoRespawn = null;
+		this.shaderParticleUpdateOnStop = null;
+		this.numParticleVerts = 0;
+		this.numParticleIndices = 0;
+		this.material = null;
+		this.meshInstance = null;
+		this.drawOrder = 0;
+		this.seed = Math.random();
+		this.fixedTimeStep = 1.0 / 60;
+		this.maxSubSteps = 10;
+		this.simTime = 0;
+		this.simTimeTotal = 0;
+		this.beenReset = false;
+		this._layer = null;
+		this.rebuild();
+	}
+
+	get defaultParamTexture() {
+		return particleEmitterDeviceCache.get(this.graphicsDevice, () => {
+			const resolution = 16;
+			const centerPoint = resolution * 0.5 + 0.5;
+			const dtex = new Float32Array(resolution * resolution * 4);
+
+			for (let y = 0; y < resolution; y++) {
+				for (let x = 0; x < resolution; x++) {
+					const xgrad = x + 1 - centerPoint;
+					const ygrad = y + 1 - centerPoint;
+					const c = saturate(1 - saturate(Math.sqrt(xgrad * xgrad + ygrad * ygrad) / resolution) - 0.5);
+					const p = y * resolution + x;
+					dtex[p * 4] = 1;
+					dtex[p * 4 + 1] = 1;
+					dtex[p * 4 + 2] = 1;
+					dtex[p * 4 + 3] = c;
+				}
+			}
+
+			const texture = _createTexture(this.graphicsDevice, resolution, resolution, dtex, PIXELFORMAT_R8_G8_B8_A8, 1.0, true);
+
+			texture.minFilter = FILTER_LINEAR;
+			texture.magFilter = FILTER_LINEAR;
+			return texture;
+		});
+	}
+
+	onChangeCamera() {
+		this.regenShader();
+		this.resetMaterial();
+	}
+
+	calculateBoundsMad() {
+		this.worldBoundsMul.x = 1.0 / this.worldBoundsSize.x;
+		this.worldBoundsMul.y = 1.0 / this.worldBoundsSize.y;
+		this.worldBoundsMul.z = 1.0 / this.worldBoundsSize.z;
+		this.worldBoundsAdd.copy(this.worldBounds.center).mul(this.worldBoundsMul).mulScalar(-1);
+		this.worldBoundsAdd.x += 0.5;
+		this.worldBoundsAdd.y += 0.5;
+		this.worldBoundsAdd.z += 0.5;
+	}
+
+	calculateWorldBounds() {
+		if (!this.node) return;
+		this.prevWorldBoundsSize.copy(this.worldBoundsSize);
+		this.prevWorldBoundsCenter.copy(this.worldBounds.center);
+
+		if (!this.useCpu) {
+			let recalculateLocalBounds = false;
+
+			if (this.emitterShape === EMITTERSHAPE_BOX) {
+				recalculateLocalBounds = !this.emitterExtents.equals(this.prevEmitterExtents);
+			} else {
+				recalculateLocalBounds = !(this.emitterRadius === this.prevEmitterRadius);
+			}
+
+			if (recalculateLocalBounds) {
+				this.calculateLocalBounds();
+			}
+		}
+
+		const nodeWT = this.node.getWorldTransform();
+
+		if (this.localSpace) {
+			this.worldBoundsNoTrail.copy(this.localBounds);
+		} else {
+			this.worldBoundsNoTrail.setFromTransformedAabb(this.localBounds, nodeWT);
+		}
+
+		this.worldBoundsTrail[0].add(this.worldBoundsNoTrail);
+		this.worldBoundsTrail[1].add(this.worldBoundsNoTrail);
+		const now = this.simTimeTotal;
+
+		if (now >= this.timeToSwitchBounds) {
+			this.worldBoundsTrail[0].copy(this.worldBoundsTrail[1]);
+			this.worldBoundsTrail[1].copy(this.worldBoundsNoTrail);
+			this.timeToSwitchBounds = now + this.lifetime;
+		}
+
+		this.worldBounds.copy(this.worldBoundsTrail[0]);
+		this.worldBoundsSize.copy(this.worldBounds.halfExtents).mulScalar(2);
+
+		if (this.localSpace) {
+			this.meshInstance.aabb.setFromTransformedAabb(this.worldBounds, nodeWT);
+			this.meshInstance.mesh.aabb.setFromTransformedAabb(this.worldBounds, nodeWT);
+		} else {
+			this.meshInstance.aabb.copy(this.worldBounds);
+			this.meshInstance.mesh.aabb.copy(this.worldBounds);
+		}
+
+		this.meshInstance._aabbVer = 1 - this.meshInstance._aabbVer;
+		if (this.pack8) this.calculateBoundsMad();
+	}
+
+	resetWorldBounds() {
+		if (!this.node) return;
+		this.worldBoundsNoTrail.setFromTransformedAabb(this.localBounds, this.localSpace ? Mat4.IDENTITY : this.node.getWorldTransform());
+		this.worldBoundsTrail[0].copy(this.worldBoundsNoTrail);
+		this.worldBoundsTrail[1].copy(this.worldBoundsNoTrail);
+		this.worldBounds.copy(this.worldBoundsTrail[0]);
+		this.worldBoundsSize.copy(this.worldBounds.halfExtents).mulScalar(2);
+		this.prevWorldBoundsSize.copy(this.worldBoundsSize);
+		this.prevWorldBoundsCenter.copy(this.worldBounds.center);
+		this.simTimeTotal = 0;
+		this.timeToSwitchBounds = 0;
+	}
+
+	calculateLocalBounds() {
+		let minx = Number.MAX_VALUE;
+		let miny = Number.MAX_VALUE;
+		let minz = Number.MAX_VALUE;
+		let maxx = -Number.MAX_VALUE;
+		let maxy = -Number.MAX_VALUE;
+		let maxz = -Number.MAX_VALUE;
+		let maxR = 0;
+		let maxScale = 0;
+		const stepWeight = this.lifetime / this.precision;
+		const wVels = [this.qVelocity, this.qVelocity2];
+		const lVels = [this.qLocalVelocity, this.qLocalVelocity2];
+		const accumX = [0, 0];
+		const accumY = [0, 0];
+		const accumZ = [0, 0];
+		const accumR = [0, 0];
+		const accumW = [0, 0];
+		let x, y, z;
+
+		for (let i = 0; i < this.precision + 1; i++) {
+			const index = Math.min(i, this.precision - 1);
+
+			for (let j = 0; j < 2; j++) {
+				x = lVels[j][index * 3 + 0] * stepWeight + accumX[j];
+				y = lVels[j][index * 3 + 1] * stepWeight + accumY[j];
+				z = lVels[j][index * 3 + 2] * stepWeight + accumZ[j];
+				minx = Math.min(x, minx);
+				miny = Math.min(y, miny);
+				minz = Math.min(z, minz);
+				maxx = Math.max(x, maxx);
+				maxy = Math.max(y, maxy);
+				maxz = Math.max(z, maxz);
+				accumX[j] = x;
+				accumY[j] = y;
+				accumZ[j] = z;
+			}
+
+			for (let j = 0; j < 2; j++) {
+				accumW[j] += stepWeight * Math.sqrt(wVels[j][index * 3 + 0] * wVels[j][index * 3 + 0] + wVels[j][index * 3 + 1] * wVels[j][index * 3 + 1] + wVels[j][index * 3 + 2] * wVels[j][index * 3 + 2]);
+			}
+
+			accumR[0] += this.qRadialSpeed[index] * stepWeight;
+			accumR[1] += this.qRadialSpeed2[index] * stepWeight;
+			maxR = Math.max(maxR, Math.max(Math.abs(accumR[0]), Math.abs(accumR[1])));
+			maxScale = Math.max(maxScale, this.qScale[index]);
+		}
+
+		if (this.emitterShape === EMITTERSHAPE_BOX) {
+			x = this.emitterExtents.x * 0.5;
+			y = this.emitterExtents.y * 0.5;
+			z = this.emitterExtents.z * 0.5;
+		} else {
+			x = this.emitterRadius;
+			y = this.emitterRadius;
+			z = this.emitterRadius;
+		}
+
+		const w = Math.max(accumW[0], accumW[1]);
+		bMin.x = minx - maxScale - x - maxR - w;
+		bMin.y = miny - maxScale - y - maxR - w;
+		bMin.z = minz - maxScale - z - maxR - w;
+		bMax.x = maxx + maxScale + x + maxR + w;
+		bMax.y = maxy + maxScale + y + maxR + w;
+		bMax.z = maxz + maxScale + z + maxR + w;
+		this.localBounds.setMinMax(bMin, bMax);
+	}
+
+	rebuild() {
+		const gd = this.graphicsDevice;
+		if (this.colorMap === null) this.colorMap = this.defaultParamTexture;
+		this.spawnBounds = this.emitterShape === EMITTERSHAPE_BOX ? this.emitterExtents : this.emitterRadius;
+		this.useCpu = this.useCpu || this.sort > PARTICLESORT_NONE || gd.maxVertexTextures <= 1 || gd.fragmentUniformsCount < 64 || gd.forceCpuParticles || !gd.extTextureFloat;
+
+		this._destroyResources();
+
+		this.pack8 = (this.pack8 || !gd.textureFloatRenderable) && !this.useCpu;
+		particleTexHeight = this.useCpu || this.pack8 ? 4 : 2;
+		this.useMesh = false;
+
+		if (this.mesh) {
+			const totalVertCount = this.numParticles * this.mesh.vertexBuffer.numVertices;
+
+			if (totalVertCount > 65535) ; else {
+				this.useMesh = true;
+			}
+		}
+
+		this.numParticlesPot = math.nextPowerOfTwo(this.numParticles);
+		this.rebuildGraphs();
+		this.calculateLocalBounds();
+		this.resetWorldBounds();
+
+		if (this.node) {
+			this.worldBounds.setFromTransformedAabb(this.localBounds, this.localSpace ? Mat4.IDENTITY : this.node.getWorldTransform());
+			this.worldBoundsTrail[0].copy(this.worldBounds);
+			this.worldBoundsTrail[1].copy(this.worldBounds);
+			this.worldBoundsSize.copy(this.worldBounds.halfExtents).mulScalar(2);
+			this.prevWorldBoundsSize.copy(this.worldBoundsSize);
+			this.prevWorldBoundsCenter.copy(this.worldBounds.center);
+			if (this.pack8) this.calculateBoundsMad();
+		}
+
+		this.vbToSort = new Array(this.numParticles);
+
+		for (let iSort = 0; iSort < this.numParticles; iSort++) this.vbToSort[iSort] = [0, 0];
+
+		this.particleDistance = new Float32Array(this.numParticles);
+
+		this._gpuUpdater.randomize();
+
+		this.particleTex = new Float32Array(this.numParticlesPot * particleTexHeight * particleTexChannels);
+		const emitterPos = this.node === null || this.localSpace ? Vec3.ZERO : this.node.getPosition();
+
+		if (this.emitterShape === EMITTERSHAPE_BOX) {
+			if (this.node === null || this.localSpace) {
+				spawnMatrix.setTRS(Vec3.ZERO, Quat.IDENTITY, this.spawnBounds);
+			} else {
+				spawnMatrix.setTRS(Vec3.ZERO, this.node.getRotation(), tmpVec3.copy(this.spawnBounds).mul(this.node.localScale));
+			}
+
+			extentsInnerRatioUniform[0] = this.emitterExtents.x !== 0 ? this.emitterExtentsInner.x / this.emitterExtents.x : 0;
+			extentsInnerRatioUniform[1] = this.emitterExtents.y !== 0 ? this.emitterExtentsInner.y / this.emitterExtents.y : 0;
+			extentsInnerRatioUniform[2] = this.emitterExtents.z !== 0 ? this.emitterExtentsInner.z / this.emitterExtents.z : 0;
+		}
+
+		for (let i = 0; i < this.numParticles; i++) {
+			this._cpuUpdater.calcSpawnPosition(this.particleTex, spawnMatrix, extentsInnerRatioUniform, emitterPos, i);
+
+			if (this.useCpu) this.particleTex[i * particleTexChannels + 3 + this.numParticlesPot * 2 * particleTexChannels] = 1;
+		}
+
+		this.particleTexStart = new Float32Array(this.numParticlesPot * particleTexHeight * particleTexChannels);
+
+		for (let i = 0; i < this.particleTexStart.length; i++) {
+			this.particleTexStart[i] = this.particleTex[i];
+		}
+
+		if (!this.useCpu) {
+			if (this.pack8) {
+				this.particleTexIN = _createTexture(gd, this.numParticlesPot, particleTexHeight, this.particleTex, PIXELFORMAT_R8_G8_B8_A8, 1, false);
+				this.particleTexOUT = _createTexture(gd, this.numParticlesPot, particleTexHeight, this.particleTex, PIXELFORMAT_R8_G8_B8_A8, 1, false);
+				this.particleTexStart = _createTexture(gd, this.numParticlesPot, particleTexHeight, this.particleTexStart, PIXELFORMAT_R8_G8_B8_A8, 1, false);
+			} else {
+				this.particleTexIN = _createTexture(gd, this.numParticlesPot, particleTexHeight, this.particleTex);
+				this.particleTexOUT = _createTexture(gd, this.numParticlesPot, particleTexHeight, this.particleTex);
+				this.particleTexStart = _createTexture(gd, this.numParticlesPot, particleTexHeight, this.particleTexStart);
+			}
+
+			this.rtParticleTexIN = new RenderTarget({
+				colorBuffer: this.particleTexIN,
+				depth: false
+			});
+			this.rtParticleTexOUT = new RenderTarget({
+				colorBuffer: this.particleTexOUT,
+				depth: false
+			});
+			this.swapTex = false;
+		}
+
+		const shaderCodeStart = (this.localSpace ? '#define LOCAL_SPACE\n' : '') + shaderChunks.particleUpdaterInitPS + (this.pack8 ? shaderChunks.particleInputRgba8PS + shaderChunks.particleOutputRgba8PS : shaderChunks.particleInputFloatPS + shaderChunks.particleOutputFloatPS) + (this.emitterShape === EMITTERSHAPE_BOX ? shaderChunks.particleUpdaterAABBPS : shaderChunks.particleUpdaterSpherePS) + shaderChunks.particleUpdaterStartPS;
+		const shaderCodeRespawn = shaderCodeStart + shaderChunks.particleUpdaterRespawnPS + shaderChunks.particleUpdaterEndPS;
+		const shaderCodeNoRespawn = shaderCodeStart + shaderChunks.particleUpdaterNoRespawnPS + shaderChunks.particleUpdaterEndPS;
+		const shaderCodeOnStop = shaderCodeStart + shaderChunks.particleUpdaterOnStopPS + shaderChunks.particleUpdaterEndPS;
+		const params = this.emitterShape + "" + this.pack8 + "" + this.localSpace;
+		this.shaderParticleUpdateRespawn = createShaderFromCode(gd, shaderChunks.fullscreenQuadVS, shaderCodeRespawn, "fsQuad0" + params);
+		this.shaderParticleUpdateNoRespawn = createShaderFromCode(gd, shaderChunks.fullscreenQuadVS, shaderCodeNoRespawn, "fsQuad1" + params);
+		this.shaderParticleUpdateOnStop = createShaderFromCode(gd, shaderChunks.fullscreenQuadVS, shaderCodeOnStop, "fsQuad2" + params);
+		this.numParticleVerts = this.useMesh ? this.mesh.vertexBuffer.numVertices : 4;
+		this.numParticleIndices = this.useMesh ? this.mesh.indexBuffer[0].numIndices : 6;
+
+		this._allocate(this.numParticles);
+
+		const mesh = new Mesh(gd);
+		mesh.vertexBuffer = this.vertexBuffer;
+		mesh.indexBuffer[0] = this.indexBuffer;
+		mesh.primitive[0].type = PRIMITIVE_TRIANGLES;
+		mesh.primitive[0].base = 0;
+		mesh.primitive[0].count = this.numParticles * this.numParticleIndices;
+		mesh.primitive[0].indexed = true;
+		this.material = new Material();
+		this.material.name = this.node.name;
+		this.material.cull = CULLFACE_NONE;
+		this.material.alphaWrite = false;
+		this.material.blend = true;
+		this.material.blendType = this.blendType;
+		this.material.depthWrite = this.depthWrite;
+		this.material.emitter = this;
+		this.regenShader();
+		this.resetMaterial();
+		const wasVisible = this.meshInstance ? this.meshInstance.visible : true;
+		this.meshInstance = new MeshInstance(mesh, this.material, this.node);
+		this.meshInstance.pick = false;
+		this.meshInstance.updateKey();
+		this.meshInstance.cull = true;
+		this.meshInstance._noDepthDrawGl1 = true;
+
+		if (this.localSpace) {
+			this.meshInstance.aabb.setFromTransformedAabb(this.worldBounds, this.node.getWorldTransform());
+		} else {
+			this.meshInstance.aabb.copy(this.worldBounds);
+		}
+
+		this.meshInstance._updateAabb = false;
+		this.meshInstance.visible = wasVisible;
+
+		this._initializeTextures();
+
+		this.resetTime();
+		this.addTime(0, false);
+		if (this.preWarm) this.prewarm(this.lifetime);
+	}
+
+	_isAnimated() {
+		return this.animNumFrames >= 1 && (this.animTilesX > 1 || this.animTilesY > 1) && (this.colorMap && this.colorMap !== this.defaultParamTexture || this.normalMap);
+	}
+
+	rebuildGraphs() {
+		const precision = this.precision;
+		const gd = this.graphicsDevice;
+		this.qLocalVelocity = this.localVelocityGraph.quantize(precision);
+		this.qVelocity = this.velocityGraph.quantize(precision);
+		this.qColor = this.colorGraph.quantizeClamped(precision, 0, 1);
+		this.qRotSpeed = this.rotationSpeedGraph.quantize(precision);
+		this.qScale = this.scaleGraph.quantize(precision);
+		this.qAlpha = this.alphaGraph.quantize(precision);
+		this.qRadialSpeed = this.radialSpeedGraph.quantize(precision);
+		this.qLocalVelocity2 = this.localVelocityGraph2.quantize(precision);
+		this.qVelocity2 = this.velocityGraph2.quantize(precision);
+		this.qColor2 = this.colorGraph2.quantizeClamped(precision, 0, 1);
+		this.qRotSpeed2 = this.rotationSpeedGraph2.quantize(precision);
+		this.qScale2 = this.scaleGraph2.quantize(precision);
+		this.qAlpha2 = this.alphaGraph2.quantize(precision);
+		this.qRadialSpeed2 = this.radialSpeedGraph2.quantize(precision);
+
+		for (let i = 0; i < precision; i++) {
+			this.qRotSpeed[i] *= math.DEG_TO_RAD;
+			this.qRotSpeed2[i] *= math.DEG_TO_RAD;
+		}
+
+		this.localVelocityUMax = new Float32Array(3);
+		this.velocityUMax = new Float32Array(3);
+		this.colorUMax = new Float32Array(3);
+		this.rotSpeedUMax = [0];
+		this.scaleUMax = [0];
+		this.alphaUMax = [0];
+		this.radialSpeedUMax = [0];
+		this.qLocalVelocityDiv = divGraphFrom2Curves(this.qLocalVelocity, this.qLocalVelocity2, this.localVelocityUMax);
+		this.qVelocityDiv = divGraphFrom2Curves(this.qVelocity, this.qVelocity2, this.velocityUMax);
+		this.qColorDiv = divGraphFrom2Curves(this.qColor, this.qColor2, this.colorUMax);
+		this.qRotSpeedDiv = divGraphFrom2Curves(this.qRotSpeed, this.qRotSpeed2, this.rotSpeedUMax);
+		this.qScaleDiv = divGraphFrom2Curves(this.qScale, this.qScale2, this.scaleUMax);
+		this.qAlphaDiv = divGraphFrom2Curves(this.qAlpha, this.qAlpha2, this.alphaUMax);
+		this.qRadialSpeedDiv = divGraphFrom2Curves(this.qRadialSpeed, this.qRadialSpeed2, this.radialSpeedUMax);
+
+		if (this.pack8) {
+			const umax = [0, 0, 0];
+			maxUnsignedGraphValue(this.qVelocity, umax);
+			const umax2 = [0, 0, 0];
+			maxUnsignedGraphValue(this.qVelocity2, umax2);
+			const lumax = [0, 0, 0];
+			maxUnsignedGraphValue(this.qLocalVelocity, lumax);
+			const lumax2 = [0, 0, 0];
+			maxUnsignedGraphValue(this.qLocalVelocity2, lumax2);
+			const rumax = [0];
+			maxUnsignedGraphValue(this.qRadialSpeed, rumax);
+			const rumax2 = [0];
+			maxUnsignedGraphValue(this.qRadialSpeed2, rumax2);
+			let maxVel = Math.max(umax[0], umax2[0]);
+			maxVel = Math.max(maxVel, umax[1]);
+			maxVel = Math.max(maxVel, umax2[1]);
+			maxVel = Math.max(maxVel, umax[2]);
+			maxVel = Math.max(maxVel, umax2[2]);
+			let lmaxVel = Math.max(lumax[0], lumax2[0]);
+			lmaxVel = Math.max(lmaxVel, lumax[1]);
+			lmaxVel = Math.max(lmaxVel, lumax2[1]);
+			lmaxVel = Math.max(lmaxVel, lumax[2]);
+			lmaxVel = Math.max(lmaxVel, lumax2[2]);
+			const maxRad = Math.max(rumax[0], rumax2[0]);
+			this.maxVel = maxVel + lmaxVel + maxRad;
+		}
+
+		if (!this.useCpu) {
+			this.internalTex0 = _createTexture(gd, precision, 1, packTextureXYZ_NXYZ(this.qLocalVelocity, this.qLocalVelocityDiv));
+			this.internalTex1 = _createTexture(gd, precision, 1, packTextureXYZ_NXYZ(this.qVelocity, this.qVelocityDiv));
+			this.internalTex2 = _createTexture(gd, precision, 1, packTexture5Floats(this.qRotSpeed, this.qScale, this.qScaleDiv, this.qRotSpeedDiv, this.qAlphaDiv));
+			this.internalTex3 = _createTexture(gd, precision, 1, packTexture2Floats(this.qRadialSpeed, this.qRadialSpeedDiv));
+		}
+
+		this.colorParam = _createTexture(gd, precision, 1, packTextureRGBA(this.qColor, this.qAlpha), PIXELFORMAT_R8_G8_B8_A8, 1.0, true);
+	}
+
+	_initializeTextures() {
+		if (this.colorMap) {
+			this.material.setParameter('colorMap', this.colorMap);
+
+			if (this.lighting && this.normalMap) {
+				this.material.setParameter('normalMap', this.normalMap);
+			}
+		}
+	}
+
+	regenShader() {
+		const programLib = this.graphicsDevice.getProgramLibrary();
+		const hasNormal = this.normalMap !== null;
+		this.normalOption = 0;
+
+		if (this.lighting) {
+			this.normalOption = hasNormal ? 2 : 1;
+		}
+
+		this.material.updateShader = function () {
+			if (this.emitter.scene) {
+				if (this.emitter.camera !== this.emitter.scene._activeCamera) {
+					this.emitter.camera = this.emitter.scene._activeCamera;
+					this.emitter.onChangeCamera();
+				}
+			}
+
+			const inTools = this.emitter.inTools;
+			const shader = programLib.getProgram("particle", {
+				useCpu: this.emitter.useCpu,
+				normal: this.emitter.normalOption,
+				halflambert: this.emitter.halfLambert,
+				stretch: this.emitter.stretch,
+				alignToMotion: this.emitter.alignToMotion,
+				soft: this.emitter.depthSoftening,
+				mesh: this.emitter.useMesh,
+				gamma: this.emitter.scene ? this.emitter.scene.gammaCorrection : 0,
+				toneMap: this.emitter.scene ? this.emitter.scene.toneMapping : 0,
+				fog: this.emitter.scene && !this.emitter.noFog ? this.emitter.scene.fog : "none",
+				wrap: this.emitter.wrap && this.emitter.wrapBounds,
+				localSpace: this.emitter.localSpace,
+				screenSpace: inTools ? false : this.emitter.screenSpace,
+				blend: this.blendType,
+				animTex: this.emitter._isAnimated(),
+				animTexLoop: this.emitter.animLoop,
+				pack8: this.emitter.pack8,
+				customFace: this.emitter.orientation !== PARTICLEORIENTATION_SCREEN
+			});
+			this.shader = shader;
+		};
+
+		this.material.updateShader();
+	}
+
+	resetMaterial() {
+		const material = this.material;
+		material.setParameter('stretch', this.stretch);
+
+		if (this._isAnimated()) {
+			material.setParameter('animTexTilesParams', this.animTilesParams);
+			material.setParameter('animTexParams', this.animParams);
+			material.setParameter('animTexIndexParams', this.animIndexParams);
+		}
+
+		material.setParameter('colorMult', this.intensity);
+
+		if (!this.useCpu) {
+			material.setParameter('internalTex0', this.internalTex0);
+			material.setParameter('internalTex1', this.internalTex1);
+			material.setParameter('internalTex2', this.internalTex2);
+			material.setParameter('internalTex3', this.internalTex3);
+		}
+
+		material.setParameter('colorParam', this.colorParam);
+		material.setParameter('numParticles', this.numParticles);
+		material.setParameter('numParticlesPot', this.numParticlesPot);
+		material.setParameter('lifetime', this.lifetime);
+		material.setParameter('rate', this.rate);
+		material.setParameter('rateDiv', this.rate2 - this.rate);
+		material.setParameter('seed', this.seed);
+		material.setParameter('scaleDivMult', this.scaleUMax[0]);
+		material.setParameter('alphaDivMult', this.alphaUMax[0]);
+		material.setParameter('radialSpeedDivMult', this.radialSpeedUMax[0]);
+		material.setParameter("graphNumSamples", this.precision);
+		material.setParameter("graphSampleSize", 1.0 / this.precision);
+		material.setParameter("emitterScale", new Float32Array([1, 1, 1]));
+
+		if (this.pack8) {
+			this._gpuUpdater._setInputBounds();
+
+			material.setParameter("inBoundsSize", this._gpuUpdater.inBoundsSizeUniform);
+			material.setParameter("inBoundsCenter", this._gpuUpdater.inBoundsCenterUniform);
+			material.setParameter("maxVel", this.maxVel);
+		}
+
+		if (this.wrap && this.wrapBounds) {
+			this.wrapBoundsUniform[0] = this.wrapBounds.x;
+			this.wrapBoundsUniform[1] = this.wrapBounds.y;
+			this.wrapBoundsUniform[2] = this.wrapBounds.z;
+			material.setParameter('wrapBounds', this.wrapBoundsUniform);
+		}
+
+		if (this.colorMap) {
+			material.setParameter('colorMap', this.colorMap);
+		}
+
+		if (this.lighting) {
+			if (this.normalMap) {
+				material.setParameter('normalMap', this.normalMap);
+			}
+		}
+
+		if (this.depthSoftening > 0) {
+			material.setParameter('softening', 1.0 / (this.depthSoftening * this.depthSoftening * 100));
+		}
+
+		if (this.stretch > 0.0) material.cull = CULLFACE_NONE;
+
+		this._compParticleFaceParams();
+	}
+
+	_compParticleFaceParams() {
+		let tangent, binormal;
+
+		if (this.orientation === PARTICLEORIENTATION_SCREEN) {
+			tangent = new Float32Array([1, 0, 0]);
+			binormal = new Float32Array([0, 0, 1]);
+		} else {
+			let n;
+
+			if (this.orientation === PARTICLEORIENTATION_WORLD) {
+				n = this.particleNormal.normalize();
+			} else {
+				const emitterMat = this.node === null ? Mat4.IDENTITY : this.node.getWorldTransform();
+				n = emitterMat.transformVector(this.particleNormal).normalize();
+			}
+
+			const t = new Vec3(1, 0, 0);
+			if (Math.abs(t.dot(n)) === 1) t.set(0, 0, 1);
+			const b = new Vec3().cross(n, t).normalize();
+			t.cross(b, n).normalize();
+			tangent = new Float32Array([t.x, t.y, t.z]);
+			binormal = new Float32Array([b.x, b.y, b.z]);
+		}
+
+		this.material.setParameter("faceTangent", tangent);
+		this.material.setParameter("faceBinorm", binormal);
+	}
+
+	_allocate(numParticles) {
+		const psysVertCount = numParticles * this.numParticleVerts;
+		const psysIndexCount = numParticles * this.numParticleIndices;
+
+		if (this.vertexBuffer === undefined || this.vertexBuffer.getNumVertices() !== psysVertCount) {
+			if (!this.useCpu) {
+				const elements = [{
+					semantic: SEMANTIC_ATTR0,
+					components: 4,
+					type: TYPE_FLOAT32
+				}];
+
+				if (this.useMesh) {
+					elements.push({
+						semantic: SEMANTIC_ATTR1,
+						components: 2,
+						type: TYPE_FLOAT32
+					});
+				}
+
+				const particleFormat = new VertexFormat(this.graphicsDevice, elements);
+				this.vertexBuffer = new VertexBuffer(this.graphicsDevice, particleFormat, psysVertCount, BUFFER_DYNAMIC);
+				this.indexBuffer = new IndexBuffer(this.graphicsDevice, INDEXFORMAT_UINT16, psysIndexCount);
+			} else {
+				const elements = [{
+					semantic: SEMANTIC_ATTR0,
+					components: 4,
+					type: TYPE_FLOAT32
+				}, {
+					semantic: SEMANTIC_ATTR1,
+					components: 4,
+					type: TYPE_FLOAT32
+				}, {
+					semantic: SEMANTIC_ATTR2,
+					components: 4,
+					type: TYPE_FLOAT32
+				}, {
+					semantic: SEMANTIC_ATTR3,
+					components: 1,
+					type: TYPE_FLOAT32
+				}, {
+					semantic: SEMANTIC_ATTR4,
+					components: this.useMesh ? 4 : 2,
+					type: TYPE_FLOAT32
+				}];
+				const particleFormat = new VertexFormat(this.graphicsDevice, elements);
+				this.vertexBuffer = new VertexBuffer(this.graphicsDevice, particleFormat, psysVertCount, BUFFER_DYNAMIC);
+				this.indexBuffer = new IndexBuffer(this.graphicsDevice, INDEXFORMAT_UINT16, psysIndexCount);
+			}
+
+			const data = new Float32Array(this.vertexBuffer.lock());
+			let meshData, stride, texCoordOffset;
+
+			if (this.useMesh) {
+				meshData = new Float32Array(this.mesh.vertexBuffer.lock());
+				stride = meshData.length / this.mesh.vertexBuffer.numVertices;
+
+				for (let elem = 0; elem < this.mesh.vertexBuffer.format.elements.length; elem++) {
+					if (this.mesh.vertexBuffer.format.elements[elem].name === SEMANTIC_TEXCOORD0) {
+						texCoordOffset = this.mesh.vertexBuffer.format.elements[elem].offset / 4;
+						break;
+					}
+				}
+			}
+
+			for (let i = 0; i < psysVertCount; i++) {
+				const id = Math.floor(i / this.numParticleVerts);
+
+				if (!this.useMesh) {
+					const vertID = i % 4;
+					data[i * 4] = particleVerts[vertID][0];
+					data[i * 4 + 1] = particleVerts[vertID][1];
+					data[i * 4 + 2] = 0;
+					data[i * 4 + 3] = id;
+				} else {
+					const vert = i % this.numParticleVerts;
+					data[i * 6] = meshData[vert * stride];
+					data[i * 6 + 1] = meshData[vert * stride + 1];
+					data[i * 6 + 2] = meshData[vert * stride + 2];
+					data[i * 6 + 3] = id;
+					data[i * 6 + 4] = meshData[vert * stride + texCoordOffset + 0];
+					data[i * 6 + 5] = 1.0 - meshData[vert * stride + texCoordOffset + 1];
+				}
+			}
+
+			if (this.useCpu) {
+				this.vbCPU = new Float32Array(data);
+				this.vbOld = new Float32Array(this.vbCPU.length);
+			}
+
+			this.vertexBuffer.unlock();
+
+			if (this.useMesh) {
+				this.mesh.vertexBuffer.unlock();
+			}
+
+			let dst = 0;
+			const indices = new Uint16Array(this.indexBuffer.lock());
+			if (this.useMesh) meshData = new Uint16Array(this.mesh.indexBuffer[0].lock());
+
+			for (let i = 0; i < numParticles; i++) {
+				if (!this.useMesh) {
+					const baseIndex = i * 4;
+					indices[dst++] = baseIndex;
+					indices[dst++] = baseIndex + 1;
+					indices[dst++] = baseIndex + 2;
+					indices[dst++] = baseIndex;
+					indices[dst++] = baseIndex + 2;
+					indices[dst++] = baseIndex + 3;
+				} else {
+					for (let j = 0; j < this.numParticleIndices; j++) {
+						indices[i * this.numParticleIndices + j] = meshData[j] + i * this.numParticleVerts;
+					}
+				}
+			}
+
+			this.indexBuffer.unlock();
+			if (this.useMesh) this.mesh.indexBuffer[0].unlock();
+		}
+	}
+
+	reset() {
+		this.beenReset = true;
+		this.seed = Math.random();
+		this.material.setParameter('seed', this.seed);
+
+		if (this.useCpu) {
+			for (let i = 0; i < this.particleTexStart.length; i++) {
+				this.particleTex[i] = this.particleTexStart[i];
+			}
+		} else {
+			this._initializeTextures();
+		}
+
+		this.resetWorldBounds();
+		this.resetTime();
+		const origLoop = this.loop;
+		this.loop = true;
+		this.addTime(0, false);
+		this.loop = origLoop;
+
+		if (this.preWarm) {
+			this.prewarm(this.lifetime);
+		}
+	}
+
+	prewarm(time) {
+		const lifetimeFraction = time / this.lifetime;
+		const iterations = Math.min(Math.floor(lifetimeFraction * this.precision), this.precision);
+		const stepDelta = time / iterations;
+
+		for (let i = 0; i < iterations; i++) {
+			this.addTime(stepDelta, false);
+		}
+	}
+
+	resetTime() {
+		this.endTime = calcEndTime(this);
+	}
+
+	finishFrame() {
+		if (this.useCpu) this.vertexBuffer.unlock();
+	}
+
+	addTime(delta, isOnStop) {
+		const device = this.graphicsDevice;
+		this.simTimeTotal += delta;
+		this.calculateWorldBounds();
+
+		if (this._isAnimated()) {
+			const tilesParams = this.animTilesParams;
+			tilesParams[0] = 1.0 / this.animTilesX;
+			tilesParams[1] = 1.0 / this.animTilesY;
+			const params = this.animParams;
+			params[0] = this.animStartFrame;
+			params[1] = this.animNumFrames * this.animSpeed;
+			params[2] = this.animNumFrames - 1;
+			params[3] = this.animNumAnimations - 1;
+			const animIndexParams = this.animIndexParams;
+			animIndexParams[0] = this.animIndex;
+			animIndexParams[1] = this.randomizeAnimIndex;
+		}
+
+		if (this.scene) {
+			if (this.camera !== this.scene._activeCamera) {
+				this.camera = this.scene._activeCamera;
+				this.onChangeCamera();
+			}
+		}
+
+		if (this.emitterShape === EMITTERSHAPE_BOX) {
+			extentsInnerRatioUniform[0] = this.emitterExtents.x !== 0 ? this.emitterExtentsInner.x / this.emitterExtents.x : 0;
+			extentsInnerRatioUniform[1] = this.emitterExtents.y !== 0 ? this.emitterExtentsInner.y / this.emitterExtents.y : 0;
+			extentsInnerRatioUniform[2] = this.emitterExtents.z !== 0 ? this.emitterExtentsInner.z / this.emitterExtents.z : 0;
+
+			if (this.meshInstance.node === null) {
+				spawnMatrix.setTRS(Vec3.ZERO, Quat.IDENTITY, this.emitterExtents);
+			} else {
+				spawnMatrix.setTRS(Vec3.ZERO, this.meshInstance.node.getRotation(), tmpVec3.copy(this.emitterExtents).mul(this.meshInstance.node.localScale));
+			}
+		}
+
+		let emitterPos;
+		const emitterScale = this.meshInstance.node === null ? Vec3.ONE : this.meshInstance.node.localScale;
+		this.emitterScaleUniform[0] = emitterScale.x;
+		this.emitterScaleUniform[1] = emitterScale.y;
+		this.emitterScaleUniform[2] = emitterScale.z;
+		this.material.setParameter("emitterScale", this.emitterScaleUniform);
+
+		if (this.localSpace && this.meshInstance.node) {
+			emitterPos = this.meshInstance.node.getPosition();
+			this.emitterPosUniform[0] = emitterPos.x;
+			this.emitterPosUniform[1] = emitterPos.y;
+			this.emitterPosUniform[2] = emitterPos.z;
+			this.material.setParameter("emitterPos", this.emitterPosUniform);
+		}
+
+		this._compParticleFaceParams();
+
+		if (!this.useCpu) {
+			this._gpuUpdater.update(device, spawnMatrix, extentsInnerRatioUniform, delta, isOnStop);
+		} else {
+			const data = new Float32Array(this.vertexBuffer.lock());
+
+			this._cpuUpdater.update(data, this.vbToSort, this.particleTex, spawnMatrix, extentsInnerRatioUniform, emitterPos, delta, isOnStop);
+		}
+
+		if (!this.loop) {
+			if (Date.now() > this.endTime) {
+				if (this.onFinished) this.onFinished();
+				this.meshInstance.visible = false;
+			}
+		}
+
+		if (this.meshInstance) {
+			this.meshInstance.drawOrder = this.drawOrder;
+		}
+	}
+
+	_destroyResources() {
+		if (this.particleTexIN) {
+			this.particleTexIN.destroy();
+			this.particleTexIN = null;
+		}
+
+		if (this.particleTexOUT) {
+			this.particleTexOUT.destroy();
+			this.particleTexOUT = null;
+		}
+
+		if (this.particleTexStart && this.particleTexStart.destroy) {
+			this.particleTexStart.destroy();
+			this.particleTexStart = null;
+		}
+
+		if (this.rtParticleTexIN) {
+			this.rtParticleTexIN.destroy();
+			this.rtParticleTexIN = null;
+		}
+
+		if (this.rtParticleTexOUT) {
+			this.rtParticleTexOUT.destroy();
+			this.rtParticleTexOUT = null;
+		}
+
+		if (this.internalTex0) {
+			this.internalTex0.destroy();
+			this.internalTex0 = null;
+		}
+
+		if (this.internalTex1) {
+			this.internalTex1.destroy();
+			this.internalTex1 = null;
+		}
+
+		if (this.internalTex2) {
+			this.internalTex2.destroy();
+			this.internalTex2 = null;
+		}
+
+		if (this.internalTex3) {
+			this.internalTex3.destroy();
+			this.internalTex3 = null;
+		}
+
+		if (this.colorParam) {
+			this.colorParam.destroy();
+			this.colorParam = null;
+		}
+
+		if (this.vertexBuffer) {
+			this.vertexBuffer.destroy();
+			this.vertexBuffer = undefined;
+		}
+
+		if (this.indexBuffer) {
+			this.indexBuffer.destroy();
+			this.indexBuffer = undefined;
+		}
+
+		if (this.material) {
+			this.material.destroy();
+			this.material = null;
+		}
+	}
+
+	destroy() {
+		this.camera = null;
+
+		this._destroyResources();
+	}
+
+}
+
 const SIMPLE_PROPERTIES = ['emitterExtents', 'emitterRadius', 'emitterExtentsInner', 'emitterRadiusInner', 'loop', 'initialVelocity', 'animSpeed', 'normalMap', 'particleNormal'];
 const COMPLEX_PROPERTIES = ['numParticles', 'lifetime', 'rate', 'rate2', 'startAngle', 'startAngle2', 'lighting', 'halfLambert', 'intensity', 'wrap', 'wrapBounds', 'depthWrite', 'noFog', 'sort', 'stretch', 'alignToMotion', 'preWarm', 'emitterShape', 'animTilesX', 'animTilesY', 'animStartFrame', 'animNumFrames', 'animNumAnimations', 'animIndex', 'randomizeAnimIndex', 'animLoop', 'colorMap', 'localSpace', 'screenSpace', 'orientation'];
 const GRAPH_PROPERTIES = ['scaleGraph', 'scaleGraph2', 'colorGraph', 'colorGraph2', 'alphaGraph', 'alphaGraph2', 'velocityGraph', 'velocityGraph2', 'localVelocityGraph', 'localVelocityGraph2', 'rotationSpeedGraph', 'rotationSpeedGraph2', 'radialSpeedGraph', 'radialSpeedGraph2'];
@@ -59286,6 +59456,8 @@ let depthLayer;
 class ParticleSystemComponent extends Component {
 	constructor(system, entity) {
 		super(system, entity);
+		this._requestedDepth = false;
+		this._drawOrder = 0;
 		this.on("set_colorMapAsset", this.onSetColorMapAsset, this);
 		this.on("set_normalMapAsset", this.onSetNormalMapAsset, this);
 		this.on("set_meshAsset", this.onSetMeshAsset, this);
@@ -59304,8 +59476,6 @@ class ParticleSystemComponent extends Component {
 		GRAPH_PROPERTIES.forEach(prop => {
 			this.on(`set_${prop}`, this.onSetGraphProperty, this);
 		});
-		this._requestedDepth = false;
-		this._drawOrder = 0;
 	}
 
 	set drawOrder(drawOrder) {
@@ -60999,6 +61169,13 @@ const _schema$7 = ['enabled'];
 class RigidBodyComponentSystem extends ComponentSystem {
 	constructor(app) {
 		super(app);
+		this.maxSubSteps = 10;
+		this.fixedTimeStep = 1 / 60;
+		this.gravity = new Vec3(0, -9.81, 0);
+		this._dynamic = [];
+		this._kinematic = [];
+		this._triggers = [];
+		this._compounds = [];
 		this.id = 'rigidbody';
 		this._stats = app.stats.frame;
 		this.ComponentType = RigidBodyComponent;
@@ -61007,13 +61184,6 @@ class RigidBodyComponentSystem extends ComponentSystem {
 		this.contactResultPool = null;
 		this.singleContactResultPool = null;
 		this.schema = _schema$7;
-		this.maxSubSteps = 10;
-		this.fixedTimeStep = 1 / 60;
-		this.gravity = new Vec3(0, -9.81, 0);
-		this._dynamic = [];
-		this._kinematic = [];
-		this._triggers = [];
-		this._compounds = [];
 		this.collisions = {};
 		this.frameCollisions = {};
 		this.on('beforeremove', this.onBeforeRemove, this);
@@ -61079,7 +61249,7 @@ class RigidBodyComponentSystem extends ComponentSystem {
 			group: rigidbody.group,
 			mask: rigidbody.mask
 		};
-		this.addComponent(clone, data);
+		return this.addComponent(clone, data);
 	}
 
 	onBeforeRemove(entity, component) {
@@ -63833,7 +64003,6 @@ Component._buildAccessors(ScrollViewComponent.prototype, _schema$4);
 class ScrollbarComponent extends Component {
 	constructor(system, entity) {
 		super(system, entity);
-		this._app = system.app;
 		this._handleReference = new EntityReference(this, 'handleEntity', {
 			'element#gain': this._onHandleElementGain,
 			'element#lose': this._onHandleElementLose,
@@ -64046,6 +64215,7 @@ function capTime(time, duration) {
 class SoundInstance extends EventHandler {
 	constructor(manager, sound, options) {
 		super();
+		this.source = null;
 		this._manager = manager;
 		this._volume = options.volume !== undefined ? math.clamp(Number(options.volume) || 0, 0, 1) : 1;
 		this._pitch = options.pitch !== undefined ? Math.max(0.01, Number(options.pitch) || 0) : 1;
@@ -64059,7 +64229,6 @@ class SoundInstance extends EventHandler {
 		this._startTime = Math.max(0, Number(options.startTime) || 0);
 		this._duration = Math.max(0, Number(options.duration) || 0);
 		this._startOffset = null;
-		this.source = null;
 		this._onPlayCallback = options.onPlay;
 		this._onPauseCallback = options.onPause;
 		this._onResumeCallback = options.onResume;
@@ -64086,6 +64255,40 @@ class SoundInstance extends EventHandler {
 
 			this._createSource();
 		}
+	}
+
+	set currentTime(value) {
+		if (value < 0) return;
+
+		if (this._state === STATE_PLAYING) {
+			const suspend = this._suspendInstanceEvents;
+			this._suspendInstanceEvents = true;
+			this.stop();
+			this._startOffset = value;
+			this.play();
+			this._suspendInstanceEvents = suspend;
+		} else {
+			this._startOffset = value;
+			this._currentTime = value;
+		}
+	}
+
+	get currentTime() {
+		if (this._startOffset !== null) {
+			return this._startOffset;
+		}
+
+		if (this._state === STATE_PAUSED) {
+			return this._currentTime;
+		}
+
+		if (this._state === STATE_STOPPED || !this.source) {
+			return 0;
+		}
+
+		this._updateCurrentTime();
+
+		return this._currentTime;
 	}
 
 	set duration(value) {
@@ -64138,6 +64341,34 @@ class SoundInstance extends EventHandler {
 		return this._loop;
 	}
 
+	set pitch(pitch) {
+		this._currentOffset = this.currentTime;
+		this._startedAt = this._manager.context.currentTime;
+		this._pitch = Math.max(Number(pitch) || 0, 0.01);
+
+		if (this.source) {
+			this.source.playbackRate.value = this._pitch;
+		}
+	}
+
+	get pitch() {
+		return this._pitch;
+	}
+
+	set sound(value) {
+		this._sound = value;
+
+		if (this._state !== STATE_STOPPED) {
+			this.stop();
+		} else {
+			this._createSource();
+		}
+	}
+
+	get sound() {
+		return this._sound;
+	}
+
 	set startTime(value) {
 		this._startTime = Math.max(0, Number(value) || 0);
 		const isPlaying = this._state === STATE_PLAYING;
@@ -64150,6 +64381,19 @@ class SoundInstance extends EventHandler {
 
 	get startTime() {
 		return this._startTime;
+	}
+
+	set volume(volume) {
+		volume = math.clamp(volume, 0, 1);
+		this._volume = volume;
+
+		if (this.gain) {
+			this.gain.gain.value = volume * this._manager.volume;
+		}
+	}
+
+	get volume() {
+		return this._volume;
 	}
 
 	_onPlay() {
@@ -64201,295 +64445,228 @@ class SoundInstance extends EventHandler {
 		}
 	}
 
-}
+	_initializeNodes() {
+		this.gain = this._manager.context.createGain();
+		this._inputNode = this.gain;
+		this._connectorNode = this.gain;
 
-if (hasAudioContext()) {
-	Object.assign(SoundInstance.prototype, {
-		_initializeNodes: function () {
-			this.gain = this._manager.context.createGain();
-			this._inputNode = this.gain;
-			this._connectorNode = this.gain;
+		this._connectorNode.connect(this._manager.context.destination);
+	}
 
-			this._connectorNode.connect(this._manager.context.destination);
-		},
-		play: function () {
-			if (this._state !== STATE_STOPPED) {
-				this.stop();
-			}
+	play() {
+		if (this._state !== STATE_STOPPED) {
+			this.stop();
+		}
 
-			if (!this.source) {
-				this._createSource();
-			}
+		if (!this.source) {
+			this._createSource();
+		}
 
-			let offset = capTime(this._startOffset, this.duration);
+		let offset = capTime(this._startOffset, this.duration);
+		offset = capTime(this._startTime + offset, this._sound.duration);
+		this._startOffset = null;
+
+		if (this._duration) {
+			this.source.start(0, offset, this._duration);
+		} else {
+			this.source.start(0, offset);
+		}
+
+		this._startedAt = this._manager.context.currentTime;
+		this._currentTime = 0;
+		this._currentOffset = offset;
+		this._state = STATE_PLAYING;
+		this._playWhenLoaded = false;
+		this.volume = this._volume;
+		this.loop = this._loop;
+		this.pitch = this._pitch;
+
+		this._manager.on('volumechange', this._onManagerVolumeChange, this);
+
+		this._manager.on('suspend', this._onManagerSuspend, this);
+
+		this._manager.on('resume', this._onManagerResume, this);
+
+		this._manager.on('destroy', this._onManagerDestroy, this);
+
+		if (this._manager.suspended) {
+			this._onManagerSuspend();
+		}
+
+		if (!this._suspendInstanceEvents) this._onPlay();
+		return true;
+	}
+
+	pause() {
+		this._playWhenLoaded = false;
+		if (this._state !== STATE_PLAYING || !this.source) return false;
+
+		this._updateCurrentTime();
+
+		this._state = STATE_PAUSED;
+		this._suspendEndEvent = true;
+		this.source.stop(0);
+		this.source = null;
+		this._startOffset = null;
+		if (!this._suspendInstanceEvents) this._onPause();
+		return true;
+	}
+
+	resume() {
+		if (this._state !== STATE_PAUSED) {
+			return false;
+		}
+
+		if (!this.source) {
+			this._createSource();
+		}
+
+		let offset = this.currentTime;
+
+		if (this._startOffset !== null) {
+			offset = capTime(this._startOffset, this.duration);
 			offset = capTime(this._startTime + offset, this._sound.duration);
 			this._startOffset = null;
+		}
 
-			if (this._duration) {
-				this.source.start(0, offset, this._duration);
-			} else {
-				this.source.start(0, offset);
-			}
+		if (this._duration) {
+			this.source.start(0, offset, this._duration);
+		} else {
+			this.source.start(0, offset);
+		}
 
-			this._startedAt = this._manager.context.currentTime;
-			this._currentTime = 0;
-			this._currentOffset = offset;
-			this._state = STATE_PLAYING;
-			this._playWhenLoaded = false;
-			this.volume = this._volume;
-			this.loop = this._loop;
-			this.pitch = this._pitch;
+		this._state = STATE_PLAYING;
+		this._startedAt = this._manager.context.currentTime;
+		this._currentOffset = offset;
+		this.volume = this._volume;
+		this.loop = this._loop;
+		this.pitch = this._pitch;
+		this._playWhenLoaded = false;
+		if (!this._suspendInstanceEvents) this._onResume();
+		return true;
+	}
 
-			this._manager.on('volumechange', this._onManagerVolumeChange, this);
+	stop() {
+		this._playWhenLoaded = false;
+		if (this._state === STATE_STOPPED || !this.source) return false;
 
-			this._manager.on('suspend', this._onManagerSuspend, this);
+		this._manager.off('volumechange', this._onManagerVolumeChange, this);
 
-			this._manager.on('resume', this._onManagerResume, this);
+		this._manager.off('suspend', this._onManagerSuspend, this);
 
-			this._manager.on('destroy', this._onManagerDestroy, this);
+		this._manager.off('resume', this._onManagerResume, this);
 
-			if (this._manager.suspended) {
-				this._onManagerSuspend();
-			}
+		this._manager.off('destroy', this._onManagerDestroy, this);
 
-			if (!this._suspendInstanceEvents) this._onPlay();
-			return true;
-		},
-		pause: function () {
-			this._playWhenLoaded = false;
-			if (this._state !== STATE_PLAYING || !this.source) return false;
+		this._startedAt = 0;
+		this._currentTime = 0;
+		this._currentOffset = 0;
+		this._startOffset = null;
+		this._suspendEndEvent = true;
 
-			this._updateCurrentTime();
-
-			this._state = STATE_PAUSED;
-			this._suspendEndEvent = true;
+		if (this._state === STATE_PLAYING) {
 			this.source.stop(0);
-			this.source = null;
-			this._startOffset = null;
-			if (!this._suspendInstanceEvents) this._onPause();
-			return true;
-		},
-		resume: function () {
-			if (this._state !== STATE_PAUSED) {
-				return false;
-			}
+		}
 
-			if (!this.source) {
-				this._createSource();
-			}
+		this.source = null;
+		this._state = STATE_STOPPED;
+		if (!this._suspendInstanceEvents) this._onStop();
+		return true;
+	}
 
-			let offset = this.currentTime;
+	setExternalNodes(firstNode, lastNode) {
+		if (!firstNode) {
+			console.error('The firstNode must be a valid Audio Node');
+			return;
+		}
 
-			if (this._startOffset !== null) {
-				offset = capTime(this._startOffset, this.duration);
-				offset = capTime(this._startTime + offset, this._sound.duration);
-				this._startOffset = null;
-			}
+		if (!lastNode) {
+			lastNode = firstNode;
+		}
 
-			if (this._duration) {
-				this.source.start(0, offset, this._duration);
-			} else {
-				this.source.start(0, offset);
-			}
+		const speakers = this._manager.context.destination;
 
-			this._state = STATE_PLAYING;
-			this._startedAt = this._manager.context.currentTime;
-			this._currentOffset = offset;
-			this.volume = this._volume;
-			this.loop = this._loop;
-			this.pitch = this._pitch;
-			this._playWhenLoaded = false;
-			if (!this._suspendInstanceEvents) this._onResume();
-			return true;
-		},
-		stop: function () {
-			this._playWhenLoaded = false;
-			if (this._state === STATE_STOPPED || !this.source) return false;
-
-			this._manager.off('volumechange', this._onManagerVolumeChange, this);
-
-			this._manager.off('suspend', this._onManagerSuspend, this);
-
-			this._manager.off('resume', this._onManagerResume, this);
-
-			this._manager.off('destroy', this._onManagerDestroy, this);
-
-			this._startedAt = 0;
-			this._currentTime = 0;
-			this._currentOffset = 0;
-			this._startOffset = null;
-			this._suspendEndEvent = true;
-
-			if (this._state === STATE_PLAYING) {
-				this.source.stop(0);
-			}
-
-			this.source = null;
-			this._state = STATE_STOPPED;
-			if (!this._suspendInstanceEvents) this._onStop();
-			return true;
-		},
-		setExternalNodes: function (firstNode, lastNode) {
-			if (!firstNode) {
-				console.error('The firstNode must be a valid Audio Node');
-				return;
-			}
-
-			if (!lastNode) {
-				lastNode = firstNode;
-			}
-
-			const speakers = this._manager.context.destination;
-
-			if (this._firstNode !== firstNode) {
-				if (this._firstNode) {
-					this._connectorNode.disconnect(this._firstNode);
-				} else {
-					this._connectorNode.disconnect(speakers);
-				}
-
-				this._firstNode = firstNode;
-
-				this._connectorNode.connect(firstNode);
-			}
-
-			if (this._lastNode !== lastNode) {
-				if (this._lastNode) {
-					this._lastNode.disconnect(speakers);
-				}
-
-				this._lastNode = lastNode;
-
-				this._lastNode.connect(speakers);
-			}
-		},
-		clearExternalNodes: function () {
-			const speakers = this._manager.context.destination;
-
+		if (this._firstNode !== firstNode) {
 			if (this._firstNode) {
 				this._connectorNode.disconnect(this._firstNode);
-
-				this._firstNode = null;
+			} else {
+				this._connectorNode.disconnect(speakers);
 			}
 
+			this._firstNode = firstNode;
+
+			this._connectorNode.connect(firstNode);
+		}
+
+		if (this._lastNode !== lastNode) {
 			if (this._lastNode) {
 				this._lastNode.disconnect(speakers);
-
-				this._lastNode = null;
 			}
 
-			this._connectorNode.connect(speakers);
-		},
-		getExternalNodes: function () {
-			return [this._firstNode, this._lastNode];
-		},
-		_createSource: function () {
-			if (!this._sound) {
-				return null;
-			}
+			this._lastNode = lastNode;
 
-			const context = this._manager.context;
+			this._lastNode.connect(speakers);
+		}
+	}
 
-			if (this._sound.buffer) {
-				this.source = context.createBufferSource();
-				this.source.buffer = this._sound.buffer;
-				this.source.connect(this._inputNode);
-				this.source.onended = this._endedHandler;
-				this.source.loopStart = capTime(this._startTime, this.source.buffer.duration);
+	clearExternalNodes() {
+		const speakers = this._manager.context.destination;
 
-				if (this._duration) {
-					this.source.loopEnd = Math.max(this.source.loopStart, capTime(this._startTime + this._duration, this.source.buffer.duration));
-				}
-			}
+		if (this._firstNode) {
+			this._connectorNode.disconnect(this._firstNode);
 
-			return this.source;
-		},
-		_updateCurrentTime: function () {
-			this._currentTime = capTime((this._manager.context.currentTime - this._startedAt) * this._pitch + this._currentOffset, this.duration);
-		},
-		_onManagerDestroy: function () {
-			if (this.source && this._state === STATE_PLAYING) {
-				this.source.stop(0);
-				this.source = null;
+			this._firstNode = null;
+		}
+
+		if (this._lastNode) {
+			this._lastNode.disconnect(speakers);
+
+			this._lastNode = null;
+		}
+
+		this._connectorNode.connect(speakers);
+	}
+
+	getExternalNodes() {
+		return [this._firstNode, this._lastNode];
+	}
+
+	_createSource() {
+		if (!this._sound) {
+			return null;
+		}
+
+		const context = this._manager.context;
+
+		if (this._sound.buffer) {
+			this.source = context.createBufferSource();
+			this.source.buffer = this._sound.buffer;
+			this.source.connect(this._inputNode);
+			this.source.onended = this._endedHandler;
+			this.source.loopStart = capTime(this._startTime, this.source.buffer.duration);
+
+			if (this._duration) {
+				this.source.loopEnd = Math.max(this.source.loopStart, capTime(this._startTime + this._duration, this.source.buffer.duration));
 			}
 		}
-	});
-	Object.defineProperty(SoundInstance.prototype, 'volume', {
-		get: function () {
-			return this._volume;
-		},
-		set: function (volume) {
-			volume = math.clamp(volume, 0, 1);
-			this._volume = volume;
 
-			if (this.gain) {
-				this.gain.gain.value = volume * this._manager.volume;
-			}
+		return this.source;
+	}
+
+	_updateCurrentTime() {
+		this._currentTime = capTime((this._manager.context.currentTime - this._startedAt) * this._pitch + this._currentOffset, this.duration);
+	}
+
+	_onManagerDestroy() {
+		if (this.source && this._state === STATE_PLAYING) {
+			this.source.stop(0);
+			this.source = null;
 		}
-	});
-	Object.defineProperty(SoundInstance.prototype, 'pitch', {
-		get: function () {
-			return this._pitch;
-		},
-		set: function (pitch) {
-			this._currentOffset = this.currentTime;
-			this._startedAt = this._manager.context.currentTime;
-			this._pitch = Math.max(Number(pitch) || 0, 0.01);
+	}
 
-			if (this.source) {
-				this.source.playbackRate.value = this._pitch;
-			}
-		}
-	});
-	Object.defineProperty(SoundInstance.prototype, 'sound', {
-		get: function () {
-			return this._sound;
-		},
-		set: function (value) {
-			this._sound = value;
+}
 
-			if (this._state !== STATE_STOPPED) {
-				this.stop();
-			} else {
-				this._createSource();
-			}
-		}
-	});
-	Object.defineProperty(SoundInstance.prototype, 'currentTime', {
-		get: function () {
-			if (this._startOffset !== null) {
-				return this._startOffset;
-			}
-
-			if (this._state === STATE_PAUSED) {
-				return this._currentTime;
-			}
-
-			if (this._state === STATE_STOPPED || !this.source) {
-				return 0;
-			}
-
-			this._updateCurrentTime();
-
-			return this._currentTime;
-		},
-		set: function (value) {
-			if (value < 0) return;
-
-			if (this._state === STATE_PLAYING) {
-				const suspend = this._suspendInstanceEvents;
-				this._suspendInstanceEvents = true;
-				this.stop();
-				this._startOffset = value;
-				this.play();
-				this._suspendInstanceEvents = suspend;
-			} else {
-				this._startOffset = value;
-				this._currentTime = value;
-			}
-		}
-	});
-} else {
+if (!hasAudioContext()) {
 	Object.assign(SoundInstance.prototype, {
 		play: function () {
 			if (this._state !== STATE_STOPPED) {
@@ -64667,12 +64844,11 @@ if (hasAudioContext()) {
 const MAX_DISTANCE = 10000;
 
 class SoundInstance3d extends SoundInstance {
-	constructor(manager, sound, options) {
+	constructor(manager, sound, options = {}) {
 		super(manager, sound, options);
-		options = options || {};
 		this._position = new Vec3();
-		if (options.position) this.position = options.position;
 		this._velocity = new Vec3();
+		if (options.position) this.position = options.position;
 		if (options.velocity) this.velocity = options.velocity;
 		this.maxDistance = options.maxDistance !== undefined ? Number(options.maxDistance) : MAX_DISTANCE;
 		this.refDistance = options.refDistance !== undefined ? Number(options.refDistance) : 1;
@@ -64680,73 +64856,73 @@ class SoundInstance3d extends SoundInstance {
 		this.distanceModel = options.distanceModel !== undefined ? options.distanceModel : DISTANCE_LINEAR;
 	}
 
+	_initializeNodes() {
+		this.gain = this._manager.context.createGain();
+		this.panner = this._manager.context.createPanner();
+		this.panner.connect(this.gain);
+		this._inputNode = this.panner;
+		this._connectorNode = this.gain;
+
+		this._connectorNode.connect(this._manager.context.destination);
+	}
+
+	set position(value) {
+		this._position.copy(value);
+
+		this.panner.positionX.value = value.x;
+		this.panner.positionY.value = value.y;
+		this.panner.positionZ.value = value.z;
+	}
+
+	get position() {
+		return this._position;
+	}
+
+	set velocity(velocity) {
+		this._velocity.copy(velocity);
+
+		this.panner.setVelocity(velocity.x, velocity.y, velocity.z);
+	}
+
+	get velocity() {
+		return this._velocity;
+	}
+
+	set maxDistance(value) {
+		this.panner.maxDistance = value;
+	}
+
+	get maxDistance() {
+		return this.panner.maxDistance;
+	}
+
+	set refDistance(value) {
+		this.panner.refDistance = value;
+	}
+
+	get refDistance() {
+		return this.panner.refDistance;
+	}
+
+	set rollOffFactor(value) {
+		this.panner.rolloffFactor = value;
+	}
+
+	get rollOffFactor() {
+		return this.panner.rolloffFactor;
+	}
+
+	set distanceModel(value) {
+		this.panner.distanceModel = value;
+	}
+
+	get distanceModel() {
+		return this.panner.distanceModel;
+	}
+
 }
 
-if (hasAudioContext()) {
-	Object.assign(SoundInstance3d.prototype, {
-		_initializeNodes: function () {
-			this.gain = this._manager.context.createGain();
-			this.panner = this._manager.context.createPanner();
-			this.panner.connect(this.gain);
-			this._inputNode = this.panner;
-			this._connectorNode = this.gain;
-
-			this._connectorNode.connect(this._manager.context.destination);
-		}
-	});
-	Object.defineProperty(SoundInstance3d.prototype, 'position', {
-		get: function () {
-			return this._position;
-		},
-		set: function (position) {
-			this._position.copy(position);
-
-			this.panner.setPosition(position.x, position.y, position.z);
-		}
-	});
-	Object.defineProperty(SoundInstance3d.prototype, 'velocity', {
-		get: function () {
-			return this._velocity;
-		},
-		set: function (velocity) {
-			this._velocity.copy(velocity);
-
-			this.panner.setVelocity(velocity.x, velocity.y, velocity.z);
-		}
-	});
-	Object.defineProperty(SoundInstance3d.prototype, 'maxDistance', {
-		get: function () {
-			return this.panner.maxDistance;
-		},
-		set: function (value) {
-			this.panner.maxDistance = value;
-		}
-	});
-	Object.defineProperty(SoundInstance3d.prototype, 'refDistance', {
-		get: function () {
-			return this.panner.refDistance;
-		},
-		set: function (value) {
-			this.panner.refDistance = value;
-		}
-	});
-	Object.defineProperty(SoundInstance3d.prototype, 'rollOffFactor', {
-		get: function () {
-			return this.panner.rolloffFactor;
-		},
-		set: function (value) {
-			this.panner.rolloffFactor = value;
-		}
-	});
-	Object.defineProperty(SoundInstance3d.prototype, 'distanceModel', {
-		get: function () {
-			return this.panner.distanceModel;
-		},
-		set: function (value) {
-			this.panner.distanceModel = value;
-		}
-	});
-} else {
+if (!hasAudioContext()) {
 	let offset = new Vec3();
 
 	const fallOff = function fallOff(posOne, posTwo, refDistance, maxDistance, rollOffFactor, distanceModel) {
@@ -67675,7 +67851,7 @@ class Application extends EventHandler {
 		}
 
 		options.graphicsDeviceOptions.alpha = options.graphicsDeviceOptions.alpha || false;
-		this.graphicsDevice = new GraphicsDevice(canvas, options.graphicsDeviceOptions);
+		this.graphicsDevice = new WebglGraphicsDevice(canvas, options.graphicsDeviceOptions);
 
 		this._initDefaultMaterial();
 
@@ -67690,8 +67866,6 @@ class Application extends EventHandler {
 
 		this.root = new Entity();
 		this.root._enabledInHierarchy = true;
-		this._enableList = [];
-		this._enableList.size = 0;
 		this.assets = new AssetRegistry(this.loader);
 		if (options.assetPrefix) this.assets.prefix = options.assetPrefix;
 		this.bundles = new BundleRegistry(this.assets);
@@ -67736,7 +67910,6 @@ class Application extends EventHandler {
 		defaultLayerComposition.pushTransparent(this.defaultLayerImmediate);
 		defaultLayerComposition.pushTransparent(this.defaultLayerUi);
 		this.scene.layers = defaultLayerComposition;
-		this._immediateLayer = this.defaultLayerImmediate;
 		this.scene.on('set:layers', function (oldComp, newComp) {
 			const list = newComp.layerList;
 			let layer;
@@ -67866,7 +68039,7 @@ class Application extends EventHandler {
 		const material = new StandardMaterial();
 		material.name = "Default Material";
 		material.shadingModel = SPECULAR_BLINN;
-		DefaultMaterial.add(this.graphicsDevice, material);
+		setDefaultMaterial(this.graphicsDevice, material);
 	}
 
 	get fillMode() {
@@ -68285,7 +68458,6 @@ class Application extends EventHandler {
 		stats.sortTime = this.renderer._sortTime;
 		stats.skinTime = this.renderer._skinTime;
 		stats.morphTime = this.renderer._morphTime;
-		stats.instancingTime = this.renderer._instancingTime;
 		stats.lightClusters = this.renderer._lightClusters;
 		stats.lightClustersTime = this.renderer._lightClustersTime;
 		stats.otherPrimitives = 0;
@@ -68308,7 +68480,6 @@ class Application extends EventHandler {
 		this.renderer._sortTime = 0;
 		this.renderer._skinTime = 0;
 		this.renderer._morphTime = 0;
-		this.renderer._instancingTime = 0;
 		this.renderer._shadowMapTime = 0;
 		this.renderer._depthMapTime = 0;
 		this.renderer._forwardTime = 0;
@@ -68329,7 +68500,6 @@ class Application extends EventHandler {
 		this.renderer._skinDrawCalls = 0;
 		this.renderer._immediateRendered = 0;
 		this.renderer._instancedDrawCalls = 0;
-		this.renderer._removedByInstancing = 0;
 		this.stats.misc.renderTargetCreationTime = this.graphicsDevice.renderTargetCreationTime;
 		stats = this.stats.particles;
 		stats.updatesPerFrame = stats._updatesPerFrame;
@@ -68657,7 +68827,6 @@ class Application extends EventHandler {
 		this.defaultLayerDepth.onEnable = null;
 		this.defaultLayerDepth = null;
 		this.defaultLayerWorld = null;
-		destroyPostEffectQuad();
 
 		if (this.vr) {
 			this.vr.destroy();
@@ -68665,10 +68834,8 @@ class Application extends EventHandler {
 		}
 
 		this.xr.end();
-		ParticleEmitter.staticDestroy();
 		this.renderer.destroy();
 		this.renderer = null;
-		DefaultMaterial.remove(this.graphicsDevice);
 		this.graphicsDevice.destroy();
 		this.graphicsDevice = null;
 		this.tick = null;
@@ -68769,6 +68936,8 @@ const makeTick = function makeTick(_app) {
 	};
 };
 
+const _enableList = [];
+
 class Entity extends GraphNode {
 	constructor(name, app) {
 		super(name);
@@ -68792,22 +68961,22 @@ class Entity extends GraphNode {
 		this.scrollview = void 0;
 		this.sound = void 0;
 		this.sprite = void 0;
-		if (name instanceof Application) app = name;
-		this._batchHandle = null;
 		this.c = {};
-		this._app = app;
+		this._app = void 0;
+		this._destroying = false;
+		this._guid = null;
+		this._template = false;
+		if (name instanceof Application) app = name;
 
 		if (!app) {
-			this._app = Application.getApplication();
+			app = Application.getApplication();
 
-			if (!this._app) {
+			if (!app) {
 				throw new Error("Couldn't find current application");
 			}
 		}
 
-		this._guid = null;
-		this._destroying = false;
-		this._template = false;
+		this._app = app;
 	}
 
 	addComponent(type, data) {
@@ -68875,12 +69044,12 @@ class Entity extends GraphNode {
 
 	_notifyHierarchyStateChanged(node, enabled) {
 		let enableFirst = false;
-		if (node === this && this._app._enableList.length === 0) enableFirst = true;
+		if (node === this && _enableList.length === 0) enableFirst = true;
 		node._beingEnabled = true;
 
 		node._onHierarchyStateChanged(enabled);
 
-		if (node._onHierarchyStatePostChanged) this._app._enableList.push(node);
+		if (node._onHierarchyStatePostChanged) _enableList.push(node);
 		const c = node._children;
 
 		for (let i = 0, len = c.length; i < len; i++) {
@@ -68890,11 +69059,11 @@ class Entity extends GraphNode {
 		node._beingEnabled = false;
 
 		if (enableFirst) {
-			for (let i = 0; i < this._app._enableList.length; i++) {
-				this._app._enableList[i]._onHierarchyStatePostChanged();
+			for (let i = 0; i < _enableList.length; i++) {
+				_enableList[i]._onHierarchyStatePostChanged();
 			}
 
-			this._app._enableList.length = 0;
+			_enableList.length = 0;
 		}
 	}
 
@@ -69075,7 +69244,8 @@ class BakeLightAmbient extends BakeLight {
 			shadowResolution: 2048,
 			shadowType: SHADOW_PCF3,
 			color: Color.WHITE,
-			intensity: 1
+			intensity: 1,
+			bakeDir: false
 		});
 		super(scene, lightEntity.light.light);
 	}
@@ -69899,7 +70069,7 @@ class Lightmapper {
 			const isAmbientLight = bakeLight instanceof BakeLightAmbient;
 			let numVirtualLights = bakeLight.numVirtualLights;
 
-			if (passCount > 1 && numVirtualLights > 1) {
+			if (passCount > 1 && numVirtualLights > 1 && bakeLight.light.bakeDir) {
 				numVirtualLights = 1;
 			}
 
@@ -72870,6 +73040,9 @@ Object.keys(deprecatedChunks).forEach(chunkName => {
 		set: function () {}
 	});
 });
+
+VertexFormat.prototype.update = function () {};
+
 Object.defineProperties(Texture.prototype, {
 	rgbm: {
 		get: function () {
@@ -72904,7 +73077,6 @@ const scene = {
 	},
 	BasicMaterial: BasicMaterial,
 	Command: Command,
-	DepthMaterial: DepthMaterial,
 	ForwardRenderer: ForwardRenderer,
 	GraphNode: GraphNode,
 	Material: Material,
@@ -72924,7 +73096,7 @@ const scene = {
 };
 Object.defineProperty(Scene.prototype, 'defaultMaterial', {
 	get: function () {
-		return DefaultMaterial.get(getApplication().graphicsDevice);
+		return getDefaultMaterial(getApplication().graphicsDevice);
 	}
 });
 ['128', '64', '32', '16', '8', '4'].forEach((size, index) => {
@@ -73586,4 +73758,4 @@ class AssetListLoader extends EventHandler {
 
 }
 
-export { ABSOLUTE_URL, ACTION_GAMEPAD, ACTION_KEYBOARD, ACTION_MOUSE, ADDRESS_CLAMP_TO_EDGE, ADDRESS_MIRRORED_REPEAT, ADDRESS_REPEAT, ANIM_BLEND_1D, ANIM_BLEND_2D_CARTESIAN, ANIM_BLEND_2D_DIRECTIONAL, ANIM_BLEND_DIRECT, ANIM_CONTROL_STATES, ANIM_EQUAL_TO, ANIM_GREATER_THAN, ANIM_GREATER_THAN_EQUAL_TO, ANIM_INTERRUPTION_NEXT, ANIM_INTERRUPTION_NEXT_PREV, ANIM_INTERRUPTION_NONE, ANIM_INTERRUPTION_PREV, ANIM_INTERRUPTION_PREV_NEXT, ANIM_LAYER_ADDITIVE, ANIM_LAYER_OVERWRITE, ANIM_LESS_THAN, ANIM_LESS_THAN_EQUAL_TO, ANIM_NOT_EQUAL_TO, ANIM_PARAMETER_BOOLEAN, ANIM_PARAMETER_FLOAT, ANIM_PARAMETER_INTEGER, ANIM_PARAMETER_TRIGGER, ANIM_STATE_ANY, ANIM_STATE_END, ANIM_STATE_START, ASPECT_AUTO, ASPECT_MANUAL, ASSET_ANIMATION, ASSET_AUDIO, ASSET_CONTAINER, ASSET_CSS, ASSET_CUBEMAP, ASSET_HTML, ASSET_IMAGE, ASSET_JSON, ASSET_MATERIAL, ASSET_MODEL, ASSET_SCRIPT, ASSET_SHADER, ASSET_TEXT, ASSET_TEXTURE, AXIS_KEY, AXIS_MOUSE_X, AXIS_MOUSE_Y, AXIS_PAD_L_X, AXIS_PAD_L_Y, AXIS_PAD_R_X, AXIS_PAD_R_Y, AnimBinder, AnimClip, AnimClipHandler, AnimComponent, AnimComponentLayer, AnimComponentSystem, AnimController, AnimCurve, AnimData, AnimEvaluator, AnimEvents, AnimSnapshot, AnimStateGraph, AnimStateGraphHandler, AnimTarget, AnimTrack, Animation, AnimationComponent, AnimationComponentSystem, AnimationHandler, Application, Asset, AssetListLoader, AssetReference, AssetRegistry, AudioHandler, AudioListenerComponent, AudioListenerComponentSystem, AudioSourceComponent, AudioSourceComponentSystem, BAKE_COLOR, BAKE_COLORDIR, BLENDEQUATION_ADD, BLENDEQUATION_MAX, BLENDEQUATION_MIN, BLENDEQUATION_REVERSE_SUBTRACT, BLENDEQUATION_SUBTRACT, BLENDMODE_DST_ALPHA, BLENDMODE_DST_COLOR, BLENDMODE_ONE, BLENDMODE_ONE_MINUS_DST_ALPHA, BLENDMODE_ONE_MINUS_DST_COLOR, BLENDMODE_ONE_MINUS_SRC_ALPHA, BLENDMODE_ONE_MINUS_SRC_COLOR, BLENDMODE_SRC_ALPHA, BLENDMODE_SRC_ALPHA_SATURATE, BLENDMODE_SRC_COLOR, BLENDMODE_ZERO, BLEND_ADDITIVE, BLEND_ADDITIVEALPHA, BLEND_MAX, BLEND_MIN, BLEND_MULTIPLICATIVE, BLEND_MULTIPLICATIVE2X, BLEND_NONE, BLEND_NORMAL, BLEND_PREMULTIPLIED, BLEND_SCREEN, BLEND_SUBTRACTIVE, BLUR_BOX, BLUR_GAUSSIAN, BODYFLAG_KINEMATIC_OBJECT, BODYFLAG_NORESPONSE_OBJECT, BODYFLAG_STATIC_OBJECT, BODYGROUP_DEFAULT, BODYGROUP_DYNAMIC, BODYGROUP_ENGINE_1, BODYGROUP_ENGINE_2, BODYGROUP_ENGINE_3, BODYGROUP_KINEMATIC, BODYGROUP_NONE, BODYGROUP_STATIC, BODYGROUP_TRIGGER, BODYGROUP_USER_1, BODYGROUP_USER_2, BODYGROUP_USER_3, BODYGROUP_USER_4, BODYGROUP_USER_5, BODYGROUP_USER_6, BODYGROUP_USER_7, BODYGROUP_USER_8, BODYMASK_ALL, BODYMASK_NONE, BODYMASK_NOT_STATIC, BODYMASK_NOT_STATIC_KINEMATIC, BODYMASK_STATIC, BODYSTATE_ACTIVE_TAG, BODYSTATE_DISABLE_DEACTIVATION, BODYSTATE_DISABLE_SIMULATION, BODYSTATE_ISLAND_SLEEPING, BODYSTATE_WANTS_DEACTIVATION, BODYTYPE_DYNAMIC, BODYTYPE_KINEMATIC, BODYTYPE_STATIC, BUFFER_DYNAMIC, BUFFER_GPUDYNAMIC, BUFFER_STATIC, BUFFER_STREAM, BUTTON_TRANSITION_MODE_SPRITE_CHANGE, BUTTON_TRANSITION_MODE_TINT, BasicMaterial, Batch, BatchGroup, BatchManager, BinaryHandler, BoundingBox, BoundingSphere, Bundle, BundleHandler, BundleRegistry, ButtonComponent, ButtonComponentSystem, CLEARFLAG_COLOR, CLEARFLAG_DEPTH, CLEARFLAG_STENCIL, COMPUPDATED_BLEND, COMPUPDATED_CAMERAS, COMPUPDATED_INSTANCES, COMPUPDATED_LIGHTS, CUBEFACE_NEGX, CUBEFACE_NEGY, CUBEFACE_NEGZ, CUBEFACE_POSX, CUBEFACE_POSY, CUBEFACE_POSZ, CUBEPROJ_BOX, CUBEPROJ_NONE, CULLFACE_BACK, CULLFACE_FRONT, CULLFACE_FRONTANDBACK, CULLFACE_NONE, CURVE_CARDINAL, CURVE_CATMULL, CURVE_LINEAR, CURVE_SMOOTHSTEP, CURVE_SPLINE, CURVE_STEP, Camera, CameraComponent, CameraComponentSystem, CanvasFont, CollisionComponent, CollisionComponentSystem, Color, Command, Component, ComponentSystem, ComponentSystemRegistry, ContactPoint, ContactResult, ContainerHandler, ContainerResource, ContextCreationError, Controller, CssHandler, CubemapHandler, Curve, CurveSet, DETAILMODE_ADD, DETAILMODE_MAX, DETAILMODE_MIN, DETAILMODE_MUL, DETAILMODE_OVERLAY, DETAILMODE_SCREEN, DISTANCE_EXPONENTIAL, DISTANCE_INVERSE, DISTANCE_LINEAR, DefaultAnimBinder, DepthMaterial, ELEMENTTYPE_FLOAT32, ELEMENTTYPE_GROUP, ELEMENTTYPE_IMAGE, ELEMENTTYPE_INT16, ELEMENTTYPE_INT32, ELEMENTTYPE_INT8, ELEMENTTYPE_TEXT, ELEMENTTYPE_UINT16, ELEMENTTYPE_UINT32, ELEMENTTYPE_UINT8, EMITTERSHAPE_BOX, EMITTERSHAPE_SPHERE, EVENT_KEYDOWN, EVENT_KEYUP, EVENT_MOUSEDOWN, EVENT_MOUSEMOVE, EVENT_MOUSEUP, EVENT_MOUSEWHEEL, EVENT_SELECT, EVENT_SELECTEND, EVENT_SELECTSTART, EVENT_TOUCHCANCEL, EVENT_TOUCHEND, EVENT_TOUCHMOVE, EVENT_TOUCHSTART, ElementComponent, ElementComponentSystem, ElementDragHelper, ElementInput, ElementInputEvent, ElementMouseEvent, ElementSelectEvent, ElementTouchEvent, Entity, EntityReference, EnvLighting, EventHandler, FILLMODE_FILL_WINDOW, FILLMODE_KEEP_ASPECT, FILLMODE_NONE, FILTER_LINEAR, FILTER_LINEAR_MIPMAP_LINEAR, FILTER_LINEAR_MIPMAP_NEAREST, FILTER_NEAREST, FILTER_NEAREST_MIPMAP_LINEAR, FILTER_NEAREST_MIPMAP_NEAREST, FITTING_BOTH, FITTING_NONE, FITTING_SHRINK, FITTING_STRETCH, FOG_EXP, FOG_EXP2, FOG_LINEAR, FOG_NONE, FONT_BITMAP, FONT_MSDF, FRESNEL_NONE, FRESNEL_SCHLICK, FUNC_ALWAYS, FUNC_EQUAL, FUNC_GREATER, FUNC_GREATEREQUAL, FUNC_LESS, FUNC_LESSEQUAL, FUNC_NEVER, FUNC_NOTEQUAL, FolderHandler, Font, FontHandler, ForwardRenderer, Frustum, GAMMA_NONE, GAMMA_SRGB, GAMMA_SRGBFAST, GAMMA_SRGBHDR, GamePads, GraphNode, GraphicsDevice, HierarchyHandler, HtmlHandler, Http, I18n, INDEXFORMAT_UINT16, INDEXFORMAT_UINT32, INDEXFORMAT_UINT8, INTERPOLATION_CUBIC, INTERPOLATION_LINEAR, INTERPOLATION_STEP, ImageElement, IndexBuffer, IndexedList, JointComponent, JointComponentSystem, JsonHandler, JsonStandardMaterialParser, KEY_0, KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7, KEY_8, KEY_9, KEY_A, KEY_ADD, KEY_ALT, KEY_B, KEY_BACKSPACE, KEY_BACK_SLASH, KEY_C, KEY_CAPS_LOCK, KEY_CLOSE_BRACKET, KEY_COMMA, KEY_CONTEXT_MENU, KEY_CONTROL, KEY_D, KEY_DECIMAL, KEY_DELETE, KEY_DIVIDE, KEY_DOWN, KEY_E, KEY_END, KEY_ENTER, KEY_EQUAL, KEY_ESCAPE, KEY_F, KEY_F1, KEY_F10, KEY_F11, KEY_F12, KEY_F2, KEY_F3, KEY_F4, KEY_F5, KEY_F6, KEY_F7, KEY_F8, KEY_F9, KEY_G, KEY_H, KEY_HOME, KEY_I, KEY_INSERT, KEY_J, KEY_K, KEY_L, KEY_LEFT, KEY_M, KEY_META, KEY_MULTIPLY, KEY_N, KEY_NUMPAD_0, KEY_NUMPAD_1, KEY_NUMPAD_2, KEY_NUMPAD_3, KEY_NUMPAD_4, KEY_NUMPAD_5, KEY_NUMPAD_6, KEY_NUMPAD_7, KEY_NUMPAD_8, KEY_NUMPAD_9, KEY_O, KEY_OPEN_BRACKET, KEY_P, KEY_PAGE_DOWN, KEY_PAGE_UP, KEY_PAUSE, KEY_PERIOD, KEY_PRINT_SCREEN, KEY_Q, KEY_R, KEY_RETURN, KEY_RIGHT, KEY_S, KEY_SEMICOLON, KEY_SEPARATOR, KEY_SHIFT, KEY_SLASH, KEY_SPACE, KEY_SUBTRACT, KEY_T, KEY_TAB, KEY_U, KEY_UP, KEY_V, KEY_W, KEY_WINDOWS, KEY_X, KEY_Y, KEY_Z, Key, Keyboard, KeyboardEvent, LAYERID_DEPTH, LAYERID_IMMEDIATE, LAYERID_SKYBOX, LAYERID_UI, LAYERID_WORLD, LAYER_FX, LAYER_GIZMO, LAYER_HUD, LAYER_WORLD, LIGHTFALLOFF_INVERSESQUARED, LIGHTFALLOFF_LINEAR, LIGHTSHAPE_DISK, LIGHTSHAPE_PUNCTUAL, LIGHTSHAPE_RECT, LIGHTSHAPE_SPHERE, LIGHTTYPE_DIRECTIONAL, LIGHTTYPE_OMNI, LIGHTTYPE_POINT, LIGHTTYPE_SPOT, LINEBATCH_GIZMO, LINEBATCH_OVERLAY, LINEBATCH_WORLD, Layer, LayerComposition, LayoutCalculator, LayoutChildComponent, LayoutChildComponentSystem, LayoutGroupComponent, LayoutGroupComponentSystem, Light, LightComponent, LightComponentSystem, LightingParams, Lightmapper, LocalizedAsset, MASK_AFFECT_DYNAMIC, MASK_AFFECT_LIGHTMAPPED, MASK_BAKE, MOTION_FREE, MOTION_LIMITED, MOTION_LOCKED, MOUSEBUTTON_LEFT, MOUSEBUTTON_MIDDLE, MOUSEBUTTON_NONE, MOUSEBUTTON_RIGHT, Mat3, Mat4, Material, MaterialHandler, Mesh, MeshInstance, Model, ModelComponent, ModelComponentSystem, ModelHandler, Morph, MorphInstance, MorphTarget, Mouse, MouseEvent, Node, ORIENTATION_HORIZONTAL, ORIENTATION_VERTICAL, OrientedBox, PAD_1, PAD_2, PAD_3, PAD_4, PAD_DOWN, PAD_FACE_1, PAD_FACE_2, PAD_FACE_3, PAD_FACE_4, PAD_LEFT, PAD_L_SHOULDER_1, PAD_L_SHOULDER_2, PAD_L_STICK_BUTTON, PAD_L_STICK_X, PAD_L_STICK_Y, PAD_RIGHT, PAD_R_SHOULDER_1, PAD_R_SHOULDER_2, PAD_R_STICK_BUTTON, PAD_R_STICK_X, PAD_R_STICK_Y, PAD_SELECT, PAD_START, PAD_UP, PAD_VENDOR, PARTICLEMODE_CPU, PARTICLEMODE_GPU, PARTICLEORIENTATION_EMITTER, PARTICLEORIENTATION_SCREEN, PARTICLEORIENTATION_WORLD, PARTICLESORT_DISTANCE, PARTICLESORT_NEWER_FIRST, PARTICLESORT_NONE, PARTICLESORT_OLDER_FIRST, PIXELFORMAT_111110F, PIXELFORMAT_A8, PIXELFORMAT_ASTC_4x4, PIXELFORMAT_ATC_RGB, PIXELFORMAT_ATC_RGBA, PIXELFORMAT_DEPTH, PIXELFORMAT_DEPTHSTENCIL, PIXELFORMAT_DXT1, PIXELFORMAT_DXT3, PIXELFORMAT_DXT5, PIXELFORMAT_ETC1, PIXELFORMAT_ETC2_RGB, PIXELFORMAT_ETC2_RGBA, PIXELFORMAT_L8, PIXELFORMAT_L8_A8, PIXELFORMAT_PVRTC_2BPP_RGBA_1, PIXELFORMAT_PVRTC_2BPP_RGB_1, PIXELFORMAT_PVRTC_4BPP_RGBA_1, PIXELFORMAT_PVRTC_4BPP_RGB_1, PIXELFORMAT_R32F, PIXELFORMAT_R4_G4_B4_A4, PIXELFORMAT_R5_G5_B5_A1, PIXELFORMAT_R5_G6_B5, PIXELFORMAT_R8_G8_B8, PIXELFORMAT_R8_G8_B8_A8, PIXELFORMAT_RGB16F, PIXELFORMAT_RGB32F, PIXELFORMAT_RGBA16F, PIXELFORMAT_RGBA32F, PIXELFORMAT_SRGB, PIXELFORMAT_SRGBA, PRIMITIVE_LINELOOP, PRIMITIVE_LINES, PRIMITIVE_LINESTRIP, PRIMITIVE_POINTS, PRIMITIVE_TRIANGLES, PRIMITIVE_TRIFAN, PRIMITIVE_TRISTRIP, PROJECTION_ORTHOGRAPHIC, PROJECTION_PERSPECTIVE, ParticleEmitter, ParticleSystemComponent, ParticleSystemComponentSystem, PhongMaterial, Picker, Plane, PostEffect$1 as PostEffect, PostEffectQueue, ProgramLibrary, Quat, RENDERSTYLE_POINTS, RENDERSTYLE_SOLID, RENDERSTYLE_WIREFRAME, RESOLUTION_AUTO, RESOLUTION_FIXED, RIGIDBODY_ACTIVE_TAG, RIGIDBODY_CF_KINEMATIC_OBJECT, RIGIDBODY_CF_NORESPONSE_OBJECT, RIGIDBODY_CF_STATIC_OBJECT, RIGIDBODY_DISABLE_DEACTIVATION, RIGIDBODY_DISABLE_SIMULATION, RIGIDBODY_ISLAND_SLEEPING, RIGIDBODY_TYPE_DYNAMIC, RIGIDBODY_TYPE_KINEMATIC, RIGIDBODY_TYPE_STATIC, RIGIDBODY_WANTS_DEACTIVATION, Ray, RaycastResult, ReadStream, RenderComponent, RenderComponentSystem, RenderHandler, RenderTarget, ResourceHandler, ResourceLoader, RigidBodyComponent, RigidBodyComponentSystem, SCALEMODE_BLEND, SCALEMODE_NONE, SCROLLBAR_VISIBILITY_SHOW_ALWAYS, SCROLLBAR_VISIBILITY_SHOW_WHEN_REQUIRED, SCROLL_MODE_BOUNCE, SCROLL_MODE_CLAMP, SCROLL_MODE_INFINITE, SEMANTIC_ATTR, SEMANTIC_ATTR0, SEMANTIC_ATTR1, SEMANTIC_ATTR10, SEMANTIC_ATTR11, SEMANTIC_ATTR12, SEMANTIC_ATTR13, SEMANTIC_ATTR14, SEMANTIC_ATTR15, SEMANTIC_ATTR2, SEMANTIC_ATTR3, SEMANTIC_ATTR4, SEMANTIC_ATTR5, SEMANTIC_ATTR6, SEMANTIC_ATTR7, SEMANTIC_ATTR8, SEMANTIC_ATTR9, SEMANTIC_BLENDINDICES, SEMANTIC_BLENDWEIGHT, SEMANTIC_COLOR, SEMANTIC_NORMAL, SEMANTIC_POSITION, SEMANTIC_TANGENT, SEMANTIC_TEXCOORD, SEMANTIC_TEXCOORD0, SEMANTIC_TEXCOORD1, SEMANTIC_TEXCOORD2, SEMANTIC_TEXCOORD3, SEMANTIC_TEXCOORD4, SEMANTIC_TEXCOORD5, SEMANTIC_TEXCOORD6, SEMANTIC_TEXCOORD7, SHADERDEF_DIRLM, SHADERDEF_INSTANCING, SHADERDEF_LM, SHADERDEF_LMAMBIENT, SHADERDEF_MORPH_NORMAL, SHADERDEF_MORPH_POSITION, SHADERDEF_MORPH_TEXTURE_BASED, SHADERDEF_NOSHADOW, SHADERDEF_SCREENSPACE, SHADERDEF_SKIN, SHADERDEF_TANGENTS, SHADERDEF_UV0, SHADERDEF_UV1, SHADERDEF_VCOLOR, SHADERTAG_MATERIAL, SHADER_DEPTH, SHADER_FORWARD, SHADER_FORWARDHDR, SHADER_PICK, SHADER_SHADOW, SHADOWUPDATE_NONE, SHADOWUPDATE_REALTIME, SHADOWUPDATE_THISFRAME, SHADOW_COUNT, SHADOW_DEPTH, SHADOW_PCF1, SHADOW_PCF3, SHADOW_PCF5, SHADOW_VSM16, SHADOW_VSM32, SHADOW_VSM8, SORTKEY_DEPTH, SORTKEY_FORWARD, SORTMODE_BACK2FRONT, SORTMODE_CUSTOM, SORTMODE_FRONT2BACK, SORTMODE_MANUAL, SORTMODE_MATERIALMESH, SORTMODE_NONE, SPECOCC_AO, SPECOCC_GLOSSDEPENDENT, SPECOCC_NONE, SPECULAR_BLINN, SPECULAR_PHONG, SPRITETYPE_ANIMATED, SPRITETYPE_SIMPLE, SPRITE_RENDERMODE_SIMPLE, SPRITE_RENDERMODE_SLICED, SPRITE_RENDERMODE_TILED, STENCILOP_DECREMENT, STENCILOP_DECREMENTWRAP, STENCILOP_INCREMENT, STENCILOP_INCREMENTWRAP, STENCILOP_INVERT, STENCILOP_KEEP, STENCILOP_REPLACE, STENCILOP_ZERO, Scene, SceneHandler, SceneRegistry, SceneRegistryItem, SceneSettingsHandler, ScopeId, ScopeSpace, ScreenComponent, ScreenComponentSystem, ScriptAttributes, ScriptComponent, ScriptComponentSystem, ScriptHandler, ScriptLegacyComponent, ScriptLegacyComponentSystem, ScriptRegistry, ScriptType, ScrollViewComponent, ScrollViewComponentSystem, ScrollbarComponent, ScrollbarComponentSystem, Shader, ShaderHandler, SingleContactResult, Skeleton, Skin, SkinBatchInstance, SkinInstance, SortedLoopArray, Sound, SoundComponent, SoundComponentSystem, SoundInstance, SoundInstance3d, SoundManager, SoundSlot, Sprite, SpriteAnimationClip, SpriteComponent, SpriteComponentSystem, SpriteHandler, StandardMaterial, StencilParameters, TEXHINT_ASSET, TEXHINT_LIGHTMAP, TEXHINT_NONE, TEXHINT_SHADOWMAP, TEXTURELOCK_READ, TEXTURELOCK_WRITE, TEXTUREPROJECTION_CUBE, TEXTUREPROJECTION_EQUIRECT, TEXTUREPROJECTION_NONE, TEXTUREPROJECTION_OCTAHEDRAL, TEXTURETYPE_DEFAULT, TEXTURETYPE_RGBE, TEXTURETYPE_RGBM, TEXTURETYPE_SWIZZLEGGGR, TONEMAP_ACES, TONEMAP_ACES2, TONEMAP_FILMIC, TONEMAP_HEJL, TONEMAP_LINEAR, TYPE_FLOAT32, TYPE_INT16, TYPE_INT32, TYPE_INT8, TYPE_UINT16, TYPE_UINT32, TYPE_UINT8, Tags, Template, TemplateHandler, TextElement, TextHandler, Texture, TextureAtlas, TextureAtlasHandler, TextureHandler, TextureParser, Timer, Touch, TouchDevice, TouchEvent, TransformFeedback, UNIFORMTYPE_BOOL, UNIFORMTYPE_BVEC2, UNIFORMTYPE_BVEC3, UNIFORMTYPE_BVEC4, UNIFORMTYPE_FLOAT, UNIFORMTYPE_FLOATARRAY, UNIFORMTYPE_INT, UNIFORMTYPE_IVEC2, UNIFORMTYPE_IVEC3, UNIFORMTYPE_IVEC4, UNIFORMTYPE_MAT2, UNIFORMTYPE_MAT3, UNIFORMTYPE_MAT4, UNIFORMTYPE_TEXTURE2D, UNIFORMTYPE_TEXTURE2D_SHADOW, UNIFORMTYPE_TEXTURE3D, UNIFORMTYPE_TEXTURECUBE, UNIFORMTYPE_TEXTURECUBE_SHADOW, UNIFORMTYPE_VEC2, UNIFORMTYPE_VEC2ARRAY, UNIFORMTYPE_VEC3, UNIFORMTYPE_VEC3ARRAY, UNIFORMTYPE_VEC4, UNIFORMTYPE_VEC4ARRAY, URI, UnsupportedBrowserError, VIEW_CENTER, VIEW_LEFT, VIEW_RIGHT, Vec2, Vec3, Vec4, VertexBuffer, VertexFormat, VertexIterator, VrDisplay, VrManager, WorldClusters, XRDEPTHSENSINGFORMAT_F32, XRDEPTHSENSINGFORMAT_L8A8, XRDEPTHSENSINGUSAGE_CPU, XRDEPTHSENSINGUSAGE_GPU, XRHAND_LEFT, XRHAND_NONE, XRHAND_RIGHT, XRSPACE_BOUNDEDFLOOR, XRSPACE_LOCAL, XRSPACE_LOCALFLOOR, XRSPACE_UNBOUNDED, XRSPACE_VIEWER, XRTARGETRAY_GAZE, XRTARGETRAY_POINTER, XRTARGETRAY_SCREEN, XRTRACKABLE_MESH, XRTRACKABLE_PLANE, XRTRACKABLE_POINT, XRTYPE_AR, XRTYPE_INLINE, XRTYPE_VR, XrDepthSensing, XrDomOverlay, XrHitTest, XrHitTestSource, XrImageTracking, XrInput, XrInputSource, XrLightEstimation, XrManager, XrPlane, XrPlaneDetection, XrTrackedImage, ZoneComponent, ZoneComponentSystem, anim, app, apps, asset, audio, basisInitialize, basisSetDownloadConfig, basisTranscode, calculateNormals, calculateTangents, common, config, createBox, createCapsule, createCone, createCylinder, createMesh$1 as createMesh, createPlane, createScript, createSphere, createStyle, createTorus, createURI, data, drawFullscreenQuad, drawQuadWithShader, drawTexture, events, extend, fw, getTouchTargetCoords, gfx, guid, http, inherits, input, isDefined, log, makeArray, math, now, path, platform, posteffect, prefilterCubemap, programlib, registerScript, reprojectTexture, revision, scene, script, semanticToLocation, shFromCubemap, shaderChunks, shadowTypeToString, shape, string, time, type, typedArrayIndexFormats, typedArrayIndexFormatsByteSize, typedArrayToType, typedArrayTypes, typedArrayTypesByteSize, version };
+export { ABSOLUTE_URL, ACTION_GAMEPAD, ACTION_KEYBOARD, ACTION_MOUSE, ADDRESS_CLAMP_TO_EDGE, ADDRESS_MIRRORED_REPEAT, ADDRESS_REPEAT, ANIM_BLEND_1D, ANIM_BLEND_2D_CARTESIAN, ANIM_BLEND_2D_DIRECTIONAL, ANIM_BLEND_DIRECT, ANIM_CONTROL_STATES, ANIM_EQUAL_TO, ANIM_GREATER_THAN, ANIM_GREATER_THAN_EQUAL_TO, ANIM_INTERRUPTION_NEXT, ANIM_INTERRUPTION_NEXT_PREV, ANIM_INTERRUPTION_NONE, ANIM_INTERRUPTION_PREV, ANIM_INTERRUPTION_PREV_NEXT, ANIM_LAYER_ADDITIVE, ANIM_LAYER_OVERWRITE, ANIM_LESS_THAN, ANIM_LESS_THAN_EQUAL_TO, ANIM_NOT_EQUAL_TO, ANIM_PARAMETER_BOOLEAN, ANIM_PARAMETER_FLOAT, ANIM_PARAMETER_INTEGER, ANIM_PARAMETER_TRIGGER, ANIM_STATE_ANY, ANIM_STATE_END, ANIM_STATE_START, ASPECT_AUTO, ASPECT_MANUAL, ASSET_ANIMATION, ASSET_AUDIO, ASSET_CONTAINER, ASSET_CSS, ASSET_CUBEMAP, ASSET_HTML, ASSET_IMAGE, ASSET_JSON, ASSET_MATERIAL, ASSET_MODEL, ASSET_SCRIPT, ASSET_SHADER, ASSET_TEXT, ASSET_TEXTURE, AXIS_KEY, AXIS_MOUSE_X, AXIS_MOUSE_Y, AXIS_PAD_L_X, AXIS_PAD_L_Y, AXIS_PAD_R_X, AXIS_PAD_R_Y, AnimBinder, AnimClip, AnimClipHandler, AnimComponent, AnimComponentLayer, AnimComponentSystem, AnimController, AnimCurve, AnimData, AnimEvaluator, AnimEvents, AnimSnapshot, AnimStateGraph, AnimStateGraphHandler, AnimTarget, AnimTrack, Animation, AnimationComponent, AnimationComponentSystem, AnimationHandler, Application, Asset, AssetListLoader, AssetReference, AssetRegistry, AudioHandler, AudioListenerComponent, AudioListenerComponentSystem, AudioSourceComponent, AudioSourceComponentSystem, BAKE_COLOR, BAKE_COLORDIR, BLENDEQUATION_ADD, BLENDEQUATION_MAX, BLENDEQUATION_MIN, BLENDEQUATION_REVERSE_SUBTRACT, BLENDEQUATION_SUBTRACT, BLENDMODE_DST_ALPHA, BLENDMODE_DST_COLOR, BLENDMODE_ONE, BLENDMODE_ONE_MINUS_DST_ALPHA, BLENDMODE_ONE_MINUS_DST_COLOR, BLENDMODE_ONE_MINUS_SRC_ALPHA, BLENDMODE_ONE_MINUS_SRC_COLOR, BLENDMODE_SRC_ALPHA, BLENDMODE_SRC_ALPHA_SATURATE, BLENDMODE_SRC_COLOR, BLENDMODE_ZERO, BLEND_ADDITIVE, BLEND_ADDITIVEALPHA, BLEND_MAX, BLEND_MIN, BLEND_MULTIPLICATIVE, BLEND_MULTIPLICATIVE2X, BLEND_NONE, BLEND_NORMAL, BLEND_PREMULTIPLIED, BLEND_SCREEN, BLEND_SUBTRACTIVE, BLUR_BOX, BLUR_GAUSSIAN, BODYFLAG_KINEMATIC_OBJECT, BODYFLAG_NORESPONSE_OBJECT, BODYFLAG_STATIC_OBJECT, BODYGROUP_DEFAULT, BODYGROUP_DYNAMIC, BODYGROUP_ENGINE_1, BODYGROUP_ENGINE_2, BODYGROUP_ENGINE_3, BODYGROUP_KINEMATIC, BODYGROUP_NONE, BODYGROUP_STATIC, BODYGROUP_TRIGGER, BODYGROUP_USER_1, BODYGROUP_USER_2, BODYGROUP_USER_3, BODYGROUP_USER_4, BODYGROUP_USER_5, BODYGROUP_USER_6, BODYGROUP_USER_7, BODYGROUP_USER_8, BODYMASK_ALL, BODYMASK_NONE, BODYMASK_NOT_STATIC, BODYMASK_NOT_STATIC_KINEMATIC, BODYMASK_STATIC, BODYSTATE_ACTIVE_TAG, BODYSTATE_DISABLE_DEACTIVATION, BODYSTATE_DISABLE_SIMULATION, BODYSTATE_ISLAND_SLEEPING, BODYSTATE_WANTS_DEACTIVATION, BODYTYPE_DYNAMIC, BODYTYPE_KINEMATIC, BODYTYPE_STATIC, BUFFER_DYNAMIC, BUFFER_GPUDYNAMIC, BUFFER_STATIC, BUFFER_STREAM, BUTTON_TRANSITION_MODE_SPRITE_CHANGE, BUTTON_TRANSITION_MODE_TINT, BasicMaterial, Batch, BatchGroup, BatchManager, BinaryHandler, BoundingBox, BoundingSphere, Bundle, BundleHandler, BundleRegistry, ButtonComponent, ButtonComponentSystem, CLEARFLAG_COLOR, CLEARFLAG_DEPTH, CLEARFLAG_STENCIL, COMPUPDATED_BLEND, COMPUPDATED_CAMERAS, COMPUPDATED_INSTANCES, COMPUPDATED_LIGHTS, CUBEFACE_NEGX, CUBEFACE_NEGY, CUBEFACE_NEGZ, CUBEFACE_POSX, CUBEFACE_POSY, CUBEFACE_POSZ, CUBEPROJ_BOX, CUBEPROJ_NONE, CULLFACE_BACK, CULLFACE_FRONT, CULLFACE_FRONTANDBACK, CULLFACE_NONE, CURVE_CARDINAL, CURVE_CATMULL, CURVE_LINEAR, CURVE_SMOOTHSTEP, CURVE_SPLINE, CURVE_STEP, Camera, CameraComponent, CameraComponentSystem, CanvasFont, CollisionComponent, CollisionComponentSystem, Color, Command, Component, ComponentSystem, ComponentSystemRegistry, ContactPoint, ContactResult, ContainerHandler, ContainerResource, ContextCreationError, Controller, CssHandler, CubemapHandler, Curve, CurveSet, DETAILMODE_ADD, DETAILMODE_MAX, DETAILMODE_MIN, DETAILMODE_MUL, DETAILMODE_OVERLAY, DETAILMODE_SCREEN, DISTANCE_EXPONENTIAL, DISTANCE_INVERSE, DISTANCE_LINEAR, DefaultAnimBinder, ELEMENTTYPE_FLOAT32, ELEMENTTYPE_GROUP, ELEMENTTYPE_IMAGE, ELEMENTTYPE_INT16, ELEMENTTYPE_INT32, ELEMENTTYPE_INT8, ELEMENTTYPE_TEXT, ELEMENTTYPE_UINT16, ELEMENTTYPE_UINT32, ELEMENTTYPE_UINT8, EMITTERSHAPE_BOX, EMITTERSHAPE_SPHERE, EVENT_KEYDOWN, EVENT_KEYUP, EVENT_MOUSEDOWN, EVENT_MOUSEMOVE, EVENT_MOUSEUP, EVENT_MOUSEWHEEL, EVENT_SELECT, EVENT_SELECTEND, EVENT_SELECTSTART, EVENT_TOUCHCANCEL, EVENT_TOUCHEND, EVENT_TOUCHMOVE, EVENT_TOUCHSTART, ElementComponent, ElementComponentSystem, ElementDragHelper, ElementInput, ElementInputEvent, ElementMouseEvent, ElementSelectEvent, ElementTouchEvent, Entity, EntityReference, EnvLighting, EventHandler, FILLMODE_FILL_WINDOW, FILLMODE_KEEP_ASPECT, FILLMODE_NONE, FILTER_LINEAR, FILTER_LINEAR_MIPMAP_LINEAR, FILTER_LINEAR_MIPMAP_NEAREST, FILTER_NEAREST, FILTER_NEAREST_MIPMAP_LINEAR, FILTER_NEAREST_MIPMAP_NEAREST, FITTING_BOTH, FITTING_NONE, FITTING_SHRINK, FITTING_STRETCH, FOG_EXP, FOG_EXP2, FOG_LINEAR, FOG_NONE, FONT_BITMAP, FONT_MSDF, FRESNEL_NONE, FRESNEL_SCHLICK, FUNC_ALWAYS, FUNC_EQUAL, FUNC_GREATER, FUNC_GREATEREQUAL, FUNC_LESS, FUNC_LESSEQUAL, FUNC_NEVER, FUNC_NOTEQUAL, FolderHandler, Font, FontHandler, ForwardRenderer, Frustum, GAMMA_NONE, GAMMA_SRGB, GAMMA_SRGBFAST, GAMMA_SRGBHDR, GamePads, GraphNode, GraphicsDevice, HierarchyHandler, HtmlHandler, Http, I18n, INDEXFORMAT_UINT16, INDEXFORMAT_UINT32, INDEXFORMAT_UINT8, INTERPOLATION_CUBIC, INTERPOLATION_LINEAR, INTERPOLATION_STEP, ImageElement, IndexBuffer, IndexedList, JointComponent, JointComponentSystem, JsonHandler, JsonStandardMaterialParser, KEY_0, KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7, KEY_8, KEY_9, KEY_A, KEY_ADD, KEY_ALT, KEY_B, KEY_BACKSPACE, KEY_BACK_SLASH, KEY_C, KEY_CAPS_LOCK, KEY_CLOSE_BRACKET, KEY_COMMA, KEY_CONTEXT_MENU, KEY_CONTROL, KEY_D, KEY_DECIMAL, KEY_DELETE, KEY_DIVIDE, KEY_DOWN, KEY_E, KEY_END, KEY_ENTER, KEY_EQUAL, KEY_ESCAPE, KEY_F, KEY_F1, KEY_F10, KEY_F11, KEY_F12, KEY_F2, KEY_F3, KEY_F4, KEY_F5, KEY_F6, KEY_F7, KEY_F8, KEY_F9, KEY_G, KEY_H, KEY_HOME, KEY_I, KEY_INSERT, KEY_J, KEY_K, KEY_L, KEY_LEFT, KEY_M, KEY_META, KEY_MULTIPLY, KEY_N, KEY_NUMPAD_0, KEY_NUMPAD_1, KEY_NUMPAD_2, KEY_NUMPAD_3, KEY_NUMPAD_4, KEY_NUMPAD_5, KEY_NUMPAD_6, KEY_NUMPAD_7, KEY_NUMPAD_8, KEY_NUMPAD_9, KEY_O, KEY_OPEN_BRACKET, KEY_P, KEY_PAGE_DOWN, KEY_PAGE_UP, KEY_PAUSE, KEY_PERIOD, KEY_PRINT_SCREEN, KEY_Q, KEY_R, KEY_RETURN, KEY_RIGHT, KEY_S, KEY_SEMICOLON, KEY_SEPARATOR, KEY_SHIFT, KEY_SLASH, KEY_SPACE, KEY_SUBTRACT, KEY_T, KEY_TAB, KEY_U, KEY_UP, KEY_V, KEY_W, KEY_WINDOWS, KEY_X, KEY_Y, KEY_Z, Key, Keyboard, KeyboardEvent, LAYERID_DEPTH, LAYERID_IMMEDIATE, LAYERID_SKYBOX, LAYERID_UI, LAYERID_WORLD, LAYER_FX, LAYER_GIZMO, LAYER_HUD, LAYER_WORLD, LIGHTFALLOFF_INVERSESQUARED, LIGHTFALLOFF_LINEAR, LIGHTSHAPE_DISK, LIGHTSHAPE_PUNCTUAL, LIGHTSHAPE_RECT, LIGHTSHAPE_SPHERE, LIGHTTYPE_DIRECTIONAL, LIGHTTYPE_OMNI, LIGHTTYPE_POINT, LIGHTTYPE_SPOT, LINEBATCH_GIZMO, LINEBATCH_OVERLAY, LINEBATCH_WORLD, Layer, LayerComposition, LayoutCalculator, LayoutChildComponent, LayoutChildComponentSystem, LayoutGroupComponent, LayoutGroupComponentSystem, Light, LightComponent, LightComponentSystem, LightingParams, Lightmapper, LocalizedAsset, MASK_AFFECT_DYNAMIC, MASK_AFFECT_LIGHTMAPPED, MASK_BAKE, MOTION_FREE, MOTION_LIMITED, MOTION_LOCKED, MOUSEBUTTON_LEFT, MOUSEBUTTON_MIDDLE, MOUSEBUTTON_NONE, MOUSEBUTTON_RIGHT, Mat3, Mat4, Material, MaterialHandler, Mesh, MeshInstance, Model, ModelComponent, ModelComponentSystem, ModelHandler, Morph, MorphInstance, MorphTarget, Mouse, MouseEvent, Node, ORIENTATION_HORIZONTAL, ORIENTATION_VERTICAL, OrientedBox, PAD_1, PAD_2, PAD_3, PAD_4, PAD_DOWN, PAD_FACE_1, PAD_FACE_2, PAD_FACE_3, PAD_FACE_4, PAD_LEFT, PAD_L_SHOULDER_1, PAD_L_SHOULDER_2, PAD_L_STICK_BUTTON, PAD_L_STICK_X, PAD_L_STICK_Y, PAD_RIGHT, PAD_R_SHOULDER_1, PAD_R_SHOULDER_2, PAD_R_STICK_BUTTON, PAD_R_STICK_X, PAD_R_STICK_Y, PAD_SELECT, PAD_START, PAD_UP, PAD_VENDOR, PARTICLEMODE_CPU, PARTICLEMODE_GPU, PARTICLEORIENTATION_EMITTER, PARTICLEORIENTATION_SCREEN, PARTICLEORIENTATION_WORLD, PARTICLESORT_DISTANCE, PARTICLESORT_NEWER_FIRST, PARTICLESORT_NONE, PARTICLESORT_OLDER_FIRST, PIXELFORMAT_111110F, PIXELFORMAT_A8, PIXELFORMAT_ASTC_4x4, PIXELFORMAT_ATC_RGB, PIXELFORMAT_ATC_RGBA, PIXELFORMAT_DEPTH, PIXELFORMAT_DEPTHSTENCIL, PIXELFORMAT_DXT1, PIXELFORMAT_DXT3, PIXELFORMAT_DXT5, PIXELFORMAT_ETC1, PIXELFORMAT_ETC2_RGB, PIXELFORMAT_ETC2_RGBA, PIXELFORMAT_L8, PIXELFORMAT_L8_A8, PIXELFORMAT_PVRTC_2BPP_RGBA_1, PIXELFORMAT_PVRTC_2BPP_RGB_1, PIXELFORMAT_PVRTC_4BPP_RGBA_1, PIXELFORMAT_PVRTC_4BPP_RGB_1, PIXELFORMAT_R32F, PIXELFORMAT_R4_G4_B4_A4, PIXELFORMAT_R5_G5_B5_A1, PIXELFORMAT_R5_G6_B5, PIXELFORMAT_R8_G8_B8, PIXELFORMAT_R8_G8_B8_A8, PIXELFORMAT_RGB16F, PIXELFORMAT_RGB32F, PIXELFORMAT_RGBA16F, PIXELFORMAT_RGBA32F, PIXELFORMAT_SRGB, PIXELFORMAT_SRGBA, PRIMITIVE_LINELOOP, PRIMITIVE_LINES, PRIMITIVE_LINESTRIP, PRIMITIVE_POINTS, PRIMITIVE_TRIANGLES, PRIMITIVE_TRIFAN, PRIMITIVE_TRISTRIP, PROJECTION_ORTHOGRAPHIC, PROJECTION_PERSPECTIVE, ParticleEmitter, ParticleSystemComponent, ParticleSystemComponentSystem, PhongMaterial, Picker, Plane, PostEffect$1 as PostEffect, PostEffectQueue, ProgramLibrary, Quat, RENDERSTYLE_POINTS, RENDERSTYLE_SOLID, RENDERSTYLE_WIREFRAME, RESOLUTION_AUTO, RESOLUTION_FIXED, RIGIDBODY_ACTIVE_TAG, RIGIDBODY_CF_KINEMATIC_OBJECT, RIGIDBODY_CF_NORESPONSE_OBJECT, RIGIDBODY_CF_STATIC_OBJECT, RIGIDBODY_DISABLE_DEACTIVATION, RIGIDBODY_DISABLE_SIMULATION, RIGIDBODY_ISLAND_SLEEPING, RIGIDBODY_TYPE_DYNAMIC, RIGIDBODY_TYPE_KINEMATIC, RIGIDBODY_TYPE_STATIC, RIGIDBODY_WANTS_DEACTIVATION, Ray, RaycastResult, ReadStream, RenderComponent, RenderComponentSystem, RenderHandler, RenderTarget, ResourceHandler, ResourceLoader, RigidBodyComponent, RigidBodyComponentSystem, SCALEMODE_BLEND, SCALEMODE_NONE, SCROLLBAR_VISIBILITY_SHOW_ALWAYS, SCROLLBAR_VISIBILITY_SHOW_WHEN_REQUIRED, SCROLL_MODE_BOUNCE, SCROLL_MODE_CLAMP, SCROLL_MODE_INFINITE, SEMANTIC_ATTR, SEMANTIC_ATTR0, SEMANTIC_ATTR1, SEMANTIC_ATTR10, SEMANTIC_ATTR11, SEMANTIC_ATTR12, SEMANTIC_ATTR13, SEMANTIC_ATTR14, SEMANTIC_ATTR15, SEMANTIC_ATTR2, SEMANTIC_ATTR3, SEMANTIC_ATTR4, SEMANTIC_ATTR5, SEMANTIC_ATTR6, SEMANTIC_ATTR7, SEMANTIC_ATTR8, SEMANTIC_ATTR9, SEMANTIC_BLENDINDICES, SEMANTIC_BLENDWEIGHT, SEMANTIC_COLOR, SEMANTIC_NORMAL, SEMANTIC_POSITION, SEMANTIC_TANGENT, SEMANTIC_TEXCOORD, SEMANTIC_TEXCOORD0, SEMANTIC_TEXCOORD1, SEMANTIC_TEXCOORD2, SEMANTIC_TEXCOORD3, SEMANTIC_TEXCOORD4, SEMANTIC_TEXCOORD5, SEMANTIC_TEXCOORD6, SEMANTIC_TEXCOORD7, SHADERDEF_DIRLM, SHADERDEF_INSTANCING, SHADERDEF_LM, SHADERDEF_LMAMBIENT, SHADERDEF_MORPH_NORMAL, SHADERDEF_MORPH_POSITION, SHADERDEF_MORPH_TEXTURE_BASED, SHADERDEF_NOSHADOW, SHADERDEF_SCREENSPACE, SHADERDEF_SKIN, SHADERDEF_TANGENTS, SHADERDEF_UV0, SHADERDEF_UV1, SHADERDEF_VCOLOR, SHADERTAG_MATERIAL, SHADER_DEPTH, SHADER_FORWARD, SHADER_FORWARDHDR, SHADER_PICK, SHADER_SHADOW, SHADOWUPDATE_NONE, SHADOWUPDATE_REALTIME, SHADOWUPDATE_THISFRAME, SHADOW_COUNT, SHADOW_DEPTH, SHADOW_PCF1, SHADOW_PCF3, SHADOW_PCF5, SHADOW_VSM16, SHADOW_VSM32, SHADOW_VSM8, SORTKEY_DEPTH, SORTKEY_FORWARD, SORTMODE_BACK2FRONT, SORTMODE_CUSTOM, SORTMODE_FRONT2BACK, SORTMODE_MANUAL, SORTMODE_MATERIALMESH, SORTMODE_NONE, SPECOCC_AO, SPECOCC_GLOSSDEPENDENT, SPECOCC_NONE, SPECULAR_BLINN, SPECULAR_PHONG, SPRITETYPE_ANIMATED, SPRITETYPE_SIMPLE, SPRITE_RENDERMODE_SIMPLE, SPRITE_RENDERMODE_SLICED, SPRITE_RENDERMODE_TILED, STENCILOP_DECREMENT, STENCILOP_DECREMENTWRAP, STENCILOP_INCREMENT, STENCILOP_INCREMENTWRAP, STENCILOP_INVERT, STENCILOP_KEEP, STENCILOP_REPLACE, STENCILOP_ZERO, Scene, SceneHandler, SceneRegistry, SceneRegistryItem, SceneSettingsHandler, ScopeId, ScopeSpace, ScreenComponent, ScreenComponentSystem, ScriptAttributes, ScriptComponent, ScriptComponentSystem, ScriptHandler, ScriptLegacyComponent, ScriptLegacyComponentSystem, ScriptRegistry, ScriptType, ScrollViewComponent, ScrollViewComponentSystem, ScrollbarComponent, ScrollbarComponentSystem, Shader, ShaderHandler, SingleContactResult, Skeleton, Skin, SkinBatchInstance, SkinInstance, SortedLoopArray, Sound, SoundComponent, SoundComponentSystem, SoundInstance, SoundInstance3d, SoundManager, SoundSlot, Sprite, SpriteAnimationClip, SpriteComponent, SpriteComponentSystem, SpriteHandler, StandardMaterial, StencilParameters, TEXHINT_ASSET, TEXHINT_LIGHTMAP, TEXHINT_NONE, TEXHINT_SHADOWMAP, TEXTURELOCK_READ, TEXTURELOCK_WRITE, TEXTUREPROJECTION_CUBE, TEXTUREPROJECTION_EQUIRECT, TEXTUREPROJECTION_NONE, TEXTUREPROJECTION_OCTAHEDRAL, TEXTURETYPE_DEFAULT, TEXTURETYPE_RGBE, TEXTURETYPE_RGBM, TEXTURETYPE_SWIZZLEGGGR, TONEMAP_ACES, TONEMAP_ACES2, TONEMAP_FILMIC, TONEMAP_HEJL, TONEMAP_LINEAR, TYPE_FLOAT32, TYPE_INT16, TYPE_INT32, TYPE_INT8, TYPE_UINT16, TYPE_UINT32, TYPE_UINT8, Tags, Template, TemplateHandler, TextElement, TextHandler, Texture, TextureAtlas, TextureAtlasHandler, TextureHandler, TextureParser, Timer, Touch, TouchDevice, TouchEvent, TransformFeedback, UNIFORMTYPE_BOOL, UNIFORMTYPE_BVEC2, UNIFORMTYPE_BVEC3, UNIFORMTYPE_BVEC4, UNIFORMTYPE_FLOAT, UNIFORMTYPE_FLOATARRAY, UNIFORMTYPE_INT, UNIFORMTYPE_IVEC2, UNIFORMTYPE_IVEC3, UNIFORMTYPE_IVEC4, UNIFORMTYPE_MAT2, UNIFORMTYPE_MAT3, UNIFORMTYPE_MAT4, UNIFORMTYPE_TEXTURE2D, UNIFORMTYPE_TEXTURE2D_SHADOW, UNIFORMTYPE_TEXTURE3D, UNIFORMTYPE_TEXTURECUBE, UNIFORMTYPE_TEXTURECUBE_SHADOW, UNIFORMTYPE_VEC2, UNIFORMTYPE_VEC2ARRAY, UNIFORMTYPE_VEC3, UNIFORMTYPE_VEC3ARRAY, UNIFORMTYPE_VEC4, UNIFORMTYPE_VEC4ARRAY, URI, UnsupportedBrowserError, VIEW_CENTER, VIEW_LEFT, VIEW_RIGHT, Vec2, Vec3, Vec4, VertexBuffer, VertexFormat, VertexIterator, VrDisplay, VrManager, WebglGraphicsDevice, WorldClusters, XRDEPTHSENSINGFORMAT_F32, XRDEPTHSENSINGFORMAT_L8A8, XRDEPTHSENSINGUSAGE_CPU, XRDEPTHSENSINGUSAGE_GPU, XRHAND_LEFT, XRHAND_NONE, XRHAND_RIGHT, XRSPACE_BOUNDEDFLOOR, XRSPACE_LOCAL, XRSPACE_LOCALFLOOR, XRSPACE_UNBOUNDED, XRSPACE_VIEWER, XRTARGETRAY_GAZE, XRTARGETRAY_POINTER, XRTARGETRAY_SCREEN, XRTRACKABLE_MESH, XRTRACKABLE_PLANE, XRTRACKABLE_POINT, XRTYPE_AR, XRTYPE_INLINE, XRTYPE_VR, XrDepthSensing, XrDomOverlay, XrHitTest, XrHitTestSource, XrImageTracking, XrInput, XrInputSource, XrLightEstimation, XrManager, XrPlane, XrPlaneDetection, XrTrackedImage, ZoneComponent, ZoneComponentSystem, anim, app, apps, asset, audio, basisInitialize, basisSetDownloadConfig, basisTranscode, calculateNormals, calculateTangents, common, config, createBox, createCapsule, createCone, createCylinder, createMesh$1 as createMesh, createPlane, createScript, createSphere, createStyle, createTorus, createURI, data, drawFullscreenQuad, drawQuadWithShader, drawTexture, events, extend, fw, getTouchTargetCoords, gfx, guid, http, inherits, input, isDefined, log, makeArray, math, now, path, platform, posteffect, prefilterCubemap, programlib, registerScript, reprojectTexture, revision, scene, script, semanticToLocation, shFromCubemap, shaderChunks, shadowTypeToString, shape, string, time, type, typedArrayIndexFormats, typedArrayIndexFormatsByteSize, typedArrayToType, typedArrayTypes, typedArrayTypesByteSize, version };

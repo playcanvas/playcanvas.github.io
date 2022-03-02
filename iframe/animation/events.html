@@ -167,9 +167,10 @@
       app.on('update', function (dt) {
         // on update, iterate over any currently highlighted boxes and reduce their emissive property
         highlightedBoxes.forEach(function (box) {
-          var emissive = box.model.material.emissive;
+          var material = box.model.material;
+          var emissive = material.emissive;
           emissive.lerp(emissive, pc.Color.BLACK, 0.08);
-          box.model.material.update();
+          material.update();
         });
         // remove old highlighted boxes from the update loop
         while (highlightedBoxes.length > 5) {
@@ -206,7 +207,7 @@
     </script>
     <script>
         function loadEngine(callback) {
-            const enginePath = urlParams.get('use_local_engine') || "../../build/playcanvas.js";
+            const enginePath = urlParams.get('use_local_engine') || "/build/playcanvas.dbg.js";
 
             fetch(enginePath)
                 .then(function(response) { return response.text() })

@@ -264,7 +264,7 @@
           }
         }
       });
-    } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'Misc');_defineProperty(Example, "NAME", 'Mini Stats');_defineProperty(Example, "ENGINE", 'DEBUG');
+    } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'Misc');_defineProperty(Example, "NAME", 'Mini Stats');_defineProperty(Example, "ENGINE", 'PERFORMANCE');
         var example = new Example();
 
         var useTypeScript = window.top.localStorage.getItem('useTypeScript') === 'true';
@@ -289,7 +289,7 @@
     </script>
     <script>
         function loadEngine(callback) {
-            const enginePath = urlParams.get('use_local_engine') || "../../build/playcanvas.js";
+            const enginePath = urlParams.get('use_local_engine') || "/build/playcanvas.dbg.js";
 
             fetch(enginePath)
                 .then(function(response) { return response.text() })
