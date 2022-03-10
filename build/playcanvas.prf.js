@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.52.2 revision 610e6669f (PROFILER)
+ * PlayCanvas Engine v1.52.3 revision 876c42483 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 (function (global, factory) {
@@ -623,8 +623,8 @@
 		};
 	};
 
-	var version = "1.52.2";
-	var revision = "610e6669f";
+	var version = "1.52.3";
+	var revision = "876c42483";
 	var config = {};
 	var common = {};
 	var apps = {};
@@ -21565,12 +21565,7 @@
 	var shadowCamView = new Mat4();
 	var shadowCamViewProj = new Mat4();
 	var pixelOffset = new Float32Array(2);
-	var blurScissorRect = {
-		x: 1,
-		y: 1,
-		z: 0,
-		w: 0
-	};
+	var blurScissorRect = new Vec4(1, 1, 0, 0);
 	var opChanId = {
 		r: 1,
 		g: 2,
@@ -24075,8 +24070,6 @@
 			if (options === void 0) {
 				options = {};
 			}
-
-			this.name = void 0;
 
 			if (options.id !== undefined) {
 				this.id = options.id;
@@ -33094,13 +33087,14 @@
 						}));
 					}
 
+					var format = faceTextures[0].format;
 					var faces = new Texture(this._device, {
 						name: cubemapAsset.name + '_faces',
 						cubemap: true,
 						type: getType() || faceTextures[0].type,
 						width: faceTextures[0].width,
 						height: faceTextures[0].height,
-						format: faceTextures[0].format,
+						format: format === PIXELFORMAT_R8_G8_B8 ? PIXELFORMAT_R8_G8_B8_A8 : format,
 						levels: faceLevels,
 						minFilter: assetData.hasOwnProperty('minFilter') ? assetData.minFilter : faceTextures[0].minFilter,
 						magFilter: assetData.hasOwnProperty('magFilter') ? assetData.magFilter : faceTextures[0].magFilter,
@@ -48238,18 +48232,16 @@
 
 		_proto._updateEntityReference = function _updateEntityReference() {
 			var nextEntityGuid = this._parentComponent.data[this._entityPropertyName];
-			var nextEntity;
+			var nextEntity = null;
 
 			if (nextEntityGuid instanceof Entity) {
 				nextEntity = nextEntityGuid;
 				nextEntityGuid = nextEntity.getGuid();
 				this._parentComponent.data[this._entityPropertyName] = nextEntityGuid;
-			} else {
-				var root = this._parentComponent.system.app.root;
-
-				var isOnSceneGraph = this._parentComponent.entity.isDescendantOf(root);
-
-				nextEntity = isOnSceneGraph && nextEntityGuid ? root.findByGuid(nextEntityGuid) : null;
+			} else if (nextEntityGuid) {
+				var sceneRoot = this._parentComponent.system.app.root;
+				var entityRoot = this._parentComponent.entity.root;
+				nextEntity = entityRoot.findByGuid(nextEntityGuid) || sceneRoot.findByGuid(nextEntityGuid);
 			}
 
 			var hasChanged = this._entity !== nextEntity;
@@ -76510,6 +76502,11 @@
 			},
 			set: function set(swizzleGGGR) {
 				this.type = swizzleGGGR ? TEXTURETYPE_SWIZZLEGGGR : TEXTURETYPE_DEFAULT;
+			}
+		},
+		_glTexture: {
+			get: function get() {
+				return this.impl._glTexture;
 			}
 		}
 	});

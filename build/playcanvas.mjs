@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.52.2 revision 610e6669f
+ * PlayCanvas Engine v1.52.3 revision 876c42483
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 if (!Array.prototype.fill) {
@@ -617,8 +617,8 @@ const setupVertexArrayObject = function setupVertexArrayObject(gl) {
 	};
 };
 
-const version = "1.52.2";
-const revision = "610e6669f";
+const version = "1.52.3";
+const revision = "876c42483";
 const config = {};
 const common = {};
 const apps = {};
@@ -20559,12 +20559,7 @@ const visibleSceneAabb = new BoundingBox();
 const shadowCamView = new Mat4();
 const shadowCamViewProj = new Mat4();
 const pixelOffset = new Float32Array(2);
-const blurScissorRect = {
-	x: 1,
-	y: 1,
-	z: 0,
-	w: 0
-};
+const blurScissorRect = new Vec4(1, 1, 0, 0);
 const opChanId = {
 	r: 1,
 	g: 2,
@@ -22942,8 +22937,6 @@ class InstanceList {
 
 class Layer {
 	constructor(options = {}) {
-		this.name = void 0;
-
 		if (options.id !== undefined) {
 			this.id = options.id;
 			layerCounter = Math.max(this.id + 1, layerCounter);
@@ -23062,6 +23055,10 @@ class Layer {
 
 	get clearStencilBuffer() {
 		return this._clearStencilBuffer;
+	}
+
+	get clusteredLightsSet() {
+		return this._clusteredLightsSet;
 	}
 
 	incrementCounter() {
@@ -23212,10 +23209,6 @@ class Layer {
 
 		this._lights.length = 0;
 		this._dirtyLights = true;
-	}
-
-	get clusteredLightsSet() {
-		return this._clusteredLightsSet;
 	}
 
 	addShadowCasters(meshInstances) {
@@ -31612,13 +31605,14 @@ class CubemapHandler {
 					}));
 				}
 
+				const format = faceTextures[0].format;
 				const faces = new Texture(this._device, {
 					name: cubemapAsset.name + '_faces',
 					cubemap: true,
 					type: getType() || faceTextures[0].type,
 					width: faceTextures[0].width,
 					height: faceTextures[0].height,
-					format: faceTextures[0].format,
+					format: format === PIXELFORMAT_R8_G8_B8 ? PIXELFORMAT_R8_G8_B8_A8 : format,
 					levels: faceLevels,
 					minFilter: assetData.hasOwnProperty('minFilter') ? assetData.minFilter : faceTextures[0].minFilter,
 					magFilter: assetData.hasOwnProperty('magFilter') ? assetData.magFilter : faceTextures[0].magFilter,
@@ -45829,18 +45823,16 @@ class EntityReference extends EventHandler {
 
 	_updateEntityReference() {
 		let nextEntityGuid = this._parentComponent.data[this._entityPropertyName];
-		let nextEntity;
+		let nextEntity = null;
 
 		if (nextEntityGuid instanceof Entity) {
 			nextEntity = nextEntityGuid;
 			nextEntityGuid = nextEntity.getGuid();
 			this._parentComponent.data[this._entityPropertyName] = nextEntityGuid;
-		} else {
-			const root = this._parentComponent.system.app.root;
-
-			const isOnSceneGraph = this._parentComponent.entity.isDescendantOf(root);
-
-			nextEntity = isOnSceneGraph && nextEntityGuid ? root.findByGuid(nextEntityGuid) : null;
+		} else if (nextEntityGuid) {
+			const sceneRoot = this._parentComponent.system.app.root;
+			const entityRoot = this._parentComponent.entity.root;
+			nextEntity = entityRoot.findByGuid(nextEntityGuid) || sceneRoot.findByGuid(nextEntityGuid);
 		}
 
 		const hasChanged = this._entity !== nextEntity;
@@ -73058,6 +73050,11 @@ Object.defineProperties(Texture.prototype, {
 		},
 		set: function (swizzleGGGR) {
 			this.type = swizzleGGGR ? TEXTURETYPE_SWIZZLEGGGR : TEXTURETYPE_DEFAULT;
+		}
+	},
+	_glTexture: {
+		get: function () {
+			return this.impl._glTexture;
 		}
 	}
 });

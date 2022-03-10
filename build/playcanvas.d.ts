@@ -1,7 +1,7 @@
 /**
  * Callback used by {@link EventHandler } functions. Note the callback is limited to 8 arguments.
  */
-type HandleEventCallback = (arg1?: any, arg2?: any, arg3?: any, arg4?: any, arg5?: any, arg6?: any, arg7?: any, arg8?: any) => any;
+export type HandleEventCallback = (arg1?: any, arg2?: any, arg3?: any, arg4?: any, arg5?: any, arg6?: any, arg7?: any, arg8?: any) => any;
 /**
  * Callback used by {@link EventHandler} functions. Note the callback is limited to 8 arguments.
  *
@@ -7202,12 +7202,12 @@ declare class Skin {
  * Callback used by {@link GraphNodefind } and {@link GraphNodefindOne } to search through a graph
  * node and all of its descendants.
  */
-type FindNodeCallback = (node: GraphNode) => boolean;
+export type FindNodeCallback = (node: GraphNode) => boolean;
 /**
  * Callback used by {@link GraphNodeforEach } to iterate through a graph node and all of its
  * descendants.
  */
-type ForEachNodeCallback = (node: GraphNode) => any;
+export type ForEachNodeCallback = (node: GraphNode) => any;
 /**
  * Callback used by {@link GraphNode#find} and {@link GraphNode#findOne} to search through a graph
  * node and all of its descendants.
@@ -9171,7 +9171,7 @@ declare class TouchDevice extends EventHandler {
 /**
  * Callback used by {@link MouseenablePointerLock } and {@link ApplicationdisablePointerLock }.
  */
-type LockMouseCallback = () => any;
+export type LockMouseCallback = () => any;
 /**
  * @event
  * @name Mouse#mousemove
@@ -9707,12 +9707,12 @@ declare class TagsCache {
 /**
  * Callback used by {@link AssetRegistryfilter } to filter assets.
  */
-type FilterAssetCallback = (asset: Asset) => boolean;
+export type FilterAssetCallback = (asset: Asset) => boolean;
 /**
  * Callback used by {@link AssetRegistryloadFromUrl } and called when an asset is loaded (or an
  * error occurs).
  */
-type LoadAssetCallback = (err: string | null, asset?: Asset) => any;
+export type LoadAssetCallback = (err: string | null, asset?: Asset) => any;
 /** @typedef {import('../resources/loader.js').ResourceLoader} ResourceLoader */
 /**
  * Callback used by {@link AssetRegistry#filter} to filter assets.
@@ -10040,7 +10040,7 @@ declare class AssetRegistry extends EventHandler {
 /**
  * Callback used by {@link ResourceHandlerload } when a resource is loaded (or an error occurs).
  */
-type ResourceHandlerCallback = (err: string | null, response?: any) => any;
+export type ResourceHandlerCallback = (err: string | null, response?: any) => any;
 /** @typedef {import('../asset/asset.js').Asset} Asset */
 /** @typedef {import('../asset/asset-registry.js').AssetRegistry} AssetRegistry */
 /**
@@ -10095,14 +10095,18 @@ interface ResourceHandler {
 
 
 
-type ResourceLoaderCallback = () => any;
+/**
+ * Callback used by {@link ResourceLoaderload } when a resource is loaded (or an error occurs).
+ */
+export type ResourceLoaderCallback = (err: string | null, resource?: any) => any;
 /** @typedef {import('../asset/asset.js').Asset} Asset */
 /** @typedef {import('../asset/asset-registry.js').AssetRegistry} AssetRegistry */
 /** @typedef {import('../framework/application.js').Application} Application */
 /** @typedef {import('./handler.js').ResourceHandler} ResourceHandler */
 /**
+ * Callback used by {@link ResourceLoader#load} when a resource is loaded (or an error occurs).
+ *
  * @callback ResourceLoaderCallback
- * @description Callback used by {@link ResourceLoader#load} when a resource is loaded (or an error occurs).
  * @param {string|null} err - The error message in the case where the load fails.
  * @param {*} [resource] - The resource that has been successfully loaded.
  */
@@ -10240,7 +10244,7 @@ declare class ResourceLoader {
 /**
  * Callback used by {@link Assetready } and called when an asset is ready.
  */
-type AssetReadyCallback = (asset: Asset) => any;
+export type AssetReadyCallback = (asset: Asset) => any;
 /**
  * Callback used by {@link Asset#ready} and called when an asset is ready.
  *
@@ -11731,7 +11735,7 @@ declare class SpriteComponent extends Component {
      * @param {object} data - Data for the new animation clip.
      * @param {string} [data.name] - The name of the new animation clip.
      * @param {number} [data.fps] - Frames per second for the animation clip.
-     * @param {object} [data.loop] - Whether to loop the animation clip.
+     * @param {boolean} [data.loop] - Whether to loop the animation clip.
      * @param {number|Asset} [data.spriteAsset] - The asset id or the {@link Asset} of the sprite
      * that this clip will play.
      * @returns {SpriteAnimationClip} The new clip that was added.
@@ -11739,7 +11743,7 @@ declare class SpriteComponent extends Component {
     addClip(data: {
         name?: string;
         fps?: number;
-        loop?: object;
+        loop?: boolean;
         spriteAsset?: number | Asset;
     }): SpriteAnimationClip;
     /**
@@ -13034,7 +13038,7 @@ declare class EntityReference extends EventHandler {
     constructor(parentComponent: Component, entityPropertyName: string, eventConfig: any);
     _parentComponent: Component;
     _entityPropertyName: string;
-    _entity: Entity;
+    _entity: any;
     _app: Application;
     _configureEventListeners(externalEventConfig: any, internalEventConfig: any): void;
     _eventListenerConfigs: {
@@ -13058,7 +13062,7 @@ declare class EntityReference extends EventHandler {
     _onSetEntity(name: any, oldValue: any, newValue: any): void;
     /**
      * Must be called from the parent component's onEnable() method in order for entity references
-     * to be correctly resolved when {@link Entity#clone} is called.
+     * to be correctly resolved when the referenced entity was not in the same graph as the parent.
      *
      * @private
      */
@@ -13114,12 +13118,10 @@ declare class StandardMaterialOptionsBuilder {
 
 
 
-
-
 /**
  * Callback used by {@link StandardMaterialonUpdateShader }.
  */
-type UpdateShaderCallback = (options: any) => any;
+export type UpdateShaderCallback = (options: any) => any;
 /**
  * Callback used by {@link StandardMaterial#onUpdateShader}.
  *
@@ -18003,6 +18005,141 @@ declare class ModelComponentSystem extends ComponentSystem {
     onRemove(entity: any, component: any): void;
 }
 
+/**
+ * A light.
+ *
+ * @ignore
+ */
+declare class Light {
+    constructor(graphicsDevice: any);
+    device: any;
+    id: number;
+    _type: number;
+    _color: Color;
+    _intensity: number;
+    _castShadows: boolean;
+    _enabled: boolean;
+    mask: number;
+    isStatic: boolean;
+    key: number;
+    bakeDir: boolean;
+    bakeNumSamples: number;
+    bakeArea: number;
+    attenuationStart: number;
+    attenuationEnd: number;
+    _falloffMode: number;
+    _shadowType: number;
+    _vsmBlurSize: number;
+    vsmBlurMode: number;
+    vsmBias: number;
+    _cookie: any;
+    cookieIntensity: number;
+    _cookieFalloff: boolean;
+    _cookieChannel: string;
+    _cookieTransform: any;
+    _cookieTransformUniform: Float32Array;
+    _cookieOffset: any;
+    _cookieOffsetUniform: Float32Array;
+    _cookieTransformSet: boolean;
+    _cookieOffsetSet: boolean;
+    _innerConeAngle: number;
+    _outerConeAngle: number;
+    cascades: any;
+    _shadowMatrixPalette: Float32Array;
+    _shadowCascadeDistances: Float32Array;
+    set numCascades(arg: any);
+    get numCascades(): any;
+    cascadeDistribution: number;
+    _shape: number;
+    _finalColor: Float32Array;
+    _linearFinalColor: Float32Array;
+    _position: Vec3;
+    _direction: Vec3;
+    _innerConeAngleCos: number;
+    _outerConeAngleCos: number;
+    _shadowMap: any;
+    _shadowRenderParams: any[];
+    shadowDistance: number;
+    _shadowResolution: number;
+    shadowBias: number;
+    _normalOffsetBias: number;
+    shadowUpdateMode: number;
+    _isVsm: boolean;
+    _isPcf: boolean;
+    _cookieMatrix: Mat4;
+    _atlasViewport: Vec4;
+    atlasViewportAllocated: boolean;
+    atlasVersion: number;
+    atlasSlotIndex: number;
+    atlasSlotUpdated: boolean;
+    _scene: any;
+    _node: any;
+    _renderData: any[];
+    visibleThisFrame: boolean;
+    maxScreenSize: number;
+    destroy(): void;
+    set shadowMap(arg: any);
+    get shadowMap(): any;
+    get numShadowFaces(): any;
+    set type(arg: number);
+    get type(): number;
+    set shadowType(arg: number);
+    get shadowType(): number;
+    set shape(arg: number);
+    get shape(): number;
+    set enabled(arg: boolean);
+    get enabled(): boolean;
+    set castShadows(arg: boolean);
+    get castShadows(): boolean;
+    set shadowResolution(arg: number);
+    get shadowResolution(): number;
+    set vsmBlurSize(arg: number);
+    get vsmBlurSize(): number;
+    set normalOffsetBias(arg: number);
+    get normalOffsetBias(): number;
+    set falloffMode(arg: number);
+    get falloffMode(): number;
+    set innerConeAngle(arg: number);
+    get innerConeAngle(): number;
+    set outerConeAngle(arg: number);
+    get outerConeAngle(): number;
+    set intensity(arg: number);
+    get intensity(): number;
+    get cookieMatrix(): Mat4;
+    get atlasViewport(): Vec4;
+    set cookie(arg: any);
+    get cookie(): any;
+    set cookieFalloff(arg: boolean);
+    get cookieFalloff(): boolean;
+    set cookieChannel(arg: string);
+    get cookieChannel(): string;
+    set cookieTransform(arg: any);
+    get cookieTransform(): any;
+    set cookieOffset(arg: any);
+    get cookieOffset(): any;
+    beginFrame(): void;
+    _destroyShadowMap(): void;
+    getRenderData(camera: any, face: any): any;
+    /**
+     * Duplicates a light node but does not 'deep copy' the hierarchy.
+     *
+     * @returns {Light} A cloned Light.
+     */
+    clone(): Light;
+    _getUniformBiasValues(lightRenderData: any): {
+        bias: number;
+        normalBias: number;
+    };
+    getColor(): Color;
+    getBoundingSphere(sphere: any): void;
+    getBoundingBox(box: any): void;
+    _updateFinalColor(): void;
+    setColor(...args: any[]): void;
+    updateShadow(): void;
+    layersDirty(): void;
+    updateKey(): void;
+}
+
 declare class LightComponentData {
 }
 
@@ -18290,105 +18427,11 @@ declare class LightComponent extends Component {
 
 
 
+
 /**
  * A Layer represents a renderable subset of the scene. It can contain a list of mesh instances,
  * lights and cameras, their render settings and also defines custom callbacks before, after or
  * during rendering. Layers are organized inside {@link LayerComposition} in a desired order.
- *
- * @property {number} opaqueSortMode Defines the method used for sorting opaque (that is, not semi-
- * transparent) mesh instances before rendering. Can be:
- *
- * - {@link SORTMODE_NONE}
- * - {@link SORTMODE_MANUAL}
- * - {@link SORTMODE_MATERIALMESH}
- * - {@link SORTMODE_BACK2FRONT}
- * - {@link SORTMODE_FRONT2BACK}
- *
- * Defaults to {@link SORTMODE_MATERIALMESH}.
- * @property {number} transparentSortMode Defines the method used for sorting semi-transparent mesh
- * instances before rendering. Can be:
- *
- * - {@link SORTMODE_NONE}
- * - {@link SORTMODE_MANUAL}
- * - {@link SORTMODE_MATERIALMESH}
- * - {@link SORTMODE_BACK2FRONT}
- * - {@link SORTMODE_FRONT2BACK}
- *
- * Defaults to {@link SORTMODE_BACK2FRONT}.
- * @property {number} shaderPass A type of shader to use during rendering. Possible values are:
- *
- * - {@link SHADER_FORWARD}
- * - {@link SHADER_FORWARDHDR}
- * - {@link SHADER_DEPTH}
- * - Your own custom value. Should be in 19 - 31 range. Use {@link StandardMaterial#onUpdateShader}
- * to apply shader modifications based on this value.
- *
- * Defaults to {@link SHADER_FORWARD}.
- * @property {boolean} passThrough Tells that this layer is simple and needs to just render a bunch
- * of mesh instances without lighting, skinning and morphing (faster).
- * @property {Layer} layerReference Make this layer render the same mesh instances that another
- * layer does instead of having its own mesh instance list. Both layers must share cameras. Frustum
- * culling is only performed for one layer. Useful for rendering multiple passes using different
- * shaders.
- * @property {Function} cullingMask Visibility mask that interacts with {@link MeshInstance#mask}.
- * @property {Function} onEnable Custom function that is called after the layer has been enabled.
- * This happens when:
- *
- * - The layer is created with {@link Layer#enabled} set to true (which is the default value).
- * - {@link Layer#enabled} was changed from false to true
- * - {@link Layer#incrementCounter} was called and incremented the counter above zero.
- *
- * Useful for allocating resources this layer will use (e.g. creating render targets).
- * @property {Function} onDisable Custom function that is called after the layer has been disabled.
- * This happens when:
- *
- * - {@link Layer#enabled} was changed from true to false
- * - {@link Layer#decrementCounter} was called and set the counter to zero.
- *
- * @property {Function} onPreCull Custom function that is called before visibility culling is
- * performed for this layer. Useful, for example, if you want to modify camera projection while
- * still using the same camera and make frustum culling work correctly with it (see
- * {@link CameraComponent#calculateTransform} and {@link CameraComponent#calculateProjection}).
- * This function will receive camera index as the only argument. You can get the actual camera
- * being used by looking up {@link LayerComposition#cameras} with this index.
- * @property {Function} onPostCull Custom function that is called after visibility culling is
- * performed for this layer. Useful for reverting changes done in {@link Layer#onPreCull} and
- * determining final mesh instance visibility (see {@link MeshInstance#visibleThisFrame}). This
- * function will receive camera index as the only argument. You can get the actual camera being
- * used by looking up {@link LayerComposition#cameras} with this index.
- * @property {Function} onPreRender Custom function that is called before this layer is rendered.
- * Useful, for example, for reacting on screen size changes. This function is called before the
- * first occurrence of this layer in {@link LayerComposition}. It will receive camera index as the
- * only argument. You can get the actual camera being used by looking up
- * {@link LayerComposition#cameras} with this index.
- * @property {Function} onPreRenderOpaque Custom function that is called before opaque mesh
- * instances (not semi-transparent) in this layer are rendered. This function will receive camera
- * index as the only argument. You can get the actual camera being used by looking up
- * {@link LayerComposition#cameras} with this index.
- * @property {Function} onPreRenderTransparent Custom function that is called before semi-
- * transparent mesh instances in this layer are rendered. This function will receive camera index
- * as the only argument. You can get the actual camera being used by looking up
- * {@link LayerComposition#cameras} with this index.
- * @property {Function} onPostRender Custom function that is called after this layer is rendered.
- * Useful to revert changes made in {@link Layer#onPreRender} or performing some processing on
- * {@link Layer#renderTarget}. This function is called after the last occurrence of this layer in
- * {@link LayerComposition}. It will receive camera index as the only argument. You can get the
- * actual camera being used by looking up {@link LayerComposition#cameras} with this index.
- * @property {Function} onPostRenderOpaque Custom function that is called after opaque mesh
- * instances (not semi-transparent) in this layer are rendered. This function will receive camera
- * index as the only argument. You can get the actual camera being used by looking up
- * {@link LayerComposition#cameras} with this index.
- * @property {Function} onPostRenderTransparent Custom function that is called after semi-
- * transparent mesh instances in this layer are rendered. This function will receive camera index
- * as the only argument. You can get the actual camera being used by looking up
- * {@link LayerComposition#cameras} with this index.
- * @property {Function} onDrawCall Custom function that is called before every mesh instance in
- * this layer is rendered. It is not recommended to set this function when rendering many objects
- * every frame due to performance reasons.
- * @property {number} id A unique ID of the layer. Layer IDs are stored inside
- * {@link ModelComponent#layers}, {@link CameraComponent#layers}, {@link LightComponent#layers}
- * and {@link ElementComponent#layers} instead of names. Can be used in
- * {@link LayerComposition#getLayerById}.
  */
 declare class Layer {
     /**
@@ -18399,47 +18442,282 @@ declare class Layer {
      */
     constructor(options?: object);
     /**
+     * A unique ID of the layer. Layer IDs are stored inside {@link ModelComponent#layers},
+     * {@link RenderComponent#layers}, {@link CameraComponent#layers},
+     * {@link LightComponent#layers} and {@link ElementComponent#layers} instead of names.
+     * Can be used in {@link LayerComposition#getLayerById}.
+     *
+     * @type {number}
+     */
+    id: number;
+    /**
      * Name of the layer. Can be used in {@link LayerComposition#getLayerByName}.
      *
      * @type {string}
      */
     name: string;
-    id: any;
-    _enabled: any;
-    _refCounter: number;
-    opaqueSortMode: any;
-    transparentSortMode: any;
-    set renderTarget(arg: any);
-    get renderTarget(): any;
-    shaderPass: any;
-    passThrough: any;
-    _clearColorBuffer: any;
-    _clearDepthBuffer: any;
-    _clearStencilBuffer: any;
-    onPreCull: any;
-    onPreRender: any;
-    onPreRenderOpaque: any;
-    onPreRenderTransparent: any;
-    onPostCull: any;
-    onPostRender: any;
-    onPostRenderOpaque: any;
-    onPostRenderTransparent: any;
-    onDrawCall: any;
-    onEnable: any;
-    onDisable: any;
-    layerReference: any;
-    instances: any;
-    cullingMask: any;
-    opaqueMeshInstances: any;
-    transparentMeshInstances: any;
-    shadowCasters: any;
-    customSortCallback: any;
-    customCalculateSortValues: any;
-    _lights: any[];
-    _lightsSet: Set<any>;
-    _clusteredLightsSet: Set<any>;
-    _splitLights: any[][];
-    cameras: any[];
+    /**
+     * @type {boolean}
+     * @private
+     */
+    private _enabled;
+    /**
+     * @type {number}
+     * @private
+     */
+    private _refCounter;
+    /**
+     * Defines the method used for sorting opaque (that is, not semi-transparent) mesh
+     * instances before rendering. Can be:
+     *
+     * - {@link SORTMODE_NONE}
+     * - {@link SORTMODE_MANUAL}
+     * - {@link SORTMODE_MATERIALMESH}
+     * - {@link SORTMODE_BACK2FRONT}
+     * - {@link SORTMODE_FRONT2BACK}
+     *
+     * Defaults to {@link SORTMODE_MATERIALMESH}.
+     *
+     * @type {number}
+     */
+    opaqueSortMode: number;
+    /**
+     * Defines the method used for sorting semi-transparent mesh instances before rendering. Can be:
+     *
+     * - {@link SORTMODE_NONE}
+     * - {@link SORTMODE_MANUAL}
+     * - {@link SORTMODE_MATERIALMESH}
+     * - {@link SORTMODE_BACK2FRONT}
+     * - {@link SORTMODE_FRONT2BACK}
+     *
+     * Defaults to {@link SORTMODE_BACK2FRONT}.
+     *
+     * @type {number}
+     */
+    transparentSortMode: number;
+    /**
+     * @type {RenderTarget}
+     * @ignore
+     */
+    set renderTarget(arg: RenderTarget);
+    get renderTarget(): RenderTarget;
+    /**
+     * A type of shader to use during rendering. Possible values are:
+     *
+     * - {@link SHADER_FORWARD}
+     * - {@link SHADER_FORWARDHDR}
+     * - {@link SHADER_DEPTH}
+     * - Your own custom value. Should be in 19 - 31 range. Use {@link StandardMaterial#onUpdateShader}
+     * to apply shader modifications based on this value.
+     *
+     * Defaults to {@link SHADER_FORWARD}.
+     *
+     * @type {number}
+     */
+    shaderPass: number;
+    /**
+     * Tells that this layer is simple and needs to just render a bunch of mesh instances
+     * without lighting, skinning and morphing (faster). Used for UI and Gizmo layers (the
+     * layer doesn't use lights, shadows, culling, etc).
+     *
+     * @type {boolean}
+     */
+    passThrough: boolean;
+    /**
+     * @type {boolean}
+     * @private
+     */
+    private _clearColorBuffer;
+    /**
+     * @type {boolean}
+     * @private
+     */
+    private _clearDepthBuffer;
+    /**
+     * @type {boolean}
+     * @private
+     */
+    private _clearStencilBuffer;
+    /**
+     * Custom function that is called before visibility culling is performed for this layer.
+     * Useful, for example, if you want to modify camera projection while still using the same
+     * camera and make frustum culling work correctly with it (see
+     * {@link CameraComponent#calculateTransform} and {@link CameraComponent#calculateProjection}).
+     * This function will receive camera index as the only argument. You can get the actual
+     * camera being used by looking up {@link LayerComposition#cameras} with this index.
+     *
+     * @type {Function}
+     */
+    onPreCull: Function;
+    /**
+     * Custom function that is called before this layer is rendered. Useful, for example, for
+     * reacting on screen size changes. This function is called before the first occurrence of
+     * this layer in {@link LayerComposition}. It will receive camera index as the only
+     * argument. You can get the actual camera being used by looking up
+     * {@link LayerComposition#cameras} with this index.
+     *
+     * @type {Function}
+     */
+    onPreRender: Function;
+    /**
+     * Custom function that is called before opaque mesh instances (not semi-transparent) in
+     * this layer are rendered. This function will receive camera index as the only argument.
+     * You can get the actual camera being used by looking up {@link LayerComposition#cameras}
+     * with this index.
+     *
+     * @type {Function}
+     */
+    onPreRenderOpaque: Function;
+    /**
+     * Custom function that is called before semi-transparent mesh instances in this layer are
+     * rendered. This function will receive camera index as the only argument. You can get the
+     * actual camera being used by looking up {@link LayerComposition#cameras} with this index.
+     *
+     * @type {Function}
+     */
+    onPreRenderTransparent: Function;
+    /**
+     * Custom function that is called after visibility culling is performed for this layer.
+     * Useful for reverting changes done in {@link Layer#onPreCull} and determining final mesh
+     * instance visibility (see {@link MeshInstance#visibleThisFrame}). This function will
+     * receive camera index as the only argument. You can get the actual camera being used by
+     * looking up {@link LayerComposition#cameras} with this index.
+     *
+     * @type {Function}
+     */
+    onPostCull: Function;
+    /**
+     * Custom function that is called after this layer is rendered. Useful to revert changes
+     * made in {@link Layer#onPreRender} or performing some processing on
+     * {@link Layer#renderTarget}. This function is called after the last occurrence of this
+     * layer in {@link LayerComposition}. It will receive camera index as the only argument.
+     * You can get the actual camera being used by looking up {@link LayerComposition#cameras}
+     * with this index.
+     *
+     * @type {Function}
+     */
+    onPostRender: Function;
+    /**
+     * Custom function that is called after opaque mesh instances (not semi-transparent) in
+     * this layer are rendered. This function will receive camera index as the only argument.
+     * You can get the actual camera being used by looking up {@link LayerComposition#cameras}
+     * with this index.
+     *
+     * @type {Function}
+     */
+    onPostRenderOpaque: Function;
+    /**
+     * Custom function that is called after semi-transparent mesh instances in this layer are
+     * rendered. This function will receive camera index as the only argument. You can get the
+     * actual camera being used by looking up {@link LayerComposition#cameras} with this index.
+     *
+     * @type {Function}
+     */
+    onPostRenderTransparent: Function;
+    /**
+     * Custom function that is called before every mesh instance in this layer is rendered. It
+     * is not recommended to set this function when rendering many objects every frame due to
+     * performance reasons.
+     *
+     * @type {Function}
+     */
+    onDrawCall: Function;
+    /**
+     * Custom function that is called after the layer has been enabled. This happens when:
+     *
+     * - The layer is created with {@link Layer#enabled} set to true (which is the default value).
+     * - {@link Layer#enabled} was changed from false to true
+     * - {@link Layer#incrementCounter} was called and incremented the counter above zero.
+     *
+     * Useful for allocating resources this layer will use (e.g. creating render targets).
+     *
+     * @type {Function}
+     */
+    onEnable: Function;
+    /**
+     * Custom function that is called after the layer has been disabled. This happens when:
+     *
+     * - {@link Layer#enabled} was changed from true to false
+     * - {@link Layer#decrementCounter} was called and set the counter to zero.
+     *
+     * @type {Function}
+     */
+    onDisable: Function;
+    /**
+     * Make this layer render the same mesh instances that another layer does instead of having
+     * its own mesh instance list. Both layers must share cameras. Frustum culling is only
+     * performed for one layer. Useful for rendering multiple passes using different shaders.
+     *
+     * @type {Layer}
+     */
+    layerReference: Layer;
+    /**
+     * @type {InstanceList}
+     * @private
+     */
+    private instances;
+    /**
+     * Visibility bit mask that interacts with {@link MeshInstance#mask}. Especially useful
+     * when combined with layerReference, allowing for the filtering of some objects, while
+     * sharing their list and culling.
+     *
+     * @type {number}
+     */
+    cullingMask: number;
+    /**
+     * @type {MeshInstance[]}
+     * @ignore
+     */
+    opaqueMeshInstances: MeshInstance[];
+    /**
+     * @type {MeshInstance[]}
+     * @ignore
+     */
+    transparentMeshInstances: MeshInstance[];
+    /**
+     * @type {MeshInstance[]}
+     * @ignore
+     */
+    shadowCasters: MeshInstance[];
+    /**
+     * @type {Function|null}
+     * @ignore
+     */
+    customSortCallback: Function | null;
+    /**
+     * @type {Function|null}
+     * @ignore
+     */
+    customCalculateSortValues: Function | null;
+    /**
+     * @type {Light[]}
+     * @private
+     */
+    private _lights;
+    /**
+     * @type {Set<Light>}
+     * @private
+     */
+    private _lightsSet;
+    /**
+     * Set of light used by clustered lighting (omni and spot, but no directional).
+     *
+     * @type {Set<Light>}
+     * @private
+     */
+    private _clusteredLightsSet;
+    /**
+     * Lights separated by light type.
+     *
+     * @type {Light[][]}
+     * @ignore
+     */
+    _splitLights: Light[][];
+    /**
+     * @type {CameraComponent[]}
+     * @ignore
+     */
+    cameras: CameraComponent[];
     _dirty: boolean;
     _dirtyLights: boolean;
     _dirtyCameras: boolean;
@@ -18453,15 +18731,23 @@ declare class Layer {
     _forwardDrawCalls: number;
     _shadowDrawCalls: number;
     _shaderVersion: number;
-    _lightCube: any;
-    _renderTarget: any;
+    /**
+     * @type {Float32Array}
+     * @ignore
+     */
+    _lightCube: Float32Array;
+    /**
+     * @type {RenderTarget}
+     * @private
+     */
+    private _renderTarget;
     /**
      * Enable the layer. Disabled layers are skipped. Defaults to true.
      *
      * @type {boolean}
      */
-    set enabled(arg: any);
-    get enabled(): any;
+    set enabled(arg: boolean);
+    get enabled(): boolean;
     set clearColor(arg: any);
     get clearColor(): any;
     /**
@@ -18469,22 +18755,29 @@ declare class Layer {
      *
      * @type {boolean}
      */
-    set clearColorBuffer(arg: any);
-    get clearColorBuffer(): any;
+    set clearColorBuffer(arg: boolean);
+    get clearColorBuffer(): boolean;
     /**
      * If true, the camera will clear the depth buffer when it renders this layer.
      *
      * @type {boolean}
      */
-    set clearDepthBuffer(arg: any);
-    get clearDepthBuffer(): any;
+    set clearDepthBuffer(arg: boolean);
+    get clearDepthBuffer(): boolean;
     /**
      * If true, the camera will clear the stencil buffer when it renders this layer.
      *
      * @type {boolean}
      */
-    set clearStencilBuffer(arg: any);
-    get clearStencilBuffer(): any;
+    set clearStencilBuffer(arg: boolean);
+    get clearStencilBuffer(): boolean;
+    /**
+     * Returns lights used by clustered lighting in a set.
+     *
+     * @type {Set<Light>}
+     * @ignore
+     */
+    get clusteredLightsSet(): Set<Light>;
     /**
      * Increments the usage counter of this layer. By default, layers are created with counter set
      * to 1 (if {@link Layer.enabled} is true) or 0 (if it was false). Incrementing the counter
@@ -18507,6 +18800,7 @@ declare class Layer {
     private decrementCounter;
     /**
      * Adds an array of mesh instances to this layer.
+     *1
      *
      * @param {MeshInstance[]} meshInstances - Array of {@link MeshInstance}.
      * @param {boolean} [skipShadowCasters] - Set it to true if you don't want these mesh instances
@@ -18553,7 +18847,6 @@ declare class Layer {
      * Removes all lights from this layer.
      */
     clearLights(): void;
-    get clusteredLightsSet(): Set<any>;
     /**
      * Adds an array of mesh instances to this layer, but only as shadow casters (they will not be
      * rendered anywhere, but only cast shadows on other objects).
@@ -18714,20 +19007,11 @@ declare class ClusterLight {
 }
 
 
+
 /**
  * Layer Composition is a collection of {@link Layer} that is fed to {@link Scene#layers} to define
  * rendering order.
  *
- * @property {Layer[]} layerList A read-only array of {@link Layer} sorted in the order they will
- * be rendered.
- * @property {boolean[]} subLayerList A read-only array of boolean values, matching
- * {@link Layer#layerList}. True means only semi-transparent objects are rendered, and false means
- * opaque.
- * @property {boolean[]} subLayerEnabled A read-only array of boolean values, matching
- * {@link Layer#layerList}. True means the layer is rendered, false means it's skipped.
- * @property {CameraComponent[]} cameras A read-only array of {@link CameraComponent} that can be
- * used during rendering. e.g. Inside {@link Layer#onPreCull}, {@link Layer#onPostCull},
- * {@link Layer#onPreRender}, {@link Layer#onPostRender}.
  * @augments EventHandler
  */
 declare class LayerComposition extends EventHandler {
@@ -18740,9 +19024,26 @@ declare class LayerComposition extends EventHandler {
     constructor(name?: string);
     name: string;
     logRenderActions: boolean;
-    layerList: any[];
-    subLayerList: any[];
-    subLayerEnabled: any[];
+    /**
+     * A read-only array of {@link Layer} sorted in the order they will be rendered.
+     *
+     * @type {Layer[]}
+     */
+    layerList: Layer[];
+    /**
+     * A read-only array of boolean values, matching {@link Layer#layerList}. True means only
+     * semi-transparent objects are rendered, and false means opaque.
+     *
+     * @type {boolean[]}
+     */
+    subLayerList: boolean[];
+    /**
+     * A read-only array of boolean values, matching {@link Layer#layerList}. True means the
+     * layer is rendered, false means it's skipped.
+     *
+     * @type {boolean[]}
+     */
+    subLayerEnabled: boolean[];
     _opaqueOrder: {};
     _transparentOrder: {};
     _dirty: boolean;
@@ -18755,7 +19056,14 @@ declare class LayerComposition extends EventHandler {
     _lightsMap: Map<any, any>;
     _lightCompositionData: any[];
     _splitLights: any[][];
-    cameras: any[];
+    /**
+     * A read-only array of {@link CameraComponent} that can be used during rendering. e.g.
+     * Inside {@link Layer#onPreCull}, {@link Layer#onPostCull}, {@link Layer#onPreRender},
+     * {@link Layer#onPostRender}.
+     *
+     * @type {CameraComponent[]}
+     */
+    cameras: CameraComponent[];
     _renderActions: any[];
     _worldClusters: any[];
     _emptyWorldClusters: WorldClusters;
@@ -19614,6 +19922,10 @@ declare class CollisionComponentSystem extends ComponentSystem {
 
 
 
+
+
+/** @typedef {import('../../../math/vec3.js').Vec3} Vec3 */
+/** @typedef {import('../../../scene/model.js').Model} Model */
 /** @typedef {import('../../entity.js').Entity} Entity */
 /** @typedef {import('./system.js').CollisionComponentSystem} CollisionComponentSystem */
 /**
@@ -19673,14 +19985,14 @@ declare class CollisionComponent extends Component {
     set axis(arg: number);
     get axis(): number;
 
-    set halfExtents(arg: any);
-    get halfExtents(): any;
+    set halfExtents(arg: Vec3);
+    get halfExtents(): Vec3;
 
     set height(arg: number);
     get height(): number;
 
-    set model(arg: any);
-    get model(): any;
+    set model(arg: Model|null);
+    get model(): Model|null;
 
     set radius(arg: number);
     get radius(): number;
@@ -19688,7 +20000,8 @@ declare class CollisionComponent extends Component {
     set type(arg: string);
     get type(): string;
 
-    _compoundParent: any;
+    /** @private */
+    private _compoundParent;
     /**
      * @event
      * @name CollisionComponent#contact
@@ -19721,23 +20034,96 @@ declare class CollisionComponent extends Component {
      * a {@link RigidBodyComponent} attached.
      * @param {Entity} other - The {@link Entity} that exited this collision volume.
      */
-    onSetType(name: any, oldValue: any, newValue: any): void;
-    onSetHalfExtents(name: any, oldValue: any, newValue: any): void;
-    onSetRadius(name: any, oldValue: any, newValue: any): void;
-    onSetHeight(name: any, oldValue: any, newValue: any): void;
-    onSetAxis(name: any, oldValue: any, newValue: any): void;
-    onSetAsset(name: any, oldValue: any, newValue: any): void;
-    onSetRenderAsset(name: any, oldValue: any, newValue: any): void;
-    onSetModel(name: any, oldValue: any, newValue: any): void;
-    onSetRender(name: any, oldValue: any, newValue: any): void;
-    onAssetRemoved(asset: any): void;
+    /**
+     * @param {string} name - Property name.
+     * @param {*} oldValue - Previous value of the property.
+     * @param {*} newValue - New value of the property.
+     * @private
+     */
+    private onSetType;
+    /**
+     * @param {string} name - Property name.
+     * @param {*} oldValue - Previous value of the property.
+     * @param {*} newValue - New value of the property.
+     * @private
+     */
+    private onSetHalfExtents;
+    /**
+     * @param {string} name - Property name.
+     * @param {*} oldValue - Previous value of the property.
+     * @param {*} newValue - New value of the property.
+     * @private
+     */
+    private onSetRadius;
+    /**
+     * @param {string} name - Property name.
+     * @param {*} oldValue - Previous value of the property.
+     * @param {*} newValue - New value of the property.
+     * @private
+     */
+    private onSetHeight;
+    /**
+     * @param {string} name - Property name.
+     * @param {*} oldValue - Previous value of the property.
+     * @param {*} newValue - New value of the property.
+     * @private
+     */
+    private onSetAxis;
+    /**
+     * @param {string} name - Property name.
+     * @param {*} oldValue - Previous value of the property.
+     * @param {*} newValue - New value of the property.
+     * @private
+     */
+    private onSetAsset;
+    /**
+     * @param {string} name - Property name.
+     * @param {*} oldValue - Previous value of the property.
+     * @param {*} newValue - New value of the property.
+     * @private
+     */
+    private onSetRenderAsset;
+    /**
+     * @param {string} name - Property name.
+     * @param {*} oldValue - Previous value of the property.
+     * @param {*} newValue - New value of the property.
+     * @private
+     */
+    private onSetModel;
+    /**
+     * @param {string} name - Property name.
+     * @param {*} oldValue - Previous value of the property.
+     * @param {*} newValue - New value of the property.
+     * @private
+     */
+    private onSetRender;
+    /**
+     * @param {Asset} asset - Asset that was removed.
+     * @private
+     */
+    private onAssetRemoved;
     asset: any;
-    onRenderAssetRemoved(asset: any): void;
+    /**
+     * @param {Asset} asset - Asset that was removed.
+     * @private
+     */
+    private onRenderAssetRemoved;
     renderAsset: any;
-    _getCompoundChildShapeIndex(shape: any): number;
-    _onInsert(parent: any): void;
-    _updateCompound(): void;
-    onBeforeRemove(): void;
+    /**
+     * @param {*} shape - Ammo shape.
+     * @returns {number|null} The shape's index in the child array of the compound shape.
+     * @private
+     */
+    private _getCompoundChildShapeIndex;
+    /**
+     * @param {GraphNode} parent - The parent node.
+     * @private
+     */
+    private _onInsert;
+    /** @private */
+    private _updateCompound;
+    /** @private */
+    private onBeforeRemove;
 }
 
 declare class ButtonComponentData {
@@ -20685,143 +21071,143 @@ declare class Entity extends GraphNode {
     /**
      * Gets the {@link AnimComponent} attached to this entity.
      *
-     * @type {AnimComponent}
+     * @type {AnimComponent|undefined}
      * @readonly
      */
-    readonly anim: AnimComponent;
+    readonly anim: AnimComponent | undefined;
     /**
      * Gets the {@link AnimationComponent} attached to this entity.
      *
-     * @type {AnimationComponent}
+     * @type {AnimationComponent|undefined}
      * @readonly
      */
-    readonly animation: AnimationComponent;
+    readonly animation: AnimationComponent | undefined;
     /**
      * Gets the {@link AudioListenerComponent} attached to this entity.
      *
-     * @type {AudioListenerComponent}
+     * @type {AudioListenerComponent|undefined}
      * @readonly
      */
-    readonly audiolistener: AudioListenerComponent;
+    readonly audiolistener: AudioListenerComponent | undefined;
     /**
      * Gets the {@link ButtonComponent} attached to this entity.
      *
-     * @type {ButtonComponent}
+     * @type {ButtonComponent|undefined}
      * @readonly
      */
-    readonly button: ButtonComponent;
+    readonly button: ButtonComponent | undefined;
     /**
      * Gets the {@link CameraComponent} attached to this entity.
      *
-     * @type {CameraComponent}
+     * @type {CameraComponent|undefined}
      * @readonly
      */
-    readonly camera: CameraComponent;
+    readonly camera: CameraComponent | undefined;
     /**
      * Gets the {@link CollisionComponent} attached to this entity.
      *
-     * @type {CollisionComponent}
+     * @type {CollisionComponent|undefined}
      * @readonly
      */
-    readonly collision: CollisionComponent;
+    readonly collision: CollisionComponent | undefined;
     /**
      * Gets the {@link ElementComponent} attached to this entity.
      *
-     * @type {ElementComponent}
+     * @type {ElementComponent|undefined}
      * @readonly
      */
-    readonly element: ElementComponent;
+    readonly element: ElementComponent | undefined;
     /**
      * Gets the {@link LayoutChildComponent} attached to this entity.
      *
-     * @type {LayoutChildComponent}
+     * @type {LayoutChildComponent|undefined}
      * @readonly
      */
-    readonly layoutchild: LayoutChildComponent;
+    readonly layoutchild: LayoutChildComponent | undefined;
     /**
      * Gets the {@link LayoutGroupComponent} attached to this entity.
      *
-     * @type {LayoutGroupComponent}
+     * @type {LayoutGroupComponent|undefined}
      * @readonly
      */
-    readonly layoutgroup: LayoutGroupComponent;
+    readonly layoutgroup: LayoutGroupComponent | undefined;
     /**
      * Gets the {@link LightComponent} attached to this entity.
      *
-     * @type {LightComponent}
+     * @type {LightComponent|undefined}
      * @readonly
      */
-    readonly light: LightComponent;
+    readonly light: LightComponent | undefined;
     /**
      * Gets the {@link ModelComponent} attached to this entity.
      *
-     * @type {ModelComponent}
+     * @type {ModelComponent|undefined}
      * @readonly
      */
-    readonly model: ModelComponent;
+    readonly model: ModelComponent | undefined;
     /**
      * Gets the {@link ParticleSystemComponent} attached to this entity.
      *
-     * @type {ParticleSystemComponent}
+     * @type {ParticleSystemComponent|undefined}
      * @readonly
      */
-    readonly particlesystem: ParticleSystemComponent;
+    readonly particlesystem: ParticleSystemComponent | undefined;
     /**
      * Gets the {@link RenderComponent} attached to this entity.
      *
-     * @type {RenderComponent}
+     * @type {RenderComponent|undefined}
      * @readonly
      */
-    readonly render: RenderComponent;
+    readonly render: RenderComponent | undefined;
     /**
      * Gets the {@link RigidBodyComponent} attached to this entity.
      *
-     * @type {RigidBodyComponent}
+     * @type {RigidBodyComponent|undefined}
      * @readonly
      */
-    readonly rigidbody: RigidBodyComponent;
+    readonly rigidbody: RigidBodyComponent | undefined;
     /**
      * Gets the {@link ScreenComponent} attached to this entity.
      *
-     * @type {ScreenComponent}
+     * @type {ScreenComponent|undefined}
      * @readonly
      */
-    readonly screen: ScreenComponent;
+    readonly screen: ScreenComponent | undefined;
     /**
      * Gets the {@link ScriptComponent} attached to this entity.
      *
-     * @type {ScriptComponent}
+     * @type {ScriptComponent|undefined}
      * @readonly
      */
-    readonly script: ScriptComponent;
+    readonly script: ScriptComponent | undefined;
     /**
      * Gets the {@link ScrollbarComponent} attached to this entity.
      *
-     * @type {ScrollbarComponent}
+     * @type {ScrollbarComponent|undefined}
      * @readonly
      */
-    readonly scrollbar: ScrollbarComponent;
+    readonly scrollbar: ScrollbarComponent | undefined;
     /**
      * Gets the {@link ScrollViewComponent} attached to this entity.
      *
-     * @type {ScrollViewComponent}
+     * @type {ScrollViewComponent|undefined}
      * @readonly
      */
-    readonly scrollview: ScrollViewComponent;
+    readonly scrollview: ScrollViewComponent | undefined;
     /**
      * Gets the {@link SoundComponent} attached to this entity.
      *
-     * @type {SoundComponent}
+     * @type {SoundComponent|undefined}
      * @readonly
      */
-    readonly sound: SoundComponent;
+    readonly sound: SoundComponent | undefined;
     /**
      * Gets the {@link SpriteComponent} attached to this entity.
      *
-     * @type {SpriteComponent}
+     * @type {SpriteComponent|undefined}
      * @readonly
      */
-    readonly sprite: SpriteComponent;
+    readonly sprite: SpriteComponent | undefined;
     /**
      * Component storage.
      *
@@ -21411,7 +21797,7 @@ declare class XrHitTestSource extends EventHandler {
 /**
  * Callback used by {@link XrHitTeststart } and {@link XrHitTeststartForInputSource }.
  */
-type XrHitTestStartCallback = (err: Error | null, hitTestSource: XrHitTestSource | null) => any;
+export type XrHitTestStartCallback = (err: Error | null, hitTestSource: XrHitTestSource | null) => any;
 /** @typedef {import('./xr-manager.js').XrManager} XrManager */
 /** @typedef {import('../shape/ray.js').Ray} Ray */
 /**
@@ -22404,7 +22790,7 @@ declare class XrLightEstimation extends EventHandler {
 /**
  * Callback used by {@link XrManagerendXr } and {@link XrManagerstartXr }.
  */
-type XrErrorCallback = (err: Error | null) => any;
+export type XrErrorCallback = (err: Error | null) => any;
 /** @typedef {import('../framework/components/camera/component.js').CameraComponent} CameraComponent */
 /** @typedef {import('../framework/application.js').Application} Application */
 /** @typedef {import('../framework/entity.js').Entity} Entity */
@@ -24853,19 +25239,19 @@ declare class SceneRegistryItem {
 /**
  * Callback used by {@link SceneRegistryloadSceneHierarchy }.
  */
-type LoadHierarchyCallback = (err: string | null, entity?: Entity) => any;
+export type LoadHierarchyCallback = (err: string | null, entity?: Entity) => any;
 /**
  * Callback used by {@link SceneRegistryloadSceneSettings }.
  */
-type LoadSettingsCallback = (err: string | null) => any;
+export type LoadSettingsCallback = (err: string | null) => any;
 /**
  * Callback used by {@link SceneRegistryloadScene }.
  */
-type LoadSceneCallback = (err: string | null, entity?: Entity) => any;
+export type LoadSceneCallback = (err: string | null, entity?: Entity) => any;
 /**
  * Callback used by {@link SceneRegistryloadSceneData }.
  */
-type LoadSceneDataCallback = (err: string | null, sceneItem?: SceneRegistryItem) => any;
+export type LoadSceneDataCallback = (err: string | null, sceneItem?: SceneRegistryItem) => any;
 /** @typedef {import('./application.js').Application} Application */
 /** @typedef {import('./entity.js').Entity} Entity */
 /**
@@ -25843,11 +26229,11 @@ declare class BatchManager {
 /**
  * Callback used by {@link VrDisplayrequestPresent } and {@link VrDisplayexitPresent }.
  */
-type VrDisplayCallback = (err: string | null) => any;
+export type VrDisplayCallback = (err: string | null) => any;
 /**
  * Callback used by {@link VrDisplayrequestAnimationFrame }.
  */
-type VrFrameCallback = () => any;
+export type VrFrameCallback = () => any;
 /** @typedef {import('../framework/application.js').Application} Application */
 /**
  * Callback used by {@link VrDisplay#requestPresent} and {@link VrDisplay#exitPresent}.
@@ -26438,167 +26824,167 @@ declare class ComponentSystemRegistry extends EventHandler {
     /**
      * Gets the {@link AnimComponentSystem} from the registry.
      *
-     * @type {AnimComponentSystem}
+     * @type {AnimComponentSystem|undefined}
      * @readonly
      */
-    readonly anim: AnimComponentSystem;
+    readonly anim: AnimComponentSystem | undefined;
     /**
      * Gets the {@link AnimationComponentSystem} from the registry.
      *
-     * @type {AnimationComponentSystem}
+     * @type {AnimationComponentSystem|undefined}
      * @readonly
      */
-    readonly animation: AnimationComponentSystem;
+    readonly animation: AnimationComponentSystem | undefined;
     /**
      * Gets the {@link AudioListenerComponentSystem} from the registry.
      *
-     * @type {AudioListenerComponentSystem}
+     * @type {AudioListenerComponentSystem|undefined}
      * @readonly
      */
-    readonly audiolistener: AudioListenerComponentSystem;
+    readonly audiolistener: AudioListenerComponentSystem | undefined;
     /**
      * Gets the {@link AudioSourceComponentSystem} from the registry.
      *
-     * @type {AudioSourceComponentSystem}
+     * @type {AudioSourceComponentSystem|undefined}
      * @readonly
      * @ignore
      */
-    readonly audiosource: AudioSourceComponentSystem;
+    readonly audiosource: AudioSourceComponentSystem | undefined;
     /**
      * Gets the {@link ButtonComponentSystem} from the registry.
      *
-     * @type {ButtonComponentSystem}
+     * @type {ButtonComponentSystem|undefined}
      * @readonly
      */
-    readonly button: ButtonComponentSystem;
+    readonly button: ButtonComponentSystem | undefined;
     /**
      * Gets the {@link CameraComponentSystem} from the registry.
      *
-     * @type {CameraComponentSystem}
+     * @type {CameraComponentSystem|undefined}
      * @readonly
      */
-    readonly camera: CameraComponentSystem;
+    readonly camera: CameraComponentSystem | undefined;
     /**
      * Gets the {@link CollisionComponentSystem} from the registry.
      *
-     * @type {CollisionComponentSystem}
+     * @type {CollisionComponentSystem|undefined}
      * @readonly
      */
-    readonly collision: CollisionComponentSystem;
+    readonly collision: CollisionComponentSystem | undefined;
     /**
      * Gets the {@link ElementComponentSystem} from the registry.
      *
-     * @type {ElementComponentSystem}
+     * @type {ElementComponentSystem|undefined}
      * @readonly
      */
-    readonly element: ElementComponentSystem;
+    readonly element: ElementComponentSystem | undefined;
     /**
      * Gets the {@link JointComponentSystem} from the registry.
      *
-     * @type {JointComponentSystem}
+     * @type {JointComponentSystem|undefined}
      * @readonly
      * @ignore
      */
-    readonly joint: JointComponentSystem;
+    readonly joint: JointComponentSystem | undefined;
     /**
      * Gets the {@link LayoutChildComponentSystem} from the registry.
      *
-     * @type {LayoutChildComponentSystem}
+     * @type {LayoutChildComponentSystem|undefined}
      * @readonly
      */
-    readonly layoutchild: LayoutChildComponentSystem;
+    readonly layoutchild: LayoutChildComponentSystem | undefined;
     /**
      * Gets the {@link LayoutGroupComponentSystem} from the registry.
      *
-     * @type {LayoutGroupComponentSystem}
+     * @type {LayoutGroupComponentSystem|undefined}
      * @readonly
      */
-    readonly layoutgroup: LayoutGroupComponentSystem;
+    readonly layoutgroup: LayoutGroupComponentSystem | undefined;
     /**
      * Gets the {@link LightComponentSystem} from the registry.
      *
-     * @type {LightComponentSystem}
+     * @type {LightComponentSystem|undefined}
      * @readonly
      */
-    readonly light: LightComponentSystem;
+    readonly light: LightComponentSystem | undefined;
     /**
      * Gets the {@link ModelComponentSystem} from the registry.
      *
-     * @type {ModelComponentSystem}
+     * @type {ModelComponentSystem|undefined}
      * @readonly
      */
-    readonly model: ModelComponentSystem;
+    readonly model: ModelComponentSystem | undefined;
     /**
      * Gets the {@link ParticleSystemComponentSystem} from the registry.
      *
-     * @type {ParticleSystemComponentSystem}
+     * @type {ParticleSystemComponentSystem|undefined}
      * @readonly
      */
-    readonly particlesystem: ParticleSystemComponentSystem;
+    readonly particlesystem: ParticleSystemComponentSystem | undefined;
     /**
      * Gets the {@link RenderComponentSystem} from the registry.
      *
-     * @type {RenderComponentSystem}
+     * @type {RenderComponentSystem|undefined}
      * @readonly
      */
-    readonly render: RenderComponentSystem;
+    readonly render: RenderComponentSystem | undefined;
     /**
      * Gets the {@link RigidBodyComponentSystem} from the registry.
      *
-     * @type {RigidBodyComponentSystem}
+     * @type {RigidBodyComponentSystem|undefined}
      * @readonly
      */
-    readonly rigidbody: RigidBodyComponentSystem;
+    readonly rigidbody: RigidBodyComponentSystem | undefined;
     /**
      * Gets the {@link ScreenComponentSystem} from the registry.
      *
-     * @type {ScreenComponentSystem}
+     * @type {ScreenComponentSystem|undefined}
      * @readonly
      */
-    readonly screen: ScreenComponentSystem;
+    readonly screen: ScreenComponentSystem | undefined;
     /**
      * Gets the {@link ScriptComponentSystem} from the registry.
      *
-     * @type {ScriptComponentSystem}
+     * @type {ScriptComponentSystem|undefined}
      * @readonly
      */
-    readonly script: ScriptComponentSystem;
+    readonly script: ScriptComponentSystem | undefined;
     /**
      * Gets the {@link ScrollbarComponentSystem} from the registry.
      *
-     * @type {ScrollbarComponentSystem}
+     * @type {ScrollbarComponentSystem|undefined}
      * @readonly
      */
-    readonly scrollbar: ScrollbarComponentSystem;
+    readonly scrollbar: ScrollbarComponentSystem | undefined;
     /**
      * Gets the {@link ScrollViewComponentSystem} from the registry.
      *
-     * @type {ScrollViewComponentSystem}
+     * @type {ScrollViewComponentSystem|undefined}
      * @readonly
      */
-    readonly scrollview: ScrollViewComponentSystem;
+    readonly scrollview: ScrollViewComponentSystem | undefined;
     /**
      * Gets the {@link SoundComponentSystem} from the registry.
      *
-     * @type {SoundComponentSystem}
+     * @type {SoundComponentSystem|undefined}
      * @readonly
      */
-    readonly sound: SoundComponentSystem;
+    readonly sound: SoundComponentSystem | undefined;
     /**
      * Gets the {@link SpriteComponentSystem} from the registry.
      *
-     * @type {SpriteComponentSystem}
+     * @type {SpriteComponentSystem|undefined}
      * @readonly
      */
-    readonly sprite: SpriteComponentSystem;
+    readonly sprite: SpriteComponentSystem | undefined;
     /**
      * Gets the {@link ZoneComponentSystem} from the registry.
      *
-     * @type {ZoneComponentSystem}
+     * @type {ZoneComponentSystem|undefined}
      * @readonly
      * @ignore
      */
-    readonly zone: ZoneComponentSystem;
+    readonly zone: ZoneComponentSystem | undefined;
     list: any[];
     /**
      * Add a component system to the registry.
@@ -26630,11 +27016,11 @@ declare class ComponentSystemRegistry extends EventHandler {
  * Callback used by {@link Applicationconfigure } when configuration file is loaded and parsed (or
  * an error occurs).
  */
-type ConfigureAppCallback = (err: string | null) => any;
+export type ConfigureAppCallback = (err: string | null) => any;
 /**
  * Callback used by {@link Applicationpreload } when all assets (marked as 'preload') are loaded.
  */
-type PreloadAppCallback = () => any;
+export type PreloadAppCallback = () => any;
 /**
  * Callback used by {@link Application#configure} when configuration file is loaded and parsed (or
  * an error occurs).
@@ -27636,7 +28022,7 @@ declare class CameraComponentSystem extends ComponentSystem {
 /**
  * Callback used by {@link CameraComponentcalculateTransform } and {@link CameraComponentcalculateProjection }.
  */
-type CalculateMatrixCallback = (transformMatrix: Mat4, view: number) => any;
+export type CalculateMatrixCallback = (transformMatrix: Mat4, view: number) => any;
 /**
  * Callback used by {@link CameraComponent#calculateTransform} and {@link CameraComponent#calculateProjection}.
  *
@@ -30849,141 +31235,6 @@ declare class SkinBatchInstance extends SkinInstance {
 }
 
 /**
- * A light.
- *
- * @ignore
- */
-declare class Light {
-    constructor(graphicsDevice: any);
-    device: any;
-    id: number;
-    _type: number;
-    _color: Color;
-    _intensity: number;
-    _castShadows: boolean;
-    _enabled: boolean;
-    mask: number;
-    isStatic: boolean;
-    key: number;
-    bakeDir: boolean;
-    bakeNumSamples: number;
-    bakeArea: number;
-    attenuationStart: number;
-    attenuationEnd: number;
-    _falloffMode: number;
-    _shadowType: number;
-    _vsmBlurSize: number;
-    vsmBlurMode: number;
-    vsmBias: number;
-    _cookie: any;
-    cookieIntensity: number;
-    _cookieFalloff: boolean;
-    _cookieChannel: string;
-    _cookieTransform: any;
-    _cookieTransformUniform: Float32Array;
-    _cookieOffset: any;
-    _cookieOffsetUniform: Float32Array;
-    _cookieTransformSet: boolean;
-    _cookieOffsetSet: boolean;
-    _innerConeAngle: number;
-    _outerConeAngle: number;
-    cascades: any;
-    _shadowMatrixPalette: Float32Array;
-    _shadowCascadeDistances: Float32Array;
-    set numCascades(arg: any);
-    get numCascades(): any;
-    cascadeDistribution: number;
-    _shape: number;
-    _finalColor: Float32Array;
-    _linearFinalColor: Float32Array;
-    _position: Vec3;
-    _direction: Vec3;
-    _innerConeAngleCos: number;
-    _outerConeAngleCos: number;
-    _shadowMap: any;
-    _shadowRenderParams: any[];
-    shadowDistance: number;
-    _shadowResolution: number;
-    shadowBias: number;
-    _normalOffsetBias: number;
-    shadowUpdateMode: number;
-    _isVsm: boolean;
-    _isPcf: boolean;
-    _cookieMatrix: Mat4;
-    _atlasViewport: Vec4;
-    atlasViewportAllocated: boolean;
-    atlasVersion: number;
-    atlasSlotIndex: number;
-    atlasSlotUpdated: boolean;
-    _scene: any;
-    _node: any;
-    _renderData: any[];
-    visibleThisFrame: boolean;
-    maxScreenSize: number;
-    destroy(): void;
-    set shadowMap(arg: any);
-    get shadowMap(): any;
-    get numShadowFaces(): any;
-    set type(arg: number);
-    get type(): number;
-    set shadowType(arg: number);
-    get shadowType(): number;
-    set shape(arg: number);
-    get shape(): number;
-    set enabled(arg: boolean);
-    get enabled(): boolean;
-    set castShadows(arg: boolean);
-    get castShadows(): boolean;
-    set shadowResolution(arg: number);
-    get shadowResolution(): number;
-    set vsmBlurSize(arg: number);
-    get vsmBlurSize(): number;
-    set normalOffsetBias(arg: number);
-    get normalOffsetBias(): number;
-    set falloffMode(arg: number);
-    get falloffMode(): number;
-    set innerConeAngle(arg: number);
-    get innerConeAngle(): number;
-    set outerConeAngle(arg: number);
-    get outerConeAngle(): number;
-    set intensity(arg: number);
-    get intensity(): number;
-    get cookieMatrix(): Mat4;
-    get atlasViewport(): Vec4;
-    set cookie(arg: any);
-    get cookie(): any;
-    set cookieFalloff(arg: boolean);
-    get cookieFalloff(): boolean;
-    set cookieChannel(arg: string);
-    get cookieChannel(): string;
-    set cookieTransform(arg: any);
-    get cookieTransform(): any;
-    set cookieOffset(arg: any);
-    get cookieOffset(): any;
-    beginFrame(): void;
-    _destroyShadowMap(): void;
-    getRenderData(camera: any, face: any): any;
-    /**
-     * Duplicates a light node but does not 'deep copy' the hierarchy.
-     *
-     * @returns {Light} A cloned Light.
-     */
-    clone(): Light;
-    _getUniformBiasValues(lightRenderData: any): {
-        bias: number;
-        normalBias: number;
-    };
-    getColor(): Color;
-    getBoundingSphere(sphere: any): void;
-    getBoundingBox(box: any): void;
-    _updateFinalColor(): void;
-    setColor(...args: any[]): void;
-    updateShadow(): void;
-    layersDirty(): void;
-    updateKey(): void;
-}
-
-/**
  * Holds stencil test settings.
  *
  * @property {number} func Sets stencil test function. See {@link GraphicsDevice#setStencilFunc}.
@@ -32085,7 +32336,7 @@ declare class MaterialHandler implements ResourceHandler {
 /**
  * Callback used by {@link ModelHandleraddParser } to decide on which parser to use.
  */
-type AddParserCallback = (url: string, data: object) => boolean;
+export type AddParserCallback = (url: string, data: object) => boolean;
 /** @typedef {import('../graphics/graphics-device.js').GraphicsDevice} GraphicsDevice */
 /** @typedef {import('./handler.js').ResourceHandler} ResourceHandler */
 /**
@@ -32648,7 +32899,7 @@ declare class URI {
  * Callback used by {@link Httpget }, {@link Httppost }, {@link Httpput }, {@link Httpdel }, and
  * {@link Httprequest }.
  */
-type HttpResponseCallback = (err: number | string | Error | null, response?: any) => any;
+export type HttpResponseCallback = (err: number | string | Error | null, response?: any) => any;
 declare const http: Http;
 /**
  * Callback used by {@link Http#get}, {@link Http#post}, {@link Http#put}, {@link Http#del}, and
@@ -33046,10 +33297,12 @@ declare class GlbParser {
 
 
 
+
 /** @typedef {import('../asset/asset-registry.js').AssetRegistry} AssetRegistry */
 /** @typedef {import('../framework/entity.js').Entity} Entity */
 /** @typedef {import('../graphics/graphics-device.js').GraphicsDevice} GraphicsDevice */
 /** @typedef {import('./handler.js').ResourceHandler} ResourceHandler */
+/** @typedef {import('./handler.js').ResourceHandlerCallback} ResourceHandlerCallback */
 /**
  * @interface
  * @name ContainerResource
@@ -33149,11 +33402,41 @@ declare class ContainerHandler implements ResourceHandler {
     constructor(device: GraphicsDevice, assets: AssetRegistry);
     glbParser: GlbParser;
     parsers: {};
-    _getUrlWithoutParams(url: any): any;
-    _getParser(url: any): any;
-    load(url: any, callback: any, asset: any): void;
-    open(url: any, data: any, asset: any): any;
-    patch(asset: any, assets: any): void;
+    /**
+     * @param {string} url - The resource URL.
+     * @returns {string} The URL with query parameters removed.
+     * @private
+     */
+    private _getUrlWithoutParams;
+    /**
+     * @param {string} url - The resource URL.
+     * @returns {*} A suitable parser to parse the resource.
+     * @private
+     */
+    private _getParser;
+    /**
+     * @param {string|object} url - Either the URL of the resource to load or a structure
+     * containing the load and original URL.
+     * @param {string} [url.load] - The URL to be used for loading the resource.
+     * @param {string} [url.original] - The original URL to be used for identifying the resource
+     * format. This is necessary when loading, for example from blob.
+     * @param {ResourceHandlerCallback} callback - The callback used when the resource is loaded or
+     * an error occurs.
+     * @param {Asset} [asset] - Optional asset that is passed by ResourceLoader.
+     */
+    load(url: string | object, callback: ResourceHandlerCallback, asset?: Asset): void;
+    /**
+     * @param {string} url - The URL of the resource to open.
+     * @param {*} data - The raw resource data passed by callback from {@link ResourceHandler#load}.
+     * @param {Asset} [asset] - Optional asset that is passed by ResourceLoader.
+     * @returns {*} The parsed resource data.
+     */
+    open(url: string, data: any, asset?: Asset): any;
+    /**
+     * @param {Asset} asset - The asset to patch.
+     * @param {AssetRegistry} assets - The asset registry.
+     */
+    patch(asset: Asset, assets: AssetRegistry): void;
 }
 
 /**
