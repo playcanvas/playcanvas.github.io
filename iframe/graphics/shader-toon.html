@@ -112,7 +112,8 @@
         for (var i = 0; i < meshInstances.length; i++) {
           var meshInstance = meshInstances[i];
           if (!originalTexture) {
-            originalTexture = meshInstance.material.diffuseMap;
+            var originalMaterial = meshInstance.material;
+            originalTexture = originalMaterial.diffuseMap;
           }
           meshInstance.material = material;
         }
