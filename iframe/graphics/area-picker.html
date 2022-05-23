@@ -224,8 +224,9 @@
           // process all meshInstances it found - highlight them to appropriate color for the area
           for (var s = 0; s < selection.length; s++) {
             if (selection[s]) {
-              highlightMaterial(selection[s].material, color);
-              highlights.push(selection[s].material);
+              var material = selection[s].material;
+              highlightMaterial(material, color);
+              highlights.push(material);
             }
           }
         }
