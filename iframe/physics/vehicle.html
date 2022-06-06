@@ -8,6 +8,8 @@
     <script src="../../build/promisePolyfill.js"></script>
     <script src="../../build/fetchPolyfill.js"></script>
     <script src="../../build/regeneratorRuntimePolyfill.js"></script>
+    <script src="../../build/arrayFromPolyfill.js"></script>
+    <script src="../../build/objectValuesPolyfill.js"></script>
     <link rel="stylesheet" href="/styles.css">
     <style>
         body {
@@ -36,27 +38,18 @@
             });
         }
 
-        // include any constants necessary for the example
-        var constValues = [];
-        for (var i = 0; i < constValues.length; i++) {
-            window[constValues[i].k] = constValues[i].v;
-        }
-
         // include the example class which contains the example function to execute and any assets to load
-        "use strict";function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}function _defineProperties(target, props) {for (var i = 0; i < props.length; i++) {var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);}}function _createClass(Constructor, protoProps, staticProps) {if (protoProps) _defineProperties(Constructor.prototype, protoProps);if (staticProps) _defineProperties(Constructor, staticProps);Object.defineProperty(Constructor, "prototype", { writable: false });return Constructor;}function _defineProperty(obj, key, value) {if (key in obj) {Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true });} else {obj[key] = value;}return obj;}var Example = /*#__PURE__*/function () {function Example() {_classCallCheck(this, Example);}_createClass(Example, [{ key: "load", value:
+        "use strict";function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}function _defineProperties(target, props) {for (var i = 0; i < props.length; i++) {var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);}}function _createClass(Constructor, protoProps, staticProps) {if (protoProps) _defineProperties(Constructor.prototype, protoProps);if (staticProps) _defineProperties(Constructor, staticProps);Object.defineProperty(Constructor, "prototype", { writable: false });return Constructor;}function _defineProperty(obj, key, value) {if (key in obj) {Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true });} else {obj[key] = value;}return obj;}var Example = /*#__PURE__*/function () {function Example() {_classCallCheck(this, Example);}_createClass(Example, [{ key: "example", value:
 
 
 
-    function load() {
-      return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/
-      React.createElement("div", { name: "script1", type: "script", url: "/../../static/scripts/camera/tracking-camera.js" }), /*#__PURE__*/
-      React.createElement("div", { name: "script2", type: "script", url: "/../../static/scripts/physics/render-physics.js" }), /*#__PURE__*/
-      React.createElement("div", { name: "script3", type: "script", url: "/../../static/scripts/physics/action-physics-reset.js" }), /*#__PURE__*/
-      React.createElement("div", { name: "script4", type: "script", url: "/../../static/scripts/physics/vehicle.js" }));
 
-    } }, { key: "example", value:
+    function example(canvas, wasmSupported, loadWasmModuleAsync) {
 
-    function example(app, canvas, assets, wasmSupported, loadWasmModuleAsync) {
+      // Create the application and start the update loop
+      var app = new pc.Application(canvas, {
+        keyboard: new pc.Keyboard(window) });
+
 
       if (window.wasmSupported()) {
         window.loadWasmModuleAsync('Ammo', '/../../static/lib/ammo/ammo.wasm.js', '/../../static/lib/ammo/ammo.wasm.wasm', demo);
@@ -65,152 +58,160 @@
       }
 
       function demo() {
-        // Create the application and start the update loop
-        
 
-        app.start();
-
-        // Create a static ground shape for our car to drive on
-        var ground = new pc.Entity('Ground');
-        ground.addComponent('rigidbody', {
-          type: 'static' });
-
-        ground.addComponent('collision', {
-          type: 'box',
-          halfExtents: new pc.Vec3(50, 0.5, 50) });
-
-        ground.setLocalPosition(0, -0.5, 0);
-        app.root.addChild(ground);
-
-        // Create 4 wheels for our vehicle
-        var wheels = [];
-        [
-        { name: 'Front Left Wheel', pos: new pc.Vec3(0.8, 0.4, 1.2), front: true },
-        { name: 'Front Right Wheel', pos: new pc.Vec3(-0.8, 0.4, 1.2), front: true },
-        { name: 'Back Left Wheel', pos: new pc.Vec3(0.8, 0.4, -1.2), front: false },
-        { name: 'Back Right Wheel', pos: new pc.Vec3(-0.8, 0.4, -1.2), front: false }].
-        forEach(function (wheelDef) {
-          // Create a wheel
-          var wheel = new pc.Entity(wheelDef.name);
-          wheel.addComponent('script');
-          wheel.script.create('vehicleWheel', {
-            attributes: {
-              debugRender: true,
-              isFront: wheelDef.front } });
+        var assets = {
+          'script1': new pc.Asset('script1', 'script', { url: '/../../static/scripts/camera/tracking-camera.js' }),
+          'script2': new pc.Asset('script2', 'script', { url: '/../../static/scripts/physics/render-physics.js' }),
+          'script3': new pc.Asset('script3', 'script', { url: '/../../static/scripts/physics/action-physics-reset.js' }),
+          'script4': new pc.Asset('script4', 'script', { url: '/../../static/scripts/physics/vehicle.js' }) };
 
 
-          wheel.setLocalPosition(wheelDef.pos);
-          wheels.push(wheel);
-        });
+        var assetListLoader = new pc.AssetListLoader(Object.values(assets), app.assets);
+        assetListLoader.load(function () {
+          app.start();
 
-        // Create a physical vehicle
-        var vehicle = new pc.Entity('Vehicle');
-        vehicle.addComponent('rigidbody', {
-          mass: 800,
-          type: 'dynamic' });
+          // Create a static ground shape for our car to drive on
+          var ground = new pc.Entity('Ground');
+          ground.addComponent('rigidbody', {
+            type: 'static' });
 
-        vehicle.addComponent('collision', {
-          type: 'compound' });
+          ground.addComponent('collision', {
+            type: 'box',
+            halfExtents: new pc.Vec3(50, 0.5, 50) });
 
-        vehicle.addComponent('script');
-        vehicle.script.create('vehicle', {
-          attributes: {
-            wheels: wheels } });
+          ground.setLocalPosition(0, -0.5, 0);
+          app.root.addChild(ground);
 
-
-        vehicle.script.create('vehicleControls');
-        vehicle.script.create('actionPhysicsReset', {
-          attributes: {
-            event: 'reset' } });
-
-
-        vehicle.setLocalPosition(0, 2, 0);
-
-        // Create the car chassis, offset upwards in Y from the compound body
-        var chassis = new pc.Entity('Chassis');
-        chassis.addComponent('collision', {
-          type: 'box',
-          halfExtents: [0.6, 0.35, 1.65] });
-
-        chassis.setLocalPosition(0, 0.65, 0);
-
-        // Create the car chassis, offset upwards in Y from the compound body
-        var cab = new pc.Entity('Cab');
-        cab.addComponent('collision', {
-          type: 'box',
-          halfExtents: [0.5, 0.2, 1] });
-
-        cab.setLocalPosition(0, 1.2, -0.25);
-
-        // Add the vehicle to the hierarchy
-        wheels.forEach(function (wheel) {
-          vehicle.addChild(wheel);
-        });
-        vehicle.addChild(chassis);
-        vehicle.addChild(cab);
-        app.root.addChild(vehicle);
-
-        // Build a wall of blocks for the car to smash through
-        for (var i = 0; i < 10; i++) {
-          for (var j = 0; j < 5; j++) {
-            var block = new pc.Entity('Block');
-            block.addComponent('rigidbody', {
-              type: 'dynamic' });
-
-            block.addComponent('collision', {
-              type: 'box' });
-
-            block.addComponent('script');
-            block.script.create('actionPhysicsReset', {
+          // Create 4 wheels for our vehicle
+          var wheels = [];
+          [
+          { name: 'Front Left Wheel', pos: new pc.Vec3(0.8, 0.4, 1.2), front: true },
+          { name: 'Front Right Wheel', pos: new pc.Vec3(-0.8, 0.4, 1.2), front: true },
+          { name: 'Back Left Wheel', pos: new pc.Vec3(0.8, 0.4, -1.2), front: false },
+          { name: 'Back Right Wheel', pos: new pc.Vec3(-0.8, 0.4, -1.2), front: false }].
+          forEach(function (wheelDef) {
+            // Create a wheel
+            var wheel = new pc.Entity(wheelDef.name);
+            wheel.addComponent('script');
+            wheel.script.create('vehicleWheel', {
               attributes: {
-                event: 'reset' } });
+                debugRender: true,
+                isFront: wheelDef.front } });
 
 
-            block.setLocalPosition(i - 4.5, j + 0.5, -10);
-            app.root.addChild(block);
+            wheel.setLocalPosition(wheelDef.pos);
+            wheels.push(wheel);
+          });
+
+          // Create a physical vehicle
+          var vehicle = new pc.Entity('Vehicle');
+          vehicle.addComponent('rigidbody', {
+            mass: 800,
+            type: 'dynamic' });
+
+          vehicle.addComponent('collision', {
+            type: 'compound' });
+
+          vehicle.addComponent('script');
+          vehicle.script.create('vehicle', {
+            attributes: {
+              wheels: wheels } });
+
+
+          vehicle.script.create('vehicleControls');
+          vehicle.script.create('actionPhysicsReset', {
+            attributes: {
+              event: 'reset' } });
+
+
+          vehicle.setLocalPosition(0, 2, 0);
+
+          // Create the car chassis, offset upwards in Y from the compound body
+          var chassis = new pc.Entity('Chassis');
+          chassis.addComponent('collision', {
+            type: 'box',
+            halfExtents: [0.6, 0.35, 1.65] });
+
+          chassis.setLocalPosition(0, 0.65, 0);
+
+          // Create the car chassis, offset upwards in Y from the compound body
+          var cab = new pc.Entity('Cab');
+          cab.addComponent('collision', {
+            type: 'box',
+            halfExtents: [0.5, 0.2, 1] });
+
+          cab.setLocalPosition(0, 1.2, -0.25);
+
+          // Add the vehicle to the hierarchy
+          wheels.forEach(function (wheel) {
+            vehicle.addChild(wheel);
+          });
+          vehicle.addChild(chassis);
+          vehicle.addChild(cab);
+          app.root.addChild(vehicle);
+
+          // Build a wall of blocks for the car to smash through
+          for (var i = 0; i < 10; i++) {
+            for (var j = 0; j < 5; j++) {
+              var block = new pc.Entity('Block');
+              block.addComponent('rigidbody', {
+                type: 'dynamic' });
+
+              block.addComponent('collision', {
+                type: 'box' });
+
+              block.addComponent('script');
+              block.script.create('actionPhysicsReset', {
+                attributes: {
+                  event: 'reset' } });
+
+
+              block.setLocalPosition(i - 4.5, j + 0.5, -10);
+              app.root.addChild(block);
+            }
           }
-        }
 
-        // Create a directional light source
-        var light = new pc.Entity('Directional Light');
-        light.addComponent("light", {
-          type: "directional",
-          color: new pc.Color(1, 1, 1),
-          castShadows: true,
-          shadowBias: 0.2,
-          shadowDistance: 40,
-          normalOffsetBias: 0.05,
-          shadowResolution: 2048 });
+          // Create a directional light source
+          var light = new pc.Entity('Directional Light');
+          light.addComponent("light", {
+            type: "directional",
+            color: new pc.Color(1, 1, 1),
+            castShadows: true,
+            shadowBias: 0.2,
+            shadowDistance: 40,
+            normalOffsetBias: 0.05,
+            shadowResolution: 2048 });
 
-        light.setLocalEulerAngles(45, 30, 0);
-        app.root.addChild(light);
+          light.setLocalEulerAngles(45, 30, 0);
+          app.root.addChild(light);
 
-        // Create a camera to render the scene
-        var camera = new pc.Entity('Camera');
-        camera.addComponent("camera");
-        camera.addComponent('script');
-        camera.script.create('trackingCamera', {
-          attributes: {
-            target: vehicle } });
-
-
-        camera.translate(0, 10, 15);
-        camera.lookAt(0, 0, 0);
-        app.root.addChild(camera);
-
-        // Enable rendering and resetting of all rigid bodies in the scene
-        app.root.addComponent('script');
-        app.root.script.create('renderPhysics', {
-          attributes: {
-            drawShapes: true,
-            opacity: 1 } });
+          // Create a camera to render the scene
+          var camera = new pc.Entity('Camera');
+          camera.addComponent("camera");
+          camera.addComponent('script');
+          camera.script.create('trackingCamera', {
+            attributes: {
+              target: vehicle } });
 
 
+          camera.translate(0, 10, 15);
+          camera.lookAt(0, 0, 0);
+          app.root.addChild(camera);
 
-        app.keyboard.on(pc.EVENT_KEYDOWN, function (e) {
-          if (e.key === pc.KEY_R) {
-            app.fire('reset');
-          }
+          // Enable rendering and resetting of all rigid bodies in the scene
+          app.root.addComponent('script');
+          app.root.script.create('renderPhysics', {
+            attributes: {
+              drawShapes: true,
+              opacity: 1 } });
+
+
+
+          app.keyboard.on(pc.EVENT_KEYDOWN, function (e) {
+            if (e.key === pc.KEY_R) {
+              app.fire('reset');
+            }
+          });
         });
       }
     } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'Physics');_defineProperty(Example, "NAME", 'Vehicle');
@@ -228,9 +229,10 @@
                     presets: ["react", "typescript", "env"]
                 }).code;
             }
-            window.exampleFunction = new Function('app', 'canvas', 'assets', 'data', exampleFunction);
+            window.exampleFunction = new Function('canvas', 'data', exampleFunction);
         }
         window.loadFunction = example.load;
+        window.files = window.top.editedFiles || example.constructor.FILES;
 
         // get url parameters
         var queryString = window.location.search;
@@ -238,42 +240,19 @@
     </script>
     <script>
         function loadEngine(callback) {
-            const enginePath = urlParams.get('use_local_engine') || "/build/playcanvas.dbg.js";
+            const enginePath = urlParams && urlParams.get('use_local_engine') || "/build/playcanvas.js";
 
-            fetch(enginePath)
-                .then(function(response) { return response.text() })
-                .then(function(data) {
-                    var module = {
-                        exports: {}
-                    };
-                    window.pc = (Function('module', 'exports', data).call(module, module, module.exports), module).exports;
-                    window.top.pc = window.pc;
-                    callback();
-                });
+            const script = document.createElement('script');
+            script.setAttribute('src', enginePath);
+            script.onload = function() {
+                window.top.pc = window.pc;
+                callback();
+            };
+            document.head.appendChild(script);
         }
 
-        function createApplication(canvas) {
-            // create the app
-            var app = new pc.Application(canvas, {
-                mouse: new pc.Mouse(document.body),
-                touch: new pc.TouchDevice(document.body),
-                elementInput: new pc.ElementInput(canvas),
-                gamepads: new pc.GamePads(),
-                keyboard: new pc.Keyboard(window),
-                graphicsDeviceOptions: {
-                    alpha: true
-                }
-            });
-
-            // set up miniStats
-            var miniStats = new pcx.MiniStats(app);
-            if (urlParams.get('miniStats') === 'false') {
-                miniStats.enabled = false;
-            }
-            app.on('update', function () {
-                if (window.top._showMiniStats !== undefined) miniStats.enabled = window.top._showMiniStats;
-            });
-
+        function setupApplication(app) {
+            const canvas = app.graphicsDevice.canvas;
             // handle resizing
             var canvasContainerElement = canvas.parentElement;
             canvas.setAttribute('width', window.innerWidth + 'px');
@@ -287,17 +266,17 @@
                 }).observe(canvasContainerElement);
             }
 
-            return app;
-        }
-
-        function hasBasisAssets (assets) {
-        for (let i = 0; i < assets.length; i++) {
-            if (assets[i].url && assets[i].url.includes('.basis')) {
-                return true;
+            if (true) {
+                // set up miniStats
+                var miniStats = new pcx.MiniStats(app);
+                if (urlParams.get('miniStats') === 'false') {
+                    miniStats.enabled = false;
+                }
+                app.on('update', function () {
+                    if (window.top._showMiniStats !== undefined) miniStats.enabled = window.top._showMiniStats;
+                });
             }
         }
-        return false;
-    };
 
         function loadResource(app, resource, callback) {
             if (!resource.type) {
@@ -312,30 +291,6 @@
                     });
                 return;
             }
-            if (resource.data) {
-                var asset = new pc.Asset(
-                    resource.name,
-                    resource.type,
-                    resource.type === "cubemap" ? {
-                        url: resource.url
-                    } : null,
-                    resource.data
-                );
-                asset.on("load", function (asset) {
-                    callback(asset);
-                });
-                app.assets.add(asset);
-                app.assets.load(asset);
-            } else {
-                app.assets.loadFromUrl(resource.url, resource.type, function (
-                    err,
-                    asset
-                ) {
-                    if (!err && asset) {
-                        callback(asset);
-                    }
-                });
-            }
         }
 
         function loadResources(app, callback) {
@@ -346,15 +301,6 @@
             window.React = { createElement: function(type, props) { if (type === 'div') assets.push(props); } };
             // call the stubbed load function to add all assets to the assets list
             window.loadFunction();
-
-            // if we have any basis assets then initialize basis
-            if (hasBasisAssets(assets)) {
-                pc.basisInitialize({
-                    glueUrl: '/static/lib/basis/basis.wasm.js',
-                    wasmUrl: '/static/lib/basis/basis.wasm.wasm',
-                    fallbackUrl: '/static/lib/basis/basis.js'
-                });
-            }
 
             var count = assets.length;
             function onLoadedResource(key, asset) {
@@ -374,16 +320,40 @@
             });
         }
 
-        function callExample(app, canvas, assetManifest, data) {
-            if (location.pathname.indexOf('misc/mini-stats') !== -1) {
-                window.exampleFunction(app, canvas, pcx);
-            } else {
-                window.exampleFunction(app, canvas, assetManifest, data, wasmSupported, loadWasmModuleAsync);
+        function callExample(canvas, assetManifest, files, data) {
+            function escapeRegExp(string) {
+                return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             }
-            if (window.top.location.pathname.indexOf('iframe') === -1) {
-                var event = new CustomEvent("exampleLoad");
-                window.top.dispatchEvent(event);
+            function replaceAll(str, find, replace) {
+                return str.replace(new RegExp(escapeRegExp(find), 'g'), replace);
             }
+            var argsString = window.exampleFunction.toString().match(/function\s.*?\(([^)]*)\)/)[1];
+            argsString = replaceAll(argsString, ' ', '');
+            argsString = replaceAll(argsString, '\n', '');
+            var argNames = argsString.split(',');
+            var args = argNames.map(function(arg) {
+                if (arg === 'canvas') {
+                    return canvas;
+                } else if (arg === 'assetManifest') {
+                    return assetManifest;
+                } else if (arg === 'files') {
+                    return files;
+                } else if (arg === 'data') {
+                    return data;
+                } else if (arg === 'pcx') {
+                    return pcx;
+                } else if (arg === 'loadWasmModuleAsync') {
+                    return loadWasmModuleAsync;
+                } else if (arg === 'wasmSupported') {
+                    return wasmSupported;
+                }
+            });
+            window.exampleFunction.apply(this, args);
+            if (pc.app && pc.app.graphicsDevice.canvas) {
+                setupApplication(pc.app);
+            }
+            var event = new CustomEvent("exampleLoad");
+            window.top.dispatchEvent(event);
         }
     </script>
     <script>
@@ -395,13 +365,11 @@
         loadEngine(function() {
             var canvas = document.getElementById('application-canvas');
 
-            const app = createApplication(canvas);
-
             if (!window.loadFunction) {
-                callExample(app, canvas, {}, data);
+                callExample(canvas, {}, window.files, data);
             } else {
-                loadResources(app, function(assetManifest) {
-                    callExample(app, canvas, assetManifest, data);
+                loadResources(undefined, function(assetManifest) {
+                    callExample(canvas, assetManifest, window.files, data);
                 });
             }
         });

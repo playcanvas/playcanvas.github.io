@@ -8,6 +8,8 @@
     <script src="../../build/promisePolyfill.js"></script>
     <script src="../../build/fetchPolyfill.js"></script>
     <script src="../../build/regeneratorRuntimePolyfill.js"></script>
+    <script src="../../build/arrayFromPolyfill.js"></script>
+    <script src="../../build/objectValuesPolyfill.js"></script>
     <link rel="stylesheet" href="/styles.css">
     <style>
         body {
@@ -36,117 +38,114 @@
             });
         }
 
-        // include any constants necessary for the example
-        var constValues = [];
-        for (var i = 0; i < constValues.length; i++) {
-            window[constValues[i].k] = constValues[i].v;
-        }
-
         // include the example class which contains the example function to execute and any assets to load
-        "use strict";function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}function _defineProperties(target, props) {for (var i = 0; i < props.length; i++) {var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);}}function _createClass(Constructor, protoProps, staticProps) {if (protoProps) _defineProperties(Constructor.prototype, protoProps);if (staticProps) _defineProperties(Constructor, staticProps);Object.defineProperty(Constructor, "prototype", { writable: false });return Constructor;}function _defineProperty(obj, key, value) {if (key in obj) {Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true });} else {obj[key] = value;}return obj;}var Example = /*#__PURE__*/function () {function Example() {_classCallCheck(this, Example);}_createClass(Example, [{ key: "load", value:
+        "use strict";function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}function _defineProperties(target, props) {for (var i = 0; i < props.length; i++) {var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);}}function _createClass(Constructor, protoProps, staticProps) {if (protoProps) _defineProperties(Constructor.prototype, protoProps);if (staticProps) _defineProperties(Constructor, staticProps);Object.defineProperty(Constructor, "prototype", { writable: false });return Constructor;}function _defineProperty(obj, key, value) {if (key in obj) {Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true });} else {obj[key] = value;}return obj;}var Example = /*#__PURE__*/function () {function Example() {_classCallCheck(this, Example);}_createClass(Example, [{ key: "example", value:
 
 
 
-    function load() {
-      return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/
-      React.createElement("div", { name: "spark", type: "texture", url: "/../../static/assets/textures/spark.png" }));
 
-    } }, { key: "example", value:
-
-    function example(app, canvas, assets) {
+    function example(canvas) {
 
       // Create the application and start the update loop
-      
-      app.start();
+      var app = new pc.Application(canvas, {});
 
-      // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
-      app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
-      app.setCanvasResolution(pc.RESOLUTION_AUTO);
-
-      // Create an Entity with a camera component
-      var cameraEntity = new pc.Entity();
-      cameraEntity.addComponent("camera", {
-        clearColor: new pc.Color(0, 0, 0.05) });
-
-      cameraEntity.rotateLocal(0, 0, 0);
-      cameraEntity.translateLocal(0, 0, 10);
-
-      // Create a directional light
-      var lightDirEntity = new pc.Entity();
-      lightDirEntity.addComponent("light", {
-        type: "directional",
-        color: new pc.Color(1, 1, 1),
-        intensity: 1 });
-
-      lightDirEntity.setLocalEulerAngles(45, 0, 0);
-
-      // Add Entities into the scene hierarchy
-      app.root.addChild(cameraEntity);
-      app.root.addChild(lightDirEntity);
+      var assets = {
+        'spark': new pc.Asset('spark', 'texture', { url: '/../../static/assets/textures/spark.png' }) };
 
 
-      // Offset position
-      var localPosCurve = new pc.CurveSet([
-      [0, 0, 1, 4],
-      [0, 0, 1, 3],
-      [0, 0, 1, 0]]);
+      var assetListLoader = new pc.AssetListLoader(Object.values(assets), app.assets);
+      assetListLoader.load(function () {
+        app.start();
 
-      localPosCurve.type = pc.CURVE_LINEAR;
+        // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
+        app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
+        app.setCanvasResolution(pc.RESOLUTION_AUTO);
 
-      // make particles move in different directions
-      var localVelocityCurve = new pc.CurveSet([
-      [0, 0, 1, 8],
-      [0, 0, 1, 6],
-      [0, 0, 1, 0]]);
+        // Create an Entity with a camera component
+        var cameraEntity = new pc.Entity();
+        cameraEntity.addComponent("camera", {
+          clearColor: new pc.Color(0, 0, 0.05) });
 
-      var localVelocityCurve2 = new pc.CurveSet([
-      [0, 0, 1, -8],
-      [0, 0, 1, -6],
-      [0, 0, 1, 0]]);
+        cameraEntity.rotateLocal(0, 0, 0);
+        cameraEntity.translateLocal(0, 0, 10);
 
+        // Create a directional light
+        var lightDirEntity = new pc.Entity();
+        lightDirEntity.addComponent("light", {
+          type: "directional",
+          color: new pc.Color(1, 1, 1),
+          intensity: 1 });
 
-      // increasing gravity
-      var worldVelocityCurve = new pc.CurveSet([
-      [0, 0],
-      [0, 0, 0.2, 6, 1, -48],
-      [0, 0]]);
+        lightDirEntity.setLocalEulerAngles(45, 0, 0);
 
-
-      // gradually make sparks bigger
-      var scaleCurve = new pc.Curve(
-      [0, 0, 0.5, 0.3, 0.8, 0.2, 1, 0.1]);
+        // Add Entities into the scene hierarchy
+        app.root.addChild(cameraEntity);
+        app.root.addChild(lightDirEntity);
 
 
-      // rotate sparks 360 degrees per second
-      var angleCurve = new pc.Curve(
-      [0, 360]);
+        // Offset position
+        var localPosCurve = new pc.CurveSet([
+        [0, 0, 1, 4],
+        [0, 0, 1, 3],
+        [0, 0, 1, 0]]);
+
+        localPosCurve.type = pc.CURVE_LINEAR;
+
+        // make particles move in different directions
+        var localVelocityCurve = new pc.CurveSet([
+        [0, 0, 1, 8],
+        [0, 0, 1, 6],
+        [0, 0, 1, 0]]);
+
+        var localVelocityCurve2 = new pc.CurveSet([
+        [0, 0, 1, -8],
+        [0, 0, 1, -6],
+        [0, 0, 1, 0]]);
 
 
-      // color changes throughout lifetime
-      var colorCurve = new pc.CurveSet([
-      [0, 1, 0.25, 1, 0.375, 0.5, 0.5, 0],
-      [0, 0, 0.125, 0.25, 0.25, 0.5, 0.375, 0.75, 0.5, 1],
-      [0, 0, 1, 0]]);
+        // increasing gravity
+        var worldVelocityCurve = new pc.CurveSet([
+        [0, 0],
+        [0, 0, 0.2, 6, 1, -48],
+        [0, 0]]);
 
 
-      // Create entity for particle system
-      var entity = new pc.Entity();
-      app.root.addChild(entity);
-      entity.setLocalPosition(0, 0, 0);
+        // gradually make sparks bigger
+        var scaleCurve = new pc.Curve(
+        [0, 0, 0.5, 0.3, 0.8, 0.2, 1, 0.1]);
 
-      // when texture is loaded add particlesystem component to entity
-      entity.addComponent("particlesystem", {
-        numParticles: 200,
-        lifetime: 2,
-        rate: 0.01,
-        scaleGraph: scaleCurve,
-        rotationSpeedGraph: angleCurve,
-        colorGraph: colorCurve,
-        colorMap: assets.spark.resource,
-        velocityGraph: worldVelocityCurve,
-        localVelocityGraph: localVelocityCurve,
-        localVelocityGraph2: localVelocityCurve2 });
 
+        // rotate sparks 360 degrees per second
+        var angleCurve = new pc.Curve(
+        [0, 360]);
+
+
+        // color changes throughout lifetime
+        var colorCurve = new pc.CurveSet([
+        [0, 1, 0.25, 1, 0.375, 0.5, 0.5, 0],
+        [0, 0, 0.125, 0.25, 0.25, 0.5, 0.375, 0.75, 0.5, 1],
+        [0, 0, 1, 0]]);
+
+
+        // Create entity for particle system
+        var entity = new pc.Entity();
+        app.root.addChild(entity);
+        entity.setLocalPosition(0, 0, 0);
+
+        // when texture is loaded add particlesystem component to entity
+        entity.addComponent("particlesystem", {
+          numParticles: 200,
+          lifetime: 2,
+          rate: 0.01,
+          scaleGraph: scaleCurve,
+          rotationSpeedGraph: angleCurve,
+          colorGraph: colorCurve,
+          colorMap: assets.spark.resource,
+          velocityGraph: worldVelocityCurve,
+          localVelocityGraph: localVelocityCurve,
+          localVelocityGraph2: localVelocityCurve2 });
+
+      });
     } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'Graphics');_defineProperty(Example, "NAME", 'Particles: Spark');
         var example = new Example();
 
@@ -162,9 +161,10 @@
                     presets: ["react", "typescript", "env"]
                 }).code;
             }
-            window.exampleFunction = new Function('app', 'canvas', 'assets', 'data', exampleFunction);
+            window.exampleFunction = new Function('canvas', 'data', exampleFunction);
         }
         window.loadFunction = example.load;
+        window.files = window.top.editedFiles || example.constructor.FILES;
 
         // get url parameters
         var queryString = window.location.search;
@@ -172,42 +172,19 @@
     </script>
     <script>
         function loadEngine(callback) {
-            const enginePath = urlParams.get('use_local_engine') || "/build/playcanvas.dbg.js";
+            const enginePath = urlParams && urlParams.get('use_local_engine') || "/build/playcanvas.js";
 
-            fetch(enginePath)
-                .then(function(response) { return response.text() })
-                .then(function(data) {
-                    var module = {
-                        exports: {}
-                    };
-                    window.pc = (Function('module', 'exports', data).call(module, module, module.exports), module).exports;
-                    window.top.pc = window.pc;
-                    callback();
-                });
+            const script = document.createElement('script');
+            script.setAttribute('src', enginePath);
+            script.onload = function() {
+                window.top.pc = window.pc;
+                callback();
+            };
+            document.head.appendChild(script);
         }
 
-        function createApplication(canvas) {
-            // create the app
-            var app = new pc.Application(canvas, {
-                mouse: new pc.Mouse(document.body),
-                touch: new pc.TouchDevice(document.body),
-                elementInput: new pc.ElementInput(canvas),
-                gamepads: new pc.GamePads(),
-                keyboard: new pc.Keyboard(window),
-                graphicsDeviceOptions: {
-                    alpha: true
-                }
-            });
-
-            // set up miniStats
-            var miniStats = new pcx.MiniStats(app);
-            if (urlParams.get('miniStats') === 'false') {
-                miniStats.enabled = false;
-            }
-            app.on('update', function () {
-                if (window.top._showMiniStats !== undefined) miniStats.enabled = window.top._showMiniStats;
-            });
-
+        function setupApplication(app) {
+            const canvas = app.graphicsDevice.canvas;
             // handle resizing
             var canvasContainerElement = canvas.parentElement;
             canvas.setAttribute('width', window.innerWidth + 'px');
@@ -221,17 +198,17 @@
                 }).observe(canvasContainerElement);
             }
 
-            return app;
-        }
-
-        function hasBasisAssets (assets) {
-        for (let i = 0; i < assets.length; i++) {
-            if (assets[i].url && assets[i].url.includes('.basis')) {
-                return true;
+            if (true) {
+                // set up miniStats
+                var miniStats = new pcx.MiniStats(app);
+                if (urlParams.get('miniStats') === 'false') {
+                    miniStats.enabled = false;
+                }
+                app.on('update', function () {
+                    if (window.top._showMiniStats !== undefined) miniStats.enabled = window.top._showMiniStats;
+                });
             }
         }
-        return false;
-    };
 
         function loadResource(app, resource, callback) {
             if (!resource.type) {
@@ -246,30 +223,6 @@
                     });
                 return;
             }
-            if (resource.data) {
-                var asset = new pc.Asset(
-                    resource.name,
-                    resource.type,
-                    resource.type === "cubemap" ? {
-                        url: resource.url
-                    } : null,
-                    resource.data
-                );
-                asset.on("load", function (asset) {
-                    callback(asset);
-                });
-                app.assets.add(asset);
-                app.assets.load(asset);
-            } else {
-                app.assets.loadFromUrl(resource.url, resource.type, function (
-                    err,
-                    asset
-                ) {
-                    if (!err && asset) {
-                        callback(asset);
-                    }
-                });
-            }
         }
 
         function loadResources(app, callback) {
@@ -280,15 +233,6 @@
             window.React = { createElement: function(type, props) { if (type === 'div') assets.push(props); } };
             // call the stubbed load function to add all assets to the assets list
             window.loadFunction();
-
-            // if we have any basis assets then initialize basis
-            if (hasBasisAssets(assets)) {
-                pc.basisInitialize({
-                    glueUrl: '/static/lib/basis/basis.wasm.js',
-                    wasmUrl: '/static/lib/basis/basis.wasm.wasm',
-                    fallbackUrl: '/static/lib/basis/basis.js'
-                });
-            }
 
             var count = assets.length;
             function onLoadedResource(key, asset) {
@@ -308,16 +252,40 @@
             });
         }
 
-        function callExample(app, canvas, assetManifest, data) {
-            if (location.pathname.indexOf('misc/mini-stats') !== -1) {
-                window.exampleFunction(app, canvas, pcx);
-            } else {
-                window.exampleFunction(app, canvas, assetManifest, data, wasmSupported, loadWasmModuleAsync);
+        function callExample(canvas, assetManifest, files, data) {
+            function escapeRegExp(string) {
+                return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             }
-            if (window.top.location.pathname.indexOf('iframe') === -1) {
-                var event = new CustomEvent("exampleLoad");
-                window.top.dispatchEvent(event);
+            function replaceAll(str, find, replace) {
+                return str.replace(new RegExp(escapeRegExp(find), 'g'), replace);
             }
+            var argsString = window.exampleFunction.toString().match(/function\s.*?\(([^)]*)\)/)[1];
+            argsString = replaceAll(argsString, ' ', '');
+            argsString = replaceAll(argsString, '\n', '');
+            var argNames = argsString.split(',');
+            var args = argNames.map(function(arg) {
+                if (arg === 'canvas') {
+                    return canvas;
+                } else if (arg === 'assetManifest') {
+                    return assetManifest;
+                } else if (arg === 'files') {
+                    return files;
+                } else if (arg === 'data') {
+                    return data;
+                } else if (arg === 'pcx') {
+                    return pcx;
+                } else if (arg === 'loadWasmModuleAsync') {
+                    return loadWasmModuleAsync;
+                } else if (arg === 'wasmSupported') {
+                    return wasmSupported;
+                }
+            });
+            window.exampleFunction.apply(this, args);
+            if (pc.app && pc.app.graphicsDevice.canvas) {
+                setupApplication(pc.app);
+            }
+            var event = new CustomEvent("exampleLoad");
+            window.top.dispatchEvent(event);
         }
     </script>
     <script>
@@ -329,13 +297,11 @@
         loadEngine(function() {
             var canvas = document.getElementById('application-canvas');
 
-            const app = createApplication(canvas);
-
             if (!window.loadFunction) {
-                callExample(app, canvas, {}, data);
+                callExample(canvas, {}, window.files, data);
             } else {
-                loadResources(app, function(assetManifest) {
-                    callExample(app, canvas, assetManifest, data);
+                loadResources(undefined, function(assetManifest) {
+                    callExample(canvas, assetManifest, window.files, data);
                 });
             }
         });

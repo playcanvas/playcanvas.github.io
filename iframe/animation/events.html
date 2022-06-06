@@ -8,6 +8,8 @@
     <script src="../../build/promisePolyfill.js"></script>
     <script src="../../build/fetchPolyfill.js"></script>
     <script src="../../build/regeneratorRuntimePolyfill.js"></script>
+    <script src="../../build/arrayFromPolyfill.js"></script>
+    <script src="../../build/objectValuesPolyfill.js"></script>
     <link rel="stylesheet" href="/styles.css">
     <style>
         body {
@@ -36,151 +38,149 @@
             });
         }
 
-        // include any constants necessary for the example
-        var constValues = [];
-        for (var i = 0; i < constValues.length; i++) {
-            window[constValues[i].k] = constValues[i].v;
-        }
-
         // include the example class which contains the example function to execute and any assets to load
-        "use strict";function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}function _defineProperties(target, props) {for (var i = 0; i < props.length; i++) {var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);}}function _createClass(Constructor, protoProps, staticProps) {if (protoProps) _defineProperties(Constructor.prototype, protoProps);if (staticProps) _defineProperties(Constructor, staticProps);Object.defineProperty(Constructor, "prototype", { writable: false });return Constructor;}function _defineProperty(obj, key, value) {if (key in obj) {Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true });} else {obj[key] = value;}return obj;}var Example = /*#__PURE__*/function () {function Example() {_classCallCheck(this, Example);}_createClass(Example, [{ key: "load", value:
+        "use strict";function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}function _defineProperties(target, props) {for (var i = 0; i < props.length; i++) {var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);}}function _createClass(Constructor, protoProps, staticProps) {if (protoProps) _defineProperties(Constructor.prototype, protoProps);if (staticProps) _defineProperties(Constructor, staticProps);Object.defineProperty(Constructor, "prototype", { writable: false });return Constructor;}function _defineProperty(obj, key, value) {if (key in obj) {Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true });} else {obj[key] = value;}return obj;}var Example = /*#__PURE__*/function () {function Example() {_classCallCheck(this, Example);}_createClass(Example, [{ key: "example", value:
 
 
 
-    function load() {
-      return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/
-      React.createElement("div", { name: "model", type: "container", url: "/../../static/assets/models/bitmoji.glb" }), /*#__PURE__*/
-      React.createElement("div", { name: "walkAnim", type: "container", url: "/../../static/assets/animations/bitmoji/walk.glb" }), /*#__PURE__*/
-      React.createElement("div", { name: "helipad.dds", type: "cubemap", url: "/../../static/assets/cubemaps/helipad.dds", data: { type: pc.TEXTURETYPE_RGBM } }), /*#__PURE__*/
-      React.createElement("div", { name: "bloom", type: "script", url: "/../../static/scripts/posteffects/posteffect-bloom.js" }));
+    function example(canvas) {
 
-    } }, { key: "example", value:
-
-    function example(app, canvas, assets) {
-
-      
-
-      app.scene.exposure = 2;
-      app.start();
-
-      // setup skydome
-      app.scene.skyboxMip = 2;
-      app.scene.setSkybox(assets['helipad.dds'].resources);
-      app.scene.skyboxIntensity = 0.4; // make it darker
-
-      // Create an Entity with a camera component
-      var cameraEntity = new pc.Entity();
-      cameraEntity.addComponent("camera", {
-        clearColor: new pc.Color(0.1, 0.1, 0.1) });
-
-      cameraEntity.translate(0, 1, 0);
-
-      // add bloom postprocessing (this is ignored by the picker)
-      cameraEntity.addComponent("script");
-      cameraEntity.script.create("bloom", {
-        attributes: {
-          bloomIntensity: 1,
-          bloomThreshold: 0.7,
-          blurAmount: 4 } });
+      var app = new pc.Application(canvas, {
+        mouse: new pc.Mouse(document.body),
+        touch: new pc.TouchDevice(document.body) });
 
 
-      app.root.addChild(cameraEntity);
+      var assets = {
+        'model': new pc.Asset('model', 'container', { url: '/../../static/assets/models/bitmoji.glb' }),
+        'walkAnim': new pc.Asset('walkAnim', 'container', { url: '/../../static/assets/animations/bitmoji/walk.glb' }),
+        'helipad.dds': new pc.Asset('helipad.dds', 'cubemap', { url: '/../../static/assets/cubemaps/helipad.dds' }),
+        'bloom': new pc.Asset('bloom', 'script', { url: '/../../static/scripts/posteffects/posteffect-bloom.js' }) };
 
-      var boxes = {};
-      var highlightedBoxes = [];
+      var assetListLoader = new pc.AssetListLoader(Object.values(assets), app.assets);
+      assetListLoader.load(function () {
+        app.scene.exposure = 2;
+        app.start();
 
-      // create a floor made up of box models
-      for (var i = -5; i <= 5; i++) {
-        for (var j = -5; j <= 5; j++) {
-          var box = new pc.Entity();
-          boxes["".concat(i).concat(j)] = box;
-          box.addComponent('model', { type: 'box' });
-          box.setPosition(i, -0.5, j);
-          box.setLocalScale(0.95, 1, 0.95);
-          var material = new pc.StandardMaterial();
-          material.diffuse = new pc.Color(0.7, 0.7, 0.7);
-          material.shininess = 30;
-          material.metalness = 0.2;
-          material.useMetalness = true;
-          box.model.material = material;
-          material.update();
-          app.root.addChild(box);
+        // setup skydome
+        app.scene.skyboxMip = 2;
+        app.scene.setSkybox(assets['helipad.dds'].resources);
+        app.scene.skyboxIntensity = 0.4; // make it darker
 
+        // Create an Entity with a camera component
+        var cameraEntity = new pc.Entity();
+        cameraEntity.addComponent("camera", {
+          clearColor: new pc.Color(0.1, 0.1, 0.1) });
+
+        cameraEntity.translate(0, 1, 0);
+
+        // add bloom postprocessing (this is ignored by the picker)
+        cameraEntity.addComponent("script");
+        cameraEntity.script.create("bloom", {
+          attributes: {
+            bloomIntensity: 1,
+            bloomThreshold: 0.7,
+            blurAmount: 4 } });
+
+
+        app.root.addChild(cameraEntity);
+
+        var boxes = {};
+        var highlightedBoxes = [];
+
+        // create a floor made up of box models
+        for (var i = -5; i <= 5; i++) {
+          for (var j = -5; j <= 5; j++) {
+            var box = new pc.Entity();
+            boxes["".concat(i).concat(j)] = box;
+            box.addComponent('model', { type: 'box' });
+            box.setPosition(i, -0.5, j);
+            box.setLocalScale(0.95, 1, 0.95);
+            var material = new pc.StandardMaterial();
+            material.diffuse = new pc.Color(0.7, 0.7, 0.7);
+            material.shininess = 30;
+            material.metalness = 0.2;
+            material.useMetalness = true;
+            box.model.material = material;
+            material.update();
+            app.root.addChild(box);
+
+          }
         }
-      }
 
-      // light up a box at the given position with a random color using the emissive material property
-      var highlightBox = function highlightBox(pos) {
-        var i = Math.floor(pos.x + 0.5);
-        var j = Math.floor(pos.z + 0.5);
-        var colorVec = new pc.Vec3(Math.random(), Math.random(), Math.random());
-        colorVec.mulScalar(1 / colorVec.length());
-        boxes["".concat(i).concat(j)].model.material.emissive = new pc.Color(colorVec.x, colorVec.y, colorVec.z);
-        highlightedBoxes.push(boxes["".concat(i).concat(j)]);
-      };
+        // light up a box at the given position with a random color using the emissive material property
+        var highlightBox = function highlightBox(pos) {
+          var i = Math.floor(pos.x + 0.5);
+          var j = Math.floor(pos.z + 0.5);
+          var colorVec = new pc.Vec3(Math.random(), Math.random(), Math.random());
+          colorVec.mulScalar(1 / colorVec.length());
+          boxes["".concat(i).concat(j)].model.material.emissive = new pc.Color(colorVec.x, colorVec.y, colorVec.z);
+          highlightedBoxes.push(boxes["".concat(i).concat(j)]);
+        };
 
-      // create an entity from the loaded model using the render component
-      var modelEntity = assets.model.resource.instantiateRenderEntity({
-        castShadows: true });
-
-
-      // add an anim component to the entity
-      modelEntity.addComponent('anim', {
-        activate: true });
-
-      modelEntity.setLocalPosition(-3, 0, 0);
-
-      var modelEntityParent = new pc.Entity();
-      modelEntityParent.addChild(modelEntity);
-
-      app.root.addChild(modelEntityParent);
-
-      // rotate the model in a circle around the center of the scene
-      app.on('update', function (dt) {
-        modelEntityParent.rotate(0, 13.8 * dt, 0);
-      });
-
-      var walkTrack = assets.walkAnim.resource.animations[0].resource;
-
-      // Add two anim events to the walk animation, one for each foot step. These events should occur just as each foot touches the ground
-      walkTrack.events = new pc.AnimEvents([
-      {
-        time: walkTrack.duration * 0.1,
-        name: 'foot_step',
-        bone: 'R_foot0002_bind_JNT' },
-
-      {
-        time: walkTrack.duration * 0.6,
-        name: 'foot_step',
-        bone: 'L_foot0002_bind_JNT' }]);
+        // create an entity from the loaded model using the render component
+        var modelEntity = assets.model.resource.instantiateRenderEntity({
+          castShadows: true });
 
 
+        // add an anim component to the entity
+        modelEntity.addComponent('anim', {
+          activate: true });
 
-      // add the animation track to the anim component, with a defined speed
-      modelEntity.anim.assignAnimation('Walk', walkTrack, undefined, 0.62);
+        modelEntity.setLocalPosition(-3, 0, 0);
 
-      modelEntity.anim.on('foot_step', function (event) {
-        // highlight the box that is under the foot's bone position
-        highlightBox(modelEntity.findByName(event.bone).getPosition());
-      });
+        var modelEntityParent = new pc.Entity();
+        modelEntityParent.addChild(modelEntity);
 
-      app.on('update', function (dt) {
-        // on update, iterate over any currently highlighted boxes and reduce their emissive property
-        highlightedBoxes.forEach(function (box) {
-          var material = box.model.material;
-          var emissive = material.emissive;
-          emissive.lerp(emissive, pc.Color.BLACK, 0.08);
-          material.update();
+        app.root.addChild(modelEntityParent);
+
+        // rotate the model in a circle around the center of the scene
+        app.on('update', function (dt) {
+          modelEntityParent.rotate(0, 13.8 * dt, 0);
         });
-        // remove old highlighted boxes from the update loop
-        while (highlightedBoxes.length > 5) {
-          highlightedBoxes.shift();
-        }
 
-        // set the camera to follow the model
-        var modelPosition = modelEntity.getPosition().clone();
-        modelPosition.y = 0.5;
-        cameraEntity.lookAt(modelPosition);
+        var walkTrack = assets.walkAnim.resource.animations[0].resource;
+
+        // Add two anim events to the walk animation, one for each foot step. These events should occur just as each foot touches the ground
+        walkTrack.events = new pc.AnimEvents([
+        {
+          time: walkTrack.duration * 0.1,
+          name: 'foot_step',
+          bone: 'R_foot0002_bind_JNT' },
+
+        {
+          time: walkTrack.duration * 0.6,
+          name: 'foot_step',
+          bone: 'L_foot0002_bind_JNT' }]);
+
+
+
+        // add the animation track to the anim component, with a defined speed
+        modelEntity.anim.assignAnimation('Walk', walkTrack, undefined, 0.62);
+
+        modelEntity.anim.on('foot_step', function (event) {
+          // highlight the box that is under the foot's bone position
+          highlightBox(modelEntity.findByName(event.bone).getPosition());
+        });
+
+        app.on('update', function () {
+          // on update, iterate over any currently highlighted boxes and reduce their emissive property
+          highlightedBoxes.forEach(function (box) {
+            var material = box.model.material;
+            var emissive = material.emissive;
+            emissive.lerp(emissive, pc.Color.BLACK, 0.08);
+            material.update();
+          });
+          // remove old highlighted boxes from the update loop
+          while (highlightedBoxes.length > 5) {
+            highlightedBoxes.shift();
+          }
+
+          // set the camera to follow the model
+          var modelPosition = modelEntity.getPosition().clone();
+          modelPosition.y = 0.5;
+          cameraEntity.lookAt(modelPosition);
+
+        });
       });
     } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'Animation');_defineProperty(Example, "NAME", 'Events');
         var example = new Example();
@@ -197,9 +197,10 @@
                     presets: ["react", "typescript", "env"]
                 }).code;
             }
-            window.exampleFunction = new Function('app', 'canvas', 'assets', 'data', exampleFunction);
+            window.exampleFunction = new Function('canvas', 'data', exampleFunction);
         }
         window.loadFunction = example.load;
+        window.files = window.top.editedFiles || example.constructor.FILES;
 
         // get url parameters
         var queryString = window.location.search;
@@ -207,42 +208,19 @@
     </script>
     <script>
         function loadEngine(callback) {
-            const enginePath = urlParams.get('use_local_engine') || "/build/playcanvas.dbg.js";
+            const enginePath = urlParams && urlParams.get('use_local_engine') || "/build/playcanvas.js";
 
-            fetch(enginePath)
-                .then(function(response) { return response.text() })
-                .then(function(data) {
-                    var module = {
-                        exports: {}
-                    };
-                    window.pc = (Function('module', 'exports', data).call(module, module, module.exports), module).exports;
-                    window.top.pc = window.pc;
-                    callback();
-                });
+            const script = document.createElement('script');
+            script.setAttribute('src', enginePath);
+            script.onload = function() {
+                window.top.pc = window.pc;
+                callback();
+            };
+            document.head.appendChild(script);
         }
 
-        function createApplication(canvas) {
-            // create the app
-            var app = new pc.Application(canvas, {
-                mouse: new pc.Mouse(document.body),
-                touch: new pc.TouchDevice(document.body),
-                elementInput: new pc.ElementInput(canvas),
-                gamepads: new pc.GamePads(),
-                keyboard: new pc.Keyboard(window),
-                graphicsDeviceOptions: {
-                    alpha: true
-                }
-            });
-
-            // set up miniStats
-            var miniStats = new pcx.MiniStats(app);
-            if (urlParams.get('miniStats') === 'false') {
-                miniStats.enabled = false;
-            }
-            app.on('update', function () {
-                if (window.top._showMiniStats !== undefined) miniStats.enabled = window.top._showMiniStats;
-            });
-
+        function setupApplication(app) {
+            const canvas = app.graphicsDevice.canvas;
             // handle resizing
             var canvasContainerElement = canvas.parentElement;
             canvas.setAttribute('width', window.innerWidth + 'px');
@@ -256,17 +234,17 @@
                 }).observe(canvasContainerElement);
             }
 
-            return app;
-        }
-
-        function hasBasisAssets (assets) {
-        for (let i = 0; i < assets.length; i++) {
-            if (assets[i].url && assets[i].url.includes('.basis')) {
-                return true;
+            if (true) {
+                // set up miniStats
+                var miniStats = new pcx.MiniStats(app);
+                if (urlParams.get('miniStats') === 'false') {
+                    miniStats.enabled = false;
+                }
+                app.on('update', function () {
+                    if (window.top._showMiniStats !== undefined) miniStats.enabled = window.top._showMiniStats;
+                });
             }
         }
-        return false;
-    };
 
         function loadResource(app, resource, callback) {
             if (!resource.type) {
@@ -281,30 +259,6 @@
                     });
                 return;
             }
-            if (resource.data) {
-                var asset = new pc.Asset(
-                    resource.name,
-                    resource.type,
-                    resource.type === "cubemap" ? {
-                        url: resource.url
-                    } : null,
-                    resource.data
-                );
-                asset.on("load", function (asset) {
-                    callback(asset);
-                });
-                app.assets.add(asset);
-                app.assets.load(asset);
-            } else {
-                app.assets.loadFromUrl(resource.url, resource.type, function (
-                    err,
-                    asset
-                ) {
-                    if (!err && asset) {
-                        callback(asset);
-                    }
-                });
-            }
         }
 
         function loadResources(app, callback) {
@@ -315,15 +269,6 @@
             window.React = { createElement: function(type, props) { if (type === 'div') assets.push(props); } };
             // call the stubbed load function to add all assets to the assets list
             window.loadFunction();
-
-            // if we have any basis assets then initialize basis
-            if (hasBasisAssets(assets)) {
-                pc.basisInitialize({
-                    glueUrl: '/static/lib/basis/basis.wasm.js',
-                    wasmUrl: '/static/lib/basis/basis.wasm.wasm',
-                    fallbackUrl: '/static/lib/basis/basis.js'
-                });
-            }
 
             var count = assets.length;
             function onLoadedResource(key, asset) {
@@ -343,16 +288,40 @@
             });
         }
 
-        function callExample(app, canvas, assetManifest, data) {
-            if (location.pathname.indexOf('misc/mini-stats') !== -1) {
-                window.exampleFunction(app, canvas, pcx);
-            } else {
-                window.exampleFunction(app, canvas, assetManifest, data, wasmSupported, loadWasmModuleAsync);
+        function callExample(canvas, assetManifest, files, data) {
+            function escapeRegExp(string) {
+                return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             }
-            if (window.top.location.pathname.indexOf('iframe') === -1) {
-                var event = new CustomEvent("exampleLoad");
-                window.top.dispatchEvent(event);
+            function replaceAll(str, find, replace) {
+                return str.replace(new RegExp(escapeRegExp(find), 'g'), replace);
             }
+            var argsString = window.exampleFunction.toString().match(/function\s.*?\(([^)]*)\)/)[1];
+            argsString = replaceAll(argsString, ' ', '');
+            argsString = replaceAll(argsString, '\n', '');
+            var argNames = argsString.split(',');
+            var args = argNames.map(function(arg) {
+                if (arg === 'canvas') {
+                    return canvas;
+                } else if (arg === 'assetManifest') {
+                    return assetManifest;
+                } else if (arg === 'files') {
+                    return files;
+                } else if (arg === 'data') {
+                    return data;
+                } else if (arg === 'pcx') {
+                    return pcx;
+                } else if (arg === 'loadWasmModuleAsync') {
+                    return loadWasmModuleAsync;
+                } else if (arg === 'wasmSupported') {
+                    return wasmSupported;
+                }
+            });
+            window.exampleFunction.apply(this, args);
+            if (pc.app && pc.app.graphicsDevice.canvas) {
+                setupApplication(pc.app);
+            }
+            var event = new CustomEvent("exampleLoad");
+            window.top.dispatchEvent(event);
         }
     </script>
     <script>
@@ -364,13 +333,11 @@
         loadEngine(function() {
             var canvas = document.getElementById('application-canvas');
 
-            const app = createApplication(canvas);
-
             if (!window.loadFunction) {
-                callExample(app, canvas, {}, data);
+                callExample(canvas, {}, window.files, data);
             } else {
-                loadResources(app, function(assetManifest) {
-                    callExample(app, canvas, assetManifest, data);
+                loadResources(undefined, function(assetManifest) {
+                    callExample(canvas, assetManifest, window.files, data);
                 });
             }
         });

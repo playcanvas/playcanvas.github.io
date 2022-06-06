@@ -8,6 +8,8 @@
     <script src="../../build/promisePolyfill.js"></script>
     <script src="../../build/fetchPolyfill.js"></script>
     <script src="../../build/regeneratorRuntimePolyfill.js"></script>
+    <script src="../../build/arrayFromPolyfill.js"></script>
+    <script src="../../build/objectValuesPolyfill.js"></script>
     <link rel="stylesheet" href="/styles.css">
     <style>
         body {
@@ -36,124 +38,121 @@
             });
         }
 
-        // include any constants necessary for the example
-        var constValues = [];
-        for (var i = 0; i < constValues.length; i++) {
-            window[constValues[i].k] = constValues[i].v;
-        }
-
         // include the example class which contains the example function to execute and any assets to load
-        "use strict";function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}function _defineProperties(target, props) {for (var i = 0; i < props.length; i++) {var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);}}function _createClass(Constructor, protoProps, staticProps) {if (protoProps) _defineProperties(Constructor.prototype, protoProps);if (staticProps) _defineProperties(Constructor, staticProps);Object.defineProperty(Constructor, "prototype", { writable: false });return Constructor;}function _defineProperty(obj, key, value) {if (key in obj) {Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true });} else {obj[key] = value;}return obj;}var Example = /*#__PURE__*/function () {function Example() {_classCallCheck(this, Example);}_createClass(Example, [{ key: "load", value:
+        "use strict";function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}function _defineProperties(target, props) {for (var i = 0; i < props.length; i++) {var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);}}function _createClass(Constructor, protoProps, staticProps) {if (protoProps) _defineProperties(Constructor.prototype, protoProps);if (staticProps) _defineProperties(Constructor, staticProps);Object.defineProperty(Constructor, "prototype", { writable: false });return Constructor;}function _defineProperty(obj, key, value) {if (key in obj) {Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true });} else {obj[key] = value;}return obj;}var Example = /*#__PURE__*/function () {function Example() {_classCallCheck(this, Example);}_createClass(Example, [{ key: "example", value:
 
 
 
-    function load() {
-      return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/
-      React.createElement("div", { name: "tv", type: "container", url: "/../../static/assets/models/tv.glb" }));
 
-    } }, { key: "example", value:
-
-    function example(app, canvas, assets) {
+    function example(canvas) {
 
       // Create the application and start the update loop
-      
-      app.start();
+      var app = new pc.Application(canvas, {});
 
-      // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
-      app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
-      app.setCanvasResolution(pc.RESOLUTION_AUTO);
-
-      app.scene.ambientLight = new pc.Color(0.2, 0.2, 0.2);
-
-      // Create an Entity with a camera component
-      var camera = new pc.Entity();
-      camera.addComponent("camera", {
-        clearColor: new pc.Color(0.4, 0.45, 0.5) });
-
-      camera.translate(0, 0, 15);
-
-      // Create an Entity with a omni light
-      var light = new pc.Entity();
-      light.addComponent("light", {
-        type: "omni",
-        color: new pc.Color(1, 1, 1),
-        range: 30 });
-
-      light.translate(5, 5, 10);
-
-      app.root.addChild(camera);
-      app.root.addChild(light);
-
-      // Create a texture to hold the video frame data
-      var videoTexture = new pc.Texture(app.graphicsDevice, {
-        format: pc.PIXELFORMAT_R5_G6_B5,
-        mipmaps: false,
-        minFilter: pc.FILTER_LINEAR,
-        magFilter: pc.FILTER_LINEAR,
-        addressU: pc.ADDRESS_CLAMP_TO_EDGE,
-        addressV: pc.ADDRESS_CLAMP_TO_EDGE });
+      var assets = {
+        'tv': new pc.Asset('tv', 'container', { url: '/../../static/assets/models/tv.glb' }) };
 
 
-      // Create our HTML element with the video
-      var video = document.createElement('video');
-      video.id = 'vid';
-      video.loop = true;
+      var assetListLoader = new pc.AssetListLoader(Object.values(assets), app.assets);
+      assetListLoader.load(function () {
+        app.start();
 
-      // Muted so that we can autoplay
-      video.muted = true;
-      video.autoplay = true;
+        // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
+        app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
+        app.setCanvasResolution(pc.RESOLUTION_AUTO);
 
-      // Inline needed for iOS otherwise it plays at fullscreen
-      video.playsInline = true;
+        app.scene.ambientLight = new pc.Color(0.2, 0.2, 0.2);
 
-      video.crossOrigin = "anonymous";
+        // Create an Entity with a camera component
+        var camera = new pc.Entity();
+        camera.addComponent("camera", {
+          clearColor: new pc.Color(0.4, 0.45, 0.5) });
 
-      // Make sure that the video is in view on the page otherwise it doesn't
-      // load on some browsers, especially mobile
-      video.setAttribute('style', 'display: block; width: 1px; height: 1px; position: absolute; opacity: 0; z-index: -1000; top: 0px; pointer-events: none');
+        camera.translate(0, 0, 15);
 
-      video.src = '/../../static/assets/video/SampleVideo_1280x720_1mb.mp4';
-      document.body.append(video);
+        // Create an Entity with a omni light
+        var light = new pc.Entity();
+        light.addComponent("light", {
+          type: "omni",
+          color: new pc.Color(1, 1, 1),
+          range: 30 });
 
-      video.addEventListener('canplaythrough', function () {
-        videoTexture.setSource(video);
-      });
+        light.translate(5, 5, 10);
 
-      // create an entity to render the tv mesh
-      var entity = assets.tv.resource.instantiateRenderEntity();
-      app.root.addChild(entity);
+        app.root.addChild(camera);
+        app.root.addChild(light);
 
-      // Create a material that will use our video texture
-      var material = new pc.StandardMaterial();
-      material.useLighting = false;
-      material.emissiveMap = videoTexture;
-      material.update();
+        // Create a texture to hold the video frame data
+        var videoTexture = new pc.Texture(app.graphicsDevice, {
+          format: pc.PIXELFORMAT_R5_G6_B5,
+          mipmaps: false,
+          minFilter: pc.FILTER_LINEAR,
+          magFilter: pc.FILTER_LINEAR,
+          addressU: pc.ADDRESS_CLAMP_TO_EDGE,
+          addressV: pc.ADDRESS_CLAMP_TO_EDGE });
 
-      // set the material on the screen mesh
-      entity.render.meshInstances[1].material = material;
 
-      video.load();
+        // Create our HTML element with the video
+        var video = document.createElement('video');
+        video.id = 'vid';
+        video.loop = true;
 
-      var mouse = new pc.Mouse(document.body);
-      mouse.on('mousedown', function (event) {
-        if (entity && event.buttons[pc.MOUSEBUTTON_LEFT]) {
-          video.muted = !video.muted;
-        }
-      });
+        // Muted so that we can autoplay
+        video.muted = true;
+        video.autoplay = true;
 
-      var upload = false;
-      var time = 0;
-      app.on('update', function (dt) {
-        time += dt;
+        // Inline needed for iOS otherwise it plays at fullscreen
+        video.playsInline = true;
 
-        // rotate the tv object
-        entity.setLocalEulerAngles(100 + Math.sin(time) * 50, 0, -90);
+        video.crossOrigin = "anonymous";
 
-        // Upload the video data to the texture every other frame
-        upload = !upload;
-        if (upload) {
-          videoTexture.upload();
-        }
+        // Make sure that the video is in view on the page otherwise it doesn't
+        // load on some browsers, especially mobile
+        video.setAttribute('style', 'display: block; width: 1px; height: 1px; position: absolute; opacity: 0; z-index: -1000; top: 0px; pointer-events: none');
+
+        video.src = '/../../static/assets/video/SampleVideo_1280x720_1mb.mp4';
+        document.body.append(video);
+
+        video.addEventListener('canplaythrough', function () {
+          videoTexture.setSource(video);
+        });
+
+        // create an entity to render the tv mesh
+        var entity = assets.tv.resource.instantiateRenderEntity();
+        app.root.addChild(entity);
+
+        // Create a material that will use our video texture
+        var material = new pc.StandardMaterial();
+        material.useLighting = false;
+        material.emissiveMap = videoTexture;
+        material.update();
+
+        // set the material on the screen mesh
+        entity.render.meshInstances[1].material = material;
+
+        video.load();
+
+        var mouse = new pc.Mouse(document.body);
+        mouse.on('mousedown', function (event) {
+          if (entity && event.buttons[pc.MOUSEBUTTON_LEFT]) {
+            video.muted = !video.muted;
+          }
+        });
+
+        var upload = false;
+        var time = 0;
+        app.on('update', function (dt) {
+          time += dt;
+
+          // rotate the tv object
+          entity.setLocalEulerAngles(100 + Math.sin(time) * 50, 0, -90);
+
+          // Upload the video data to the texture every other frame
+          upload = !upload;
+          if (upload) {
+            videoTexture.upload();
+          }
+        });
       });
     } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'Graphics');_defineProperty(Example, "NAME", 'Video Texture');
         var example = new Example();
@@ -170,9 +169,10 @@
                     presets: ["react", "typescript", "env"]
                 }).code;
             }
-            window.exampleFunction = new Function('app', 'canvas', 'assets', 'data', exampleFunction);
+            window.exampleFunction = new Function('canvas', 'data', exampleFunction);
         }
         window.loadFunction = example.load;
+        window.files = window.top.editedFiles || example.constructor.FILES;
 
         // get url parameters
         var queryString = window.location.search;
@@ -180,42 +180,19 @@
     </script>
     <script>
         function loadEngine(callback) {
-            const enginePath = urlParams.get('use_local_engine') || "/build/playcanvas.dbg.js";
+            const enginePath = urlParams && urlParams.get('use_local_engine') || "/build/playcanvas.js";
 
-            fetch(enginePath)
-                .then(function(response) { return response.text() })
-                .then(function(data) {
-                    var module = {
-                        exports: {}
-                    };
-                    window.pc = (Function('module', 'exports', data).call(module, module, module.exports), module).exports;
-                    window.top.pc = window.pc;
-                    callback();
-                });
+            const script = document.createElement('script');
+            script.setAttribute('src', enginePath);
+            script.onload = function() {
+                window.top.pc = window.pc;
+                callback();
+            };
+            document.head.appendChild(script);
         }
 
-        function createApplication(canvas) {
-            // create the app
-            var app = new pc.Application(canvas, {
-                mouse: new pc.Mouse(document.body),
-                touch: new pc.TouchDevice(document.body),
-                elementInput: new pc.ElementInput(canvas),
-                gamepads: new pc.GamePads(),
-                keyboard: new pc.Keyboard(window),
-                graphicsDeviceOptions: {
-                    alpha: true
-                }
-            });
-
-            // set up miniStats
-            var miniStats = new pcx.MiniStats(app);
-            if (urlParams.get('miniStats') === 'false') {
-                miniStats.enabled = false;
-            }
-            app.on('update', function () {
-                if (window.top._showMiniStats !== undefined) miniStats.enabled = window.top._showMiniStats;
-            });
-
+        function setupApplication(app) {
+            const canvas = app.graphicsDevice.canvas;
             // handle resizing
             var canvasContainerElement = canvas.parentElement;
             canvas.setAttribute('width', window.innerWidth + 'px');
@@ -229,17 +206,17 @@
                 }).observe(canvasContainerElement);
             }
 
-            return app;
-        }
-
-        function hasBasisAssets (assets) {
-        for (let i = 0; i < assets.length; i++) {
-            if (assets[i].url && assets[i].url.includes('.basis')) {
-                return true;
+            if (true) {
+                // set up miniStats
+                var miniStats = new pcx.MiniStats(app);
+                if (urlParams.get('miniStats') === 'false') {
+                    miniStats.enabled = false;
+                }
+                app.on('update', function () {
+                    if (window.top._showMiniStats !== undefined) miniStats.enabled = window.top._showMiniStats;
+                });
             }
         }
-        return false;
-    };
 
         function loadResource(app, resource, callback) {
             if (!resource.type) {
@@ -254,30 +231,6 @@
                     });
                 return;
             }
-            if (resource.data) {
-                var asset = new pc.Asset(
-                    resource.name,
-                    resource.type,
-                    resource.type === "cubemap" ? {
-                        url: resource.url
-                    } : null,
-                    resource.data
-                );
-                asset.on("load", function (asset) {
-                    callback(asset);
-                });
-                app.assets.add(asset);
-                app.assets.load(asset);
-            } else {
-                app.assets.loadFromUrl(resource.url, resource.type, function (
-                    err,
-                    asset
-                ) {
-                    if (!err && asset) {
-                        callback(asset);
-                    }
-                });
-            }
         }
 
         function loadResources(app, callback) {
@@ -288,15 +241,6 @@
             window.React = { createElement: function(type, props) { if (type === 'div') assets.push(props); } };
             // call the stubbed load function to add all assets to the assets list
             window.loadFunction();
-
-            // if we have any basis assets then initialize basis
-            if (hasBasisAssets(assets)) {
-                pc.basisInitialize({
-                    glueUrl: '/static/lib/basis/basis.wasm.js',
-                    wasmUrl: '/static/lib/basis/basis.wasm.wasm',
-                    fallbackUrl: '/static/lib/basis/basis.js'
-                });
-            }
 
             var count = assets.length;
             function onLoadedResource(key, asset) {
@@ -316,16 +260,40 @@
             });
         }
 
-        function callExample(app, canvas, assetManifest, data) {
-            if (location.pathname.indexOf('misc/mini-stats') !== -1) {
-                window.exampleFunction(app, canvas, pcx);
-            } else {
-                window.exampleFunction(app, canvas, assetManifest, data, wasmSupported, loadWasmModuleAsync);
+        function callExample(canvas, assetManifest, files, data) {
+            function escapeRegExp(string) {
+                return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             }
-            if (window.top.location.pathname.indexOf('iframe') === -1) {
-                var event = new CustomEvent("exampleLoad");
-                window.top.dispatchEvent(event);
+            function replaceAll(str, find, replace) {
+                return str.replace(new RegExp(escapeRegExp(find), 'g'), replace);
             }
+            var argsString = window.exampleFunction.toString().match(/function\s.*?\(([^)]*)\)/)[1];
+            argsString = replaceAll(argsString, ' ', '');
+            argsString = replaceAll(argsString, '\n', '');
+            var argNames = argsString.split(',');
+            var args = argNames.map(function(arg) {
+                if (arg === 'canvas') {
+                    return canvas;
+                } else if (arg === 'assetManifest') {
+                    return assetManifest;
+                } else if (arg === 'files') {
+                    return files;
+                } else if (arg === 'data') {
+                    return data;
+                } else if (arg === 'pcx') {
+                    return pcx;
+                } else if (arg === 'loadWasmModuleAsync') {
+                    return loadWasmModuleAsync;
+                } else if (arg === 'wasmSupported') {
+                    return wasmSupported;
+                }
+            });
+            window.exampleFunction.apply(this, args);
+            if (pc.app && pc.app.graphicsDevice.canvas) {
+                setupApplication(pc.app);
+            }
+            var event = new CustomEvent("exampleLoad");
+            window.top.dispatchEvent(event);
         }
     </script>
     <script>
@@ -337,13 +305,11 @@
         loadEngine(function() {
             var canvas = document.getElementById('application-canvas');
 
-            const app = createApplication(canvas);
-
             if (!window.loadFunction) {
-                callExample(app, canvas, {}, data);
+                callExample(canvas, {}, window.files, data);
             } else {
-                loadResources(app, function(assetManifest) {
-                    callExample(app, canvas, assetManifest, data);
+                loadResources(undefined, function(assetManifest) {
+                    callExample(canvas, assetManifest, window.files, data);
                 });
             }
         });

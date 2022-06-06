@@ -8,6 +8,8 @@
     <script src="../../build/promisePolyfill.js"></script>
     <script src="../../build/fetchPolyfill.js"></script>
     <script src="../../build/regeneratorRuntimePolyfill.js"></script>
+    <script src="../../build/arrayFromPolyfill.js"></script>
+    <script src="../../build/objectValuesPolyfill.js"></script>
     <link rel="stylesheet" href="/styles.css">
     <style>
         body {
@@ -36,24 +38,11 @@
             });
         }
 
-        // include any constants necessary for the example
-        var constValues = [];
-        for (var i = 0; i < constValues.length; i++) {
-            window[constValues[i].k] = constValues[i].v;
-        }
-
         // include the example class which contains the example function to execute and any assets to load
-        "use strict";function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}function _defineProperties(target, props) {for (var i = 0; i < props.length; i++) {var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);}}function _createClass(Constructor, protoProps, staticProps) {if (protoProps) _defineProperties(Constructor.prototype, protoProps);if (staticProps) _defineProperties(Constructor, staticProps);Object.defineProperty(Constructor, "prototype", { writable: false });return Constructor;}function _defineProperty(obj, key, value) {if (key in obj) {Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true });} else {obj[key] = value;}return obj;}var Example = /*#__PURE__*/function () {function Example() {_classCallCheck(this, Example);}_createClass(Example, [{ key: "load", value:
+        "use strict";function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}function _defineProperties(target, props) {for (var i = 0; i < props.length; i++) {var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);}}function _createClass(Constructor, protoProps, staticProps) {if (protoProps) _defineProperties(Constructor.prototype, protoProps);if (staticProps) _defineProperties(Constructor, staticProps);Object.defineProperty(Constructor, "prototype", { writable: false });return Constructor;}function _defineProperty(obj, key, value) {if (key in obj) {Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true });} else {obj[key] = value;}return obj;}var Example = /*#__PURE__*/function () {function Example() {_classCallCheck(this, Example);}_createClass(Example, [{ key: "controls", value:
 
 
 
-    function load() {
-      return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/
-      React.createElement("div", { name: "cubemap", type: "cubemap", url: "/../../static/assets/cubemaps/helipad.dds", data: { type: pc.TEXTURETYPE_RGBM } }), /*#__PURE__*/
-      React.createElement("div", { name: "house", type: "container", url: "/../../static/assets/models/house.glb" }), /*#__PURE__*/
-      React.createElement("div", { name: "script", type: "script", url: "/../../static/scripts/camera/orbit-camera.js" }));
-
-    } }, { key: "controls", value:
 
     function controls(data) {
       return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/
@@ -115,208 +104,219 @@
 
     } }, { key: "example", value:
 
-    function example(app, canvas, assets, data) {
+    function example(canvas, data) {
 
       // Create the app and start the update loop
-      
-
-      app.start();
-
-      // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
-      app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
-      app.setCanvasResolution(pc.RESOLUTION_AUTO);
-
-      // setup skydome - this is the main source of ambient light
-      app.scene.skyboxMip = 3;
-      app.scene.skyboxIntensity = 0.6;
-      app.scene.setSkybox(assets.cubemap.resources);
-
-      // if skydome cubemap is disabled using HUD, a constant ambient color is used instead
-      app.scene.ambientLight = new pc.Color(0.1, 0.3, 0.4);
-
-      // instantiate the house model, which has unwrapped texture coordinates for lightmap in UV1
-      var house = assets.house.resource.instantiateRenderEntity();
-      house.setLocalScale(100, 100, 100);
-      app.root.addChild(house);
-
-      // change its materials to lightmapping
-      var renders = house.findComponents("render");
-      renders.forEach(function (render) {
-        render.castShadows = true;
-        render.castShadowsLightmap = true;
-        render.lightmapped = true;
-      });
-
-      // directional light
-      var lightDirectional = new pc.Entity("Directional");
-      lightDirectional.addComponent("light", {
-        type: "directional",
-        affectDynamic: true,
-        affectLightmapped: true,
-        castShadows: true,
-        normalOffsetBias: 0.05,
-        shadowBias: 0.2,
-        shadowDistance: 100,
-        shadowResolution: 2048,
-        shadowType: pc.SHADOW_PCF3,
-        color: new pc.Color(0.7, 0.7, 0.5),
-        intensity: 1.6 });
-
-      app.root.addChild(lightDirectional);
-      lightDirectional.setLocalEulerAngles(-55, 0, -30);
-
-      // Create an entity with a omni light component that is configured as a baked light
-      var lightOmni = new pc.Entity("Omni");
-      lightOmni.addComponent("light", {
-        type: "omni",
-        affectDynamic: false,
-        affectLightmapped: true,
-        bake: true,
-        castShadows: true,
-        normalOffsetBias: 0.05,
-        shadowBias: 0.2,
-        shadowDistance: 25,
-        shadowResolution: 512,
-        shadowType: pc.SHADOW_PCF3,
-        color: pc.Color.YELLOW,
-        range: 25,
-        intensity: 0.9 });
-
-      lightOmni.setLocalPosition(-4, 10, 5);
-      app.root.addChild(lightOmni);
-
-      // Create an entity with a spot light component that is configured as a baked light
-      var lightSpot = new pc.Entity("Spot");
-      lightSpot.addComponent("light", {
-        type: "spot",
-        affectDynamic: false,
-        affectLightmapped: true,
-        bake: true,
-        castShadows: true,
-        normalOffsetBias: 0.05,
-        shadowBias: 0.2,
-        shadowDistance: 50,
-        shadowResolution: 512,
-        shadowType: pc.SHADOW_PCF3,
-        color: pc.Color.RED,
-        range: 10,
-        intensity: 2.5 });
-
-      lightSpot.setLocalPosition(-5, 10, -7.5);
-      app.root.addChild(lightSpot);
-
-      // Create an entity with a camera component
-      var camera = new pc.Entity();
-      camera.addComponent("camera", {
-        clearColor: new pc.Color(0.4, 0.45, 0.5),
-        farClip: 100,
-        nearClip: 1 });
-
-      camera.setLocalPosition(40, 20, 40);
-
-      // add orbit camera script with a mouse and a touch support
-      camera.addComponent("script");
-      camera.script.create("orbitCamera", {
-        attributes: {
-          inertiaFactor: 0.2,
-          focusEntity: house,
-          distanceMax: 60 } });
+      var app = new pc.Application(canvas, {
+        mouse: new pc.Mouse(document.body),
+        touch: new pc.TouchDevice(document.body) });
 
 
-      camera.script.create("orbitCameraInputMouse");
-      camera.script.create("orbitCameraInputTouch");
-      app.root.addChild(camera);
+      var assets = {
+        'cubemap': new pc.Asset('cubemap', 'cubemap', { url: '/../../static/assets/cubemaps/helipad.dds' }, { type: pc.TEXTURETYPE_RGBM }),
+        'house': new pc.Asset('house', 'container', { url: '/../../static/assets/models/house.glb' }),
+        'script': new pc.Asset('script', 'script', { url: '/../../static/scripts/camera/orbit-camera.js' }) };
 
-      // lightmap baking properties
-      var bakeType = pc.BAKE_COLOR;
-      app.scene.lightmapMode = bakeType;
-      app.scene.lightmapMaxResolution = 1024;
 
-      // multiplier for lightmap resolution
-      app.scene.lightmapSizeMultiplier = 512;
+      var assetListLoader = new pc.AssetListLoader(Object.values(assets), app.assets);
+      assetListLoader.load(function () {
+        app.start();
 
-      // bake when settings are changed only
-      var needBake = false;
+        // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
+        app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
+        app.setCanvasResolution(pc.RESOLUTION_AUTO);
 
-      // handle data changes from HUD to modify baking properties
-      data.on('*:set', function (path, value) {
-        var bakeSettingChanged = true;
-        var pathArray = path.split('.');
+        // setup skydome - this is the main source of ambient light
+        app.scene.skyboxMip = 3;
+        app.scene.skyboxIntensity = 0.6;
+        app.scene.setSkybox(assets.cubemap.resources);
 
-        // ambient light
-        if (pathArray[1] === 'ambient') {
-          if (pathArray[2] === 'cubemap') {
-            // enable / disable cubemap
-            app.scene.setSkybox(value ? assets.cubemap.resources : null);
-          } else if (pathArray[2] === 'hemisphere') {
-            // switch between smaller upper hemisphere and full sphere
-            app.scene.ambientBakeSpherePart = value ? 0.4 : 1;
-          } else {
-            // all other values are set directly on the scene
+        // if skydome cubemap is disabled using HUD, a constant ambient color is used instead
+        app.scene.ambientLight = new pc.Color(0.1, 0.3, 0.4);
+
+        // instantiate the house model, which has unwrapped texture coordinates for lightmap in UV1
+        var house = assets.house.resource.instantiateRenderEntity();
+        house.setLocalScale(100, 100, 100);
+        app.root.addChild(house);
+
+        // change its materials to lightmapping
+        var renders = house.findComponents("render");
+        renders.forEach(function (render) {
+          render.castShadows = true;
+          render.castShadowsLightmap = true;
+          render.lightmapped = true;
+        });
+
+        // directional light
+        var lightDirectional = new pc.Entity("Directional");
+        lightDirectional.addComponent("light", {
+          type: "directional",
+          affectDynamic: true,
+          affectLightmapped: true,
+          castShadows: true,
+          normalOffsetBias: 0.05,
+          shadowBias: 0.2,
+          shadowDistance: 100,
+          shadowResolution: 2048,
+          shadowType: pc.SHADOW_PCF3,
+          color: new pc.Color(0.7, 0.7, 0.5),
+          intensity: 1.6 });
+
+        app.root.addChild(lightDirectional);
+        lightDirectional.setLocalEulerAngles(-55, 0, -30);
+
+        // Create an entity with a omni light component that is configured as a baked light
+        var lightOmni = new pc.Entity("Omni");
+        lightOmni.addComponent("light", {
+          type: "omni",
+          affectDynamic: false,
+          affectLightmapped: true,
+          bake: true,
+          castShadows: true,
+          normalOffsetBias: 0.05,
+          shadowBias: 0.2,
+          shadowDistance: 25,
+          shadowResolution: 512,
+          shadowType: pc.SHADOW_PCF3,
+          color: pc.Color.YELLOW,
+          range: 25,
+          intensity: 0.9 });
+
+        lightOmni.setLocalPosition(-4, 10, 5);
+        app.root.addChild(lightOmni);
+
+        // Create an entity with a spot light component that is configured as a baked light
+        var lightSpot = new pc.Entity("Spot");
+        lightSpot.addComponent("light", {
+          type: "spot",
+          affectDynamic: false,
+          affectLightmapped: true,
+          bake: true,
+          castShadows: true,
+          normalOffsetBias: 0.05,
+          shadowBias: 0.2,
+          shadowDistance: 50,
+          shadowResolution: 512,
+          shadowType: pc.SHADOW_PCF3,
+          color: pc.Color.RED,
+          range: 10,
+          intensity: 2.5 });
+
+        lightSpot.setLocalPosition(-5, 10, -7.5);
+        app.root.addChild(lightSpot);
+
+        // Create an entity with a camera component
+        var camera = new pc.Entity();
+        camera.addComponent("camera", {
+          clearColor: new pc.Color(0.4, 0.45, 0.5),
+          farClip: 100,
+          nearClip: 1 });
+
+        camera.setLocalPosition(40, 20, 40);
+
+        // add orbit camera script with a mouse and a touch support
+        camera.addComponent("script");
+        camera.script.create("orbitCamera", {
+          attributes: {
+            inertiaFactor: 0.2,
+            focusEntity: house,
+            distanceMax: 60 } });
+
+
+        camera.script.create("orbitCameraInputMouse");
+        camera.script.create("orbitCameraInputTouch");
+        app.root.addChild(camera);
+
+        // lightmap baking properties
+        var bakeType = pc.BAKE_COLOR;
+        app.scene.lightmapMode = bakeType;
+        app.scene.lightmapMaxResolution = 1024;
+
+        // multiplier for lightmap resolution
+        app.scene.lightmapSizeMultiplier = 512;
+
+        // bake when settings are changed only
+        var needBake = false;
+
+        // handle data changes from HUD to modify baking properties
+        data.on('*:set', function (path, value) {
+          var bakeSettingChanged = true;
+          var pathArray = path.split('.');
+
+          // ambient light
+          if (pathArray[1] === 'ambient') {
+            if (pathArray[2] === 'cubemap') {
+              // enable / disable cubemap
+              app.scene.setSkybox(value ? assets.cubemap.resources : null);
+            } else if (pathArray[2] === 'hemisphere') {
+              // switch between smaller upper hemisphere and full sphere
+              app.scene.ambientBakeSpherePart = value ? 0.4 : 1;
+            } else {
+              // all other values are set directly on the scene
+              // @ts-ignore engine-tsd
+              app.scene[pathArray[2]] = value;
+            }
+          } else if (pathArray[1] === 'directional') {
+            // @ts-ignore engine-tsd
+            lightDirectional.light[pathArray[2]] = value;
+          } else if (pathArray[1] === 'settings') {
             // @ts-ignore engine-tsd
             app.scene[pathArray[2]] = value;
+          } else if (pathArray[1] === 'other') {
+            // @ts-ignore engine-tsd
+            lightOmni.light[pathArray[2]] = value;
+            // @ts-ignore engine-tsd
+            lightSpot.light[pathArray[2]] = value;
+          } else {
+            // don't rebake if stats change
+            bakeSettingChanged = false;
           }
-        } else if (pathArray[1] === 'directional') {
-          // @ts-ignore engine-tsd
-          lightDirectional.light[pathArray[2]] = value;
-        } else if (pathArray[1] === 'settings') {
-          // @ts-ignore engine-tsd
-          app.scene[pathArray[2]] = value;
-        } else if (pathArray[1] === 'other') {
-          // @ts-ignore engine-tsd
-          lightOmni.light[pathArray[2]] = value;
-          // @ts-ignore engine-tsd
-          lightSpot.light[pathArray[2]] = value;
-        } else {
-          // don't rebake if stats change
-          bakeSettingChanged = false;
-        }
 
-        // trigger bake on the next frame if relevant settings were changes
-        needBake || (needBake = bakeSettingChanged);
-      });
+          // trigger bake on the next frame if relevant settings were changes
+          needBake || (needBake = bakeSettingChanged);
+        });
 
-      // bake properties connected to the HUD
-      data.set('data', {
-        settings: {
-          lightmapFilterEnabled: true,
-          lightmapFilterRange: 10,
-          lightmapFilterSmoothness: 0.2 },
+        // bake properties connected to the HUD
+        data.set('data', {
+          settings: {
+            lightmapFilterEnabled: true,
+            lightmapFilterRange: 10,
+            lightmapFilterSmoothness: 0.2 },
 
-        ambient: {
-          ambientBake: true,
-          cubemap: true,
-          hemisphere: true,
-          ambientBakeNumSamples: 20,
-          ambientBakeOcclusionContrast: -0.6,
-          ambientBakeOcclusionBrightness: -0.5 },
+          ambient: {
+            ambientBake: true,
+            cubemap: true,
+            hemisphere: true,
+            ambientBakeNumSamples: 20,
+            ambientBakeOcclusionContrast: -0.6,
+            ambientBakeOcclusionBrightness: -0.5 },
 
-        directional: {
-          enabled: true,
-          bake: true,
-          bakeNumSamples: 15,
-          bakeArea: 10 },
+          directional: {
+            enabled: true,
+            bake: true,
+            bakeNumSamples: 15,
+            bakeArea: 10 },
 
-        other: {
-          enabled: true },
+          other: {
+            enabled: true },
 
-        stats: {
-          duration: '' } });
+          stats: {
+            duration: '' } });
 
 
 
-      // Set an update function on the app's update event
-      app.on("update", function (dt) {
+        // Set an update function on the app's update event
+        app.on("update", function (dt) {
 
-        // bake lightmaps when HUD properties change
-        if (needBake) {
-          needBake = false;
-          app.lightmapper.bake(null, bakeType);
+          // bake lightmaps when HUD properties change
+          if (needBake) {
+            needBake = false;
+            app.lightmapper.bake(null, bakeType);
 
-          // update stats with the bake duration
-          // @ts-ignore engine-tsd
-          data.set('data.stats.duration', app.lightmapper.stats.totalRenderTime.toFixed(1) + 'ms');
-        }
+            // update stats with the bake duration
+            data.set('data.stats.duration', app.lightmapper.stats.totalRenderTime.toFixed(1) + 'ms');
+          }
+        });
       });
     } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'Graphics');_defineProperty(Example, "NAME", 'Lights Baked AO');
         var example = new Example();
@@ -333,9 +333,10 @@
                     presets: ["react", "typescript", "env"]
                 }).code;
             }
-            window.exampleFunction = new Function('app', 'canvas', 'assets', 'data', exampleFunction);
+            window.exampleFunction = new Function('canvas', 'data', exampleFunction);
         }
         window.loadFunction = example.load;
+        window.files = window.top.editedFiles || example.constructor.FILES;
 
         // get url parameters
         var queryString = window.location.search;
@@ -343,42 +344,19 @@
     </script>
     <script>
         function loadEngine(callback) {
-            const enginePath = urlParams.get('use_local_engine') || "/build/playcanvas.dbg.js";
+            const enginePath = urlParams && urlParams.get('use_local_engine') || "/build/playcanvas.js";
 
-            fetch(enginePath)
-                .then(function(response) { return response.text() })
-                .then(function(data) {
-                    var module = {
-                        exports: {}
-                    };
-                    window.pc = (Function('module', 'exports', data).call(module, module, module.exports), module).exports;
-                    window.top.pc = window.pc;
-                    callback();
-                });
+            const script = document.createElement('script');
+            script.setAttribute('src', enginePath);
+            script.onload = function() {
+                window.top.pc = window.pc;
+                callback();
+            };
+            document.head.appendChild(script);
         }
 
-        function createApplication(canvas) {
-            // create the app
-            var app = new pc.Application(canvas, {
-                mouse: new pc.Mouse(document.body),
-                touch: new pc.TouchDevice(document.body),
-                elementInput: new pc.ElementInput(canvas),
-                gamepads: new pc.GamePads(),
-                keyboard: new pc.Keyboard(window),
-                graphicsDeviceOptions: {
-                    alpha: true
-                }
-            });
-
-            // set up miniStats
-            var miniStats = new pcx.MiniStats(app);
-            if (urlParams.get('miniStats') === 'false') {
-                miniStats.enabled = false;
-            }
-            app.on('update', function () {
-                if (window.top._showMiniStats !== undefined) miniStats.enabled = window.top._showMiniStats;
-            });
-
+        function setupApplication(app) {
+            const canvas = app.graphicsDevice.canvas;
             // handle resizing
             var canvasContainerElement = canvas.parentElement;
             canvas.setAttribute('width', window.innerWidth + 'px');
@@ -392,17 +370,17 @@
                 }).observe(canvasContainerElement);
             }
 
-            return app;
-        }
-
-        function hasBasisAssets (assets) {
-        for (let i = 0; i < assets.length; i++) {
-            if (assets[i].url && assets[i].url.includes('.basis')) {
-                return true;
+            if (true) {
+                // set up miniStats
+                var miniStats = new pcx.MiniStats(app);
+                if (urlParams.get('miniStats') === 'false') {
+                    miniStats.enabled = false;
+                }
+                app.on('update', function () {
+                    if (window.top._showMiniStats !== undefined) miniStats.enabled = window.top._showMiniStats;
+                });
             }
         }
-        return false;
-    };
 
         function loadResource(app, resource, callback) {
             if (!resource.type) {
@@ -417,30 +395,6 @@
                     });
                 return;
             }
-            if (resource.data) {
-                var asset = new pc.Asset(
-                    resource.name,
-                    resource.type,
-                    resource.type === "cubemap" ? {
-                        url: resource.url
-                    } : null,
-                    resource.data
-                );
-                asset.on("load", function (asset) {
-                    callback(asset);
-                });
-                app.assets.add(asset);
-                app.assets.load(asset);
-            } else {
-                app.assets.loadFromUrl(resource.url, resource.type, function (
-                    err,
-                    asset
-                ) {
-                    if (!err && asset) {
-                        callback(asset);
-                    }
-                });
-            }
         }
 
         function loadResources(app, callback) {
@@ -451,15 +405,6 @@
             window.React = { createElement: function(type, props) { if (type === 'div') assets.push(props); } };
             // call the stubbed load function to add all assets to the assets list
             window.loadFunction();
-
-            // if we have any basis assets then initialize basis
-            if (hasBasisAssets(assets)) {
-                pc.basisInitialize({
-                    glueUrl: '/static/lib/basis/basis.wasm.js',
-                    wasmUrl: '/static/lib/basis/basis.wasm.wasm',
-                    fallbackUrl: '/static/lib/basis/basis.js'
-                });
-            }
 
             var count = assets.length;
             function onLoadedResource(key, asset) {
@@ -479,16 +424,40 @@
             });
         }
 
-        function callExample(app, canvas, assetManifest, data) {
-            if (location.pathname.indexOf('misc/mini-stats') !== -1) {
-                window.exampleFunction(app, canvas, pcx);
-            } else {
-                window.exampleFunction(app, canvas, assetManifest, data, wasmSupported, loadWasmModuleAsync);
+        function callExample(canvas, assetManifest, files, data) {
+            function escapeRegExp(string) {
+                return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             }
-            if (window.top.location.pathname.indexOf('iframe') === -1) {
-                var event = new CustomEvent("exampleLoad");
-                window.top.dispatchEvent(event);
+            function replaceAll(str, find, replace) {
+                return str.replace(new RegExp(escapeRegExp(find), 'g'), replace);
             }
+            var argsString = window.exampleFunction.toString().match(/function\s.*?\(([^)]*)\)/)[1];
+            argsString = replaceAll(argsString, ' ', '');
+            argsString = replaceAll(argsString, '\n', '');
+            var argNames = argsString.split(',');
+            var args = argNames.map(function(arg) {
+                if (arg === 'canvas') {
+                    return canvas;
+                } else if (arg === 'assetManifest') {
+                    return assetManifest;
+                } else if (arg === 'files') {
+                    return files;
+                } else if (arg === 'data') {
+                    return data;
+                } else if (arg === 'pcx') {
+                    return pcx;
+                } else if (arg === 'loadWasmModuleAsync') {
+                    return loadWasmModuleAsync;
+                } else if (arg === 'wasmSupported') {
+                    return wasmSupported;
+                }
+            });
+            window.exampleFunction.apply(this, args);
+            if (pc.app && pc.app.graphicsDevice.canvas) {
+                setupApplication(pc.app);
+            }
+            var event = new CustomEvent("exampleLoad");
+            window.top.dispatchEvent(event);
         }
     </script>
     <script>
@@ -500,13 +469,11 @@
         loadEngine(function() {
             var canvas = document.getElementById('application-canvas');
 
-            const app = createApplication(canvas);
-
             if (!window.loadFunction) {
-                callExample(app, canvas, {}, data);
+                callExample(canvas, {}, window.files, data);
             } else {
-                loadResources(app, function(assetManifest) {
-                    callExample(app, canvas, assetManifest, data);
+                loadResources(undefined, function(assetManifest) {
+                    callExample(canvas, assetManifest, window.files, data);
                 });
             }
         });

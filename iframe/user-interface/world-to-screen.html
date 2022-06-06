@@ -8,6 +8,8 @@
     <script src="../../build/promisePolyfill.js"></script>
     <script src="../../build/fetchPolyfill.js"></script>
     <script src="../../build/regeneratorRuntimePolyfill.js"></script>
+    <script src="../../build/arrayFromPolyfill.js"></script>
+    <script src="../../build/objectValuesPolyfill.js"></script>
     <link rel="stylesheet" href="/styles.css">
     <style>
         body {
@@ -36,199 +38,198 @@
             });
         }
 
-        // include any constants necessary for the example
-        var constValues = [];
-        for (var i = 0; i < constValues.length; i++) {
-            window[constValues[i].k] = constValues[i].v;
-        }
-
         // include the example class which contains the example function to execute and any assets to load
-        "use strict";function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}function _defineProperties(target, props) {for (var i = 0; i < props.length; i++) {var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);}}function _createClass(Constructor, protoProps, staticProps) {if (protoProps) _defineProperties(Constructor.prototype, protoProps);if (staticProps) _defineProperties(Constructor, staticProps);Object.defineProperty(Constructor, "prototype", { writable: false });return Constructor;}function _defineProperty(obj, key, value) {if (key in obj) {Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true });} else {obj[key] = value;}return obj;}var Example = /*#__PURE__*/function () {function Example() {_classCallCheck(this, Example);}_createClass(Example, [{ key: "load", value:
+        "use strict";function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}function _defineProperties(target, props) {for (var i = 0; i < props.length; i++) {var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);}}function _createClass(Constructor, protoProps, staticProps) {if (protoProps) _defineProperties(Constructor.prototype, protoProps);if (staticProps) _defineProperties(Constructor, staticProps);Object.defineProperty(Constructor, "prototype", { writable: false });return Constructor;}function _defineProperty(obj, key, value) {if (key in obj) {Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true });} else {obj[key] = value;}return obj;}var Example = /*#__PURE__*/function () {function Example() {_classCallCheck(this, Example);}_createClass(Example, [{ key: "example", value:
 
 
 
-    function load() {
-      return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/
-      React.createElement("div", { name: "checkboard", type: "texture", url: "/../../static/assets/textures/checkboard.png" }), /*#__PURE__*/
-      React.createElement("div", { name: "font", type: "font", url: "/../../static/assets/fonts/courier.json" }));
 
-    } }, { key: "example", value:
-
-    function example(app, canvas, assets) {
+    function example(canvas) {
 
       // Create the application with input and start the update loop
-      
+      var app = new pc.Application(canvas, {
+        mouse: new pc.Mouse(document.body),
+        touch: new pc.TouchDevice(document.body),
+        elementInput: new pc.ElementInput(canvas) });
 
-      app.start();
 
-      // Create an Entity with a camera component
-      var camera = new pc.Entity();
-      camera.addComponent("camera", {
-        clearColor: new pc.Color(30 / 255, 30 / 255, 30 / 255) });
+      var assets = {
+        "checkboard": new pc.Asset("checkboard", "texture", { url: "/../../static/assets/textures/checkboard.png" }),
+        'font': new pc.Asset('font', 'font', { url: '/../../static/assets/fonts/courier.json' }) };
 
-      camera.rotateLocal(-30, 0, 0);
-      camera.translateLocal(0, 0, 7);
-      app.root.addChild(camera);
 
-      // Create an Entity for the ground
-      var material = new pc.StandardMaterial();
-      material.diffuse = pc.Color.WHITE;
-      material.diffuseMap = assets.checkboard.resource;
-      material.diffuseMapTiling = new pc.Vec2(50, 50);
-      material.update();
+      var assetListLoader = new pc.AssetListLoader(Object.values(assets), app.assets);
+      assetListLoader.load(function () {
+        app.start();
 
-      var ground = new pc.Entity();
-      ground.addComponent("render", {
-        type: "box",
-        material: material });
+        // Create an Entity with a camera component
+        var camera = new pc.Entity();
+        camera.addComponent("camera", {
+          clearColor: new pc.Color(30 / 255, 30 / 255, 30 / 255) });
 
-      ground.setLocalScale(50, 1, 50);
-      ground.setLocalPosition(0, -0.5, 0);
-      app.root.addChild(ground);
+        camera.rotateLocal(-30, 0, 0);
+        camera.translateLocal(0, 0, 7);
+        app.root.addChild(camera);
 
-      // Create an entity with a light component
-      var light = new pc.Entity();
-      light.addComponent("light", {
-        type: "directional",
-        color: new pc.Color(1, 1, 1),
-        castShadows: true,
-        intensity: 1,
-        shadowBias: 0.2,
-        shadowDistance: 16,
-        normalOffsetBias: 0.05,
-        shadowResolution: 2048 });
+        // Create an Entity for the ground
+        var material = new pc.StandardMaterial();
+        material.diffuse = pc.Color.WHITE;
+        material.diffuseMap = assets.checkboard.resource;
+        material.diffuseMapTiling = new pc.Vec2(50, 50);
+        material.update();
 
-      light.setLocalEulerAngles(45, 30, 0);
-      app.root.addChild(light);
+        var ground = new pc.Entity();
+        ground.addComponent("render", {
+          type: "box",
+          material: material });
 
-      // Create a 2D screen
-      var screen = new pc.Entity();
-      screen.setLocalScale(0.01, 0.01, 0.01);
-      screen.addComponent("screen", {
-        referenceResolution: new pc.Vec2(1280, 720),
-        screenSpace: true });
+        ground.setLocalScale(50, 1, 50);
+        ground.setLocalPosition(0, -0.5, 0);
+        app.root.addChild(ground);
 
-      app.root.addChild(screen);
+        // Create an entity with a light component
+        var light = new pc.Entity();
+        light.addComponent("light", {
+          type: "directional",
+          color: new pc.Color(1, 1, 1),
+          castShadows: true,
+          intensity: 1,
+          shadowBias: 0.2,
+          shadowDistance: 16,
+          normalOffsetBias: 0.05,
+          shadowResolution: 2048 });
 
-      /**
-       * Converts a coordinate in world space into a screen's space.
-       *
-       * @param {pc.Vec3} worldPosition - the Vec3 representing the world-space coordinate.
-       * @param {pc.CameraComponent} camera - the Camera.
-       * @param {pc.ScreenComponent} screen - the Screen
-       * @returns {pc.Vec3} a Vec3 of the input worldPosition relative to the camera and screen. The Z coordinate represents the depth,
-       * and negative numbers signal that the worldPosition is behind the camera.
-       */
-      function worldToScreenSpace(worldPosition, camera, screen) {
-        var screenPos = camera.worldToScreen(worldPosition);
+        light.setLocalEulerAngles(45, 30, 0);
+        app.root.addChild(light);
 
-        // take pixel ratio into account
-        var pixelRatio = app.graphicsDevice.maxPixelRatio;
-        screenPos.x *= pixelRatio;
-        screenPos.y *= pixelRatio;
+        // Create a 2D screen
+        var screen = new pc.Entity();
+        screen.setLocalScale(0.01, 0.01, 0.01);
+        screen.addComponent("screen", {
+          referenceResolution: new pc.Vec2(1280, 720),
+          screenSpace: true });
 
-        // account for screen scaling
-        // @ts-ignore engine-tsd
-        var scale = screen.scale;
+        app.root.addChild(screen);
 
-        // invert the y position
-        screenPos.y = screen.resolution.y - screenPos.y;
+        /**
+         * Converts a coordinate in world space into a screen's space.
+         *
+         * @param {pc.Vec3} worldPosition - the Vec3 representing the world-space coordinate.
+         * @param {pc.CameraComponent} camera - the Camera.
+         * @param {pc.ScreenComponent} screen - the Screen
+         * @returns {pc.Vec3} a Vec3 of the input worldPosition relative to the camera and screen. The Z coordinate represents the depth,
+         * and negative numbers signal that the worldPosition is behind the camera.
+         */
+        function worldToScreenSpace(worldPosition, camera, screen) {
+          var screenPos = camera.worldToScreen(worldPosition);
 
-        // put that into a Vec3
-        return new pc.Vec3(screenPos.x / scale, screenPos.y / scale, screenPos.z / scale);
-      }
+          // take pixel ratio into account
+          var pixelRatio = app.graphicsDevice.maxPixelRatio;
+          screenPos.x *= pixelRatio;
+          screenPos.y *= pixelRatio;
 
-      function createPlayer(id, startingAngle, speed, radius) {
-        // Create a capsule entity to represent a player in the 3d world
-        var entity = new pc.Entity();
-        entity.setLocalScale(new pc.Vec3(0.5, 0.5, 0.5));
-        entity.addComponent("render", {
-          type: "capsule" });
+          // account for screen scaling
+          var scale = screen.scale;
 
-        app.root.addChild(entity);
+          // invert the y position
+          screenPos.y = screen.resolution.y - screenPos.y;
 
-        // update the player position every frame with some mock logic
-        // normally, this would be taking inputs, running physics simulation, etc
-        var angle = startingAngle;
-        var height = 0.5;
-        app.on("update", function (dt) {
-          angle += dt * speed;
-          if (angle > 360) {
-            angle -= 360;
-          }
-          entity.setLocalPosition(radius * Math.sin(angle * pc.math.DEG_TO_RAD), height, radius * Math.cos(angle * pc.math.DEG_TO_RAD));
-          entity.setLocalEulerAngles(0, angle + 90, 0);
-        });
+          // put that into a Vec3
+          return new pc.Vec3(screenPos.x / scale, screenPos.y / scale, screenPos.z / scale);
+        }
 
-        // Create a text element that will hover the player's head
-        var playerInfo = new pc.Entity();
-        playerInfo.addComponent("element", {
-          pivot: new pc.Vec2(0.5, 0),
-          anchor: new pc.Vec4(0, 0, 0, 0),
-          width: 150,
-          height: 50,
-          opacity: 0.05,
-          type: pc.ELEMENTTYPE_IMAGE });
+        function createPlayer(id, startingAngle, speed, radius) {
+          // Create a capsule entity to represent a player in the 3d world
+          var entity = new pc.Entity();
+          entity.setLocalScale(new pc.Vec3(0.5, 0.5, 0.5));
+          entity.addComponent("render", {
+            type: "capsule" });
 
-        screen.addChild(playerInfo);
+          app.root.addChild(entity);
 
-        var name = new pc.Entity();
-        name.addComponent("element", {
-          pivot: new pc.Vec2(0.5, 0.5),
-          anchor: new pc.Vec4(0, 0.4, 1, 1),
-          margin: new pc.Vec4(0, 0, 0, 0),
-          fontAsset: assets.font.id,
-          fontSize: 20,
-          text: "Player ".concat(id),
-          useInput: true,
-          type: pc.ELEMENTTYPE_TEXT });
+          // update the player position every frame with some mock logic
+          // normally, this would be taking inputs, running physics simulation, etc
+          var angle = startingAngle;
+          var height = 0.5;
+          app.on("update", function (dt) {
+            angle += dt * speed;
+            if (angle > 360) {
+              angle -= 360;
+            }
+            entity.setLocalPosition(radius * Math.sin(angle * pc.math.DEG_TO_RAD), height, radius * Math.cos(angle * pc.math.DEG_TO_RAD));
+            entity.setLocalEulerAngles(0, angle + 90, 0);
+          });
 
-        name.addComponent("button", {
-          imageEntity: name });
+          // Create a text element that will hover the player's head
+          var playerInfo = new pc.Entity();
+          playerInfo.addComponent("element", {
+            pivot: new pc.Vec2(0.5, 0),
+            anchor: new pc.Vec4(0, 0, 0, 0),
+            width: 150,
+            height: 50,
+            opacity: 0.05,
+            type: pc.ELEMENTTYPE_IMAGE });
 
-        name.button.on('click', function (e) {
-          var color = new pc.Color(Math.random(), Math.random(), Math.random());
-          name.element.color = color;
-          entity.render.material.setParameter("material_diffuse", [color.r, color.g, color.b]);
-        });
-        playerInfo.addChild(name);
+          screen.addChild(playerInfo);
 
-        var healthBar = new pc.Entity();
-        healthBar.addComponent("element", {
-          pivot: new pc.Vec2(0.5, 0),
-          anchor: new pc.Vec4(0, 0, 1, 0.4),
-          margin: new pc.Vec4(0, 0, 0, 0),
-          color: new pc.Color(0.2, 0.6, 0.2, 1),
-          opacity: 1,
-          type: pc.ELEMENTTYPE_IMAGE });
+          var name = new pc.Entity();
+          name.addComponent("element", {
+            pivot: new pc.Vec2(0.5, 0.5),
+            anchor: new pc.Vec4(0, 0.4, 1, 1),
+            margin: new pc.Vec4(0, 0, 0, 0),
+            fontAsset: assets.font.id,
+            fontSize: 20,
+            text: "Player ".concat(id),
+            useInput: true,
+            type: pc.ELEMENTTYPE_TEXT });
 
-        playerInfo.addChild(healthBar);
+          name.addComponent("button", {
+            imageEntity: name });
 
-        // update the player text's position to always hover the player
-        app.on("update", function () {
-          // get the desired world position
-          var worldPosition = entity.getPosition();
-          worldPosition.y += 0.6; // slightly above the player's head
+          name.button.on('click', function () {
+            var color = new pc.Color(Math.random(), Math.random(), Math.random());
+            name.element.color = color;
+            entity.render.material.setParameter("material_diffuse", [color.r, color.g, color.b]);
+          });
+          playerInfo.addChild(name);
 
-          // convert to screen position
-          var screenPosition = worldToScreenSpace(worldPosition, camera.camera, screen.screen);
+          var healthBar = new pc.Entity();
+          healthBar.addComponent("element", {
+            pivot: new pc.Vec2(0.5, 0),
+            anchor: new pc.Vec4(0, 0, 1, 0.4),
+            margin: new pc.Vec4(0, 0, 0, 0),
+            color: new pc.Color(0.2, 0.6, 0.2, 1),
+            opacity: 1,
+            type: pc.ELEMENTTYPE_IMAGE });
 
-          if (screenPosition.z > 0) {
-            // if world position is in front of the camera, show it
-            playerInfo.enabled = true;
+          playerInfo.addChild(healthBar);
 
-            // set the UI position
-            playerInfo.setLocalPosition(screenPosition);
-          } else {
-            // if world position is actually *behind* the camera, hide the UI
-            playerInfo.enabled = false;
-          }
-        });
-      }
+          // update the player text's position to always hover the player
+          app.on("update", function () {
+            // get the desired world position
+            var worldPosition = entity.getPosition();
+            worldPosition.y += 0.6; // slightly above the player's head
 
-      createPlayer(1, 135, 30, 1.5);
-      createPlayer(2, 65, -18, 1);
-      createPlayer(3, 0, 15, 2.5);
+            // convert to screen position
+            var screenPosition = worldToScreenSpace(worldPosition, camera.camera, screen.screen);
+
+            if (screenPosition.z > 0) {
+              // if world position is in front of the camera, show it
+              playerInfo.enabled = true;
+
+              // set the UI position
+              playerInfo.setLocalPosition(screenPosition);
+            } else {
+              // if world position is actually *behind* the camera, hide the UI
+              playerInfo.enabled = false;
+            }
+          });
+        }
+
+        createPlayer(1, 135, 30, 1.5);
+        createPlayer(2, 65, -18, 1);
+        createPlayer(3, 0, 15, 2.5);
+      });
     } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'User Interface');_defineProperty(Example, "NAME", 'World to Screen');
         var example = new Example();
 
@@ -244,9 +245,10 @@
                     presets: ["react", "typescript", "env"]
                 }).code;
             }
-            window.exampleFunction = new Function('app', 'canvas', 'assets', 'data', exampleFunction);
+            window.exampleFunction = new Function('canvas', 'data', exampleFunction);
         }
         window.loadFunction = example.load;
+        window.files = window.top.editedFiles || example.constructor.FILES;
 
         // get url parameters
         var queryString = window.location.search;
@@ -254,42 +256,19 @@
     </script>
     <script>
         function loadEngine(callback) {
-            const enginePath = urlParams.get('use_local_engine') || "/build/playcanvas.dbg.js";
+            const enginePath = urlParams && urlParams.get('use_local_engine') || "/build/playcanvas.js";
 
-            fetch(enginePath)
-                .then(function(response) { return response.text() })
-                .then(function(data) {
-                    var module = {
-                        exports: {}
-                    };
-                    window.pc = (Function('module', 'exports', data).call(module, module, module.exports), module).exports;
-                    window.top.pc = window.pc;
-                    callback();
-                });
+            const script = document.createElement('script');
+            script.setAttribute('src', enginePath);
+            script.onload = function() {
+                window.top.pc = window.pc;
+                callback();
+            };
+            document.head.appendChild(script);
         }
 
-        function createApplication(canvas) {
-            // create the app
-            var app = new pc.Application(canvas, {
-                mouse: new pc.Mouse(document.body),
-                touch: new pc.TouchDevice(document.body),
-                elementInput: new pc.ElementInput(canvas),
-                gamepads: new pc.GamePads(),
-                keyboard: new pc.Keyboard(window),
-                graphicsDeviceOptions: {
-                    alpha: true
-                }
-            });
-
-            // set up miniStats
-            var miniStats = new pcx.MiniStats(app);
-            if (urlParams.get('miniStats') === 'false') {
-                miniStats.enabled = false;
-            }
-            app.on('update', function () {
-                if (window.top._showMiniStats !== undefined) miniStats.enabled = window.top._showMiniStats;
-            });
-
+        function setupApplication(app) {
+            const canvas = app.graphicsDevice.canvas;
             // handle resizing
             var canvasContainerElement = canvas.parentElement;
             canvas.setAttribute('width', window.innerWidth + 'px');
@@ -303,17 +282,17 @@
                 }).observe(canvasContainerElement);
             }
 
-            return app;
-        }
-
-        function hasBasisAssets (assets) {
-        for (let i = 0; i < assets.length; i++) {
-            if (assets[i].url && assets[i].url.includes('.basis')) {
-                return true;
+            if (true) {
+                // set up miniStats
+                var miniStats = new pcx.MiniStats(app);
+                if (urlParams.get('miniStats') === 'false') {
+                    miniStats.enabled = false;
+                }
+                app.on('update', function () {
+                    if (window.top._showMiniStats !== undefined) miniStats.enabled = window.top._showMiniStats;
+                });
             }
         }
-        return false;
-    };
 
         function loadResource(app, resource, callback) {
             if (!resource.type) {
@@ -328,30 +307,6 @@
                     });
                 return;
             }
-            if (resource.data) {
-                var asset = new pc.Asset(
-                    resource.name,
-                    resource.type,
-                    resource.type === "cubemap" ? {
-                        url: resource.url
-                    } : null,
-                    resource.data
-                );
-                asset.on("load", function (asset) {
-                    callback(asset);
-                });
-                app.assets.add(asset);
-                app.assets.load(asset);
-            } else {
-                app.assets.loadFromUrl(resource.url, resource.type, function (
-                    err,
-                    asset
-                ) {
-                    if (!err && asset) {
-                        callback(asset);
-                    }
-                });
-            }
         }
 
         function loadResources(app, callback) {
@@ -362,15 +317,6 @@
             window.React = { createElement: function(type, props) { if (type === 'div') assets.push(props); } };
             // call the stubbed load function to add all assets to the assets list
             window.loadFunction();
-
-            // if we have any basis assets then initialize basis
-            if (hasBasisAssets(assets)) {
-                pc.basisInitialize({
-                    glueUrl: '/static/lib/basis/basis.wasm.js',
-                    wasmUrl: '/static/lib/basis/basis.wasm.wasm',
-                    fallbackUrl: '/static/lib/basis/basis.js'
-                });
-            }
 
             var count = assets.length;
             function onLoadedResource(key, asset) {
@@ -390,16 +336,40 @@
             });
         }
 
-        function callExample(app, canvas, assetManifest, data) {
-            if (location.pathname.indexOf('misc/mini-stats') !== -1) {
-                window.exampleFunction(app, canvas, pcx);
-            } else {
-                window.exampleFunction(app, canvas, assetManifest, data, wasmSupported, loadWasmModuleAsync);
+        function callExample(canvas, assetManifest, files, data) {
+            function escapeRegExp(string) {
+                return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             }
-            if (window.top.location.pathname.indexOf('iframe') === -1) {
-                var event = new CustomEvent("exampleLoad");
-                window.top.dispatchEvent(event);
+            function replaceAll(str, find, replace) {
+                return str.replace(new RegExp(escapeRegExp(find), 'g'), replace);
             }
+            var argsString = window.exampleFunction.toString().match(/function\s.*?\(([^)]*)\)/)[1];
+            argsString = replaceAll(argsString, ' ', '');
+            argsString = replaceAll(argsString, '\n', '');
+            var argNames = argsString.split(',');
+            var args = argNames.map(function(arg) {
+                if (arg === 'canvas') {
+                    return canvas;
+                } else if (arg === 'assetManifest') {
+                    return assetManifest;
+                } else if (arg === 'files') {
+                    return files;
+                } else if (arg === 'data') {
+                    return data;
+                } else if (arg === 'pcx') {
+                    return pcx;
+                } else if (arg === 'loadWasmModuleAsync') {
+                    return loadWasmModuleAsync;
+                } else if (arg === 'wasmSupported') {
+                    return wasmSupported;
+                }
+            });
+            window.exampleFunction.apply(this, args);
+            if (pc.app && pc.app.graphicsDevice.canvas) {
+                setupApplication(pc.app);
+            }
+            var event = new CustomEvent("exampleLoad");
+            window.top.dispatchEvent(event);
         }
     </script>
     <script>
@@ -411,13 +381,11 @@
         loadEngine(function() {
             var canvas = document.getElementById('application-canvas');
 
-            const app = createApplication(canvas);
-
             if (!window.loadFunction) {
-                callExample(app, canvas, {}, data);
+                callExample(canvas, {}, window.files, data);
             } else {
-                loadResources(app, function(assetManifest) {
-                    callExample(app, canvas, assetManifest, data);
+                loadResources(undefined, function(assetManifest) {
+                    callExample(canvas, assetManifest, window.files, data);
                 });
             }
         });

@@ -8,6 +8,8 @@
     <script src="../../build/promisePolyfill.js"></script>
     <script src="../../build/fetchPolyfill.js"></script>
     <script src="../../build/regeneratorRuntimePolyfill.js"></script>
+    <script src="../../build/arrayFromPolyfill.js"></script>
+    <script src="../../build/objectValuesPolyfill.js"></script>
     <link rel="stylesheet" href="/styles.css">
     <style>
         body {
@@ -36,27 +38,11 @@
             });
         }
 
-        // include any constants necessary for the example
-        var constValues = [];
-        for (var i = 0; i < constValues.length; i++) {
-            window[constValues[i].k] = constValues[i].v;
-        }
-
         // include the example class which contains the example function to execute and any assets to load
-        "use strict";function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}function _defineProperties(target, props) {for (var i = 0; i < props.length; i++) {var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);}}function _createClass(Constructor, protoProps, staticProps) {if (protoProps) _defineProperties(Constructor.prototype, protoProps);if (staticProps) _defineProperties(Constructor, staticProps);Object.defineProperty(Constructor, "prototype", { writable: false });return Constructor;}function _defineProperty(obj, key, value) {if (key in obj) {Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true });} else {obj[key] = value;}return obj;}var Example = /*#__PURE__*/function () {function Example() {_classCallCheck(this, Example);}_createClass(Example, [{ key: "load", value:
+        "use strict";function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}function _defineProperties(target, props) {for (var i = 0; i < props.length; i++) {var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);}}function _createClass(Constructor, protoProps, staticProps) {if (protoProps) _defineProperties(Constructor.prototype, protoProps);if (staticProps) _defineProperties(Constructor, staticProps);Object.defineProperty(Constructor, "prototype", { writable: false });return Constructor;}function _defineProperty(obj, key, value) {if (key in obj) {Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true });} else {obj[key] = value;}return obj;}var Example = /*#__PURE__*/function () {function Example() {_classCallCheck(this, Example);}_createClass(Example, [{ key: "controls", value:
 
 
 
-    function load() {
-      return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/
-      React.createElement("div", { name: "bloom", type: "script", url: "/../../static/scripts/posteffects/posteffect-bloom.js" }), /*#__PURE__*/
-      React.createElement("div", { name: "script", type: "script", url: "/../../static/scripts/camera/orbit-camera.js" }), /*#__PURE__*/
-      React.createElement("div", { name: "color", type: "texture", url: "/../../static/assets/textures/seaside-rocks01-color.jpg" }), /*#__PURE__*/
-      React.createElement("div", { name: "normal", type: "texture", url: "/../../static/assets/textures/seaside-rocks01-normal.jpg" }), /*#__PURE__*/
-      React.createElement("div", { name: "gloss", type: "texture", url: "/../../static/assets/textures/seaside-rocks01-gloss.jpg" }), /*#__PURE__*/
-      React.createElement("div", { name: "luts", type: "binary", url: "/../../static/assets/binary/area-light-luts.bin" }));
-
-    } }, { key: "controls", value:
 
     function controls(data) {
       return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/
@@ -71,7 +57,7 @@
 
     } }, { key: "example", value:
 
-    function example(app, canvas, assets, data) {
+    function example(canvas, data) {
 
       data.set('settings', {
         material: {
@@ -81,203 +67,210 @@
 
 
       // Create the app and start the update loop
-      
+      var app = new pc.Application(canvas, {
+        mouse: new pc.Mouse(document.body),
+        touch: new pc.TouchDevice(document.body) });
 
 
-      // set up some general scene rendering properties
-      app.scene.toneMapping = pc.TONEMAP_ACES;
-
-      // enabled clustered lighting. This is a temporary API and will change in the future
-      // @ts-ignore engine-tsd
-      app.scene.clusteredLightingEnabled = true;
-
-      // adjust default clustered lighting parameters to handle many lights:
-      // @ts-ignore
-      var lighting = app.scene.lighting;
-
-      // 1) subdivide space with lights into this many cells:
-      // @ts-ignore engine-tsd
-      lighting.cells = new pc.Vec3(30, 2, 30);
-
-      // 2) and allow this many lights per cell:
-      // @ts-ignore engine-tsd
-      lighting.maxLightsPerCell = 20;
-
-      // @ts-ignore engine-tsd
-      lighting.areaLightsEnabled = true;
-
-      // @ts-ignore engine-tsd
-      lighting.shadowsEnabled = false;
+      var assets = {
+        'bloom': new pc.Asset('bloom', 'script', { url: '/../../static/scripts/posteffects/posteffect-bloom.js' }),
+        'script': new pc.Asset('script', 'script', { url: '/../../static/scripts/camera/orbit-camera.js' }),
+        'color': new pc.Asset('color', 'texture', { url: '/../../static/assets/textures/seaside-rocks01-color.jpg' }),
+        'normal': new pc.Asset('normal', 'texture', { url: '/../../static/assets/textures/seaside-rocks01-normal.jpg' }),
+        'gloss': new pc.Asset('gloss', 'texture', { url: '/../../static/assets/textures/seaside-rocks01-gloss.jpg' }),
+        'luts': new pc.Asset('luts', 'binary', { url: '/../../static/assets/binary/area-light-luts.bin' }) };
 
 
-      // pure black material - used on back side of light objects
-      var blackMaterial = new pc.StandardMaterial();
-      blackMaterial.diffuse = new pc.Color(0, 0, 0);
-      blackMaterial.useLighting = false;
-      blackMaterial.update();
+      var assetListLoader = new pc.AssetListLoader(Object.values(assets), app.assets);
+      assetListLoader.load(function () {
 
-      // ground material
-      var groundMaterial = new pc.StandardMaterial();
-      groundMaterial.diffuse = pc.Color.GRAY;
-      groundMaterial.shininess = 80;
-      groundMaterial.metalness = 0.7;
-      groundMaterial.useMetalness = true;
+        // set up some general scene rendering properties
+        app.scene.toneMapping = pc.TONEMAP_ACES;
 
-      // helper function to create a primitive with shape type, position, scale, color
-      function createPrimitive(primitiveType, position, scale, assetManifest) {
+        // enabled clustered lighting. This is a temporary API and will change in the future
+        app.scene.clusteredLightingEnabled = true;
 
-        if (assetManifest) {
-          groundMaterial.diffuseMap = assetManifest.color.resource;
-          groundMaterial.normalMap = assetManifest.normal.resource;
-          groundMaterial.glossMap = assetManifest.gloss.resource;
+        // adjust default clustered lighting parameters to handle many lights
+        var lighting = app.scene.lighting;
 
-          groundMaterial.diffuseMapTiling.set(17, 17);
-          groundMaterial.normalMapTiling.set(17, 17);
-          groundMaterial.glossMapTiling.set(17, 17);
+        // 1) subdivide space with lights into this many cells
+        lighting.cells = new pc.Vec3(30, 2, 30);
+
+        // 2) and allow this many lights per cell
+        lighting.maxLightsPerCell = 20;
+
+        lighting.areaLightsEnabled = true;
+        lighting.shadowsEnabled = false;
+
+        // pure black material - used on back side of light objects
+        var blackMaterial = new pc.StandardMaterial();
+        blackMaterial.diffuse = new pc.Color(0, 0, 0);
+        blackMaterial.useLighting = false;
+        blackMaterial.update();
+
+        // ground material
+        var groundMaterial = new pc.StandardMaterial();
+        groundMaterial.diffuse = pc.Color.GRAY;
+        groundMaterial.shininess = 80;
+        groundMaterial.metalness = 0.7;
+        groundMaterial.useMetalness = true;
+
+        // helper function to create a primitive with shape type, position, scale, color
+        function createPrimitive(primitiveType, position, scale, assetManifest) {
+
+          if (assetManifest) {
+            groundMaterial.diffuseMap = assetManifest.color.resource;
+            groundMaterial.normalMap = assetManifest.normal.resource;
+            groundMaterial.glossMap = assetManifest.gloss.resource;
+
+            groundMaterial.diffuseMapTiling.set(17, 17);
+            groundMaterial.normalMapTiling.set(17, 17);
+            groundMaterial.glossMapTiling.set(17, 17);
+          }
+
+          groundMaterial.update();
+
+          // create primitive
+          var primitive = new pc.Entity();
+          primitive.addComponent('render', {
+            type: primitiveType,
+            material: groundMaterial });
+
+
+          // set position and scale and add it to scene
+          primitive.setLocalPosition(position);
+          primitive.setLocalScale(scale);
+          app.root.addChild(primitive);
+
+          return primitive;
         }
 
-        groundMaterial.update();
+        // helper function to create area light including its visual representation in the world
+        function createAreaLight(type, shape, position, scale, color, intensity, range) {
 
-        // create primitive
-        var primitive = new pc.Entity();
-        primitive.addComponent('render', {
-          type: primitiveType,
-          material: groundMaterial });
-
-
-        // set position and scale and add it to scene
-        primitive.setLocalPosition(position);
-        primitive.setLocalScale(scale);
-        app.root.addChild(primitive);
-
-        return primitive;
-      }
-
-      // helper function to create area light including its visual representation in the world
-      function createAreaLight(type, shape, position, scale, color, intensity, range) {
-
-        var light = new pc.Entity();
-        light.addComponent("light", {
-          type: type,
-          shape: shape,
-          color: color,
-          intensity: intensity,
-          falloffMode: pc.LIGHTFALLOFF_INVERSESQUARED,
-          range: range,
-          innerConeAngle: 88,
-          outerConeAngle: 89 });
+          var light = new pc.Entity();
+          light.addComponent("light", {
+            type: type,
+            shape: shape,
+            color: color,
+            intensity: intensity,
+            falloffMode: pc.LIGHTFALLOFF_INVERSESQUARED,
+            range: range,
+            innerConeAngle: 88,
+            outerConeAngle: 89 });
 
 
-        light.setLocalScale(scale);
-        light.setLocalPosition(position);
-        if (type === "spot") {
-          light.rotate(-90, 0, 0);
-        }
-        app.root.addChild(light);
+          light.setLocalScale(scale);
+          light.setLocalPosition(position);
+          if (type === "spot") {
+            light.rotate(-90, 0, 0);
+          }
+          app.root.addChild(light);
 
-        // emissive material that is the light source color
-        var brightMaterial = new pc.StandardMaterial();
-        brightMaterial.emissive = new pc.Color(color.r * 0.8, color.g * 0.8, color.b * 0.8);
-        brightMaterial.useLighting = false;
-        brightMaterial.update();
+          // emissive material that is the light source color
+          var brightMaterial = new pc.StandardMaterial();
+          brightMaterial.emissive = new pc.Color(color.r * 0.8, color.g * 0.8, color.b * 0.8);
+          brightMaterial.useLighting = false;
+          brightMaterial.update();
 
-        // primitive shape that matches light source shape
-        var lightPrimitive = shape === pc.LIGHTSHAPE_SPHERE ? "sphere" : shape === pc.LIGHTSHAPE_DISK ? "cylinder" : "box";
+          // primitive shape that matches light source shape
+          var lightPrimitive = shape === pc.LIGHTSHAPE_SPHERE ? "sphere" : shape === pc.LIGHTSHAPE_DISK ? "cylinder" : "box";
 
-        // primitive scale - flatten it to disk / rectangle
-        var primitiveScale = new pc.Vec3(1, shape !== pc.LIGHTSHAPE_SPHERE ? 0.001 : 1, 1);
+          // primitive scale - flatten it to disk / rectangle
+          var primitiveScale = new pc.Vec3(1, shape !== pc.LIGHTSHAPE_SPHERE ? 0.001 : 1, 1);
 
-        // bright primitive representing the area light source
-        var brightShape = new pc.Entity();
-        brightShape.addComponent("render", {
-          type: lightPrimitive,
-          material: brightMaterial });
-
-        brightShape.setLocalScale(primitiveScale);
-        light.addChild(brightShape);
-
-        // black primitive representing the back of the light source which is not emitting light
-        if (type === "spot") {
-
-          var blackShape = new pc.Entity();
-          blackShape.addComponent("render", {
+          // bright primitive representing the area light source
+          var brightShape = new pc.Entity();
+          brightShape.addComponent("render", {
             type: lightPrimitive,
-            material: blackMaterial });
+            material: brightMaterial });
 
-          blackShape.setLocalPosition(0, 0.004, 0);
-          blackShape.setLocalEulerAngles(-180, 0, 0);
-          blackShape.setLocalScale(primitiveScale);
-          light.addChild(blackShape);
+          brightShape.setLocalScale(primitiveScale);
+          light.addChild(brightShape);
+
+          // black primitive representing the back of the light source which is not emitting light
+          if (type === "spot") {
+
+            var blackShape = new pc.Entity();
+            blackShape.addComponent("render", {
+              type: lightPrimitive,
+              material: blackMaterial });
+
+            blackShape.setLocalPosition(0, 0.004, 0);
+            blackShape.setLocalEulerAngles(-180, 0, 0);
+            blackShape.setLocalScale(primitiveScale);
+            light.addChild(blackShape);
+          }
+
+          return light;
         }
 
-        return light;
-      }
+        app.start();
 
-      app.start();
+        // set the loaded area light LUT data
+        app.setAreaLightLuts(assets.luts);
 
-      // set the loaded area light LUT data
-      app.setAreaLightLuts(assets.luts);
+        // set up some general scene rendering properties
+        app.scene.toneMapping = pc.TONEMAP_ACES;
 
-      // set up some general scene rendering properties
-      app.scene.toneMapping = pc.TONEMAP_ACES;
+        // create ground plane
+        var ground = createPrimitive("plane", new pc.Vec3(0, 0, 0), new pc.Vec3(45, 1, 45), assets);
 
-      // create ground plane
-      var ground = createPrimitive("plane", new pc.Vec3(0, 0, 0), new pc.Vec3(45, 1, 45), assets);
+        // Create the camera, which renders entities
+        var camera = new pc.Entity();
+        camera.addComponent("camera", {
+          clearColor: new pc.Color(0.1, 0.1, 0.1),
+          fov: 60,
+          farClip: 1000 });
 
-      // Create the camera, which renders entities
-      var camera = new pc.Entity();
-      camera.addComponent("camera", {
-        clearColor: new pc.Color(0.1, 0.1, 0.1),
-        fov: 60,
-        farClip: 1000 });
+        camera.setLocalPosition(3, 3, 12);
 
-      camera.setLocalPosition(3, 3, 12);
-
-      // add orbit camera script with a mouse and a touch support
-      camera.addComponent("script");
-      camera.script.create("orbitCamera", {
-        attributes: {
-          inertiaFactor: 0.2,
-          focusEntity: ground,
-          distanceMax: 60,
-          frameOnStart: false } });
+        // add orbit camera script with a mouse and a touch support
+        camera.addComponent("script");
+        camera.script.create("orbitCamera", {
+          attributes: {
+            inertiaFactor: 0.2,
+            focusEntity: ground,
+            distanceMax: 60,
+            frameOnStart: false } });
 
 
-      camera.script.create("orbitCameraInputMouse");
-      camera.script.create("orbitCameraInputTouch");
-      app.root.addChild(camera);
+        camera.script.create("orbitCameraInputMouse");
+        camera.script.create("orbitCameraInputTouch");
+        app.root.addChild(camera);
 
-      // add bloom postprocessing
-      camera.script.create("bloom", {
-        attributes: {
-          bloomIntensity: 1.5,
-          bloomThreshold: 0.6,
-          blurAmount: 6 } });
+        // add bloom postprocessing
+        camera.script.create("bloom", {
+          attributes: {
+            bloomIntensity: 1.5,
+            bloomThreshold: 0.6,
+            blurAmount: 6 } });
 
 
 
-      // generate a grid of area lights of sphere, disk and rect shapes
-      for (var x = -20; x <= 20; x += 5) {
-        for (var y = -20; y <= 20; y += 5) {
-          var pos = new pc.Vec3(x, 0.6, y);
-          var color = new pc.Color(0.3 + Math.random() * 0.7, 0.3 + Math.random() * 0.7, 0.3 + Math.random() * 0.7);
-          var rand = Math.random();
-          if (rand < 0.3) {
-            createAreaLight("omni", pc.LIGHTSHAPE_SPHERE, pos, new pc.Vec3(1.5, 1.5, 1.5), color, 2, 6);
-          } else if (rand < 0.6) {
-            createAreaLight("spot", pc.LIGHTSHAPE_DISK, pos, new pc.Vec3(1.5, 1.5, 1.5), color, 2.5, 5);
-          } else {
-            createAreaLight("spot", pc.LIGHTSHAPE_RECT, pos, new pc.Vec3(2, 1, 1), color, 2.5, 5);
+        // generate a grid of area lights of sphere, disk and rect shapes
+        for (var x = -20; x <= 20; x += 5) {
+          for (var y = -20; y <= 20; y += 5) {
+            var pos = new pc.Vec3(x, 0.6, y);
+            var color = new pc.Color(0.3 + Math.random() * 0.7, 0.3 + Math.random() * 0.7, 0.3 + Math.random() * 0.7);
+            var rand = Math.random();
+            if (rand < 0.3) {
+              createAreaLight("omni", pc.LIGHTSHAPE_SPHERE, pos, new pc.Vec3(1.5, 1.5, 1.5), color, 2, 6);
+            } else if (rand < 0.6) {
+              createAreaLight("spot", pc.LIGHTSHAPE_DISK, pos, new pc.Vec3(1.5, 1.5, 1.5), color, 2.5, 5);
+            } else {
+              createAreaLight("spot", pc.LIGHTSHAPE_RECT, pos, new pc.Vec3(2, 1, 1), color, 2.5, 5);
+            }
           }
         }
-      }
 
-      // handle HUD changes - update properties on the material
-      data.on('*:set', function (path, value) {
-        var pathArray = path.split('.');
-        if (pathArray[2] === "shininess") groundMaterial.shininess = value;
-        if (pathArray[2] === "metalness") groundMaterial.metalness = value;
-        groundMaterial.update();
+        // handle HUD changes - update properties on the material
+        data.on('*:set', function (path, value) {
+          var pathArray = path.split('.');
+          if (pathArray[2] === "shininess") groundMaterial.shininess = value;
+          if (pathArray[2] === "metalness") groundMaterial.metalness = value;
+          groundMaterial.update();
+        });
       });
     } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'Graphics');_defineProperty(Example, "NAME", 'Clustered Area Lights');
         var example = new Example();
@@ -294,9 +287,10 @@
                     presets: ["react", "typescript", "env"]
                 }).code;
             }
-            window.exampleFunction = new Function('app', 'canvas', 'assets', 'data', exampleFunction);
+            window.exampleFunction = new Function('canvas', 'data', exampleFunction);
         }
         window.loadFunction = example.load;
+        window.files = window.top.editedFiles || example.constructor.FILES;
 
         // get url parameters
         var queryString = window.location.search;
@@ -304,42 +298,19 @@
     </script>
     <script>
         function loadEngine(callback) {
-            const enginePath = urlParams.get('use_local_engine') || "/build/playcanvas.dbg.js";
+            const enginePath = urlParams && urlParams.get('use_local_engine') || "/build/playcanvas.js";
 
-            fetch(enginePath)
-                .then(function(response) { return response.text() })
-                .then(function(data) {
-                    var module = {
-                        exports: {}
-                    };
-                    window.pc = (Function('module', 'exports', data).call(module, module, module.exports), module).exports;
-                    window.top.pc = window.pc;
-                    callback();
-                });
+            const script = document.createElement('script');
+            script.setAttribute('src', enginePath);
+            script.onload = function() {
+                window.top.pc = window.pc;
+                callback();
+            };
+            document.head.appendChild(script);
         }
 
-        function createApplication(canvas) {
-            // create the app
-            var app = new pc.Application(canvas, {
-                mouse: new pc.Mouse(document.body),
-                touch: new pc.TouchDevice(document.body),
-                elementInput: new pc.ElementInput(canvas),
-                gamepads: new pc.GamePads(),
-                keyboard: new pc.Keyboard(window),
-                graphicsDeviceOptions: {
-                    alpha: true
-                }
-            });
-
-            // set up miniStats
-            var miniStats = new pcx.MiniStats(app);
-            if (urlParams.get('miniStats') === 'false') {
-                miniStats.enabled = false;
-            }
-            app.on('update', function () {
-                if (window.top._showMiniStats !== undefined) miniStats.enabled = window.top._showMiniStats;
-            });
-
+        function setupApplication(app) {
+            const canvas = app.graphicsDevice.canvas;
             // handle resizing
             var canvasContainerElement = canvas.parentElement;
             canvas.setAttribute('width', window.innerWidth + 'px');
@@ -353,17 +324,17 @@
                 }).observe(canvasContainerElement);
             }
 
-            return app;
-        }
-
-        function hasBasisAssets (assets) {
-        for (let i = 0; i < assets.length; i++) {
-            if (assets[i].url && assets[i].url.includes('.basis')) {
-                return true;
+            if (true) {
+                // set up miniStats
+                var miniStats = new pcx.MiniStats(app);
+                if (urlParams.get('miniStats') === 'false') {
+                    miniStats.enabled = false;
+                }
+                app.on('update', function () {
+                    if (window.top._showMiniStats !== undefined) miniStats.enabled = window.top._showMiniStats;
+                });
             }
         }
-        return false;
-    };
 
         function loadResource(app, resource, callback) {
             if (!resource.type) {
@@ -378,30 +349,6 @@
                     });
                 return;
             }
-            if (resource.data) {
-                var asset = new pc.Asset(
-                    resource.name,
-                    resource.type,
-                    resource.type === "cubemap" ? {
-                        url: resource.url
-                    } : null,
-                    resource.data
-                );
-                asset.on("load", function (asset) {
-                    callback(asset);
-                });
-                app.assets.add(asset);
-                app.assets.load(asset);
-            } else {
-                app.assets.loadFromUrl(resource.url, resource.type, function (
-                    err,
-                    asset
-                ) {
-                    if (!err && asset) {
-                        callback(asset);
-                    }
-                });
-            }
         }
 
         function loadResources(app, callback) {
@@ -412,15 +359,6 @@
             window.React = { createElement: function(type, props) { if (type === 'div') assets.push(props); } };
             // call the stubbed load function to add all assets to the assets list
             window.loadFunction();
-
-            // if we have any basis assets then initialize basis
-            if (hasBasisAssets(assets)) {
-                pc.basisInitialize({
-                    glueUrl: '/static/lib/basis/basis.wasm.js',
-                    wasmUrl: '/static/lib/basis/basis.wasm.wasm',
-                    fallbackUrl: '/static/lib/basis/basis.js'
-                });
-            }
 
             var count = assets.length;
             function onLoadedResource(key, asset) {
@@ -440,16 +378,40 @@
             });
         }
 
-        function callExample(app, canvas, assetManifest, data) {
-            if (location.pathname.indexOf('misc/mini-stats') !== -1) {
-                window.exampleFunction(app, canvas, pcx);
-            } else {
-                window.exampleFunction(app, canvas, assetManifest, data, wasmSupported, loadWasmModuleAsync);
+        function callExample(canvas, assetManifest, files, data) {
+            function escapeRegExp(string) {
+                return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             }
-            if (window.top.location.pathname.indexOf('iframe') === -1) {
-                var event = new CustomEvent("exampleLoad");
-                window.top.dispatchEvent(event);
+            function replaceAll(str, find, replace) {
+                return str.replace(new RegExp(escapeRegExp(find), 'g'), replace);
             }
+            var argsString = window.exampleFunction.toString().match(/function\s.*?\(([^)]*)\)/)[1];
+            argsString = replaceAll(argsString, ' ', '');
+            argsString = replaceAll(argsString, '\n', '');
+            var argNames = argsString.split(',');
+            var args = argNames.map(function(arg) {
+                if (arg === 'canvas') {
+                    return canvas;
+                } else if (arg === 'assetManifest') {
+                    return assetManifest;
+                } else if (arg === 'files') {
+                    return files;
+                } else if (arg === 'data') {
+                    return data;
+                } else if (arg === 'pcx') {
+                    return pcx;
+                } else if (arg === 'loadWasmModuleAsync') {
+                    return loadWasmModuleAsync;
+                } else if (arg === 'wasmSupported') {
+                    return wasmSupported;
+                }
+            });
+            window.exampleFunction.apply(this, args);
+            if (pc.app && pc.app.graphicsDevice.canvas) {
+                setupApplication(pc.app);
+            }
+            var event = new CustomEvent("exampleLoad");
+            window.top.dispatchEvent(event);
         }
     </script>
     <script>
@@ -461,13 +423,11 @@
         loadEngine(function() {
             var canvas = document.getElementById('application-canvas');
 
-            const app = createApplication(canvas);
-
             if (!window.loadFunction) {
-                callExample(app, canvas, {}, data);
+                callExample(canvas, {}, window.files, data);
             } else {
-                loadResources(app, function(assetManifest) {
-                    callExample(app, canvas, assetManifest, data);
+                loadResources(undefined, function(assetManifest) {
+                    callExample(canvas, assetManifest, window.files, data);
                 });
             }
         });

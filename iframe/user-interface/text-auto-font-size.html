@@ -8,6 +8,8 @@
     <script src="../../build/promisePolyfill.js"></script>
     <script src="../../build/fetchPolyfill.js"></script>
     <script src="../../build/regeneratorRuntimePolyfill.js"></script>
+    <script src="../../build/arrayFromPolyfill.js"></script>
+    <script src="../../build/objectValuesPolyfill.js"></script>
     <link rel="stylesheet" href="/styles.css">
     <style>
         body {
@@ -36,91 +38,91 @@
             });
         }
 
-        // include any constants necessary for the example
-        var constValues = [];
-        for (var i = 0; i < constValues.length; i++) {
-            window[constValues[i].k] = constValues[i].v;
-        }
-
         // include the example class which contains the example function to execute and any assets to load
-        "use strict";function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}function _defineProperties(target, props) {for (var i = 0; i < props.length; i++) {var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);}}function _createClass(Constructor, protoProps, staticProps) {if (protoProps) _defineProperties(Constructor.prototype, protoProps);if (staticProps) _defineProperties(Constructor, staticProps);Object.defineProperty(Constructor, "prototype", { writable: false });return Constructor;}function _defineProperty(obj, key, value) {if (key in obj) {Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true });} else {obj[key] = value;}return obj;}var Example = /*#__PURE__*/function () {function Example() {_classCallCheck(this, Example);}_createClass(Example, [{ key: "load", value:
+        "use strict";function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}function _defineProperties(target, props) {for (var i = 0; i < props.length; i++) {var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);}}function _createClass(Constructor, protoProps, staticProps) {if (protoProps) _defineProperties(Constructor.prototype, protoProps);if (staticProps) _defineProperties(Constructor, staticProps);Object.defineProperty(Constructor, "prototype", { writable: false });return Constructor;}function _defineProperty(obj, key, value) {if (key in obj) {Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true });} else {obj[key] = value;}return obj;}var Example = /*#__PURE__*/function () {function Example() {_classCallCheck(this, Example);}_createClass(Example, [{ key: "example", value:
 
 
 
-    function load() {
-      return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/
-      React.createElement("div", { name: "font", type: "font", url: "/../../static/assets/fonts/courier.json" }));
 
-    } }, { key: "example", value:
-
-    function example(app, canvas, assets) {
+    function example(canvas) {
 
       // Create the application with input and start the update loop
-      
+      var app = new pc.Application(canvas, {
+        mouse: new pc.Mouse(document.body),
+        touch: new pc.TouchDevice(document.body),
+        elementInput: new pc.ElementInput(canvas) });
 
-      app.start();
 
-      // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
-      app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
-      app.setCanvasResolution(pc.RESOLUTION_AUTO);
+      var assets = {
+        'font': new pc.Asset('font', 'font', { url: '/../../static/assets/fonts/courier.json' }) };
 
-      window.addEventListener("resize", function () {
-        app.resizeCanvas(canvas.width, canvas.height);
-      });
 
-      // Create a camera
-      var camera = new pc.Entity();
-      camera.addComponent("camera", {
-        clearColor: new pc.Color(30 / 255, 30 / 255, 30 / 255) });
+      var assetListLoader = new pc.AssetListLoader(Object.values(assets), app.assets);
+      assetListLoader.load(function () {
+        app.start();
 
-      app.root.addChild(camera);
+        // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
+        app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
+        app.setCanvasResolution(pc.RESOLUTION_AUTO);
 
-      // Create a 2D screen
-      var screen = new pc.Entity();
-      screen.addComponent("screen", {
-        referenceResolution: new pc.Vec2(1280, 720),
-        scaleBlend: 0.5,
-        scaleMode: pc.SCALEMODE_BLEND,
-        screenSpace: true });
+        window.addEventListener("resize", function () {
+          app.resizeCanvas(canvas.width, canvas.height);
+        });
 
-      app.root.addChild(screen);
+        // Create a camera
+        var camera = new pc.Entity();
+        camera.addComponent("camera", {
+          clearColor: new pc.Color(30 / 255, 30 / 255, 30 / 255) });
 
-      // Create a container entity with an image component
-      var autoFontSizeContainer = new pc.Entity();
-      autoFontSizeContainer.addComponent("element", {
-        pivot: new pc.Vec2(0.5, 0.5),
-        anchor: new pc.Vec4(0.5, 0.5, 0.5, 0.5),
-        width: 220,
-        height: 50,
-        color: new pc.Color(60 / 255, 60 / 255, 60 / 255),
-        type: pc.ELEMENTTYPE_IMAGE });
+        app.root.addChild(camera);
 
-      // Create a text element with auto font size, and place it inside the container
-      var autoFontSizeText = new pc.Entity();
-      autoFontSizeText.addComponent("element", {
-        // place the text taking the entire parent space
-        pivot: new pc.Vec2(0.5, 0.5),
-        anchor: new pc.Vec4(0, 0, 1, 1),
-        margin: new pc.Vec4(0, 0, 0, 0),
-        fontAsset: assets.font.id,
-        autoWidth: false,
-        autoHeight: false,
-        autoFitWidth: true,
-        autoFitHeight: true,
-        minFontSize: 10,
-        maxFontSize: 100,
-        text: "Auto font size!",
-        type: pc.ELEMENTTYPE_TEXT });
+        // Create a 2D screen
+        var screen = new pc.Entity();
+        screen.addComponent("screen", {
+          referenceResolution: new pc.Vec2(1280, 720),
+          scaleBlend: 0.5,
+          scaleMode: pc.SCALEMODE_BLEND,
+          screenSpace: true });
 
-      screen.addChild(autoFontSizeContainer);
-      autoFontSizeContainer.addChild(autoFontSizeText);
+        app.root.addChild(screen);
 
-      // update the container's size to showcase the auto-sizing feature
-      var time = 0;
-      app.on('update', function (dt) {
-        time += dt;
-        autoFontSizeContainer.element.width = 280 + Math.sin(time) * 80;
-        autoFontSizeContainer.element.height = 60 + Math.sin(time * 0.5) * 50;
+        // Create a container entity with an image component
+        var autoFontSizeContainer = new pc.Entity();
+        autoFontSizeContainer.addComponent("element", {
+          pivot: new pc.Vec2(0.5, 0.5),
+          anchor: new pc.Vec4(0.5, 0.5, 0.5, 0.5),
+          width: 220,
+          height: 50,
+          color: new pc.Color(60 / 255, 60 / 255, 60 / 255),
+          type: pc.ELEMENTTYPE_IMAGE });
+
+        // Create a text element with auto font size, and place it inside the container
+        var autoFontSizeText = new pc.Entity();
+        autoFontSizeText.addComponent("element", {
+          // place the text taking the entire parent space
+          pivot: new pc.Vec2(0.5, 0.5),
+          anchor: new pc.Vec4(0, 0, 1, 1),
+          margin: new pc.Vec4(0, 0, 0, 0),
+          fontAsset: assets.font.id,
+          autoWidth: false,
+          autoHeight: false,
+          autoFitWidth: true,
+          autoFitHeight: true,
+          minFontSize: 10,
+          maxFontSize: 100,
+          text: "Auto font size!",
+          type: pc.ELEMENTTYPE_TEXT });
+
+        screen.addChild(autoFontSizeContainer);
+        autoFontSizeContainer.addChild(autoFontSizeText);
+
+        // update the container's size to showcase the auto-sizing feature
+        var time = 0;
+        app.on('update', function (dt) {
+          time += dt;
+          autoFontSizeContainer.element.width = 280 + Math.sin(time) * 80;
+          autoFontSizeContainer.element.height = 60 + Math.sin(time * 0.5) * 50;
+        });
       });
     } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'User Interface');_defineProperty(Example, "NAME", 'Text Auto Font Size');
         var example = new Example();
@@ -137,9 +139,10 @@
                     presets: ["react", "typescript", "env"]
                 }).code;
             }
-            window.exampleFunction = new Function('app', 'canvas', 'assets', 'data', exampleFunction);
+            window.exampleFunction = new Function('canvas', 'data', exampleFunction);
         }
         window.loadFunction = example.load;
+        window.files = window.top.editedFiles || example.constructor.FILES;
 
         // get url parameters
         var queryString = window.location.search;
@@ -147,42 +150,19 @@
     </script>
     <script>
         function loadEngine(callback) {
-            const enginePath = urlParams.get('use_local_engine') || "/build/playcanvas.dbg.js";
+            const enginePath = urlParams && urlParams.get('use_local_engine') || "/build/playcanvas.js";
 
-            fetch(enginePath)
-                .then(function(response) { return response.text() })
-                .then(function(data) {
-                    var module = {
-                        exports: {}
-                    };
-                    window.pc = (Function('module', 'exports', data).call(module, module, module.exports), module).exports;
-                    window.top.pc = window.pc;
-                    callback();
-                });
+            const script = document.createElement('script');
+            script.setAttribute('src', enginePath);
+            script.onload = function() {
+                window.top.pc = window.pc;
+                callback();
+            };
+            document.head.appendChild(script);
         }
 
-        function createApplication(canvas) {
-            // create the app
-            var app = new pc.Application(canvas, {
-                mouse: new pc.Mouse(document.body),
-                touch: new pc.TouchDevice(document.body),
-                elementInput: new pc.ElementInput(canvas),
-                gamepads: new pc.GamePads(),
-                keyboard: new pc.Keyboard(window),
-                graphicsDeviceOptions: {
-                    alpha: true
-                }
-            });
-
-            // set up miniStats
-            var miniStats = new pcx.MiniStats(app);
-            if (urlParams.get('miniStats') === 'false') {
-                miniStats.enabled = false;
-            }
-            app.on('update', function () {
-                if (window.top._showMiniStats !== undefined) miniStats.enabled = window.top._showMiniStats;
-            });
-
+        function setupApplication(app) {
+            const canvas = app.graphicsDevice.canvas;
             // handle resizing
             var canvasContainerElement = canvas.parentElement;
             canvas.setAttribute('width', window.innerWidth + 'px');
@@ -196,17 +176,17 @@
                 }).observe(canvasContainerElement);
             }
 
-            return app;
-        }
-
-        function hasBasisAssets (assets) {
-        for (let i = 0; i < assets.length; i++) {
-            if (assets[i].url && assets[i].url.includes('.basis')) {
-                return true;
+            if (true) {
+                // set up miniStats
+                var miniStats = new pcx.MiniStats(app);
+                if (urlParams.get('miniStats') === 'false') {
+                    miniStats.enabled = false;
+                }
+                app.on('update', function () {
+                    if (window.top._showMiniStats !== undefined) miniStats.enabled = window.top._showMiniStats;
+                });
             }
         }
-        return false;
-    };
 
         function loadResource(app, resource, callback) {
             if (!resource.type) {
@@ -221,30 +201,6 @@
                     });
                 return;
             }
-            if (resource.data) {
-                var asset = new pc.Asset(
-                    resource.name,
-                    resource.type,
-                    resource.type === "cubemap" ? {
-                        url: resource.url
-                    } : null,
-                    resource.data
-                );
-                asset.on("load", function (asset) {
-                    callback(asset);
-                });
-                app.assets.add(asset);
-                app.assets.load(asset);
-            } else {
-                app.assets.loadFromUrl(resource.url, resource.type, function (
-                    err,
-                    asset
-                ) {
-                    if (!err && asset) {
-                        callback(asset);
-                    }
-                });
-            }
         }
 
         function loadResources(app, callback) {
@@ -255,15 +211,6 @@
             window.React = { createElement: function(type, props) { if (type === 'div') assets.push(props); } };
             // call the stubbed load function to add all assets to the assets list
             window.loadFunction();
-
-            // if we have any basis assets then initialize basis
-            if (hasBasisAssets(assets)) {
-                pc.basisInitialize({
-                    glueUrl: '/static/lib/basis/basis.wasm.js',
-                    wasmUrl: '/static/lib/basis/basis.wasm.wasm',
-                    fallbackUrl: '/static/lib/basis/basis.js'
-                });
-            }
 
             var count = assets.length;
             function onLoadedResource(key, asset) {
@@ -283,16 +230,40 @@
             });
         }
 
-        function callExample(app, canvas, assetManifest, data) {
-            if (location.pathname.indexOf('misc/mini-stats') !== -1) {
-                window.exampleFunction(app, canvas, pcx);
-            } else {
-                window.exampleFunction(app, canvas, assetManifest, data, wasmSupported, loadWasmModuleAsync);
+        function callExample(canvas, assetManifest, files, data) {
+            function escapeRegExp(string) {
+                return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             }
-            if (window.top.location.pathname.indexOf('iframe') === -1) {
-                var event = new CustomEvent("exampleLoad");
-                window.top.dispatchEvent(event);
+            function replaceAll(str, find, replace) {
+                return str.replace(new RegExp(escapeRegExp(find), 'g'), replace);
             }
+            var argsString = window.exampleFunction.toString().match(/function\s.*?\(([^)]*)\)/)[1];
+            argsString = replaceAll(argsString, ' ', '');
+            argsString = replaceAll(argsString, '\n', '');
+            var argNames = argsString.split(',');
+            var args = argNames.map(function(arg) {
+                if (arg === 'canvas') {
+                    return canvas;
+                } else if (arg === 'assetManifest') {
+                    return assetManifest;
+                } else if (arg === 'files') {
+                    return files;
+                } else if (arg === 'data') {
+                    return data;
+                } else if (arg === 'pcx') {
+                    return pcx;
+                } else if (arg === 'loadWasmModuleAsync') {
+                    return loadWasmModuleAsync;
+                } else if (arg === 'wasmSupported') {
+                    return wasmSupported;
+                }
+            });
+            window.exampleFunction.apply(this, args);
+            if (pc.app && pc.app.graphicsDevice.canvas) {
+                setupApplication(pc.app);
+            }
+            var event = new CustomEvent("exampleLoad");
+            window.top.dispatchEvent(event);
         }
     </script>
     <script>
@@ -304,13 +275,11 @@
         loadEngine(function() {
             var canvas = document.getElementById('application-canvas');
 
-            const app = createApplication(canvas);
-
             if (!window.loadFunction) {
-                callExample(app, canvas, {}, data);
+                callExample(canvas, {}, window.files, data);
             } else {
-                loadResources(app, function(assetManifest) {
-                    callExample(app, canvas, assetManifest, data);
+                loadResources(undefined, function(assetManifest) {
+                    callExample(canvas, assetManifest, window.files, data);
                 });
             }
         });

@@ -8,6 +8,8 @@
     <script src="../../build/promisePolyfill.js"></script>
     <script src="../../build/fetchPolyfill.js"></script>
     <script src="../../build/regeneratorRuntimePolyfill.js"></script>
+    <script src="../../build/arrayFromPolyfill.js"></script>
+    <script src="../../build/objectValuesPolyfill.js"></script>
     <link rel="stylesheet" href="/styles.css">
     <style>
         body {
@@ -36,198 +38,196 @@
             });
         }
 
-        // include any constants necessary for the example
-        var constValues = [];
-        for (var i = 0; i < constValues.length; i++) {
-            window[constValues[i].k] = constValues[i].v;
-        }
-
         // include the example class which contains the example function to execute and any assets to load
-        "use strict";function _createForOfIteratorHelper(o, allowArrayLike) {var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"];if (!it) {if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") {if (it) o = it;var i = 0;var F = function F() {};return { s: F, n: function n() {if (i >= o.length) return { done: true };return { done: false, value: o[i++] };}, e: function e(_e) {throw _e;}, f: F };}throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");}var normalCompletion = true,didErr = false,err;return { s: function s() {it = it.call(o);}, n: function n() {var step = it.next();normalCompletion = step.done;return step;}, e: function e(_e2) {didErr = true;err = _e2;}, f: function f() {try {if (!normalCompletion && it["return"] != null) it["return"]();} finally {if (didErr) throw err;}} };}function _unsupportedIterableToArray(o, minLen) {if (!o) return;if (typeof o === "string") return _arrayLikeToArray(o, minLen);var n = Object.prototype.toString.call(o).slice(8, -1);if (n === "Object" && o.constructor) n = o.constructor.name;if (n === "Map" || n === "Set") return Array.from(o);if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen);}function _arrayLikeToArray(arr, len) {if (len == null || len > arr.length) len = arr.length;for (var i = 0, arr2 = new Array(len); i < len; i++) {arr2[i] = arr[i];}return arr2;}function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}function _defineProperties(target, props) {for (var i = 0; i < props.length; i++) {var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);}}function _createClass(Constructor, protoProps, staticProps) {if (protoProps) _defineProperties(Constructor.prototype, protoProps);if (staticProps) _defineProperties(Constructor, staticProps);Object.defineProperty(Constructor, "prototype", { writable: false });return Constructor;}function _defineProperty(obj, key, value) {if (key in obj) {Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true });} else {obj[key] = value;}return obj;}var Example = /*#__PURE__*/function () {function Example() {_classCallCheck(this, Example);}_createClass(Example, [{ key: "load", value:
+        "use strict";function _createForOfIteratorHelper(o, allowArrayLike) {var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"];if (!it) {if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") {if (it) o = it;var i = 0;var F = function F() {};return { s: F, n: function n() {if (i >= o.length) return { done: true };return { done: false, value: o[i++] };}, e: function e(_e) {throw _e;}, f: F };}throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");}var normalCompletion = true,didErr = false,err;return { s: function s() {it = it.call(o);}, n: function n() {var step = it.next();normalCompletion = step.done;return step;}, e: function e(_e2) {didErr = true;err = _e2;}, f: function f() {try {if (!normalCompletion && it["return"] != null) it["return"]();} finally {if (didErr) throw err;}} };}function _unsupportedIterableToArray(o, minLen) {if (!o) return;if (typeof o === "string") return _arrayLikeToArray(o, minLen);var n = Object.prototype.toString.call(o).slice(8, -1);if (n === "Object" && o.constructor) n = o.constructor.name;if (n === "Map" || n === "Set") return Array.from(o);if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen);}function _arrayLikeToArray(arr, len) {if (len == null || len > arr.length) len = arr.length;for (var i = 0, arr2 = new Array(len); i < len; i++) {arr2[i] = arr[i];}return arr2;}function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}function _defineProperties(target, props) {for (var i = 0; i < props.length; i++) {var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);}}function _createClass(Constructor, protoProps, staticProps) {if (protoProps) _defineProperties(Constructor.prototype, protoProps);if (staticProps) _defineProperties(Constructor, staticProps);Object.defineProperty(Constructor, "prototype", { writable: false });return Constructor;}function _defineProperty(obj, key, value) {if (key in obj) {Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true });} else {obj[key] = value;}return obj;}var Example = /*#__PURE__*/function () {function Example() {_classCallCheck(this, Example);}_createClass(Example, [{ key: "example", value:
 
 
 
-    function load() {
-      return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/
-      React.createElement("div", { name: "helipad.dds", type: "cubemap", url: "/../../static/assets/cubemaps/helipad.dds", data: { type: pc.TEXTURETYPE_RGBM } }), /*#__PURE__*/
-      React.createElement("div", { name: "portal", type: "container", url: "/../../static/assets/models/portal.glb" }), /*#__PURE__*/
-      React.createElement("div", { name: "statue", type: "container", url: "/../../static/assets/models/statue.glb" }), /*#__PURE__*/
-      React.createElement("div", { name: "bitmoji", type: "container", url: "/../../static/assets/models/bitmoji.glb" }));
 
-    } }, { key: "example", value:
-
-    function example(app, canvas, assets) {
+    function example(canvas) {
 
       // Create the application and start the update loop
-      
+      var app = new pc.Application(canvas, {
+        keyboard: new pc.Keyboard(window) });
 
 
-      // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
-      app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
-      app.setCanvasResolution(pc.RESOLUTION_AUTO);
-
-      app.start();
-
-      // set skybox - this DDS file was 'prefiltered' in the PlayCanvas Editor and then downloaded.
-      app.scene.setSkybox(assets["helipad.dds"].resources);
-      app.scene.toneMapping = pc.TONEMAP_ACES;
-      app.scene.skyboxMip = 1;
-      app.scene.skyboxIntensity = 0.7;
-
-      ////////////////////////////////
-      // Script to rotate the scene //
-      ////////////////////////////////
-      var Rotator = pc.createScript('rotator');
-
-      var t = 0;
-
-      Rotator.prototype.update = function (dt) {
-        t += dt;
-        this.entity.setEulerAngles(0, Math.sin(t) * 40, 0);
-      };
-
-      //////////////////////////////////////////////////
-      // Script to set up rendering the portal itself //
-      //////////////////////////////////////////////////
-      var Portal = pc.createScript('portal');
-
-      // initialize code called once per entity
-      Portal.prototype.initialize = function () {
-
-        // increment value in stencil (from 0 to 1) for stencil geometry
-        var stencil = new pc.StencilParameters({
-          zpass: pc.STENCILOP_INCREMENT });
+      var assets = {
+        'helipad.dds': new pc.Asset('helipad.dds', 'cubemap', { url: '/../../static/assets/cubemaps/helipad.dds' }, { type: pc.TEXTURETYPE_RGBM }),
+        'portal': new pc.Asset('portal', 'container', { url: '/../../static/assets/models/portal.glb' }),
+        'statue': new pc.Asset('statue', 'container', { url: '/../../static/assets/models/statue.glb' }),
+        'bitmoji': new pc.Asset('bitmoji', 'container', { url: '/../../static/assets/models/bitmoji.glb' }) };
 
 
-        // set the stencil and other parameters on all materials
-        var renders = this.entity.findComponents("render");
-        renders.forEach(function (render) {var _iterator = _createForOfIteratorHelper(
-          render.meshInstances),_step;try {for (_iterator.s(); !(_step = _iterator.n()).done;) {var meshInstance = _step.value;
-              var mat = meshInstance.material;
-              mat.stencilBack = mat.stencilFront = stencil;
+      var assetListLoader = new pc.AssetListLoader(Object.values(assets), app.assets);
+      assetListLoader.load(function () {
 
-              // We only want to write to the stencil buffer
-              mat.depthWrite = false;
-              mat.redWrite = mat.greenWrite = mat.blueWrite = mat.alphaWrite = false;
-              mat.update();
-            }} catch (err) {_iterator.e(err);} finally {_iterator.f();}
-        });
-      };
+        // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
+        app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
+        app.setCanvasResolution(pc.RESOLUTION_AUTO);
 
-      /////////////////////////////////////////////////////////////////////////////
-      // Script to set stencil options for entities inside or outside the portal //
-      /////////////////////////////////////////////////////////////////////////////
+        app.start();
 
-      var PortalGeometry = pc.createScript('portalGeometry');
+        // set skybox - this DDS file was 'prefiltered' in the PlayCanvas Editor and then downloaded.
+        app.scene.setSkybox(assets["helipad.dds"].resources);
+        app.scene.toneMapping = pc.TONEMAP_ACES;
+        app.scene.skyboxMip = 1;
+        app.scene.skyboxIntensity = 0.7;
 
-      PortalGeometry.attributes.add('inside', {
-        type: 'boolean',
-        "default": true,
-        title: 'True indicating the geometry is inside the portal, false for outside' });
+        ////////////////////////////////
+        // Script to rotate the scene //
+        ////////////////////////////////
+        var Rotator = pc.createScript('rotator');
 
+        var t = 0;
 
-      PortalGeometry.prototype.initialize = function () {
+        Rotator.prototype.update = function (dt) {
+          t += dt;
+          this.entity.setEulerAngles(0, Math.sin(t) * 40, 0);
+        };
 
-        // based on value in the stencil buffer (0 outside, 1 inside), either render
-        // the geometry when the value is equal, or not equal to zero.
-        var stencil = new pc.StencilParameters({
-          func: this.inside ? pc.FUNC_NOTEQUAL : pc.FUNC_EQUAL,
-          ref: 0 });
+        //////////////////////////////////////////////////
+        // Script to set up rendering the portal itself //
+        //////////////////////////////////////////////////
+        var Portal = pc.createScript('portal');
 
+        // initialize code called once per entity
+        Portal.prototype.initialize = function () {
 
-        // set the stencil parameters on all materials
-        var renders = this.entity.findComponents("render");
-        renders.forEach(function (render) {var _iterator2 = _createForOfIteratorHelper(
-          render.meshInstances),_step2;try {for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {var meshInstance = _step2.value;
-              meshInstance.material.stencilBack = meshInstance.material.stencilFront = stencil;
-            }} catch (err) {_iterator2.e(err);} finally {_iterator2.f();}
-        });
-      };
-
-      /////////////////////////////////////////////////////////////////////////////
-
-      // find world layer - majority of objects render to this layer
-      var worldLayer = app.scene.layers.getLayerByName("World");
-
-      // find skybox layer - to enable it for the camera
-      var skyboxLayer = app.scene.layers.getLayerByName("Skybox");
-
-      // portal layer - this is where the portal geometry is written to the stencil
-      // buffer, and this needs to render first, so insert it before the world layer
-      var portalLayer = new pc.Layer({ name: "Portal" });
-      app.scene.layers.insert(portalLayer, 0);
-
-      // Create an Entity with a camera component
-      // this camera renders both world and portal layers
-      var camera = new pc.Entity();
-      camera.addComponent('camera', {
-        layers: [worldLayer.id, portalLayer.id, skyboxLayer.id] });
-
-      camera.setLocalPosition(7, 5.5, 7.1);
-      camera.setLocalEulerAngles(-27, 45, 0);
-      app.root.addChild(camera);
-
-      // Create an Entity with a directional light component
-      var light = new pc.Entity();
-      light.addComponent('light', {
-        type: 'directional',
-        color: new pc.Color(1, 1, 1) });
-
-      light.setEulerAngles(45, 35, 0);
-      app.root.addChild(light);
-
-      // Create a root for the graphical scene
-      var group = new pc.Entity();
-      group.addComponent('script');
-      group.script.create('rotator');
-      app.root.addChild(group);
-
-      // Create the portal entity - this plane is written to stencil buffer,
-      // which is then used to test for inside / outside. This needs to render
-      // before all elements requiring stencil buffer, so add to to a portalLayer.
-      // This is the plane that fills the inside of the portal geometry.
-      var portal = new pc.Entity("Portal");
-      portal.addComponent('render', {
-        type: 'plane',
-        material: new pc.StandardMaterial(),
-        layers: [portalLayer.id] });
-
-      portal.addComponent('script');
-      portal.script.create('portal'); // comment out this line to see the geometry
-      portal.setLocalPosition(0, 0.4, -0.3);
-      portal.setLocalEulerAngles(90, 0, 0);
-      portal.setLocalScale(3.7, 1, 6.7);
-      group.addChild(portal);
-
-      // Create the portal visual geometry
-      var portalEntity = assets.portal.resource.instantiateRenderEntity();
-      portalEntity.setLocalPosition(0, -3, 0);
-      portalEntity.setLocalScale(0.02, 0.02, 0.02);
-      group.addChild(portalEntity);
-
-      // Create a statue entity, whic is visible inside the portal only
-      var statue = assets.statue.resource.instantiateRenderEntity();
-      statue.addComponent('script');
-      statue.script.create('portalGeometry', {
-        attributes: {
-          inside: true } });
+          // increment value in stencil (from 0 to 1) for stencil geometry
+          var stencil = new pc.StencilParameters({
+            zpass: pc.STENCILOP_INCREMENT });
 
 
-      statue.setLocalPosition(0, -1, -2);
-      statue.setLocalScale(0.25, 0.25, 0.25);
-      group.addChild(statue);
+          // set the stencil and other parameters on all materials
+          var renders = this.entity.findComponents("render");
+          renders.forEach(function (render) {var _iterator = _createForOfIteratorHelper(
+            render.meshInstances),_step;try {for (_iterator.s(); !(_step = _iterator.n()).done;) {var meshInstance = _step.value;
+                var mat = meshInstance.material;
+                mat.stencilBack = mat.stencilFront = stencil;
 
-      // Create a bitmoji entity, whic is visible outside the portal only
-      var bitmoji = assets.bitmoji.resource.instantiateRenderEntity();
-      bitmoji.addComponent('script');
-      bitmoji.script.create('portalGeometry', {
-        attributes: {
-          inside: false } });
+                // We only want to write to the stencil buffer
+                mat.depthWrite = false;
+                mat.redWrite = mat.greenWrite = mat.blueWrite = mat.alphaWrite = false;
+                mat.update();
+              }} catch (err) {_iterator.e(err);} finally {_iterator.f();}
+          });
+        };
+
+        /////////////////////////////////////////////////////////////////////////////
+        // Script to set stencil options for entities inside or outside the portal //
+        /////////////////////////////////////////////////////////////////////////////
+
+        var PortalGeometry = pc.createScript('portalGeometry');
+
+        PortalGeometry.attributes.add('inside', {
+          type: 'boolean',
+          "default": true,
+          title: 'True indicating the geometry is inside the portal, false for outside' });
 
 
-      bitmoji.setLocalPosition(0, -1, -2);
-      bitmoji.setLocalScale(2.5, 2.5, 2.5);
-      group.addChild(bitmoji);
+        PortalGeometry.prototype.initialize = function () {
+
+          // based on value in the stencil buffer (0 outside, 1 inside), either render
+          // the geometry when the value is equal, or not equal to zero.
+          var stencil = new pc.StencilParameters({
+            func: this.inside ? pc.FUNC_NOTEQUAL : pc.FUNC_EQUAL,
+            ref: 0 });
+
+
+          // set the stencil parameters on all materials
+          var renders = this.entity.findComponents("render");
+          renders.forEach(function (render) {var _iterator2 = _createForOfIteratorHelper(
+            render.meshInstances),_step2;try {for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {var meshInstance = _step2.value;
+                meshInstance.material.stencilBack = meshInstance.material.stencilFront = stencil;
+              }} catch (err) {_iterator2.e(err);} finally {_iterator2.f();}
+          });
+        };
+
+        /////////////////////////////////////////////////////////////////////////////
+
+        // find world layer - majority of objects render to this layer
+        var worldLayer = app.scene.layers.getLayerByName("World");
+
+        // find skybox layer - to enable it for the camera
+        var skyboxLayer = app.scene.layers.getLayerByName("Skybox");
+
+        // portal layer - this is where the portal geometry is written to the stencil
+        // buffer, and this needs to render first, so insert it before the world layer
+        var portalLayer = new pc.Layer({ name: "Portal" });
+        app.scene.layers.insert(portalLayer, 0);
+
+        // Create an Entity with a camera component
+        // this camera renders both world and portal layers
+        var camera = new pc.Entity();
+        camera.addComponent('camera', {
+          layers: [worldLayer.id, portalLayer.id, skyboxLayer.id] });
+
+        camera.setLocalPosition(7, 5.5, 7.1);
+        camera.setLocalEulerAngles(-27, 45, 0);
+        app.root.addChild(camera);
+
+        // Create an Entity with a directional light component
+        var light = new pc.Entity();
+        light.addComponent('light', {
+          type: 'directional',
+          color: new pc.Color(1, 1, 1) });
+
+        light.setEulerAngles(45, 35, 0);
+        app.root.addChild(light);
+
+        // Create a root for the graphical scene
+        var group = new pc.Entity();
+        group.addComponent('script');
+        group.script.create('rotator');
+        app.root.addChild(group);
+
+        // Create the portal entity - this plane is written to stencil buffer,
+        // which is then used to test for inside / outside. This needs to render
+        // before all elements requiring stencil buffer, so add to to a portalLayer.
+        // This is the plane that fills the inside of the portal geometry.
+        var portal = new pc.Entity("Portal");
+        portal.addComponent('render', {
+          type: 'plane',
+          material: new pc.StandardMaterial(),
+          layers: [portalLayer.id] });
+
+        portal.addComponent('script');
+        portal.script.create('portal'); // comment out this line to see the geometry
+        portal.setLocalPosition(0, 0.4, -0.3);
+        portal.setLocalEulerAngles(90, 0, 0);
+        portal.setLocalScale(3.7, 1, 6.7);
+        group.addChild(portal);
+
+        // Create the portal visual geometry
+        var portalEntity = assets.portal.resource.instantiateRenderEntity();
+        portalEntity.setLocalPosition(0, -3, 0);
+        portalEntity.setLocalScale(0.02, 0.02, 0.02);
+        group.addChild(portalEntity);
+
+        // Create a statue entity, whic is visible inside the portal only
+        var statue = assets.statue.resource.instantiateRenderEntity();
+        statue.addComponent('script');
+        statue.script.create('portalGeometry', {
+          attributes: {
+            inside: true } });
+
+
+        statue.setLocalPosition(0, -1, -2);
+        statue.setLocalScale(0.25, 0.25, 0.25);
+        group.addChild(statue);
+
+        // Create a bitmoji entity, whic is visible outside the portal only
+        var bitmoji = assets.bitmoji.resource.instantiateRenderEntity();
+        bitmoji.addComponent('script');
+        bitmoji.script.create('portalGeometry', {
+          attributes: {
+            inside: false } });
+
+
+        bitmoji.setLocalPosition(0, -1, -2);
+        bitmoji.setLocalScale(2.5, 2.5, 2.5);
+        group.addChild(bitmoji);
+      });
     } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'Graphics');_defineProperty(Example, "NAME", 'Portal');
         var example = new Example();
 
@@ -243,9 +243,10 @@
                     presets: ["react", "typescript", "env"]
                 }).code;
             }
-            window.exampleFunction = new Function('app', 'canvas', 'assets', 'data', exampleFunction);
+            window.exampleFunction = new Function('canvas', 'data', exampleFunction);
         }
         window.loadFunction = example.load;
+        window.files = window.top.editedFiles || example.constructor.FILES;
 
         // get url parameters
         var queryString = window.location.search;
@@ -253,42 +254,19 @@
     </script>
     <script>
         function loadEngine(callback) {
-            const enginePath = urlParams.get('use_local_engine') || "/build/playcanvas.dbg.js";
+            const enginePath = urlParams && urlParams.get('use_local_engine') || "/build/playcanvas.js";
 
-            fetch(enginePath)
-                .then(function(response) { return response.text() })
-                .then(function(data) {
-                    var module = {
-                        exports: {}
-                    };
-                    window.pc = (Function('module', 'exports', data).call(module, module, module.exports), module).exports;
-                    window.top.pc = window.pc;
-                    callback();
-                });
+            const script = document.createElement('script');
+            script.setAttribute('src', enginePath);
+            script.onload = function() {
+                window.top.pc = window.pc;
+                callback();
+            };
+            document.head.appendChild(script);
         }
 
-        function createApplication(canvas) {
-            // create the app
-            var app = new pc.Application(canvas, {
-                mouse: new pc.Mouse(document.body),
-                touch: new pc.TouchDevice(document.body),
-                elementInput: new pc.ElementInput(canvas),
-                gamepads: new pc.GamePads(),
-                keyboard: new pc.Keyboard(window),
-                graphicsDeviceOptions: {
-                    alpha: true
-                }
-            });
-
-            // set up miniStats
-            var miniStats = new pcx.MiniStats(app);
-            if (urlParams.get('miniStats') === 'false') {
-                miniStats.enabled = false;
-            }
-            app.on('update', function () {
-                if (window.top._showMiniStats !== undefined) miniStats.enabled = window.top._showMiniStats;
-            });
-
+        function setupApplication(app) {
+            const canvas = app.graphicsDevice.canvas;
             // handle resizing
             var canvasContainerElement = canvas.parentElement;
             canvas.setAttribute('width', window.innerWidth + 'px');
@@ -302,17 +280,17 @@
                 }).observe(canvasContainerElement);
             }
 
-            return app;
-        }
-
-        function hasBasisAssets (assets) {
-        for (let i = 0; i < assets.length; i++) {
-            if (assets[i].url && assets[i].url.includes('.basis')) {
-                return true;
+            if (true) {
+                // set up miniStats
+                var miniStats = new pcx.MiniStats(app);
+                if (urlParams.get('miniStats') === 'false') {
+                    miniStats.enabled = false;
+                }
+                app.on('update', function () {
+                    if (window.top._showMiniStats !== undefined) miniStats.enabled = window.top._showMiniStats;
+                });
             }
         }
-        return false;
-    };
 
         function loadResource(app, resource, callback) {
             if (!resource.type) {
@@ -327,30 +305,6 @@
                     });
                 return;
             }
-            if (resource.data) {
-                var asset = new pc.Asset(
-                    resource.name,
-                    resource.type,
-                    resource.type === "cubemap" ? {
-                        url: resource.url
-                    } : null,
-                    resource.data
-                );
-                asset.on("load", function (asset) {
-                    callback(asset);
-                });
-                app.assets.add(asset);
-                app.assets.load(asset);
-            } else {
-                app.assets.loadFromUrl(resource.url, resource.type, function (
-                    err,
-                    asset
-                ) {
-                    if (!err && asset) {
-                        callback(asset);
-                    }
-                });
-            }
         }
 
         function loadResources(app, callback) {
@@ -361,15 +315,6 @@
             window.React = { createElement: function(type, props) { if (type === 'div') assets.push(props); } };
             // call the stubbed load function to add all assets to the assets list
             window.loadFunction();
-
-            // if we have any basis assets then initialize basis
-            if (hasBasisAssets(assets)) {
-                pc.basisInitialize({
-                    glueUrl: '/static/lib/basis/basis.wasm.js',
-                    wasmUrl: '/static/lib/basis/basis.wasm.wasm',
-                    fallbackUrl: '/static/lib/basis/basis.js'
-                });
-            }
 
             var count = assets.length;
             function onLoadedResource(key, asset) {
@@ -389,16 +334,40 @@
             });
         }
 
-        function callExample(app, canvas, assetManifest, data) {
-            if (location.pathname.indexOf('misc/mini-stats') !== -1) {
-                window.exampleFunction(app, canvas, pcx);
-            } else {
-                window.exampleFunction(app, canvas, assetManifest, data, wasmSupported, loadWasmModuleAsync);
+        function callExample(canvas, assetManifest, files, data) {
+            function escapeRegExp(string) {
+                return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             }
-            if (window.top.location.pathname.indexOf('iframe') === -1) {
-                var event = new CustomEvent("exampleLoad");
-                window.top.dispatchEvent(event);
+            function replaceAll(str, find, replace) {
+                return str.replace(new RegExp(escapeRegExp(find), 'g'), replace);
             }
+            var argsString = window.exampleFunction.toString().match(/function\s.*?\(([^)]*)\)/)[1];
+            argsString = replaceAll(argsString, ' ', '');
+            argsString = replaceAll(argsString, '\n', '');
+            var argNames = argsString.split(',');
+            var args = argNames.map(function(arg) {
+                if (arg === 'canvas') {
+                    return canvas;
+                } else if (arg === 'assetManifest') {
+                    return assetManifest;
+                } else if (arg === 'files') {
+                    return files;
+                } else if (arg === 'data') {
+                    return data;
+                } else if (arg === 'pcx') {
+                    return pcx;
+                } else if (arg === 'loadWasmModuleAsync') {
+                    return loadWasmModuleAsync;
+                } else if (arg === 'wasmSupported') {
+                    return wasmSupported;
+                }
+            });
+            window.exampleFunction.apply(this, args);
+            if (pc.app && pc.app.graphicsDevice.canvas) {
+                setupApplication(pc.app);
+            }
+            var event = new CustomEvent("exampleLoad");
+            window.top.dispatchEvent(event);
         }
     </script>
     <script>
@@ -410,13 +379,11 @@
         loadEngine(function() {
             var canvas = document.getElementById('application-canvas');
 
-            const app = createApplication(canvas);
-
             if (!window.loadFunction) {
-                callExample(app, canvas, {}, data);
+                callExample(canvas, {}, window.files, data);
             } else {
-                loadResources(app, function(assetManifest) {
-                    callExample(app, canvas, assetManifest, data);
+                loadResources(undefined, function(assetManifest) {
+                    callExample(canvas, assetManifest, window.files, data);
                 });
             }
         });

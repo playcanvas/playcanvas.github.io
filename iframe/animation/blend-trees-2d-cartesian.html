@@ -8,6 +8,8 @@
     <script src="../../build/promisePolyfill.js"></script>
     <script src="../../build/fetchPolyfill.js"></script>
     <script src="../../build/regeneratorRuntimePolyfill.js"></script>
+    <script src="../../build/arrayFromPolyfill.js"></script>
+    <script src="../../build/objectValuesPolyfill.js"></script>
     <link rel="stylesheet" href="/styles.css">
     <style>
         body {
@@ -36,234 +38,234 @@
             });
         }
 
-        // include any constants necessary for the example
-        var constValues = [];
-        for (var i = 0; i < constValues.length; i++) {
-            window[constValues[i].k] = constValues[i].v;
-        }
-
         // include the example class which contains the example function to execute and any assets to load
-        "use strict";function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}function _defineProperties(target, props) {for (var i = 0; i < props.length; i++) {var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);}}function _createClass(Constructor, protoProps, staticProps) {if (protoProps) _defineProperties(Constructor.prototype, protoProps);if (staticProps) _defineProperties(Constructor, staticProps);Object.defineProperty(Constructor, "prototype", { writable: false });return Constructor;}function _defineProperty(obj, key, value) {if (key in obj) {Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true });} else {obj[key] = value;}return obj;}var Example = /*#__PURE__*/function () {function Example() {_classCallCheck(this, Example);}_createClass(Example, [{ key: "load", value:
+        "use strict";function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}function _defineProperties(target, props) {for (var i = 0; i < props.length; i++) {var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);}}function _createClass(Constructor, protoProps, staticProps) {if (protoProps) _defineProperties(Constructor.prototype, protoProps);if (staticProps) _defineProperties(Constructor, staticProps);Object.defineProperty(Constructor, "prototype", { writable: false });return Constructor;}function _defineProperty(obj, key, value) {if (key in obj) {Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true });} else {obj[key] = value;}return obj;}var Example = /*#__PURE__*/function () {function Example() {_classCallCheck(this, Example);}_createClass(Example, [{ key: "controls", value:
 
 
-
-    function load() {
-      return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/
-      React.createElement("div", { name: "model", type: "container", url: "/../../static/assets/models/bitmoji.glb" }), /*#__PURE__*/
-      React.createElement("div", { name: "idleAnim", type: "container", url: "/../../static/assets/animations/bitmoji/idle.glb" }), /*#__PURE__*/
-      React.createElement("div", { name: "eagerAnim", type: "container", url: "/../../static/assets/animations/bitmoji/idle-eager.glb" }), /*#__PURE__*/
-      React.createElement("div", { name: "walkAnim", type: "container", url: "/../../static/assets/animations/bitmoji/walk.glb" }), /*#__PURE__*/
-      React.createElement("div", { name: "danceAnim", type: "container", url: "/../../static/assets/animations/bitmoji/win-dance.glb" }), /*#__PURE__*/
-      React.createElement("div", { name: "helipad.dds", type: "cubemap", url: "/../../static/assets/cubemaps/helipad.dds", data: { type: pc.TEXTURETYPE_RGBM } }), /*#__PURE__*/
-      React.createElement("div", { name: "bloom", type: "script", url: "/../../static/scripts/posteffects/posteffect-bloom.js" }));
-
-    } }, { key: "controls", value:
 
     function controls() {
-      useEffect(function () {
+      useEffect(function () {var _document$getElementB, _document$getElementB2;
         // @ts-ignore engine-tsd
-        if (!document.getElementById('exampleIframe').contentWindow.pc) return;
-        var canvas = document.getElementById('2d-blend-control');
-        // @ts-ignore engine-tsd
-        var modelEntity = document.getElementById('exampleIframe').contentWindow.pc.app.root.findByName('model');
-        var width = window.controlPanel.offsetWidth;
-        var height = width;
-        var halfWidth = Math.floor(width / 2);
-        var halfHeight = Math.floor(height / 2);
-        canvas.setAttribute('style', 'width: ' + width + 'px; height: ' + height + 'px;');
-        canvas.setAttribute('width', width);
-        canvas.setAttribute('height', height);
-        var ctx = canvas.getContext('2d');
-        var position = new pc.Vec2(0);
-        var drawPosition = function drawPosition(ctx) {
-          ctx.clearRect(0, 0, width, height);
-          ctx.fillStyle = "rgba(128, 128, 128, 0.5)";
-          ctx.fillRect(0, 0, width, height);
-          ctx.fillStyle = '#B1B8BA';
-          ctx.fillRect(halfWidth, 0, 1, height);
-          ctx.fillRect(0, halfHeight, width, 1);
-          ctx.fillStyle = '#232e30';
+        var pc = (_document$getElementB = document.getElementById('exampleIframe')) === null || _document$getElementB === void 0 ? void 0 : (_document$getElementB2 = _document$getElementB.contentWindow) === null || _document$getElementB2 === void 0 ? void 0 : _document$getElementB2.pc;
+        if (!pc) return;
+        pc.app.on('start', function () {
+          var canvas = document.getElementById('2d-blend-control');
           // @ts-ignore engine-tsd
-          modelEntity.anim.baseLayer._controller.activeState.animations.forEach(function (animNode) {
-            if (animNode.point) {
-              var posX = (animNode.point.x + 1) * halfWidth;
-              var posY = (animNode.point.y * -1 + 1) * halfHeight;
-              var _width = 8;
-              var _height = 8;
+          var modelEntity = pc.app.root.findByName('model');
+          var width = window.controlPanel.offsetWidth;
+          var height = width;
+          var halfWidth = Math.floor(width / 2);
+          var halfHeight = Math.floor(height / 2);
+          canvas.setAttribute('style', 'width: ' + width + 'px; height: ' + height + 'px;');
+          canvas.setAttribute('width', width);
+          canvas.setAttribute('height', height);
+          var ctx = canvas.getContext('2d');
+          var position = new pc.Vec2(0);
+          var drawPosition = function drawPosition(ctx) {
+            ctx.clearRect(0, 0, width, height);
+            ctx.fillStyle = "rgba(128, 128, 128, 0.5)";
+            ctx.fillRect(0, 0, width, height);
+            ctx.fillStyle = '#B1B8BA';
+            ctx.fillRect(halfWidth, 0, 1, height);
+            ctx.fillRect(0, halfHeight, width, 1);
+            ctx.fillStyle = '#232e30';
+            // @ts-ignore engine-tsd
+            modelEntity.anim.baseLayer._controller._states.Emote.animations.forEach(function (animNode) {
+              if (animNode.point) {
+                var posX = (animNode.point.x + 1) * halfWidth;
+                var posY = (animNode.point.y * -1 + 1) * halfHeight;
+                var _width = 8;
+                var _height = 8;
 
-              ctx.fillStyle = "#ffffff80";
-              ctx.beginPath();
-              ctx.arc(posX, posY, halfWidth * 0.5 * animNode.weight, 0, 2 * Math.PI);
-              ctx.fill();
+                ctx.fillStyle = "#ffffff80";
+                ctx.beginPath();
+                ctx.arc(posX, posY, halfWidth * 0.5 * animNode.weight, 0, 2 * Math.PI);
+                ctx.fill();
 
-              ctx.fillStyle = '#283538';
-              ctx.beginPath();
-              ctx.moveTo(posX, posY - _height / 2);
-              ctx.lineTo(posX - _width / 2, posY);
-              ctx.lineTo(posX, posY + _height / 2);
-              ctx.lineTo(posX + _width / 2, posY);
-              ctx.closePath();
-              ctx.fill();
-            }
-          });
-          ctx.fillStyle = '#F60';
-          ctx.beginPath();
-          ctx.arc((modelEntity.anim.getFloat('posX') + 1) * halfWidth, (modelEntity.anim.getFloat('posY') * -1 + 1) * halfHeight, 5, 0, 2 * Math.PI);
-          ctx.fill();
-          ctx.fillStyle = '#283538';
-          ctx.stroke();
-        };
-        drawPosition(ctx);
-        var mouseEvent = function mouseEvent(e) {
-          if (e.targetTouches) {
-            var offset = canvas.getBoundingClientRect();
-            position = new pc.Vec2(e.targetTouches[0].clientX - offset.x, e.targetTouches[0].clientY - offset.y).mulScalar(1 / (width / 2)).sub(pc.Vec2.ONE);
-          } else {
-            if (e.buttons) {
-              position = new pc.Vec2(e.offsetX, e.offsetY).mulScalar(1 / (width / 2)).sub(pc.Vec2.ONE);
-            } else {
-              return;
-            }
-          }
-          position.y *= -1.0;
-          modelEntity.anim.setFloat('posX', position.x);
-          modelEntity.anim.setFloat('posY', position.y);
+                ctx.fillStyle = '#283538';
+                ctx.beginPath();
+                ctx.moveTo(posX, posY - _height / 2);
+                ctx.lineTo(posX - _width / 2, posY);
+                ctx.lineTo(posX, posY + _height / 2);
+                ctx.lineTo(posX + _width / 2, posY);
+                ctx.closePath();
+                ctx.fill();
+              }
+            });
+            ctx.fillStyle = '#F60';
+            ctx.beginPath();
+            ctx.arc((modelEntity.anim.getFloat('posX') + 1) * halfWidth, (modelEntity.anim.getFloat('posY') * -1 + 1) * halfHeight, 5, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.fillStyle = '#283538';
+            ctx.stroke();
+          };
           drawPosition(ctx);
-        };
-        canvas.addEventListener('mousemove', mouseEvent);
-        canvas.addEventListener('mousedown', mouseEvent);
-        canvas.addEventListener('touchmove', mouseEvent);
-        canvas.addEventListener('touchstart', mouseEvent);
+          var mouseEvent = function mouseEvent(e) {
+            if (e.targetTouches) {
+              var offset = canvas.getBoundingClientRect();
+              position = new pc.Vec2(e.targetTouches[0].clientX - offset.x, e.targetTouches[0].clientY - offset.y).mulScalar(1 / (width / 2)).sub(pc.Vec2.ONE);
+            } else {
+              if (e.buttons) {
+                position = new pc.Vec2(e.offsetX, e.offsetY).mulScalar(1 / (width / 2)).sub(pc.Vec2.ONE);
+              } else {
+                return;
+              }
+            }
+            position.y *= -1.0;
+            modelEntity.anim.setFloat('posX', position.x);
+            modelEntity.anim.setFloat('posY', position.y);
+            drawPosition(ctx);
+          };
+          canvas.addEventListener('mousemove', mouseEvent);
+          canvas.addEventListener('mousedown', mouseEvent);
+          canvas.addEventListener('touchmove', mouseEvent);
+          canvas.addEventListener('touchstart', mouseEvent);
+        });
       });
       return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/
       React.createElement("canvas", { id: "2d-blend-control" }));
 
     } }, { key: "example", value:
 
-    function example(app, canvas, assets) {
+    function example(canvas) {
 
-      
-
-
-      // setup skydome
-      app.scene.exposure = 2;
-      app.scene.skyboxMip = 2;
-      app.scene.setSkybox(assets['helipad.dds'].resources);
-
-      // Create an Entity with a camera component
-      var cameraEntity = new pc.Entity();
-      cameraEntity.addComponent("camera", {
-        clearColor: new pc.Color(0.1, 0.1, 0.1) });
-
-      cameraEntity.translate(0, 0.75, 3);
-      // add bloom postprocessing (this is ignored by the picker)
-      cameraEntity.addComponent("script");
-      cameraEntity.script.create("bloom", {
-        attributes: {
-          bloomIntensity: 1,
-          bloomThreshold: 0.7,
-          blurAmount: 4 } });
+      var app = new pc.Application(canvas, {
+        mouse: new pc.Mouse(document.body),
+        touch: new pc.TouchDevice(document.body),
+        elementInput: new pc.ElementInput(canvas) });
 
 
-      app.root.addChild(cameraEntity);
+      var assets = {
+        'model': new pc.Asset('model', 'container', { url: '/../../static/assets/models/bitmoji.glb' }),
+        'idleAnim': new pc.Asset('idleAnim', 'container', { url: '/../../static/assets/animations/bitmoji/idle.glb' }),
+        'walkAnim': new pc.Asset('idleAnim', 'container', { url: '/../../static/assets/animations/bitmoji/walk.glb' }),
+        'eagerAnim': new pc.Asset('idleAnim', 'container', { url: '/../../static/assets/animations/bitmoji/idle-eager.glb' }),
+        'danceAnim': new pc.Asset('danceAnim', 'container', { url: '/../../static/assets/animations/bitmoji/win-dance.glb' }),
+        'helipad.dds': new pc.Asset('helipad.dds', 'cubemap', { url: '/../../static/assets/cubemaps/helipad.dds' }, { type: pc.TEXTURETYPE_RGBM }),
+        'bloom': new pc.Asset('bloom', 'script', { url: '/../../static/scripts/posteffects/posteffect-bloom.js' }) };
 
-      // Create an entity with a light component
-      var lightEntity = new pc.Entity();
-      lightEntity.addComponent("light", {
-        castShadows: true,
-        intensity: 1.5,
-        normalOffsetBias: 0.02,
-        shadowType: pc.SHADOW_PCF5,
-        shadowDistance: 6,
-        shadowResolution: 2048,
-        shadowBias: 0.02 });
+      var assetListLoader = new pc.AssetListLoader(Object.values(assets), app.assets);
+      assetListLoader.load(function () {
+        // setup skydome
+        app.scene.exposure = 2;
+        app.scene.skyboxMip = 2;
+        app.scene.setSkybox(assets['helipad.dds'].resources);
 
-      app.root.addChild(lightEntity);
-      lightEntity.setLocalEulerAngles(45, 30, 0);
+        // Create an Entity with a camera component
+        var cameraEntity = new pc.Entity();
+        cameraEntity.addComponent("camera", {
+          clearColor: new pc.Color(0.1, 0.1, 0.1) });
 
-      // create an entity from the loaded model using the render component
-      var modelEntity = assets.model.resource.instantiateRenderEntity({
-        castShadows: true });
-
-      modelEntity.name = 'model';
-
-      // add an anim component to the entity
-      modelEntity.addComponent('anim', {
-        activate: true });
+        cameraEntity.translate(0, 0.75, 3);
+        // add bloom postprocessing (this is ignored by the picker)
+        cameraEntity.addComponent("script");
+        cameraEntity.script.create("bloom", {
+          attributes: {
+            bloomIntensity: 1,
+            bloomThreshold: 0.7,
+            blurAmount: 4 } });
 
 
-      // create an anim state graph
-      var animStateGraphData = {
-        "layers": [
-        {
-          "name": "base",
-          "states": [
+        app.root.addChild(cameraEntity);
+
+        // Create an entity with a light component
+        var lightEntity = new pc.Entity();
+        lightEntity.addComponent("light", {
+          castShadows: true,
+          intensity: 1.5,
+          normalOffsetBias: 0.02,
+          shadowType: pc.SHADOW_PCF5,
+          shadowDistance: 6,
+          shadowResolution: 2048,
+          shadowBias: 0.02 });
+
+        app.root.addChild(lightEntity);
+        lightEntity.setLocalEulerAngles(45, 30, 0);
+
+        // create an entity from the loaded model using the render component
+        var modelEntity = assets.model.resource.instantiateRenderEntity({
+          castShadows: true });
+
+        modelEntity.name = 'model';
+
+        // add an anim component to the entity
+        modelEntity.addComponent('anim', {
+          activate: true });
+
+
+        // create an anim state graph
+        var animStateGraphData = {
+          "layers": [
           {
-            "name": "START" },
+            "name": "base",
+            "states": [
+            {
+              "name": "START" },
 
-          {
-            "name": "Emote",
-            "speed": 1.0,
-            "loop": true,
-            "blendTree": {
-              "type": pc.ANIM_BLEND_2D_CARTESIAN,
-              "parameters": ["posX", "posY"],
-              "children": [
-              {
-                "name": "Idle",
-                "point": [-0.5, 0.5] },
+            {
+              "name": "Emote",
+              "speed": 1.0,
+              "loop": true,
+              "blendTree": {
+                "type": pc.ANIM_BLEND_2D_CARTESIAN,
+                "parameters": ["posX", "posY"],
+                "children": [
+                {
+                  "name": "Idle",
+                  "point": [-0.5, 0.5] },
 
-              {
-                "name": "Eager",
-                "point": [0.5, 0.5] },
+                {
+                  "name": "Eager",
+                  "point": [0.5, 0.5] },
 
-              {
-                "name": "Walk",
-                "point": [0.5, -0.5] },
+                {
+                  "name": "Walk",
+                  "point": [0.5, -0.5] },
 
-              {
-                "name": "Dance",
-                "point": [-0.5, -0.5] }] } }],
-
-
-
-
-
-          "transitions": [
-          {
-            "from": "START",
-            "to": "Emote" }] }],
+                {
+                  "name": "Dance",
+                  "point": [-0.5, -0.5] }] } }],
 
 
 
 
-        "parameters": {
-          "posX": {
-            "name": "posX",
-            "type": "FLOAT",
-            "value": -0.5 },
 
-          "posY": {
-            "name": "posY",
-            "type": "FLOAT",
-            "value": 0.5 } } };
+            "transitions": [
+            {
+              "from": "START",
+              "to": "Emote" }] }],
 
 
 
 
-      // load the state graph into the anim component
-      modelEntity.anim.loadStateGraph(animStateGraphData);
+          "parameters": {
+            "posX": {
+              "name": "posX",
+              "type": "FLOAT",
+              "value": -0.5 },
 
-      // load the state graph asset resource into the anim component
-      var characterStateLayer = modelEntity.anim.baseLayer;
-      characterStateLayer.assignAnimation('Emote.Idle', assets.idleAnim.resource.animations[0].resource);
-      characterStateLayer.assignAnimation('Emote.Eager', assets.eagerAnim.resource.animations[0].resource);
-      characterStateLayer.assignAnimation('Emote.Dance', assets.danceAnim.resource.animations[0].resource);
-      characterStateLayer.assignAnimation('Emote.Walk', assets.walkAnim.resource.animations[0].resource);
+            "posY": {
+              "name": "posY",
+              "type": "FLOAT",
+              "value": 0.5 } } };
 
-      app.root.addChild(modelEntity);
 
-      app.start();
+
+
+        // load the state graph into the anim component
+        modelEntity.anim.loadStateGraph(animStateGraphData);
+
+        // load the state graph asset resource into the anim component
+        var characterStateLayer = modelEntity.anim.baseLayer;
+        characterStateLayer.assignAnimation('Emote.Idle', assets.idleAnim.resource.animations[0].resource);
+        characterStateLayer.assignAnimation('Emote.Eager', assets.eagerAnim.resource.animations[0].resource);
+        characterStateLayer.assignAnimation('Emote.Dance', assets.danceAnim.resource.animations[0].resource);
+        characterStateLayer.assignAnimation('Emote.Walk', assets.walkAnim.resource.animations[0].resource);
+
+        app.root.addChild(modelEntity);
+
+        app.start();
+      });
     } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'Animation');_defineProperty(Example, "NAME", 'Blend Trees 2D Cartesian');
         var example = new Example();
 
@@ -279,9 +281,10 @@
                     presets: ["react", "typescript", "env"]
                 }).code;
             }
-            window.exampleFunction = new Function('app', 'canvas', 'assets', 'data', exampleFunction);
+            window.exampleFunction = new Function('canvas', 'data', exampleFunction);
         }
         window.loadFunction = example.load;
+        window.files = window.top.editedFiles || example.constructor.FILES;
 
         // get url parameters
         var queryString = window.location.search;
@@ -289,42 +292,19 @@
     </script>
     <script>
         function loadEngine(callback) {
-            const enginePath = urlParams.get('use_local_engine') || "/build/playcanvas.dbg.js";
+            const enginePath = urlParams && urlParams.get('use_local_engine') || "/build/playcanvas.js";
 
-            fetch(enginePath)
-                .then(function(response) { return response.text() })
-                .then(function(data) {
-                    var module = {
-                        exports: {}
-                    };
-                    window.pc = (Function('module', 'exports', data).call(module, module, module.exports), module).exports;
-                    window.top.pc = window.pc;
-                    callback();
-                });
+            const script = document.createElement('script');
+            script.setAttribute('src', enginePath);
+            script.onload = function() {
+                window.top.pc = window.pc;
+                callback();
+            };
+            document.head.appendChild(script);
         }
 
-        function createApplication(canvas) {
-            // create the app
-            var app = new pc.Application(canvas, {
-                mouse: new pc.Mouse(document.body),
-                touch: new pc.TouchDevice(document.body),
-                elementInput: new pc.ElementInput(canvas),
-                gamepads: new pc.GamePads(),
-                keyboard: new pc.Keyboard(window),
-                graphicsDeviceOptions: {
-                    alpha: true
-                }
-            });
-
-            // set up miniStats
-            var miniStats = new pcx.MiniStats(app);
-            if (urlParams.get('miniStats') === 'false') {
-                miniStats.enabled = false;
-            }
-            app.on('update', function () {
-                if (window.top._showMiniStats !== undefined) miniStats.enabled = window.top._showMiniStats;
-            });
-
+        function setupApplication(app) {
+            const canvas = app.graphicsDevice.canvas;
             // handle resizing
             var canvasContainerElement = canvas.parentElement;
             canvas.setAttribute('width', window.innerWidth + 'px');
@@ -338,17 +318,17 @@
                 }).observe(canvasContainerElement);
             }
 
-            return app;
-        }
-
-        function hasBasisAssets (assets) {
-        for (let i = 0; i < assets.length; i++) {
-            if (assets[i].url && assets[i].url.includes('.basis')) {
-                return true;
+            if (true) {
+                // set up miniStats
+                var miniStats = new pcx.MiniStats(app);
+                if (urlParams.get('miniStats') === 'false') {
+                    miniStats.enabled = false;
+                }
+                app.on('update', function () {
+                    if (window.top._showMiniStats !== undefined) miniStats.enabled = window.top._showMiniStats;
+                });
             }
         }
-        return false;
-    };
 
         function loadResource(app, resource, callback) {
             if (!resource.type) {
@@ -363,30 +343,6 @@
                     });
                 return;
             }
-            if (resource.data) {
-                var asset = new pc.Asset(
-                    resource.name,
-                    resource.type,
-                    resource.type === "cubemap" ? {
-                        url: resource.url
-                    } : null,
-                    resource.data
-                );
-                asset.on("load", function (asset) {
-                    callback(asset);
-                });
-                app.assets.add(asset);
-                app.assets.load(asset);
-            } else {
-                app.assets.loadFromUrl(resource.url, resource.type, function (
-                    err,
-                    asset
-                ) {
-                    if (!err && asset) {
-                        callback(asset);
-                    }
-                });
-            }
         }
 
         function loadResources(app, callback) {
@@ -397,15 +353,6 @@
             window.React = { createElement: function(type, props) { if (type === 'div') assets.push(props); } };
             // call the stubbed load function to add all assets to the assets list
             window.loadFunction();
-
-            // if we have any basis assets then initialize basis
-            if (hasBasisAssets(assets)) {
-                pc.basisInitialize({
-                    glueUrl: '/static/lib/basis/basis.wasm.js',
-                    wasmUrl: '/static/lib/basis/basis.wasm.wasm',
-                    fallbackUrl: '/static/lib/basis/basis.js'
-                });
-            }
 
             var count = assets.length;
             function onLoadedResource(key, asset) {
@@ -425,16 +372,40 @@
             });
         }
 
-        function callExample(app, canvas, assetManifest, data) {
-            if (location.pathname.indexOf('misc/mini-stats') !== -1) {
-                window.exampleFunction(app, canvas, pcx);
-            } else {
-                window.exampleFunction(app, canvas, assetManifest, data, wasmSupported, loadWasmModuleAsync);
+        function callExample(canvas, assetManifest, files, data) {
+            function escapeRegExp(string) {
+                return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             }
-            if (window.top.location.pathname.indexOf('iframe') === -1) {
-                var event = new CustomEvent("exampleLoad");
-                window.top.dispatchEvent(event);
+            function replaceAll(str, find, replace) {
+                return str.replace(new RegExp(escapeRegExp(find), 'g'), replace);
             }
+            var argsString = window.exampleFunction.toString().match(/function\s.*?\(([^)]*)\)/)[1];
+            argsString = replaceAll(argsString, ' ', '');
+            argsString = replaceAll(argsString, '\n', '');
+            var argNames = argsString.split(',');
+            var args = argNames.map(function(arg) {
+                if (arg === 'canvas') {
+                    return canvas;
+                } else if (arg === 'assetManifest') {
+                    return assetManifest;
+                } else if (arg === 'files') {
+                    return files;
+                } else if (arg === 'data') {
+                    return data;
+                } else if (arg === 'pcx') {
+                    return pcx;
+                } else if (arg === 'loadWasmModuleAsync') {
+                    return loadWasmModuleAsync;
+                } else if (arg === 'wasmSupported') {
+                    return wasmSupported;
+                }
+            });
+            window.exampleFunction.apply(this, args);
+            if (pc.app && pc.app.graphicsDevice.canvas) {
+                setupApplication(pc.app);
+            }
+            var event = new CustomEvent("exampleLoad");
+            window.top.dispatchEvent(event);
         }
     </script>
     <script>
@@ -446,13 +417,11 @@
         loadEngine(function() {
             var canvas = document.getElementById('application-canvas');
 
-            const app = createApplication(canvas);
-
             if (!window.loadFunction) {
-                callExample(app, canvas, {}, data);
+                callExample(canvas, {}, window.files, data);
             } else {
-                loadResources(app, function(assetManifest) {
-                    callExample(app, canvas, assetManifest, data);
+                loadResources(undefined, function(assetManifest) {
+                    callExample(canvas, assetManifest, window.files, data);
                 });
             }
         });

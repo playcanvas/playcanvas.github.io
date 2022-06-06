@@ -8,6 +8,8 @@
     <script src="../../build/promisePolyfill.js"></script>
     <script src="../../build/fetchPolyfill.js"></script>
     <script src="../../build/regeneratorRuntimePolyfill.js"></script>
+    <script src="../../build/arrayFromPolyfill.js"></script>
+    <script src="../../build/objectValuesPolyfill.js"></script>
     <link rel="stylesheet" href="/styles.css">
     <style>
         body {
@@ -36,165 +38,242 @@
             });
         }
 
-        // include any constants necessary for the example
-        var constValues = [{"k":"fshaderCloud","v":"\n// fragment shader used to render point sprite particles\nprecision mediump float;\nvarying vec4 outColor;\n\nvoid main(void)\n{\n    // color supplied by vertex shader\n    gl_FragColor = outColor;\n}\n"},{"k":"vshaderFeedback","v":"\n// vertex shader used to move particles during transform-feedback simulation step\n\n// input and output is vec4, containing position in .xyz and lifetime in .w\nattribute vec4 vertex_position;\nvarying vec4 out_vertex_position;\n\n// parameters controlling simulation\nuniform float deltaTime;\nuniform float areaSize;\n\n// texture storing random direction vectors\nuniform sampler2D directionSampler;\n\n// function returning random number based on vec2 seed parameter\nfloat rand(vec2 co) {\n    return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);\n}\n\nvoid main(void) {\n\n    // texture contains direction of particle movement - read it based on particle's position\n    vec2 texCoord = vertex_position.xz / areaSize + 0.5;\n    vec3 dir = texture2D(directionSampler, texCoord).xyz;\n    dir = dir * 2.0 - 1.0;\n\n    // move particle along direction with some speed\n    float speed = 20.0 * deltaTime;\n    vec3 pos = vertex_position.xyz + dir * speed;\n\n    // age the particle\n    float liveTime = vertex_position.w;\n    liveTime -= deltaTime;\n\n    // if particle is too old, regenerate it\n    if (liveTime <= 0.0) {\n\n        // random life time\n        liveTime = rand(pos.xy) * 2.0;\n\n        // random position\n        pos.x = rand(pos.xz) * areaSize - 0.5 * areaSize;\n        pos.y = rand(pos.xy) * 4.0;\n        pos.z = rand(pos.yz) * areaSize - 0.5 * areaSize;\n    }\n\n    // write out updated particle\n    out_vertex_position = vec4(pos, liveTime);\n}\n"},{"k":"vshaderCloud","v":"\n// vertex shader used to render point sprite particles\n\n// Attributes per vertex: position\nattribute vec4 aPosition;\n\nuniform mat4   matrix_viewProjection;\n\n// Color to fragment program\nvarying vec4 outColor;\n\nvoid main(void)\n{\n    // Transform the geometry (ignore life time which is stored in .w of position)\n    vec4 worldPosition = vec4(aPosition.xyz, 1);\n    gl_Position = matrix_viewProjection * worldPosition;\n\n    // point sprite size\n    gl_PointSize = 2.0;\n\n    // color depends on position of particle\n    outColor = vec4(worldPosition.y * 0.25, 0.1, worldPosition.z * 0.2, 1);\n}\n"}];
-        for (var i = 0; i < constValues.length; i++) {
-            window[constValues[i].k] = constValues[i].v;
-        }
-
         // include the example class which contains the example function to execute and any assets to load
-        "use strict";function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}function _defineProperties(target, props) {for (var i = 0; i < props.length; i++) {var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);}}function _createClass(Constructor, protoProps, staticProps) {if (protoProps) _defineProperties(Constructor.prototype, protoProps);if (staticProps) _defineProperties(Constructor, staticProps);Object.defineProperty(Constructor, "prototype", { writable: false });return Constructor;}function _defineProperty(obj, key, value) {if (key in obj) {Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true });} else {obj[key] = value;}return obj;}var Example = /*#__PURE__*/function () {function Example() {_classCallCheck(this, Example);}_createClass(Example, [{ key: "load", value:
+        "use strict";function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}function _defineProperties(target, props) {for (var i = 0; i < props.length; i++) {var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);}}function _createClass(Constructor, protoProps, staticProps) {if (protoProps) _defineProperties(Constructor.prototype, protoProps);if (staticProps) _defineProperties(Constructor, staticProps);Object.defineProperty(Constructor, "prototype", { writable: false });return Constructor;}function _defineProperty(obj, key, value) {if (key in obj) {Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true });} else {obj[key] = value;}return obj;}var Example = /*#__PURE__*/function () {function Example() {_classCallCheck(this, Example);}_createClass(Example, [{ key: "example", value:
 
 
 
-    function load() {
-      return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/
-      React.createElement("div", { name: "statue", type: "container", url: "/../../static/assets/models/statue.glb" }), /*#__PURE__*/
-      React.createElement("div", { name: "vshaderFeedback", type: "shader", data: vshaderFeedback }), /*#__PURE__*/
-      React.createElement("div", { name: "vshaderCloud", type: "shader", data: vshaderCloud }), /*#__PURE__*/
-      React.createElement("div", { name: "fshaderCloud", type: "shader", data: fshaderCloud }));
 
-    } }, { key: "example", value:
 
-    function example(app, canvas, assets) {
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    function example(canvas, files) {
       // Create the app and start the update loop
-      
-      app.start();
+      var app = new pc.Application(canvas, {});
 
-      // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
-      app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
-      app.setCanvasResolution(pc.RESOLUTION_AUTO);
-
-      app.scene.ambientLight = new pc.Color(0.2, 0.2, 0.2);
-
-      // create small 2D texture representing movement direction (wind)
-      var textureResolution = 10;
-      var textureData = new Uint8ClampedArray(textureResolution * textureResolution * 4);
-
-      for (var i = 0; i < textureResolution * textureResolution; i++) {
-
-        // rgb store biased movement direction
-        textureData[i * 4] = 127 + Math.random() * 50 - 25;
-        textureData[i * 4 + 1] = 127 + Math.random() * 50 - 25;
-        textureData[i * 4 + 2] = 127 + Math.random() * 50 - 25;
-
-        // set alpha to 255 for debugging purposes
-        textureData[i * 4 + 3] = 255;
-      }
-
-      // create texture
-      var texture = new pc.Texture(app.graphicsDevice, {
-        width: textureResolution,
-        height: textureResolution,
-        format: pc.PIXELFORMAT_R8_G8_B8_A8,
-        cubemap: false,
-        mipmaps: false,
-        minFilter: pc.FILTER_LINEAR,
-        magFilter: pc.FILTER_LINEAR,
-        addressU: pc.ADDRESS_CLAMP_TO_EDGE,
-        addressV: pc.ADDRESS_CLAMP_TO_EDGE });
+      var assets = {
+        'statue': new pc.Asset('statue', 'container', { url: '/../../static/assets/models/statue.glb' }) };
 
 
-      // initialize it with data
-      var pixels = texture.lock();
-      pixels.set(textureData);
-      texture.unlock();
+      var assetListLoader = new pc.AssetListLoader(Object.values(assets), app.assets);
+      assetListLoader.load(function () {
+        app.start();
 
-      // Create main camera, which renders the world
-      var camera = new pc.Entity();
-      camera.addComponent("camera", {
-        clearColor: new pc.Color(0.1, 0.1, 0.1) });
+        // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
+        app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
+        app.setCanvasResolution(pc.RESOLUTION_AUTO);
 
-      app.root.addChild(camera);
+        app.scene.ambientLight = new pc.Color(0.2, 0.2, 0.2);
 
-      // set up texture transform part, on webgl2 devices only
-      var tf;
-      var shader;
-      var areaSize = 30;
+        // create small 2D texture representing movement direction (wind)
+        var textureResolution = 10;
+        var textureData = new Uint8ClampedArray(textureResolution * textureResolution * 4);
 
-      // resolve parameters to simulation shader parameters
-      var areaSizeUniform = app.graphicsDevice.scope.resolve("areaSize");
-      var deltaTimeUniform = app.graphicsDevice.scope.resolve("deltaTime");
-      var directionSampler = app.graphicsDevice.scope.resolve("directionSampler");
+        for (var i = 0; i < textureResolution * textureResolution; i++) {
 
-      // @ts-ignore engine-tsd
-      if (app.graphicsDevice.webgl2) {
+          // rgb store biased movement direction
+          textureData[i * 4] = 127 + Math.random() * 50 - 25;
+          textureData[i * 4 + 1] = 127 + Math.random() * 50 - 25;
+          textureData[i * 4 + 2] = 127 + Math.random() * 50 - 25;
 
-        // simulated particles
-        var maxNumPoints = 200000;
-        var positions = new Float32Array(4 * maxNumPoints);
-
-        // generate random data, these are used as seeds to generate particles in vertex shader
-        for (var _i = 0; _i < maxNumPoints; _i++) {
-          positions[_i * 4] = Math.random();
-          positions[_i * 4 + 1] = Math.random();
-          positions[_i * 4 + 2] = Math.random();
-
-          // set life time to 0 which triggers particle restart in shader
-          positions[_i * 4 + 3] = 0;
+          // set alpha to 255 for debugging purposes
+          textureData[i * 4 + 3] = 255;
         }
 
-        // store these in a vertex buffer of a mesh
-        var mesh = new pc.Mesh(app.graphicsDevice);
-        mesh.setPositions(positions, 4);
-        mesh.update(pc.PRIMITIVE_POINTS, false);
-
-        // set large bounding box so we don't need to update it each frame
-        mesh.aabb = new pc.BoundingBox(new pc.Vec3(0, 0, 0), new pc.Vec3(100, 100, 100));
-
-        // Create the shader from the vertex and fragment shaders which is used to render point sprites
-        shader = new pc.Shader(app.graphicsDevice, {
-          attributes: { aPosition: pc.SEMANTIC_POSITION },
-          vshader: assets.vshaderCloud.data,
-          fshader: assets.fshaderCloud.data });
+        // create texture
+        var texture = new pc.Texture(app.graphicsDevice, {
+          width: textureResolution,
+          height: textureResolution,
+          format: pc.PIXELFORMAT_R8_G8_B8_A8,
+          cubemap: false,
+          mipmaps: false,
+          minFilter: pc.FILTER_LINEAR,
+          magFilter: pc.FILTER_LINEAR,
+          addressU: pc.ADDRESS_CLAMP_TO_EDGE,
+          addressV: pc.ADDRESS_CLAMP_TO_EDGE });
 
 
-        // Create a new material with the new shader and additive alpha blending
-        var material = new pc.Material();
-        material.shader = shader;
-        material.blendType = pc.BLEND_ADDITIVEALPHA;
-        material.depthWrite = false;
+        // initialize it with data
+        var pixels = texture.lock();
+        pixels.set(textureData);
+        texture.unlock();
 
-        // Create the mesh instance
-        var node = new pc.GraphNode();
-        var meshInstance = new pc.MeshInstance(mesh, material, node);
+        // Create main camera, which renders the world
+        var camera = new pc.Entity();
+        camera.addComponent("camera", {
+          clearColor: new pc.Color(0.1, 0.1, 0.1) });
 
-        // create an entity used to render the mesh instance using a render component
-        var entity = new pc.Entity();
-        entity.addComponent("render", {
-          type: 'asset',
-          meshInstances: [meshInstance] });
+        app.root.addChild(camera);
 
-        app.root.addChild(entity);
+        // set up texture transform part, on webgl2 devices only
+        var tf;
+        var shader;
+        var areaSize = 30;
 
-        // set up transform feedback. This creates a clone of the vertex buffer, and sets up rendering to ping pong between them
-        tf = new pc.TransformFeedback(mesh.vertexBuffer);
-        shader = pc.TransformFeedback.createShader(app.graphicsDevice, assets.vshaderFeedback.data, "transformShaderExample");
-      }
+        // resolve parameters to simulation shader parameters
+        var areaSizeUniform = app.graphicsDevice.scope.resolve("areaSize");
+        var deltaTimeUniform = app.graphicsDevice.scope.resolve("deltaTime");
+        var directionSampler = app.graphicsDevice.scope.resolve("directionSampler");
 
-      // update things each frame
-      var time = 0;
-      app.on("update", function (dt) {
+        // @ts-ignore engine-tsd
+        if (app.graphicsDevice.webgl2) {
 
-        // rotate camera around
-        time += dt;
-        camera.setLocalPosition(9 * Math.sin(time * 0.2), 6, 25 * Math.cos(time * 0.2));
-        camera.lookAt(new pc.Vec3(0, 3, 0));
+          // simulated particles
+          var maxNumPoints = 200000;
+          var positions = new Float32Array(4 * maxNumPoints);
 
-        // if transform feedback was initialized
-        if (tf) {
+          // generate random data, these are used as seeds to generate particles in vertex shader
+          for (var _i = 0; _i < maxNumPoints; _i++) {
+            positions[_i * 4] = Math.random();
+            positions[_i * 4 + 1] = Math.random();
+            positions[_i * 4 + 2] = Math.random();
 
-          // set up simulation parameters
-          areaSizeUniform.setValue(areaSize);
-          deltaTimeUniform.setValue(dt);
-          directionSampler.setValue(texture);
+            // set life time to 0 which triggers particle restart in shader
+            positions[_i * 4 + 3] = 0;
+          }
 
-          // execute simulation
-          tf.process(shader);
+          // store these in a vertex buffer of a mesh
+          var mesh = new pc.Mesh(app.graphicsDevice);
+          mesh.setPositions(positions, 4);
+          mesh.update(pc.PRIMITIVE_POINTS, false);
+
+          // set large bounding box so we don't need to update it each frame
+          mesh.aabb = new pc.BoundingBox(new pc.Vec3(0, 0, 0), new pc.Vec3(100, 100, 100));
+
+          // Create the shader from the vertex and fragment shaders which is used to render point sprites
+          shader = new pc.Shader(app.graphicsDevice, {
+            attributes: { aPosition: pc.SEMANTIC_POSITION },
+            vshader: files['shaderCloud.vert'],
+            fshader: files['shaderCloud.frag'] });
+
+
+          // Create a new material with the new shader and additive alpha blending
+          var material = new pc.Material();
+          material.shader = shader;
+          material.blendType = pc.BLEND_ADDITIVEALPHA;
+          material.depthWrite = false;
+
+          // Create the mesh instance
+          var node = new pc.GraphNode();
+          var meshInstance = new pc.MeshInstance(mesh, material, node);
+
+          // create an entity used to render the mesh instance using a render component
+          var entity = new pc.Entity();
+          entity.addComponent("render", {
+            type: 'asset',
+            meshInstances: [meshInstance] });
+
+          app.root.addChild(entity);
+
+          // set up transform feedback. This creates a clone of the vertex buffer, and sets up rendering to ping pong between them
+          tf = new pc.TransformFeedback(mesh.vertexBuffer);
+          shader = pc.TransformFeedback.createShader(app.graphicsDevice, files['shaderFeedback.vert'], "transformShaderExample");
         }
+
+        // update things each frame
+        var time = 0;
+        app.on("update", function (dt) {
+
+          // rotate camera around
+          time += dt;
+          camera.setLocalPosition(9 * Math.sin(time * 0.2), 6, 25 * Math.cos(time * 0.2));
+          camera.lookAt(new pc.Vec3(0, 3, 0));
+
+          // if transform feedback was initialized
+          if (tf) {
+
+            // set up simulation parameters
+            areaSizeUniform.setValue(areaSize);
+            deltaTimeUniform.setValue(dt);
+            directionSampler.setValue(texture);
+
+            // execute simulation
+            tf.process(shader);
+          }
+        });
       });
-    } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'Graphics');_defineProperty(Example, "NAME", 'Transform Feedback');
+    } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'Graphics');_defineProperty(Example, "NAME", 'Transform Feedback');_defineProperty(Example, "FILES", { 'shaderFeedback.vert': /* glsl */"\n// vertex shader used to move particles during transform-feedback simulation step\n\n// input and output is vec4, containing position in .xyz and lifetime in .w\nattribute vec4 vertex_position;\nvarying vec4 out_vertex_position;\n\n// parameters controlling simulation\nuniform float deltaTime;\nuniform float areaSize;\n\n// texture storing random direction vectors\nuniform sampler2D directionSampler;\n\n// function returning random number based on vec2 seed parameter\nfloat rand(vec2 co) {\n    return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);\n}\n\nvoid main(void) {\n\n    // texture contains direction of particle movement - read it based on particle's position\n    vec2 texCoord = vertex_position.xz / areaSize + 0.5;\n    vec3 dir = texture2D(directionSampler, texCoord).xyz;\n    dir = dir * 2.0 - 1.0;\n\n    // move particle along direction with some speed\n    float speed = 20.0 * deltaTime;\n    vec3 pos = vertex_position.xyz + dir * speed;\n\n    // age the particle\n    float liveTime = vertex_position.w;\n    liveTime -= deltaTime;\n\n    // if particle is too old, regenerate it\n    if (liveTime <= 0.0) {\n\n        // random life time\n        liveTime = rand(pos.xy) * 2.0;\n\n        // random position\n        pos.x = rand(pos.xz) * areaSize - 0.5 * areaSize;\n        pos.y = rand(pos.xy) * 4.0;\n        pos.z = rand(pos.yz) * areaSize - 0.5 * areaSize;\n    }\n\n    // write out updated particle\n    out_vertex_position = vec4(pos, liveTime);\n}", 'shaderCloud.vert': /* glsl */"\n// vertex shader used to render point sprite particles\n\n// Attributes per vertex: position\nattribute vec4 aPosition;\n\nuniform mat4   matrix_viewProjection;\n\n// Color to fragment program\nvarying vec4 outColor;\n\nvoid main(void)\n{\n    // Transform the geometry (ignore life time which is stored in .w of position)\n    vec4 worldPosition = vec4(aPosition.xyz, 1);\n    gl_Position = matrix_viewProjection * worldPosition;\n\n    // point sprite size\n    gl_PointSize = 2.0;\n\n    // color depends on position of particle\n    outColor = vec4(worldPosition.y * 0.25, 0.1, worldPosition.z * 0.2, 1);\n}", 'shaderCloud.frag': /* glsl */"\n// fragment shader used to render point sprite particles\nprecision mediump float;\nvarying vec4 outColor;\n\nvoid main(void)\n{\n    // color supplied by vertex shader\n    gl_FragColor = outColor;\n}" });
         var example = new Example();
 
         var useTypeScript = window.top.localStorage.getItem('useTypeScript') === 'true';
@@ -209,9 +288,10 @@
                     presets: ["react", "typescript", "env"]
                 }).code;
             }
-            window.exampleFunction = new Function('app', 'canvas', 'assets', 'data', exampleFunction);
+            window.exampleFunction = new Function('canvas', 'data', exampleFunction);
         }
         window.loadFunction = example.load;
+        window.files = window.top.editedFiles || example.constructor.FILES;
 
         // get url parameters
         var queryString = window.location.search;
@@ -219,42 +299,19 @@
     </script>
     <script>
         function loadEngine(callback) {
-            const enginePath = urlParams.get('use_local_engine') || "/build/playcanvas.dbg.js";
+            const enginePath = urlParams && urlParams.get('use_local_engine') || "/build/playcanvas.js";
 
-            fetch(enginePath)
-                .then(function(response) { return response.text() })
-                .then(function(data) {
-                    var module = {
-                        exports: {}
-                    };
-                    window.pc = (Function('module', 'exports', data).call(module, module, module.exports), module).exports;
-                    window.top.pc = window.pc;
-                    callback();
-                });
+            const script = document.createElement('script');
+            script.setAttribute('src', enginePath);
+            script.onload = function() {
+                window.top.pc = window.pc;
+                callback();
+            };
+            document.head.appendChild(script);
         }
 
-        function createApplication(canvas) {
-            // create the app
-            var app = new pc.Application(canvas, {
-                mouse: new pc.Mouse(document.body),
-                touch: new pc.TouchDevice(document.body),
-                elementInput: new pc.ElementInput(canvas),
-                gamepads: new pc.GamePads(),
-                keyboard: new pc.Keyboard(window),
-                graphicsDeviceOptions: {
-                    alpha: true
-                }
-            });
-
-            // set up miniStats
-            var miniStats = new pcx.MiniStats(app);
-            if (urlParams.get('miniStats') === 'false') {
-                miniStats.enabled = false;
-            }
-            app.on('update', function () {
-                if (window.top._showMiniStats !== undefined) miniStats.enabled = window.top._showMiniStats;
-            });
-
+        function setupApplication(app) {
+            const canvas = app.graphicsDevice.canvas;
             // handle resizing
             var canvasContainerElement = canvas.parentElement;
             canvas.setAttribute('width', window.innerWidth + 'px');
@@ -268,17 +325,17 @@
                 }).observe(canvasContainerElement);
             }
 
-            return app;
-        }
-
-        function hasBasisAssets (assets) {
-        for (let i = 0; i < assets.length; i++) {
-            if (assets[i].url && assets[i].url.includes('.basis')) {
-                return true;
+            if (true) {
+                // set up miniStats
+                var miniStats = new pcx.MiniStats(app);
+                if (urlParams.get('miniStats') === 'false') {
+                    miniStats.enabled = false;
+                }
+                app.on('update', function () {
+                    if (window.top._showMiniStats !== undefined) miniStats.enabled = window.top._showMiniStats;
+                });
             }
         }
-        return false;
-    };
 
         function loadResource(app, resource, callback) {
             if (!resource.type) {
@@ -293,30 +350,6 @@
                     });
                 return;
             }
-            if (resource.data) {
-                var asset = new pc.Asset(
-                    resource.name,
-                    resource.type,
-                    resource.type === "cubemap" ? {
-                        url: resource.url
-                    } : null,
-                    resource.data
-                );
-                asset.on("load", function (asset) {
-                    callback(asset);
-                });
-                app.assets.add(asset);
-                app.assets.load(asset);
-            } else {
-                app.assets.loadFromUrl(resource.url, resource.type, function (
-                    err,
-                    asset
-                ) {
-                    if (!err && asset) {
-                        callback(asset);
-                    }
-                });
-            }
         }
 
         function loadResources(app, callback) {
@@ -327,15 +360,6 @@
             window.React = { createElement: function(type, props) { if (type === 'div') assets.push(props); } };
             // call the stubbed load function to add all assets to the assets list
             window.loadFunction();
-
-            // if we have any basis assets then initialize basis
-            if (hasBasisAssets(assets)) {
-                pc.basisInitialize({
-                    glueUrl: '/static/lib/basis/basis.wasm.js',
-                    wasmUrl: '/static/lib/basis/basis.wasm.wasm',
-                    fallbackUrl: '/static/lib/basis/basis.js'
-                });
-            }
 
             var count = assets.length;
             function onLoadedResource(key, asset) {
@@ -355,16 +379,40 @@
             });
         }
 
-        function callExample(app, canvas, assetManifest, data) {
-            if (location.pathname.indexOf('misc/mini-stats') !== -1) {
-                window.exampleFunction(app, canvas, pcx);
-            } else {
-                window.exampleFunction(app, canvas, assetManifest, data, wasmSupported, loadWasmModuleAsync);
+        function callExample(canvas, assetManifest, files, data) {
+            function escapeRegExp(string) {
+                return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             }
-            if (window.top.location.pathname.indexOf('iframe') === -1) {
-                var event = new CustomEvent("exampleLoad");
-                window.top.dispatchEvent(event);
+            function replaceAll(str, find, replace) {
+                return str.replace(new RegExp(escapeRegExp(find), 'g'), replace);
             }
+            var argsString = window.exampleFunction.toString().match(/function\s.*?\(([^)]*)\)/)[1];
+            argsString = replaceAll(argsString, ' ', '');
+            argsString = replaceAll(argsString, '\n', '');
+            var argNames = argsString.split(',');
+            var args = argNames.map(function(arg) {
+                if (arg === 'canvas') {
+                    return canvas;
+                } else if (arg === 'assetManifest') {
+                    return assetManifest;
+                } else if (arg === 'files') {
+                    return files;
+                } else if (arg === 'data') {
+                    return data;
+                } else if (arg === 'pcx') {
+                    return pcx;
+                } else if (arg === 'loadWasmModuleAsync') {
+                    return loadWasmModuleAsync;
+                } else if (arg === 'wasmSupported') {
+                    return wasmSupported;
+                }
+            });
+            window.exampleFunction.apply(this, args);
+            if (pc.app && pc.app.graphicsDevice.canvas) {
+                setupApplication(pc.app);
+            }
+            var event = new CustomEvent("exampleLoad");
+            window.top.dispatchEvent(event);
         }
     </script>
     <script>
@@ -376,13 +424,11 @@
         loadEngine(function() {
             var canvas = document.getElementById('application-canvas');
 
-            const app = createApplication(canvas);
-
             if (!window.loadFunction) {
-                callExample(app, canvas, {}, data);
+                callExample(canvas, {}, window.files, data);
             } else {
-                loadResources(app, function(assetManifest) {
-                    callExample(app, canvas, assetManifest, data);
+                loadResources(undefined, function(assetManifest) {
+                    callExample(canvas, assetManifest, window.files, data);
                 });
             }
         });

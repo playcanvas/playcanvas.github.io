@@ -56,7 +56,7 @@
       name = String(name);
     }
     if (/[^a-z0-9\-#$%&'*+.^_`|~!]/i.test(name) || name === '') {
-      throw new TypeError('Invalid character in header field name')
+      throw new TypeError('Invalid character in header field name: "' + name + '"')
     }
     return name.toLowerCase()
   }
@@ -424,14 +424,22 @@
     // Replace instances of \r\n and \n followed by at least one space or horizontal tab with a space
     // https://tools.ietf.org/html/rfc7230#section-3.2
     var preProcessedHeaders = rawHeaders.replace(/\r?\n[\t ]+/g, ' ');
-    preProcessedHeaders.split(/\r?\n/).forEach(function(line) {
-      var parts = line.split(':');
-      var key = parts.shift().trim();
-      if (key) {
-        var value = parts.join(':').trim();
-        headers.append(key, value);
-      }
-    });
+    // Avoiding split via regex to work around a common IE11 bug with the core-js 3.6.0 regex polyfill
+    // https://github.com/github/fetch/issues/748
+    // https://github.com/zloirock/core-js/issues/751
+    preProcessedHeaders
+      .split('\r')
+      .map(function(header) {
+        return header.indexOf('\n') === 0 ? header.substr(1, header.length) : header
+      })
+      .forEach(function(line) {
+        var parts = line.split(':');
+        var key = parts.shift().trim();
+        if (key) {
+          var value = parts.join(':').trim();
+          headers.append(key, value);
+        }
+      });
     return headers
   }
 
@@ -448,7 +456,7 @@
     this.type = 'default';
     this.status = options.status === undefined ? 200 : options.status;
     this.ok = this.status >= 200 && this.status < 300;
-    this.statusText = 'statusText' in options ? options.statusText : '';
+    this.statusText = options.statusText === undefined ? '' : '' + options.statusText;
     this.headers = new Headers(options.headers);
     this.url = options.url || '';
     this._initBody(bodyInit);

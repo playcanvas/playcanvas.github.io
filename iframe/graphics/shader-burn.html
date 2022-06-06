@@ -8,6 +8,8 @@
     <script src="../../build/promisePolyfill.js"></script>
     <script src="../../build/fetchPolyfill.js"></script>
     <script src="../../build/regeneratorRuntimePolyfill.js"></script>
+    <script src="../../build/arrayFromPolyfill.js"></script>
+    <script src="../../build/objectValuesPolyfill.js"></script>
     <link rel="stylesheet" href="/styles.css">
     <style>
         body {
@@ -36,109 +38,139 @@
             });
         }
 
-        // include any constants necessary for the example
-        var constValues = [{"k":"vshader","v":"\nattribute vec3 aPosition;\nattribute vec2 aUv0;\n\nuniform mat4 matrix_model;\nuniform mat4 matrix_viewProjection;\n\nvarying vec2 vUv0;\n\nvoid main(void)\n{\n    vUv0 = aUv0;\n    gl_Position = matrix_viewProjection * matrix_model * vec4(aPosition, 1.0);\n}\n"},{"k":"fshader","v":"\nprecision mediump float;\n\nvarying vec2 vUv0;\n\nuniform sampler2D uDiffuseMap;\nuniform sampler2D uHeightMap;\nuniform float uTime;\n\nvoid main(void)\n{\n    float height = texture2D(uHeightMap, vUv0).r;\n    vec4 color = texture2D(uDiffuseMap, vUv0);\n    if (height < uTime) {\n      discard;\n    }\n    if (height < (uTime + uTime * 0.1)) {\n      color = vec4(1.0, 0.2, 0.0, 1.0);\n    }\n    gl_FragColor = color;\n}\n"}];
-        for (var i = 0; i < constValues.length; i++) {
-            window[constValues[i].k] = constValues[i].v;
-        }
-
         // include the example class which contains the example function to execute and any assets to load
-        "use strict";function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}function _defineProperties(target, props) {for (var i = 0; i < props.length; i++) {var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);}}function _createClass(Constructor, protoProps, staticProps) {if (protoProps) _defineProperties(Constructor.prototype, protoProps);if (staticProps) _defineProperties(Constructor, staticProps);Object.defineProperty(Constructor, "prototype", { writable: false });return Constructor;}function _defineProperty(obj, key, value) {if (key in obj) {Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true });} else {obj[key] = value;}return obj;}var Example = /*#__PURE__*/function () {function Example() {_classCallCheck(this, Example);}_createClass(Example, [{ key: "load", value:
+        "use strict";function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}function _defineProperties(target, props) {for (var i = 0; i < props.length; i++) {var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);}}function _createClass(Constructor, protoProps, staticProps) {if (protoProps) _defineProperties(Constructor.prototype, protoProps);if (staticProps) _defineProperties(Constructor, staticProps);Object.defineProperty(Constructor, "prototype", { writable: false });return Constructor;}function _defineProperty(obj, key, value) {if (key in obj) {Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true });} else {obj[key] = value;}return obj;}var Example = /*#__PURE__*/function () {function Example() {_classCallCheck(this, Example);}_createClass(Example, [{ key: "example", value:
 
 
 
-    function load() {
-      return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/
-      React.createElement("div", { name: "statue", type: "container", url: "/../../static/assets/models/statue.glb" }), /*#__PURE__*/
-      React.createElement("div", { name: "clouds", type: "texture", url: "/../../static/assets/textures/clouds.jpg" }), /*#__PURE__*/
-      React.createElement("div", { name: "shader.vert", type: "shader", data: vshader }), /*#__PURE__*/
-      React.createElement("div", { name: "shader.frag", type: "shader", data: fshader }));
 
-    } }, { key: "example", value:
 
-    function example(app, canvas, assets) {
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    function example(canvas, files) {
       // Create the application and start the update loop
-      
+      var app = new pc.Application(canvas, {});
 
-      app.scene.ambientLight = new pc.Color(0.2, 0.2, 0.2);
+      var assets = {
+        'statue': new pc.Asset('statue', 'container', { url: '/../../static/assets/models/statue.glb' }),
+        'clouds': new pc.Asset('clouds', 'texture', { url: '/../../static/assets/textures/clouds.jpg' }) };
 
-      // Create an Entity with a camera component
-      var camera = new pc.Entity();
-      camera.addComponent("camera", {
-        clearColor: new pc.Color(0.4, 0.45, 0.5) });
 
-      camera.translate(0, 7, 24);
+      var assetListLoader = new pc.AssetListLoader(Object.values(assets), app.assets);
+      assetListLoader.load(function () {
+        app.scene.ambientLight = new pc.Color(0.2, 0.2, 0.2);
 
-      // Create an Entity with a omni light component and a sphere model component.
-      var light = new pc.Entity();
-      light.addComponent("light", {
-        type: "omni",
-        color: new pc.Color(1, 1, 1),
-        radius: 10 });
+        // Create an Entity with a camera component
+        var camera = new pc.Entity();
+        camera.addComponent("camera", {
+          clearColor: new pc.Color(0.4, 0.45, 0.5) });
 
-      light.translate(0, 1, 0);
+        camera.translate(0, 7, 24);
 
-      // Add entities into scene hierarchy
-      app.root.addChild(camera);
-      app.root.addChild(light);
+        // Create an Entity with a omni light component and a sphere model component.
+        var light = new pc.Entity();
+        light.addComponent("light", {
+          type: "omni",
+          color: new pc.Color(1, 1, 1),
+          radius: 10 });
 
-      app.start();
+        light.translate(0, 1, 0);
 
-      // Create the shader definition and shader from the vertex and fragment shaders
-      var shaderDefinition = {
-        attributes: {
-          aPosition: pc.SEMANTIC_POSITION,
-          aUv0: pc.SEMANTIC_TEXCOORD0 },
+        // Add entities into scene hierarchy
+        app.root.addChild(camera);
+        app.root.addChild(light);
 
-        vshader: assets['shader.vert'].data,
-        fshader: assets['shader.frag'].data };
+        app.start();
 
-      var shader = new pc.Shader(app.graphicsDevice, shaderDefinition);
+        // Create the shader definition and shader from the vertex and fragment shaders
+        var shaderDefinition = {
+          attributes: {
+            aPosition: pc.SEMANTIC_POSITION,
+            aUv0: pc.SEMANTIC_TEXCOORD0 },
 
-      // Create a new material with the new shader
-      var material = new pc.Material();
-      material.shader = shader;
-      material.setParameter('uHeightMap', assets.clouds.resource);
+          vshader: files['shader.vert'],
+          fshader: files['shader.frag'] };
 
-      // create a hierarchy of entities with render components, representing the statue model
-      var entity = assets.statue.resource.instantiateRenderEntity();
-      app.root.addChild(entity);
+        var shader = new pc.Shader(app.graphicsDevice, shaderDefinition);
 
-      // Set the new material on all meshes in the model, and use original texture from the model on the new material
-      var originalTexture = null;
-      var renders = entity.findComponents("render");
-      renders.forEach(function (render) {
-        var meshInstances = render.meshInstances;
-        for (var i = 0; i < meshInstances.length; i++) {
-          var meshInstance = meshInstances[i];
-          if (!originalTexture) {
-            var originalMaterial = meshInstance.material;
-            originalTexture = originalMaterial.diffuseMap;
+        // Create a new material with the new shader
+        var material = new pc.Material();
+        material.shader = shader;
+        material.setParameter('uHeightMap', assets.clouds.resource);
+
+        // create a hierarchy of entities with render components, representing the statue model
+        var entity = assets.statue.resource.instantiateRenderEntity();
+        app.root.addChild(entity);
+
+        // Set the new material on all meshes in the model, and use original texture from the model on the new material
+        var originalTexture = null;
+        var renders = entity.findComponents("render");
+        renders.forEach(function (render) {
+          var meshInstances = render.meshInstances;
+          for (var i = 0; i < meshInstances.length; i++) {
+            var meshInstance = meshInstances[i];
+            if (!originalTexture) {
+              var originalMaterial = meshInstance.material;
+              originalTexture = originalMaterial.diffuseMap;
+            }
+            meshInstance.material = material;
           }
-          meshInstance.material = material;
-        }
-      });
+        });
 
-      // material is set up, update it
-      material.setParameter('uDiffuseMap', originalTexture);
-      material.update();
-
-      var time = 0;
-      app.on("update", function (dt) {
-        time += 0.2 * dt;
-
-        // reverse time
-        var t = time % 2;
-        if (t > 1) {
-          t = 1 - (t - 1);
-        }
-
-        // set time parameter for the shader
-        material.setParameter('uTime', t);
+        // material is set up, update it
+        material.setParameter('uDiffuseMap', originalTexture);
         material.update();
+
+        var time = 0;
+        app.on("update", function (dt) {
+          time += 0.2 * dt;
+
+          // reverse time
+          var t = time % 2;
+          if (t > 1) {
+            t = 1 - (t - 1);
+          }
+
+          // set time parameter for the shader
+          material.setParameter('uTime', t);
+          material.update();
+        });
       });
-    } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'Graphics');_defineProperty(Example, "NAME", 'Shader Burn');
+    } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'Graphics');_defineProperty(Example, "NAME", 'Shader Burn');_defineProperty(Example, "FILES", { 'shader.vert': /* glsl */"\nattribute vec3 aPosition;\nattribute vec2 aUv0;\n\nuniform mat4 matrix_model;\nuniform mat4 matrix_viewProjection;\n\nvarying vec2 vUv0;\n\nvoid main(void)\n{\n    vUv0 = aUv0;\n    gl_Position = matrix_viewProjection * matrix_model * vec4(aPosition, 1.0);\n}", 'shader.frag': /* glsl */"\nprecision mediump float;\n\nvarying vec2 vUv0;\n\nuniform sampler2D uDiffuseMap;\nuniform sampler2D uHeightMap;\nuniform float uTime;\n\nvoid main(void)\n{\n    float height = texture2D(uHeightMap, vUv0).r;\n    vec4 color = texture2D(uDiffuseMap, vUv0);\n    if (height < uTime) {\n    discard;\n    }\n    if (height < (uTime + uTime * 0.1)) {\n    color = vec4(1.0, 0.2, 0.0, 1.0);\n    }\n    gl_FragColor = color;\n}" });
         var example = new Example();
 
         var useTypeScript = window.top.localStorage.getItem('useTypeScript') === 'true';
@@ -153,9 +185,10 @@
                     presets: ["react", "typescript", "env"]
                 }).code;
             }
-            window.exampleFunction = new Function('app', 'canvas', 'assets', 'data', exampleFunction);
+            window.exampleFunction = new Function('canvas', 'data', exampleFunction);
         }
         window.loadFunction = example.load;
+        window.files = window.top.editedFiles || example.constructor.FILES;
 
         // get url parameters
         var queryString = window.location.search;
@@ -163,42 +196,19 @@
     </script>
     <script>
         function loadEngine(callback) {
-            const enginePath = urlParams.get('use_local_engine') || "/build/playcanvas.dbg.js";
+            const enginePath = urlParams && urlParams.get('use_local_engine') || "/build/playcanvas.js";
 
-            fetch(enginePath)
-                .then(function(response) { return response.text() })
-                .then(function(data) {
-                    var module = {
-                        exports: {}
-                    };
-                    window.pc = (Function('module', 'exports', data).call(module, module, module.exports), module).exports;
-                    window.top.pc = window.pc;
-                    callback();
-                });
+            const script = document.createElement('script');
+            script.setAttribute('src', enginePath);
+            script.onload = function() {
+                window.top.pc = window.pc;
+                callback();
+            };
+            document.head.appendChild(script);
         }
 
-        function createApplication(canvas) {
-            // create the app
-            var app = new pc.Application(canvas, {
-                mouse: new pc.Mouse(document.body),
-                touch: new pc.TouchDevice(document.body),
-                elementInput: new pc.ElementInput(canvas),
-                gamepads: new pc.GamePads(),
-                keyboard: new pc.Keyboard(window),
-                graphicsDeviceOptions: {
-                    alpha: true
-                }
-            });
-
-            // set up miniStats
-            var miniStats = new pcx.MiniStats(app);
-            if (urlParams.get('miniStats') === 'false') {
-                miniStats.enabled = false;
-            }
-            app.on('update', function () {
-                if (window.top._showMiniStats !== undefined) miniStats.enabled = window.top._showMiniStats;
-            });
-
+        function setupApplication(app) {
+            const canvas = app.graphicsDevice.canvas;
             // handle resizing
             var canvasContainerElement = canvas.parentElement;
             canvas.setAttribute('width', window.innerWidth + 'px');
@@ -212,17 +222,17 @@
                 }).observe(canvasContainerElement);
             }
 
-            return app;
-        }
-
-        function hasBasisAssets (assets) {
-        for (let i = 0; i < assets.length; i++) {
-            if (assets[i].url && assets[i].url.includes('.basis')) {
-                return true;
+            if (true) {
+                // set up miniStats
+                var miniStats = new pcx.MiniStats(app);
+                if (urlParams.get('miniStats') === 'false') {
+                    miniStats.enabled = false;
+                }
+                app.on('update', function () {
+                    if (window.top._showMiniStats !== undefined) miniStats.enabled = window.top._showMiniStats;
+                });
             }
         }
-        return false;
-    };
 
         function loadResource(app, resource, callback) {
             if (!resource.type) {
@@ -237,30 +247,6 @@
                     });
                 return;
             }
-            if (resource.data) {
-                var asset = new pc.Asset(
-                    resource.name,
-                    resource.type,
-                    resource.type === "cubemap" ? {
-                        url: resource.url
-                    } : null,
-                    resource.data
-                );
-                asset.on("load", function (asset) {
-                    callback(asset);
-                });
-                app.assets.add(asset);
-                app.assets.load(asset);
-            } else {
-                app.assets.loadFromUrl(resource.url, resource.type, function (
-                    err,
-                    asset
-                ) {
-                    if (!err && asset) {
-                        callback(asset);
-                    }
-                });
-            }
         }
 
         function loadResources(app, callback) {
@@ -271,15 +257,6 @@
             window.React = { createElement: function(type, props) { if (type === 'div') assets.push(props); } };
             // call the stubbed load function to add all assets to the assets list
             window.loadFunction();
-
-            // if we have any basis assets then initialize basis
-            if (hasBasisAssets(assets)) {
-                pc.basisInitialize({
-                    glueUrl: '/static/lib/basis/basis.wasm.js',
-                    wasmUrl: '/static/lib/basis/basis.wasm.wasm',
-                    fallbackUrl: '/static/lib/basis/basis.js'
-                });
-            }
 
             var count = assets.length;
             function onLoadedResource(key, asset) {
@@ -299,16 +276,40 @@
             });
         }
 
-        function callExample(app, canvas, assetManifest, data) {
-            if (location.pathname.indexOf('misc/mini-stats') !== -1) {
-                window.exampleFunction(app, canvas, pcx);
-            } else {
-                window.exampleFunction(app, canvas, assetManifest, data, wasmSupported, loadWasmModuleAsync);
+        function callExample(canvas, assetManifest, files, data) {
+            function escapeRegExp(string) {
+                return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             }
-            if (window.top.location.pathname.indexOf('iframe') === -1) {
-                var event = new CustomEvent("exampleLoad");
-                window.top.dispatchEvent(event);
+            function replaceAll(str, find, replace) {
+                return str.replace(new RegExp(escapeRegExp(find), 'g'), replace);
             }
+            var argsString = window.exampleFunction.toString().match(/function\s.*?\(([^)]*)\)/)[1];
+            argsString = replaceAll(argsString, ' ', '');
+            argsString = replaceAll(argsString, '\n', '');
+            var argNames = argsString.split(',');
+            var args = argNames.map(function(arg) {
+                if (arg === 'canvas') {
+                    return canvas;
+                } else if (arg === 'assetManifest') {
+                    return assetManifest;
+                } else if (arg === 'files') {
+                    return files;
+                } else if (arg === 'data') {
+                    return data;
+                } else if (arg === 'pcx') {
+                    return pcx;
+                } else if (arg === 'loadWasmModuleAsync') {
+                    return loadWasmModuleAsync;
+                } else if (arg === 'wasmSupported') {
+                    return wasmSupported;
+                }
+            });
+            window.exampleFunction.apply(this, args);
+            if (pc.app && pc.app.graphicsDevice.canvas) {
+                setupApplication(pc.app);
+            }
+            var event = new CustomEvent("exampleLoad");
+            window.top.dispatchEvent(event);
         }
     </script>
     <script>
@@ -320,13 +321,11 @@
         loadEngine(function() {
             var canvas = document.getElementById('application-canvas');
 
-            const app = createApplication(canvas);
-
             if (!window.loadFunction) {
-                callExample(app, canvas, {}, data);
+                callExample(canvas, {}, window.files, data);
             } else {
-                loadResources(app, function(assetManifest) {
-                    callExample(app, canvas, assetManifest, data);
+                loadResources(undefined, function(assetManifest) {
+                    callExample(canvas, assetManifest, window.files, data);
                 });
             }
         });
