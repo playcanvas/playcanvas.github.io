@@ -3,7 +3,6 @@
 <head>
     <script src="../../build/playcanvas-extras.js"></script>
     <script src="../../build/playcanvas-observer.js"></script>
-    <script src="../../build/wasm-loader.js"></script>
     <script src="../../build/urlSearchParamsPolyfill.js"></script>
     <script src="../../build/promisePolyfill.js"></script>
     <script src="../../build/fetchPolyfill.js"></script>
@@ -43,17 +42,18 @@
 
 
 
-    function example(canvas, assets, wasmSupported, loadWasmModuleAsync) {
+    function example(canvas, assets) {
 
       // Create the app and start the update loop
       var app = new pc.Application(canvas, {});
 
-      // load the draco decoder
-      if (window.wasmSupported()) {
-        window.loadWasmModuleAsync('DracoDecoderModule', '/../../static/lib/draco/draco.wasm.js', '/../../static/lib/draco/draco.wasm.wasm', demo);
-      } else {
-        loadWasmModuleAsync('DracoDecoderModule', '/../../static/lib/draco/draco.js', '', demo);
-      }
+      pc.WasmModule.setConfig('DracoDecoderModule', {
+        glueUrl: '/../../static/lib/draco/draco.wasm.js',
+        wasmUrl: '/../../static/lib/draco/draco.wasm.wasm',
+        fallbackUrl: '/../../static/lib/draco/draco.js' });
+
+
+      pc.WasmModule.getInstance('DracoDecoderModule', demo);
 
       function demo() {
         app.scene.ambientLight = new pc.Color(0.2, 0.2, 0.2);
@@ -222,10 +222,6 @@
                     return data;
                 } else if (arg === 'pcx') {
                     return pcx;
-                } else if (arg === 'loadWasmModuleAsync') {
-                    return loadWasmModuleAsync;
-                } else if (arg === 'wasmSupported') {
-                    return wasmSupported;
                 }
             });
             window.exampleFunction.apply(this, args);

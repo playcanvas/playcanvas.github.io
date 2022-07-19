@@ -3,7 +3,6 @@
 <head>
     <script src="../../build/playcanvas-extras.js"></script>
     <script src="../../build/playcanvas-observer.js"></script>
-    <script src="../../build/wasm-loader.js"></script>
     <script src="../../build/urlSearchParamsPolyfill.js"></script>
     <script src="../../build/promisePolyfill.js"></script>
     <script src="../../build/fetchPolyfill.js"></script>
@@ -53,6 +52,9 @@
       React.createElement(LabelGroup, { text: "intensity" }, /*#__PURE__*/
       React.createElement(SliderInput, { binding: new BindingTwoWay(), link: { observer: data, path: 'lights.omni.intensity' } })), /*#__PURE__*/
 
+      React.createElement(LabelGroup, { text: "shadow intensity" }, /*#__PURE__*/
+      React.createElement(SliderInput, { binding: new BindingTwoWay(), link: { observer: data, path: 'lights.omni.shadowIntensity' } })), /*#__PURE__*/
+
       React.createElement(LabelGroup, { text: "cookie" }, /*#__PURE__*/
       React.createElement(SliderInput, { binding: new BindingTwoWay(), link: { observer: data, path: 'lights.omni.cookieIntensity' } }))), /*#__PURE__*/
 
@@ -64,6 +66,9 @@
       React.createElement(LabelGroup, { text: "intensity" }, /*#__PURE__*/
       React.createElement(SliderInput, { binding: new BindingTwoWay(), link: { observer: data, path: 'lights.spot.intensity' } })), /*#__PURE__*/
 
+      React.createElement(LabelGroup, { text: "shadow intensity" }, /*#__PURE__*/
+      React.createElement(SliderInput, { binding: new BindingTwoWay(), link: { observer: data, path: 'lights.spot.shadowIntensity' } })), /*#__PURE__*/
+
       React.createElement(LabelGroup, { text: "cookie" }, /*#__PURE__*/
       React.createElement(SliderInput, { binding: new BindingTwoWay(), link: { observer: data, path: 'lights.spot.cookieIntensity' } }))), /*#__PURE__*/
 
@@ -73,7 +78,10 @@
       React.createElement(BooleanInput, { type: "toggle", binding: new BindingTwoWay(), link: { observer: data, path: 'lights.directional.enabled' } })), /*#__PURE__*/
 
       React.createElement(LabelGroup, { text: "intensity" }, /*#__PURE__*/
-      React.createElement(SliderInput, { binding: new BindingTwoWay(), link: { observer: data, path: 'lights.directional.intensity' } }))));
+      React.createElement(SliderInput, { binding: new BindingTwoWay(), link: { observer: data, path: 'lights.directional.intensity' } })), /*#__PURE__*/
+
+      React.createElement(LabelGroup, { text: "shadow intensity" }, /*#__PURE__*/
+      React.createElement(SliderInput, { binding: new BindingTwoWay(), link: { observer: data, path: 'lights.directional.shadowIntensity' } }))));
 
 
 
@@ -113,6 +121,10 @@
         app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
         app.setCanvasResolution(pc.RESOLUTION_AUTO);
 
+        // enable cookies which are disabled by default for clustered lighting
+        app.scene.lighting.cookiesEnabled = true;
+
+        // ambient lighting
         app.scene.ambientLight = new pc.Color(0.2, 0.2, 0.2);
 
         // create an entity with the statue
@@ -150,16 +162,19 @@
           spot: {
             enabled: true,
             intensity: 0.8,
-            cookieIntensity: 1 },
+            cookieIntensity: 1,
+            shadowIntensity: 1 },
 
           omni: {
             enabled: true,
             intensity: 0.8,
-            cookieIntensity: 1 },
+            cookieIntensity: 1,
+            shadowIntensity: 1 },
 
           directional: {
             enabled: true,
-            intensity: 0.8 } });
+            intensity: 0.8,
+            shadowIntensity: 1 } });
 
 
 
@@ -414,10 +429,6 @@
                     return data;
                 } else if (arg === 'pcx') {
                     return pcx;
-                } else if (arg === 'loadWasmModuleAsync') {
-                    return loadWasmModuleAsync;
-                } else if (arg === 'wasmSupported') {
-                    return wasmSupported;
                 }
             });
             window.exampleFunction.apply(this, args);

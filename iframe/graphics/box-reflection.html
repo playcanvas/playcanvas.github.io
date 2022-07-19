@@ -3,7 +3,6 @@
 <head>
     <script src="../../build/playcanvas-extras.js"></script>
     <script src="../../build/playcanvas-observer.js"></script>
-    <script src="../../build/wasm-loader.js"></script>
     <script src="../../build/urlSearchParamsPolyfill.js"></script>
     <script src="../../build/promisePolyfill.js"></script>
     <script src="../../build/fetchPolyfill.js"></script>
@@ -61,6 +60,9 @@
       React.createElement(LabelGroup, { text: "Metalness" }, /*#__PURE__*/
       React.createElement(SliderInput, { binding: new BindingTwoWay(), link: { observer: data, path: 'settings.metalness' }, min: 0, max: 1, precision: 2 })), /*#__PURE__*/
 
+      React.createElement(LabelGroup, { text: "Reflectivity" }, /*#__PURE__*/
+      React.createElement(SliderInput, { binding: new BindingTwoWay(), link: { observer: data, path: 'settings.reflectivity' }, min: 0, max: 1, precision: 2 })), /*#__PURE__*/
+
       React.createElement(LabelGroup, { text: "Bumpiness" }, /*#__PURE__*/
       React.createElement(SliderInput, { binding: new BindingTwoWay(), link: { observer: data, path: 'settings.bumpiness' }, min: 0, max: 1, precision: 2 }))));
 
@@ -79,6 +81,7 @@
       var assets = {
         'script1': new pc.Asset('script', 'script', { url: '/../../static/scripts/camera/orbit-camera.js' }),
         'script2': new pc.Asset('script', 'script', { url: '/../../static/scripts/utils/cubemap-renderer.js' }),
+        'batmobile': new pc.Asset('batmobile', 'container', { url: '/../../static/assets/models/batmobile-armored.glb' }),
         'normal': new pc.Asset('normal', 'texture', { url: '/../../static/assets/textures/normal-map.png' }) };
 
 
@@ -88,9 +91,10 @@
 
         data.set('settings', {
           updateFrequency: 10,
-          shininess: 90,
-          metalness: 0.7,
-          bumpiness: 0.2 });
+          shininess: 80,
+          metalness: 0.9,
+          bumpiness: 0.2,
+          reflectivity: 0.5 });
 
 
         // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
@@ -125,6 +129,7 @@
         roomMaterial.normalMapTiling.set(5, 5);
         roomMaterial.bumpiness = 0.1;
         roomMaterial.shininess = 90;
+        roomMaterial.reflectivity = 0.3;
         // @ts-ignore
         roomMaterial.envAtlas = envAtlas; // use reflection from env atlas
         roomMaterial.metalness = 0.5;
@@ -154,8 +159,9 @@
         sphereMaterial.normalMap = assets.normal.resource;
         sphereMaterial.normalMapTiling.set(5, 5);
         sphereMaterial.bumpiness = 0.7;
-        sphereMaterial.shininess = 90;
-        sphereMaterial.metalness = 0.6;
+        sphereMaterial.shininess = 30;
+        sphereMaterial.metalness = 0.7;
+        sphereMaterial.reflectivity = 0.3;
         // @ts-ignore
         sphereMaterial.envAtlas = envAtlas; // use reflection from env atlas
         sphereMaterial.update();
@@ -229,8 +235,20 @@
         // screen
         createPrimitive("box", new pc.Vec3(0, 200, 400), new pc.Vec3(500, 250, 5), screenMaterial);
 
-        // sphere
-        createPrimitive("sphere", new pc.Vec3(0, 150, 0), new pc.Vec3(150, 150, 150), sphereMaterial);
+        // batmobile
+        var batmobileEntity = assets.batmobile.resource.instantiateRenderEntity();
+        batmobileEntity.setLocalScale(100, 100, 100);
+        batmobileEntity.rotateLocal(0, 0, 90);
+        app.root.addChild(batmobileEntity);
+
+        // apply shiny material to it
+        var renders = batmobileEntity.findComponents('render');
+        renders.forEach(function (render) {
+          for (var i = 0; i < render.meshInstances.length; i++) {
+            var meshInstance = render.meshInstances[i];
+            meshInstance.material = sphereMaterial;
+          }
+        });
 
         // create an omni light white orbits the room to avoid it being completely dark
         var lightOmni = new pc.Entity();
@@ -354,15 +372,18 @@
           var shininess = data.get('settings.shininess');
           var metalness = data.get('settings.metalness');
           var bumpiness = data.get('settings.bumpiness');
+          var reflectivity = data.get('settings.reflectivity');
 
           roomMaterial.shininess = shininess;
           roomMaterial.metalness = metalness;
           roomMaterial.bumpiness = bumpiness;
+          roomMaterial.reflectivity = reflectivity;
           roomMaterial.update();
 
           sphereMaterial.shininess = shininess;
           sphereMaterial.metalness = metalness;
           sphereMaterial.bumpiness = bumpiness;
+          sphereMaterial.reflectivity = reflectivity;
           sphereMaterial.update();
         });
       });
@@ -494,10 +515,6 @@
                     return data;
                 } else if (arg === 'pcx') {
                     return pcx;
-                } else if (arg === 'loadWasmModuleAsync') {
-                    return loadWasmModuleAsync;
-                } else if (arg === 'wasmSupported') {
-                    return wasmSupported;
                 }
             });
             window.exampleFunction.apply(this, args);

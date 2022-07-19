@@ -3,7 +3,6 @@
 <head>
     <script src="../../build/playcanvas-extras.js"></script>
     <script src="../../build/playcanvas-observer.js"></script>
-    <script src="../../build/wasm-loader.js"></script>
     <script src="../../build/urlSearchParamsPolyfill.js"></script>
     <script src="../../build/promisePolyfill.js"></script>
     <script src="../../build/fetchPolyfill.js"></script>
@@ -53,15 +52,17 @@
 
     } }, { key: "example", value:
 
-    function example(canvas, data, wasmSupported, loadWasmModuleAsync) {
+    function example(canvas, data) {
       // Create the application and start the update loop
       var app = new pc.Application(canvas, {});
 
-      if (window.wasmSupported()) {
-        window.loadWasmModuleAsync('Ammo', '/../../static/lib/ammo/ammo.wasm.js', '/../../static/lib/ammo/ammo.wasm.wasm', run);
-      } else {
-        loadWasmModuleAsync('Ammo', '/../../static/lib/ammo/ammo.js', '', run);
-      }
+      pc.WasmModule.setConfig('Ammo', {
+        glueUrl: '/../../static/lib/ammo/ammo.wasm.js',
+        wasmUrl: '/../../static/lib/ammo/ammo.wasm.wasm',
+        fallbackUrl: '/../../static/lib/ammo/ammo.js' });
+
+
+      pc.WasmModule.getInstance('Ammo', run);
 
       function run() {
 
@@ -503,10 +504,6 @@
                     return data;
                 } else if (arg === 'pcx') {
                     return pcx;
-                } else if (arg === 'loadWasmModuleAsync') {
-                    return loadWasmModuleAsync;
-                } else if (arg === 'wasmSupported') {
-                    return wasmSupported;
                 }
             });
             window.exampleFunction.apply(this, args);

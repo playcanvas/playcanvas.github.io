@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.54.0 revision 8577cfea7
+ * PlayCanvas Engine v1.55.0 revision 0cab2ed64
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 (function (global, factory) {
@@ -371,7 +371,8 @@
 	  var _proto = Color.prototype;
 
 	  _proto.clone = function clone() {
-	    return new Color(this.r, this.g, this.b, this.a);
+	    var cstr = this.constructor;
+	    return new cstr(this.r, this.g, this.b, this.a);
 	  };
 
 	  _proto.copy = function copy(rhs) {
@@ -490,7 +491,8 @@
 	  };
 
 	  _proto.clone = function clone() {
-	    return new Vec2(this.x, this.y);
+	    var cstr = this.constructor;
+	    return new cstr(this.x, this.y);
 	  };
 
 	  _proto.copy = function copy(rhs) {
@@ -700,7 +702,8 @@
 	  };
 
 	  _proto.clone = function clone() {
-	    return new Vec3(this.x, this.y, this.z);
+	    var cstr = this.constructor;
+	    return new cstr(this.x, this.y, this.z);
 	  };
 
 	  _proto.copy = function copy(rhs) {
@@ -955,7 +958,8 @@
 	  };
 
 	  _proto.clone = function clone() {
-	    return new Vec4(this.x, this.y, this.z, this.w);
+	    var cstr = this.constructor;
+	    return new cstr(this.x, this.y, this.z, this.w);
 	  };
 
 	  _proto.copy = function copy(rhs) {

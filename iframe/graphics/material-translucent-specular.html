@@ -3,7 +3,6 @@
 <head>
     <script src="../../build/playcanvas-extras.js"></script>
     <script src="../../build/playcanvas-observer.js"></script>
-    <script src="../../build/wasm-loader.js"></script>
     <script src="../../build/urlSearchParamsPolyfill.js"></script>
     <script src="../../build/promisePolyfill.js"></script>
     <script src="../../build/fetchPolyfill.js"></script>
@@ -92,6 +91,7 @@
         var createSphere = function createSphere(x, y, z) {
           var material = new pc.StandardMaterial();
           material.diffuse = new pc.Color(0.7, 0.7, 0.7);
+          material.specular = new pc.Color(1, 1, 1);
           material.metalness = 0.0;
           material.shininess = z / (NUM_SPHERES_Z - 1) * 50 + 50;
           material.useMetalness = true;
@@ -266,10 +266,6 @@
                     return data;
                 } else if (arg === 'pcx') {
                     return pcx;
-                } else if (arg === 'loadWasmModuleAsync') {
-                    return loadWasmModuleAsync;
-                } else if (arg === 'wasmSupported') {
-                    return wasmSupported;
                 }
             });
             window.exampleFunction.apply(this, args);
