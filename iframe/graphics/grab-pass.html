@@ -3,7 +3,6 @@
 <head>
     <script src="../../build/playcanvas-extras.js"></script>
     <script src="../../build/playcanvas-observer.js"></script>
-    <script src="../../build/wasm-loader.js"></script>
     <script src="../../build/urlSearchParamsPolyfill.js"></script>
     <script src="../../build/promisePolyfill.js"></script>
     <script src="../../build/fetchPolyfill.js"></script>
@@ -183,7 +182,7 @@
         }
 
         // Create the camera, which renders entities
-        var camera = new pc.Entity();
+        var camera = new pc.Entity("SceneCamera");
         camera.addComponent("camera", {
           clearColor: new pc.Color(0.2, 0.2, 0.2) });
 
@@ -235,7 +234,7 @@
           camera.lookAt(new pc.Vec3(0, 2, 0));
         });
       });
-    } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'Graphics');_defineProperty(Example, "NAME", 'Grab Pass');_defineProperty(Example, "FILES", { 'shader.vert': /* glsl */"\n            attribute vec3 vertex_position;\n            attribute vec2 vertex_texCoord0;\n\n            uniform mat4 matrix_model;\n            uniform mat4 matrix_viewProjection;\n\n            varying vec2 texCoord;\n\n            void main(void)\n            {\n                // project the position\n                vec4 pos = matrix_model * vec4(vertex_position, 1.0);\n                gl_Position = matrix_viewProjection * pos;\n\n                texCoord = vertex_texCoord0;\n            }\n        ", 'shader.frag': /* glsl */"\n            precision mediump float;\n\n            // use the special uSceneColorMap texture, which is a built-in texture. Each time this texture is used\n            // for rendering, the engine will copy color framebuffer to it which represents already rendered scene\n            uniform sampler2D uSceneColorMap;\n\n            // normal map providing offsets\n            uniform sampler2D uOffsetMap;\n\n            // roughness map\n            uniform sampler2D uRoughnessMap;\n\n            // engine built-in constant storing render target size in .xy and inverse size in .zw\n            uniform vec4 uScreenSize;\n\n            varying vec2 texCoord;\n\n            void main(void)\n            {\n                float roughness = 1.0 - texture2D(uRoughnessMap, texCoord).r;\n\n                // sample offset texture - used to add distortion to the sampled background\n                vec2 offset = texture2D(uOffsetMap, texCoord).rg;\n                offset = 2.0 * offset - 1.0;\n\n                // offset strength\n                offset *= (0.2 + roughness) * 0.015;\n\n                // get normalized uv coordinates for canvas\n                vec2 grabUv = gl_FragCoord.xy * uScreenSize.zw;\n\n                // roughness dictates which mipmap level gets used, in 0..4 range\n                float mipmap = roughness * 5.0;\n\n                // get background pixel color with distorted offset\n                #ifdef GL2\n                    // only webgl2 (and webgl1 extension - not handled here) supports reading specified mipmap\n                    vec3 grabColor = texture2DLodEXT(uSceneColorMap, grabUv + offset, mipmap).rgb;\n                #else\n                    vec3 grabColor = texture2D(uSceneColorMap, grabUv + offset).rgb;\n                #endif\n\n                // brighten the refracted texture a little bit\n                // brighten even more the rough parts of the glass\n                gl_FragColor = vec4(grabColor * 1.1, 1.0) + roughness * 0.09;\n            }\n        " });
+    } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'Graphics');_defineProperty(Example, "NAME", 'Grab Pass');_defineProperty(Example, "FILES", { 'shader.vert': /* glsl */"\n            attribute vec3 vertex_position;\n            attribute vec2 vertex_texCoord0;\n\n            uniform mat4 matrix_model;\n            uniform mat4 matrix_viewProjection;\n\n            varying vec2 texCoord;\n\n            void main(void)\n            {\n                // project the position\n                vec4 pos = matrix_model * vec4(vertex_position, 1.0);\n                gl_Position = matrix_viewProjection * pos;\n\n                texCoord = vertex_texCoord0;\n            }\n        ", 'shader.frag': /* glsl */"\n            precision mediump float;\n\n            // use the special uSceneColorMap texture, which is a built-in texture containing\n            // a copy of the color buffer at the point of capture, inside the Depth layer.\n            uniform sampler2D uSceneColorMap;\n\n            // normal map providing offsets\n            uniform sampler2D uOffsetMap;\n\n            // roughness map\n            uniform sampler2D uRoughnessMap;\n\n            // engine built-in constant storing render target size in .xy and inverse size in .zw\n            uniform vec4 uScreenSize;\n\n            varying vec2 texCoord;\n\n            void main(void)\n            {\n                float roughness = 1.0 - texture2D(uRoughnessMap, texCoord).r;\n\n                // sample offset texture - used to add distortion to the sampled background\n                vec2 offset = texture2D(uOffsetMap, texCoord).rg;\n                offset = 2.0 * offset - 1.0;\n\n                // offset strength\n                offset *= (0.2 + roughness) * 0.015;\n\n                // get normalized uv coordinates for canvas\n                vec2 grabUv = gl_FragCoord.xy * uScreenSize.zw;\n\n                // roughness dictates which mipmap level gets used, in 0..4 range\n                float mipmap = roughness * 5.0;\n\n                // get background pixel color with distorted offset\n                #ifdef GL2\n                    // only webgl2 (and webgl1 extension - not handled here) supports reading specified mipmap\n                    vec3 grabColor = texture2DLodEXT(uSceneColorMap, grabUv + offset, mipmap).rgb;\n                #else\n                    vec3 grabColor = texture2D(uSceneColorMap, grabUv + offset).rgb;\n                #endif\n\n                // brighten the refracted texture a little bit\n                // brighten even more the rough parts of the glass\n                gl_FragColor = vec4(grabColor * 1.1, 1.0) + roughness * 0.09;\n            }\n        " });
         var example = new Example();
 
         var useTypeScript = window.top.localStorage.getItem('useTypeScript') === 'true';
@@ -363,10 +362,6 @@
                     return data;
                 } else if (arg === 'pcx') {
                     return pcx;
-                } else if (arg === 'loadWasmModuleAsync') {
-                    return loadWasmModuleAsync;
-                } else if (arg === 'wasmSupported') {
-                    return wasmSupported;
                 }
             });
             window.exampleFunction.apply(this, args);

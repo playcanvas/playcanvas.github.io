@@ -1,564 +1,46 @@
 /**
- * Callback used by {@link EventHandler } functions. Note the callback is limited to 8 arguments.
- */
-export type HandleEventCallback = (arg1?: any, arg2?: any, arg3?: any, arg4?: any, arg5?: any, arg6?: any, arg7?: any, arg8?: any) => any;
-/**
- * Callback used by {@link EventHandler} functions. Note the callback is limited to 8 arguments.
+ * Logs a frame number.
  *
- * @callback HandleEventCallback
- * @param {*} [arg1] - First argument that is passed from caller.
- * @param {*} [arg2] - Second argument that is passed from caller.
- * @param {*} [arg3] - Third argument that is passed from caller.
- * @param {*} [arg4] - Fourth argument that is passed from caller.
- * @param {*} [arg5] - Fifth argument that is passed from caller.
- * @param {*} [arg6] - Sixth argument that is passed from caller.
- * @param {*} [arg7] - Seventh argument that is passed from caller.
- * @param {*} [arg8] - Eighth argument that is passed from caller.
+ * @type {string}
  */
+declare const TRACEID_RENDER_FRAME: string;
 /**
- * Abstract base class that implements functionality for event handling.
- */
-declare class EventHandler {
-    /**
-     * @type {object}
-     * @private
-     */
-    private _callbacks;
-    /**
-     * @type {object}
-     * @private
-     */
-    private _callbackActive;
-    /**
-     * Reinitialize the event handler.
-     *
-     * @private
-     */
-    private initEventHandler;
-    /**
-     * Registers a new event handler.
-     *
-     * @param {string} name - Name of the event to bind the callback to.
-     * @param {HandleEventCallback} callback - Function that is called when event is fired. Note
-     * the callback is limited to 8 arguments.
-     * @param {object} [scope] - Object to use as 'this' when the event is fired, defaults to
-     * current this.
-     * @param {boolean} [once=false] - If true, the callback will be unbound after being fired once.
-     * @private
-     */
-    private _addCallback;
-    /**
-     * Attach an event handler to an event.
-     *
-     * @param {string} name - Name of the event to bind the callback to.
-     * @param {HandleEventCallback} callback - Function that is called when event is fired. Note
-     * the callback is limited to 8 arguments.
-     * @param {object} [scope] - Object to use as 'this' when the event is fired, defaults to
-     * current this.
-     * @returns {EventHandler} Self for chaining.
-     * @example
-     * obj.on('test', function (a, b) {
-     *     console.log(a + b);
-     * });
-     * obj.fire('test', 1, 2); // prints 3 to the console
-     */
-    on(name: string, callback: HandleEventCallback, scope?: object): EventHandler;
-    /**
-     * Detach an event handler from an event. If callback is not provided then all callbacks are
-     * unbound from the event, if scope is not provided then all events with the callback will be
-     * unbound.
-     *
-     * @param {string} [name] - Name of the event to unbind.
-     * @param {HandleEventCallback} [callback] - Function to be unbound.
-     * @param {object} [scope] - Scope that was used as the this when the event is fired.
-     * @returns {EventHandler} Self for chaining.
-     * @example
-     * var handler = function () {
-     * };
-     * obj.on('test', handler);
-     *
-     * obj.off(); // Removes all events
-     * obj.off('test'); // Removes all events called 'test'
-     * obj.off('test', handler); // Removes all handler functions, called 'test'
-     * obj.off('test', handler, this); // Removes all handler functions, called 'test' with scope this
-     */
-    off(name?: string, callback?: HandleEventCallback, scope?: object): EventHandler;
-    /**
-     * Fire an event, all additional arguments are passed on to the event listener.
-     *
-     * @param {string} name - Name of event to fire.
-     * @param {*} [arg1] - First argument that is passed to the event handler.
-     * @param {*} [arg2] - Second argument that is passed to the event handler.
-     * @param {*} [arg3] - Third argument that is passed to the event handler.
-     * @param {*} [arg4] - Fourth argument that is passed to the event handler.
-     * @param {*} [arg5] - Fifth argument that is passed to the event handler.
-     * @param {*} [arg6] - Sixth argument that is passed to the event handler.
-     * @param {*} [arg7] - Seventh argument that is passed to the event handler.
-     * @param {*} [arg8] - Eighth argument that is passed to the event handler.
-     * @returns {EventHandler} Self for chaining.
-     * @example
-     * obj.fire('test', 'This is the message');
-     */
-    fire(name: string, arg1?: any, arg2?: any, arg3?: any, arg4?: any, arg5?: any, arg6?: any, arg7?: any, arg8?: any): EventHandler;
-    /**
-     * Attach an event handler to an event. This handler will be removed after being fired once.
-     *
-     * @param {string} name - Name of the event to bind the callback to.
-     * @param {HandleEventCallback} callback - Function that is called when event is fired. Note
-     * the callback is limited to 8 arguments.
-     * @param {object} [scope] - Object to use as 'this' when the event is fired, defaults to
-     * current this.
-     * @returns {EventHandler} Self for chaining.
-     * @example
-     * obj.once('test', function (a, b) {
-     *     console.log(a + b);
-     * });
-     * obj.fire('test', 1, 2); // prints 3 to the console
-     * obj.fire('test', 1, 2); // not going to get handled
-     */
-    once(name: string, callback: HandleEventCallback, scope?: object): EventHandler;
-    /**
-     * Test if there are any handlers bound to an event name.
-     *
-     * @param {string} name - The name of the event to test.
-     * @returns {boolean} True if the object has handlers bound to the specified event name.
-     * @example
-     * obj.on('test', function () { }); // bind an event to 'test'
-     * obj.hasEvent('test'); // returns true
-     * obj.hasEvent('hello'); // returns false
-     */
-    hasEvent(name: string): boolean;
-}
-
-declare namespace events {
-    function attach(target: any): any;
-    const _addCallback: (name: string, callback: HandleEventCallback, scope?: any, once?: boolean) => void;
-    const on: (name: string, callback: HandleEventCallback, scope?: any) => EventHandler;
-    const off: (name?: string, callback?: HandleEventCallback, scope?: any) => EventHandler;
-    const fire: (name: string, arg1?: any, arg2?: any, arg3?: any, arg4?: any, arg5?: any, arg6?: any, arg7?: any, arg8?: any) => EventHandler;
-    const once: (name: string, callback: HandleEventCallback, scope?: any) => EventHandler;
-    const hasEvent: (name: string) => boolean;
-}
-
-declare namespace guid {
-    function create(): string;
-}
-
-declare namespace path {
-    const delimiter: string;
-    function join(...args: string[]): string;
-    function normalize(pathname: string): string;
-    function split(pathname: string): string[];
-    function getBasename(pathname: string): string;
-    function getDirectory(pathname: string): string;
-    function getExtension(pathname: string): string;
-    function isRelativePath(pathname: string): boolean;
-    function extractPath(pathname: string): string;
-}
-
-declare namespace platform {
-    export { environment };
-    export const global: object;
-    export const browser: boolean;
-    export { desktop };
-    export { mobile };
-    export { ios };
-    export { android };
-    export { windows };
-    export { xbox };
-    export { gamepads };
-    export { touch };
-    export { workers };
-    export { passiveEvents };
-}
-declare const environment: "browser" | "node";
-declare let desktop: boolean;
-declare let mobile: boolean;
-declare let ios: boolean;
-declare let android: boolean;
-declare let windows: boolean;
-declare let xbox: boolean;
-declare let gamepads: boolean;
-declare let touch: boolean;
-declare let workers: boolean;
-declare let passiveEvents: boolean;
-
-declare namespace string {
-    export { ASCII_LOWERCASE };
-    export { ASCII_UPPERCASE };
-    export { ASCII_LETTERS };
-    export function format(s: string, ...args: any[]): string;
-    export function toBool(s: string, strict?: boolean): boolean;
-    export function getCodePoint(string: string, i?: number): number;
-    export function getCodePoints(string: string): number[];
-    export function getSymbols(string: string): string[];
-    export function fromCodePoint(...args: number[]): string;
-}
-declare const ASCII_LOWERCASE: "abcdefghijklmnopqrstuvwxyz";
-declare const ASCII_UPPERCASE: "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-declare const ASCII_LETTERS: string;
-
-/**
- * A ordered list-type data structure that can provide item look up by key and can also return a list.
+ * Logs basic information about generated render passes.
  *
- * @ignore
+ * @type {string}
  */
-declare class IndexedList {
-    /**
-     * @type {object[]}
-     * @private
-     */
-    private _list;
-    /**
-     * @type {Object.<string, number>}
-     * @private
-     */
-    private _index;
-    /**
-     * Add a new item into the list with a index key.
-     *
-     * @param {string} key -  Key used to look up item in index.
-     * @param {object} item - Item to be stored.
-     */
-    push(key: string, item: object): void;
-    /**
-     * Test whether a key has been added to the index.
-     *
-     * @param {string} key - The key to test.
-     * @returns {boolean} Returns true if key is in the index, false if not.
-     */
-    has(key: string): boolean;
-    /**
-     * Return the item indexed by a key.
-     *
-     * @param {string} key - The key of the item to retrieve.
-     * @returns {object|null} The item stored at key. Returns null if key is not in the index.
-     */
-    get(key: string): object | null;
-    /**
-     * Remove the item indexed by key from the list.
-     *
-     * @param {string} key - The key at which to remove the item.
-     * @returns {boolean} Returns true if the key exists and an item was removed, returns false if
-     * no item was removed.
-     */
-    remove(key: string): boolean;
-    /**
-     * Returns the list of items.
-     *
-     * @returns {object[]} The list of items.
-     */
-    list(): object[];
-    /**
-     * Remove all items from the list.
-     */
-    clear(): void;
-}
-
+declare const TRACEID_RENDER_PASS: string;
 /**
- * Helper class for organized reading of memory.
+ * Logs additional detail for render passes.
  *
- * @ignore
+ * @type {string}
  */
-declare class ReadStream {
-    constructor(arraybuffer: any);
-    arraybuffer: any;
-    dataView: DataView;
-    offset: number;
-    stack: any[];
-    get remainingBytes(): number;
-    reset(offset?: number): void;
-    skip(bytes: any): void;
-    align(bytes: any): void;
-    _inc(amount: any): number;
-    readChar(): string;
-    readChars(numChars: any): string;
-    readU8(): number;
-    readU16(): number;
-    readU32(): number;
-    readU64(): number;
-    readU32be(): number;
-    readArray(result: any): void;
-    readLine(): string;
-}
-
+declare const TRACEID_RENDER_PASS_DETAIL: string;
 /**
- * Helper class used to hold an array of items in a specific order. This array is safe to modify
- * while we loop through it. The class assumes that it holds objects that need to be sorted based
- * on one of their fields.
+ * Logs render actions created by the layer composition. Only executes when the
+ * layer composition changes.
  *
- * @ignore
+ * @type {string}
  */
-declare class SortedLoopArray {
-    /**
-     * Create a new SortedLoopArray instance.
-     *
-     * @param {object} args - Arguments.
-     * @param {string} args.sortBy - The name of the field that each element in the array is going
-     * to be sorted by.
-     * @example
-     * var array = new pc.SortedLoopArray({ sortBy: 'priority' });
-     * array.insert(item); // adds item to the right slot based on item.priority
-     * array.append(item); // adds item to the end of the array
-     * array.remove(item); // removes item from array
-     * for (array.loopIndex = 0; array.loopIndex < array.length; array.loopIndex++) {
-     *   // do things with array elements
-     *   // safe to remove and add elements into the array while looping
-     * }
-     */
-    constructor(args: {
-        sortBy: string;
-    });
-    /**
-     * The internal array that holds the actual array elements.
-     *
-     * @type {object[]}
-     */
-    items: object[];
-    /**
-     * The number of elements in the array.
-     *
-     * @type {number}
-     */
-    length: number;
-    /**
-     * The current index used to loop through the array. This gets modified if we add or remove
-     * elements from the array while looping. See the example to see how to loop through this
-     * array.
-     *
-     * @type {number}
-     */
-    loopIndex: number;
-    _sortBy: string;
-    _sortHandler: any;
-    /**
-     * Searches for the right spot to insert the specified item.
-     *
-     * @param {object} item - The item.
-     * @returns {number} The index where to insert the item.
-     * @private
-     */
-    private _binarySearch;
-    _doSort(a: any, b: any): number;
-    /**
-     * Inserts the specified item into the array at the right index based on the 'sortBy' field
-     * passed into the constructor. This also adjusts the loopIndex accordingly.
-     *
-     * @param {object} item - The item to insert.
-     */
-    insert(item: object): void;
-    /**
-     * Appends the specified item to the end of the array. Faster than insert() as it does not
-     * binary search for the right index. This also adjusts the loopIndex accordingly.
-     *
-     * @param {object} item - The item to append.
-     */
-    append(item: object): void;
-    /**
-     * Removes the specified item from the array.
-     *
-     * @param {object} item - The item to remove.
-     */
-    remove(item: object): void;
-    /**
-     * Sorts elements in the array based on the 'sortBy' field passed into the constructor. This
-     * also updates the loopIndex if we are currently looping.
-     *
-     * WARNING: Be careful if you are sorting while iterating because if after sorting the array
-     * element that you are currently processing is moved behind other elements then you might end
-     * up iterating over elements more than once!
-     */
-    sort(): void;
-}
-
+declare const TRACEID_RENDER_ACTION: string;
 /**
- * Set of tag names. Tags are automatically available on {@link Entity} and {@link Asset} as `tags`
- * field.
+ * Logs the allocation of render targets.
  *
- * @augments EventHandler
+ * @type {string}
  */
-declare class Tags extends EventHandler {
-    /**
-     * Create an instance of a Tags.
-     *
-     * @param {object} [parent] - Parent object who tags belong to.
-     */
-    constructor(parent?: object);
-    _index: {};
-    _list: any[];
-    _parent: any;
-    /**
-     * Add a tag, duplicates are ignored. Can be array or comma separated arguments for multiple tags.
-     *
-     * @param {...*} name - Name of a tag, or array of tags.
-     * @returns {boolean} True if any tag were added.
-     * @example
-     * tags.add('level-1');
-     * @example
-     * tags.add('ui', 'settings');
-     * @example
-     * tags.add(['level-2', 'mob']);
-     */
-    add(...args: any[]): boolean;
-    /**
-     * Remove tag.
-     *
-     * @param {...*} name - Name of a tag or array of tags.
-     * @returns {boolean} True if any tag were removed.
-     * @example
-     * tags.remove('level-1');
-     * @example
-     * tags.remove('ui', 'settings');
-     * @example
-     * tags.remove(['level-2', 'mob']);
-     */
-    remove(...args: any[]): boolean;
-    /**
-     * Remove all tags.
-     *
-     * @example
-     * tags.clear();
-     */
-    clear(): void;
-    /**
-     * Check if tags satisfy filters. Filters can be provided by simple name of tag, as well as by
-     * array of tags. When an array is provided it will check if tags contain each tag within the
-     * array. If any of comma separated argument is satisfied, then it will return true. Any number
-     * of combinations are valid, and order is irrelevant.
-     *
-     * @param {...*} query - Name of a tag or array of tags.
-     * @returns {boolean} True if filters are satisfied.
-     * @example
-     * tags.has('player'); // player
-     * @example
-     * tags.has('mob', 'player'); // player OR mob
-     * @example
-     * tags.has(['level-1', 'mob']); // monster AND level-1
-     * @example
-     * tags.has(['ui', 'settings'], ['ui', 'levels']); // (ui AND settings) OR (ui AND levels)
-     */
-    has(...args: any[]): boolean;
-    /**
-     * @param {string[]|string[][]} tags - Array of tags.
-     * @returns {boolean} True if the supplied tags are present.
-     * @private
-     */
-    private _has;
-    /**
-     * Returns immutable array of tags.
-     *
-     * @returns {string[]} Copy of tags array.
-     */
-    list(): string[];
-    /**
-     * @param {IArguments} args - Arguments to process.
-     * @param {boolean} [flat] - If true, will flatten array of tags. Defaults to false.
-     * @returns {string[]|string[][]} Array of tags.
-     * @private
-     */
-    private _processArguments;
-    /**
-     * Number of tags in set.
-     *
-     * @type {number}
-     */
-    get size(): number;
-}
-
+declare const TRACEID_RENDER_TARGET_ALLOC: string;
 /**
- * Engine debug log system. Note that the logging only executes in the
- * debug build of the engine, and is stripped out in other builds. It allows
- * you to monitor logs from various engine systems.
+ * Logs the allocation of textures.
+ *
+ * @type {string}
  */
-declare class Debug {
-    /**
-     * Set storing already logged messages, to only print each unique message one time.
-     *
-     * @type {Set<string>}
-     * @private
-     */
-    private static _loggedMessages;
-    /**
-     * Set storing names of enabled trace channels
-     *
-     * @type {Set<string>}
-     * @private
-     */
-    private static _traceChannels;
-    /**
-     * Enable or disable trace channel
-     *
-     * @param {string} channel - Name of the trace channel. Can be:
-     *
-     * - {@link TRACEID_RENDER_FRAME}
-     * - {@link TRACEID_RENDER_PASS}
-     *
-     * @param {boolean} enabled - new enabled state for it
-     */
-    static setTrace(channel: string, enabled?: boolean): void;
-    /**
-     * Deprecated warning message.
-     *
-     * @param {string} message - The message to log.
-     * @ignore
-     */
-    static deprecated(message: string): void;
-    /**
-     * Assertion error message. If the assertion is false, the error message is written to the log.
-     *
-     * @param {boolean|object} assertion - The assertion to check.
-     * @param {...*} args - The values to be written to the log.
-     * @ignore
-     */
-    static assert(assertion: boolean | object, ...args: any[]): void;
-    /**
-     * Info message.
-     *
-     * @param {...*} args - The values to be written to the log.
-     * @ignore
-     */
-    static log(...args: any[]): void;
-    /**
-     * Info message logged no more than once.
-     *
-     * @param {string} message - The message to log.
-     */
-    static logOnce(message: string): void;
-    /**
-     * Warning message.
-     *
-     * @param {...*} args - The values to be written to the log.
-     * @ignore
-     */
-    static warn(...args: any[]): void;
-    /**
-     * Warning message logged no more than once.
-     *
-     * @param {string} message - The message to log.
-     */
-    static warnOnce(message: string): void;
-    /**
-     * Error message.
-     *
-     * @param {...*} args - The values to be written to the log.
-     * @ignore
-     */
-    static error(...args: any[]): void;
-    /**
-     * Error message logged no more than once.
-     *
-     * @param {string} message - The message to log.
-     */
-    static errorOnce(message: string): void;
-    /**
-     * Trace message, which is logged to the console if the tracing for the channel is enabled
-     *
-     * @param {string} channel - The trace channel
-     * @param {...*} args - The values to be written to the log.
-     * @ignore
-     */
-    static trace(channel: string, ...args: any[]): void;
-}
+declare const TRACEID_TEXTURE_ALLOC: string;
+/**
+ * Logs the creation of shaders.
+ *
+ * @type {string}
+ */
+declare const TRACEID_SHADER_ALLOC: string;
 
 /**
  * A linear interpolation scheme.
@@ -1546,11 +1028,13 @@ declare const UNIFORMTYPE_TEXTURE3D: 20;
 declare const UNIFORMTYPE_VEC2ARRAY: 21;
 declare const UNIFORMTYPE_VEC3ARRAY: 22;
 declare const UNIFORMTYPE_VEC4ARRAY: 23;
+declare const uniformTypeToName: string[];
 declare const SHADERSTAGE_VERTEX: 1;
 declare const SHADERSTAGE_FRAGMENT: 2;
 declare const SHADERSTAGE_COMPUTE: 4;
 declare const BINDGROUP_VIEW: 0;
 declare const BINDGROUP_MESH: 1;
+declare const bindGroupNames: string[];
 declare const typedArrayTypes: (Int8ArrayConstructor | Uint8ArrayConstructor | Int16ArrayConstructor | Uint16ArrayConstructor | Int32ArrayConstructor | Uint32ArrayConstructor | Float32ArrayConstructor)[];
 declare const typedArrayTypesByteSize: number[];
 declare namespace typedArrayToType {
@@ -1573,6 +1057,13 @@ declare const typedArrayIndexFormatsByteSize: number[];
  * @ignore
  */
 declare const semanticToLocation: object;
+/**
+ * Chunk API versions
+ *
+ * @type {string}
+ */
+declare const CHUNKAPI_1_51: string;
+declare const CHUNKAPI_1_55: "1.55";
 
 /**
  * Subtract the color of the source fragment from the destination fragment and write the result to
@@ -1741,6 +1232,7 @@ declare const LIGHTTYPE_POINT: number;
  * @type {number}
  */
 declare const LIGHTTYPE_SPOT: number;
+declare const LIGHTTYPE_COUNT: 3;
 /**
  * Infinitesimally small point light source shape.
  *
@@ -2118,8 +1610,32 @@ declare const SHADER_FORWARDHDR: number;
  * @type {number}
  */
 declare const SHADER_DEPTH: number;
-declare const SHADER_SHADOW: 3;
-declare const SHADER_PICK: 18;
+declare const SHADER_PICK: 3;
+declare const SHADER_SHADOW: 4;
+/**
+ * Shader that performs forward rendering.
+ *
+ * @type {string}
+ */
+declare const SHADERTYPE_FORWARD: string;
+/**
+ * Shader that performs depth rendering.
+ *
+ * @type {string}
+ */
+declare const SHADERTYPE_DEPTH: string;
+/**
+ * Shader used for picking.
+ *
+ * @type {string}
+ */
+declare const SHADERTYPE_PICK: string;
+/**
+ * Shader used for rendering shadow textures.
+ *
+ * @type {string}
+ */
+declare const SHADERTYPE_SHADOW: string;
 /**
  * This mode renders a sprite as a simple quad.
  *
@@ -3732,13 +3248,13 @@ declare class Vec3 {
     /**
      * Returns an identical copy of the specified 3-dimensional vector.
      *
-     * @returns {Vec3} A 3-dimensional vector containing the result of the cloning.
+     * @returns {this} A 3-dimensional vector containing the result of the cloning.
      * @example
      * var v = new pc.Vec3(10, 20, 30);
      * var vclone = v.clone();
      * console.log("The result of the cloning is: " + vclone.toString());
      */
-    clone(): Vec3;
+    clone(): this;
     /**
      * Copies the contents of a source 3-dimensional vector to a destination 3-dimensional vector.
      *
@@ -4214,14 +3730,14 @@ declare class Quat {
     /**
      * Returns an identical copy of the specified quaternion.
      *
-     * @returns {Quat} A quaternion containing the result of the cloning.
+     * @returns {this} A quaternion containing the result of the cloning.
      * @example
      * var q = new pc.Quat(-0.11, -0.15, -0.46, 0.87);
      * var qclone = q.clone();
      *
      * console.log("The result of the cloning is: " + q.toString());
      */
-    clone(): Quat;
+    clone(): this;
     conjugate(): Quat;
     /**
      * Copies the contents of a source quaternion to a destination quaternion.
@@ -4564,13 +4080,13 @@ declare class Vec4 {
     /**
      * Returns an identical copy of the specified 4-dimensional vector.
      *
-     * @returns {Vec4} A 4-dimensional vector containing the result of the cloning.
+     * @returns {this} A 4-dimensional vector containing the result of the cloning.
      * @example
      * var v = new pc.Vec4(10, 20, 30, 40);
      * var vclone = v.clone();
      * console.log("The result of the cloning is: " + vclone.toString());
      */
-    clone(): Vec4;
+    clone(): this;
     /**
      * Copies the contents of a source 4-dimensional vector to a destination 4-dimensional vector.
      *
@@ -4918,13 +4434,13 @@ declare class Mat4 {
     /**
      * Creates a duplicate of the specified matrix.
      *
-     * @returns {Mat4} A duplicate matrix.
+     * @returns {this} A duplicate matrix.
      * @example
      * var src = new pc.Mat4().setFromEulerAngles(10, 20, 30);
      * var dst = src.clone();
      * console.log("The two matrices are " + (src.equals(dst) ? "equal" : "different"));
      */
-    clone(): Mat4;
+    clone(): this;
     /**
      * Copies the contents of a source 4x4 matrix to a destination 4x4 matrix.
      *
@@ -5522,8 +5038,17 @@ declare class Plane {
     intersectsRay(ray: Ray, point?: Vec3): boolean;
 }
 
+declare function begin(): string;
+declare function end(): string;
+declare function dummyFragmentCode(): string;
+declare function fogCode(value: any, chunks: any): any;
+declare function gammaCode(value: any, chunks: any): any;
+declare function precisionCode(device: any): string;
+declare function skinCode(device: any, chunks: any): any;
+declare function tonemapCode(value: any, chunks: any): any;
+declare function versionCode(device: any): "" | "#version 300 es\n";
 
-/** @typedef {import('./graphics-device.js').GraphicsDevice} GraphicsDevice */
+
 /**
  * A shader is a program that is responsible for rendering graphical primitives on a device's
  * graphics processor. The shader is generated from a shader definition. This shader definition
@@ -5538,7 +5063,8 @@ declare class Shader {
      *
      * @param {GraphicsDevice} graphicsDevice - The graphics device used to manage this shader.
      * @param {object} definition - The shader definition from which to build the shader.
-     * @param {Object.<string, string>} definition.attributes - Object detailing the mapping of
+     * @param {string} [definition.name] - The name of the shader.
+     * @param {Object<string, string>} definition.attributes - Object detailing the mapping of
      * vertex shader attribute names to semantics SEMANTIC_*. This enables the engine to match
      * vertex buffer data as inputs to the shader.
      * @param {string} definition.vshader - Vertex shader source (GLSL code).
@@ -5572,6 +5098,7 @@ declare class Shader {
      * var shader = new pc.Shader(graphicsDevice, shaderDefinition);
      */
     constructor(graphicsDevice: GraphicsDevice, definition: {
+        name?: string;
         attributes: {
             [x: string]: string;
         };
@@ -5579,8 +5106,10 @@ declare class Shader {
         fshader: string;
         useTransformFeedback?: boolean;
     });
+    id: number;
     device: GraphicsDevice;
     definition: {
+        name?: string;
         attributes: {
             [x: string]: string;
         };
@@ -5588,6 +5117,7 @@ declare class Shader {
         fshader: string;
         useTransformFeedback?: boolean;
     };
+    name: string;
     impl: any;
     /**
      * Initialize a shader back to its default state.
@@ -5679,6 +5209,7 @@ declare class RenderTarget {
         samples?: number;
         stencil?: boolean;
     }, ...args: any[]);
+    id: number;
     _colorBuffer: any;
     _depthBuffer: Texture;
     _face: number;
@@ -5744,6 +5275,24 @@ declare class RenderTarget {
      */
     copy(source: RenderTarget, color?: boolean, depth?: boolean): boolean;
     /**
+     * Number of antialiasing samples the render target uses.
+     *
+     * @type {number}
+     */
+    get samples(): number;
+    /**
+     * True if the render target contains the depth attachment.
+     *
+     * @type {boolean}
+     */
+    get depth(): boolean;
+    /**
+     * True if the render target contains the stencil attachment.
+     *
+     * @type {boolean}
+     */
+    get stencil(): boolean;
+    /**
      * Color buffer set up on the render target.
      *
      * @type {Texture}
@@ -5782,6 +5331,138 @@ declare class RenderTarget {
      * @type {number}
      */
     get height(): number;
+}
+
+/**
+ * Callback used by {@link EventHandler } functions. Note the callback is limited to 8 arguments.
+ */
+export type HandleEventCallback = (arg1?: any, arg2?: any, arg3?: any, arg4?: any, arg5?: any, arg6?: any, arg7?: any, arg8?: any) => any;
+/**
+ * Callback used by {@link EventHandler} functions. Note the callback is limited to 8 arguments.
+ *
+ * @callback HandleEventCallback
+ * @param {*} [arg1] - First argument that is passed from caller.
+ * @param {*} [arg2] - Second argument that is passed from caller.
+ * @param {*} [arg3] - Third argument that is passed from caller.
+ * @param {*} [arg4] - Fourth argument that is passed from caller.
+ * @param {*} [arg5] - Fifth argument that is passed from caller.
+ * @param {*} [arg6] - Sixth argument that is passed from caller.
+ * @param {*} [arg7] - Seventh argument that is passed from caller.
+ * @param {*} [arg8] - Eighth argument that is passed from caller.
+ */
+/**
+ * Abstract base class that implements functionality for event handling.
+ */
+declare class EventHandler {
+    /**
+     * @type {object}
+     * @private
+     */
+    private _callbacks;
+    /**
+     * @type {object}
+     * @private
+     */
+    private _callbackActive;
+    /**
+     * Reinitialize the event handler.
+     *
+     * @private
+     */
+    private initEventHandler;
+    /**
+     * Registers a new event handler.
+     *
+     * @param {string} name - Name of the event to bind the callback to.
+     * @param {HandleEventCallback} callback - Function that is called when event is fired. Note
+     * the callback is limited to 8 arguments.
+     * @param {object} [scope] - Object to use as 'this' when the event is fired, defaults to
+     * current this.
+     * @param {boolean} [once=false] - If true, the callback will be unbound after being fired once.
+     * @private
+     */
+    private _addCallback;
+    /**
+     * Attach an event handler to an event.
+     *
+     * @param {string} name - Name of the event to bind the callback to.
+     * @param {HandleEventCallback} callback - Function that is called when event is fired. Note
+     * the callback is limited to 8 arguments.
+     * @param {object} [scope] - Object to use as 'this' when the event is fired, defaults to
+     * current this.
+     * @returns {EventHandler} Self for chaining.
+     * @example
+     * obj.on('test', function (a, b) {
+     *     console.log(a + b);
+     * });
+     * obj.fire('test', 1, 2); // prints 3 to the console
+     */
+    on(name: string, callback: HandleEventCallback, scope?: object): EventHandler;
+    /**
+     * Detach an event handler from an event. If callback is not provided then all callbacks are
+     * unbound from the event, if scope is not provided then all events with the callback will be
+     * unbound.
+     *
+     * @param {string} [name] - Name of the event to unbind.
+     * @param {HandleEventCallback} [callback] - Function to be unbound.
+     * @param {object} [scope] - Scope that was used as the this when the event is fired.
+     * @returns {EventHandler} Self for chaining.
+     * @example
+     * var handler = function () {
+     * };
+     * obj.on('test', handler);
+     *
+     * obj.off(); // Removes all events
+     * obj.off('test'); // Removes all events called 'test'
+     * obj.off('test', handler); // Removes all handler functions, called 'test'
+     * obj.off('test', handler, this); // Removes all handler functions, called 'test' with scope this
+     */
+    off(name?: string, callback?: HandleEventCallback, scope?: object): EventHandler;
+    /**
+     * Fire an event, all additional arguments are passed on to the event listener.
+     *
+     * @param {string} name - Name of event to fire.
+     * @param {*} [arg1] - First argument that is passed to the event handler.
+     * @param {*} [arg2] - Second argument that is passed to the event handler.
+     * @param {*} [arg3] - Third argument that is passed to the event handler.
+     * @param {*} [arg4] - Fourth argument that is passed to the event handler.
+     * @param {*} [arg5] - Fifth argument that is passed to the event handler.
+     * @param {*} [arg6] - Sixth argument that is passed to the event handler.
+     * @param {*} [arg7] - Seventh argument that is passed to the event handler.
+     * @param {*} [arg8] - Eighth argument that is passed to the event handler.
+     * @returns {EventHandler} Self for chaining.
+     * @example
+     * obj.fire('test', 'This is the message');
+     */
+    fire(name: string, arg1?: any, arg2?: any, arg3?: any, arg4?: any, arg5?: any, arg6?: any, arg7?: any, arg8?: any): EventHandler;
+    /**
+     * Attach an event handler to an event. This handler will be removed after being fired once.
+     *
+     * @param {string} name - Name of the event to bind the callback to.
+     * @param {HandleEventCallback} callback - Function that is called when event is fired. Note
+     * the callback is limited to 8 arguments.
+     * @param {object} [scope] - Object to use as 'this' when the event is fired, defaults to
+     * current this.
+     * @returns {EventHandler} Self for chaining.
+     * @example
+     * obj.once('test', function (a, b) {
+     *     console.log(a + b);
+     * });
+     * obj.fire('test', 1, 2); // prints 3 to the console
+     * obj.fire('test', 1, 2); // not going to get handled
+     */
+    once(name: string, callback: HandleEventCallback, scope?: object): EventHandler;
+    /**
+     * Test if there are any handlers bound to an event name.
+     *
+     * @param {string} name - The name of the event to test.
+     * @returns {boolean} True if the object has handlers bound to the specified event name.
+     * @example
+     * obj.on('test', function () { }); // bind an event to 'test'
+     * obj.hasEvent('test'); // returns true
+     * obj.hasEvent('hello'); // returns false
+     */
+    hasEvent(name: string): boolean;
 }
 
 declare class Version {
@@ -5862,8 +5543,22 @@ declare class ScopeSpace {
     removeValue(value: any): void;
 }
 
+/**
+ * A class responsible for creation and caching of required shaders.
+ * There is a two level cache. The first level generates the shader based on the provided options.
+ * The second level processes this generated shader using processing options - in most cases
+ * modifies it to support uniform buffers.
+ *
+ * @ignore
+ */
 declare class ProgramLibrary {
     constructor(device: any);
+    /**
+     * A cache of shaders processed using processing options.
+     *
+     * @type {Map<string, Shader>}
+     */
+    processedCache: Map<string, Shader>;
     _device: any;
     _cache: {};
     _generators: {};
@@ -5875,7 +5570,8 @@ declare class ProgramLibrary {
     register(name: any, generator: any): void;
     unregister(name: any): void;
     isRegistered(name: any): boolean;
-    getProgram(name: any, options: any): any;
+    generateShader(generator: any, name: any, key: any, options: any): any;
+    getProgram(name: any, options: any, processingOptions: any): Shader;
     storeNewProgram(name: any, options: any): void;
     dumpPrograms(): void;
     clearCache(): void;
@@ -5944,6 +5640,15 @@ declare class GraphicsDevice extends EventHandler {
      */
     precision: string;
     /**
+     * Currently active render target.
+     *
+     * @type {RenderTarget}
+     * @ignore
+     */
+    renderTarget: RenderTarget;
+    /** @type {boolean} */
+    insideRenderPass: boolean;
+    /**
      * True if hardware instancing is supported.
      *
      * @type {boolean}
@@ -5985,6 +5690,7 @@ declare class GraphicsDevice extends EventHandler {
         tex: number;
         vb: number;
         ib: number;
+        ub: number;
     };
     _shaderStats: {
         vsCompiled: number;
@@ -5998,6 +5704,16 @@ declare class GraphicsDevice extends EventHandler {
     _primsPerFrame: number[];
     _renderTargetCreationTime: number;
     programLib: ProgramLibrary;
+    /**
+     * Fired when the canvas is resized.
+     *
+     * @event GraphicsDevice#resizecanvas
+     * @param {number} width - The new width of the canvas in pixels.
+     * @param {number} height - The new height of the canvas in pixels.
+     */
+    /**
+     * Destroy the graphics device.
+     */
     destroy(): void;
     postDestroy(): void;
     toJSON(key: any): any;
@@ -6005,7 +5721,6 @@ declare class GraphicsDevice extends EventHandler {
     indexBuffer: any;
     vertexBuffers: any[];
     shader: any;
-    renderTarget: RenderTarget;
     /**
      * Retrieves the program library assigned to the specified graphics device.
      *
@@ -6213,6 +5928,7 @@ declare class Texture {
      * - {@link FUNC_NOTEQUAL}
      *
      * Defaults to {@link FUNC_LESS}.
+     * @param {Uint8Array[]} [options.levels] - Array of Uint8Array.
      * @example
      * // Create a 8x8x24-bit texture
      * var texture = new pc.Texture(graphicsDevice, {
@@ -6255,7 +5971,9 @@ declare class Texture {
         premultiplyAlpha?: boolean;
         compareOnRead?: boolean;
         compareFunc?: number;
+        levels?: Uint8Array[];
     });
+    id: number;
     device: GraphicsDevice;
     /**
      * The name of the texture. Defaults to null.
@@ -6285,7 +6003,7 @@ declare class Texture {
     _compareOnRead: boolean;
     _compareFunc: any;
     profilerHint: any;
-    _levels: any;
+    _levels: any[][] | Uint8Array[];
     _compressed: boolean;
     _invalid: boolean;
     _lockedLevel: number;
@@ -6597,90 +6315,6 @@ declare function drawQuadWithShader(device: GraphicsDevice, target: RenderTarget
  */
 declare function drawTexture(device: GraphicsDevice, texture: Texture, target?: RenderTarget, shader?: Shader, rect?: Vec4, scissorRect?: Vec4, useBlend?: boolean): void;
 
-declare function begin(): string;
-declare function end(): string;
-declare function dummyFragmentCode(): string;
-declare function fogCode(value: any, chunks: any): any;
-declare function gammaCode(value: any, chunks: any): any;
-declare function precisionCode(device: any): string;
-declare function skinCode(device: any, chunks: any): any;
-declare function tonemapCode(value: any, chunks: any): any;
-declare function versionCode(device: any): "" | "#version 300 es\n";
-
-declare namespace basic {
-    function generateKey(options: any): string;
-    function createShaderDefinition(device: any, options: any): {
-        attributes: {
-            vertex_position: string;
-        };
-        vshader: string;
-        fshader: string;
-    };
-}
-
-declare namespace particle {
-    function generateKey(options: any): string;
-    function _animTex(options: any): string;
-    function createShaderDefinition(device: any, options: any): {
-        attributes: {
-            [x: string]: string;
-        };
-        vshader: string;
-        fshader: string;
-    };
-}
-
-declare namespace skybox {
-    function generateKey(options: any): string;
-    function createShaderDefinition(device: any, options: any): {
-        attributes: {
-            aPosition: string;
-        };
-        vshader: any;
-        fshader: string;
-    };
-}
-
-declare namespace standard {
-    const optionsContext: {};
-    const optionsContextMin: {};
-    const generateKey: Function;
-    function _correctChannel(p: any, chan: any): any;
-    function _setMapTransform(codes: any, name: any, id: any, uv: any): any;
-    function _getUvSourceExpression(transformPropName: string, uVPropName: string, options: any): string;
-    function _addMapDef(name: any, enabled: any): string;
-    function _addMapDefs(float: any, color: any, vertex: any, map: any): string;
-    function _addMap(propName: string, chunkName: string, options: any, chunks: any, samplerFormat: string): string;
-    function _directionalShadowMapProjection(light: any, shadowCoordArgs: any, shadowParamArg: any, lightIndex: any, coordsFunctionName: any): string;
-    function _nonPointShadowMapProjection(device: any, light: any, shadowMatArg: any, shadowParamArg: any, lightIndex: any): string;
-    function _addVaryingIfNeeded(code: any, type: any, name: any): string;
-    function _getLightSourceShapeString(shape: any): "" | "Rect" | "Disk" | "Sphere";
-    function _getPassDefineString(pass: any): "" | "#define PICK_PASS\n" | "#define DEPTH_PASS\n" | "#define SHADOW_PASS\n";
-    function _vsAddTransformCode(code: any, device: any, chunks: any, options: any): any;
-    function _vsAddBaseCode(code: any, device: any, chunks: any, options: any): any;
-    function _fsAddBaseCode(code: string, device: GraphicsDevice, chunks: any, options: any): string;
-    function _decodeFunc(textureFormat: any): any;
-    function _fsAddStartCode(code: string, device: GraphicsDevice, chunks: any, options: any): string;
-    function _buildShadowPassFragmentCode(code: any, device: any, chunks: any, options: any, varyings: any): any;
-    const createShaderDefinition: Function;
-}
-
-declare namespace programlib {
-    export { begin };
-    export { dummyFragmentCode };
-    export { end };
-    export { fogCode };
-    export { gammaCode };
-    export { precisionCode };
-    export { skinCode };
-    export { tonemapCode };
-    export { versionCode };
-    export { basic };
-    export { particle };
-    export { skybox };
-    export { standard };
-}
-
 /**
  * @static
  * @readonly
@@ -6824,10 +6458,10 @@ declare class ShaderInput {
      * @param {GraphicsDevice} graphicsDevice - The graphics device used to manage this shader input.
      * @param {string} name - The name of the shader input.
      * @param {number} type - The type of the shader input.
-     * @param {number} locationId - The location id of the shader input.
+     * @param {number | WebGLUniformLocation} locationId - The location id of the shader input.
      */
-    constructor(graphicsDevice: GraphicsDevice, name: string, type: number, locationId: number);
-    locationId: number;
+    constructor(graphicsDevice: GraphicsDevice, name: string, type: number, locationId: number | WebGLUniformLocation);
+    locationId: number | WebGLUniformLocation;
     scopeId: ScopeId;
     version: Version;
     dataType: number;
@@ -7094,7 +6728,7 @@ declare class VertexIterator {
     /**
      * The vertex buffer elements.
      *
-     * @type {Object.<string, VertexIteratorAccessor>}
+     * @type {Object<string, VertexIteratorAccessor>}
      */
     element: {
         [x: string]: VertexIteratorAccessor;
@@ -7746,9 +7380,9 @@ declare class AssetRegistry extends EventHandler {
      */
     prefix: string;
     /**
-     * @event
-     * @name AssetRegistry#load
-     * @description Fired when an asset completes loading.
+     * Fired when an asset completes loading.
+     *
+     * @event AssetRegistry#load
      * @param {Asset} asset - The asset that has just loaded.
      * @example
      * app.assets.on("load", function (asset) {
@@ -7756,9 +7390,9 @@ declare class AssetRegistry extends EventHandler {
      * });
      */
     /**
-     * @event
-     * @name AssetRegistry#load:[id]
-     * @description Fired when an asset completes loading.
+     * Fired when an asset completes loading.
+     *
+     * @event AssetRegistry#load:[id]
      * @param {Asset} asset - The asset that has just loaded.
      * @example
      * var id = 123456;
@@ -7769,9 +7403,9 @@ declare class AssetRegistry extends EventHandler {
      * app.assets.load(asset);
      */
     /**
-     * @event
-     * @name AssetRegistry#load:url:[url]
-     * @description Fired when an asset completes loading.
+     * Fired when an asset completes loading.
+     *
+     * @event AssetRegistry#load:url:[url]
      * @param {Asset} asset - The asset that has just loaded.
      * @example
      * var id = 123456;
@@ -7782,9 +7416,9 @@ declare class AssetRegistry extends EventHandler {
      * app.assets.load(asset);
      */
     /**
-     * @event
-     * @name AssetRegistry#add
-     * @description Fired when an asset is added to the registry.
+     * Fired when an asset is added to the registry.
+     *
+     * @event AssetRegistry#add
      * @param {Asset} asset - The asset that was added.
      * @example
      * app.assets.on("add", function (asset) {
@@ -7792,9 +7426,9 @@ declare class AssetRegistry extends EventHandler {
      * });
      */
     /**
-     * @event
-     * @name AssetRegistry#add:[id]
-     * @description Fired when an asset is added to the registry.
+     * Fired when an asset is added to the registry.
+     *
+     * @event AssetRegistry#add:[id]
      * @param {Asset} asset - The asset that was added.
      * @example
      * var id = 123456;
@@ -7803,15 +7437,15 @@ declare class AssetRegistry extends EventHandler {
      * });
      */
     /**
-     * @event
-     * @name AssetRegistry#add:url:[url]
-     * @description Fired when an asset is added to the registry.
+     * Fired when an asset is added to the registry.
+     *
+     * @event AssetRegistry#add:url:[url]
      * @param {Asset} asset - The asset that was added.
      */
     /**
-     * @event
-     * @name AssetRegistry#remove
-     * @description Fired when an asset is removed from the registry.
+     * Fired when an asset is removed from the registry.
+     *
+     * @event AssetRegistry#remove
      * @param {Asset} asset - The asset that was removed.
      * @example
      * app.assets.on("remove", function (asset) {
@@ -7819,9 +7453,9 @@ declare class AssetRegistry extends EventHandler {
      * });
      */
     /**
-     * @event
-     * @name AssetRegistry#remove:[id]
-     * @description Fired when an asset is removed from the registry.
+     * Fired when an asset is removed from the registry.
+     *
+     * @event AssetRegistry#remove:[id]
      * @param {Asset} asset - The asset that was removed.
      * @example
      * var id = 123456;
@@ -7830,15 +7464,15 @@ declare class AssetRegistry extends EventHandler {
      * });
      */
     /**
-     * @event
-     * @name AssetRegistry#remove:url:[url]
-     * @description Fired when an asset is removed from the registry.
+     * Fired when an asset is removed from the registry.
+     *
+     * @event AssetRegistry#remove:url:[url]
      * @param {Asset} asset - The asset that was removed.
      */
     /**
-     * @event
-     * @name AssetRegistry#error
-     * @description Fired when an error occurs during asset loading.
+     * Fired when an error occurs during asset loading.
+     *
+     * @event AssetRegistry#error
      * @param {string} err - The error message.
      * @param {Asset} asset - The asset that generated the error.
      * @example
@@ -7850,9 +7484,9 @@ declare class AssetRegistry extends EventHandler {
      * app.assets.load(asset);
      */
     /**
-     * @event
-     * @name AssetRegistry#error:[id]
-     * @description Fired when an error occurs during asset loading.
+     * Fired when an error occurs during asset loading.
+     *
+     * @event AssetRegistry#error:[id]
      * @param {Asset} asset - The asset that generated the error.
      * @example
      * var id = 123456;
@@ -8230,6 +7864,117 @@ declare class ResourceLoader {
     destroy(): void;
 }
 
+/**
+ * Set of tag names. Tags are automatically available on {@link Entity} and {@link Asset} as `tags`
+ * field.
+ *
+ * @augments EventHandler
+ */
+declare class Tags extends EventHandler {
+    /**
+     * Create an instance of a Tags.
+     *
+     * @param {object} [parent] - Parent object who tags belong to.
+     */
+    constructor(parent?: object);
+    _index: {};
+    _list: any[];
+    _parent: any;
+    /**
+     * @event Tags#add
+     * @param {string} tag - Name of a tag added to a set.
+     * @param {object} parent - Parent object who tags belong to.
+     */
+    /**
+     * @event Tags#remove
+     * @param {string} tag - Name of a tag removed from a set.
+     * @param {object} parent - Parent object who tags belong to.
+     */
+    /**
+     * Fires when tags have been added or removed. It will fire once on bulk changes, while
+     * `add`/`remove` will fire on each tag operation.
+     *
+     * @event Tags#change
+     * @param {object} [parent] - Parent object who tags belong to.
+     */
+    /**
+     * Add a tag, duplicates are ignored. Can be array or comma separated arguments for multiple tags.
+     *
+     * @param {...*} name - Name of a tag, or array of tags.
+     * @returns {boolean} True if any tag were added.
+     * @example
+     * tags.add('level-1');
+     * @example
+     * tags.add('ui', 'settings');
+     * @example
+     * tags.add(['level-2', 'mob']);
+     */
+    add(...args: any[]): boolean;
+    /**
+     * Remove tag.
+     *
+     * @param {...*} name - Name of a tag or array of tags.
+     * @returns {boolean} True if any tag were removed.
+     * @example
+     * tags.remove('level-1');
+     * @example
+     * tags.remove('ui', 'settings');
+     * @example
+     * tags.remove(['level-2', 'mob']);
+     */
+    remove(...args: any[]): boolean;
+    /**
+     * Remove all tags.
+     *
+     * @example
+     * tags.clear();
+     */
+    clear(): void;
+    /**
+     * Check if tags satisfy filters. Filters can be provided by simple name of tag, as well as by
+     * array of tags. When an array is provided it will check if tags contain each tag within the
+     * array. If any of comma separated argument is satisfied, then it will return true. Any number
+     * of combinations are valid, and order is irrelevant.
+     *
+     * @param {...*} query - Name of a tag or array of tags.
+     * @returns {boolean} True if filters are satisfied.
+     * @example
+     * tags.has('player'); // player
+     * @example
+     * tags.has('mob', 'player'); // player OR mob
+     * @example
+     * tags.has(['level-1', 'mob']); // monster AND level-1
+     * @example
+     * tags.has(['ui', 'settings'], ['ui', 'levels']); // (ui AND settings) OR (ui AND levels)
+     */
+    has(...args: any[]): boolean;
+    /**
+     * @param {string[]|string[][]} tags - Array of tags.
+     * @returns {boolean} True if the supplied tags are present.
+     * @private
+     */
+    private _has;
+    /**
+     * Returns immutable array of tags.
+     *
+     * @returns {string[]} Copy of tags array.
+     */
+    list(): string[];
+    /**
+     * @param {IArguments} args - Arguments to process.
+     * @param {boolean} [flat] - If true, will flatten array of tags. Defaults to false.
+     * @returns {string[]|string[][]} Array of tags.
+     * @private
+     */
+    private _processArguments;
+    /**
+     * Number of tags in set.
+     *
+     * @type {number}
+     */
+    get size(): number;
+}
+
 
 
 /**
@@ -8371,6 +8116,56 @@ declare class Asset extends EventHandler {
     set file(arg: any);
     get file(): any;
     /**
+     * Fired when the asset has completed loading.
+     *
+     * @event Asset#load
+     * @param {Asset} asset - The asset that was loaded.
+     */
+    /**
+     * Fired just before the asset unloads the resource. This allows for the opportunity to prepare
+     * for an asset that will be unloaded. E.g. Changing the texture of a model to a default before
+     * the one it was using is unloaded.
+     *
+     * @event Asset#unload
+     * @param {Asset} asset - The asset that is due to be unloaded.
+     */
+    /**
+     * Fired when the asset is removed from the asset registry.
+     *
+     * @event Asset#remove
+     * @param {Asset} asset - The asset that was removed.
+     */
+    /**
+     * Fired if the asset encounters an error while loading.
+     *
+     * @event Asset#error
+     * @param {string} err - The error message.
+     * @param {Asset} asset - The asset that generated the error.
+     */
+    /**
+     * Fired when one of the asset properties `file`, `data`, `resource` or `resources` is changed.
+     *
+     * @event Asset#change
+     * @param {Asset} asset - The asset that was loaded.
+     * @param {string} property - The name of the property that changed.
+     * @param {*} value - The new property value.
+     * @param {*} oldValue - The old property value.
+     */
+    /**
+     * Fired when we add a new localized asset id to the asset.
+     *
+     * @event Asset#add:localized
+     * @param {string} locale - The locale.
+     * @param {number} assetId - The asset id we added.
+     */
+    /**
+     * Fired when we remove a localized asset id from the asset.
+     *
+     * @event Asset#remove:localized
+     * @param {string} locale - The locale.
+     * @param {number} assetId - The asset id we removed.
+     */
+    /**
      * The asset id.
      *
      * @type {number}
@@ -8411,54 +8206,6 @@ declare class Asset extends EventHandler {
     set loadFaces(arg: any);
     get loadFaces(): any;
     _loadFaces: any;
-    /**
-     * @event
-     * @name Asset#load
-     * @description Fired when the asset has completed loading.
-     * @param {Asset} asset - The asset that was loaded.
-     */
-    /**
-     * @event
-     * @name Asset#unload
-     * @description Fired just before the asset unloads the resource. This allows for the opportunity to prepare for an asset that will be unloaded. E.g. Changing the texture of a model to a default before the one it was using is unloaded.
-     * @param {Asset} asset - The asset that is due to be unloaded.
-     */
-    /**
-     * @event
-     * @name Asset#remove
-     * @description Fired when the asset is removed from the asset registry.
-     * @param {Asset} asset - The asset that was removed.
-     */
-    /**
-     * @event
-     * @name Asset#error
-     * @description Fired if the asset encounters an error while loading.
-     * @param {string} err - The error message.
-     * @param {Asset} asset - The asset that generated the error.
-     */
-    /**
-     * @event
-     * @name Asset#change
-     * @description Fired when one of the asset properties `file`, `data`, `resource` or `resources` is changed.
-     * @param {Asset} asset - The asset that was loaded.
-     * @param {string} property - The name of the property that changed.
-     * @param {*} value - The new property value.
-     * @param {*} oldValue - The old property value.
-     */
-    /**
-     * @event
-     * @name Asset#add:localized
-     * @description Fired when we add a new localized asset id to the asset.
-     * @param {string} locale - The locale.
-     * @param {number} assetId - The asset id we added.
-     */
-    /**
-     * @event
-     * @name Asset#remove:localized
-     * @description Fired when we remove a localized asset id from the asset.
-     * @param {string} locale - The locale.
-     * @param {number} assetId - The asset id we removed.
-     */
     /**
      * Return the URL required to fetch the file for this asset.
      *
@@ -8633,9 +8380,9 @@ declare class Color {
     /**
      * Returns a clone of the specified color.
      *
-     * @returns {Color} A duplicate color object.
+     * @returns {this} A duplicate color object.
      */
-    clone(): Color;
+    clone(): this;
     /**
      * Copies the contents of a source color to a destination color.
      *
@@ -8840,13 +8587,13 @@ declare class Vec2 {
     /**
      * Returns an identical copy of the specified 2-dimensional vector.
      *
-     * @returns {Vec2} A 2-dimensional vector containing the result of the cloning.
+     * @returns {this} A 2-dimensional vector containing the result of the cloning.
      * @example
      * var v = new pc.Vec2(10, 20);
      * var vclone = v.clone();
      * console.log("The result of the cloning is: " + vclone.toString());
      */
-    clone(): Vec2;
+    clone(): this;
     /**
      * Copies the contents of a source 2-dimensional vector to a destination 2-dimensional vector.
      *
@@ -9424,16 +9171,16 @@ declare class GraphNode extends EventHandler {
      */
     private _onHierarchyStateChanged;
     /**
-     * @param {GraphNode} clone - The cloned graph node to copy into.
+     * @param {this} clone - The cloned graph node to copy into.
      * @private
      */
     private _cloneInternal;
     /**
      * Clone a graph node.
      *
-     * @returns {GraphNode} A clone of the specified graph node.
+     * @returns {this} A clone of the specified graph node.
      */
-    clone(): GraphNode;
+    clone(): this;
     /**
      * Copy a graph node.
      *
@@ -9830,6 +9577,7 @@ declare class GraphNode extends EventHandler {
     setEulerAngles(x: Vec3 | number, y?: number, z?: number): void;
     /**
      * Add a new child to the child list and update the parent value of the child node.
+     * If the node already had a parent, it is removed from its child list.
      *
      * @param {GraphNode} node - The new child to add.
      * @example
@@ -9839,6 +9587,7 @@ declare class GraphNode extends EventHandler {
     addChild(node: GraphNode): void;
     /**
      * Add a child to this node, maintaining the child's transform in world space.
+     * If the node already had a parent, it is removed from its child list.
      *
      * @param {GraphNode} node - The child to add.
      * @example
@@ -9849,7 +9598,7 @@ declare class GraphNode extends EventHandler {
     addChildAndSaveTransform(node: GraphNode): void;
     /**
      * Insert a new child to the child list at the specified index and update the parent value of
-     * the child node.
+     * the child node. If the node already had a parent, it is removed from its child list.
      *
      * @param {GraphNode} node - The new child to insert.
      * @param {number} index - The index in the child list of the parent where the new node will be
@@ -9860,10 +9609,12 @@ declare class GraphNode extends EventHandler {
      */
     insertChild(node: GraphNode, index: number): void;
     /**
+     * Prepares node for being inserted to a parent node, and removes it from the previous parent.
+     *
      * @param {GraphNode} node - The node being inserted.
      * @private
      */
-    private _debugInsertChild;
+    private _prepareInsertChild;
     /**
      * Fires an event on all children of the node. The event `name` is fired on the first (root)
      * node only. The event `nameHierarchy` is fired for all children.
@@ -10004,191 +9755,6 @@ declare class GraphNode extends EventHandler {
      * this.entity.rotateLocal(r);
      */
     rotateLocal(x: Vec3 | number, y?: number, z?: number): void;
-}
-
-
-/**
- * A material determines how a particular mesh instance is rendered. It specifies the shader and
- * render state that is set before the mesh instance is submitted to the graphics device.
- *
- * @property {number} alphaTest The alpha test reference value to control which fragments are
- * written to the currently active render target based on alpha value. All fragments with an alpha
- * value of less than the alphaTest reference value will be discarded. alphaTest defaults to 0 (all
- * fragments pass).
- * @property {boolean} alphaToCoverage Enables or disables alpha to coverage (WebGL2 only). When
- * enabled, and if hardware anti-aliasing is on, limited order-independent transparency can be
- * achieved. Quality depends on the number of MSAA samples of the current render target.
- * It can nicely soften edges of otherwise sharp alpha cutouts, but isn't recommended for large
- * area semi-transparent surfaces. Note, that you don't need to enable blending to make alpha to
- * coverage work. It will work without it, just like alphaTest.
- * @property {boolean} alphaWrite If true, the alpha component of fragments generated by the shader
- * of this material is written to the color buffer of the currently active render target. If false,
- * the alpha component will not be written. Defaults to true.
- * @property {number} blendType Controls how primitives are blended when being written to the
- * currently active render target. Can be:
- *
- * - {@link BLEND_SUBTRACTIVE}: Subtract the color of the source fragment from the destination
- * fragment and write the result to the frame buffer.
- * - {@link BLEND_ADDITIVE}: Add the color of the source fragment to the destination fragment and
- * write the result to the frame buffer.
- * - {@link BLEND_NORMAL}: Enable simple translucency for materials such as glass. This is
- * equivalent to enabling a source blend mode of {@link BLENDMODE_SRC_ALPHA} and a destination
- * blend mode of {@link BLENDMODE_ONE_MINUS_SRC_ALPHA}.
- * - {@link BLEND_NONE}: Disable blending.
- * - {@link BLEND_PREMULTIPLIED}: Similar to {@link BLEND_NORMAL} expect the source fragment is
- * assumed to have already been multiplied by the source alpha value.
- * - {@link BLEND_MULTIPLICATIVE}: Multiply the color of the source fragment by the color of the
- * destination fragment and write the result to the frame buffer.
- * - {@link BLEND_ADDITIVEALPHA}: Same as {@link BLEND_ADDITIVE} except the source RGB is
- * multiplied by the source alpha.
- * - {@link BLEND_MULTIPLICATIVE2X}: Multiplies colors and doubles the result.
- * - {@link BLEND_SCREEN}: Softer version of additive.
- * - {@link BLEND_MIN}: Minimum color. Check app.graphicsDevice.extBlendMinmax for support.
- * - {@link BLEND_MAX}: Maximum color. Check app.graphicsDevice.extBlendMinmax for support.
- *
- * Defaults to {@link BLEND_NONE}.
- * @property {boolean} blueWrite If true, the blue component of fragments generated by the shader
- * of this material is written to the color buffer of the currently active render target. If false,
- * the blue component will not be written. Defaults to true.
- * @property {number} cull Controls how triangles are culled based on their face direction with
- * respect to the viewpoint. Can be:
- *
- * - {@link CULLFACE_NONE}: Do not cull triangles based on face direction.
- * - {@link CULLFACE_BACK}: Cull the back faces of triangles (do not render triangles facing away
- * from the view point).
- * - {@link CULLFACE_FRONT}: Cull the front faces of triangles (do not render triangles facing
- * towards the view point).
- * - {@link CULLFACE_FRONTANDBACK}: Cull both front and back faces (triangles will not be
- * rendered).
- *
- * Defaults to {@link CULLFACE_BACK}.
- * @property {boolean} depthTest If true, fragments generated by the shader of this material are
- * only written to the current render target if they pass the depth test. If false, fragments
- * generated by the shader of this material are written to the current render target regardless of
- * what is in the depth buffer. Defaults to true.
- * @property {number} depthFunc Controls how the depth of new fragments is compared against the
- * current depth contained in the depth buffer. Can be:
- *
- * - {@link FUNC_NEVER}: don't draw
- * - {@link FUNC_LESS}: draw if new depth < depth buffer
- * - {@link FUNC_EQUAL}: draw if new depth == depth buffer
- * - {@link FUNC_LESSEQUAL}: draw if new depth <= depth buffer
- * - {@link FUNC_GREATER}: draw if new depth > depth buffer
- * - {@link FUNC_NOTEQUAL}: draw if new depth != depth buffer
- * - {@link FUNC_GREATEREQUAL}: draw if new depth >= depth buffer
- * - {@link FUNC_ALWAYS}: always draw
- *
- * Defaults to {@link FUNC_LESSEQUAL}.
- * @property {boolean} depthWrite If true, fragments generated by the shader of this material write
- * a depth value to the depth buffer of the currently active render target. If false, no depth
- * value is written. Defaults to true.
- * @property {boolean} greenWrite If true, the green component of fragments generated by the shader
- * of this material is written to the color buffer of the currently active render target. If false,
- * the green component will not be written. Defaults to true.
- * @property {string} name The name of the material.
- * @property {boolean} redWrite If true, the red component of fragments generated by the shader of
- * this material is written to the color buffer of the currently active render target. If false,
- * the red component will not be written. Defaults to true.
- * @property {Shader|null} shader The shader used by this material to render mesh instances
- * (default is null).
- * @property {StencilParameters|null} stencilFront Stencil parameters for front faces (default is
- * null).
- * @property {StencilParameters|null} stencilBack Stencil parameters for back faces (default is
- * null).
- * @property {number} depthBias Offsets the output depth buffer value. Useful for decals to prevent
- * z-fighting.
- * @property {number} slopeDepthBias Same as {@link Material#depthBias}, but also depends on the
- * slope of the triangle relative to the camera.
- */
-declare class Material {
-    name: string;
-    id: number;
-    _shader: any;
-    variants: {};
-    parameters: {};
-    alphaTest: number;
-    alphaToCoverage: boolean;
-    blend: boolean;
-    blendSrc: number;
-    blendDst: number;
-    blendEquation: number;
-    separateAlphaBlend: boolean;
-    blendSrcAlpha: number;
-    blendDstAlpha: number;
-    blendAlphaEquation: number;
-    cull: number;
-    depthTest: boolean;
-    depthFunc: number;
-    depthWrite: boolean;
-    stencilFront: any;
-    stencilBack: any;
-    depthBias: number;
-    slopeDepthBias: number;
-    redWrite: boolean;
-    greenWrite: boolean;
-    blueWrite: boolean;
-    alphaWrite: boolean;
-    meshInstances: any[];
-    _shaderVersion: number;
-    _scene: any;
-    _dirtyBlend: boolean;
-    dirty: boolean;
-    set shader(arg: any);
-    get shader(): any;
-    get transparent(): boolean;
-    set blendType(arg: number);
-    get blendType(): number;
-    /**
-     * Copy a material.
-     *
-     * @param {Material} source - The material to copy.
-     * @returns {Material} The destination material.
-     */
-    copy(source: Material): Material;
-    /**
-     * Clone a material.
-     *
-     * @returns {this} A newly cloned material.
-     */
-    clone(): this;
-    _updateMeshInstanceKeys(): void;
-    updateUniforms(device: any, scene: any): void;
-    updateShader(device: any, scene: any, objDefs: any, staticLightList: any, pass: any, sortedLights: any): void;
-    /**
-     * Applies any changes made to the material's properties.
-     */
-    update(): void;
-    clearParameters(): void;
-    getParameters(): {};
-    clearVariants(): void;
-    /**
-     * Retrieves the specified shader parameter from a material.
-     *
-     * @param {string} name - The name of the parameter to query.
-     * @returns {object} The named parameter.
-     */
-    getParameter(name: string): object;
-    /**
-     * Sets a shader parameter on a material.
-     *
-     * @param {string} name - The name of the parameter to set.
-     * @param {number|number[]|Float32Array|Texture} data - The value for the specified parameter.
-     */
-    setParameter(name: string, data: number | number[] | Float32Array | Texture): void;
-    /**
-     * Deletes a shader parameter on a material.
-     *
-     * @param {string} name - The name of the parameter to delete.
-     */
-    deleteParameter(name: string): void;
-    setParameters(device: any, names: any): void;
-    /**
-     * Removes this material from the scene and possibly frees up memory from its shaders (if there
-     * are no other materials using it).
-     */
-    destroy(): void;
-    addMeshInstanceRef(meshInstance: any): void;
-    removeMeshInstanceRef(meshInstance: any): void;
 }
 
 
@@ -10425,6 +9991,7 @@ declare class MorphInstance {
      */
     meshInstance: MeshInstance;
     _weights: any[];
+    _weightMap: Map<any, any>;
     _activeTargets: any[];
     shaderCache: {};
     maxSubmitCount: any;
@@ -10451,20 +10018,21 @@ declare class MorphInstance {
      * @returns {MorphInstance} A clone of the specified MorphInstance.
      */
     clone(): MorphInstance;
+    _getWeightIndex(key: any): any;
     /**
      * Gets current weight of the specified morph target.
      *
-     * @param {number} index - An index of morph target.
+     * @param {string|number} key - An identifier for the morph target. Either the weight index or the weight name
      * @returns {number} Weight.
      */
-    getWeight(index: number): number;
+    getWeight(key: string | number): number;
     /**
      * Sets weight of the specified morph target.
      *
-     * @param {number} index - An index of morph target.
+     * @param {string|number} key - An identifier for the morph target. Either the weight index or the weight name
      * @param {number} weight - Weight.
      */
-    setWeight(index: number, weight: number): void;
+    setWeight(key: string | number, weight: number): void;
     _dirty: boolean;
     /**
      * Generate fragment shader to blend a number of textures using specified weights.
@@ -10490,6 +10058,1648 @@ declare class MorphInstance {
      * renderer.
      */
     update(): void;
+}
+
+/**
+ * A light.
+ *
+ * @ignore
+ */
+declare class Light {
+    constructor(graphicsDevice: any);
+    device: any;
+    id: number;
+    _type: number;
+    _color: Color;
+    _intensity: number;
+    _castShadows: boolean;
+    _enabled: boolean;
+    mask: number;
+    isStatic: boolean;
+    key: number;
+    bakeDir: boolean;
+    bakeNumSamples: number;
+    bakeArea: number;
+    attenuationStart: number;
+    attenuationEnd: number;
+    _falloffMode: number;
+    _shadowType: number;
+    _vsmBlurSize: number;
+    vsmBlurMode: number;
+    vsmBias: number;
+    _cookie: any;
+    cookieIntensity: number;
+    _cookieFalloff: boolean;
+    _cookieChannel: string;
+    _cookieTransform: any;
+    _cookieTransformUniform: Float32Array;
+    _cookieOffset: any;
+    _cookieOffsetUniform: Float32Array;
+    _cookieTransformSet: boolean;
+    _cookieOffsetSet: boolean;
+    _innerConeAngle: number;
+    _outerConeAngle: number;
+    cascades: any;
+    _shadowMatrixPalette: Float32Array;
+    _shadowCascadeDistances: Float32Array;
+    set numCascades(arg: any);
+    get numCascades(): any;
+    cascadeDistribution: number;
+    _shape: number;
+    _finalColor: Float32Array;
+    _linearFinalColor: Float32Array;
+    _position: Vec3;
+    _direction: Vec3;
+    _innerConeAngleCos: number;
+    _outerConeAngleCos: number;
+    _shadowMap: any;
+    _shadowRenderParams: any[];
+    shadowDistance: number;
+    _shadowResolution: number;
+    shadowBias: number;
+    shadowIntensity: number;
+    _normalOffsetBias: number;
+    shadowUpdateMode: number;
+    _isVsm: boolean;
+    _isPcf: boolean;
+    _cookieMatrix: Mat4;
+    _atlasViewport: Vec4;
+    atlasViewportAllocated: boolean;
+    atlasVersion: number;
+    atlasSlotIndex: number;
+    atlasSlotUpdated: boolean;
+    _scene: any;
+    _node: any;
+    _renderData: any[];
+    visibleThisFrame: boolean;
+    maxScreenSize: number;
+    destroy(): void;
+    set shadowMap(arg: any);
+    get shadowMap(): any;
+    get numShadowFaces(): any;
+    set type(arg: number);
+    get type(): number;
+    set shadowType(arg: number);
+    get shadowType(): number;
+    set shape(arg: number);
+    get shape(): number;
+    set enabled(arg: boolean);
+    get enabled(): boolean;
+    set castShadows(arg: boolean);
+    get castShadows(): boolean;
+    set shadowResolution(arg: number);
+    get shadowResolution(): number;
+    set vsmBlurSize(arg: number);
+    get vsmBlurSize(): number;
+    set normalOffsetBias(arg: number);
+    get normalOffsetBias(): number;
+    set falloffMode(arg: number);
+    get falloffMode(): number;
+    set innerConeAngle(arg: number);
+    get innerConeAngle(): number;
+    set outerConeAngle(arg: number);
+    get outerConeAngle(): number;
+    set intensity(arg: number);
+    get intensity(): number;
+    get cookieMatrix(): Mat4;
+    get atlasViewport(): Vec4;
+    set cookie(arg: any);
+    get cookie(): any;
+    set cookieFalloff(arg: boolean);
+    get cookieFalloff(): boolean;
+    set cookieChannel(arg: string);
+    get cookieChannel(): string;
+    set cookieTransform(arg: any);
+    get cookieTransform(): any;
+    set cookieOffset(arg: any);
+    get cookieOffset(): any;
+    beginFrame(): void;
+    _destroyShadowMap(): void;
+    getRenderData(camera: any, face: any): any;
+    /**
+     * Duplicates a light node but does not 'deep copy' the hierarchy.
+     *
+     * @returns {Light} A cloned Light.
+     */
+    clone(): Light;
+    _getUniformBiasValues(lightRenderData: any): {
+        bias: number;
+        normalBias: number;
+    };
+    getColor(): Color;
+    getBoundingSphere(sphere: any): void;
+    getBoundingBox(box: any): void;
+    _updateFinalColor(): void;
+    setColor(...args: any[]): void;
+    updateShadow(): void;
+    layersDirty(): void;
+    updateKey(): void;
+}
+
+declare class LightComponentData {
+}
+
+/**
+ * A Light Component is used to dynamically light the scene.
+ *
+ * @augments ComponentSystem
+ */
+declare class LightComponentSystem extends ComponentSystem {
+    id: string;
+    ComponentType: typeof LightComponent;
+    DataType: typeof LightComponentData;
+    initializeComponentData(component: any, _data: any): void;
+    _onRemoveComponent(entity: any, component: any): void;
+    cloneComponent(entity: any, clone: any): Component;
+    changeType(component: any, oldValue: any, newValue: any): void;
+}
+
+
+
+
+/**
+ * The Light Component enables the Entity to light the scene. There are three types of light:
+ * directional, omni and spot. Directional lights are global in that they are considered to be
+ * infinitely far away and light the entire scene. Omni and spot lights are local in that they have
+ * a position and a range. A spot light is a specialization of an omni light where light is emitted
+ * in a cone rather than in all directions. Lights also have the ability to cast shadows to add
+ * realism to your scenes.
+ *
+ * ```javascript
+ * // Add a pc.LightComponent to an entity
+ * var entity = new pc.Entity();
+ * entity.addComponent('light', {
+ *     type: "omni",
+ *     color: new pc.Color(1, 0, 0),
+ *     range: 10
+ * });
+ *
+ * // Get the pc.LightComponent on an entity
+ * var lightComponent = entity.light;
+ *
+ * // Update a property on a light component
+ * entity.light.range = 20;
+ * ```
+ *
+ * @property {string} type The type of light. Can be:
+ *
+ * - "directional": A light that is infinitely far away and lights the entire scene from one
+ * direction.
+ * - "omni": An omni-directional light that illuminates in all directions from the light source.
+ * - "spot": An omni-directional light but is bounded by a cone.
+ *
+ * Defaults to "directional".
+ * @property {Color} color The Color of the light. The alpha component of the color is ignored.
+ * Defaults to white (1, 1, 1).
+ * @property {number} intensity The brightness of the light. Defaults to 1.
+ * @property {number} shape The light source shape. Can be:
+ *
+ * - {@link pc.LIGHTSHAPE_PUNCTUAL}: Infinitesimally small point.
+ * - {@link pc.LIGHTSHAPE_RECT}: Rectangle shape.
+ * - {@link pc.LIGHTSHAPE_DISK}: Disk shape.
+ * - {@link pc.LIGHTSHAPE_SPHERE}: Sphere shape.
+ *
+ * Defaults to pc.LIGHTSHAPE_PUNCTUAL.
+ * @property {boolean} castShadows If enabled the light will cast shadows. Defaults to false.
+ * @property {number} shadowDistance The distance from the viewpoint beyond which shadows are no
+ * longer rendered. Affects directional lights only. Defaults to 40.
+ * @property {number} shadowIntensity The intensity of the shadow darkening, 1 being shadows are entirely black.
+ * Defaults to 1.
+ * @property {number} shadowResolution The size of the texture used for the shadow map. Valid sizes
+ * are 64, 128, 256, 512, 1024, 2048. Defaults to 1024.
+ * @property {number} shadowBias The depth bias for tuning the appearance of the shadow mapping
+ * generated by this light. Valid range is 0 to 1. Defaults to 0.05.
+ * @property {number} numCascades Number of shadow cascades. Can be 1, 2, 3 or 4. Defaults to 1,
+ * representing no cascades.
+ * @property {number} cascadeDistribution The distribution of subdivision of the camera frustum for
+ * individual shadow cascades. Only used if {@link LightComponent#numCascades} is larger than 1.
+ * Can be a value in range of 0 and 1. Value of 0 represents a linear distribution, value of 1
+ * represents a logarithmic distribution. Defaults to 0.5. Larger value increases the resolution of
+ * the shadows in the near distance.
+ * @property {number} normalOffsetBias Normal offset depth bias. Valid range is 0 to 1. Defaults to
+ * 0.
+ * @property {number} range The range of the light. Affects omni and spot lights only. Defaults to
+ * 10.
+ * @property {number} innerConeAngle The angle at which the spotlight cone starts to fade off. The
+ * angle is specified in degrees. Affects spot lights only. Defaults to 40.
+ * @property {number} outerConeAngle The angle at which the spotlight cone has faded to nothing.
+ * The angle is specified in degrees. Affects spot lights only. Defaults to 45.
+ * @property {number} falloffMode Controls the rate at which a light attenuates from its position.
+ * Can be:
+ *
+ * - {@link LIGHTFALLOFF_LINEAR}: Linear.
+ * - {@link LIGHTFALLOFF_INVERSESQUARED}: Inverse squared.
+ *
+ * Affects omni and spot lights only. Defaults to {@link LIGHTFALLOFF_LINEAR}.
+ * @property {number} mask Defines a mask to determine which {@link MeshInstance}s are lit by this
+ * light. Defaults to 1.
+ * @property {boolean} affectDynamic If enabled the light will affect non-lightmapped objects.
+ * @property {boolean} affectLightmapped If enabled the light will affect lightmapped objects.
+ * @property {boolean} bake If enabled the light will be rendered into lightmaps.
+ * @property {number} bakeNumSamples If bake is true, this specifies the number of samples used to
+ * bake this light into the lightmap. Defaults to 1. Maximum value is 255.
+ * @property {number} bakeArea If bake is true and the light type is {@link LIGHTTYPE_DIRECTIONAL},
+ * this specifies the penumbra angle in degrees, allowing a soft shadow boundary. Defaults to 0.
+ * @property {boolean} bakeDir If enabled and bake=true, the light's direction will contribute to
+ * directional lightmaps. Be aware, that directional lightmap is an approximation and can only hold
+ * single direction per pixel. Intersecting multiple lights with bakeDir=true may lead to incorrect
+ * look of specular/bump-mapping in the area of intersection. The error is not always visible
+ * though, and highly scene-dependent.
+ * @property {number} shadowUpdateMode Tells the renderer how often shadows must be updated for
+ * this light. Can be:
+ *
+ * - {@link SHADOWUPDATE_NONE}: Don't render shadows.
+ * - {@link SHADOWUPDATE_THISFRAME}: Render shadows only once (then automatically switches to
+ * {@link SHADOWUPDATE_NONE}.
+ * - {@link SHADOWUPDATE_REALTIME}: Render shadows every frame (default).
+ * @property {number} shadowType Type of shadows being rendered by this light. Options:
+ *
+ * - {@link SHADOW_PCF3}: Render depth (color-packed on WebGL 1.0), can be used for PCF 3x3
+ * sampling.
+ * - {@link SHADOW_VSM8}: Render packed variance shadow map. All shadow receivers must also cast
+ * shadows for this mode to work correctly.
+ * - {@link SHADOW_VSM16}: Render 16-bit exponential variance shadow map. Requires
+ * OES_texture_half_float extension. Falls back to {@link SHADOW_VSM8}, if not supported.
+ * - {@link SHADOW_VSM32}: Render 32-bit exponential variance shadow map. Requires
+ * OES_texture_float extension. Falls back to {@link SHADOW_VSM16}, if not supported.
+ * - {@link SHADOW_PCF5}: Render depth buffer only, can be used for hardware-accelerated PCF 5x5
+ * sampling. Requires WebGL2. Falls back to {@link SHADOW_PCF3} on WebGL 1.0.
+ * @property {number} vsmBlurMode Blurring mode for variance shadow maps. Can be:
+ *
+ * - {@link BLUR_BOX}: Box filter.
+ * - {@link BLUR_GAUSSIAN}: Gaussian filter. May look smoother than box, but requires more samples.
+ * @property {number} vsmBlurSize Number of samples used for blurring a variance shadow map. Only
+ * uneven numbers work, even are incremented. Minimum value is 1, maximum is 25. Defaults to 11.
+ * @property {number} cookieAsset Asset that has texture that will be assigned to cookie internally
+ * once asset resource is available.
+ * @property {Texture} cookie Projection texture. Must be 2D for spot and cubemap for omni light
+ * (ignored if incorrect type is used).
+ * @property {number} cookieIntensity Projection texture intensity (default is 1).
+ * @property {boolean} cookieFalloff Toggle normal spotlight falloff when projection texture is
+ * used. When set to false, spotlight will work like a pure texture projector (only fading with
+ * distance). Default is false.
+ * @property {string} cookieChannel Color channels of the projection texture to use. Can be "r",
+ * "g", "b", "a", "rgb".
+ * @property {number} cookieAngle Angle for spotlight cookie rotation.
+ * @property {Vec2} cookieScale Spotlight cookie scale.
+ * @property {Vec2} cookieOffset Spotlight cookie position offset.
+ * @property {boolean} isStatic Mark light as non-movable (optimization).
+ * @property {number[]} layers An array of layer IDs ({@link Layer#id}) to which this light should
+ * belong. Don't push/pop/splice or modify this array, if you want to change it - set a new one
+ * instead.
+ * @augments Component
+ */
+declare class LightComponent extends Component {
+    /**
+     * Creates a new LightComponent instance.
+     *
+     * @param {LightComponentSystem} system - The ComponentSystem that created this Component.
+     * @param {Entity} entity - The Entity that this Component is attached to.
+     */
+    constructor(system: LightComponentSystem, entity: Entity);
+
+    set affectDynamic(arg: boolean);
+    get affectDynamic(): boolean;
+
+    set affectLightmapped(arg: boolean);
+    get affectLightmapped(): boolean;
+
+    set bake(arg: boolean);
+    get bake(): boolean;
+
+    set bakeArea(arg: number);
+    get bakeArea(): number;
+
+    set bakeDir(arg: boolean);
+    get bakeDir(): boolean;
+
+    set bakeNumSamples(arg: number);
+    get bakeNumSamples(): number;
+
+    set cascadeDistribution(arg: number);
+    get cascadeDistribution(): number;
+
+    set castShadows(arg: boolean);
+    get castShadows(): boolean;
+
+    set color(arg: Color);
+    get color(): Color;
+
+    set cookieAngle(arg: number);
+    get cookieAngle(): number;
+
+    set cookieChannel(arg: string);
+    get cookieChannel(): string;
+
+    set cookieFalloff(arg: boolean);
+    get cookieFalloff(): boolean;
+
+    set cookieIntensity(arg: number);
+    get cookieIntensity(): number;
+
+    set cookieOffset(arg: Vec2);
+    get cookieOffset(): Vec2;
+
+    set cookieScale(arg: Vec2);
+    get cookieScale(): Vec2;
+
+    set falloffMode(arg: number);
+    get falloffMode(): number;
+
+    set innerConeAngle(arg: number);
+    get innerConeAngle(): number;
+
+    set intensity(arg: number);
+    get intensity(): number;
+
+    set isStatic(arg: boolean);
+    get isStatic(): boolean;
+
+    set layers(arg: number[]);
+    get layers(): number[];
+
+    set mask(arg: number);
+    get mask(): number;
+
+    set normalOffsetBias(arg: number);
+    get normalOffsetBias(): number;
+
+    set numCascades(arg: number);
+    get numCascades(): number;
+
+    set outerConeAngle(arg: number);
+    get outerConeAngle(): number;
+
+    set range(arg: number);
+    get range(): number;
+
+    set shadowBias(arg: number);
+    get shadowBias(): number;
+
+    set shadowDistance(arg: number);
+    get shadowDistance(): number;
+
+    set shadowIntensity(arg: number);
+    get shadowIntensity(): number;
+
+    set shadowResolution(arg: number);
+    get shadowResolution(): number;
+
+    set shadowType(arg: number);
+    get shadowType(): number;
+
+    set shadowUpdateMode(arg: number);
+    get shadowUpdateMode(): number;
+
+    set shape(arg: number);
+    get shape(): number;
+
+    set type(arg: string);
+    get type(): string;
+
+    set vsmBlurMode(arg: number);
+    get vsmBlurMode(): number;
+
+    set vsmBlurSize(arg: number);
+    get vsmBlurSize(): number;
+
+    _cookieAsset: any;
+    _cookieAssetId: any;
+    _cookieAssetAdd: boolean;
+    _cookieMatrix: any;
+    addLightToLayers(): void;
+    removeLightFromLayers(): void;
+    onLayersChanged(oldComp: any, newComp: any): void;
+    onLayerAdded(layer: any): void;
+    onLayerRemoved(layer: any): void;
+    refreshProperties(): void;
+    updateShadow(): void;
+    onCookieAssetSet(): void;
+    onCookieAssetAdd(asset: any): void;
+    onCookieAssetLoad(): void;
+    cookie: any;
+    onCookieAssetRemove(): void;
+    onRemove(): void;
+    cookieAsset: any;
+}
+
+
+
+
+
+
+/**
+ * A Layer represents a renderable subset of the scene. It can contain a list of mesh instances,
+ * lights and cameras, their render settings and also defines custom callbacks before, after or
+ * during rendering. Layers are organized inside {@link LayerComposition} in a desired order.
+ */
+declare class Layer {
+    /**
+     * Create a new Layer instance.
+     *
+     * @param {object} options - Object for passing optional arguments. These arguments are the
+     * same as properties of the Layer.
+     */
+    constructor(options?: object);
+    /**
+     * A unique ID of the layer. Layer IDs are stored inside {@link ModelComponent#layers},
+     * {@link RenderComponent#layers}, {@link CameraComponent#layers},
+     * {@link LightComponent#layers} and {@link ElementComponent#layers} instead of names.
+     * Can be used in {@link LayerComposition#getLayerById}.
+     *
+     * @type {number}
+     */
+    id: number;
+    /**
+     * Name of the layer. Can be used in {@link LayerComposition#getLayerByName}.
+     *
+     * @type {string}
+     */
+    name: string;
+    /**
+     * @type {boolean}
+     * @private
+     */
+    private _enabled;
+    /**
+     * @type {number}
+     * @private
+     */
+    private _refCounter;
+    /**
+     * Defines the method used for sorting opaque (that is, not semi-transparent) mesh
+     * instances before rendering. Can be:
+     *
+     * - {@link SORTMODE_NONE}
+     * - {@link SORTMODE_MANUAL}
+     * - {@link SORTMODE_MATERIALMESH}
+     * - {@link SORTMODE_BACK2FRONT}
+     * - {@link SORTMODE_FRONT2BACK}
+     *
+     * Defaults to {@link SORTMODE_MATERIALMESH}.
+     *
+     * @type {number}
+     */
+    opaqueSortMode: number;
+    /**
+     * Defines the method used for sorting semi-transparent mesh instances before rendering. Can be:
+     *
+     * - {@link SORTMODE_NONE}
+     * - {@link SORTMODE_MANUAL}
+     * - {@link SORTMODE_MATERIALMESH}
+     * - {@link SORTMODE_BACK2FRONT}
+     * - {@link SORTMODE_FRONT2BACK}
+     *
+     * Defaults to {@link SORTMODE_BACK2FRONT}.
+     *
+     * @type {number}
+     */
+    transparentSortMode: number;
+    /**
+     * @type {RenderTarget}
+     * @ignore
+     */
+    set renderTarget(arg: RenderTarget);
+    get renderTarget(): RenderTarget;
+    /**
+     * A type of shader to use during rendering. Possible values are:
+     *
+     * - {@link SHADER_FORWARD}
+     * - {@link SHADER_FORWARDHDR}
+     * - {@link SHADER_DEPTH}
+     * - Your own custom value. Should be in 19 - 31 range. Use {@link StandardMaterial#onUpdateShader}
+     * to apply shader modifications based on this value.
+     *
+     * Defaults to {@link SHADER_FORWARD}.
+     *
+     * @type {number}
+     */
+    shaderPass: number;
+    /**
+     * Tells that this layer is simple and needs to just render a bunch of mesh instances
+     * without lighting, skinning and morphing (faster). Used for UI and Gizmo layers (the
+     * layer doesn't use lights, shadows, culling, etc).
+     *
+     * @type {boolean}
+     */
+    passThrough: boolean;
+    /**
+     * @type {boolean}
+     * @private
+     */
+    private _clearColorBuffer;
+    /**
+     * @type {boolean}
+     * @private
+     */
+    private _clearDepthBuffer;
+    /**
+     * @type {boolean}
+     * @private
+     */
+    private _clearStencilBuffer;
+    /**
+     * Custom function that is called before visibility culling is performed for this layer.
+     * Useful, for example, if you want to modify camera projection while still using the same
+     * camera and make frustum culling work correctly with it (see
+     * {@link CameraComponent#calculateTransform} and {@link CameraComponent#calculateProjection}).
+     * This function will receive camera index as the only argument. You can get the actual
+     * camera being used by looking up {@link LayerComposition#cameras} with this index.
+     *
+     * @type {Function}
+     */
+    onPreCull: Function;
+    /**
+     * Custom function that is called before this layer is rendered. Useful, for example, for
+     * reacting on screen size changes. This function is called before the first occurrence of
+     * this layer in {@link LayerComposition}. It will receive camera index as the only
+     * argument. You can get the actual camera being used by looking up
+     * {@link LayerComposition#cameras} with this index.
+     *
+     * @type {Function}
+     */
+    onPreRender: Function;
+    /**
+     * Custom function that is called before opaque mesh instances (not semi-transparent) in
+     * this layer are rendered. This function will receive camera index as the only argument.
+     * You can get the actual camera being used by looking up {@link LayerComposition#cameras}
+     * with this index.
+     *
+     * @type {Function}
+     */
+    onPreRenderOpaque: Function;
+    /**
+     * Custom function that is called before semi-transparent mesh instances in this layer are
+     * rendered. This function will receive camera index as the only argument. You can get the
+     * actual camera being used by looking up {@link LayerComposition#cameras} with this index.
+     *
+     * @type {Function}
+     */
+    onPreRenderTransparent: Function;
+    /**
+     * Custom function that is called after visibility culling is performed for this layer.
+     * Useful for reverting changes done in {@link Layer#onPreCull} and determining final mesh
+     * instance visibility (see {@link MeshInstance#visibleThisFrame}). This function will
+     * receive camera index as the only argument. You can get the actual camera being used by
+     * looking up {@link LayerComposition#cameras} with this index.
+     *
+     * @type {Function}
+     */
+    onPostCull: Function;
+    /**
+     * Custom function that is called after this layer is rendered. Useful to revert changes
+     * made in {@link Layer#onPreRender}. This function is called after the last occurrence of this
+     * layer in {@link LayerComposition}. It will receive camera index as the only argument.
+     * You can get the actual camera being used by looking up {@link LayerComposition#cameras}
+     * with this index.
+     *
+     * @type {Function}
+     */
+    onPostRender: Function;
+    /**
+     * Custom function that is called after opaque mesh instances (not semi-transparent) in
+     * this layer are rendered. This function will receive camera index as the only argument.
+     * You can get the actual camera being used by looking up {@link LayerComposition#cameras}
+     * with this index.
+     *
+     * @type {Function}
+     */
+    onPostRenderOpaque: Function;
+    /**
+     * Custom function that is called after semi-transparent mesh instances in this layer are
+     * rendered. This function will receive camera index as the only argument. You can get the
+     * actual camera being used by looking up {@link LayerComposition#cameras} with this index.
+     *
+     * @type {Function}
+     */
+    onPostRenderTransparent: Function;
+    /**
+     * Custom function that is called before every mesh instance in this layer is rendered. It
+     * is not recommended to set this function when rendering many objects every frame due to
+     * performance reasons.
+     *
+     * @type {Function}
+     */
+    onDrawCall: Function;
+    /**
+     * Custom function that is called after the layer has been enabled. This happens when:
+     *
+     * - The layer is created with {@link Layer#enabled} set to true (which is the default value).
+     * - {@link Layer#enabled} was changed from false to true
+     * - {@link Layer#incrementCounter} was called and incremented the counter above zero.
+     *
+     * Useful for allocating resources this layer will use (e.g. creating render targets).
+     *
+     * @type {Function}
+     */
+    onEnable: Function;
+    /**
+     * Custom function that is called after the layer has been disabled. This happens when:
+     *
+     * - {@link Layer#enabled} was changed from true to false
+     * - {@link Layer#decrementCounter} was called and set the counter to zero.
+     *
+     * @type {Function}
+     */
+    onDisable: Function;
+    /**
+     * Make this layer render the same mesh instances that another layer does instead of having
+     * its own mesh instance list. Both layers must share cameras. Frustum culling is only
+     * performed for one layer. Useful for rendering multiple passes using different shaders.
+     *
+     * @type {Layer}
+     */
+    layerReference: Layer;
+    /**
+     * @type {InstanceList}
+     * @ignore
+     */
+    instances: InstanceList;
+    /**
+     * Visibility bit mask that interacts with {@link MeshInstance#mask}. Especially useful
+     * when combined with layerReference, allowing for the filtering of some objects, while
+     * sharing their list and culling.
+     *
+     * @type {number}
+     */
+    cullingMask: number;
+    /**
+     * @type {MeshInstance[]}
+     * @ignore
+     */
+    opaqueMeshInstances: MeshInstance[];
+    /**
+     * @type {MeshInstance[]}
+     * @ignore
+     */
+    transparentMeshInstances: MeshInstance[];
+    /**
+     * @type {MeshInstance[]}
+     * @ignore
+     */
+    shadowCasters: MeshInstance[];
+    /**
+     * @type {Function|null}
+     * @ignore
+     */
+    customSortCallback: Function | null;
+    /**
+     * @type {Function|null}
+     * @ignore
+     */
+    customCalculateSortValues: Function | null;
+    /**
+     * @type {Light[]}
+     * @private
+     */
+    private _lights;
+    /**
+     * @type {Set<Light>}
+     * @private
+     */
+    private _lightsSet;
+    /**
+     * Set of light used by clustered lighting (omni and spot, but no directional).
+     *
+     * @type {Set<Light>}
+     * @private
+     */
+    private _clusteredLightsSet;
+    /**
+     * Lights separated by light type.
+     *
+     * @type {Light[][]}
+     * @ignore
+     */
+    _splitLights: Light[][];
+    /**
+     * @type {CameraComponent[]}
+     * @ignore
+     */
+    cameras: CameraComponent[];
+    _dirty: boolean;
+    _dirtyLights: boolean;
+    _dirtyCameras: boolean;
+    _lightHash: number;
+    _staticLightHash: number;
+    _needsStaticPrepare: boolean;
+    _staticPrepareDone: boolean;
+    skipRenderAfter: number;
+    _skipRenderCounter: number;
+    _renderTime: number;
+    _forwardDrawCalls: number;
+    _shadowDrawCalls: number;
+    _shaderVersion: number;
+    /**
+     * @type {Float32Array}
+     * @ignore
+     */
+    _lightCube: Float32Array;
+    /**
+     * True if the layer contains omni or spot lights
+     *
+     * @type {boolean}
+     * @ignore
+     */
+    get hasClusteredLights(): boolean;
+    /**
+     * @type {RenderTarget}
+     * @private
+     */
+    private _renderTarget;
+    /**
+     * Enable the layer. Disabled layers are skipped. Defaults to true.
+     *
+     * @type {boolean}
+     */
+    set enabled(arg: boolean);
+    get enabled(): boolean;
+    /**
+     * If true, the camera will clear the color buffer when it renders this layer.
+     *
+     * @type {boolean}
+     */
+    set clearColorBuffer(arg: boolean);
+    get clearColorBuffer(): boolean;
+    /**
+     * If true, the camera will clear the depth buffer when it renders this layer.
+     *
+     * @type {boolean}
+     */
+    set clearDepthBuffer(arg: boolean);
+    get clearDepthBuffer(): boolean;
+    /**
+     * If true, the camera will clear the stencil buffer when it renders this layer.
+     *
+     * @type {boolean}
+     */
+    set clearStencilBuffer(arg: boolean);
+    get clearStencilBuffer(): boolean;
+    /**
+     * Returns lights used by clustered lighting in a set.
+     *
+     * @type {Set<Light>}
+     * @ignore
+     */
+    get clusteredLightsSet(): Set<Light>;
+    /**
+     * Increments the usage counter of this layer. By default, layers are created with counter set
+     * to 1 (if {@link Layer.enabled} is true) or 0 (if it was false). Incrementing the counter
+     * from 0 to 1 will enable the layer and call {@link Layer.onEnable}. Use this function to
+     * "subscribe" multiple effects to the same layer. For example, if the layer is used to render
+     * a reflection texture which is used by 2 mirrors, then each mirror can call this function
+     * when visible and {@link Layer.decrementCounter} if invisible. In such case the reflection
+     * texture won't be updated, when there is nothing to use it, saving performance.
+     *
+     * @ignore
+     */
+    incrementCounter(): void;
+    /**
+     * Decrements the usage counter of this layer. Decrementing the counter from 1 to 0 will
+     * disable the layer and call {@link Layer.onDisable}. See {@link Layer#incrementCounter} for
+     * more details.
+     *
+     * @ignore
+     */
+    decrementCounter(): void;
+    /**
+     * Adds an array of mesh instances to this layer.
+     *1
+     *
+     * @param {MeshInstance[]} meshInstances - Array of {@link MeshInstance}.
+     * @param {boolean} [skipShadowCasters] - Set it to true if you don't want these mesh instances
+     * to cast shadows in this layer.
+     */
+    addMeshInstances(meshInstances: MeshInstance[], skipShadowCasters?: boolean): void;
+    /**
+     * Internal function to remove a mesh instance from an array.
+     *
+     * @param {MeshInstance} m - Mesh instance to remove.
+     * @param {MeshInstance[]} arr - Array of mesh instances to remove from.
+     * @private
+     */
+    private removeMeshInstanceFromArray;
+    /**
+     * Removes multiple mesh instances from this layer.
+     *
+     * @param {MeshInstance[]} meshInstances - Array of {@link MeshInstance}. If they were added to
+     * this layer, they will be removed.
+     * @param {boolean} [skipShadowCasters] - Set it to true if you want to still cast shadows from
+     * removed mesh instances or if they never did cast shadows before.
+     */
+    removeMeshInstances(meshInstances: MeshInstance[], skipShadowCasters?: boolean): void;
+    /**
+     * Removes all mesh instances from this layer.
+     *
+     * @param {boolean} [skipShadowCasters] - Set it to true if you want to still cast shadows from
+     * removed mesh instances or if they never did cast shadows before.
+     */
+    clearMeshInstances(skipShadowCasters?: boolean): void;
+    /**
+     * Adds a light to this layer.
+     *
+     * @param {LightComponent} light - A {@link LightComponent}.
+     */
+    addLight(light: LightComponent): void;
+    /**
+     * Removes a light from this layer.
+     *
+     * @param {LightComponent} light - A {@link LightComponent}.
+     */
+    removeLight(light: LightComponent): void;
+    /**
+     * Removes all lights from this layer.
+     */
+    clearLights(): void;
+    /**
+     * Adds an array of mesh instances to this layer, but only as shadow casters (they will not be
+     * rendered anywhere, but only cast shadows on other objects).
+     *
+     * @param {MeshInstance[]} meshInstances - Array of {@link MeshInstance}.
+     */
+    addShadowCasters(meshInstances: MeshInstance[]): void;
+    /**
+     * Removes multiple mesh instances from the shadow casters list of this layer, meaning they
+     * will stop casting shadows.
+     *
+     * @param {MeshInstance[]} meshInstances - Array of {@link MeshInstance}. If they were added to
+     * this layer, they will be removed.
+     */
+    removeShadowCasters(meshInstances: MeshInstance[]): void;
+    /** @private */
+    private _generateLightHash;
+    /**
+     * Adds a camera to this layer.
+     *
+     * @param {CameraComponent} camera - A {@link CameraComponent}.
+     */
+    addCamera(camera: CameraComponent): void;
+    /**
+     * Removes a camera from this layer.
+     *
+     * @param {CameraComponent} camera - A {@link CameraComponent}.
+     */
+    removeCamera(camera: CameraComponent): void;
+    /**
+     * Removes all cameras from this layer.
+     */
+    clearCameras(): void;
+    /**
+     * @param {MeshInstance[]} drawCalls - Array of mesh instances.
+     * @param {number} drawCallsCount - Number of mesh instances.
+     * @param {Vec3} camPos - Camera position.
+     * @param {Vec3} camFwd - Camera forward vector.
+     * @private
+     */
+    private _calculateSortDistances;
+    /**
+     * @param {boolean} transparent - True if transparent sorting should be used.
+     * @param {GraphNode} cameraNode - Graph node that the camera is attached to.
+     * @param {number} cameraPass - Camera pass.
+     * @ignore
+     */
+    _sortVisible(transparent: boolean, cameraNode: GraphNode, cameraPass: number): void;
+}
+declare class InstanceList {
+    opaqueMeshInstances: any[];
+    transparentMeshInstances: any[];
+    shadowCasters: any[];
+    visibleOpaque: any[];
+    visibleTransparent: any[];
+    prepare(index: any): void;
+    delete(index: any): void;
+}
+
+
+/** @typedef {import('./graphics-device.js').GraphicsDevice} GraphicsDevice */
+/**
+ * @ignore
+ */
+declare class BindBufferFormat {
+    constructor(name: any, visibility: any);
+    /** @type {string} */
+    name: string;
+    visibility: any;
+}
+/**
+ * @ignore
+ */
+declare class BindTextureFormat {
+    constructor(name: any, visibility: any);
+    /** @type {string} */
+    name: string;
+    visibility: any;
+}
+/**
+ * @ignore
+ */
+declare class BindGroupFormat {
+    /**
+     * @param {GraphicsDevice} graphicsDevice - The graphics device used to manage this vertex format.
+     * @param {BindBufferFormat[]} bufferFormats -
+     * @param {BindTextureFormat[]} textureFormats -
+     */
+    constructor(graphicsDevice: GraphicsDevice, bufferFormats: BindBufferFormat[], textureFormats: BindTextureFormat[]);
+    /** @type {GraphicsDevice} */
+    device: GraphicsDevice;
+    /** @type {BindBufferFormat[]} */
+    bufferFormats: BindBufferFormat[];
+    /** @type {Map<string, number>} */
+    bufferFormatsMap: Map<string, number>;
+    /** @type {BindTextureFormat[]} */
+    textureFormats: BindTextureFormat[];
+    /** @type {Map<string, number>} */
+    textureFormatsMap: Map<string, number>;
+    impl: any;
+    /**
+     * Frees resources associated with this bind group.
+     */
+    destroy(): void;
+    /**
+     * Returns format of texture with specified name.
+     *
+     * @param {string} name - The name of the texture slot.
+     * @returns {BindTextureFormat} - The format.
+     */
+    getTexture(name: string): BindTextureFormat;
+    getShaderDeclarationTextures(bindGroup: any): string;
+    loseContext(): void;
+}
+
+
+
+
+/**
+ * A bind group represents an collection of {@link UniformBuffer} and {@link Texture} instance,
+ * which can be bind on a GPU for rendering.
+ *
+ * @ignore
+ */
+declare class BindGroup {
+    /**
+     * Create a new Bind Group.
+     *
+     * @param {GraphicsDevice} graphicsDevice - The graphics device used to manage this uniform buffer.
+     * @param {BindGroupFormat} format - Format of the bind group.
+     */
+    constructor(graphicsDevice: GraphicsDevice, format: BindGroupFormat);
+    device: GraphicsDevice;
+    format: BindGroupFormat;
+    dirty: boolean;
+    impl: any;
+    textures: any[];
+    uniformBuffers: any[];
+    /**
+     * Assign a uniform buffer to a slot.
+     *
+     * @param {*} name - The name of the uniform buffer slot
+     * @param {*} uniformBuffer - The Uniform buffer to assign to the slot.
+     */
+    setUniformBuffer(name: any, uniformBuffer: any): void;
+    /**
+     * Assign a texture to a slot.
+     *
+     * @param {string} name - The name of the texture slot.
+     * @param {Texture} texture - Texture to assign to the slot.
+     */
+    setTexture(name: string, texture: Texture): void;
+    /**
+     * Frees resources associated with this bind group.
+     */
+    destroy(): void;
+    /**
+     * Applies any changes made to the bind group's properties.
+     */
+    update(): void;
+}
+
+/**
+ * A class storing description of an individual uniform, stored inside a uniform buffer.
+ *
+ * @ignore
+ */
+declare class UniformFormat {
+    constructor(name: any, type: any);
+    /** @type {string} */
+    name: string;
+    /** @type {number} */
+    type: number;
+    /** @type {number} */
+    byteSize: number;
+    /**
+     * Index of the uniform in an array of 32bit values (Float32Array and similar)
+     *
+     * @type {number}
+     */
+    offset: number;
+}
+/**
+ * A descriptor that defines the layout of of data inside the {@link UniformBuffer}.
+ *
+ * @ignore
+ */
+declare class UniformBufferFormat {
+    /**
+     * Create a new UniformBufferFormat instance.
+     *
+     * @param {UniformFormat[]} uniforms - An array of uniforms to be stored in the buffer
+     */
+    constructor(uniforms: UniformFormat[]);
+    /** @type {number} */
+    byteSize: number;
+    /** @type {Map<string,UniformFormat>} */
+    map: Map<string, UniformFormat>;
+    /** @type {UniformFormat[]} */
+    uniforms: UniformFormat[];
+    /**
+     * Returns format of a uniform with specified name.
+     *
+     * @param {string} name - The name of the uniform.
+     * @returns {UniformFormat} - The format of the uniform.
+     */
+    get(name: string): UniformFormat;
+    getShaderDeclaration(bindGroup: any, bindIndex: any): string;
+}
+
+
+
+/** @typedef {import('./graphics-device.js').GraphicsDevice} GraphicsDevice */
+/** @typedef {import('./uniform-buffer-format.js').UniformBufferFormat} UniformBufferFormat */
+/**
+ * A uniform buffer represents a GPU memory buffer storing the uniforms.
+ *
+ * @ignore
+ */
+declare class UniformBuffer {
+    /**
+     * Create a new UniformBuffer instance.
+     *
+     * @param {GraphicsDevice} graphicsDevice - The graphics device used to manage this uniform buffer.
+     * @param {UniformBufferFormat} format - Format of the uniform buffer
+     */
+    constructor(graphicsDevice: GraphicsDevice, format: UniformBufferFormat);
+    device: GraphicsDevice;
+    format: UniformBufferFormat;
+    impl: any;
+    storage: ArrayBuffer;
+    storageFloat32: Float32Array;
+    /**
+     * Frees resources associated with this uniform buffer.
+     */
+    destroy(): void;
+    /**
+     * Called when the rendering context was lost. It releases all context related resources.
+     *
+     * @ignore
+     */
+    loseContext(): void;
+    set(name: any, value: any): void;
+    update(): void;
+}
+
+
+
+
+
+/** @typedef {import('../../graphics/uniform-buffer.js').UniformBuffer} UniformBuffer */
+/** @typedef {import('../../graphics/bind-group.js').BindGroup} BindGroup */
+/** @typedef {import('../../graphics/render-target.js').RenderTarget} RenderTarget */
+/** @typedef {import('./layer-composition.js').LayerComposition} LayerComposition */
+/**
+ * Class representing an entry in the final order of rendering of cameras and layers in the engine
+ * this is populated at runtime based on LayerComposition
+ *
+ * @ignore
+ */
+declare class RenderAction {
+    layerIndex: number;
+    cameraIndex: number;
+    camera: any;
+    /**
+     * render target this render action renders to (taken from either camera or layer)
+     *
+     * @type {RenderTarget|null}
+     */
+    renderTarget: RenderTarget | null;
+    lightClusters: any;
+    clearColor: boolean;
+    clearDepth: boolean;
+    clearStencil: boolean;
+    triggerPostprocess: boolean;
+    firstCameraUse: boolean;
+    lastCameraUse: boolean;
+    directionalLightsSet: Set<any>;
+    directionalLights: any[];
+    directionalLightsIndices: any[];
+    /** @type {Array<UniformBuffer>} */
+    viewUniformBuffers: Array<UniformBuffer>;
+    /** @type {Array<BindGroup>} */
+    viewBindGroups: Array<BindGroup>;
+    destroy(): void;
+    get hasDirectionalShadowLights(): boolean;
+    reset(): void;
+    /**
+     * @param {LayerComposition} layerComposition - The layer composition.
+     * @returns {boolean} - True if the layer / sublayer referenced by the render action is enabled
+     */
+    isLayerEnabled(layerComposition: LayerComposition): boolean;
+    collectDirectionalLights(cameraLayers: any, dirLights: any, allLights: any): void;
+}
+
+declare class LightsBuffer {
+    static FORMAT_FLOAT: number;
+    static FORMAT_8BIT: number;
+    static lightTextureFormat: number;
+    static shaderDefines: string;
+    static initShaderDefines(): void;
+    static buildShaderDefines(object: any, prefix: any): string;
+    static init(device: any): void;
+    static createTexture(device: any, width: any, height: any, format: any, name: any): Texture;
+    constructor(device: any);
+    device: any;
+    cookiesEnabled: boolean;
+    shadowsEnabled: boolean;
+    areaLightsEnabled: boolean;
+    maxLights: number;
+    lights8: Uint8ClampedArray;
+    lightsTexture8: Texture;
+    _lightsTexture8Id: any;
+    lightsFloat: Float32Array;
+    lightsTextureFloat: Texture;
+    _lightsTextureFloatId: any;
+    _lightsTextureInvSizeId: any;
+    _lightsTextureInvSizeData: Float32Array;
+    invMaxColorValue: number;
+    invMaxAttenuation: number;
+    boundsMin: Vec3;
+    boundsDelta: Vec3;
+    destroy(): void;
+    setCompressionRanges(maxAttenuation: any, maxColorValue: any): void;
+    setBounds(min: any, delta: any): void;
+    uploadTextures(): void;
+    updateUniforms(): void;
+    getSpotDirection(direction: any, spot: any): void;
+    getLightAreaSizes(light: any): Float32Array;
+    addLightDataFlags(data8: any, index: any, light: any, isSpot: any, castShadows: any, shadowIntensity: any): void;
+    addLightDataColor(data8: any, index: any, light: any, gammaCorrection: any, isCookie: any): void;
+    addLightDataSpotAngles(data8: any, index: any, light: any): void;
+    addLightDataShadowBias(data8: any, index: any, light: any): void;
+    addLightDataPositionRange(data8: any, index: any, light: any, pos: any): void;
+    addLightDataSpotDirection(data8: any, index: any, light: any): void;
+    addLightDataLightProjMatrix(data8: any, index: any, lightProjectionMatrix: any): void;
+    addLightDataCookies(data8: any, index: any, light: any): void;
+    addLightAtlasViewport(data8: any, index: any, atlasViewport: any): void;
+    addLightAreaSizes(data8: any, index: any, light: any): void;
+    addLightData(light: any, lightIndex: any, gammaCorrection: any): void;
+}
+
+declare class WorldClusters {
+    constructor(device: any);
+    device: any;
+    name: string;
+    reportCount: number;
+    boundsMin: Vec3;
+    boundsMax: Vec3;
+    boundsDelta: Vec3;
+    _cells: Vec3;
+    _cellsLimit: Vec3;
+    set cells(arg: Vec3);
+    get cells(): Vec3;
+    _maxCellLightCount: number;
+    _pixelsPerCellCount: number;
+    set maxCellLightCount(arg: number);
+    get maxCellLightCount(): number;
+    _maxAttenuation: number;
+    _maxColorValue: number;
+    _usedLights: ClusterLight[];
+    lightsBuffer: LightsBuffer;
+    _cellsDirty: boolean;
+    destroy(): void;
+    releaseClusterTexture(): void;
+    clusterTexture: Texture;
+    registerUniforms(device: any): void;
+    _clusterWorldTextureId: any;
+    _clusterPixelsPerCellId: any;
+    _clusterTextureSizeId: any;
+    _clusterTextureSizeData: Float32Array;
+    _clusterBoundsMinId: any;
+    _clusterBoundsMinData: Float32Array;
+    _clusterBoundsDeltaId: any;
+    _clusterBoundsDeltaData: Float32Array;
+    _clusterCellsCountByBoundsSizeId: any;
+    _clusterCellsCountByBoundsSizeData: Float32Array;
+    _clusterCellsDotId: any;
+    _clusterCellsDotData: Float32Array;
+    _clusterCellsMaxId: any;
+    _clusterCellsMaxData: Float32Array;
+    _clusterCompressionLimit0Id: any;
+    _clusterCompressionLimit0Data: Float32Array;
+    updateParams(lightingParams: any): void;
+    updateCells(): void;
+    clusters: Uint8ClampedArray;
+    counts: Int32Array;
+    uploadTextures(): void;
+    updateUniforms(): void;
+    evalLightCellMinMax(clusteredLight: any, min: any, max: any): void;
+    collectLights(lights: any): void;
+    evaluateBounds(): void;
+    evaluateCompressionLimits(gammaCorrection: any): void;
+    updateClusters(gammaCorrection: any): void;
+    update(lights: any, gammaCorrection: any, lightingParams: any): void;
+    activate(): void;
+}
+
+declare class ClusterLight {
+    light: any;
+    min: Vec3;
+    max: Vec3;
+}
+
+
+
+/**
+ * Layer Composition is a collection of {@link Layer} that is fed to {@link Scene#layers} to define
+ * rendering order.
+ *
+ * @augments EventHandler
+ */
+declare class LayerComposition extends EventHandler {
+    /**
+     * Create a new layer composition.
+     *
+     * @param {string} [name] - Optional non-unique name of the layer composition. Defaults to
+     * "Untitled" if not specified.
+     */
+    constructor(name?: string);
+    name: string;
+    /**
+     * A read-only array of {@link Layer} sorted in the order they will be rendered.
+     *
+     * @type {Layer[]}
+     */
+    layerList: Layer[];
+    /**
+     * A read-only array of boolean values, matching {@link Layer#layerList}. True means only
+     * semi-transparent objects are rendered, and false means opaque.
+     *
+     * @type {boolean[]}
+     */
+    subLayerList: boolean[];
+    /**
+     * A read-only array of boolean values, matching {@link Layer#layerList}. True means the
+     * layer is rendered, false means it's skipped.
+     *
+     * @type {boolean[]}
+     */
+    subLayerEnabled: boolean[];
+    _opaqueOrder: {};
+    _transparentOrder: {};
+    _dirty: boolean;
+    _dirtyBlend: boolean;
+    _dirtyLights: boolean;
+    _dirtyCameras: boolean;
+    _meshInstances: any[];
+    _meshInstancesSet: Set<any>;
+    _lights: any[];
+    _lightsMap: Map<any, any>;
+    _lightCompositionData: any[];
+    _splitLights: any[][];
+    /**
+     * A read-only array of {@link CameraComponent} that can be used during rendering. e.g.
+     * Inside {@link Layer#onPreCull}, {@link Layer#onPostCull}, {@link Layer#onPreRender},
+     * {@link Layer#onPostRender}.
+     *
+     * @type {CameraComponent[]}
+     */
+    cameras: CameraComponent[];
+    /**
+     * The actual rendering sequence, generated based on layers and cameras
+     *
+     * @type {RenderAction[]}
+     * @ignore
+     */
+    _renderActions: RenderAction[];
+    _worldClusters: any[];
+    _emptyWorldClusters: WorldClusters;
+    destroy(): void;
+    getEmptyWorldClusters(device: any): WorldClusters;
+    _splitLightsArray(target: any): void;
+    _update(device: any, clusteredLightingEnabled?: boolean): number;
+    updateShadowCasters(): void;
+    updateLights(): void;
+    findCompatibleCluster(layer: any, renderActionCount: any, emptyWorldClusters: any): any;
+    allocateLightClusters(device: any): void;
+    addRenderAction(renderActions: any, renderActionIndex: any, layer: any, layerIndex: any, cameraIndex: any, cameraFirstRenderAction: any, postProcessMarked: any): RenderAction;
+    propagateRenderTarget(startIndex: any, fromCamera: any): void;
+    _logRenderActions(): void;
+    _isLayerAdded(layer: any): boolean;
+    _isSublayerAdded(layer: any, transparent: any): boolean;
+    /**
+     * Adds a layer (both opaque and semi-transparent parts) to the end of the {@link Layer#layerList}.
+     *
+     * @param {Layer} layer - A {@link Layer} to add.
+     */
+    push(layer: Layer): void;
+    /**
+     * Inserts a layer (both opaque and semi-transparent parts) at the chosen index in the
+     * {@link Layer#layerList}.
+     *
+     * @param {Layer} layer - A {@link Layer} to add.
+     * @param {number} index - Insertion position.
+     */
+    insert(layer: Layer, index: number): void;
+    /**
+     * Removes a layer (both opaque and semi-transparent parts) from {@link Layer#layerList}.
+     *
+     * @param {Layer} layer - A {@link Layer} to remove.
+     */
+    remove(layer: Layer): void;
+    /**
+     * Adds part of the layer with opaque (non semi-transparent) objects to the end of the
+     * {@link Layer#layerList}.
+     *
+     * @param {Layer} layer - A {@link Layer} to add.
+     */
+    pushOpaque(layer: Layer): void;
+    /**
+     * Inserts an opaque part of the layer (non semi-transparent mesh instances) at the chosen
+     * index in the {@link Layer#layerList}.
+     *
+     * @param {Layer} layer - A {@link Layer} to add.
+     * @param {number} index - Insertion position.
+     */
+    insertOpaque(layer: Layer, index: number): void;
+    /**
+     * Removes an opaque part of the layer (non semi-transparent mesh instances) from
+     * {@link Layer#layerList}.
+     *
+     * @param {Layer} layer - A {@link Layer} to remove.
+     */
+    removeOpaque(layer: Layer): void;
+    /**
+     * Adds part of the layer with semi-transparent objects to the end of the {@link Layer#layerList}.
+     *
+     * @param {Layer} layer - A {@link Layer} to add.
+     */
+    pushTransparent(layer: Layer): void;
+    /**
+     * Inserts a semi-transparent part of the layer at the chosen index in the {@link Layer#layerList}.
+     *
+     * @param {Layer} layer - A {@link Layer} to add.
+     * @param {number} index - Insertion position.
+     */
+    insertTransparent(layer: Layer, index: number): void;
+    /**
+     * Removes a transparent part of the layer from {@link Layer#layerList}.
+     *
+     * @param {Layer} layer - A {@link Layer} to remove.
+     */
+    removeTransparent(layer: Layer): void;
+    _getSublayerIndex(layer: any, transparent: any): number;
+    /**
+     * Gets index of the opaque part of the supplied layer in the {@link Layer#layerList}.
+     *
+     * @param {Layer} layer - A {@link Layer} to find index of.
+     * @returns {number} The index of the opaque part of the specified layer.
+     */
+    getOpaqueIndex(layer: Layer): number;
+    /**
+     * Gets index of the semi-transparent part of the supplied layer in the {@link Layer#layerList}.
+     *
+     * @param {Layer} layer - A {@link Layer} to find index of.
+     * @returns {number} The index of the semi-transparent part of the specified layer.
+     */
+    getTransparentIndex(layer: Layer): number;
+    /**
+     * Finds a layer inside this composition by its ID. Null is returned, if nothing is found.
+     *
+     * @param {number} id - An ID of the layer to find.
+     * @returns {Layer|null} The layer corresponding to the specified ID. Returns null if layer is
+     * not found.
+     */
+    getLayerById(id: number): Layer | null;
+    /**
+     * Finds a layer inside this composition by its name. Null is returned, if nothing is found.
+     *
+     * @param {string} name - The name of the layer to find.
+     * @returns {Layer|null} The layer corresponding to the specified name. Returns null if layer
+     * is not found.
+     */
+    getLayerByName(name: string): Layer | null;
+    _updateOpaqueOrder(startIndex: any, endIndex: any): void;
+    _updateTransparentOrder(startIndex: any, endIndex: any): void;
+    _sortLayersDescending(layersA: any, layersB: any, order: any): number;
+    /**
+     * Used to determine which array of layers has any transparent sublayer that is on top of all
+     * the transparent sublayers in the other array.
+     *
+     * @param {number[]} layersA - IDs of layers.
+     * @param {number[]} layersB - IDs of layers.
+     * @returns {number} Returns a negative number if any of the transparent sublayers in layersA
+     * is on top of all the transparent sublayers in layersB, or a positive number if any of the
+     * transparent sublayers in layersB is on top of all the transparent sublayers in layersA, or 0
+     * otherwise.
+     * @private
+     */
+    private sortTransparentLayers;
+    /**
+     * Used to determine which array of layers has any opaque sublayer that is on top of all the
+     * opaque sublayers in the other array.
+     *
+     * @param {number[]} layersA - IDs of layers.
+     * @param {number[]} layersB - IDs of layers.
+     * @returns {number} Returns a negative number if any of the opaque sublayers in layersA is on
+     * top of all the opaque sublayers in layersB, or a positive number if any of the opaque
+     * sublayers in layersB is on top of all the opaque sublayers in layersA, or 0 otherwise.
+     * @private
+     */
+    private sortOpaqueLayers;
+}
+
+
+/** @typedef {import('./mat4.js').Mat4} Mat4 */
+/**
+ * A 3x3 matrix.
+ */
+declare class Mat3 {
+    /**
+     * A constant matrix set to the identity.
+     *
+     * @type {Mat3}
+     * @readonly
+     */
+    static readonly IDENTITY: Mat3;
+    /**
+     * A constant matrix with all elements set to 0.
+     *
+     * @type {Mat3}
+     * @readonly
+     */
+    static readonly ZERO: Mat3;
+    /**
+     * Matrix elements in the form of a flat array.
+     *
+     * @type {Float32Array}
+     */
+    data: Float32Array;
+    /**
+     * Creates a duplicate of the specified matrix.
+     *
+     * @returns {this} A duplicate matrix.
+     * @example
+     * var src = new pc.Mat3().translate(10, 20, 30);
+     * var dst = src.clone();
+     * console.log("The two matrices are " + (src.equals(dst) ? "equal" : "different"));
+     */
+    clone(): this;
+    /**
+     * Copies the contents of a source 3x3 matrix to a destination 3x3 matrix.
+     *
+     * @param {Mat3} rhs - A 3x3 matrix to be copied.
+     * @returns {Mat3} Self for chaining.
+     * @example
+     * var src = new pc.Mat3().translate(10, 20, 30);
+     * var dst = new pc.Mat3();
+     * dst.copy(src);
+     * console.log("The two matrices are " + (src.equals(dst) ? "equal" : "different"));
+     */
+    copy(rhs: Mat3): Mat3;
+    /**
+     * Copies the contents of a source array[9] to a destination 3x3 matrix.
+     *
+     * @param {number[]} src - An array[9] to be copied.
+     * @returns {Mat3} Self for chaining.
+     * @example
+     * var dst = new pc.Mat3();
+     * dst.set([0, 1, 2, 3, 4, 5, 6, 7, 8]);
+     */
+    set(src: number[]): Mat3;
+    /**
+     * Reports whether two matrices are equal.
+     *
+     * @param {Mat3} rhs - The other matrix.
+     * @returns {boolean} True if the matrices are equal and false otherwise.
+     * @example
+     * var a = new pc.Mat3().translate(10, 20, 30);
+     * var b = new pc.Mat3();
+     * console.log("The two matrices are " + (a.equals(b) ? "equal" : "different"));
+     */
+    equals(rhs: Mat3): boolean;
+    /**
+     * Reports whether the specified matrix is the identity matrix.
+     *
+     * @returns {boolean} True if the matrix is identity and false otherwise.
+     * @example
+     * var m = new pc.Mat3();
+     * console.log("The matrix is " + (m.isIdentity() ? "identity" : "not identity"));
+     */
+    isIdentity(): boolean;
+    /**
+     * Sets the matrix to the identity matrix.
+     *
+     * @returns {Mat3} Self for chaining.
+     * @example
+     * m.setIdentity();
+     * console.log("The matrix is " + (m.isIdentity() ? "identity" : "not identity"));
+     */
+    setIdentity(): Mat3;
+    /**
+     * Converts the matrix to string form.
+     *
+     * @returns {string} The matrix in string form.
+     * @example
+     * var m = new pc.Mat3();
+     * // Outputs [1, 0, 0, 0, 1, 0, 0, 0, 1]
+     * console.log(m.toString());
+     */
+    toString(): string;
+    /**
+     * Generates the transpose of the specified 3x3 matrix.
+     *
+     * @returns {Mat3} Self for chaining.
+     * @example
+     * var m = new pc.Mat3();
+     *
+     * // Transpose in place
+     * m.transpose();
+     */
+    transpose(): Mat3;
+    /**
+     * Converts the specified 4x4 matrix to a Mat3.
+     *
+     * @param {Mat4} m - The 4x4 matrix to convert.
+     * @returns {Mat3} Self for chaining.
+     */
+    setFromMat4(m: Mat4): Mat3;
+    /**
+     * Transforms a 3-dimensional vector by a 3x3 matrix.
+     *
+     * @param {Vec3} vec - The 3-dimensional vector to be transformed.
+     * @param {Vec3} [res] - An optional 3-dimensional vector to receive the result of the
+     * transformation.
+     * @returns {Vec3} The input vector v transformed by the current instance.
+     */
+    transformVector(vec: Vec3, res?: Vec3): Vec3;
+}
+
+
+
+
+/**
+ * A visual representation of the sky.
+ *
+ * @ignore
+ */
+declare class Sky {
+    /**
+     * @param {GraphicsDevice} device - The graphics device.
+     * @param {Scene} scene - The scene owning the sky.
+     * @param {Texture} texture - The texture of the sky.
+     */
+    constructor(device: GraphicsDevice, scene: Scene, texture: Texture);
+    /**
+     * Mesh instance representing the visuals of the sky.
+     *
+     * @type {MeshInstance};
+     */
+    meshInstance: MeshInstance;
+    /** @type {Mat3} */
+    _rotationMat3: Mat3;
+    skyLayer: Layer;
+    destroy(): void;
+}
+
+declare class LightingParams {
+    constructor(supportsAreaLights: any, maxTextureSize: any, dirtyLightsFnc: any);
+    _maxTextureSize: any;
+    _supportsAreaLights: any;
+    _dirtyLightsFnc: any;
+    _areaLightsEnabled: boolean;
+    _cells: Vec3;
+    _maxLightsPerCell: number;
+    _shadowsEnabled: boolean;
+    _shadowType: number;
+    _shadowAtlasResolution: number;
+    _cookiesEnabled: boolean;
+    _cookieAtlasResolution: number;
+    atlasSplit: any;
+    debugLayer: any;
+    set cells(arg: Vec3);
+    get cells(): Vec3;
+    set maxLightsPerCell(arg: number);
+    get maxLightsPerCell(): number;
+    set cookieAtlasResolution(arg: number);
+    get cookieAtlasResolution(): number;
+    set shadowAtlasResolution(arg: number);
+    get shadowAtlasResolution(): number;
+    set shadowType(arg: number);
+    get shadowType(): number;
+    set cookiesEnabled(arg: boolean);
+    get cookiesEnabled(): boolean;
+    set areaLightsEnabled(arg: boolean);
+    get areaLightsEnabled(): boolean;
+    set shadowsEnabled(arg: boolean);
+    get shadowsEnabled(): boolean;
 }
 
 
@@ -10866,6 +12076,467 @@ declare class GeometryData {
 }
 
 
+/** @typedef {import('../../graphics/texture.js').Texture} Texture */
+/**
+ * A BasicMaterial is for rendering unlit geometry, either using a constant color or a color map
+ * modulated with a color.
+ *
+ * @augments Material
+ */
+declare class BasicMaterial extends Material {
+    /**
+     * The flat color of the material (RGBA, where each component is 0 to 1).
+     *
+     * @type {Color}
+     */
+    color: Color;
+    colorUniform: Float32Array;
+    /**
+     * The color map of the material (default is null). If specified, the color map is
+     * modulated by the color property.
+     *
+     * @type {Texture|null}
+     */
+    colorMap: Texture | null;
+    vertexColors: boolean;
+    /**
+     * Copy a `BasicMaterial`.
+     *
+     * @param {BasicMaterial} source - The material to copy from.
+     * @returns {BasicMaterial} The destination material.
+     */
+    copy(source: BasicMaterial): BasicMaterial;
+}
+
+declare class Immediate {
+    static getTextureVS(): string;
+    constructor(device: any);
+    device: any;
+    quadMesh: Mesh;
+    textureShader: Shader;
+    depthTextureShader: Shader;
+    cubeLocalPos: any;
+    cubeWorldPos: any;
+    batchesMap: Map<any, any>;
+    allBatches: Set<any>;
+    updatedLayers: Set<any>;
+    _materialDepth: BasicMaterial;
+    _materialNoDepth: BasicMaterial;
+    layerMeshInstances: Map<any, any>;
+    createMaterial(depthTest: any): BasicMaterial;
+    get materialDepth(): BasicMaterial;
+    get materialNoDepth(): BasicMaterial;
+    getBatch(layer: any, depthTest: any): any;
+    getTextureShader(): Shader;
+    getDepthTextureShader(): Shader;
+    getQuadMesh(): Mesh;
+    drawMesh(material: any, matrix: any, mesh: any, meshInstance: any, layer: any): void;
+    drawWireAlignedBox(min: any, max: any, color: any, depthTest: any, layer: any): void;
+    drawWireSphere(center: any, radius: any, color: any, numSegments: any, depthTest: any, layer: any): void;
+    getGraphNode(matrix: any): GraphNode;
+    onPreRenderLayer(layer: any, visibleList: any, transparent: any): void;
+    onPostRender(): void;
+}
+
+
+
+
+/** @typedef {import('../framework/entity.js').Entity} Entity */
+/** @typedef {import('../graphics/graphics-device.js').GraphicsDevice} GraphicsDevice */
+/** @typedef {import('../graphics/texture.js').Texture} Texture */
+/** @typedef {import('./composition/layer-composition.js').LayerComposition} LayerComposition */
+/** @typedef {import('./layer.js').Layer} Layer */
+/**
+ * A scene is graphical representation of an environment. It manages the scene hierarchy, all
+ * graphical objects, lights, and scene-wide properties.
+ *
+ * @augments EventHandler
+ */
+declare class Scene extends EventHandler {
+    /**
+     * Create a new Scene instance.
+     *
+     * @param {GraphicsDevice} graphicsDevice - The graphics device used to manage this scene.
+     * @hideconstructor
+     */
+    constructor(graphicsDevice: GraphicsDevice);
+    /**
+     * If enabled, the ambient lighting will be baked into lightmaps. This will be either the
+     * {@link Scene#skybox} if set up, otherwise {@link Scene#ambientLight}. Defaults to false.
+     *
+     * @type {boolean}
+     */
+    ambientBake: boolean;
+    /**
+     * If {@link Scene#ambientBake} is true, this specifies the brightness of ambient occlusion.
+     * Typical range is -1 to 1. Defaults to 0, representing no change to brightness.
+     *
+     * @type {number}
+     */
+    ambientBakeOcclusionBrightness: number;
+    /**
+     * If {@link Scene#ambientBake} is true, this specifies the contrast of ambient occlusion.
+     * Typical range is -1 to 1. Defaults to 0, representing no change to contrast.
+     *
+     * @type {number}
+     */
+    ambientBakeOcclusionContrast: number;
+    /**
+     * The color of the scene's ambient light. Defaults to black (0, 0, 0).
+     *
+     * @type {Color}
+     */
+    ambientLight: Color;
+    /**
+     * The exposure value tweaks the overall brightness of the scene. Defaults to 1.
+     *
+     * @type {number}
+     */
+    exposure: number;
+    /**
+     * The color of the fog (if enabled). Defaults to black (0, 0, 0).
+     *
+     * @type {Color}
+     */
+    fogColor: Color;
+    /**
+     * The density of the fog (if enabled). This property is only valid if the fog property is set
+     * to {@link FOG_EXP} or {@link FOG_EXP2}. Defaults to 0.
+     *
+     * @type {number}
+     */
+    fogDensity: number;
+    /**
+     * The distance from the viewpoint where linear fog reaches its maximum. This property is only
+     * valid if the fog property is set to {@link FOG_LINEAR}. Defaults to 1000.
+     *
+     * @type {number}
+     */
+    fogEnd: number;
+    /**
+     * The distance from the viewpoint where linear fog begins. This property is only valid if the
+     * fog property is set to {@link FOG_LINEAR}. Defaults to 1.
+     *
+     * @type {number}
+     */
+    fogStart: number;
+    /**
+     * The lightmap resolution multiplier. Defaults to 1.
+     *
+     * @type {number}
+     */
+    lightmapSizeMultiplier: number;
+    /**
+     * The maximum lightmap resolution. Defaults to 2048.
+     *
+     * @type {number}
+     */
+    lightmapMaxResolution: number;
+    /**
+     * The lightmap baking mode. Can be:
+     *
+     * - {@link BAKE_COLOR}: single color lightmap
+     * - {@link BAKE_COLORDIR}: single color lightmap + dominant light direction (used for bump or
+     * specular). Only lights with bakeDir=true will be used for generating the dominant light
+     * direction.
+     *
+     * Defaults to {@link BAKE_COLORDIR}.
+     *
+     * @type {number}
+     */
+    lightmapMode: number;
+    /**
+     * Enables bilateral filter on runtime baked color lightmaps, which removes the noise and
+     * banding while preserving the edges. Defaults to false. Note that the filtering takes place
+     * in the image space of the lightmap, and it does not filter across lightmap UV space seams,
+     * often making the seams more visible. It's important to balance the strength of the filter
+     * with number of samples used for lightmap baking to limit the visible artifacts.
+     *
+     * @type {boolean}
+     */
+    lightmapFilterEnabled: boolean;
+    /**
+     * The root entity of the scene, which is usually the only child to the {@link Application}
+     * root entity.
+     *
+     * @type {Entity}
+     */
+    root: Entity;
+    /**
+     * The sky of the scene.
+     *
+     * @type {Sky}
+     * @ignore
+     */
+    sky: Sky;
+    device: any;
+    _gravity: Vec3;
+    /**
+     * @type {LayerComposition}
+     * @private
+     */
+    private _layers;
+    _fog: string;
+    _gammaCorrection: number;
+    _toneMapping: number;
+    /**
+     * The skybox cubemap as set by user (gets used when skyboxMip === 0)
+     *
+     * @type {Texture}
+     * @private
+     */
+    private _skyboxCubeMap;
+    /**
+     * Array of 6 prefiltered lighting data cubemaps.
+     *
+     * @type {Texture[]}
+     * @private
+     */
+    private _prefilteredCubemaps;
+    /**
+     * Environment lighting atlas
+     *
+     * @type {Texture}
+     * @private
+     */
+    private _envAtlas;
+    _internalEnvAtlas: any;
+    _skyboxIntensity: number;
+    _skyboxMip: number;
+    _skyboxRotation: Quat;
+    _skyboxRotationMat3: any;
+    _skyboxRotationMat4: any;
+    _ambientBakeNumSamples: number;
+    _ambientBakeSpherePart: number;
+    _lightmapFilterRange: number;
+    _lightmapFilterSmoothness: number;
+    _clusteredLightingEnabled: boolean;
+    _lightingParams: LightingParams;
+    _stats: {
+        meshInstances: number;
+        lights: number;
+        dynamicLights: number;
+        bakedLights: number;
+        lastStaticPrepareFullTime: number;
+        lastStaticPrepareSearchTime: number;
+        lastStaticPrepareWriteTime: number;
+        lastStaticPrepareTriAabbTime: number;
+        lastStaticPrepareCombineTime: number;
+        updateShadersTime: number;
+    };
+    /**
+     * This flag indicates changes were made to the scene which may require recompilation of
+     * shaders that reference global settings.
+     *
+     * @type {boolean}
+     * @ignore
+     */
+    updateShaders: boolean;
+    _shaderVersion: number;
+    _statsUpdated: boolean;
+    immediate: Immediate;
+    /**
+     * Fired when the skybox is set.
+     *
+     * @event Scene#set:skybox
+     * @param {Texture} usedTex - Previously used cubemap texture. New is in the {@link Scene#skybox}.
+     */
+    /**
+     * Fired when the layer composition is set. Use this event to add callbacks or advanced
+     * properties to your layers.
+     *
+     * @event Scene#set:layers
+     * @param {LayerComposition} oldComp - Previously used {@link LayerComposition}.
+     * @param {LayerComposition} newComp - Newly set {@link LayerComposition}.
+     * @example
+     * this.app.scene.on('set:layers', function (oldComp, newComp) {
+     *     var list = newComp.layerList;
+     *     var layer;
+     *     for (var i = 0; i < list.length; i++) {
+     *         layer = list[i];
+     *         switch (layer.name) {
+     *             case 'MyLayer':
+     *                 layer.onEnable = myOnEnableFunction;
+     *                 layer.onDisable = myOnDisableFunction;
+     *                 break;
+     *             case 'MyOtherLayer':
+     *                 layer.shaderPass = myShaderPass;
+     *                 break;
+     *         }
+     *     }
+     * });
+     */
+    /**
+     * Returns the default layer used by the immediate drawing functions.
+     *
+     * @type {Layer}
+     * @private
+     */
+    private get defaultDrawLayer();
+    /**
+     * If {@link Scene#ambientBake} is true, this specifies the number of samples used to bake the
+     * ambient light into the lightmap. Defaults to 1. Maximum value is 255.
+     *
+     * @type {number}
+     */
+    set ambientBakeNumSamples(arg: number);
+    get ambientBakeNumSamples(): number;
+    /**
+     * If {@link Scene#ambientBake} is true, this specifies a part of the sphere which represents
+     * the source of ambient light. The valid range is 0..1, representing a part of the sphere from
+     * top to the bottom. A value of 0.5 represents the upper hemisphere. A value of 1 represents a
+     * full sphere. Defaults to 0.4, which is a smaller upper hemisphere as this requires fewer
+     * samples to bake.
+     *
+     * @type {number}
+     */
+    set ambientBakeSpherePart(arg: number);
+    get ambientBakeSpherePart(): number;
+    set clusteredLightingEnabled(arg: boolean);
+    get clusteredLightingEnabled(): boolean;
+    /**
+     * List of all active composition mesh instances. Only for backwards compatibility.
+     * TODO: BatchManager is using it - perhaps that could be refactored
+     *
+     * @type {MeshInstance[]}
+     * @private
+     */
+    private set drawCalls(arg);
+    private get drawCalls();
+    /**
+     * The environment lighting atlas.
+     *
+     * @type {Texture}
+     */
+    set envAtlas(arg: Texture);
+    get envAtlas(): Texture;
+    /**
+     * The type of fog used by the scene. Can be:
+     *
+     * - {@link FOG_NONE}
+     * - {@link FOG_LINEAR}
+     * - {@link FOG_EXP}
+     * - {@link FOG_EXP2}
+     *
+     * Defaults to {@link FOG_NONE}.
+     *
+     * @type {string}
+     */
+    set fog(arg: string);
+    get fog(): string;
+    /**
+     * The gamma correction to apply when rendering the scene. Can be:
+     *
+     * - {@link GAMMA_NONE}
+     * - {@link GAMMA_SRGB}
+     *
+     * Defaults to {@link GAMMA_SRGB}.
+     *
+     * @type {number}
+     */
+    set gammaCorrection(arg: number);
+    get gammaCorrection(): number;
+    /**
+     * A {@link LayerComposition} that defines rendering order of this scene.
+     *
+     * @type {LayerComposition}
+     */
+    set layers(arg: LayerComposition);
+    get layers(): LayerComposition;
+    get lighting(): LightingParams;
+    /**
+     * A range parameter of the bilateral filter. It's used when {@link Scene#lightmapFilterEnabled}
+     * is enabled. Larger value applies more widespread blur. This needs to be a positive non-zero
+     * value. Defaults to 10.
+     *
+     * @type {number}
+     */
+    set lightmapFilterRange(arg: number);
+    get lightmapFilterRange(): number;
+    /**
+     * A spatial parameter of the bilateral filter. It's used when {@link Scene#lightmapFilterEnabled}
+     * is enabled. Larger value blurs less similar colors. This needs to be a positive non-zero
+     * value. Defaults to 0.2.
+     *
+     * @type {number}
+     */
+    set lightmapFilterSmoothness(arg: number);
+    get lightmapFilterSmoothness(): number;
+    /**
+     * Set of 6 prefiltered cubemaps.
+     *
+     * @type {Texture[]}
+     */
+    set prefilteredCubemaps(arg: Texture[]);
+    get prefilteredCubemaps(): Texture[];
+    /**
+     * The base cubemap texture used as the scene's skybox, if mip level is 0. Defaults to null.
+     *
+     * @type {Texture}
+     */
+    set skybox(arg: Texture);
+    get skybox(): Texture;
+    /**
+     * Multiplier for skybox intensity. Defaults to 1.
+     *
+     * @type {number}
+     */
+    set skyboxIntensity(arg: number);
+    get skyboxIntensity(): number;
+    /**
+     * The mip level of the skybox to be displayed. Only valid for prefiltered cubemap skyboxes.
+     * Defaults to 0 (base level).
+     *
+     * @type {number}
+     */
+    set skyboxMip(arg: number);
+    get skyboxMip(): number;
+    /**
+     * The rotation of the skybox to be displayed. Defaults to {@link Quat.IDENTITY}.
+     *
+     * @type {Quat}
+     */
+    set skyboxRotation(arg: Quat);
+    get skyboxRotation(): Quat;
+    /**
+     * The tonemapping transform to apply when writing fragments to the frame buffer. Can be:
+     *
+     * - {@link TONEMAP_LINEAR}
+     * - {@link TONEMAP_FILMIC}
+     * - {@link TONEMAP_HEJL}
+     * - {@link TONEMAP_ACES}
+     *
+     * Defaults to {@link TONEMAP_LINEAR}.
+     *
+     * @type {number}
+     */
+    set toneMapping(arg: number);
+    get toneMapping(): number;
+    destroy(): void;
+    drawLine(start: any, end: any, color?: Color, depthTest?: boolean, layer?: Layer): void;
+    drawLines(positions: any, colors: any, depthTest?: boolean, layer?: Layer): void;
+    drawLineArrays(positions: any, colors: any, depthTest?: boolean, layer?: Layer): void;
+    applySettings(settings: any): void;
+    _getSkyboxTex(): Texture;
+    _updateSky(device: any): void;
+    _resetSky(): void;
+    /**
+     * Sets the cubemap for the scene skybox.
+     *
+     * @param {Texture[]} [cubemaps] - An array of cubemaps corresponding to the skybox at
+     * different mip levels. If undefined, scene will remove skybox. Cubemap array should be of
+     * size 7, with the first element (index 0) corresponding to the base cubemap (mip level 0)
+     * with original resolution. Each remaining element (index 1-6) corresponds to a fixed
+     * prefiltered resolution (128x128, 64x64, 32x32, 16x16, 8x8, 4x4).
+     */
+    setSkybox(cubemaps?: Texture[]): void;
+}
+
+
+
+
+
+
 
 
 
@@ -10921,8 +12592,14 @@ declare class MeshInstance {
      * @private
      */
     private _material;
+    /**
+     * An array of shaders used by the mesh instance, indexed by the shader pass constant (SHADER_FORWARD..)
+     *
+     * @type {Array<Shader>}
+     * @ignore
+     */
+    _shader: Array<Shader>;
     _key: number[];
-    _shader: any[];
     isStatic: boolean;
     _staticLightList: any;
     _staticSource: any;
@@ -11041,6 +12718,12 @@ declare class MeshInstance {
     set mesh(arg: Mesh);
     get mesh(): Mesh;
     _aabb: any;
+    /**
+     * Clear the internal shader array.
+     *
+     * @ignore
+     */
+    clearShaders(): void;
     _layer: any;
     /**
      * In some circumstances mesh instances are sorted by a distance calculation to determine their
@@ -11098,6 +12781,18 @@ declare class MeshInstance {
      * (usually world matrices). Pass null to turn off hardware instancing.
      */
     setInstancing(vertexBuffer: VertexBuffer | null): void;
+    /**
+     * Obtain a shader variant required to render the mesh instance within specified pass.
+     *
+     * @param {Scene} scene - The scene.
+     * @param {number} pass - The render pass.
+     * @param {any} staticLightList - List of static lights.
+     * @param {any} sortedLights - Array of arrays of lights.
+     * @param {UniformBufferFormat} viewUniformFormat - THe format of the view uniform buffer.
+     * @param {BindGroupFormat} viewBindGroupFormat - The format of the view bind group.
+     * @ignore
+     */
+    updatePassShader(scene: Scene, pass: number, staticLightList: any, sortedLights: any, viewUniformFormat: UniformBufferFormat, viewBindGroupFormat: BindGroupFormat): void;
     clearParameters(): void;
     getParameters(): {};
     /**
@@ -11143,6 +12838,217 @@ declare class InstancingData {
     /** @type {VertexBuffer|null} */
     vertexBuffer: VertexBuffer | null;
     count: number;
+}
+
+
+
+/**
+ * A material determines how a particular mesh instance is rendered. It specifies the shader and
+ * render state that is set before the mesh instance is submitted to the graphics device.
+ *
+ * @property {number} alphaTest The alpha test reference value to control which fragments are
+ * written to the currently active render target based on alpha value. All fragments with an alpha
+ * value of less than the alphaTest reference value will be discarded. alphaTest defaults to 0 (all
+ * fragments pass).
+ * @property {boolean} alphaToCoverage Enables or disables alpha to coverage (WebGL2 only). When
+ * enabled, and if hardware anti-aliasing is on, limited order-independent transparency can be
+ * achieved. Quality depends on the number of MSAA samples of the current render target.
+ * It can nicely soften edges of otherwise sharp alpha cutouts, but isn't recommended for large
+ * area semi-transparent surfaces. Note, that you don't need to enable blending to make alpha to
+ * coverage work. It will work without it, just like alphaTest.
+ * @property {boolean} alphaWrite If true, the alpha component of fragments generated by the shader
+ * of this material is written to the color buffer of the currently active render target. If false,
+ * the alpha component will not be written. Defaults to true.
+ * @property {number} blendType Controls how primitives are blended when being written to the
+ * currently active render target. Can be:
+ *
+ * - {@link BLEND_SUBTRACTIVE}: Subtract the color of the source fragment from the destination
+ * fragment and write the result to the frame buffer.
+ * - {@link BLEND_ADDITIVE}: Add the color of the source fragment to the destination fragment and
+ * write the result to the frame buffer.
+ * - {@link BLEND_NORMAL}: Enable simple translucency for materials such as glass. This is
+ * equivalent to enabling a source blend mode of {@link BLENDMODE_SRC_ALPHA} and a destination
+ * blend mode of {@link BLENDMODE_ONE_MINUS_SRC_ALPHA}.
+ * - {@link BLEND_NONE}: Disable blending.
+ * - {@link BLEND_PREMULTIPLIED}: Similar to {@link BLEND_NORMAL} expect the source fragment is
+ * assumed to have already been multiplied by the source alpha value.
+ * - {@link BLEND_MULTIPLICATIVE}: Multiply the color of the source fragment by the color of the
+ * destination fragment and write the result to the frame buffer.
+ * - {@link BLEND_ADDITIVEALPHA}: Same as {@link BLEND_ADDITIVE} except the source RGB is
+ * multiplied by the source alpha.
+ * - {@link BLEND_MULTIPLICATIVE2X}: Multiplies colors and doubles the result.
+ * - {@link BLEND_SCREEN}: Softer version of additive.
+ * - {@link BLEND_MIN}: Minimum color. Check app.graphicsDevice.extBlendMinmax for support.
+ * - {@link BLEND_MAX}: Maximum color. Check app.graphicsDevice.extBlendMinmax for support.
+ *
+ * Defaults to {@link BLEND_NONE}.
+ * @property {boolean} blueWrite If true, the blue component of fragments generated by the shader
+ * of this material is written to the color buffer of the currently active render target. If false,
+ * the blue component will not be written. Defaults to true.
+ * @property {number} cull Controls how triangles are culled based on their face direction with
+ * respect to the viewpoint. Can be:
+ *
+ * - {@link CULLFACE_NONE}: Do not cull triangles based on face direction.
+ * - {@link CULLFACE_BACK}: Cull the back faces of triangles (do not render triangles facing away
+ * from the view point).
+ * - {@link CULLFACE_FRONT}: Cull the front faces of triangles (do not render triangles facing
+ * towards the view point).
+ * - {@link CULLFACE_FRONTANDBACK}: Cull both front and back faces (triangles will not be
+ * rendered).
+ *
+ * Defaults to {@link CULLFACE_BACK}.
+ * @property {boolean} depthTest If true, fragments generated by the shader of this material are
+ * only written to the current render target if they pass the depth test. If false, fragments
+ * generated by the shader of this material are written to the current render target regardless of
+ * what is in the depth buffer. Defaults to true.
+ * @property {number} depthFunc Controls how the depth of new fragments is compared against the
+ * current depth contained in the depth buffer. Can be:
+ *
+ * - {@link FUNC_NEVER}: don't draw
+ * - {@link FUNC_LESS}: draw if new depth < depth buffer
+ * - {@link FUNC_EQUAL}: draw if new depth == depth buffer
+ * - {@link FUNC_LESSEQUAL}: draw if new depth <= depth buffer
+ * - {@link FUNC_GREATER}: draw if new depth > depth buffer
+ * - {@link FUNC_NOTEQUAL}: draw if new depth != depth buffer
+ * - {@link FUNC_GREATEREQUAL}: draw if new depth >= depth buffer
+ * - {@link FUNC_ALWAYS}: always draw
+ *
+ * Defaults to {@link FUNC_LESSEQUAL}.
+ * @property {boolean} depthWrite If true, fragments generated by the shader of this material write
+ * a depth value to the depth buffer of the currently active render target. If false, no depth
+ * value is written. Defaults to true.
+ * @property {boolean} greenWrite If true, the green component of fragments generated by the shader
+ * of this material is written to the color buffer of the currently active render target. If false,
+ * the green component will not be written. Defaults to true.
+ * @property {string} name The name of the material.
+ * @property {boolean} redWrite If true, the red component of fragments generated by the shader of
+ * this material is written to the color buffer of the currently active render target. If false,
+ * the red component will not be written. Defaults to true.
+ * @property {Shader|null} shader The shader used by this material to render mesh instances
+ * (default is null).
+ * @property {StencilParameters|null} stencilFront Stencil parameters for front faces (default is
+ * null).
+ * @property {StencilParameters|null} stencilBack Stencil parameters for back faces (default is
+ * null).
+ * @property {number} depthBias Offsets the output depth buffer value. Useful for decals to prevent
+ * z-fighting.
+ * @property {number} slopeDepthBias Same as {@link Material#depthBias}, but also depends on the
+ * slope of the triangle relative to the camera.
+ */
+declare class Material {
+    /**
+     * A shader used to render the material. Note that this is used only by materials where the user
+     * specifies the shader. Most material types generate multiple shader variants, and do not set this.
+     *
+     * @type {Shader}
+     * @private
+     */
+    private _shader;
+    /**
+     * The mesh instances referencing this material
+     *
+     * @type {MeshInstance[]}
+     * @private
+     */
+    private meshInstances;
+    name: string;
+    id: number;
+    variants: {};
+    parameters: {};
+    alphaTest: number;
+    alphaToCoverage: boolean;
+    blend: boolean;
+    blendSrc: number;
+    blendDst: number;
+    blendEquation: number;
+    separateAlphaBlend: boolean;
+    blendSrcAlpha: number;
+    blendDstAlpha: number;
+    blendAlphaEquation: number;
+    cull: number;
+    depthTest: boolean;
+    depthFunc: number;
+    depthWrite: boolean;
+    stencilFront: any;
+    stencilBack: any;
+    depthBias: number;
+    slopeDepthBias: number;
+    redWrite: boolean;
+    greenWrite: boolean;
+    blueWrite: boolean;
+    alphaWrite: boolean;
+    _shaderVersion: number;
+    _scene: any;
+    _dirtyBlend: boolean;
+    dirty: boolean;
+    set shader(arg: Shader);
+    get shader(): Shader;
+    get transparent(): boolean;
+    set blendType(arg: number);
+    get blendType(): number;
+    /**
+     * Copy a material.
+     *
+     * @param {Material} source - The material to copy.
+     * @returns {Material} The destination material.
+     */
+    copy(source: Material): Material;
+    /**
+     * Clone a material.
+     *
+     * @returns {this} A newly cloned material.
+     */
+    clone(): this;
+    _updateMeshInstanceKeys(): void;
+    updateUniforms(device: any, scene: any): void;
+    getShaderVariant(device: any, scene: any, objDefs: any, staticLightList: any, pass: any, sortedLights: any, viewUniformFormat: any, viewBindGroupFormat: any): any;
+    /**
+     * Applies any changes made to the material's properties.
+     */
+    update(): void;
+    clearParameters(): void;
+    getParameters(): {};
+    clearVariants(): void;
+    /**
+     * Retrieves the specified shader parameter from a material.
+     *
+     * @param {string} name - The name of the parameter to query.
+     * @returns {object} The named parameter.
+     */
+    getParameter(name: string): object;
+    /**
+     * Sets a shader parameter on a material.
+     *
+     * @param {string} name - The name of the parameter to set.
+     * @param {number|number[]|Float32Array|Texture} data - The value for the specified parameter.
+     */
+    setParameter(name: string, data: number | number[] | Float32Array | Texture): void;
+    /**
+     * Deletes a shader parameter on a material.
+     *
+     * @param {string} name - The name of the parameter to delete.
+     */
+    deleteParameter(name: string): void;
+    setParameters(device: any, names: any): void;
+    /**
+     * Removes this material from the scene and possibly frees up memory from its shaders (if there
+     * are no other materials using it).
+     */
+    destroy(): void;
+    /**
+     * Registers mesh instance as referencing the material.
+     *
+     * @param {MeshInstance} meshInstance - The mesh instance to de-register.
+     * @ignore
+     */
+    addMeshInstanceRef(meshInstance: MeshInstance): void;
+    /**
+     * De-registers mesh instance as referencing the material.
+     *
+     * @param {MeshInstance} meshInstance - The mesh instance to de-register.
+     * @ignore
+     */
+    removeMeshInstanceRef(meshInstance: MeshInstance): void;
 }
 
 
@@ -11426,6 +13332,36 @@ declare class SpriteAnimationClip extends EventHandler {
     _paused: boolean;
     _time: number;
     /**
+     * Fired when the clip starts playing.
+     *
+     * @event SpriteAnimationClip#play
+     */
+    /**
+     * Fired when the clip is paused.
+     *
+     * @event SpriteAnimationClip#pause
+     */
+    /**
+     * Fired when the clip is resumed.
+     *
+     * @event SpriteAnimationClip#resume
+     */
+    /**
+     * Fired when the clip is stopped.
+     *
+     * @event SpriteAnimationClip#stop
+     */
+    /**
+     * Fired when the clip stops playing because it reached its ending.
+     *
+     * @event SpriteAnimationClip#end
+     */
+    /**
+     * Fired when the clip reached the end of its current loop.
+     *
+     * @event SpriteAnimationClip#loop
+     */
+    /**
      * The total duration of the animation in seconds.
      *
      * @type {number}
@@ -11544,7 +13480,7 @@ declare class SpriteComponent extends Component {
     /**
      * Dictionary of sprite animation clips.
      *
-     * @type {Object.<string, SpriteAnimationClip>}
+     * @type {Object<string, SpriteAnimationClip>}
      * @private
      */
     private _clips;
@@ -11556,6 +13492,42 @@ declare class SpriteComponent extends Component {
      * @private
      */
     private _currentClip;
+    /**
+     * Fired when an animation clip starts playing.
+     *
+     * @event SpriteComponent#play
+     * @param {SpriteAnimationClip} clip - The clip that started playing.
+     */
+    /**
+     * Fired when an animation clip is paused.
+     *
+     * @event SpriteComponent#pause
+     * @param {SpriteAnimationClip} clip - The clip that was paused.
+     */
+    /**
+     * Fired when an animation clip is resumed.
+     *
+     * @event SpriteComponent#resume
+     * @param {SpriteAnimationClip} clip - The clip that was resumed.
+     */
+    /**
+     * Fired when an animation clip is stopped.
+     *
+     * @event SpriteComponent#stop
+     * @param {SpriteAnimationClip} clip - The clip that was stopped.
+     */
+    /**
+     * Fired when an animation clip stops playing because it reached its ending.
+     *
+     * @event SpriteComponent#end
+     * @param {SpriteAnimationClip} clip - The clip that ended.
+     */
+    /**
+     * Fired when an animation clip reached the end of its current loop.
+     *
+     * @event SpriteComponent#loop
+     * @param {SpriteAnimationClip} clip - The clip.
+     */
     /**
      * The type of the SpriteComponent. Can be:
      *
@@ -11610,7 +13582,7 @@ declare class SpriteComponent extends Component {
     /**
      * A dictionary that contains {@link SpriteAnimationClip}s.
      *
-     * @type {Object.<string, SpriteAnimationClip>}
+     * @type {Object<string, SpriteAnimationClip>}
      */
     set clips(arg: {
         [x: string]: SpriteAnimationClip;
@@ -12020,6 +13992,31 @@ declare class SoundInstance extends EventHandler {
     /** @private */
     private _timeUpdateHandler;
     /**
+     * Fired when the instance starts playing its source.
+     *
+     * @event SoundInstance#play
+     */
+    /**
+     * Fired when the instance is paused.
+     *
+     * @event SoundInstance#pause
+     */
+    /**
+     * Fired when the instance is resumed.
+     *
+     * @event SoundInstance#resume
+     */
+    /**
+     * Fired when the instance is stopped.
+     *
+     * @event SoundInstance#stop
+     */
+    /**
+     * Fired when the sound currently played by the instance ends.
+     *
+     * @event SoundInstance#end
+     */
+    /**
      * Gets or sets the current time of the sound that is playing. If the value provided is bigger
      * than the duration of the instance it will wrap from the beginning.
      *
@@ -12277,6 +14274,36 @@ declare class SoundSlot extends EventHandler {
     _onInstanceStopHandler: any;
     _onInstanceEndHandler: any;
     /**
+     * Fired when a sound instance starts playing.
+     *
+     * @event SoundSlot#play
+     * @param {SoundInstance} instance - The instance that started playing.
+     */
+    /**
+     * Fired when a sound instance is paused.
+     *
+     * @event SoundSlot#pause
+     * @param {SoundInstance} instance - The instance that was paused created to play the sound.
+     */
+    /**
+     * Fired when a sound instance is resumed.
+     *
+     * @event SoundSlot#resume
+     * @param {SoundInstance} instance - The instance that was resumed.
+     */
+    /**
+     * Fired when a sound instance is stopped.
+     *
+     * @event SoundSlot#stop
+     * @param {SoundInstance} instance - The instance that was stopped.
+     */
+    /**
+     * Fired when the asset assigned to the slot is loaded.
+     *
+     * @event SoundSlot#load
+     * @param {Sound} sound - The sound resource that was loaded.
+     */
+    /**
      * Plays a sound. If {@link SoundSlot#overlap} is true the new sound instance will be played
      * independently of any other instances already playing. Otherwise existing sound instances
      * will stop before playing the new sound.
@@ -12479,12 +14506,47 @@ declare class SoundComponent extends Component {
     /** @private */
     private _distanceModel;
     /**
-     * @type {Object.<string, SoundSlot>}
+     * @type {Object<string, SoundSlot>}
      * @private
      */
     private _slots;
     /** @private */
     private _playingBeforeDisable;
+    /**
+     * Fired when a sound instance starts playing.
+     *
+     * @event SoundComponent#play
+     * @param {SoundSlot} slot - The slot whose instance started playing.
+     * @param {SoundInstance} instance - The instance that started playing.
+     */
+    /**
+     * Fired when a sound instance is paused.
+     *
+     * @event SoundComponent#pause
+     * @param {SoundSlot} slot - The slot whose instance was paused.
+     * @param {SoundInstance} instance - The instance that was paused created to play the sound.
+     */
+    /**
+     * Fired when a sound instance is resumed.
+     *
+     * @event SoundComponent#resume
+     * @param {SoundSlot} slot - The slot whose instance was resumed.
+     * @param {SoundInstance} instance - The instance that was resumed.
+     */
+    /**
+     * Fired when a sound instance is stopped.
+     *
+     * @event SoundComponent#stop
+     * @param {SoundSlot} slot - The slot whose instance was stopped.
+     * @param {SoundInstance} instance - The instance that was stopped.
+     */
+    /**
+     * Fired when a sound instance stops playing because it reached its ending.
+     *
+     * @event SoundComponent#end
+     * @param {SoundSlot} slot - The slot whose instance ended.
+     * @param {SoundInstance} instance - The instance that ended.
+     */
     /**
      * Update the specified property on all sound instances.
      *
@@ -12557,7 +14619,7 @@ declare class SoundComponent extends Component {
     /**
      * A dictionary that contains the {@link SoundSlot}s managed by this SoundComponent.
      *
-     * @type {Object.<string, SoundSlot>}
+     * @type {Object<string, SoundSlot>}
      */
     set slots(arg: {
         [x: string]: SoundSlot;
@@ -12822,9 +14884,11 @@ declare class EntityReference extends EventHandler {
      * entity reference.
      * @param {string} entityPropertyName - The name of the component property that contains the
      * entity guid.
-     * @param {object<string, Function>} [eventConfig] - A map of event listener configurations.
+     * @param {Object<string, Function>} [eventConfig] - A map of event listener configurations.
      */
-    constructor(parentComponent: Component, entityPropertyName: string, eventConfig: any);
+    constructor(parentComponent: Component, entityPropertyName: string, eventConfig?: {
+        [x: string]: Function;
+    });
     _parentComponent: Component;
     _entityPropertyName: string;
     _entity: Entity;
@@ -12892,13 +14956,13 @@ declare class ElementComponentData {
 
 declare class StandardMaterialOptionsBuilder {
     _mapXForms: any[];
-    updateMinRef(options: any, device: any, scene: any, stdMat: any, objDefs: any, staticLightList: any, pass: any, sortedLights: any): void;
-    updateRef(options: any, device: any, scene: any, stdMat: any, objDefs: any, staticLightList: any, pass: any, sortedLights: any): void;
+    updateMinRef(options: any, scene: any, stdMat: any, objDefs: any, staticLightList: any, pass: any, sortedLights: any): void;
+    updateRef(options: any, scene: any, stdMat: any, objDefs: any, staticLightList: any, pass: any, sortedLights: any): void;
     _updateSharedOptions(options: any, scene: any, stdMat: any, objDefs: any, pass: any): void;
     _updateUVOptions(options: any, stdMat: any, objDefs: any, minimalOptions: any): void;
     _updateMinOptions(options: any, stdMat: any): void;
     _updateMaterialOptions(options: any, stdMat: any): void;
-    _updateEnvOptions(options: any, device: any, stdMat: any, scene: any): void;
+    _updateEnvOptions(options: any, stdMat: any, scene: any): void;
     _updateLightOptions(options: any, stdMat: any, objDefs: any, sortedLights: any, staticLightList: any): void;
     _updateTexOptions(options: any, stdMat: any, p: any, hasUv0: any, hasUv1: any, hasVcolor: any, minimalOptions: any): void;
     _collectLights(lType: any, lights: any, lightsFiltered: any, mask: any, staticLightList: any): void;
@@ -12987,6 +15051,14 @@ export type UpdateShaderCallback = (options: any) => any;
  * are specularTint are set, they'll be multiplied by vertex colors.
  * @property {string} specularVertexColorChannel Vertex color channels to use for specular. Can be
  * "r", "g", "b", "a", "rgb" or any swizzled combination.
+ * @property {number} specularityFactor The factor of specular intensity, used to weight the fresnel and specularity. Default is 1.0.
+ * @property {Texture|null} specularityFactorMap The factor of specularity as a texture (default is null).
+ * @property {number} specularityMapUv Specularity factor map UV channel.
+ * @property {Vec2} specularityMapTiling Controls the 2D tiling of the specularity factor map.
+ * @property {Vec2} specularityMapOffset Controls the 2D offset of the specularity factor map. Each component is
+ * between 0 and 1.
+ * @property {number} specularityMapRotation Controls the 2D rotation (in degrees) of the specularity factor map.
+ * @property {string} specularityFactorMapChannel The channel used by the specularity factor texture to sample from (default is 'a').
  * @property {boolean} enableGGXSpecular Enables GGX specular. Also enables
  * {@link StandardMaterial#anisotropy}  parameter to set material anisotropy.
  * @property {number} anisotropy Defines amount of anisotropy. Requires
@@ -13048,6 +15120,8 @@ export type UpdateShaderCallback = (options: any) => any;
  * alternative to specular color to save space. With metaless == 0, the pixel is assumed to be
  * dielectric, and diffuse color is used as normal. With metaless == 1, the pixel is fully
  * metallic, and diffuse color is used as specular color instead.
+ * @property {boolean} useMetalnessSpecularColor When metalness is enabled, use the specular map to apply color tint to specular reflections
+ * at direct angles.
  * @property {number} metalness Defines how much the surface is metallic. From 0 (dielectric) to 1
  * (metal).
  * @property {Texture|null} metalnessMap Monochrome metalness map (default is null).
@@ -13082,6 +15156,15 @@ export type UpdateShaderCallback = (options: any) => any;
  * "r", "g", "b" or "a".
  * @property {number} refraction Defines the visibility of refraction. Material can refract the
  * same cube map as used for reflections.
+ * @property {Texture|null} refractionMap The map of the refraction visibility.
+ * @property {number} refractionMapUv Refraction map UV channel.
+ * @property {Vec2} refractionMapTiling Controls the 2D tiling of the refraction map.
+ * @property {Vec2} refractionMapOffset Controls the 2D offset of the refraction map. Each component is
+ * between 0 and 1.
+ * @property {number} refractionMapRotation Controls the 2D rotation (in degrees) of the emissive
+ * map.
+ * @property {string} refractionMapChannel Color channels of the refraction map to use. Can be "r",
+ * "g", "b", "a", "rgb" or any swizzled combination.
  * @property {number} refractionIndex Defines the index of refraction, i.e. The amount of
  * distortion. The value is calculated as (outerIor / surfaceIor), where inputs are measured
  * indices of refraction, the one around the object and the one of its own surface. In most
@@ -13165,11 +15248,12 @@ export type UpdateShaderCallback = (options: any) => any;
  * @property {number} heightMapRotation Controls the 2D rotation (in degrees) of the height map.
  * @property {number} heightMapFactor Height map multiplier. Affects the strength of the parallax
  * effect.
- * @property {Texture|null} sphereMap The spherical environment map of the material (default is
- * null). Affects reflections.
+ * @property {Texture|null} envAtlas The prefiltered environment lighting atlas (default is null).
+ * This setting overrides cubeMap and sphereMap and will replace the scene lighting environment.
  * @property {Texture|null} cubeMap The cubic environment map of the material (default is null).
- * Overrides sphereMap. Affects reflections. If cubemap is prefiltered, will also affect ambient
- * color.
+ * This setting overrides sphereMap and will replace the scene lighting environment.
+ * @property {Texture|null} sphereMap The spherical environment map of the material (default is
+ * null). This will replace the scene lighting environment.
  * @property {number} cubeMapProjection The type of projection applied to the cubeMap property:
  * - {@link CUBEPROJ_NONE}: The cube map is treated as if it is infinitely far away.
  * - {@link CUBEPROJ_BOX}: Box-projection based on a world space axis-aligned bounding box.
@@ -13215,8 +15299,6 @@ export type UpdateShaderCallback = (options: any) => any;
  * @property {number} occludeSpecularIntensity Controls visibility of specular occlusion.
  * @property {boolean} occludeDirect Tells if AO should darken directional lighting. Defaults to
  * false.
- * @property {boolean} specularAntialias Enables Toksvig AA for mipmapped normal maps with
- * specular.
  * @property {boolean} conserveEnergy Defines how diffuse and specular components are combined when
  * Fresnel is on. It is recommended that you leave this option enabled, although you may want to
  * disable it in case when all reflection comes only from a few light sources, and you don't use an
@@ -13264,7 +15346,6 @@ export type UpdateShaderCallback = (options: any) => any;
  * - toneMap: the type of tone mapping being applied in the shader. See {@link Scene#toneMapping}
  * for the list of possible values.
  * - ambientTint: the value of {@link StandardMaterial#ambientTint}.
- * - specularAntialias: the value of {@link StandardMaterial#specularAntialias}.
  * - conserveEnergy: the value of {@link StandardMaterial#conserveEnergy}.
  * - occludeSpecular: the value of {@link StandardMaterial#occludeSpecular}.
  * - occludeDirect: the value of {@link StandardMaterial#occludeDirect}.
@@ -13296,16 +15377,8 @@ export type UpdateShaderCallback = (options: any) => any;
  * ambient on certain platform (mostly Android) for performance reasons.
  * - useSpecular: if any specular or reflections are needed at all.
  * - fixSeams: if cubemaps require seam fixing (see {@link Texture#options.fixCubemapSeams}).
- * - emissiveFormat: how emissiveMap must be sampled. This value is based on
- * {@link Texture#options.rgbm} and {@link Texture#options.format}. Possible values are:
- *   - 0: sRGB texture
- *   - 1: RGBM-encoded HDR texture
- *   - 2: Simple read (no conversion from sRGB)
- * - lightMapFormat: how lightMap must be sampled. This value is based on
- * {@link Texture#options.rgbm} and {@link Texture#options.format}. Possible values are:
- *   - 0: sRGB texture
- *   - 1: RGBM-encoded HDR texture
- *   - 2: Simple read (no conversion from sRGB)
+ * - emissiveEncoding: how emissiveMap is encoded. This value is based on Texture#encoding.
+ * - lightMapEncoding: how lightMap is encoded. This value is based on on Texture#encoding.
  * - useRgbm: if decodeRGBM() function is needed in the shader at all.
  * - packedNormal: if normal map contains X in RGB, Y in Alpha, and Z must be reconstructed.
  * - forceFragmentPrecision: Override fragment shader numeric precision. Can be "lowp", "mediump",
@@ -13740,9 +15813,6 @@ declare class StandardMaterial extends Material {
     set specular(arg: Color);
     get specular(): Color;
 
-    set specularAntialias(arg: boolean);
-    get specularAntialias(): boolean;
-
     set specularMap(arg: Texture|null);
     get specularMap(): Texture|null;
 
@@ -13770,6 +15840,27 @@ declare class StandardMaterial extends Material {
     set specularVertexColorChannel(arg: string);
     get specularVertexColorChannel(): string;
 
+    set specularityFactor(arg: number);
+    get specularityFactor(): number;
+
+    set specularityFactorMap(arg: Texture|null);
+    get specularityFactorMap(): Texture|null;
+
+    set specularityFactorMapChannel(arg: string);
+    get specularityFactorMapChannel(): string;
+
+    set specularityFactorMapOffset(arg: Vec2);
+    get specularityFactorMapOffset(): Vec2;
+
+    set specularityFactorMapRotation(arg: number);
+    get specularityFactorMapRotation(): number;
+
+    set specularityFactorMapTiling(arg: Vec2);
+    get specularityFactorMapTiling(): Vec2;
+
+    set specularityFactorMapUv(arg: number);
+    get specularityFactorMapUv(): number;
+
     set sphereMap(arg: Texture|null);
     get sphereMap(): Texture|null;
 
@@ -13792,15 +15883,17 @@ declare class StandardMaterial extends Material {
     get useSkybox(): boolean;
 
     /**
-     * @type {Object.<string, string>}
+     * @type {Object<string, string>}
      * @private
      */
     private _chunks;
     _uniformCache: {};
+    set shader(arg: any);
+    get shader(): any;
     /**
      * Object containing custom shader chunks that will replace default ones.
      *
-     * @type {Object.<string, string>}
+     * @type {Object<string, string>}
      */
     set chunks(arg: {
         [x: string]: string;
@@ -13849,15 +15942,12 @@ declare class ElementComponentSystem extends ComponentSystem {
     defaultScreenSpaceImageMask9SlicedMaterial: StandardMaterial;
     defaultScreenSpaceImageMask9TiledMaterial: StandardMaterial;
     defaultScreenSpaceImageMaskMaterial: StandardMaterial;
-    defaultTextMaterial: StandardMaterial;
-    defaultBitmapTextMaterial: StandardMaterial;
-    defaultScreenSpaceTextMaterial: StandardMaterial;
-    defaultScreenSpaceBitmapTextMaterial: StandardMaterial;
+    _defaultTextMaterials: {};
     defaultImageMaterials: any[];
     initializeComponentData(component: any, data: any, properties: any): void;
     onRemoveComponent(entity: any, component: any): void;
     cloneComponent(entity: any, clone: any): Component;
-    getTextElementMaterial(screenSpace: any, msdf: any): StandardMaterial;
+    getTextElementMaterial(screenSpace: any, msdf: any, textAttibutes: any): any;
     _createBaseImageMaterial(): StandardMaterial;
     getImageElementMaterial(screenSpace: any, mask: any, nineSliced: any, nineSliceTiled: any): StandardMaterial;
     registerUnicodeConverter(func: any): void;
@@ -14200,7 +16290,11 @@ declare class TextElement {
     _text: string;
     _symbols: any[];
     _colorPalette: any[];
+    _outlinePalette: any[];
+    _shadowPalette: any[];
     _symbolColors: any[];
+    _symbolOutlineParams: any[];
+    _symbolShadowParams: any[];
     _i18nKey: any;
     _fontAsset: LocalizedAsset;
     _font: any;
@@ -14265,6 +16359,9 @@ declare class TextElement {
     _removeMeshInstance(meshInstance: any): void;
     _setMaterial(material: any): void;
     _updateMaterial(screenSpace: any): void;
+    _updateMaterialEmissive(): void;
+    _updateMaterialOutline(): void;
+    _updateMaterialShadow(): void;
     _isWordBoundary(char: any): boolean;
     _isValidNextChar(nextchar: any): boolean;
     _isNextCJKBoundary(char: any, nextchar: any): boolean;
@@ -14339,6 +16436,8 @@ declare class TextElement {
     get enableMarkup(): boolean;
     get symbols(): any[];
     get symbolColors(): any[];
+    get symbolOutlineParams(): any[];
+    get symbolShadowParams(): any[];
     get rtl(): boolean;
     set rangeStart(arg: number);
     get rangeStart(): number;
@@ -14443,7 +16542,22 @@ declare class TextElement {
  * @property {Vec2} alignment The horizontal and vertical alignment of the text. Values range from
  * 0 to 1 where [0,0] is the bottom left and [1,1] is the top right.  Only works for
  * {@link ELEMENTTYPE_TEXT} types.
- * @property {string} text The text to render. Only works for {@link ELEMENTTYPE_TEXT} types.
+ * @property {string} text The text to render. Only works for {@link ELEMENTTYPE_TEXT} types. To
+ * override certain text styling properties on a per-character basis, the text can optionally
+ * include markup tags contained within square brackets. Supported tags are:
+ *
+ * - `color` - override the element's `color` property. Examples:
+ *   - `[color="#ff0000"]red text[/color]`
+ *   - `[color="#00ff00"]green text[/color]`
+ *   - `[color="#0000ff"]blue text[/color]`
+ * - `outline` - override the element's `outlineColor` and `outlineThickness` properties. Example:
+ *   - `[outline color="#ffffff" thickness="0.5"]text[/outline]`
+ * - `shadow` - override the element's `shadowColor` and `shadowOffset` properties. Examples:
+ *   - `[shadow color="#ffffff" offset="0.5"]text[/shadow]`
+ *   - `[shadow color="#000000" offsetX="0.1" offsetY="0.2"]text[/shadow]`
+ *
+ * Note that markup tags are only processed if the text element's `enableMarkup` property is set to
+ * true.
  * @property {string} key The localization key to use to get the localized text from
  * {@link Application#i18n}. Only works for {@link ELEMENTTYPE_TEXT} types.
  * @property {number} textureAsset The id of the texture asset to render. Only works for
@@ -14470,8 +16584,7 @@ declare class TextElement {
  * @property {boolean} unicodeConverter Convert unicode characters using a function registered by
  * `app.systems.element.registerUnicodeConverter`.
  * @property {boolean} enableMarkup Flag for enabling markup processing. Only works for
- * {@link ELEMENTTYPE_TEXT} types. The only supported tag is `[color]` with a hex color value. e.g.
- * `[color="#ff0000"]red text[/color]`
+ * {@link ELEMENTTYPE_TEXT} types. Defaults to false.
  * @property {number} rangeStart Index of the first character to render. Only works for
  * {@link ELEMENTTYPE_TEXT} types.
  * @property {number} rangeEnd Index of the last character to render. Only works for
@@ -14642,6 +16755,76 @@ declare class ElementComponent extends Component {
     _offsetReadAt: number;
     _maskOffset: number;
     _maskedBy: any;
+    /**
+     * Fired when the mouse is pressed while the cursor is on the component. Only fired when
+     * useInput is true.
+     *
+     * @event ElementComponent#mousedown
+     * @param {ElementMouseEvent} event - The event.
+     */
+    /**
+     * Fired when the mouse is released while the cursor is on the component. Only fired when
+     * useInput is true.
+     *
+     * @event ElementComponent#mouseup
+     * @param {ElementMouseEvent} event - The event.
+     */
+    /**
+     * Fired when the mouse cursor enters the component. Only fired when useInput is true.
+     *
+     * @event ElementComponent#mouseenter
+     * @param {ElementMouseEvent} event - The event.
+     */
+    /**
+     * Fired when the mouse cursor leaves the component. Only fired when useInput is true.
+     *
+     * @event ElementComponent#mouseleave
+     * @param {ElementMouseEvent} event - The event.
+     */
+    /**
+     * Fired when the mouse cursor is moved on the component. Only fired when useInput is true.
+     *
+     * @event ElementComponent#mousemove
+     * @param {ElementMouseEvent} event - The event.
+     */
+    /**
+     * Fired when the mouse wheel is scrolled on the component. Only fired when useInput is true.
+     *
+     * @event ElementComponent#mousewheel
+     * @param {ElementMouseEvent} event - The event.
+     */
+    /**
+     * Fired when the mouse is pressed and released on the component or when a touch starts and
+     * ends on the component. Only fired when useInput is true.
+     *
+     * @event ElementComponent#click
+     * @param {ElementMouseEvent|ElementTouchEvent} event - The event.
+     */
+    /**
+     * Fired when a touch starts on the component. Only fired when useInput is true.
+     *
+     * @event ElementComponent#touchstart
+     * @param {ElementTouchEvent} event - The event.
+     */
+    /**
+     * Fired when a touch ends on the component. Only fired when useInput is true.
+     *
+     * @event ElementComponent#touchend
+     * @param {ElementTouchEvent} event - The event.
+     */
+    /**
+     * Fired when a touch moves after it started touching the component. Only fired when useInput
+     * is true.
+     *
+     * @event ElementComponent#touchmove
+     * @param {ElementTouchEvent} event - The event.
+     */
+    /**
+     * Fired when a touch is canceled on the component. Only fired when useInput is true.
+     *
+     * @event ElementComponent#touchcancel
+     * @param {ElementTouchEvent} event - The event.
+     */
     get _absLeft(): number;
     get _absRight(): number;
     get _absTop(): number;
@@ -14915,6 +17098,22 @@ declare class ElementDragHelper extends EventHandler {
     _deltaMousePosition: Vec3;
     _deltaHandlePosition: Vec3;
     _isDragging: boolean;
+    /**
+     * Fired when a new drag operation starts.
+     *
+     * @event ElementDragHelper#drag:start
+     */
+    /**
+     * Fired when the current new drag operation ends.
+     *
+     * @event ElementDragHelper#drag:end
+     */
+    /**
+     * Fired whenever the position of the dragged element changes.
+     *
+     * @event ElementDragHelper#drag:move
+     * @param {Vec3} value - The current position.
+     */
     _toggleLifecycleListeners(onOrOff: any): void;
     _toggleDragListeners(onOrOff: any): void;
     _handleMouseUpOrTouchEnd: any;
@@ -15032,8 +17231,23 @@ declare class ScrollViewComponent extends Component {
     _dragStartPosition: Vec3;
     _disabledContentInput: boolean;
     _disabledContentInputEntities: any[];
-    _toggleLifecycleListeners(onOrOff: any, system: any): void;
-    _toggleElementListeners(onOrOff: any): void;
+    /**
+     * Fired whenever the scroll position changes.
+     *
+     * @event ScrollViewComponent#set:scroll
+     * @param {Vec2} scrollPosition - Horizontal and vertical scroll values in the range 0...1.
+     */
+    /**
+     * @param {string} onOrOff - 'on' or 'off'.
+     * @param {ScrollViewComponentSystem} system - The ComponentSystem that created this Component.
+     * @private
+     */
+    private _toggleLifecycleListeners;
+    /**
+     * @param {string} onOrOff - 'on' or 'off'.
+     * @private
+     */
+    private _toggleElementListeners;
     _hasElementListeners: boolean;
     _onElementComponentAdd(entity: any): void;
     _onElementComponentRemove(entity: any): void;
@@ -15155,7 +17369,17 @@ declare class ScrollbarComponent extends Component {
     get orientation(): number;
 
     _handleReference: EntityReference;
-    _toggleLifecycleListeners(onOrOff: any): void;
+    /**
+     * Fired whenever the scroll value changes.
+     *
+     * @event ScrollbarComponent#set:value
+     * @param {number} value - The current scroll value.
+     */
+    /**
+     * @param {string} onOrOff - 'on' or 'off'.
+     * @private
+     */
+    private _toggleLifecycleListeners;
     _onHandleElementGain(): void;
     _handleDragHelper: ElementDragHelper;
     _onHandleElementLose(): void;
@@ -15183,6 +17407,95 @@ declare class ScrollbarComponent extends Component {
 
 declare class ScriptComponentData {
     enabled: boolean;
+}
+
+/**
+ * Helper class used to hold an array of items in a specific order. This array is safe to modify
+ * while we loop through it. The class assumes that it holds objects that need to be sorted based
+ * on one of their fields.
+ *
+ * @ignore
+ */
+declare class SortedLoopArray {
+    /**
+     * Create a new SortedLoopArray instance.
+     *
+     * @param {object} args - Arguments.
+     * @param {string} args.sortBy - The name of the field that each element in the array is going
+     * to be sorted by.
+     * @example
+     * var array = new pc.SortedLoopArray({ sortBy: 'priority' });
+     * array.insert(item); // adds item to the right slot based on item.priority
+     * array.append(item); // adds item to the end of the array
+     * array.remove(item); // removes item from array
+     * for (array.loopIndex = 0; array.loopIndex < array.length; array.loopIndex++) {
+     *   // do things with array elements
+     *   // safe to remove and add elements into the array while looping
+     * }
+     */
+    constructor(args: {
+        sortBy: string;
+    });
+    /**
+     * The internal array that holds the actual array elements.
+     *
+     * @type {object[]}
+     */
+    items: object[];
+    /**
+     * The number of elements in the array.
+     *
+     * @type {number}
+     */
+    length: number;
+    /**
+     * The current index used to loop through the array. This gets modified if we add or remove
+     * elements from the array while looping. See the example to see how to loop through this
+     * array.
+     *
+     * @type {number}
+     */
+    loopIndex: number;
+    _sortBy: string;
+    _sortHandler: any;
+    /**
+     * Searches for the right spot to insert the specified item.
+     *
+     * @param {object} item - The item.
+     * @returns {number} The index where to insert the item.
+     * @private
+     */
+    private _binarySearch;
+    _doSort(a: any, b: any): number;
+    /**
+     * Inserts the specified item into the array at the right index based on the 'sortBy' field
+     * passed into the constructor. This also adjusts the loopIndex accordingly.
+     *
+     * @param {object} item - The item to insert.
+     */
+    insert(item: object): void;
+    /**
+     * Appends the specified item to the end of the array. Faster than insert() as it does not
+     * binary search for the right index. This also adjusts the loopIndex accordingly.
+     *
+     * @param {object} item - The item to append.
+     */
+    append(item: object): void;
+    /**
+     * Removes the specified item from the array.
+     *
+     * @param {object} item - The item to remove.
+     */
+    remove(item: object): void;
+    /**
+     * Sorts elements in the array based on the 'sortBy' field passed into the constructor. This
+     * also updates the loopIndex if we are currently looping.
+     *
+     * WARNING: Be careful if you are sorting while iterating because if after sorting the array
+     * element that you are currently processing is moved behind other elements then you might end
+     * up iterating over elements more than once!
+     */
+    sort(): void;
 }
 
 /**
@@ -15494,6 +17807,94 @@ declare class ScriptType extends EventHandler {
      */
     private __executionOrder;
     /**
+     * Fired when a script instance becomes enabled.
+     *
+     * @event ScriptType#enable
+     * @example
+     * PlayerController.prototype.initialize = function () {
+     *     this.on('enable', function () {
+     *         // Script Instance is now enabled
+     *     });
+     * };
+     */
+    /**
+     * Fired when a script instance becomes disabled.
+     *
+     * @event ScriptType#disable
+     * @example
+     * PlayerController.prototype.initialize = function () {
+     *     this.on('disable', function () {
+     *         // Script Instance is now disabled
+     *     });
+     * };
+     */
+    /**
+     * Fired when a script instance changes state to enabled or disabled.
+     *
+     * @event ScriptType#state
+     * @param {boolean} enabled - True if now enabled, False if disabled.
+     * @example
+     * PlayerController.prototype.initialize = function () {
+     *     this.on('state', function (enabled) {
+     *         console.log('Script Instance is now ' + (enabled ? 'enabled' : 'disabled'));
+     *     });
+     * };
+     */
+    /**
+     * Fired when a script instance is destroyed and removed from component.
+     *
+     * @event ScriptType#destroy
+     * @example
+     * PlayerController.prototype.initialize = function () {
+     *     this.on('destroy', function () {
+     *         // no more part of an entity
+     *         // good place to cleanup entity from destroyed script
+     *     });
+     * };
+     */
+    /**
+     * Fired when any script attribute has been changed.
+     *
+     * @event ScriptType#attr
+     * @param {string} name - Name of attribute.
+     * @param {object} value - New value.
+     * @param {object} valueOld - Old value.
+     * @example
+     * PlayerController.prototype.initialize = function () {
+     *     this.on('attr', function (name, value, valueOld) {
+     *         console.log(name + ' been changed from ' + valueOld + ' to ' + value);
+     *     });
+     * };
+     */
+    /**
+     * Fired when a specific script attribute has been changed.
+     *
+     * @event ScriptType#attr:[name]
+     * @param {object} value - New value.
+     * @param {object} valueOld - Old value.
+     * @example
+     * PlayerController.prototype.initialize = function () {
+     *     this.on('attr:speed', function (value, valueOld) {
+     *         console.log('speed been changed from ' + valueOld + ' to ' + value);
+     *     });
+     * };
+     */
+    /**
+     * Fired when a script instance had an exception. The script instance will be automatically
+     * disabled.
+     *
+     * @event ScriptType#error
+     * @param {Error} err - Native JavaScript Error object with details of error.
+     * @param {string} method - The method of the script instance that the exception originated from.
+     * @example
+     * PlayerController.prototype.initialize = function () {
+     *     this.on('error', function (err, method) {
+     *         // caught an exception
+     *         console.log(err.stack);
+     *     });
+     * };
+     */
+    /**
      * True if the instance of this type is in running state. False when script is not running,
      * because the Entity or any of its parents are disabled or the {@link ScriptComponent} is
      * disabled or the Script Instance is disabled. When disabled no update methods will be called
@@ -15537,7 +17938,7 @@ declare class ScriptType extends EventHandler {
      */
     private initScriptType;
     /**
-     * @param {boolean} force - Set to true to force initialization of the attributes.
+     * @param {boolean} [force] - Set to true to force initialization of the attributes.
      * @private
      */
     private __initializeAttributes;
@@ -15585,8 +17986,125 @@ declare class ScriptComponent extends Component {
     _beingEnabled: boolean;
     _isLoopingThroughScripts: boolean;
     _executionOrder: number;
-    set enabled(arg: boolean);
-    get enabled(): boolean;
+    /**
+     * Fired when Component becomes enabled. Note: this event does not take in account entity or
+     * any of its parent enabled state.
+     *
+     * @event ScriptComponent#enable
+     * @example
+     * entity.script.on('enable', function () {
+     *     // component is enabled
+     * });
+     */
+    /**
+     * Fired when Component becomes disabled. Note: this event does not take in account entity or
+     * any of its parent enabled state.
+     *
+     * @event ScriptComponent#disable
+     * @example
+     * entity.script.on('disable', function () {
+     *     // component is disabled
+     * });
+     */
+    /**
+     * Fired when Component changes state to enabled or disabled. Note: this event does not take in
+     * account entity or any of its parent enabled state.
+     *
+     * @event ScriptComponent#state
+     * @param {boolean} enabled - True if now enabled, False if disabled.
+     * @example
+     * entity.script.on('state', function (enabled) {
+     *     // component changed state
+     * });
+     */
+    /**
+     * Fired when Component is removed from entity.
+     *
+     * @event ScriptComponent#remove
+     * @example
+     * entity.script.on('remove', function () {
+     *     // entity has no more script component
+     * });
+     */
+    /**
+     * Fired when a script instance is created and attached to component.
+     *
+     * @event ScriptComponent#create
+     * @param {string} name - The name of the Script Type.
+     * @param {ScriptType} scriptInstance - The instance of the {@link ScriptType} that has been created.
+     * @example
+     * entity.script.on('create', function (name, scriptInstance) {
+     *     // new script instance added to component
+     * });
+     */
+    /**
+     * Fired when a script instance is created and attached to component.
+     *
+     * @event ScriptComponent#create:[name]
+     * @param {ScriptType} scriptInstance - The instance of the {@link ScriptType} that has been created.
+     * @example
+     * entity.script.on('create:playerController', function (scriptInstance) {
+     *     // new script instance 'playerController' is added to component
+     * });
+     */
+    /**
+     * Fired when a script instance is destroyed and removed from component.
+     *
+     * @event ScriptComponent#destroy
+     * @param {string} name - The name of the Script Type.
+     * @param {ScriptType} scriptInstance - The instance of the {@link ScriptType} that has been destroyed.
+     * @example
+     * entity.script.on('destroy', function (name, scriptInstance) {
+     *     // script instance has been destroyed and removed from component
+     * });
+     */
+    /**
+     * Fired when a script instance is destroyed and removed from component.
+     *
+     * @event ScriptComponent#destroy:[name]
+     * @param {ScriptType} scriptInstance - The instance of the {@link ScriptType} that has been destroyed.
+     * @example
+     * entity.script.on('destroy:playerController', function (scriptInstance) {
+     *     // script instance 'playerController' has been destroyed and removed from component
+     * });
+     */
+    /**
+     * Fired when a script instance is moved in component.
+     *
+     * @event ScriptComponent#move
+     * @param {string} name - The name of the Script Type.
+     * @param {ScriptType} scriptInstance - The instance of the {@link ScriptType} that has been moved.
+     * @param {number} ind - New position index.
+     * @param {number} indOld - Old position index.
+     * @example
+     * entity.script.on('move', function (name, scriptInstance, ind, indOld) {
+     *     // script instance has been moved in component
+     * });
+     */
+    /**
+     * Fired when a script instance is moved in component.
+     *
+     * @event ScriptComponent#move:[name]
+     * @param {ScriptType} scriptInstance - The instance of the {@link ScriptType} that has been moved.
+     * @param {number} ind - New position index.
+     * @param {number} indOld - Old position index.
+     * @example
+     * entity.script.on('move:playerController', function (scriptInstance, ind, indOld) {
+     *     // script instance 'playerController' has been moved in component
+     * });
+     */
+    /**
+     * Fired when a script instance had an exception.
+     *
+     * @event ScriptComponent#error
+     * @param {ScriptType} scriptInstance - The instance of the {@link ScriptType} that raised the exception.
+     * @param {Error} err - Native JS Error object with details of an error.
+     * @param {string} method - The method of the script instance that the exception originated from.
+     * @example
+     * entity.script.on('error', function (scriptInstance, err, method) {
+     *     // script instance caught an exception
+     * });
+     */
     /**
      * An array of all script instances attached to an entity. This array is read-only and should
      * not be modified by developer.
@@ -15595,6 +18113,8 @@ declare class ScriptComponent extends Component {
      */
     set scripts(arg: ScriptType[]);
     get scripts(): ScriptType[];
+    set enabled(arg: boolean);
+    get enabled(): boolean;
     _beginLooping(): boolean;
     _endLooping(wasLoopingBefore: any): void;
     _onSetEnabled(prop: any, old: any, value: any): void;
@@ -15718,6 +18238,63 @@ declare class ScreenComponentData {
 }
 
 /**
+ * A ordered list-type data structure that can provide item look up by key and can also return a list.
+ *
+ * @ignore
+ */
+declare class IndexedList {
+    /**
+     * @type {object[]}
+     * @private
+     */
+    private _list;
+    /**
+     * @type {Object<string, number>}
+     * @private
+     */
+    private _index;
+    /**
+     * Add a new item into the list with a index key.
+     *
+     * @param {string} key -  Key used to look up item in index.
+     * @param {object} item - Item to be stored.
+     */
+    push(key: string, item: object): void;
+    /**
+     * Test whether a key has been added to the index.
+     *
+     * @param {string} key - The key to test.
+     * @returns {boolean} Returns true if key is in the index, false if not.
+     */
+    has(key: string): boolean;
+    /**
+     * Return the item indexed by a key.
+     *
+     * @param {string} key - The key of the item to retrieve.
+     * @returns {object|null} The item stored at key. Returns null if key is not in the index.
+     */
+    get(key: string): object | null;
+    /**
+     * Remove the item indexed by key from the list.
+     *
+     * @param {string} key - The key at which to remove the item.
+     * @returns {boolean} Returns true if the key exists and an item was removed, returns false if
+     * no item was removed.
+     */
+    remove(key: string): boolean;
+    /**
+     * Returns the list of items.
+     *
+     * @returns {object[]} The list of items.
+     */
+    list(): object[];
+    /**
+     * Remove all items from the list.
+     */
+    clear(): void;
+}
+
+/**
  * Manages creation of {@link ScreenComponent}s.
  *
  * @augments ComponentSystem
@@ -15827,14 +18404,14 @@ declare class ScreenComponent extends Component {
     set scaleBlend(arg: number);
     get scaleBlend(): number;
     /**
-     * Priority determines the order in which screens components are rendered. Priority is set into
-     * the top 8 bits of the drawOrder property in an element.
+     * Priority determines the order in which Screen components in the same layer are rendered.
+     * Number must be an integer between 0 and 255. Priority is set into the top 8 bits of the
+     * drawOrder property in an element.
      *
      * @type {number}
-     * @private
      */
-    private set priority(arg);
-    private get priority();
+    set priority(arg: number);
+    get priority(): number;
 }
 
 declare class RigidBodyComponentData {
@@ -16057,6 +18634,17 @@ declare class RigidBodyComponentSystem extends ComponentSystem {
     schema: string[];
     collisions: {};
     frameCollisions: {};
+    /**
+     * Fired when a contact occurs between two rigid bodies.
+     *
+     * @event RigidBodyComponentSystem#contact
+     * @param {SingleContactResult} result - Details of the contact between the two bodies.
+     */
+    /**
+     * Called once Ammo has been loaded. Responsible for creating the physics world.
+     *
+     * @ignore
+     */
     onLibraryLoaded(): void;
     collisionConfiguration: any;
     dispatcher: any;
@@ -16233,6 +18821,36 @@ declare class SingleContactResult {
  * @augments Component
  */
 declare class RigidBodyComponent extends Component {
+    /**
+     * Fired when a contact occurs between two rigid bodies.
+     *
+     * @event RigidBodyComponent#contact
+     * @param {ContactResult} result - Details of the contact between the two rigid bodies.
+     */
+    /**
+     * Fired when two rigid bodies start touching.
+     *
+     * @event RigidBodyComponent#collisionstart
+     * @param {ContactResult} result - Details of the contact between the two rigid bodies.
+     */
+    /**
+     * Fired when two rigid bodies stop touching.
+     *
+     * @event RigidBodyComponent#collisionend
+     * @param {Entity} other - The {@link Entity} that stopped touching this rigid body.
+     */
+    /**
+     * Fired when a rigid body enters a trigger volume.
+     *
+     * @event RigidBodyComponent#triggerenter
+     * @param {Entity} other - The {@link Entity} with trigger volume that this rigid body entered.
+     */
+    /**
+     * Fired when a rigid body exits a trigger volume.
+     *
+     * @event RigidBodyComponent#triggerleave
+     * @param {Entity} other - The {@link Entity} with trigger volume that this rigid body exited.
+     */
     static onLibraryLoaded(): void;
     /**
      * Create a new RigidBodyComponent instance.
@@ -17064,9 +19682,9 @@ declare class Curve {
     /**
      * Returns a clone of the specified curve object.
      *
-     * @returns {Curve} A clone of the specified curve.
+     * @returns {this} A clone of the specified curve.
      */
-    clone(): Curve;
+    clone(): this;
     /**
      * Sample the curve at regular intervals over the range [0..1].
      *
@@ -17160,9 +19778,9 @@ declare class CurveSet {
     /**
      * Returns a clone of the specified curve set object.
      *
-     * @returns {CurveSet} A clone of the specified curve set.
+     * @returns {this} A clone of the specified curve set.
      */
-    clone(): CurveSet;
+    clone(): this;
     /**
      * Sample the curveset at regular intervals over the range [0..1].
      *
@@ -17828,1416 +20446,6 @@ declare class ModelComponentSystem extends ComponentSystem {
     onRemove(entity: any, component: any): void;
 }
 
-/**
- * A light.
- *
- * @ignore
- */
-declare class Light {
-    constructor(graphicsDevice: any);
-    device: any;
-    id: number;
-    _type: number;
-    _color: Color;
-    _intensity: number;
-    _castShadows: boolean;
-    _enabled: boolean;
-    mask: number;
-    isStatic: boolean;
-    key: number;
-    bakeDir: boolean;
-    bakeNumSamples: number;
-    bakeArea: number;
-    attenuationStart: number;
-    attenuationEnd: number;
-    _falloffMode: number;
-    _shadowType: number;
-    _vsmBlurSize: number;
-    vsmBlurMode: number;
-    vsmBias: number;
-    _cookie: any;
-    cookieIntensity: number;
-    _cookieFalloff: boolean;
-    _cookieChannel: string;
-    _cookieTransform: any;
-    _cookieTransformUniform: Float32Array;
-    _cookieOffset: any;
-    _cookieOffsetUniform: Float32Array;
-    _cookieTransformSet: boolean;
-    _cookieOffsetSet: boolean;
-    _innerConeAngle: number;
-    _outerConeAngle: number;
-    cascades: any;
-    _shadowMatrixPalette: Float32Array;
-    _shadowCascadeDistances: Float32Array;
-    set numCascades(arg: any);
-    get numCascades(): any;
-    cascadeDistribution: number;
-    _shape: number;
-    _finalColor: Float32Array;
-    _linearFinalColor: Float32Array;
-    _position: Vec3;
-    _direction: Vec3;
-    _innerConeAngleCos: number;
-    _outerConeAngleCos: number;
-    _shadowMap: any;
-    _shadowRenderParams: any[];
-    shadowDistance: number;
-    _shadowResolution: number;
-    shadowBias: number;
-    _normalOffsetBias: number;
-    shadowUpdateMode: number;
-    _isVsm: boolean;
-    _isPcf: boolean;
-    _cookieMatrix: Mat4;
-    _atlasViewport: Vec4;
-    atlasViewportAllocated: boolean;
-    atlasVersion: number;
-    atlasSlotIndex: number;
-    atlasSlotUpdated: boolean;
-    _scene: any;
-    _node: any;
-    _renderData: any[];
-    visibleThisFrame: boolean;
-    maxScreenSize: number;
-    destroy(): void;
-    set shadowMap(arg: any);
-    get shadowMap(): any;
-    get numShadowFaces(): any;
-    set type(arg: number);
-    get type(): number;
-    set shadowType(arg: number);
-    get shadowType(): number;
-    set shape(arg: number);
-    get shape(): number;
-    set enabled(arg: boolean);
-    get enabled(): boolean;
-    set castShadows(arg: boolean);
-    get castShadows(): boolean;
-    set shadowResolution(arg: number);
-    get shadowResolution(): number;
-    set vsmBlurSize(arg: number);
-    get vsmBlurSize(): number;
-    set normalOffsetBias(arg: number);
-    get normalOffsetBias(): number;
-    set falloffMode(arg: number);
-    get falloffMode(): number;
-    set innerConeAngle(arg: number);
-    get innerConeAngle(): number;
-    set outerConeAngle(arg: number);
-    get outerConeAngle(): number;
-    set intensity(arg: number);
-    get intensity(): number;
-    get cookieMatrix(): Mat4;
-    get atlasViewport(): Vec4;
-    set cookie(arg: any);
-    get cookie(): any;
-    set cookieFalloff(arg: boolean);
-    get cookieFalloff(): boolean;
-    set cookieChannel(arg: string);
-    get cookieChannel(): string;
-    set cookieTransform(arg: any);
-    get cookieTransform(): any;
-    set cookieOffset(arg: any);
-    get cookieOffset(): any;
-    beginFrame(): void;
-    _destroyShadowMap(): void;
-    getRenderData(camera: any, face: any): any;
-    /**
-     * Duplicates a light node but does not 'deep copy' the hierarchy.
-     *
-     * @returns {Light} A cloned Light.
-     */
-    clone(): Light;
-    _getUniformBiasValues(lightRenderData: any): {
-        bias: number;
-        normalBias: number;
-    };
-    getColor(): Color;
-    getBoundingSphere(sphere: any): void;
-    getBoundingBox(box: any): void;
-    _updateFinalColor(): void;
-    setColor(...args: any[]): void;
-    updateShadow(): void;
-    layersDirty(): void;
-    updateKey(): void;
-}
-
-declare class LightComponentData {
-}
-
-/**
- * A Light Component is used to dynamically light the scene.
- *
- * @augments ComponentSystem
- */
-declare class LightComponentSystem extends ComponentSystem {
-    id: string;
-    ComponentType: typeof LightComponent;
-    DataType: typeof LightComponentData;
-    initializeComponentData(component: any, _data: any): void;
-    _onRemoveComponent(entity: any, component: any): void;
-    cloneComponent(entity: any, clone: any): Component;
-    changeType(component: any, oldValue: any, newValue: any): void;
-}
-
-
-
-
-/**
- * The Light Component enables the Entity to light the scene. There are three types of light:
- * directional, omni and spot. Directional lights are global in that they are considered to be
- * infinitely far away and light the entire scene. Omni and spot lights are local in that they have
- * a position and a range. A spot light is a specialization of an omni light where light is emitted
- * in a cone rather than in all directions. Lights also have the ability to cast shadows to add
- * realism to your scenes.
- *
- * ```javascript
- * // Add a pc.LightComponent to an entity
- * var entity = new pc.Entity();
- * entity.addComponent('light', {
- *     type: "omni",
- *     color: new pc.Color(1, 0, 0),
- *     range: 10
- * });
- *
- * // Get the pc.LightComponent on an entity
- * var lightComponent = entity.light;
- *
- * // Update a property on a light component
- * entity.light.range = 20;
- * ```
- *
- * @property {string} type The type of light. Can be:
- *
- * - "directional": A light that is infinitely far away and lights the entire scene from one
- * direction.
- * - "omni": An omni-directional light that illuminates in all directions from the light source.
- * - "spot": An omni-directional light but is bounded by a cone.
- *
- * Defaults to "directional".
- * @property {Color} color The Color of the light. The alpha component of the color is ignored.
- * Defaults to white (1, 1, 1).
- * @property {number} intensity The brightness of the light. Defaults to 1.
- * @property {number} shape The light source shape. Can be:
- *
- * - {@link pc.LIGHTSHAPE_PUNCTUAL}: Infinitesimally small point.
- * - {@link pc.LIGHTSHAPE_RECT}: Rectangle shape.
- * - {@link pc.LIGHTSHAPE_DISK}: Disk shape.
- * - {@link pc.LIGHTSHAPE_SPHERE}: Sphere shape.
- *
- * Defaults to pc.LIGHTSHAPE_PUNCTUAL.
- * @property {boolean} castShadows If enabled the light will cast shadows. Defaults to false.
- * @property {number} shadowDistance The distance from the viewpoint beyond which shadows are no
- * longer rendered. Affects directional lights only. Defaults to 40.
- * @property {number} shadowResolution The size of the texture used for the shadow map. Valid sizes
- * are 64, 128, 256, 512, 1024, 2048. Defaults to 1024.
- * @property {number} shadowBias The depth bias for tuning the appearance of the shadow mapping
- * generated by this light. Valid range is 0 to 1. Defaults to 0.05.
- * @property {number} numCascades Number of shadow cascades. Can be 1, 2, 3 or 4. Defaults to 1,
- * representing no cascades.
- * @property {number} cascadeDistribution The distribution of subdivision of the camera frustum for
- * individual shadow cascades. Only used if {@link LightComponent#numCascades} is larger than 1.
- * Can be a value in range of 0 and 1. Value of 0 represents a linear distribution, value of 1
- * represents a logarithmic distribution. Defaults to 0.5. Larger value increases the resolution of
- * the shadows in the near distance.
- * @property {number} normalOffsetBias Normal offset depth bias. Valid range is 0 to 1. Defaults to
- * 0.
- * @property {number} range The range of the light. Affects omni and spot lights only. Defaults to
- * 10.
- * @property {number} innerConeAngle The angle at which the spotlight cone starts to fade off. The
- * angle is specified in degrees. Affects spot lights only. Defaults to 40.
- * @property {number} outerConeAngle The angle at which the spotlight cone has faded to nothing.
- * The angle is specified in degrees. Affects spot lights only. Defaults to 45.
- * @property {number} falloffMode Controls the rate at which a light attenuates from its position.
- * Can be:
- *
- * - {@link LIGHTFALLOFF_LINEAR}: Linear.
- * - {@link LIGHTFALLOFF_INVERSESQUARED}: Inverse squared.
- *
- * Affects omni and spot lights only. Defaults to {@link LIGHTFALLOFF_LINEAR}.
- * @property {number} mask Defines a mask to determine which {@link MeshInstance}s are lit by this
- * light. Defaults to 1.
- * @property {boolean} affectDynamic If enabled the light will affect non-lightmapped objects.
- * @property {boolean} affectLightmapped If enabled the light will affect lightmapped objects.
- * @property {boolean} bake If enabled the light will be rendered into lightmaps.
- * @property {number} bakeNumSamples If bake is true, this specifies the number of samples used to
- * bake this light into the lightmap. Defaults to 1. Maximum value is 255.
- * @property {number} bakeArea If bake is true and the light type is {@link LIGHTTYPE_DIRECTIONAL},
- * this specifies the penumbra angle in degrees, allowing a soft shadow boundary. Defaults to 0.
- * @property {boolean} bakeDir If enabled and bake=true, the light's direction will contribute to
- * directional lightmaps. Be aware, that directional lightmap is an approximation and can only hold
- * single direction per pixel. Intersecting multiple lights with bakeDir=true may lead to incorrect
- * look of specular/bump-mapping in the area of intersection. The error is not always visible
- * though, and highly scene-dependent.
- * @property {number} shadowUpdateMode Tells the renderer how often shadows must be updated for
- * this light. Can be:
- *
- * - {@link SHADOWUPDATE_NONE}: Don't render shadows.
- * - {@link SHADOWUPDATE_THISFRAME}: Render shadows only once (then automatically switches to
- * {@link SHADOWUPDATE_NONE}.
- * - {@link SHADOWUPDATE_REALTIME}: Render shadows every frame (default).
- * @property {number} shadowType Type of shadows being rendered by this light. Options:
- *
- * - {@link SHADOW_PCF3}: Render depth (color-packed on WebGL 1.0), can be used for PCF 3x3
- * sampling.
- * - {@link SHADOW_VSM8}: Render packed variance shadow map. All shadow receivers must also cast
- * shadows for this mode to work correctly.
- * - {@link SHADOW_VSM16}: Render 16-bit exponential variance shadow map. Requires
- * OES_texture_half_float extension. Falls back to {@link SHADOW_VSM8}, if not supported.
- * - {@link SHADOW_VSM32}: Render 32-bit exponential variance shadow map. Requires
- * OES_texture_float extension. Falls back to {@link SHADOW_VSM16}, if not supported.
- * - {@link SHADOW_PCF5}: Render depth buffer only, can be used for hardware-accelerated PCF 5x5
- * sampling. Requires WebGL2. Falls back to {@link SHADOW_PCF3} on WebGL 1.0.
- * @property {number} vsmBlurMode Blurring mode for variance shadow maps. Can be:
- *
- * - {@link BLUR_BOX}: Box filter.
- * - {@link BLUR_GAUSSIAN}: Gaussian filter. May look smoother than box, but requires more samples.
- * @property {number} vsmBlurSize Number of samples used for blurring a variance shadow map. Only
- * uneven numbers work, even are incremented. Minimum value is 1, maximum is 25. Defaults to 11.
- * @property {number} cookieAsset Asset that has texture that will be assigned to cookie internally
- * once asset resource is available.
- * @property {Texture} cookie Projection texture. Must be 2D for spot and cubemap for omni light
- * (ignored if incorrect type is used).
- * @property {number} cookieIntensity Projection texture intensity (default is 1).
- * @property {boolean} cookieFalloff Toggle normal spotlight falloff when projection texture is
- * used. When set to false, spotlight will work like a pure texture projector (only fading with
- * distance). Default is false.
- * @property {string} cookieChannel Color channels of the projection texture to use. Can be "r",
- * "g", "b", "a", "rgb".
- * @property {number} cookieAngle Angle for spotlight cookie rotation.
- * @property {Vec2} cookieScale Spotlight cookie scale.
- * @property {Vec2} cookieOffset Spotlight cookie position offset.
- * @property {boolean} isStatic Mark light as non-movable (optimization).
- * @property {number[]} layers An array of layer IDs ({@link Layer#id}) to which this light should
- * belong. Don't push/pop/splice or modify this array, if you want to change it - set a new one
- * instead.
- * @augments Component
- */
-declare class LightComponent extends Component {
-    /**
-     * Creates a new LightComponent instance.
-     *
-     * @param {LightComponentSystem} system - The ComponentSystem that created this Component.
-     * @param {Entity} entity - The Entity that this Component is attached to.
-     */
-    constructor(system: LightComponentSystem, entity: Entity);
-
-    set affectDynamic(arg: boolean);
-    get affectDynamic(): boolean;
-
-    set affectLightmapped(arg: boolean);
-    get affectLightmapped(): boolean;
-
-    set bake(arg: boolean);
-    get bake(): boolean;
-
-    set bakeArea(arg: number);
-    get bakeArea(): number;
-
-    set bakeDir(arg: boolean);
-    get bakeDir(): boolean;
-
-    set bakeNumSamples(arg: number);
-    get bakeNumSamples(): number;
-
-    set cascadeDistribution(arg: number);
-    get cascadeDistribution(): number;
-
-    set castShadows(arg: boolean);
-    get castShadows(): boolean;
-
-    set color(arg: Color);
-    get color(): Color;
-
-    set cookieAngle(arg: number);
-    get cookieAngle(): number;
-
-    set cookieChannel(arg: string);
-    get cookieChannel(): string;
-
-    set cookieFalloff(arg: boolean);
-    get cookieFalloff(): boolean;
-
-    set cookieIntensity(arg: number);
-    get cookieIntensity(): number;
-
-    set cookieOffset(arg: Vec2);
-    get cookieOffset(): Vec2;
-
-    set cookieScale(arg: Vec2);
-    get cookieScale(): Vec2;
-
-    set falloffMode(arg: number);
-    get falloffMode(): number;
-
-    set innerConeAngle(arg: number);
-    get innerConeAngle(): number;
-
-    set intensity(arg: number);
-    get intensity(): number;
-
-    set isStatic(arg: boolean);
-    get isStatic(): boolean;
-
-    set layers(arg: number[]);
-    get layers(): number[];
-
-    set mask(arg: number);
-    get mask(): number;
-
-    set normalOffsetBias(arg: number);
-    get normalOffsetBias(): number;
-
-    set numCascades(arg: number);
-    get numCascades(): number;
-
-    set outerConeAngle(arg: number);
-    get outerConeAngle(): number;
-
-    set range(arg: number);
-    get range(): number;
-
-    set shadowBias(arg: number);
-    get shadowBias(): number;
-
-    set shadowDistance(arg: number);
-    get shadowDistance(): number;
-
-    set shadowResolution(arg: number);
-    get shadowResolution(): number;
-
-    set shadowType(arg: number);
-    get shadowType(): number;
-
-    set shadowUpdateMode(arg: number);
-    get shadowUpdateMode(): number;
-
-    set shape(arg: number);
-    get shape(): number;
-
-    set type(arg: string);
-    get type(): string;
-
-    set vsmBlurMode(arg: number);
-    get vsmBlurMode(): number;
-
-    set vsmBlurSize(arg: number);
-    get vsmBlurSize(): number;
-
-    _cookieAsset: any;
-    _cookieAssetId: any;
-    _cookieAssetAdd: boolean;
-    _cookieMatrix: any;
-    addLightToLayers(): void;
-    removeLightFromLayers(): void;
-    onLayersChanged(oldComp: any, newComp: any): void;
-    onLayerAdded(layer: any): void;
-    onLayerRemoved(layer: any): void;
-    refreshProperties(): void;
-    updateShadow(): void;
-    onCookieAssetSet(): void;
-    onCookieAssetAdd(asset: any): void;
-    onCookieAssetLoad(): void;
-    cookie: any;
-    onCookieAssetRemove(): void;
-    onRemove(): void;
-    cookieAsset: any;
-}
-
-
-
-
-
-
-/**
- * A Layer represents a renderable subset of the scene. It can contain a list of mesh instances,
- * lights and cameras, their render settings and also defines custom callbacks before, after or
- * during rendering. Layers are organized inside {@link LayerComposition} in a desired order.
- */
-declare class Layer {
-    /**
-     * Create a new Layer instance.
-     *
-     * @param {object} options - Object for passing optional arguments. These arguments are the
-     * same as properties of the Layer.
-     */
-    constructor(options?: object);
-    /**
-     * A unique ID of the layer. Layer IDs are stored inside {@link ModelComponent#layers},
-     * {@link RenderComponent#layers}, {@link CameraComponent#layers},
-     * {@link LightComponent#layers} and {@link ElementComponent#layers} instead of names.
-     * Can be used in {@link LayerComposition#getLayerById}.
-     *
-     * @type {number}
-     */
-    id: number;
-    /**
-     * Name of the layer. Can be used in {@link LayerComposition#getLayerByName}.
-     *
-     * @type {string}
-     */
-    name: string;
-    /**
-     * @type {boolean}
-     * @private
-     */
-    private _enabled;
-    /**
-     * @type {number}
-     * @private
-     */
-    private _refCounter;
-    /**
-     * Defines the method used for sorting opaque (that is, not semi-transparent) mesh
-     * instances before rendering. Can be:
-     *
-     * - {@link SORTMODE_NONE}
-     * - {@link SORTMODE_MANUAL}
-     * - {@link SORTMODE_MATERIALMESH}
-     * - {@link SORTMODE_BACK2FRONT}
-     * - {@link SORTMODE_FRONT2BACK}
-     *
-     * Defaults to {@link SORTMODE_MATERIALMESH}.
-     *
-     * @type {number}
-     */
-    opaqueSortMode: number;
-    /**
-     * Defines the method used for sorting semi-transparent mesh instances before rendering. Can be:
-     *
-     * - {@link SORTMODE_NONE}
-     * - {@link SORTMODE_MANUAL}
-     * - {@link SORTMODE_MATERIALMESH}
-     * - {@link SORTMODE_BACK2FRONT}
-     * - {@link SORTMODE_FRONT2BACK}
-     *
-     * Defaults to {@link SORTMODE_BACK2FRONT}.
-     *
-     * @type {number}
-     */
-    transparentSortMode: number;
-    /**
-     * @type {RenderTarget}
-     * @ignore
-     */
-    set renderTarget(arg: RenderTarget);
-    get renderTarget(): RenderTarget;
-    /**
-     * A type of shader to use during rendering. Possible values are:
-     *
-     * - {@link SHADER_FORWARD}
-     * - {@link SHADER_FORWARDHDR}
-     * - {@link SHADER_DEPTH}
-     * - Your own custom value. Should be in 19 - 31 range. Use {@link StandardMaterial#onUpdateShader}
-     * to apply shader modifications based on this value.
-     *
-     * Defaults to {@link SHADER_FORWARD}.
-     *
-     * @type {number}
-     */
-    shaderPass: number;
-    /**
-     * Tells that this layer is simple and needs to just render a bunch of mesh instances
-     * without lighting, skinning and morphing (faster). Used for UI and Gizmo layers (the
-     * layer doesn't use lights, shadows, culling, etc).
-     *
-     * @type {boolean}
-     */
-    passThrough: boolean;
-    /**
-     * @type {boolean}
-     * @private
-     */
-    private _clearColorBuffer;
-    /**
-     * @type {boolean}
-     * @private
-     */
-    private _clearDepthBuffer;
-    /**
-     * @type {boolean}
-     * @private
-     */
-    private _clearStencilBuffer;
-    /**
-     * Custom function that is called before visibility culling is performed for this layer.
-     * Useful, for example, if you want to modify camera projection while still using the same
-     * camera and make frustum culling work correctly with it (see
-     * {@link CameraComponent#calculateTransform} and {@link CameraComponent#calculateProjection}).
-     * This function will receive camera index as the only argument. You can get the actual
-     * camera being used by looking up {@link LayerComposition#cameras} with this index.
-     *
-     * @type {Function}
-     */
-    onPreCull: Function;
-    /**
-     * Custom function that is called before this layer is rendered. Useful, for example, for
-     * reacting on screen size changes. This function is called before the first occurrence of
-     * this layer in {@link LayerComposition}. It will receive camera index as the only
-     * argument. You can get the actual camera being used by looking up
-     * {@link LayerComposition#cameras} with this index.
-     *
-     * @type {Function}
-     */
-    onPreRender: Function;
-    /**
-     * Custom function that is called before opaque mesh instances (not semi-transparent) in
-     * this layer are rendered. This function will receive camera index as the only argument.
-     * You can get the actual camera being used by looking up {@link LayerComposition#cameras}
-     * with this index.
-     *
-     * @type {Function}
-     */
-    onPreRenderOpaque: Function;
-    /**
-     * Custom function that is called before semi-transparent mesh instances in this layer are
-     * rendered. This function will receive camera index as the only argument. You can get the
-     * actual camera being used by looking up {@link LayerComposition#cameras} with this index.
-     *
-     * @type {Function}
-     */
-    onPreRenderTransparent: Function;
-    /**
-     * Custom function that is called after visibility culling is performed for this layer.
-     * Useful for reverting changes done in {@link Layer#onPreCull} and determining final mesh
-     * instance visibility (see {@link MeshInstance#visibleThisFrame}). This function will
-     * receive camera index as the only argument. You can get the actual camera being used by
-     * looking up {@link LayerComposition#cameras} with this index.
-     *
-     * @type {Function}
-     */
-    onPostCull: Function;
-    /**
-     * Custom function that is called after this layer is rendered. Useful to revert changes
-     * made in {@link Layer#onPreRender}. This function is called after the last occurrence of this
-     * layer in {@link LayerComposition}. It will receive camera index as the only argument.
-     * You can get the actual camera being used by looking up {@link LayerComposition#cameras}
-     * with this index.
-     *
-     * @type {Function}
-     */
-    onPostRender: Function;
-    /**
-     * Custom function that is called after opaque mesh instances (not semi-transparent) in
-     * this layer are rendered. This function will receive camera index as the only argument.
-     * You can get the actual camera being used by looking up {@link LayerComposition#cameras}
-     * with this index.
-     *
-     * @type {Function}
-     */
-    onPostRenderOpaque: Function;
-    /**
-     * Custom function that is called after semi-transparent mesh instances in this layer are
-     * rendered. This function will receive camera index as the only argument. You can get the
-     * actual camera being used by looking up {@link LayerComposition#cameras} with this index.
-     *
-     * @type {Function}
-     */
-    onPostRenderTransparent: Function;
-    /**
-     * Custom function that is called before every mesh instance in this layer is rendered. It
-     * is not recommended to set this function when rendering many objects every frame due to
-     * performance reasons.
-     *
-     * @type {Function}
-     */
-    onDrawCall: Function;
-    /**
-     * Custom function that is called after the layer has been enabled. This happens when:
-     *
-     * - The layer is created with {@link Layer#enabled} set to true (which is the default value).
-     * - {@link Layer#enabled} was changed from false to true
-     * - {@link Layer#incrementCounter} was called and incremented the counter above zero.
-     *
-     * Useful for allocating resources this layer will use (e.g. creating render targets).
-     *
-     * @type {Function}
-     */
-    onEnable: Function;
-    /**
-     * Custom function that is called after the layer has been disabled. This happens when:
-     *
-     * - {@link Layer#enabled} was changed from true to false
-     * - {@link Layer#decrementCounter} was called and set the counter to zero.
-     *
-     * @type {Function}
-     */
-    onDisable: Function;
-    /**
-     * Make this layer render the same mesh instances that another layer does instead of having
-     * its own mesh instance list. Both layers must share cameras. Frustum culling is only
-     * performed for one layer. Useful for rendering multiple passes using different shaders.
-     *
-     * @type {Layer}
-     */
-    layerReference: Layer;
-    /**
-     * @type {InstanceList}
-     * @ignore
-     */
-    instances: InstanceList;
-    /**
-     * Visibility bit mask that interacts with {@link MeshInstance#mask}. Especially useful
-     * when combined with layerReference, allowing for the filtering of some objects, while
-     * sharing their list and culling.
-     *
-     * @type {number}
-     */
-    cullingMask: number;
-    /**
-     * @type {MeshInstance[]}
-     * @ignore
-     */
-    opaqueMeshInstances: MeshInstance[];
-    /**
-     * @type {MeshInstance[]}
-     * @ignore
-     */
-    transparentMeshInstances: MeshInstance[];
-    /**
-     * @type {MeshInstance[]}
-     * @ignore
-     */
-    shadowCasters: MeshInstance[];
-    /**
-     * @type {Function|null}
-     * @ignore
-     */
-    customSortCallback: Function | null;
-    /**
-     * @type {Function|null}
-     * @ignore
-     */
-    customCalculateSortValues: Function | null;
-    /**
-     * @type {Light[]}
-     * @private
-     */
-    private _lights;
-    /**
-     * @type {Set<Light>}
-     * @private
-     */
-    private _lightsSet;
-    /**
-     * Set of light used by clustered lighting (omni and spot, but no directional).
-     *
-     * @type {Set<Light>}
-     * @private
-     */
-    private _clusteredLightsSet;
-    /**
-     * Lights separated by light type.
-     *
-     * @type {Light[][]}
-     * @ignore
-     */
-    _splitLights: Light[][];
-    /**
-     * @type {CameraComponent[]}
-     * @ignore
-     */
-    cameras: CameraComponent[];
-    _dirty: boolean;
-    _dirtyLights: boolean;
-    _dirtyCameras: boolean;
-    _lightHash: number;
-    _staticLightHash: number;
-    _needsStaticPrepare: boolean;
-    _staticPrepareDone: boolean;
-    skipRenderAfter: number;
-    _skipRenderCounter: number;
-    _renderTime: number;
-    _forwardDrawCalls: number;
-    _shadowDrawCalls: number;
-    _shaderVersion: number;
-    /**
-     * @type {Float32Array}
-     * @ignore
-     */
-    _lightCube: Float32Array;
-    /**
-     * @type {RenderTarget}
-     * @private
-     */
-    private _renderTarget;
-    /**
-     * Enable the layer. Disabled layers are skipped. Defaults to true.
-     *
-     * @type {boolean}
-     */
-    set enabled(arg: boolean);
-    get enabled(): boolean;
-    set clearColor(arg: any);
-    get clearColor(): any;
-    /**
-     * If true, the camera will clear the color buffer when it renders this layer.
-     *
-     * @type {boolean}
-     */
-    set clearColorBuffer(arg: boolean);
-    get clearColorBuffer(): boolean;
-    /**
-     * If true, the camera will clear the depth buffer when it renders this layer.
-     *
-     * @type {boolean}
-     */
-    set clearDepthBuffer(arg: boolean);
-    get clearDepthBuffer(): boolean;
-    /**
-     * If true, the camera will clear the stencil buffer when it renders this layer.
-     *
-     * @type {boolean}
-     */
-    set clearStencilBuffer(arg: boolean);
-    get clearStencilBuffer(): boolean;
-    /**
-     * Returns lights used by clustered lighting in a set.
-     *
-     * @type {Set<Light>}
-     * @ignore
-     */
-    get clusteredLightsSet(): Set<Light>;
-    /**
-     * Increments the usage counter of this layer. By default, layers are created with counter set
-     * to 1 (if {@link Layer.enabled} is true) or 0 (if it was false). Incrementing the counter
-     * from 0 to 1 will enable the layer and call {@link Layer.onEnable}. Use this function to
-     * "subscribe" multiple effects to the same layer. For example, if the layer is used to render
-     * a reflection texture which is used by 2 mirrors, then each mirror can call this function
-     * when visible and {@link Layer.decrementCounter} if invisible. In such case the reflection
-     * texture won't be updated, when there is nothing to use it, saving performance.
-     *
-     * @ignore
-     */
-    incrementCounter(): void;
-    /**
-     * Decrements the usage counter of this layer. Decrementing the counter from 1 to 0 will
-     * disable the layer and call {@link Layer.onDisable}. See {@link Layer#incrementCounter} for
-     * more details.
-     *
-     * @ignore
-     */
-    decrementCounter(): void;
-    /**
-     * Adds an array of mesh instances to this layer.
-     *1
-     *
-     * @param {MeshInstance[]} meshInstances - Array of {@link MeshInstance}.
-     * @param {boolean} [skipShadowCasters] - Set it to true if you don't want these mesh instances
-     * to cast shadows in this layer.
-     */
-    addMeshInstances(meshInstances: MeshInstance[], skipShadowCasters?: boolean): void;
-    /**
-     * Internal function to remove a mesh instance from an array.
-     *
-     * @param {MeshInstance} m - Mesh instance to remove.
-     * @param {MeshInstance[]} arr - Array of mesh instances to remove from.
-     * @private
-     */
-    private removeMeshInstanceFromArray;
-    /**
-     * Removes multiple mesh instances from this layer.
-     *
-     * @param {MeshInstance[]} meshInstances - Array of {@link MeshInstance}. If they were added to
-     * this layer, they will be removed.
-     * @param {boolean} [skipShadowCasters] - Set it to true if you want to still cast shadows from
-     * removed mesh instances or if they never did cast shadows before.
-     */
-    removeMeshInstances(meshInstances: MeshInstance[], skipShadowCasters?: boolean): void;
-    /**
-     * Removes all mesh instances from this layer.
-     *
-     * @param {boolean} [skipShadowCasters] - Set it to true if you want to still cast shadows from
-     * removed mesh instances or if they never did cast shadows before.
-     */
-    clearMeshInstances(skipShadowCasters?: boolean): void;
-    /**
-     * Adds a light to this layer.
-     *
-     * @param {LightComponent} light - A {@link LightComponent}.
-     */
-    addLight(light: LightComponent): void;
-    /**
-     * Removes a light from this layer.
-     *
-     * @param {LightComponent} light - A {@link LightComponent}.
-     */
-    removeLight(light: LightComponent): void;
-    /**
-     * Removes all lights from this layer.
-     */
-    clearLights(): void;
-    /**
-     * Adds an array of mesh instances to this layer, but only as shadow casters (they will not be
-     * rendered anywhere, but only cast shadows on other objects).
-     *
-     * @param {MeshInstance[]} meshInstances - Array of {@link MeshInstance}.
-     */
-    addShadowCasters(meshInstances: MeshInstance[]): void;
-    /**
-     * Removes multiple mesh instances from the shadow casters list of this layer, meaning they
-     * will stop casting shadows.
-     *
-     * @param {MeshInstance[]} meshInstances - Array of {@link MeshInstance}. If they were added to
-     * this layer, they will be removed.
-     */
-    removeShadowCasters(meshInstances: MeshInstance[]): void;
-    /** @private */
-    private _generateLightHash;
-    /**
-     * Adds a camera to this layer.
-     *
-     * @param {CameraComponent} camera - A {@link CameraComponent}.
-     */
-    addCamera(camera: CameraComponent): void;
-    /**
-     * Removes a camera from this layer.
-     *
-     * @param {CameraComponent} camera - A {@link CameraComponent}.
-     */
-    removeCamera(camera: CameraComponent): void;
-    /**
-     * Removes all cameras from this layer.
-     */
-    clearCameras(): void;
-    /**
-     * @param {MeshInstance[]} drawCalls - Array of mesh instances.
-     * @param {number} drawCallsCount - Number of mesh instances.
-     * @param {Vec3} camPos - Camera position.
-     * @param {Vec3} camFwd - Camera forward vector.
-     * @private
-     */
-    private _calculateSortDistances;
-    /**
-     * @param {boolean} transparent - True if transparent sorting should be used.
-     * @param {GraphNode} cameraNode - Graph node that the camera is attached to.
-     * @param {number} cameraPass - Camera pass.
-     * @ignore
-     */
-    _sortVisible(transparent: boolean, cameraNode: GraphNode, cameraPass: number): void;
-}
-declare class InstanceList {
-    opaqueMeshInstances: any[];
-    transparentMeshInstances: any[];
-    shadowCasters: any[];
-    visibleOpaque: any[];
-    visibleTransparent: any[];
-    prepare(index: any): void;
-    delete(index: any): void;
-}
-
-
-/** @typedef {import('./graphics-device.js').GraphicsDevice} GraphicsDevice */
-/**
- * @ignore
- */
-declare class BindBufferFormat {
-    constructor(name: any, visibility: any);
-    /** @type {string} */
-    name: string;
-    visibility: any;
-}
-/**
- * @ignore
- */
-declare class BindTextureFormat {
-    constructor(name: any, visibility: any);
-    /** @type {string} */
-    name: string;
-    visibility: any;
-}
-/**
- * @ignore
- */
-declare class BindGroupFormat {
-    /**
-     * @param {GraphicsDevice} graphicsDevice - The graphics device used to manage this vertex format.
-     * @param {BindBufferFormat[]} bufferFormats -
-     * @param {BindTextureFormat[]} textureFormats -
-     */
-    constructor(graphicsDevice: GraphicsDevice, bufferFormats: BindBufferFormat[], textureFormats: BindTextureFormat[]);
-    /** @type {GraphicsDevice} */
-    device: GraphicsDevice;
-    /** @type {BindBufferFormat[]} */
-    bufferFormats: BindBufferFormat[];
-    /** @type Map<string, number> */
-    bufferFormatsMap: Map<string, number>;
-    /** @type {BindTextureFormat[]} */
-    textureFormats: BindTextureFormat[];
-    /** @type Map<string, number> */
-    textureFormatsMap: Map<string, number>;
-    impl: any;
-    /**
-     * Frees resources associated with this bind group.
-     */
-    destroy(): void;
-    loseContext(): void;
-}
-
-
-
-
-/**
- * A bind group represents an collection of {@link UniformBuffer} and {@link Texture} instance,
- * which can be bind on a GPU for rendering.
- *
- * @ignore
- */
-declare class BindGroup {
-    /**
-     * Create a new Bind Group.
-     *
-     * @param {GraphicsDevice} graphicsDevice - The graphics device used to manage this uniform buffer.
-     * @param {BindGroupFormat} format - Format of the bind group.
-     */
-    constructor(graphicsDevice: GraphicsDevice, format: BindGroupFormat);
-    device: GraphicsDevice;
-    format: BindGroupFormat;
-    dirty: boolean;
-    impl: any;
-    textures: any[];
-    uniformBuffers: any[];
-    /**
-     * Assign a uniform buffer to a slot.
-     *
-     * @param {*} name - The name of the uniform buffer slot
-     * @param {*} uniformBuffer - The Uniform buffer to assign to the slot.
-     */
-    setUniformBuffer(name: any, uniformBuffer: any): void;
-    /**
-     * Assign a texture to a slot.
-     *
-     * @param {string} name - The name of the texture slot.
-     * @param {Texture} texture - Texture to assign to the slot.
-     */
-    setTexture(name: string, texture: Texture): void;
-    /**
-     * Frees resources associated with this bind group.
-     */
-    destroy(): void;
-    /**
-     * Applies any changes made to the bind group's properties.
-     */
-    update(): void;
-}
-
-/**
- * A class storing description of an individual uniform, stored inside a uniform buffer.
- *
- * @ignore
- */
-declare class UniformFormat {
-    constructor(name: any, type: any);
-    /** @type {string} */
-    name: string;
-    /** @type {number} */
-    type: number;
-    /** @type {number} */
-    byteSize: number;
-    /**
-     * Index of the uniform in an array of 32bit values (Float32Array and similar)
-     *
-     * @type {number}
-     */
-    offset: number;
-}
-/**
- * A descriptor that defines the layout of of data inside the {@link UniformBuffer}.
- *
- * @ignore
- */
-declare class UniformBufferFormat {
-    /**
-     * Create a new UniformBufferFormat instance.
-     *
-     * @param {UniformFormat[]} uniforms - An array of uniforms to be stored in the buffer
-     */
-    constructor(uniforms: UniformFormat[]);
-    /** @type {number} */
-    byteSize: number;
-    /** @type {Map<string,UniformFormat>} */
-    map: Map<string, UniformFormat>;
-    /** @type {UniformFormat[]} */
-    uniforms: UniformFormat[];
-}
-
-
-
-/** @typedef {import('./graphics-device.js').GraphicsDevice} GraphicsDevice */
-/** @typedef {import('./uniform-buffer-format.js').UniformBufferFormat} UniformBufferFormat */
-/**
- * A uniform buffer represents a GPU memory buffer storing the uniforms.
- *
- * @ignore
- */
-declare class UniformBuffer {
-    /**
-     * Create a new UniformBuffer instance.
-     *
-     * @param {GraphicsDevice} graphicsDevice - The graphics device used to manage this uniform buffer.
-     * @param {UniformBufferFormat} format - Format of the uniform buffer
-     */
-    constructor(graphicsDevice: GraphicsDevice, format: UniformBufferFormat);
-    device: GraphicsDevice;
-    format: UniformBufferFormat;
-    impl: any;
-    storage: ArrayBuffer;
-    storageFloat32: Float32Array;
-    /**
-     * Frees resources associated with this uniform buffer.
-     */
-    destroy(): void;
-    /**
-     * Called when the rendering context was lost. It releases all context related resources.
-     *
-     * @ignore
-     */
-    loseContext(): void;
-    set(name: any, value: any): void;
-    update(): void;
-}
-
-
-
-/** @typedef {import('../../graphics/uniform-buffer.js').UniformBuffer} UniformBuffer */
-/** @typedef {import('../../graphics/bind-group.js').BindGroup} BindGroup */
-declare class RenderAction {
-    layerIndex: number;
-    cameraIndex: number;
-    camera: any;
-    renderTarget: any;
-    lightClusters: any;
-    clearColor: boolean;
-    clearDepth: boolean;
-    clearStencil: boolean;
-    triggerPostprocess: boolean;
-    firstCameraUse: boolean;
-    lastCameraUse: boolean;
-    directionalLightsSet: Set<any>;
-    directionalLights: any[];
-    directionalLightsIndices: any[];
-    /** @type {Array<UniformBuffer>} */
-    viewUniformBuffers: Array<UniformBuffer>;
-    /** @type {Array<BindGroup>} */
-    viewBindGroups: Array<BindGroup>;
-    destroy(): void;
-    get hasDirectionalShadowLights(): boolean;
-    reset(): void;
-    collectDirectionalLights(cameraLayers: any, dirLights: any, allLights: any): void;
-}
-
-declare class LightsBuffer {
-    static FORMAT_FLOAT: number;
-    static FORMAT_8BIT: number;
-    static lightTextureFormat: number;
-    static shaderDefines: string;
-    static initShaderDefines(): void;
-    static buildShaderDefines(object: any, prefix: any): string;
-    static init(device: any): void;
-    static createTexture(device: any, width: any, height: any, format: any, name: any): Texture;
-    constructor(device: any);
-    device: any;
-    cookiesEnabled: boolean;
-    shadowsEnabled: boolean;
-    areaLightsEnabled: boolean;
-    maxLights: number;
-    lights8: Uint8ClampedArray;
-    lightsTexture8: Texture;
-    _lightsTexture8Id: any;
-    lightsFloat: Float32Array;
-    lightsTextureFloat: Texture;
-    _lightsTextureFloatId: any;
-    _lightsTextureInvSizeId: any;
-    _lightsTextureInvSizeData: Float32Array;
-    invMaxColorValue: number;
-    invMaxAttenuation: number;
-    boundsMin: Vec3;
-    boundsDelta: Vec3;
-    destroy(): void;
-    setCompressionRanges(maxAttenuation: any, maxColorValue: any): void;
-    setBounds(min: any, delta: any): void;
-    uploadTextures(): void;
-    updateUniforms(): void;
-    getSpotDirection(direction: any, spot: any): void;
-    getLightAreaSizes(light: any): Float32Array;
-    addLightDataFlags(data8: any, index: any, light: any, isSpot: any, castShadows: any): void;
-    addLightDataColor(data8: any, index: any, light: any, gammaCorrection: any, isCookie: any): void;
-    addLightDataSpotAngles(data8: any, index: any, light: any): void;
-    addLightDataShadowBias(data8: any, index: any, light: any): void;
-    addLightDataPositionRange(data8: any, index: any, light: any, pos: any): void;
-    addLightDataSpotDirection(data8: any, index: any, light: any): void;
-    addLightDataLightProjMatrix(data8: any, index: any, lightProjectionMatrix: any): void;
-    addLightDataCookies(data8: any, index: any, light: any): void;
-    addLightAtlasViewport(data8: any, index: any, atlasViewport: any): void;
-    addLightAreaSizes(data8: any, index: any, light: any): void;
-    addLightData(light: any, lightIndex: any, gammaCorrection: any): void;
-}
-
-declare class WorldClusters {
-    constructor(device: any);
-    device: any;
-    name: string;
-    reportCount: number;
-    boundsMin: Vec3;
-    boundsMax: Vec3;
-    boundsDelta: Vec3;
-    _cells: Vec3;
-    _cellsLimit: Vec3;
-    set cells(arg: Vec3);
-    get cells(): Vec3;
-    _maxCellLightCount: number;
-    _pixelsPerCellCount: number;
-    set maxCellLightCount(arg: number);
-    get maxCellLightCount(): number;
-    _maxAttenuation: number;
-    _maxColorValue: number;
-    _usedLights: ClusterLight[];
-    lightsBuffer: LightsBuffer;
-    _cellsDirty: boolean;
-    destroy(): void;
-    releaseClusterTexture(): void;
-    clusterTexture: Texture;
-    registerUniforms(device: any): void;
-    _clusterWorldTextureId: any;
-    _clusterPixelsPerCellId: any;
-    _clusterTextureSizeId: any;
-    _clusterTextureSizeData: Float32Array;
-    _clusterBoundsMinId: any;
-    _clusterBoundsMinData: Float32Array;
-    _clusterBoundsDeltaId: any;
-    _clusterBoundsDeltaData: Float32Array;
-    _clusterCellsCountByBoundsSizeId: any;
-    _clusterCellsCountByBoundsSizeData: Float32Array;
-    _clusterCellsDotId: any;
-    _clusterCellsDotData: Float32Array;
-    _clusterCellsMaxId: any;
-    _clusterCellsMaxData: Float32Array;
-    _clusterCompressionLimit0Id: any;
-    _clusterCompressionLimit0Data: Float32Array;
-    updateParams(lightingParams: any): void;
-    updateCells(): void;
-    clusters: Uint8ClampedArray;
-    counts: Int32Array;
-    uploadTextures(): void;
-    updateUniforms(): void;
-    evalLightCellMinMax(clusteredLight: any, min: any, max: any): void;
-    collectLights(lights: any): void;
-    evaluateBounds(): void;
-    evaluateCompressionLimits(gammaCorrection: any): void;
-    updateClusters(gammaCorrection: any): void;
-    update(lights: any, gammaCorrection: any, lightingParams: any): void;
-    activate(): void;
-}
-
-declare class ClusterLight {
-    light: any;
-    min: Vec3;
-    max: Vec3;
-}
-
-
-
-/**
- * Layer Composition is a collection of {@link Layer} that is fed to {@link Scene#layers} to define
- * rendering order.
- *
- * @augments EventHandler
- */
-declare class LayerComposition extends EventHandler {
-    /**
-     * Create a new layer composition.
-     *
-     * @param {string} [name] - Optional non-unique name of the layer composition. Defaults to
-     * "Untitled" if not specified.
-     */
-    constructor(name?: string);
-    name: string;
-    logRenderActions: boolean;
-    /**
-     * A read-only array of {@link Layer} sorted in the order they will be rendered.
-     *
-     * @type {Layer[]}
-     */
-    layerList: Layer[];
-    /**
-     * A read-only array of boolean values, matching {@link Layer#layerList}. True means only
-     * semi-transparent objects are rendered, and false means opaque.
-     *
-     * @type {boolean[]}
-     */
-    subLayerList: boolean[];
-    /**
-     * A read-only array of boolean values, matching {@link Layer#layerList}. True means the
-     * layer is rendered, false means it's skipped.
-     *
-     * @type {boolean[]}
-     */
-    subLayerEnabled: boolean[];
-    _opaqueOrder: {};
-    _transparentOrder: {};
-    _dirty: boolean;
-    _dirtyBlend: boolean;
-    _dirtyLights: boolean;
-    _dirtyCameras: boolean;
-    _meshInstances: any[];
-    _meshInstancesSet: Set<any>;
-    _lights: any[];
-    _lightsMap: Map<any, any>;
-    _lightCompositionData: any[];
-    _splitLights: any[][];
-    /**
-     * A read-only array of {@link CameraComponent} that can be used during rendering. e.g.
-     * Inside {@link Layer#onPreCull}, {@link Layer#onPostCull}, {@link Layer#onPreRender},
-     * {@link Layer#onPostRender}.
-     *
-     * @type {CameraComponent[]}
-     */
-    cameras: CameraComponent[];
-    /**
-     * The actual rendering sequence, generated based on layers and cameras
-     *
-     * @type {RenderAction[]}
-     * @ignore
-     */
-    _renderActions: RenderAction[];
-    _worldClusters: any[];
-    _emptyWorldClusters: WorldClusters;
-    destroy(): void;
-    getEmptyWorldClusters(device: any): WorldClusters;
-    _splitLightsArray(target: any): void;
-    _update(device: any, clusteredLightingEnabled?: boolean): number;
-    updateShadowCasters(): void;
-    updateLights(): void;
-    findCompatibleCluster(layer: any, renderActionCount: any): any;
-    allocateLightClusters(device: any): void;
-    addRenderAction(renderActions: any, renderActionIndex: any, layer: any, layerIndex: any, cameraIndex: any, cameraFirstRenderAction: any, postProcessMarked: any): RenderAction;
-    propagateRenderTarget(startIndex: any, fromCamera: any): void;
-    _logRenderActions(): void;
-    _isLayerAdded(layer: any): boolean;
-    _isSublayerAdded(layer: any, transparent: any): boolean;
-    /**
-     * Adds a layer (both opaque and semi-transparent parts) to the end of the {@link Layer#layerList}.
-     *
-     * @param {Layer} layer - A {@link Layer} to add.
-     */
-    push(layer: Layer): void;
-    /**
-     * Inserts a layer (both opaque and semi-transparent parts) at the chosen index in the
-     * {@link Layer#layerList}.
-     *
-     * @param {Layer} layer - A {@link Layer} to add.
-     * @param {number} index - Insertion position.
-     */
-    insert(layer: Layer, index: number): void;
-    /**
-     * Removes a layer (both opaque and semi-transparent parts) from {@link Layer#layerList}.
-     *
-     * @param {Layer} layer - A {@link Layer} to remove.
-     */
-    remove(layer: Layer): void;
-    /**
-     * Adds part of the layer with opaque (non semi-transparent) objects to the end of the
-     * {@link Layer#layerList}.
-     *
-     * @param {Layer} layer - A {@link Layer} to add.
-     */
-    pushOpaque(layer: Layer): void;
-    /**
-     * Inserts an opaque part of the layer (non semi-transparent mesh instances) at the chosen
-     * index in the {@link Layer#layerList}.
-     *
-     * @param {Layer} layer - A {@link Layer} to add.
-     * @param {number} index - Insertion position.
-     */
-    insertOpaque(layer: Layer, index: number): void;
-    /**
-     * Removes an opaque part of the layer (non semi-transparent mesh instances) from
-     * {@link Layer#layerList}.
-     *
-     * @param {Layer} layer - A {@link Layer} to remove.
-     */
-    removeOpaque(layer: Layer): void;
-    /**
-     * Adds part of the layer with semi-transparent objects to the end of the {@link Layer#layerList}.
-     *
-     * @param {Layer} layer - A {@link Layer} to add.
-     */
-    pushTransparent(layer: Layer): void;
-    /**
-     * Inserts a semi-transparent part of the layer at the chosen index in the {@link Layer#layerList}.
-     *
-     * @param {Layer} layer - A {@link Layer} to add.
-     * @param {number} index - Insertion position.
-     */
-    insertTransparent(layer: Layer, index: number): void;
-    /**
-     * Removes a transparent part of the layer from {@link Layer#layerList}.
-     *
-     * @param {Layer} layer - A {@link Layer} to remove.
-     */
-    removeTransparent(layer: Layer): void;
-    _getSublayerIndex(layer: any, transparent: any): number;
-    /**
-     * Gets index of the opaque part of the supplied layer in the {@link Layer#layerList}.
-     *
-     * @param {Layer} layer - A {@link Layer} to find index of.
-     * @returns {number} The index of the opaque part of the specified layer.
-     */
-    getOpaqueIndex(layer: Layer): number;
-    /**
-     * Gets index of the semi-transparent part of the supplied layer in the {@link Layer#layerList}.
-     *
-     * @param {Layer} layer - A {@link Layer} to find index of.
-     * @returns {number} The index of the semi-transparent part of the specified layer.
-     */
-    getTransparentIndex(layer: Layer): number;
-    /**
-     * Finds a layer inside this composition by its ID. Null is returned, if nothing is found.
-     *
-     * @param {number} id - An ID of the layer to find.
-     * @returns {Layer|null} The layer corresponding to the specified ID. Returns null if layer is
-     * not found.
-     */
-    getLayerById(id: number): Layer | null;
-    /**
-     * Finds a layer inside this composition by its name. Null is returned, if nothing is found.
-     *
-     * @param {string} name - The name of the layer to find.
-     * @returns {Layer|null} The layer corresponding to the specified name. Returns null if layer
-     * is not found.
-     */
-    getLayerByName(name: string): Layer | null;
-    _updateOpaqueOrder(startIndex: any, endIndex: any): void;
-    _updateTransparentOrder(startIndex: any, endIndex: any): void;
-    _sortLayersDescending(layersA: any, layersB: any, order: any): number;
-    /**
-     * Used to determine which array of layers has any transparent sublayer that is on top of all
-     * the transparent sublayers in the other array.
-     *
-     * @param {number[]} layersA - IDs of layers.
-     * @param {number[]} layersB - IDs of layers.
-     * @returns {number} Returns a negative number if any of the transparent sublayers in layersA
-     * is on top of all the transparent sublayers in layersB, or a positive number if any of the
-     * transparent sublayers in layersB is on top of all the transparent sublayers in layersA, or 0
-     * otherwise.
-     * @private
-     */
-    private sortTransparentLayers;
-    /**
-     * Used to determine which array of layers has any opaque sublayer that is on top of all the
-     * opaque sublayers in the other array.
-     *
-     * @param {number[]} layersA - IDs of layers.
-     * @param {number[]} layersB - IDs of layers.
-     * @returns {number} Returns a negative number if any of the opaque sublayers in layersA is on
-     * top of all the opaque sublayers in layersB, or a positive number if any of the opaque
-     * sublayers in layersB is on top of all the opaque sublayers in layersA, or 0 otherwise.
-     * @private
-     */
-    private sortOpaqueLayers;
-}
-
 
 
 /** @typedef {import('../../../scene/composition/layer-composition.js').LayerComposition} LayerComposition */
@@ -19275,7 +20483,7 @@ declare class ModelComponent extends Component {
      */
     private _model;
     /**
-     * @type {Object.<string, number>}
+     * @type {Object<string, number>}
      * @private
      */
     private _mapping;
@@ -19402,7 +20610,7 @@ declare class ModelComponent extends Component {
      * components of type 'asset'. The mapping contains pairs of mesh instance index - material
      * asset id.
      *
-     * @type {Object.<string, number>}
+     * @type {Object<string, number>}
      */
     set mapping(arg: {
         [x: string]: number;
@@ -20040,35 +21248,33 @@ declare class CollisionComponent extends Component {
     /** @private */
     private _compoundParent;
     /**
-     * @event
-     * @name CollisionComponent#contact
-     * @description The 'contact' event is fired when a contact occurs between two rigid bodies.
+     * The 'contact' event is fired when a contact occurs between two rigid bodies.
+     *
+     * @event CollisionComponent#contact
      * @param {ContactResult} result - Details of the contact between the two rigid bodies.
      */
     /**
-     * @event
-     * @name CollisionComponent#collisionstart
-     * @description The 'collisionstart' event is fired when two rigid bodies start touching.
+     * Fired when two rigid bodies start touching.
+     *
+     * @event CollisionComponent#collisionstart
      * @param {ContactResult} result - Details of the contact between the two Entities.
      */
     /**
-     * @event
-     * @name CollisionComponent#collisionend
-     * @description The 'collisionend' event is fired two rigid-bodies stop touching.
+     * Fired two rigid-bodies stop touching.
+     *
+     * @event CollisionComponent#collisionend
      * @param {Entity} other - The {@link Entity} that stopped touching this collision volume.
      */
     /**
-     * @event
-     * @name CollisionComponent#triggerenter
-     * @description The 'triggerenter' event is fired when a rigid body enters a trigger volume.
-     * a {@link RigidBodyComponent} attached.
+     * Fired when a rigid body enters a trigger volume.
+     *
+     * @event CollisionComponent#triggerenter
      * @param {Entity} other - The {@link Entity} that entered this collision volume.
      */
     /**
-     * @event
-     * @name CollisionComponent#triggerleave
-     * @description The 'triggerleave' event is fired when a rigid body exits a trigger volume.
-     * a {@link RigidBodyComponent} attached.
+     * Fired when a rigid body exits a trigger volume.
+     *
+     * @event CollisionComponent#triggerleave
      * @param {Entity} other - The {@link Entity} that exited this collision volume.
      */
     /**
@@ -21030,7 +22236,7 @@ declare class AnimationComponent extends Component {
      */
     constructor(system: AnimationComponentSystem, entity: Entity);
     /**
-     * @type {Object.<string, Animation>}
+     * @type {Object<string, Animation>}
      * @private
      */
     private _animations;
@@ -21069,7 +22275,7 @@ declare class AnimationComponent extends Component {
      */
     toSkel: Skeleton | null;
     /**
-     * @type {Object.<string, string>}
+     * @type {Object<string, string>}
      * @ignore
      */
     animationsIndex: {
@@ -21107,7 +22313,7 @@ declare class AnimationComponent extends Component {
     /**
      * Get or set dictionary of animations by name.
      *
-     * @type {Object.<string, Animation>}
+     * @type {Object<string, Animation>}
      */
     set animations(arg: {
         [x: string]: Animation;
@@ -21932,7 +23138,7 @@ declare class Entity extends GraphNode {
     /**
      * Component storage.
      *
-     * @type {Object.<string, Component>}
+     * @type {Object<string, Component>}
      * @ignore
      */
     c: {
@@ -22074,9 +23280,21 @@ declare class Entity extends GraphNode {
      */
     destroy(): void;
     /**
-     * @param {Object.<string, Entity>} duplicatedIdsMap - A map of original entity GUIDs to cloned
+     * Create a deep copy of the Entity. Duplicate the full Entity hierarchy, with all Components
+     * and all descendants. Note, this Entity is not in the hierarchy and must be added manually.
+     *
+     * @returns {this} A new Entity which is a deep copy of the original.
+     * @example
+     * var e = this.entity.clone();
+     *
+     * // Add clone as a sibling to the original
+     * this.entity.parent.addChild(e);
+     */
+    clone(): this;
+    /**
+     * @param {Object<string, Entity>} duplicatedIdsMap - A map of original entity GUIDs to cloned
      * entities.
-     * @returns {Entity} A new Entity which is a deep copy of the original.
+     * @returns {this} A new Entity which is a deep copy of the original.
      * @private
      */
     private _cloneRecursively;
@@ -22204,22 +23422,21 @@ declare class XrDepthSensing extends EventHandler {
      * @private
      */
     private _texture;
-    /** @ignore */
-    destroy(): void;
     /**
-     * @event
-     * @name XrDepthSensing#available
-     * @description Fired when depth sensing data becomes available.
+     * Fired when depth sensing data becomes available.
+     *
+     * @event XrDepthSensing#available
      */
     /**
-     * @event
-     * @name XrDepthSensing#unavailable
-     * @description Fired when depth sensing data becomes unavailable.
+     * Fired when depth sensing data becomes unavailable.
+     *
+     * @event XrDepthSensing#unavailable
      */
     /**
-     * @event
-     * @name XrDepthSensing#resize
-     * @description Fired when the depth sensing texture been resized. The {@link XrDepthSensing#uvMatrix} needs to be updated for relevant shaders.
+     * Fired when the depth sensing texture been resized. The {@link XrDepthSensing#uvMatrix} needs
+     * to be updated for relevant shaders.
+     *
+     * @event XrDepthSensing#resize
      * @param {number} width - The new width of the depth texture in pixels.
      * @param {number} height - The new height of the depth texture in pixels.
      * @example
@@ -22227,6 +23444,8 @@ declare class XrDepthSensing extends EventHandler {
      *     material.setParameter('matrix_depth_uv', depthSensing.uvMatrix);
      * });
      */
+    /** @ignore */
+    destroy(): void;
     /** @private */
     private _onSessionStart;
     /** @private */
@@ -22475,21 +23694,23 @@ declare class XrHitTestSource extends EventHandler {
      */
     private _transient;
     /**
-     * @event
-     * @name XrHitTestSource#remove
-     * @description Fired when {@link XrHitTestSource} is removed.
+     * Fired when {@link XrHitTestSource} is removed.
+     *
+     * @event XrHitTestSource#remove
      * @example
      * hitTestSource.once('remove', function () {
      *     // hit test source has been removed
      * });
      */
     /**
-     * @event
-     * @name XrHitTestSource#result
-     * @description Fired when hit test source receives new results. It provides transform information that tries to match real world picked geometry.
+     * Fired when hit test source receives new results. It provides transform information that
+     * tries to match real world picked geometry.
+     *
+     * @event XrHitTestSource#result
      * @param {Vec3} position - Position of hit test.
      * @param {Quat} rotation - Rotation of hit test.
-     * @param {XrInputSource|null} inputSource - If is transient hit test source, then it will provide related input source.
+     * @param {XrInputSource|null} inputSource - If is transient hit test source, then it will
+     * provide related input source.
      * @example
      * hitTestSource.on('result', function (position, rotation, inputSource) {
      *     target.setPosition(position);
@@ -22567,9 +23788,9 @@ declare class XrHitTest extends EventHandler {
      */
     sources: XrHitTestSource[];
     /**
-     * @event
-     * @name XrHitTest#add
-     * @description Fired when new {@link XrHitTestSource} is added to the list.
+     * Fired when new {@link XrHitTestSource} is added to the list.
+     *
+     * @event XrHitTest#add
      * @param {XrHitTestSource} hitTestSource - Hit test source that has been added.
      * @example
      * app.xr.hitTest.on('add', function (hitTestSource) {
@@ -22577,9 +23798,9 @@ declare class XrHitTest extends EventHandler {
      * });
      */
     /**
-     * @event
-     * @name XrHitTest#remove
-     * @description Fired when {@link XrHitTestSource} is removed to the list.
+     * Fired when {@link XrHitTestSource} is removed to the list.
+     *
+     * @event XrHitTest#remove
      * @param {XrHitTestSource} hitTestSource - Hit test source that has been removed.
      * @example
      * app.xr.hitTest.on('remove', function (hitTestSource) {
@@ -22587,9 +23808,10 @@ declare class XrHitTest extends EventHandler {
      * });
      */
     /**
-     * @event
-     * @name XrHitTest#result
-     * @description Fired when hit test source receives new results. It provides transform information that tries to match real world picked geometry.
+     * Fired when hit test source receives new results. It provides transform information that
+     * tries to match real world picked geometry.
+     *
+     * @event XrHitTest#result
      * @param {XrHitTestSource} hitTestSource - Hit test source that produced the hit result.
      * @param {Vec3} position - Position of hit test.
      * @param {Quat} rotation - Rotation of hit test.
@@ -22601,10 +23823,10 @@ declare class XrHitTest extends EventHandler {
      * });
      */
     /**
-     * @event
-     * @name XrHitTest#error
+     * Fired when failed create hit test source.
+     *
+     * @event XrHitTest#error
      * @param {Error} error - Error object related to failure of creating hit test source.
-     * @description Fired when failed create hit test source.
      */
     /** @private */
     private _onSessionStart;
@@ -22788,6 +24010,16 @@ declare class XrTrackedImage extends EventHandler {
      */
     private _rotation;
     /**
+     * Fired when image becomes actively tracked.
+     *
+     * @event XrTrackedImage#tracked
+     */
+    /**
+     * Fired when image is no more actively tracked.
+     *
+     * @event XrTrackedImage#untracked
+     */
+    /**
      * Image that is used for tracking.
      *
      * @type {HTMLCanvasElement|HTMLImageElement|SVGImageElement|HTMLVideoElement|Blob|ImageData|ImageBitmap}
@@ -22823,16 +24055,6 @@ declare class XrTrackedImage extends EventHandler {
      * @type {boolean}
      */
     get emulated(): boolean;
-    /**
-     * @event
-     * @name XrTrackedImage#tracked
-     * @description Fired when image becomes actively tracked.
-     */
-    /**
-     * @event
-     * @name XrTrackedImage#untracked
-     * @description Fired when image is no more actively tracked.
-     */
     /**
      * @returns {Promise<ImageBitmap>} Promise that resolves to an image bitmap.
      * @ignore
@@ -22904,11 +24126,11 @@ declare class XrImageTracking extends EventHandler {
      */
     private _images;
     /**
-     * @event
-     * @name XrImageTracking#error
+     * Fired when the XR session is started, but image tracking failed to process the provided
+     * images.
+     *
+     * @event XrImageTracking#error
      * @param {Error} error - Error object related to a failure of image tracking.
-     * @description Fired when the XR session is started, but image tracking failed to process the
-     * provided images.
      */
     /**
      * Add an image for image tracking. A width can also be provided to help the underlying system
@@ -23022,18 +24244,19 @@ declare class XrPlane extends EventHandler {
      */
     private _rotation;
     /**
-     * @event
-     * @name XrPlane#remove
-     * @description Fired when {@link XrPlane} is removed.
+     * Fired when {@link XrPlane} is removed.
+     *
+     * @event XrPlane#remove
      * @example
      * plane.once('remove', function () {
      *     // plane is not available anymore
      * });
      */
     /**
-     * @event
-     * @name XrPlane#change
-     * @description Fired when {@link XrPlane} attributes such as: orientation and/or points have been changed. Position and rotation can change at any time without triggering a `change` event.
+     * Fired when {@link XrPlane} attributes such as: orientation and/or points have been changed.
+     * Position and rotation can change at any time without triggering a `change` event.
+     *
+     * @event XrPlane#change
      * @example
      * plane.on('change', function () {
      *     // plane has been changed
@@ -23153,19 +24376,19 @@ declare class XrPlaneDetection extends EventHandler {
      */
     private _planes;
     /**
-     * @event
-     * @name XrPlaneDetection#available
-     * @description Fired when plane detection becomes available.
+     * Fired when plane detection becomes available.
+     *
+     * @event XrPlaneDetection#available
      */
     /**
-     * @event
-     * @name XrPlaneDetection#unavailable
-     * @description Fired when plane detection becomes unavailable.
+     * Fired when plane detection becomes unavailable.
+     *
+     * @event XrPlaneDetection#unavailable
      */
     /**
-     * @event
-     * @name XrPlaneDetection#add
-     * @description Fired when new {@link XrPlane} is added to the list.
+     * Fired when new {@link XrPlane} is added to the list.
+     *
+     * @event XrPlaneDetection#add
      * @param {XrPlane} plane - Plane that has been added.
      * @example
      * app.xr.planeDetection.on('add', function (plane) {
@@ -23173,9 +24396,9 @@ declare class XrPlaneDetection extends EventHandler {
      * });
      */
     /**
-     * @event
-     * @name XrPlaneDetection#remove
-     * @description Fired when a {@link XrPlane} is removed from the list.
+     * Fired when a {@link XrPlane} is removed from the list.
+     *
+     * @event XrPlaneDetection#remove
      * @param {XrPlane} plane - Plane that has been removed.
      * @example
      * app.xr.planeDetection.on('remove', function (plane) {
@@ -23458,7 +24681,7 @@ declare class XrHand extends EventHandler {
      */
     private _joints;
     /**
-     * @type {Object.<string, XrJoint>}
+     * @type {Object<string, XrJoint>}
      * @private
      */
     private _jointsById;
@@ -23473,14 +24696,14 @@ declare class XrHand extends EventHandler {
      */
     private _wrist;
     /**
-     * @event
-     * @name XrHand#tracking
-     * @description Fired when tracking becomes available.
+     * Fired when tracking becomes available.
+     *
+     * @event XrHand#tracking
      */
     /**
-     * @event
-     * @name XrHand#trackinglost
-     * @description Fired when tracking is lost.
+     * Fired when tracking is lost.
+     *
+     * @event XrHand#trackinglost
      */
     /**
      * @param {*} frame - XRFrame from requestAnimationFrame callback.
@@ -23653,6 +24876,101 @@ declare class XrInputSource extends EventHandler {
      */
     private _hitTestSources;
     /**
+     * Fired when {@link XrInputSource} is removed.
+     *
+     * @event XrInputSource#remove
+     * @example
+     * inputSource.once('remove', function () {
+     *     // input source is not available anymore
+     * });
+     */
+    /**
+     * Fired when input source has triggered primary action. This could be pressing a trigger
+     * button, or touching a screen.
+     *
+     * @event XrInputSource#select
+     * @param {object} evt - XRInputSourceEvent event data from WebXR API.
+     * @example
+     * var ray = new pc.Ray();
+     * inputSource.on('select', function (evt) {
+     *     ray.set(inputSource.getOrigin(), inputSource.getDirection());
+     *     if (obj.intersectsRay(ray)) {
+     *         // selected an object with input source
+     *     }
+     * });
+     */
+    /**
+     * Fired when input source has started to trigger primary action.
+     *
+     * @event XrInputSource#selectstart
+     * @param {object} evt - XRInputSourceEvent event data from WebXR API.
+     */
+    /**
+     * Fired when input source has ended triggering primary action.
+     *
+     * @event XrInputSource#selectend
+     * @param {object} evt - XRInputSourceEvent event data from WebXR API.
+     */
+    /**
+     * Fired when input source has triggered squeeze action. This is associated with "grabbing"
+     * action on the controllers.
+     *
+     * @event XrInputSource#squeeze
+     * @param {object} evt - XRInputSourceEvent event data from WebXR API.
+     */
+    /**
+     * Fired when input source has started to trigger squeeze action.
+     *
+     * @event XrInputSource#squeezestart
+     * @param {object} evt - XRInputSourceEvent event data from WebXR API.
+     * @example
+     * inputSource.on('squeezestart', function (evt) {
+     *     if (obj.containsPoint(inputSource.getPosition())) {
+     *         // grabbed an object
+     *     }
+     * });
+     */
+    /**
+     * Fired when input source has ended triggering squeeze action.
+     *
+     * @event XrInputSource#squeezeend
+     * @param {object} evt - XRInputSourceEvent event data from WebXR API.
+     */
+    /**
+     * Fired when new {@link XrHitTestSource} is added to the input source.
+     *
+     * @event XrInputSource#hittest:add
+     * @param {XrHitTestSource} hitTestSource - Hit test source that has been added.
+     * @example
+     * inputSource.on('hittest:add', function (hitTestSource) {
+     *     // new hit test source is added
+     * });
+     */
+    /**
+     * Fired when {@link XrHitTestSource} is removed to the the input source.
+     *
+     * @event XrInputSource#hittest:remove
+     * @param {XrHitTestSource} hitTestSource - Hit test source that has been removed.
+     * @example
+     * inputSource.on('remove', function (hitTestSource) {
+     *     // hit test source is removed
+     * });
+     */
+    /**
+     * Fired when hit test source receives new results. It provides transform information that
+     * tries to match real world picked geometry.
+     *
+     * @event XrInputSource#hittest:result
+     * @param {XrHitTestSource} hitTestSource - Hit test source that produced the hit result.
+     * @param {Vec3} position - Position of hit test.
+     * @param {Quat} rotation - Rotation of hit test.
+     * @example
+     * inputSource.on('hittest:result', function (hitTestSource, position, rotation) {
+     *     target.setPosition(position);
+     *     target.setRotation(rotation);
+     * });
+     */
+    /**
      * Unique number associated with instance of input source. Same physical devices when
      * reconnected will not share this ID.
      *
@@ -23752,98 +25070,6 @@ declare class XrInputSource extends EventHandler {
      * @type {XrHitTestSource[]}
      */
     get hitTestSources(): XrHitTestSource[];
-    /**
-     * @event
-     * @name XrInputSource#remove
-     * @description Fired when {@link XrInputSource} is removed.
-     * @example
-     * inputSource.once('remove', function () {
-     *     // input source is not available anymore
-     * });
-     */
-    /**
-     * @event
-     * @name XrInputSource#select
-     * @description Fired when input source has triggered primary action. This could be pressing a trigger button, or touching a screen.
-     * @param {object} evt - XRInputSourceEvent event data from WebXR API.
-     * @example
-     * var ray = new pc.Ray();
-     * inputSource.on('select', function (evt) {
-     *     ray.set(inputSource.getOrigin(), inputSource.getDirection());
-     *     if (obj.intersectsRay(ray)) {
-     *         // selected an object with input source
-     *     }
-     * });
-     */
-    /**
-     * @event
-     * @name XrInputSource#selectstart
-     * @description Fired when input source has started to trigger primary action.
-     * @param {object} evt - XRInputSourceEvent event data from WebXR API.
-     */
-    /**
-     * @event
-     * @name XrInputSource#selectend
-     * @description Fired when input source has ended triggering primary action.
-     * @param {object} evt - XRInputSourceEvent event data from WebXR API.
-     */
-    /**
-     * @event
-     * @name XrInputSource#squeeze
-     * @description Fired when input source has triggered squeeze action. This is associated with "grabbing" action on the controllers.
-     * @param {object} evt - XRInputSourceEvent event data from WebXR API.
-     */
-    /**
-     * @event
-     * @name XrInputSource#squeezestart
-     * @description Fired when input source has started to trigger squeeze action.
-     * @param {object} evt - XRInputSourceEvent event data from WebXR API.
-     * @example
-     * inputSource.on('squeezestart', function (evt) {
-     *     if (obj.containsPoint(inputSource.getPosition())) {
-     *         // grabbed an object
-     *     }
-     * });
-     */
-    /**
-     * @event
-     * @name XrInputSource#squeezeend
-     * @description Fired when input source has ended triggering squeeze action.
-     * @param {object} evt - XRInputSourceEvent event data from WebXR API.
-     */
-    /**
-     * @event
-     * @name XrInputSource#hittest:add
-     * @description Fired when new {@link XrHitTestSource} is added to the input source.
-     * @param {XrHitTestSource} hitTestSource - Hit test source that has been added.
-     * @example
-     * inputSource.on('hittest:add', function (hitTestSource) {
-     *     // new hit test source is added
-     * });
-     */
-    /**
-     * @event
-     * @name XrInputSource#hittest:remove
-     * @description Fired when {@link XrHitTestSource} is removed to the the input source.
-     * @param {XrHitTestSource} hitTestSource - Hit test source that has been removed.
-     * @example
-     * inputSource.on('remove', function (hitTestSource) {
-     *     // hit test source is removed
-     * });
-     */
-    /**
-     * @event
-     * @name XrInputSource#hittest:result
-     * @description Fired when hit test source receives new results. It provides transform information that tries to match real world picked geometry.
-     * @param {XrHitTestSource} hitTestSource - Hit test source that produced the hit result.
-     * @param {Vec3} position - Position of hit test.
-     * @param {Quat} rotation - Rotation of hit test.
-     * @example
-     * inputSource.on('hittest:result', function (hitTestSource, position, rotation) {
-     *     target.setPosition(position);
-     *     target.setRotation(rotation);
-     * });
-     */
     /**
      * @param {*} frame - XRFrame from requestAnimationFrame callback.
      * @ignore
@@ -23972,9 +25198,9 @@ declare class XrInput extends EventHandler {
      */
     private _onInputSourcesChangeEvt;
     /**
-     * @event
-     * @name XrInput#add
-     * @description Fired when new {@link XrInputSource} is added to the list.
+     * Fired when new {@link XrInputSource} is added to the list.
+     *
+     * @event XrInput#add
      * @param {XrInputSource} inputSource - Input source that has been added.
      * @example
      * app.xr.input.on('add', function (inputSource) {
@@ -23982,9 +25208,9 @@ declare class XrInput extends EventHandler {
      * });
      */
     /**
-     * @event
-     * @name XrInput#remove
-     * @description Fired when {@link XrInputSource} is removed to the list.
+     * Fired when {@link XrInputSource} is removed to the list.
+     *
+     * @event XrInput#remove
      * @param {XrInputSource} inputSource - Input source that has been removed.
      * @example
      * app.xr.input.on('remove', function (inputSource) {
@@ -23992,9 +25218,10 @@ declare class XrInput extends EventHandler {
      * });
      */
     /**
-     * @event
-     * @name XrInput#select
-     * @description Fired when {@link XrInputSource} has triggered primary action. This could be pressing a trigger button, or touching a screen.
+     * Fired when {@link XrInputSource} has triggered primary action. This could be pressing a
+     * trigger button, or touching a screen.
+     *
+     * @event XrInput#select
      * @param {XrInputSource} inputSource - Input source that triggered select event.
      * @param {object} evt - XRInputSourceEvent event data from WebXR API.
      * @example
@@ -24007,30 +25234,31 @@ declare class XrInput extends EventHandler {
      * });
      */
     /**
-     * @event
-     * @name XrInput#selectstart
-     * @description Fired when {@link XrInputSource} has started to trigger primary action.
+     * Fired when {@link XrInputSource} has started to trigger primary action.
+     *
+     * @event XrInput#selectstart
      * @param {XrInputSource} inputSource - Input source that triggered selectstart event.
      * @param {object} evt - XRInputSourceEvent event data from WebXR API.
      */
     /**
-     * @event
-     * @name XrInput#selectend
-     * @description Fired when {@link XrInputSource} has ended triggerring primary action.
+     * Fired when {@link XrInputSource} has ended triggerring primary action.
+     *
+     * @event XrInput#selectend
      * @param {XrInputSource} inputSource - Input source that triggered selectend event.
      * @param {object} evt - XRInputSourceEvent event data from WebXR API.
      */
     /**
-     * @event
-     * @name XrInput#squeeze
-     * @description Fired when {@link XrInputSource} has triggered squeeze action. This is associated with "grabbing" action on the controllers.
+     * Fired when {@link XrInputSource} has triggered squeeze action. This is associated with
+     * "grabbing" action on the controllers.
+     *
+     * @event XrInput#squeeze
      * @param {XrInputSource} inputSource - Input source that triggered squeeze event.
      * @param {object} evt - XRInputSourceEvent event data from WebXR API.
      */
     /**
-     * @event
-     * @name XrInput#squeezestart
-     * @description Fired when {@link XrInputSource} has started to trigger sqeeze action.
+     * Fired when {@link XrInputSource} has started to trigger sqeeze action.
+     *
+     * @event XrInput#squeezestart
      * @param {XrInputSource} inputSource - Input source that triggered squeezestart event.
      * @param {object} evt - XRInputSourceEvent event data from WebXR API.
      * @example
@@ -24041,9 +25269,9 @@ declare class XrInput extends EventHandler {
      * });
      */
     /**
-     * @event
-     * @name XrInput#squeezeend
-     * @description Fired when {@link XrInputSource} has ended triggerring sqeeze action.
+     * Fired when {@link XrInputSource} has ended triggerring sqeeze action.
+     *
+     * @event XrInput#squeezeend
      * @param {XrInputSource} inputSource - Input source that triggered squeezeend event.
      * @param {object} evt - XRInputSourceEvent event data from WebXR API.
      */
@@ -24150,15 +25378,15 @@ declare class XrLightEstimation extends EventHandler {
      */
     private _sphericalHarmonics;
     /**
-     * @event
-     * @name XrLightEstimation#available
-     * @description Fired when light estimation data becomes available.
+     * Fired when light estimation data becomes available.
+     *
+     * @event XrLightEstimation#available
      */
     /**
-     * @event
-     * @name XrLightEstimation#error
+     * Fired when light estimation has failed to start.
+     *
+     * @event XrLightEstimation#error
      * @param {Error} error - Error object related to failure of light estimation start.
-     * @description Fired when light estimation has failed to start.
      * @example
      * app.xr.lightEstimation.on('error', function (ex) {
      *     // has failed to start
@@ -24277,7 +25505,7 @@ declare class XrManager extends EventHandler {
      */
     private _supported;
     /**
-     * @type {Object.<string, boolean>}
+     * @type {Object<string, boolean>}
      * @private
      */
     private _available;
@@ -24400,15 +25628,9 @@ declare class XrManager extends EventHandler {
      */
     private _height;
     /**
-     * Destroys the XrManager instance.
+     * Fired when availability of specific XR type is changed.
      *
-     * @ignore
-     */
-    destroy(): void;
-    /**
-     * @event
-     * @name XrManager#available
-     * @description Fired when availability of specific XR type is changed.
+     * @event XrManager#available
      * @param {string} type - The session type that has changed availability.
      * @param {boolean} available - True if specified session type is now available.
      * @example
@@ -24417,9 +25639,9 @@ declare class XrManager extends EventHandler {
      * });
      */
     /**
-     * @event
-     * @name XrManager#available:[type]
-     * @description Fired when availability of specific XR type is changed.
+     * Fired when availability of specific XR type is changed.
+     *
+     * @event XrManager#available:[type]
      * @param {boolean} available - True if specified session type is now available.
      * @example
      * app.xr.on('available:' + pc.XRTYPE_VR, function (available) {
@@ -24427,43 +25649,51 @@ declare class XrManager extends EventHandler {
      * });
      */
     /**
-     * @event
-     * @name XrManager#start
-     * @description Fired when XR session is started.
+     * Fired when XR session is started.
+     *
+     * @event XrManager#start
      * @example
      * app.xr.on('start', function () {
      *     // XR session has started
      * });
      */
     /**
-     * @event
-     * @name XrManager#end
-     * @description Fired when XR session is ended.
+     * Fired when XR session is ended.
+     *
+     * @event XrManager#end
      * @example
      * app.xr.on('end', function () {
      *     // XR session has ended
      * });
      */
     /**
-     * @event
-     * @name XrManager#update
-     * @param {object} frame - [XRFrame](https://developer.mozilla.org/en-US/docs/Web/API/XRFrame) object that can be used for interfacing directly with WebXR APIs.
-     * @description Fired when XR session is updated, providing relevant XRFrame object.
+     * Fired when XR session is updated, providing relevant XRFrame object.
+     *
+     * @event XrManager#update
+     * @param {object} frame - [XRFrame](https://developer.mozilla.org/en-US/docs/Web/API/XRFrame)
+     * object that can be used for interfacing directly with WebXR APIs.
      * @example
      * app.xr.on('update', function (frame) {
      *
      * });
      */
     /**
-     * @event
-     * @name XrManager#error
-     * @param {Error} error - Error object related to failure of session start or check of session type support.
-     * @description Fired when XR session is failed to start or failed to check for session type support.
+     * Fired when XR session is failed to start or failed to check for session type support.
+     *
+     * @event XrManager#error
+     * @param {Error} error - Error object related to failure of session start or check of session
+     * type support.
      * @example
      * app.xr.on('error', function (ex) {
      *     // XR session has failed to start, or failed to check for session type support
      * });
      */
+    /**
+     * Destroys the XrManager instance.
+     *
+     * @ignore
+     */
+    destroy(): void;
     /**
      * Attempts to start XR session for provided {@link CameraComponent} and optionally fires
      * callback when session is created or failed to create. Integrated XR APIs need to be enabled
@@ -24650,593 +25880,6 @@ declare class XrManager extends EventHandler {
      * @ignore
      */
     get visibilityState(): string;
-}
-
-
-/** @typedef {import('./mat4.js').Mat4} Mat4 */
-/**
- * A 3x3 matrix.
- */
-declare class Mat3 {
-    /**
-     * A constant matrix set to the identity.
-     *
-     * @type {Mat3}
-     * @readonly
-     */
-    static readonly IDENTITY: Mat3;
-    /**
-     * A constant matrix with all elements set to 0.
-     *
-     * @type {Mat3}
-     * @readonly
-     */
-    static readonly ZERO: Mat3;
-    /**
-     * Matrix elements in the form of a flat array.
-     *
-     * @type {Float32Array}
-     */
-    data: Float32Array;
-    /**
-     * Creates a duplicate of the specified matrix.
-     *
-     * @returns {Mat3} A duplicate matrix.
-     * @example
-     * var src = new pc.Mat3().translate(10, 20, 30);
-     * var dst = src.clone();
-     * console.log("The two matrices are " + (src.equals(dst) ? "equal" : "different"));
-     */
-    clone(): Mat3;
-    /**
-     * Copies the contents of a source 3x3 matrix to a destination 3x3 matrix.
-     *
-     * @param {Mat3} rhs - A 3x3 matrix to be copied.
-     * @returns {Mat3} Self for chaining.
-     * @example
-     * var src = new pc.Mat3().translate(10, 20, 30);
-     * var dst = new pc.Mat3();
-     * dst.copy(src);
-     * console.log("The two matrices are " + (src.equals(dst) ? "equal" : "different"));
-     */
-    copy(rhs: Mat3): Mat3;
-    /**
-     * Copies the contents of a source array[9] to a destination 3x3 matrix.
-     *
-     * @param {number[]} src - An array[9] to be copied.
-     * @returns {Mat3} Self for chaining.
-     * @example
-     * var dst = new pc.Mat3();
-     * dst.set([0, 1, 2, 3, 4, 5, 6, 7, 8]);
-     */
-    set(src: number[]): Mat3;
-    /**
-     * Reports whether two matrices are equal.
-     *
-     * @param {Mat3} rhs - The other matrix.
-     * @returns {boolean} True if the matrices are equal and false otherwise.
-     * @example
-     * var a = new pc.Mat3().translate(10, 20, 30);
-     * var b = new pc.Mat3();
-     * console.log("The two matrices are " + (a.equals(b) ? "equal" : "different"));
-     */
-    equals(rhs: Mat3): boolean;
-    /**
-     * Reports whether the specified matrix is the identity matrix.
-     *
-     * @returns {boolean} True if the matrix is identity and false otherwise.
-     * @example
-     * var m = new pc.Mat3();
-     * console.log("The matrix is " + (m.isIdentity() ? "identity" : "not identity"));
-     */
-    isIdentity(): boolean;
-    /**
-     * Sets the matrix to the identity matrix.
-     *
-     * @returns {Mat3} Self for chaining.
-     * @example
-     * m.setIdentity();
-     * console.log("The matrix is " + (m.isIdentity() ? "identity" : "not identity"));
-     */
-    setIdentity(): Mat3;
-    /**
-     * Converts the matrix to string form.
-     *
-     * @returns {string} The matrix in string form.
-     * @example
-     * var m = new pc.Mat3();
-     * // Outputs [1, 0, 0, 0, 1, 0, 0, 0, 1]
-     * console.log(m.toString());
-     */
-    toString(): string;
-    /**
-     * Generates the transpose of the specified 3x3 matrix.
-     *
-     * @returns {Mat3} Self for chaining.
-     * @example
-     * var m = new pc.Mat3();
-     *
-     * // Transpose in place
-     * m.transpose();
-     */
-    transpose(): Mat3;
-    /**
-     * Converts the specified 4x4 matrix to a Mat3.
-     *
-     * @param {Mat4} m - The 4x4 matrix to convert.
-     * @returns {Mat3} Self for chaining.
-     */
-    setFromMat4(m: Mat4): Mat3;
-    /**
-     * Transforms a 3-dimensional vector by a 3x3 matrix.
-     *
-     * @param {Vec3} vec - The 3-dimensional vector to be transformed.
-     * @param {Vec3} [res] - An optional 3-dimensional vector to receive the result of the
-     * transformation.
-     * @returns {Vec3} The input vector v transformed by the current instance.
-     */
-    transformVector(vec: Vec3, res?: Vec3): Vec3;
-}
-
-declare class LightingParams {
-    constructor(supportsAreaLights: any, maxTextureSize: any, dirtyLightsFnc: any);
-    _maxTextureSize: any;
-    _supportsAreaLights: any;
-    _dirtyLightsFnc: any;
-    _areaLightsEnabled: boolean;
-    _cells: Vec3;
-    _maxLightsPerCell: number;
-    _shadowsEnabled: boolean;
-    _shadowType: number;
-    _shadowAtlasResolution: number;
-    _cookiesEnabled: boolean;
-    _cookieAtlasResolution: number;
-    atlasSplit: any;
-    debugLayer: any;
-    set cells(arg: Vec3);
-    get cells(): Vec3;
-    set maxLightsPerCell(arg: number);
-    get maxLightsPerCell(): number;
-    set cookieAtlasResolution(arg: number);
-    get cookieAtlasResolution(): number;
-    set shadowAtlasResolution(arg: number);
-    get shadowAtlasResolution(): number;
-    set shadowType(arg: number);
-    get shadowType(): number;
-    set cookiesEnabled(arg: boolean);
-    get cookiesEnabled(): boolean;
-    set areaLightsEnabled(arg: boolean);
-    get areaLightsEnabled(): boolean;
-    set shadowsEnabled(arg: boolean);
-    get shadowsEnabled(): boolean;
-}
-
-
-/** @typedef {import('../../graphics/texture.js').Texture} Texture */
-/**
- * A BasicMaterial is for rendering unlit geometry, either using a constant color or a color map
- * modulated with a color.
- *
- * @augments Material
- */
-declare class BasicMaterial extends Material {
-    /**
-     * The flat color of the material (RGBA, where each component is 0 to 1).
-     *
-     * @type {Color}
-     */
-    color: Color;
-    colorUniform: Float32Array;
-    /**
-     * The color map of the material (default is null). If specified, the color map is
-     * modulated by the color property.
-     *
-     * @type {Texture|null}
-     */
-    colorMap: Texture | null;
-    vertexColors: boolean;
-    /**
-     * Copy a `BasicMaterial`.
-     *
-     * @param {BasicMaterial} source - The material to copy from.
-     * @returns {BasicMaterial} The destination material.
-     */
-    copy(source: BasicMaterial): BasicMaterial;
-}
-
-declare class Immediate {
-    static getTextureVS(): string;
-    constructor(device: any);
-    device: any;
-    quadMesh: Mesh;
-    textureShader: Shader;
-    depthTextureShader: Shader;
-    cubeLocalPos: any;
-    cubeWorldPos: any;
-    batchesMap: Map<any, any>;
-    allBatches: Set<any>;
-    updatedLayers: Set<any>;
-    _materialDepth: BasicMaterial;
-    _materialNoDepth: BasicMaterial;
-    layerMeshInstances: Map<any, any>;
-    createMaterial(depthTest: any): BasicMaterial;
-    get materialDepth(): BasicMaterial;
-    get materialNoDepth(): BasicMaterial;
-    getBatch(layer: any, depthTest: any): any;
-    getTextureShader(): Shader;
-    getDepthTextureShader(): Shader;
-    getQuadMesh(): Mesh;
-    drawMesh(material: any, matrix: any, mesh: any, meshInstance: any, layer: any): void;
-    drawWireAlignedBox(min: any, max: any, color: any, depthTest: any, layer: any): void;
-    drawWireSphere(center: any, radius: any, color: any, numSegments: any, depthTest: any, layer: any): void;
-    getGraphNode(matrix: any): GraphNode;
-    onPreRenderLayer(layer: any, visibleList: any, transparent: any): void;
-    onPostRender(): void;
-}
-
-
-
-
-/** @typedef {import('../framework/entity.js').Entity} Entity */
-/** @typedef {import('../graphics/graphics-device.js').GraphicsDevice} GraphicsDevice */
-/** @typedef {import('../graphics/texture.js').Texture} Texture */
-/** @typedef {import('./composition/layer-composition.js').LayerComposition} LayerComposition */
-/** @typedef {import('./layer.js').Layer} Layer */
-/**
- * A scene is graphical representation of an environment. It manages the scene hierarchy, all
- * graphical objects, lights, and scene-wide properties.
- *
- * @augments EventHandler
- */
-declare class Scene extends EventHandler {
-    /**
-     * Create a new Scene instance.
-     *
-     * @param {GraphicsDevice} graphicsDevice - The graphics device used to manage this scene.
-     * @hideconstructor
-     */
-    constructor(graphicsDevice: GraphicsDevice);
-    /**
-     * If enabled, the ambient lighting will be baked into lightmaps. This will be either the
-     * {@link Scene#skybox} if set up, otherwise {@link Scene#ambientLight}. Defaults to false.
-     *
-     * @type {boolean}
-     */
-    ambientBake: boolean;
-    /**
-     * If {@link Scene#ambientBake} is true, this specifies the brightness of ambient occlusion.
-     * Typical range is -1 to 1. Defaults to 0, representing no change to brightness.
-     *
-     * @type {number}
-     */
-    ambientBakeOcclusionBrightness: number;
-    /**
-     * If {@link Scene#ambientBake} is true, this specifies the contrast of ambient occlusion.
-     * Typical range is -1 to 1. Defaults to 0, representing no change to contrast.
-     *
-     * @type {number}
-     */
-    ambientBakeOcclusionContrast: number;
-    /**
-     * The color of the scene's ambient light. Defaults to black (0, 0, 0).
-     *
-     * @type {Color}
-     */
-    ambientLight: Color;
-    /**
-     * The exposure value tweaks the overall brightness of the scene. Defaults to 1.
-     *
-     * @type {number}
-     */
-    exposure: number;
-    /**
-     * The color of the fog (if enabled). Defaults to black (0, 0, 0).
-     *
-     * @type {Color}
-     */
-    fogColor: Color;
-    /**
-     * The density of the fog (if enabled). This property is only valid if the fog property is set
-     * to {@link FOG_EXP} or {@link FOG_EXP2}. Defaults to 0.
-     *
-     * @type {number}
-     */
-    fogDensity: number;
-    /**
-     * The distance from the viewpoint where linear fog reaches its maximum. This property is only
-     * valid if the fog property is set to {@link FOG_LINEAR}. Defaults to 1000.
-     *
-     * @type {number}
-     */
-    fogEnd: number;
-    /**
-     * The distance from the viewpoint where linear fog begins. This property is only valid if the
-     * fog property is set to {@link FOG_LINEAR}. Defaults to 1.
-     *
-     * @type {number}
-     */
-    fogStart: number;
-    /**
-     * The lightmap resolution multiplier. Defaults to 1.
-     *
-     * @type {number}
-     */
-    lightmapSizeMultiplier: number;
-    /**
-     * The maximum lightmap resolution. Defaults to 2048.
-     *
-     * @type {number}
-     */
-    lightmapMaxResolution: number;
-    /**
-     * The lightmap baking mode. Can be:
-     *
-     * - {@link BAKE_COLOR}: single color lightmap
-     * - {@link BAKE_COLORDIR}: single color lightmap + dominant light direction (used for bump or
-     * specular). Only lights with bakeDir=true will be used for generating the dominant light
-     * direction.
-     *
-     * Defaults to {@link BAKE_COLORDIR}.
-     *
-     * @type {number}
-     */
-    lightmapMode: number;
-    /**
-     * Enables bilateral filter on runtime baked color lightmaps, which removes the noise and
-     * banding while preserving the edges. Defaults to false. Note that the filtering takes place
-     * in the image space of the lightmap, and it does not filter across lightmap UV space seams,
-     * often making the seams more visible. It's important to balance the strength of the filter
-     * with number of samples used for lightmap baking to limit the visible artifacts.
-     *
-     * @type {boolean}
-     */
-    lightmapFilterEnabled: boolean;
-    /**
-     * The root entity of the scene, which is usually the only child to the {@link Application}
-     * root entity.
-     *
-     * @type {Entity}
-     */
-    root: Entity;
-    device: any;
-    _gravity: Vec3;
-    /**
-     * @type {LayerComposition}
-     * @private
-     */
-    private _layers;
-    _fog: string;
-    _gammaCorrection: number;
-    _toneMapping: number;
-    /**
-     * The skybox cubemap as set by user (gets used when skyboxMip === 0)
-     *
-     * @type {Texture}
-     * @private
-     */
-    private _skyboxCubeMap;
-    /**
-     * Array of 6 prefiltered lighting data cubemaps.
-     *
-     * @type {Texture[]}
-     * @private
-     */
-    private _prefilteredCubemaps;
-    /**
-     * Environment lighting atlas
-     *
-     * @type {Texture}
-     * @private
-     */
-    private _envAtlas;
-    _internalEnvAtlas: any;
-    skyboxModel: Model;
-    _skyboxIntensity: number;
-    _skyboxMip: number;
-    _skyboxRotation: Quat;
-    _skyboxRotationMat3: Mat3;
-    _skyboxRotationMat4: Mat4;
-    _ambientBakeNumSamples: number;
-    _ambientBakeSpherePart: number;
-    _lightmapFilterRange: number;
-    _lightmapFilterSmoothness: number;
-    _clusteredLightingEnabled: boolean;
-    _lightingParams: LightingParams;
-    _stats: {
-        meshInstances: number;
-        lights: number;
-        dynamicLights: number;
-        bakedLights: number;
-        lastStaticPrepareFullTime: number;
-        lastStaticPrepareSearchTime: number;
-        lastStaticPrepareWriteTime: number;
-        lastStaticPrepareTriAabbTime: number;
-        lastStaticPrepareCombineTime: number;
-        updateShadersTime: number;
-    };
-    /**
-     * This flag indicates changes were made to the scene which may require recompilation of
-     * shaders that reference global settings.
-     *
-     * @type {boolean}
-     * @ignore
-     */
-    updateShaders: boolean;
-    _shaderVersion: number;
-    _statsUpdated: boolean;
-    _models: any[];
-    immediate: Immediate;
-    /**
-     * Returns the default layer used by the immediate drawing functions.
-     *
-     * @type {Layer}
-     * @private
-     */
-    private get defaultDrawLayer();
-    /**
-     * If {@link Scene#ambientBake} is true, this specifies the number of samples used to bake the
-     * ambient light into the lightmap. Defaults to 1. Maximum value is 255.
-     *
-     * @type {number}
-     */
-    set ambientBakeNumSamples(arg: number);
-    get ambientBakeNumSamples(): number;
-    /**
-     * If {@link Scene#ambientBake} is true, this specifies a part of the sphere which represents
-     * the source of ambient light. The valid range is 0..1, representing a part of the sphere from
-     * top to the bottom. A value of 0.5 represents the upper hemisphere. A value of 1 represents a
-     * full sphere. Defaults to 0.4, which is a smaller upper hemisphere as this requires fewer
-     * samples to bake.
-     *
-     * @type {number}
-     */
-    set ambientBakeSpherePart(arg: number);
-    get ambientBakeSpherePart(): number;
-    set clusteredLightingEnabled(arg: boolean);
-    get clusteredLightingEnabled(): boolean;
-    /**
-     * List of all active composition mesh instances. Only for backwards compatibility.
-     * TODO: BatchManager is using it - perhaps that could be refactored
-     *
-     * @type {MeshInstance[]}
-     * @private
-     */
-    private set drawCalls(arg);
-    private get drawCalls();
-    /**
-     * The environment lighting atlas.
-     *
-     * @type {Texture}
-     */
-    set envAtlas(arg: Texture);
-    get envAtlas(): Texture;
-    /**
-     * The type of fog used by the scene. Can be:
-     *
-     * - {@link FOG_NONE}
-     * - {@link FOG_LINEAR}
-     * - {@link FOG_EXP}
-     * - {@link FOG_EXP2}
-     *
-     * Defaults to {@link FOG_NONE}.
-     *
-     * @type {string}
-     */
-    set fog(arg: string);
-    get fog(): string;
-    /**
-     * The gamma correction to apply when rendering the scene. Can be:
-     *
-     * - {@link GAMMA_NONE}
-     * - {@link GAMMA_SRGB}
-     *
-     * Defaults to {@link GAMMA_SRGB}.
-     *
-     * @type {number}
-     */
-    set gammaCorrection(arg: number);
-    get gammaCorrection(): number;
-    /**
-     * A {@link LayerComposition} that defines rendering order of this scene.
-     *
-     * @type {LayerComposition}
-     */
-    set layers(arg: LayerComposition);
-    get layers(): LayerComposition;
-    get lighting(): LightingParams;
-    /**
-     * A range parameter of the bilateral filter. It's used when {@link Scene#lightmapFilterEnabled}
-     * is enabled. Larger value applies more widespread blur. This needs to be a positive non-zero
-     * value. Defaults to 10.
-     *
-     * @type {number}
-     */
-    set lightmapFilterRange(arg: number);
-    get lightmapFilterRange(): number;
-    /**
-     * A spatial parameter of the bilateral filter. It's used when {@link Scene#lightmapFilterEnabled}
-     * is enabled. Larger value blurs less similar colors. This needs to be a positive non-zero
-     * value. Defaults to 0.2.
-     *
-     * @type {number}
-     */
-    set lightmapFilterSmoothness(arg: number);
-    get lightmapFilterSmoothness(): number;
-    /**
-     * Set of 6 prefiltered cubemaps.
-     *
-     * @type {Texture[]}
-     */
-    set prefilteredCubemaps(arg: Texture[]);
-    get prefilteredCubemaps(): Texture[];
-    /**
-     * The base cubemap texture used as the scene's skybox, if mip level is 0. Defaults to null.
-     *
-     * @type {Texture}
-     */
-    set skybox(arg: Texture);
-    get skybox(): Texture;
-    /**
-     * Multiplier for skybox intensity. Defaults to 1.
-     *
-     * @type {number}
-     */
-    set skyboxIntensity(arg: number);
-    get skyboxIntensity(): number;
-    /**
-     * The mip level of the skybox to be displayed. Only valid for prefiltered cubemap skyboxes.
-     * Defaults to 0 (base level).
-     *
-     * @type {number}
-     */
-    set skyboxMip(arg: number);
-    get skyboxMip(): number;
-    /**
-     * The rotation of the skybox to be displayed. Defaults to {@link Quat.IDENTITY}.
-     *
-     * @type {Quat}
-     */
-    set skyboxRotation(arg: Quat);
-    get skyboxRotation(): Quat;
-    /**
-     * The tonemapping transform to apply when writing fragments to the frame buffer. Can be:
-     *
-     * - {@link TONEMAP_LINEAR}
-     * - {@link TONEMAP_FILMIC}
-     * - {@link TONEMAP_HEJL}
-     * - {@link TONEMAP_ACES}
-     *
-     * Defaults to {@link TONEMAP_LINEAR}.
-     *
-     * @type {number}
-     */
-    set toneMapping(arg: number);
-    get toneMapping(): number;
-    destroy(): void;
-    drawLine(start: any, end: any, color?: Color, depthTest?: boolean, layer?: Layer): void;
-    drawLines(positions: any, colors: any, depthTest?: boolean, layer?: Layer): void;
-    drawLineArrays(positions: any, colors: any, depthTest?: boolean, layer?: Layer): void;
-    applySettings(settings: any): void;
-    _getSkyboxTex(): Texture;
-    _updateSkybox(device: any): void;
-    skyLayer: Layer;
-    _resetSkyboxModel(): void;
-    /**
-     * Sets the cubemap for the scene skybox.
-     *
-     * @param {Texture[]} [cubemaps] - An array of cubemaps corresponding to the skybox at
-     * different mip levels. If undefined, scene will remove skybox. Cubemap array should be of
-     * size 7, with the first element (index 0) corresponding to the base cubemap (mip level 0)
-     * with original resolution. Each remaining element (index 1-6) corresponds to a fixed
-     * prefiltered resolution (128x128, 64x64, 32x32, 16x16, 8x8, 4x4).
-     */
-    setSkybox(cubemaps?: Texture[]): void;
-    addModel(model: any): void;
-    addShadowCaster(model: any): void;
-    removeModel(model: any): void;
-    removeShadowCasters(model: any): void;
-    containsModel(model: any): boolean;
-    getModels(model: any): any[];
 }
 
 /**
@@ -25489,7 +26132,7 @@ declare class ShadowMapCache {
 }
 
 
-/** @typedef {import('../graphics/render-target.js').RenderTarget} RenderTarget */
+
 /**
  * A render pass represents a node in the frame graph, and encapsulates a system which
  * renders to a render target using an execution callback.
@@ -25500,92 +26143,172 @@ declare class RenderPass {
     /**
      * Creates an instance of the RenderPass.
      *
-     * @param {RenderTarget} renderTarget - The render target to render into (output).
+     * @param {GraphicsDevice} graphicsDevice - The graphics device.
      * @param {Function} execute - Custom function that is called when the pass needs to be
      * rendered.
      */
-    constructor(renderTarget: RenderTarget, execute: Function);
+    constructor(graphicsDevice: GraphicsDevice, execute: Function);
     /** @type {string} */
     name: string;
     /** @type {RenderTarget} */
     renderTarget: RenderTarget;
+    /**
+     * Number of samples. 0 if no render target, otherwise number of samples from the render target,
+     * or the main framebuffer if render target is null.
+     *
+     * @type {number}
+     */
+    samples: number;
+    /** @type {ColorAttachmentOps} */
+    colorOps: ColorAttachmentOps;
+    /** @type {DepthStencilAttachmentOps} */
+    depthStencilOps: DepthStencilAttachmentOps;
+    /**
+     * If true, this pass might use dynamically rendered cubemaps. Use for a case where rendering to cubemap
+     * faces is interleaved with rendering to shadows, to avoid generating cubemap mipmaps. This will likely
+     * be retired when render target dependency tracking gets implemented.
+     *
+     * @type {boolean}
+     */
+    requiresCubemaps: boolean;
+    /**
+     * True if the render pass uses the full viewport / scissor for rendering into the render target.
+     *
+     * @type {boolean}
+     */
+    fullSizeClearRect: boolean;
+    device: GraphicsDevice;
     /** @type {Function} */
     execute: Function;
+    /**
+     * @param {RenderTarget} renderTarget - The render target to render into (output). This function should be
+     * called only for render passes which use render target, or passes which render directly into the default
+     * framebuffer, in which case a null or undefined render target is expected.
+     */
+    init(renderTarget: RenderTarget): void;
+    /**
+     * Mark render pass as clearing the full color buffer.
+     *
+     * @param {Color} color - The color to clear to.
+     */
+    setClearColor(color: Color): void;
+    /**
+     * Mark render pass as clearing the full depth buffer.
+     *
+     * @param {number} depthValue - The depth value to clear to.
+     */
+    setClearDepth(depthValue: number): void;
+    /**
+     * Mark render pass as clearing the full stencil buffer.
+     *
+     * @param {number} stencilValue - The stencil value to clear to.
+     */
+    setClearStencil(stencilValue: number): void;
+    /**
+     * Render the render pass
+     */
+    render(): void;
+}
+/** @typedef {import('../graphics/render-target.js').RenderTarget} RenderTarget */
+/** @typedef {import('../graphics/graphics-device.js').GraphicsDevice} GraphicsDevice */
+declare class ColorAttachmentOps {
+    /**
+     * A color used to clear the color attachment when the clear is enabled.
+     */
+    clearValue: Color;
+    /**
+     * True if the attachment should be cleared before rendering, false to preserve
+     * the existing content.
+     */
+    clear: boolean;
+    /**
+     * True if the attachment needs to be stored after the render pass. False
+     * if it can be discarded.
+     * Note: This relates to the surface that is getting rendered to, and can be either
+     * single or multi-sampled. Further, if a multi-sampled surface is used, the resolve
+     * flag further specifies if this gets resolved to a single-sampled surface. This
+     * behavior matches the WebGPU specification.
+     *
+     * @type {boolean}
+     */
+    store: boolean;
+    /**
+     * True if the attachment needs to be resolved.
+     *
+     * @type {boolean}
+     */
+    resolve: boolean;
+    /**
+     * True if the attachment needs to have mipmaps generated.
+     *
+     * @type {boolean}
+     */
+    mipmaps: boolean;
+}
+declare class DepthStencilAttachmentOps {
+    /**
+     * A depth value used to clear the depth attachment when the clear is enabled.
+     */
+    clearDepthValue: number;
+    /**
+     * A stencil value used to clear the stencil attachment when the clear is enabled.
+     */
+    clearStencilValue: number;
+    /**
+     * True if the depth attachment should be cleared before rendering, false to preserve
+     * the existing content.
+     */
+    clearDepth: boolean;
+    /**
+     * True if the stencil attachment should be cleared before rendering, false to preserve
+     * the existing content.
+     */
+    clearStencil: boolean;
+    /**
+     * True if the depth attachment needs to be stored after the render pass. False
+     * if it can be discarded.
+     *
+     * @type {boolean}
+     */
+    storeDepth: boolean;
+    /**
+     * True if the stencil attachment needs to be stored after the render pass. False
+     * if it can be discarded.
+     *
+     * @type {boolean}
+     */
+    storeStencil: boolean;
 }
 
 
 
-/** @typedef {import('./render-pass.js').RenderPass} RenderPass */
-/** @typedef {import('../graphics/graphics-device.js').GraphicsDevice} GraphicsDevice */
+/** @typedef {import('../graphics/render-pass.js').RenderPass} RenderPass */
+/** @typedef {import('../graphics/render-target.js').RenderTarget} RenderTarget */
+/** @typedef {import('../graphics/texture.js').Texture} Texture */
 /**
  * A frame graph represents a single rendering frame as a sequence of render passes.
  *
  * @ignore
  */
 declare class FrameGraph {
-    /**
-     * Create a new FrameGraph instance.
-     *
-     * @param {GraphicsDevice} graphicsDevice - The graphics device used to manage this texture.
-     */
-    constructor(graphicsDevice: GraphicsDevice);
     /** @type {RenderPass[]} */
     renderPasses: RenderPass[];
-    device: GraphicsDevice;
+    /**
+     * Map used during frame graph compilation. It maps a render target to its previous occurrence.
+     *
+     *  @type {Map<RenderTarget, RenderPass>}
+     */
+    renderTargetMap: Map<RenderTarget, RenderPass>;
     /**
      * Add a render pass to the frame.
      *
      * @param {RenderPass} renderPass - The render pass to add.
      */
-    add(renderPass: RenderPass): void;
+    addRenderPass(renderPass: RenderPass): void;
     reset(): void;
+    compile(): void;
     render(): void;
-}
-
-declare class ShadowMap {
-    static getShadowFormat(device: any, shadowType: any): number;
-    static getShadowFiltering(device: any, shadowType: any): number;
-    static create(device: any, light: any): ShadowMap;
-    static createAtlas(device: any, resolution: any, shadowType: any): ShadowMap;
-    static create2dMap(device: any, size: any, shadowType: any): ShadowMap;
-    static createCubemap(device: any, size: any): ShadowMap;
-    constructor(texture: any, targets: any);
-    texture: any;
-    cached: boolean;
-    renderTargets: any;
-    destroy(): void;
-}
-
-declare class LightTextureAtlas {
-    constructor(device: any);
-    device: any;
-    version: number;
-    shadowAtlasResolution: number;
-    shadowAtlas: ShadowMap;
-    shadowEdgePixels: number;
-    cookieAtlasResolution: number;
-    cookieAtlas: Texture;
-    cookieRenderTarget: RenderTarget;
-    slots: any[];
-    atlasSplit: any[];
-    cubeSlotsOffsets: Vec2[];
-    scissorVec: Vec4;
-    destroy(): void;
-    destroyShadowAtlas(): void;
-    destroyCookieAtlas(): void;
-    allocateShadowAtlas(resolution: any): void;
-    allocateCookieAtlas(resolution: any): void;
-    allocateUniforms(): void;
-    _shadowAtlasTextureId: any;
-    _shadowAtlasParamsId: any;
-    _shadowAtlasParams: Float32Array;
-    _cookieAtlasTextureId: any;
-    updateUniforms(): void;
-    subdivide(numLights: any, lightingParams: any): void;
-    collectLights(spotLights: any, omniLights: any, lightingParams: any): any[];
-    setupSlot(light: any, rect: any): void;
-    assignSlot(light: any, slotIndex: any, slotReassigned: any): void;
-    update(spotLights: any, omniLights: any, lightingParams: any): void;
+    log(): void;
 }
 
 
@@ -25673,6 +26396,10 @@ declare class Camera {
     _viewProjMat: Mat4;
     _viewProjMatDirty: boolean;
     frustum: Frustum;
+    /**
+     * True if the camera clears the full render target. (viewport / scissor are full size)
+     */
+    get fullSizeClearRect(): boolean;
     set aspectRatio(arg: number);
     get aspectRatio(): number;
     set aspectRatioMode(arg: number);
@@ -25766,24 +26493,83 @@ declare class Camera {
     getScreenSize(sphere: any): number;
 }
 
+declare class ShadowMap {
+    static getShadowFormat(device: any, shadowType: any): number;
+    static getShadowFiltering(device: any, shadowType: any): number;
+    static create(device: any, light: any): ShadowMap;
+    static createAtlas(device: any, resolution: any, shadowType: any): ShadowMap;
+    static create2dMap(device: any, size: any, shadowType: any): ShadowMap;
+    static createCubemap(device: any, size: any): ShadowMap;
+    constructor(texture: any, targets: any);
+    texture: any;
+    cached: boolean;
+    renderTargets: any;
+    destroy(): void;
+}
+
+declare class LightTextureAtlas {
+    constructor(device: any);
+    device: any;
+    version: number;
+    shadowAtlasResolution: number;
+    shadowAtlas: ShadowMap;
+    shadowEdgePixels: number;
+    cookieAtlasResolution: number;
+    cookieAtlas: Texture;
+    cookieRenderTarget: RenderTarget;
+    slots: any[];
+    atlasSplit: any[];
+    cubeSlotsOffsets: Vec2[];
+    scissorVec: Vec4;
+    destroy(): void;
+    destroyShadowAtlas(): void;
+    destroyCookieAtlas(): void;
+    allocateShadowAtlas(resolution: any): void;
+    allocateCookieAtlas(resolution: any): void;
+    allocateUniforms(): void;
+    _shadowAtlasTextureId: any;
+    _shadowAtlasParamsId: any;
+    _shadowAtlasParams: Float32Array;
+    _cookieAtlasTextureId: any;
+    updateUniforms(): void;
+    subdivide(numLights: any, lightingParams: any): void;
+    collectLights(spotLights: any, omniLights: any, lightingParams: any): any[];
+    setupSlot(light: any, rect: any): void;
+    assignSlot(light: any, slotIndex: any, slotReassigned: any): void;
+    update(spotLights: any, omniLights: any, lightingParams: any): void;
+}
+
+
+
+
+
+/**
+ * @ignore
+ */
 declare class ShadowRenderer {
     static createShadowCamera(device: any, shadowType: any, type: any, face: any): Camera;
     static setShadowCameraSettings(shadowCam: any, device: any, shadowType: any, type: any, isClustered: any): void;
-    constructor(forwardRenderer: any, lightTextureAtlas: any);
-    device: any;
-    forwardRenderer: any;
-    lightTextureAtlas: any;
-    polygonOffsetId: any;
+    /**
+     * @param {ForwardRenderer} forwardRenderer - The forward renderer.
+     * @param {LightTextureAtlas} lightTextureAtlas - The shadow map atlas.
+     */
+    constructor(forwardRenderer: ForwardRenderer, lightTextureAtlas: LightTextureAtlas);
+    device: GraphicsDevice;
+    /** @type {ForwardRenderer} */
+    forwardRenderer: ForwardRenderer;
+    /** @type {LightTextureAtlas} */
+    lightTextureAtlas: LightTextureAtlas;
+    polygonOffsetId: ScopeId;
     polygonOffset: Float32Array;
-    sourceId: any;
-    pixelOffsetId: any;
-    weightId: any;
+    sourceId: ScopeId;
+    pixelOffsetId: ScopeId;
+    weightId: ScopeId;
     blurVsmShaderCode: any[];
     blurPackedVsmShaderCode: string[];
     blurVsmShader: {}[];
     blurPackedVsmShader: {}[];
     blurVsmWeights: {};
-    shadowMapLightRadiusId: any;
+    shadowMapLightRadiusId: ScopeId;
     shadowMapCache: ShadowMapCache;
     destroy(): void;
     cullShadowCasters(meshInstances: any, visible: any, camera: any): void;
@@ -25793,7 +26579,11 @@ declare class ShadowRenderer {
     setupRenderState(device: any, light: any): void;
     restoreRenderState(device: any): void;
     dispatchUniforms(light: any, shadowCam: any, lightRenderData: any, face: any): void;
-    submitCasters(visibleCasters: any, light: any): void;
+    /**
+     * @param {MeshInstance[]} visibleCasters - Visible mesh instances.
+     * @param {Light} light - The light.
+     */
+    submitCasters(visibleCasters: MeshInstance[], light: Light): void;
     render(light: any, camera: any): void;
     getVsmBlurShader(isVsm8: any, blurMode: any, filterSize: any): any;
     applyVsmBlur(light: any, camera: any): void;
@@ -25822,6 +26612,9 @@ declare class CookieRenderer {
 
 
 
+
+
+
 /**
  * The forward renderer renders {@link Scene}s.
  *
@@ -25841,8 +26634,8 @@ declare class ForwardRenderer {
     /** @type {boolean} */
     clustersDebugRendered: boolean;
     device: GraphicsDevice;
-    /** @type {Scene} */
-    scene: Scene;
+    /** @type {Scene|null} */
+    scene: Scene | null;
     _shadowDrawCalls: number;
     _forwardDrawCalls: number;
     _skinDrawCalls: number;
@@ -25903,6 +26696,7 @@ declare class ForwardRenderer {
     lightShadowMapId: any[];
     lightShadowMatrixId: any[];
     lightShadowParamsId: any[];
+    lightShadowIntensity: any[];
     lightRadiusId: any[];
     lightPos: any[];
     lightPosId: any[];
@@ -25933,10 +26727,28 @@ declare class ForwardRenderer {
     depthSortCompare(drawCallA: any, drawCallB: any): number;
     updateCameraFrustum(camera: any): void;
     initViewBindGroupFormat(): void;
+    setCameraUniforms(camera: any, target: any, renderAction: any): void;
     setCamera(camera: any, target: any, clear: any, renderAction?: any): void;
     setupViewUniformBuffers(renderAction: any, viewCount: any): void;
+    /**
+     * Set up the viewport and the scissor for camera rendering.
+     *
+     * @param {Camera} camera - The camera containing the viewport infomation.
+     * @param {RenderTarget} [renderTarget] - The render target. NULL for the default one.
+     */
+    setupViewport(camera: Camera, renderTarget?: RenderTarget): void;
+    /**
+     * Clear the current render target, using currently set up viewport.
+     *
+     * @param {RenderAction} renderAction - Render action containing the clear flags.
+     * @param {Camera} camera - Camera containing the clear values.
+     */
+    clear(renderAction: RenderAction, camera: Camera): void;
     clearView(camera: any, target: any, clear: any, forceWrite: any): void;
-    dispatchGlobalLights(scene: any): void;
+    /**
+     * @param {Scene} scene - The scene.
+     */
+    dispatchGlobalLights(scene: Scene): void;
     _resolveLight(scope: any, i: any): void;
     setLTCDirectionalLight(wtm: any, cnt: any, dir: any, campos: any, far: any): void;
     dispatchDirectLights(dirs: any, scene: any, mask: any, camera: any): number;
@@ -25955,7 +26767,6 @@ declare class ForwardRenderer {
     drawInstance2(device: any, meshInstance: any, mesh: any, style: any): void;
     renderShadows(lights: any, camera: any): void;
     renderCookies(lights: any): void;
-    updateShader(meshInstance: any, objDefs: any, staticLightList: any, pass: any, sortedLights: any): void;
     setCullMode(cullFaces: any, flip: any, drawCall: any): void;
     setVertexBuffers(device: any, mesh: any): void;
     setMorphing(device: any, morphInstance: any): void;
@@ -25966,12 +26777,20 @@ declare class ForwardRenderer {
         lightMaskChanged: any[];
     };
     renderForward(camera: any, allDrawCalls: any, allDrawCallsCount: any, sortedLights: any, pass: any, cullingMask: any, drawCallback: any, layer: any, flipFaces: any): void;
-    updateShaders(drawCalls: any, onlyLitShaders: any): void;
-    beginFrame(comp: any, lightsChanged: any): void;
+    /**
+     * @param {MeshInstance[]} drawCalls - Mesh instances.
+     * @param {boolean} onlyLitShaders - Limits the update to shaders affected by lighting.
+     */
+    updateShaders(drawCalls: MeshInstance[], onlyLitShaders: boolean): void;
+    /**
+     * @param {LayerComposition} comp - The layer composition to update.
+     * @param {boolean} lightsChanged - True if lights of the composition has changed.
+     */
+    beginFrame(comp: LayerComposition, lightsChanged: boolean): void;
     /**
      * Updates the layer composition for rendering.
      *
-     * @param {LayerComposition} comp - The layer composition to upodate.
+     * @param {LayerComposition} comp - The layer composition to update.
      * @param {boolean} clusteredLightingEnabled - True if clustered lighting is enabled.
      * @returns {number} - Flags of what was updated
      * @ignore
@@ -25979,11 +26798,34 @@ declare class ForwardRenderer {
     updateLayerComposition(comp: LayerComposition, clusteredLightingEnabled: boolean): number;
     gpuUpdate(drawCalls: any): void;
     setSceneConstants(): void;
-    updateLightStats(comp: any, compUpdatedFlags: any): void;
-    cullShadowmaps(comp: any): void;
-    cullComposition(comp: any): void;
-    updateLightTextureAtlas(comp: any): void;
-    updateClusters(comp: any): void;
+    /**
+     * @param {LayerComposition} comp - The layer composition.
+     * @param {number} compUpdatedFlags - Flags of what was updated.
+     */
+    updateLightStats(comp: LayerComposition, compUpdatedFlags: number): void;
+    /**
+     * Shadow map culling for directional and visible local lights
+     * visible meshInstances are collected into light._renderData, and are marked as visible
+     * for directional lights also shadow camera matrix is set up
+     *
+     * @param {LayerComposition} comp - The layer composition.
+     */
+    cullShadowmaps(comp: LayerComposition): void;
+    /**
+     * visibility culling of lights, meshInstances, shadows casters
+     * Also applies meshInstance.visible and camera.cullingMask
+     *
+     * @param {LayerComposition} comp - The layer composition.
+     */
+    cullComposition(comp: LayerComposition): void;
+    /**
+     * @param {LayerComposition} comp - The layer composition.
+     */
+    updateLightTextureAtlas(comp: LayerComposition): void;
+    /**
+     * @param {LayerComposition} comp - The layer composition.
+     */
+    updateClusters(comp: LayerComposition): void;
     /**
      * Builds a frame graph for the rendering of the whole frame.
      *
@@ -25992,7 +26834,15 @@ declare class ForwardRenderer {
      * @ignore
      */
     buildFrameGraph(frameGraph: FrameGraph, layerComposition: LayerComposition): void;
-    update(comp: any): void;
+    /**
+     * @param {FrameGraph} frameGraph - The frame graph
+     * @param {LayerComposition} layerComposition - The layer composition.
+     */
+    addMainRenderPass(frameGraph: FrameGraph, layerComposition: LayerComposition, renderTarget: any, startIndex: any, endIndex: any, isGrabPass: any): void;
+    /**
+     * @param {LayerComposition} comp - The layer composition.
+     */
+    update(comp: LayerComposition): void;
     /**
      * Render pass for directional shadow maps of the camera.
      *
@@ -26009,7 +26859,12 @@ declare class ForwardRenderer {
      * @ignore
      */
     renderPassRenderActions(comp: LayerComposition, range: any): void;
-    renderRenderAction(comp: any, renderAction: any): void;
+    /**
+     * @param {LayerComposition} comp - The layer composition.
+     * @param {RenderAction} renderAction - The render action.
+     * @param {boolean} firstRenderAction - True if this is the first render action in the render pass.
+     */
+    renderRenderAction(comp: LayerComposition, renderAction: RenderAction, firstRenderAction: boolean): void;
 }
 
 declare class LightmapFilters {
@@ -26166,30 +27021,6 @@ declare class TouchDevice extends EventHandler {
  */
 export type LockMouseCallback = () => any;
 /**
- * @event
- * @name Mouse#mousemove
- * @description Fired when the mouse is moved.
- * @param {MouseEvent} event - The MouseEvent object.
- */
-/**
- * @event
- * @name Mouse#mousedown
- * @description Fired when a mouse button is pressed.
- * @param {MouseEvent} event - The MouseEvent object.
- */
-/**
- * @event
- * @name Mouse#mouseup
- * @description Fired when a mouse button is released.
- * @param {MouseEvent} event - The MouseEvent object.
- */
-/**
- * @event
- * @name Mouse#mousewheel
- * @description Fired when a mouse wheel is moved.
- * @param {MouseEvent} event - The MouseEvent object.
- */
-/**
  * Callback used by {@link Mouse#enablePointerLock} and {@link Application#disablePointerLock}.
  *
  * @callback LockMouseCallback
@@ -26200,6 +27031,30 @@ export type LockMouseCallback = () => any;
  * @augments EventHandler
  */
 declare class Mouse extends EventHandler {
+    /**
+     * Fired when the mouse is moved.
+     *
+     * @event Mouse#mousemove
+     * @param {MouseEvent} event - The MouseEvent object.
+     */
+    /**
+     * Fired when a mouse button is pressed.
+     *
+     * @event Mouse#mousedown
+     * @param {MouseEvent} event - The MouseEvent object.
+     */
+    /**
+     * Fired when a mouse button is released.
+     *
+     * @event Mouse#mouseup
+     * @param {MouseEvent} event - The MouseEvent object.
+     */
+    /**
+     * Fired when a mouse wheel is moved.
+     *
+     * @event Mouse#mousewheel
+     * @param {MouseEvent} event - The MouseEvent object.
+     */
     /**
      * Check if the mouse pointer has been locked, using {@link Mouse#enabledPointerLock}.
      *
@@ -26314,34 +27169,6 @@ declare class Mouse extends EventHandler {
 }
 
 /**
- * @event
- * @name Keyboard#keydown
- * @description Event fired when a key is pressed.
- * @param {KeyboardEvent} event - The Keyboard event object. Note, this event is only valid for the current callback.
- * @example
- * var onKeyDown = function (e) {
- *     if (e.key === pc.KEY_SPACE) {
- *         // space key pressed
- *     }
- *     e.event.preventDefault(); // Use original browser event to prevent browser action.
- * };
- * app.keyboard.on("keydown", onKeyDown, this);
- */
-/**
- * @event
- * @name Keyboard#keyup
- * @description Event fired when a key is released.
- * @param {KeyboardEvent} event - The Keyboard event object. Note, this event is only valid for the current callback.
- * @example
- * var onKeyUp = function (e) {
- *     if (e.key === pc.KEY_SPACE) {
- *         // space key released
- *     }
- *     e.event.preventDefault(); // Use original browser event to prevent browser action.
- * };
- * app.keyboard.on("keyup", onKeyUp, this);
- */
-/**
  * A Keyboard device bound to an Element. Allows you to detect the state of the key presses. Note
  * that the Keyboard object must be attached to an Element before it can detect any key presses.
  *
@@ -26380,6 +27207,34 @@ declare class Keyboard extends EventHandler {
     _lastmap: {};
     preventDefault: boolean;
     stopPropagation: boolean;
+    /**
+     * Fired when a key is pressed.
+     *
+     * @event Keyboard#keydown
+     * @param {KeyboardEvent} event - The Keyboard event object. Note, this event is only valid for the current callback.
+     * @example
+     * var onKeyDown = function (e) {
+     *     if (e.key === pc.KEY_SPACE) {
+     *         // space key pressed
+     *     }
+     *     e.event.preventDefault(); // Use original browser event to prevent browser action.
+     * };
+     * app.keyboard.on("keydown", onKeyDown, this);
+     */
+    /**
+     * Fired when a key is released.
+     *
+     * @event Keyboard#keyup
+     * @param {KeyboardEvent} event - The Keyboard event object. Note, this event is only valid for the current callback.
+     * @example
+     * var onKeyUp = function (e) {
+     *     if (e.key === pc.KEY_SPACE) {
+     *         // space key released
+     *     }
+     *     e.event.preventDefault(); // Use original browser event to prevent browser action.
+     * };
+     * app.keyboard.on("keyup", onKeyUp, this);
+     */
     /**
      * Attach the keyboard event handlers to an Element.
      *
@@ -26824,6 +27679,9 @@ declare class ElementTouchEvent extends ElementInputEvent {
 
 
 
+
+
+
 /** @typedef {import('../resources/handler.js').ResourceHandler} ResourceHandler */
 /** @typedef {import('../graphics/graphics-device.js').GraphicsDevice} GraphicsDevice */
 /** @typedef {import('../input/element-input.js').ElementInput} ElementInput */
@@ -26900,21 +27758,21 @@ declare class AppOptions {
     /**
      * The lightmapper.
      *
-     * @type {typeof Lightmapper}
+     * @type {Lightmapper}
      */
-    lightmapper: any;
+    lightmapper: Lightmapper;
     /**
      * The BatchManager.
      *
-     * @type {typeof BatchManager}
+     * @type {BatchManager}
      */
-    batchManager: any;
+    batchManager: BatchManager;
     /**
      * The XrManager.
      *
-     * @type {typeof XrManager}
+     * @type {XrManager}
      */
-    xr: any;
+    xr: XrManager;
     /**
      * The component systems the app requires.
      *
@@ -27006,6 +27864,7 @@ declare class ApplicationStats {
         tex: number;
         vb: number;
         ib: number;
+        ub: number;
     };
     get scene(): any;
     get lightmapper(): any;
@@ -27542,8 +28401,6 @@ declare class SceneRegistry {
 }
 
 
-/** @typedef {import('../graphics/graphics-device.js').GraphicsDevice} GraphicsDevice */
-/** @typedef {import('./components/camera/component.js').CameraComponent} CameraComponent */
 /**
  * Internal class abstracting the access to the depth and color texture of the scene.
  * color frame buffer is copied to a texture
@@ -27562,13 +28419,9 @@ declare class SceneGrab {
     application: any;
     /** @type {GraphicsDevice} */
     device: GraphicsDevice;
-    clearOptions: {
-        color: number[];
-        depth: number;
-        flags: number;
-    };
     layer: Layer;
     colorFormat: number;
+    setupUniform(device: any, depth: any, buffer: any): void;
     allocateTexture(device: any, name: any, format: any, isDepth: any, mipmaps: any): Texture;
     allocateRenderTarget(renderTarget: any, device: any, format: any, isDepth: any, mipmaps: any, isDepthUniforms: any): any;
     releaseRenderTarget(rt: any): void;
@@ -27601,6 +28454,50 @@ declare class ZoneComponent extends Component {
     constructor(system: ZoneComponentSystem, entity: Entity);
     _oldState: boolean;
     _size: Vec3;
+    /**
+     * Fired when Component becomes enabled. Note: this event does not take in account entity or
+     * any of its parent enabled state.
+     *
+     * @event ZoneComponent#enable
+     * @example
+     * entity.zone.on('enable', function () {
+     *     // component is enabled
+     * });
+     * @ignore
+     */
+    /**
+     * Fired when Component becomes disabled. Note: this event does not take in account entity or
+     * any of its parent enabled state.
+     *
+     * @event ZoneComponent#disable
+     * @example
+     * entity.zone.on('disable', function () {
+     *     // component is disabled
+     * });
+     * @ignore
+     */
+    /**
+     * Fired when Component changes state to enabled or disabled. Note: this event does not take in
+     * account entity or any of its parent enabled state.
+     *
+     * @event ZoneComponent#state
+     * @param {boolean} enabled - True if now enabled, False if disabled.
+     * @example
+     * entity.zone.on('state', function (enabled) {
+     *     // component changed state
+     * });
+     * @ignore
+     */
+    /**
+     * Fired when a zone is removed from an entity.
+     *
+     * @event ZoneComponent#remove
+     * @example
+     * entity.zone.on('remove', function () {
+     *     // zone has been removed from an entity
+     * });
+     * @ignore
+     */
     /**
      * The size of the axis-aligned box of this ZoneComponent.
      *
@@ -28315,7 +29212,7 @@ declare class AppBase extends EventHandler {
     /**
      * Stores all entities that have been created for this app by guid.
      *
-     * @type {Object.<string, Entity>}
+     * @type {Object<string, Entity>}
      * @ignore
      */
     _entityIndex: {
@@ -29583,20 +30480,6 @@ declare class PostEffectQueue {
      */
     enabled: boolean;
     depthTarget: any;
-    renderTargetScale: number;
-    /**
-     * @type {number|null}
-     * @private
-     */
-    private resizeTimeout;
-    /**
-     * The time in milliseconds since the last resize.
-     *
-     * @type {number}
-     * @private
-     */
-    private resizeLast;
-    _resizeTimeoutCallback: () => void;
     /**
      * Allocate a color buffer texture.
      *
@@ -29617,7 +30500,6 @@ declare class PostEffectQueue {
     private _createOffscreenTarget;
     _resizeOffscreenTarget(rt: any): void;
     _destroyOffscreenTarget(rt: any): void;
-    setRenderTargetScale(scale: any): void;
     /**
      * Adds a post effect to the queue. If the queue is disabled adding a post effect will
      * automatically enable the queue.
@@ -30530,7 +31412,7 @@ declare class WebglIndexBuffer extends WebglBuffer {
 
 
 
-/** @typedef {import('../graphics-device.js').GraphicsDevice} GraphicsDevice */
+/** @typedef {import('./webgl-graphics-device.js').WebglGraphicsDevice} WebglGraphicsDevice */
 /** @typedef {import('../shader.js').Shader} Shader */
 /**
  * A WebGL implementation of the Shader.
@@ -30542,7 +31424,7 @@ declare class WebglShader {
     uniforms: any[];
     samplers: any[];
     attributes: any[];
-    glProgram: any;
+    glProgram: WebGLProgram;
     glVertexShader: WebGLShader;
     glFragmentShader: WebGLShader;
     /**
@@ -30554,20 +31436,21 @@ declare class WebglShader {
     /**
      * Restore shader after the context has been obtained.
      *
-     * @param {GraphicsDevice} device - The graphics device.
+     * @param {WebglGraphicsDevice} device - The graphics device.
      * @param {Shader} shader - The shader to restore.
      */
-    restoreContext(device: GraphicsDevice, shader: Shader): void;
+    restoreContext(device: WebglGraphicsDevice, shader: Shader): void;
     /**
      * Compile and link a shader program.
      *
-     * @param {GraphicsDevice} device - The graphics device.
+     * @param {WebglGraphicsDevice} device - The graphics device.
      * @param {Shader} shader - The shader to compile.
      */
-    compileAndLink(device: GraphicsDevice, shader: Shader): void;
+    compileAndLink(device: WebglGraphicsDevice, shader: Shader): void;
     /**
      * Compiles an individual shader.
      *
+     * @param {WebglGraphicsDevice} device - The graphics device.
      * @param {string} src - The shader source code.
      * @param {boolean} isVertexShader - True if the shader is a vertex shader, false if it is a
      * fragment shader.
@@ -30578,15 +31461,15 @@ declare class WebglShader {
     /**
      * Extract attribute and uniform information from a successfully linked shader.
      *
-     * @param {GraphicsDevice} device - The graphics device.
+     * @param {WebglGraphicsDevice} device - The graphics device.
      * @param {Shader} shader - The shader to query.
      * @returns {boolean} True if the shader was successfully queried and false otherwise.
      */
-    postLink(device: GraphicsDevice, shader: Shader): boolean;
+    postLink(device: WebglGraphicsDevice, shader: Shader): boolean;
     /**
      * Check the compilation status of a shader.
      *
-     * @param {GraphicsDevice} device - The graphics device.
+     * @param {WebglGraphicsDevice} device - The graphics device.
      * @param {Shader} shader - The shader to query.
      * @param {WebGLShader} glShader - The WebGL shader.
      * @param {string} source - The shader source code.
@@ -30601,7 +31484,7 @@ declare class WebglShader {
      *
      * @param {string} src - The shader source code.
      * @param {string} infoLog - The info log returned from WebGL on a failed shader compilation.
-     * @returns {Array} An array where the first element is the 10 lines of code around the first
+     * @returns {[string, {message?: string, line?: number, source?: string}]} A tuple where the first element is the 10 lines of code around the first
      * detected error, and the second element an object storing the error messsage, line number and
      * complete shader source.
      * @private
@@ -30652,13 +31535,7 @@ declare class WebglRenderTarget {
 
 
 
-/**
- * @event
- * @name GraphicsDevice#resizecanvas
- * @description The 'resizecanvas' event is fired when the canvas is resized.
- * @param {number} width - The new width of the canvas in pixels.
- * @param {number} height - The new height of the canvas in pixels.
- */
+
 /**
  * The graphics device manages the underlying graphics context. It is responsible for submitting
  * render state changes and graphics primitives to the hardware. A graphics device is tied to a
@@ -30686,7 +31563,7 @@ declare class WebglGraphicsDevice extends GraphicsDevice {
      * @param {boolean} [options.preserveDrawingBuffer=false] - If the value is true the buffers
      * will not be cleared and will preserve their values until cleared or overwritten by the
      * author.
-     * @param {'default'|'high-performance'|'low-power'} [options.powerPreference ='default'] - A
+     * @param {'default'|'high-performance'|'low-power'} [options.powerPreference='default'] - A
      * hint to the user agent indicating what configuration of GPU is suitable for the WebGL
      * context. Possible values are:
      *
@@ -30697,8 +31574,12 @@ declare class WebglGraphicsDevice extends GraphicsDevice {
      *
      * @param {boolean} [options.failIfMajorPerformanceCaveat=false] - Boolean that indicates if a
      * context will be created if the system performance is low or if no hardware GPU is available.
+     * @param {boolean} [options.preferWebGl2=true] - Boolean that indicates if a WebGl2 context
+     * should be preferred.
      * @param {boolean} [options.desynchronized=false] - Boolean that hints the user agent to
      * reduce the latency by desynchronizing the canvas paint cycle from the event loop.
+     * @param {boolean} [options.xrCompatible] - Boolean that hints to the user agent to use a
+     * compatible graphics adapter for an immersive XR device.
      */
     constructor(canvas: HTMLCanvasElement, options?: {
         alpha?: boolean;
@@ -30709,7 +31590,9 @@ declare class WebglGraphicsDevice extends GraphicsDevice {
         preserveDrawingBuffer?: boolean;
         powerPreference?: 'default' | 'high-performance' | 'low-power';
         failIfMajorPerformanceCaveat?: boolean;
+        preferWebGl2?: boolean;
         desynchronized?: boolean;
+        xrCompatible?: boolean;
     });
     /**
      * The WebGL context managed by the graphics device. The type could also technically be
@@ -30934,10 +31817,10 @@ declare class WebglGraphicsDevice extends GraphicsDevice {
     /**
      * Binds the specified framebuffer object.
      *
-     * @param {WebGLFramebuffer} fb - The framebuffer to bind.
+     * @param {WebGLFramebuffer | null} fb - The framebuffer to bind.
      * @ignore
      */
-    setFramebuffer(fb: WebGLFramebuffer): void;
+    setFramebuffer(fb: WebGLFramebuffer | null): void;
     /**
      * Copies source render target into destination render target. Mostly used by post-effects.
      *
@@ -30966,16 +31849,34 @@ declare class WebglGraphicsDevice extends GraphicsDevice {
     getCopyShader(): Shader;
     _copyShader: Shader;
     /**
+     * Start a render pass.
+     *
+     * @param {RenderPass} renderPass - The render pass to start.
+     * @ignore
+     */
+    startPass(renderPass: RenderPass): void;
+    /**
+     * End a render pass.
+     *
+     * @param {RenderPass} renderPass - The render pass to end.
+     * @ignore
+     */
+    endPass(renderPass: RenderPass): void;
+    /**
      * Marks the beginning of a block of rendering. Internally, this function binds the render
      * target currently set on the device. This function should be matched with a call to
      * {@link GraphicsDevice#updateEnd}. Calls to {@link GraphicsDevice#updateBegin} and
      * {@link GraphicsDevice#updateEnd} must not be nested.
+     *
+     * @ignore
      */
     updateBegin(): void;
     /**
      * Marks the end of a block of rendering. This function should be called after a matching call
      * to {@link GraphicsDevice#updateBegin}. Calls to {@link GraphicsDevice#updateBegin} and
      * {@link GraphicsDevice#updateEnd} must not be nested.
+     *
+     * @ignore
      */
     updateEnd(): void;
     /**
@@ -31032,6 +31933,7 @@ declare class WebglGraphicsDevice extends GraphicsDevice {
      */
     setTexture(texture: Texture, textureUnit: number): void;
     createVertexArray(vertexBuffers: any): any;
+    unbindVertexArray(): void;
     setBuffers(): void;
     /**
      * Submits a graphical primitive to the hardware for immediate rendering.
@@ -31719,6 +32621,17 @@ declare const ELEMENTTYPE_UINT16: number;
 declare const ELEMENTTYPE_INT32: number;
 declare const ELEMENTTYPE_UINT32: number;
 declare const ELEMENTTYPE_FLOAT32: number;
+declare namespace programlib {
+    export { begin };
+    export { dummyFragmentCode };
+    export { end };
+    export { fogCode };
+    export { gammaCode };
+    export { precisionCode };
+    export { skinCode };
+    export { tonemapCode };
+    export { versionCode };
+}
 declare namespace gfx {
     export { ADDRESS_CLAMP_TO_EDGE };
     export { ADDRESS_MIRRORED_REPEAT };
@@ -31899,6 +32812,192 @@ declare namespace fw {
     }
 }
 
+declare namespace events {
+    function attach(target: any): any;
+    const _addCallback: (name: string, callback: HandleEventCallback, scope?: any, once?: boolean) => void;
+    const on: (name: string, callback: HandleEventCallback, scope?: any) => EventHandler;
+    const off: (name?: string, callback?: HandleEventCallback, scope?: any) => EventHandler;
+    const fire: (name: string, arg1?: any, arg2?: any, arg3?: any, arg4?: any, arg5?: any, arg6?: any, arg7?: any, arg8?: any) => EventHandler;
+    const once: (name: string, callback: HandleEventCallback, scope?: any) => EventHandler;
+    const hasEvent: (name: string) => boolean;
+}
+
+declare namespace guid {
+    function create(): string;
+}
+
+declare namespace path {
+    const delimiter: string;
+    function join(...args: string[]): string;
+    function normalize(pathname: string): string;
+    function split(pathname: string): string[];
+    function getBasename(pathname: string): string;
+    function getDirectory(pathname: string): string;
+    function getExtension(pathname: string): string;
+    function isRelativePath(pathname: string): boolean;
+    function extractPath(pathname: string): string;
+}
+
+declare namespace platform {
+    export { environment };
+    export const global: object;
+    export const browser: boolean;
+    export { desktop };
+    export { mobile };
+    export { ios };
+    export { android };
+    export { windows };
+    export { xbox };
+    export { gamepads };
+    export { touch };
+    export { workers };
+    export { passiveEvents };
+}
+declare const environment: "browser" | "node";
+declare let desktop: boolean;
+declare let mobile: boolean;
+declare let ios: boolean;
+declare let android: boolean;
+declare let windows: boolean;
+declare let xbox: boolean;
+declare let gamepads: boolean;
+declare let touch: boolean;
+declare let workers: boolean;
+declare let passiveEvents: boolean;
+
+declare namespace string {
+    export { ASCII_LOWERCASE };
+    export { ASCII_UPPERCASE };
+    export { ASCII_LETTERS };
+    export function format(s: string, ...args: any[]): string;
+    export function toBool(s: string, strict?: boolean): boolean;
+    export function getCodePoint(string: string, i?: number): number;
+    export function getCodePoints(string: string): number[];
+    export function getSymbols(string: string): string[];
+    export function fromCodePoint(...args: number[]): string;
+}
+declare const ASCII_LOWERCASE: "abcdefghijklmnopqrstuvwxyz";
+declare const ASCII_UPPERCASE: "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+declare const ASCII_LETTERS: string;
+
+/**
+ * Callback used by {@link ModulesetConfig }.
+ */
+export type ModuleErrorCallback = (error: string) => any;
+/**
+ * Callback used by {@link ModulegetInstance }.
+ */
+export type ModuleInstanceCallback = (moduleInstance: any) => any;
+/**
+ * Callback used by {@link Module#setConfig}.
+ *
+ * @callback ModuleErrorCallback
+ * @param {string} error - If the instance fails to load this will contain a description of the error.
+ */
+/**
+ * Callback used by {@link Module#getInstance}.
+ *
+ * @callback ModuleInstanceCallback
+ * @param {any} moduleInstance - The module instance.
+ */
+/**
+ * A pure static utility class which supports immediate and lazy loading of wasm modules.
+ */
+declare class WasmModule {
+    /**
+     * Set a wasm module's configuration.
+     *
+     * @param {string} moduleName - Name of the module.
+     * @param {object} [config] - The configuration object.
+     * @param {string} [config.glueUrl] - URL of glue script.
+     * @param {string} [config.wasmUrl] - URL of the wasm script.
+     * @param {string} [config.fallbackUrl] - URL of the fallback script to use when wasm modules
+     * aren't supported.
+     * @param {ModuleErrorCallback} [config.errorHandler] - Function to be called if the module fails
+     * to download.
+     */
+    static setConfig(moduleName: string, config?: {
+        glueUrl?: string;
+        wasmUrl?: string;
+        fallbackUrl?: string;
+        errorHandler?: ModuleErrorCallback;
+    }): void;
+    /**
+     * Get a wasm module instance. The instance will be created if necessary and returned
+     * in the second parameter to callback.
+     *
+     * @param {string} moduleName - Name of the module.
+     * @param {ModuleInstanceCallback} callback - The function called when the instance is
+     * available.
+     */
+    static getInstance(moduleName: string, callback: ModuleInstanceCallback): void;
+}
+
+/**
+ * Helper class for organized reading of memory.
+ *
+ * @ignore
+ */
+declare class ReadStream {
+    constructor(arraybuffer: any);
+    arraybuffer: any;
+    dataView: DataView;
+    offset: number;
+    stack: any[];
+    get remainingBytes(): number;
+    reset(offset?: number): void;
+    skip(bytes: any): void;
+    align(bytes: any): void;
+    _inc(amount: any): number;
+    readChar(): string;
+    readChars(numChars: any): string;
+    readU8(): number;
+    readU16(): number;
+    readU32(): number;
+    readU64(): number;
+    readU32be(): number;
+    readArray(result: any): void;
+    readLine(): string;
+}
+
+/**
+ * Log tracing functionality, allowing for tracing of the internal functionality of the engine.
+ * Note that the trace logging only takes place in the debug build of the engine and is stripped
+ * out in other builds.
+ */
+declare class Tracing {
+    /**
+     * Set storing the names of enabled trace channels.
+     *
+     * @type {Set<string>}
+     * @private
+     */
+    private static _traceChannels;
+    /**
+     * Enable or disable a trace channel.
+     *
+     * @param {string} channel - Name of the trace channel. Can be:
+     *
+     * - {@link TRACEID_RENDER_FRAME}
+     * - {@link TRACEID_RENDER_PASS}
+     * - {@link TRACEID_RENDER_PASS_DETAIL}
+     * - {@link TRACEID_RENDER_ACTION}
+     * - {@link TRACEID_RENDER_TARGET_ALLOC}
+     * - {@link TRACEID_TEXTURE_ALLOC}
+     * - {@link TRACEID_SHADER_ALLOC}
+     *
+     * @param {boolean} enabled - New enabled state for the channel.
+     */
+    static set(channel: string, enabled?: boolean): void;
+    /**
+     * Test if the trace channel is enabled.
+     *
+     * @param {string} channel - Name of the trace channnel.
+     * @returns {boolean} - True if the trace channel is enabled.
+     */
+    static get(channel: string): boolean;
+}
+
 declare namespace math {
     const DEG_TO_RAD: number;
     const RAD_TO_DEG: number;
@@ -32067,7 +33166,7 @@ declare class EnvLighting {
      * Generate the environment lighting atlas from prefiltered cubemap data.
      *
      * @param {Texture[]} sources - Array of 6 prefiltered textures.
-     * @param {object} options - The options object
+     * @param {object} [options] - The options object
      * @param {Texture} [options.target] - The target texture. If one is not provided then a
      * new texture will be created and returned.
      * @param {number} [options.size] - Size of the target texture to create. Only used if
@@ -32135,14 +33234,15 @@ declare class EnvLighting {
  * TransformExample.prototype.initialize = function() {
  *     var device = this.app.graphicsDevice;
  *     var mesh = pc.createTorus(device, { tubeRadius: 0.01, ringRadius: 3 });
- *     var node = new pc.GraphNode();
- *     var meshInstance = new pc.MeshInstance(mesh, this.material.resource, node);
- *     var model = new pc.Model();
- *     model.graph = node;
- *     model.meshInstances = [ meshInstance ];
- *     this.app.scene.addModel(model);
+ *     var meshInstance = new pc.MeshInstance(mesh, this.material.resource);
+ *     var entity = new pc.Entity();
+ *     entity.addComponent('render', {
+ *         type: 'asset',
+ *         meshInstances: [meshInstance]
+ *     });
+ *     app.root.addChild(entity);
  *
- *     // if webgl2 is not supported, TF is not available
+ *     // if webgl2 is not supported, transform-feedback is not available
  *     if (!device.webgl2) return;
  *     var inputBuffer = mesh.vertexBuffer;
  *     this.tf = new pc.TransformFeedback(inputBuffer);
@@ -32271,7 +33371,7 @@ declare class DefaultAnimBinder implements AnimBinder {
         localPosition: (node: any) => AnimTarget;
         localRotation: (node: any) => AnimTarget;
         localScale: (node: any) => AnimTarget;
-        weights: (node: any) => AnimTarget;
+        weight: (node: any, weightName: any) => AnimTarget;
         materialTexture: (node: any, textureName: any) => AnimTarget;
     };
     _isPathInMask: (path: any, checkMaskValue: any) => boolean;
@@ -33019,13 +34119,6 @@ declare class ModelHandler implements ResourceHandler {
 
 /** @typedef {import('./mesh.js').Mesh} Mesh */
 /**
- * @event
- * @private
- * @name Render#set:meshes
- * @description Fired when the meshes are set
- * @param {Mesh[]} meshes - The meshes
- */
-/**
  * A render contains an array of meshes that are referenced by a single hierarchy node in a GLB
  * model, and are accessible using {@link ContainerResource#renders} property. The render is the
  * resource of a Render Asset.
@@ -33042,6 +34135,13 @@ declare class Render extends EventHandler {
      * @private
      */
     private _meshes;
+    /**
+     * Fired when the meshes are set.
+     *
+     * @event Render#set:meshes
+     * @param {Mesh[]} meshes - The meshes.
+     * @ignore
+     */
     /**
      * The meshes that the render contains.
      *
@@ -34518,5 +35618,5 @@ declare function registerScript(script: typeof ScriptType, name?: string, app?: 
 
 declare const reservedAttributes: {};
 
-export { ABSOLUTE_URL, ACTION_GAMEPAD, ACTION_KEYBOARD, ACTION_MOUSE, ADDRESS_CLAMP_TO_EDGE, ADDRESS_MIRRORED_REPEAT, ADDRESS_REPEAT, ANIM_BLEND_1D, ANIM_BLEND_2D_CARTESIAN, ANIM_BLEND_2D_DIRECTIONAL, ANIM_BLEND_DIRECT, ANIM_CONTROL_STATES, ANIM_EQUAL_TO, ANIM_GREATER_THAN, ANIM_GREATER_THAN_EQUAL_TO, ANIM_INTERRUPTION_NEXT, ANIM_INTERRUPTION_NEXT_PREV, ANIM_INTERRUPTION_NONE, ANIM_INTERRUPTION_PREV, ANIM_INTERRUPTION_PREV_NEXT, ANIM_LAYER_ADDITIVE, ANIM_LAYER_OVERWRITE, ANIM_LESS_THAN, ANIM_LESS_THAN_EQUAL_TO, ANIM_NOT_EQUAL_TO, ANIM_PARAMETER_BOOLEAN, ANIM_PARAMETER_FLOAT, ANIM_PARAMETER_INTEGER, ANIM_PARAMETER_TRIGGER, ANIM_STATE_ANY, ANIM_STATE_END, ANIM_STATE_START, ASPECT_AUTO, ASPECT_MANUAL, ASSET_ANIMATION, ASSET_AUDIO, ASSET_CONTAINER, ASSET_CSS, ASSET_CUBEMAP, ASSET_HTML, ASSET_IMAGE, ASSET_JSON, ASSET_MATERIAL, ASSET_MODEL, ASSET_SCRIPT, ASSET_SHADER, ASSET_TEXT, ASSET_TEXTURE, AXIS_KEY, AXIS_MOUSE_X, AXIS_MOUSE_Y, AXIS_PAD_L_X, AXIS_PAD_L_Y, AXIS_PAD_R_X, AXIS_PAD_R_Y, AnimBinder, AnimClip, AnimClipHandler, AnimComponent, AnimComponentLayer, AnimComponentSystem, AnimController, AnimCurve, AnimData, AnimEvaluator, AnimEvents, AnimSnapshot, AnimStateGraph, AnimStateGraphHandler, AnimTarget, AnimTrack, Animation, AnimationComponent, AnimationComponentSystem, AnimationHandler, AppBase, Application, Asset, AssetListLoader, AssetReference, AssetRegistry, AudioHandler, AudioListenerComponent, AudioListenerComponentSystem, AudioSourceComponent, AudioSourceComponentSystem, BAKE_COLOR, BAKE_COLORDIR, BINDGROUP_MESH, BINDGROUP_VIEW, BLENDEQUATION_ADD, BLENDEQUATION_MAX, BLENDEQUATION_MIN, BLENDEQUATION_REVERSE_SUBTRACT, BLENDEQUATION_SUBTRACT, BLENDMODE_CONSTANT_ALPHA, BLENDMODE_CONSTANT_COLOR, BLENDMODE_DST_ALPHA, BLENDMODE_DST_COLOR, BLENDMODE_ONE, BLENDMODE_ONE_MINUS_CONSTANT_ALPHA, BLENDMODE_ONE_MINUS_CONSTANT_COLOR, BLENDMODE_ONE_MINUS_DST_ALPHA, BLENDMODE_ONE_MINUS_DST_COLOR, BLENDMODE_ONE_MINUS_SRC_ALPHA, BLENDMODE_ONE_MINUS_SRC_COLOR, BLENDMODE_SRC_ALPHA, BLENDMODE_SRC_ALPHA_SATURATE, BLENDMODE_SRC_COLOR, BLENDMODE_ZERO, BLEND_ADDITIVE, BLEND_ADDITIVEALPHA, BLEND_MAX, BLEND_MIN, BLEND_MULTIPLICATIVE, BLEND_MULTIPLICATIVE2X, BLEND_NONE, BLEND_NORMAL, BLEND_PREMULTIPLIED, BLEND_SCREEN, BLEND_SUBTRACTIVE, BLUR_BOX, BLUR_GAUSSIAN, BODYFLAG_KINEMATIC_OBJECT, BODYFLAG_NORESPONSE_OBJECT, BODYFLAG_STATIC_OBJECT, BODYGROUP_DEFAULT, BODYGROUP_DYNAMIC, BODYGROUP_ENGINE_1, BODYGROUP_ENGINE_2, BODYGROUP_ENGINE_3, BODYGROUP_KINEMATIC, BODYGROUP_NONE, BODYGROUP_STATIC, BODYGROUP_TRIGGER, BODYGROUP_USER_1, BODYGROUP_USER_2, BODYGROUP_USER_3, BODYGROUP_USER_4, BODYGROUP_USER_5, BODYGROUP_USER_6, BODYGROUP_USER_7, BODYGROUP_USER_8, BODYMASK_ALL, BODYMASK_NONE, BODYMASK_NOT_STATIC, BODYMASK_NOT_STATIC_KINEMATIC, BODYMASK_STATIC, BODYSTATE_ACTIVE_TAG, BODYSTATE_DISABLE_DEACTIVATION, BODYSTATE_DISABLE_SIMULATION, BODYSTATE_ISLAND_SLEEPING, BODYSTATE_WANTS_DEACTIVATION, BODYTYPE_DYNAMIC, BODYTYPE_KINEMATIC, BODYTYPE_STATIC, BUFFER_DYNAMIC, BUFFER_GPUDYNAMIC, BUFFER_STATIC, BUFFER_STREAM, BUTTON_TRANSITION_MODE_SPRITE_CHANGE, BUTTON_TRANSITION_MODE_TINT, BasicMaterial, Batch, BatchGroup, BatchManager, BinaryHandler, BoundingBox, BoundingSphere, Bundle, BundleHandler, BundleRegistry, ButtonComponent, ButtonComponentSystem, CLEARFLAG_COLOR, CLEARFLAG_DEPTH, CLEARFLAG_STENCIL, COMPUPDATED_BLEND, COMPUPDATED_CAMERAS, COMPUPDATED_INSTANCES, COMPUPDATED_LIGHTS, CUBEFACE_NEGX, CUBEFACE_NEGY, CUBEFACE_NEGZ, CUBEFACE_POSX, CUBEFACE_POSY, CUBEFACE_POSZ, CUBEPROJ_BOX, CUBEPROJ_NONE, CULLFACE_BACK, CULLFACE_FRONT, CULLFACE_FRONTANDBACK, CULLFACE_NONE, CURVE_CARDINAL, CURVE_CATMULL, CURVE_LINEAR, CURVE_SMOOTHSTEP, CURVE_SPLINE, CURVE_STEP, Camera, CameraComponent, CameraComponentSystem, CanvasFont, CollisionComponent, CollisionComponentSystem, Color, Command, Component, ComponentSystem, ComponentSystemRegistry, ContactPoint, ContactResult, ContainerHandler, ContainerResource, ContextCreationError, Controller, CssHandler, CubemapHandler, Curve, CurveSet, DETAILMODE_ADD, DETAILMODE_MAX, DETAILMODE_MIN, DETAILMODE_MUL, DETAILMODE_OVERLAY, DETAILMODE_SCREEN, DISTANCE_EXPONENTIAL, DISTANCE_INVERSE, DISTANCE_LINEAR, Debug, DefaultAnimBinder, ELEMENTTYPE_FLOAT32, ELEMENTTYPE_GROUP, ELEMENTTYPE_IMAGE, ELEMENTTYPE_INT16, ELEMENTTYPE_INT32, ELEMENTTYPE_INT8, ELEMENTTYPE_TEXT, ELEMENTTYPE_UINT16, ELEMENTTYPE_UINT32, ELEMENTTYPE_UINT8, EMITTERSHAPE_BOX, EMITTERSHAPE_SPHERE, EVENT_KEYDOWN, EVENT_KEYUP, EVENT_MOUSEDOWN, EVENT_MOUSEMOVE, EVENT_MOUSEUP, EVENT_MOUSEWHEEL, EVENT_SELECT, EVENT_SELECTEND, EVENT_SELECTSTART, EVENT_TOUCHCANCEL, EVENT_TOUCHEND, EVENT_TOUCHMOVE, EVENT_TOUCHSTART, ElementComponent, ElementComponentSystem, ElementDragHelper, ElementInput, ElementInputEvent, ElementMouseEvent, ElementSelectEvent, ElementTouchEvent, Entity, EntityReference, EnvLighting, EventHandler, FILLMODE_FILL_WINDOW, FILLMODE_KEEP_ASPECT, FILLMODE_NONE, FILTER_LINEAR, FILTER_LINEAR_MIPMAP_LINEAR, FILTER_LINEAR_MIPMAP_NEAREST, FILTER_NEAREST, FILTER_NEAREST_MIPMAP_LINEAR, FILTER_NEAREST_MIPMAP_NEAREST, FITMODE_CONTAIN, FITMODE_COVER, FITMODE_STRETCH, FITTING_BOTH, FITTING_NONE, FITTING_SHRINK, FITTING_STRETCH, FOG_EXP, FOG_EXP2, FOG_LINEAR, FOG_NONE, FONT_BITMAP, FONT_MSDF, FRESNEL_NONE, FRESNEL_SCHLICK, FUNC_ALWAYS, FUNC_EQUAL, FUNC_GREATER, FUNC_GREATEREQUAL, FUNC_LESS, FUNC_LESSEQUAL, FUNC_NEVER, FUNC_NOTEQUAL, FolderHandler, Font, FontHandler, ForwardRenderer, Frustum, GAMMA_NONE, GAMMA_SRGB, GAMMA_SRGBFAST, GAMMA_SRGBHDR, GamePads, GraphNode, GraphicsDevice, HierarchyHandler, HtmlHandler, Http, I18n, INDEXFORMAT_UINT16, INDEXFORMAT_UINT32, INDEXFORMAT_UINT8, INTERPOLATION_CUBIC, INTERPOLATION_LINEAR, INTERPOLATION_STEP, ImageElement, IndexBuffer, IndexedList, JointComponent, JointComponentSystem, JsonHandler, JsonStandardMaterialParser, KEY_0, KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7, KEY_8, KEY_9, KEY_A, KEY_ADD, KEY_ALT, KEY_B, KEY_BACKSPACE, KEY_BACK_SLASH, KEY_C, KEY_CAPS_LOCK, KEY_CLOSE_BRACKET, KEY_COMMA, KEY_CONTEXT_MENU, KEY_CONTROL, KEY_D, KEY_DECIMAL, KEY_DELETE, KEY_DIVIDE, KEY_DOWN, KEY_E, KEY_END, KEY_ENTER, KEY_EQUAL, KEY_ESCAPE, KEY_F, KEY_F1, KEY_F10, KEY_F11, KEY_F12, KEY_F2, KEY_F3, KEY_F4, KEY_F5, KEY_F6, KEY_F7, KEY_F8, KEY_F9, KEY_G, KEY_H, KEY_HOME, KEY_I, KEY_INSERT, KEY_J, KEY_K, KEY_L, KEY_LEFT, KEY_M, KEY_META, KEY_MULTIPLY, KEY_N, KEY_NUMPAD_0, KEY_NUMPAD_1, KEY_NUMPAD_2, KEY_NUMPAD_3, KEY_NUMPAD_4, KEY_NUMPAD_5, KEY_NUMPAD_6, KEY_NUMPAD_7, KEY_NUMPAD_8, KEY_NUMPAD_9, KEY_O, KEY_OPEN_BRACKET, KEY_P, KEY_PAGE_DOWN, KEY_PAGE_UP, KEY_PAUSE, KEY_PERIOD, KEY_PRINT_SCREEN, KEY_Q, KEY_R, KEY_RETURN, KEY_RIGHT, KEY_S, KEY_SEMICOLON, KEY_SEPARATOR, KEY_SHIFT, KEY_SLASH, KEY_SPACE, KEY_SUBTRACT, KEY_T, KEY_TAB, KEY_U, KEY_UP, KEY_V, KEY_W, KEY_WINDOWS, KEY_X, KEY_Y, KEY_Z, Key, Keyboard, KeyboardEvent, LAYERID_DEPTH, LAYERID_IMMEDIATE, LAYERID_SKYBOX, LAYERID_UI, LAYERID_WORLD, LAYER_FX, LAYER_GIZMO, LAYER_HUD, LAYER_WORLD, LIGHTFALLOFF_INVERSESQUARED, LIGHTFALLOFF_LINEAR, LIGHTSHAPE_DISK, LIGHTSHAPE_PUNCTUAL, LIGHTSHAPE_RECT, LIGHTSHAPE_SPHERE, LIGHTTYPE_DIRECTIONAL, LIGHTTYPE_OMNI, LIGHTTYPE_POINT, LIGHTTYPE_SPOT, LINEBATCH_GIZMO, LINEBATCH_OVERLAY, LINEBATCH_WORLD, Layer, LayerComposition, LayoutCalculator, LayoutChildComponent, LayoutChildComponentSystem, LayoutGroupComponent, LayoutGroupComponentSystem, Light, LightComponent, LightComponentSystem, LightingParams, Lightmapper, LocalizedAsset, MASK_AFFECT_DYNAMIC, MASK_AFFECT_LIGHTMAPPED, MASK_BAKE, MOTION_FREE, MOTION_LIMITED, MOTION_LOCKED, MOUSEBUTTON_LEFT, MOUSEBUTTON_MIDDLE, MOUSEBUTTON_NONE, MOUSEBUTTON_RIGHT, Mat3, Mat4, Material, MaterialHandler, Mesh, MeshInstance, Model, ModelComponent, ModelComponentSystem, ModelHandler, Morph, MorphInstance, MorphTarget, Mouse, MouseEvent$1 as MouseEvent, Node$1 as Node, ORIENTATION_HORIZONTAL, ORIENTATION_VERTICAL, OrientedBox, PAD_1, PAD_2, PAD_3, PAD_4, PAD_DOWN, PAD_FACE_1, PAD_FACE_2, PAD_FACE_3, PAD_FACE_4, PAD_LEFT, PAD_L_SHOULDER_1, PAD_L_SHOULDER_2, PAD_L_STICK_BUTTON, PAD_L_STICK_X, PAD_L_STICK_Y, PAD_RIGHT, PAD_R_SHOULDER_1, PAD_R_SHOULDER_2, PAD_R_STICK_BUTTON, PAD_R_STICK_X, PAD_R_STICK_Y, PAD_SELECT, PAD_START, PAD_UP, PAD_VENDOR, PARTICLEMODE_CPU, PARTICLEMODE_GPU, PARTICLEORIENTATION_EMITTER, PARTICLEORIENTATION_SCREEN, PARTICLEORIENTATION_WORLD, PARTICLESORT_DISTANCE, PARTICLESORT_NEWER_FIRST, PARTICLESORT_NONE, PARTICLESORT_OLDER_FIRST, PIXELFORMAT_111110F, PIXELFORMAT_A8, PIXELFORMAT_ASTC_4x4, PIXELFORMAT_ATC_RGB, PIXELFORMAT_ATC_RGBA, PIXELFORMAT_DEPTH, PIXELFORMAT_DEPTHSTENCIL, PIXELFORMAT_DXT1, PIXELFORMAT_DXT3, PIXELFORMAT_DXT5, PIXELFORMAT_ETC1, PIXELFORMAT_ETC2_RGB, PIXELFORMAT_ETC2_RGBA, PIXELFORMAT_L8, PIXELFORMAT_L8_A8, PIXELFORMAT_PVRTC_2BPP_RGBA_1, PIXELFORMAT_PVRTC_2BPP_RGB_1, PIXELFORMAT_PVRTC_4BPP_RGBA_1, PIXELFORMAT_PVRTC_4BPP_RGB_1, PIXELFORMAT_R32F, PIXELFORMAT_R4_G4_B4_A4, PIXELFORMAT_R5_G5_B5_A1, PIXELFORMAT_R5_G6_B5, PIXELFORMAT_R8_G8_B8, PIXELFORMAT_R8_G8_B8_A8, PIXELFORMAT_RGB16F, PIXELFORMAT_RGB32F, PIXELFORMAT_RGBA16F, PIXELFORMAT_RGBA32F, PIXELFORMAT_SRGB, PIXELFORMAT_SRGBA, PRIMITIVE_LINELOOP, PRIMITIVE_LINES, PRIMITIVE_LINESTRIP, PRIMITIVE_POINTS, PRIMITIVE_TRIANGLES, PRIMITIVE_TRIFAN, PRIMITIVE_TRISTRIP, PROJECTION_ORTHOGRAPHIC, PROJECTION_PERSPECTIVE, ParticleEmitter, ParticleSystemComponent, ParticleSystemComponentSystem, PhongMaterial, Picker, Plane, PostEffect$1 as PostEffect, PostEffectQueue, ProgramLibrary, Quat, RENDERSTYLE_POINTS, RENDERSTYLE_SOLID, RENDERSTYLE_WIREFRAME, RESOLUTION_AUTO, RESOLUTION_FIXED, RIGIDBODY_ACTIVE_TAG, RIGIDBODY_CF_KINEMATIC_OBJECT, RIGIDBODY_CF_NORESPONSE_OBJECT, RIGIDBODY_CF_STATIC_OBJECT, RIGIDBODY_DISABLE_DEACTIVATION, RIGIDBODY_DISABLE_SIMULATION, RIGIDBODY_ISLAND_SLEEPING, RIGIDBODY_TYPE_DYNAMIC, RIGIDBODY_TYPE_KINEMATIC, RIGIDBODY_TYPE_STATIC, RIGIDBODY_WANTS_DEACTIVATION, Ray, RaycastResult, ReadStream, RenderComponent, RenderComponentSystem, RenderHandler, RenderTarget, ResourceHandler, ResourceLoader, RigidBodyComponent, RigidBodyComponentSystem, SCALEMODE_BLEND, SCALEMODE_NONE, SCROLLBAR_VISIBILITY_SHOW_ALWAYS, SCROLLBAR_VISIBILITY_SHOW_WHEN_REQUIRED, SCROLL_MODE_BOUNCE, SCROLL_MODE_CLAMP, SCROLL_MODE_INFINITE, SEMANTIC_ATTR, SEMANTIC_ATTR0, SEMANTIC_ATTR1, SEMANTIC_ATTR10, SEMANTIC_ATTR11, SEMANTIC_ATTR12, SEMANTIC_ATTR13, SEMANTIC_ATTR14, SEMANTIC_ATTR15, SEMANTIC_ATTR2, SEMANTIC_ATTR3, SEMANTIC_ATTR4, SEMANTIC_ATTR5, SEMANTIC_ATTR6, SEMANTIC_ATTR7, SEMANTIC_ATTR8, SEMANTIC_ATTR9, SEMANTIC_BLENDINDICES, SEMANTIC_BLENDWEIGHT, SEMANTIC_COLOR, SEMANTIC_NORMAL, SEMANTIC_POSITION, SEMANTIC_TANGENT, SEMANTIC_TEXCOORD, SEMANTIC_TEXCOORD0, SEMANTIC_TEXCOORD1, SEMANTIC_TEXCOORD2, SEMANTIC_TEXCOORD3, SEMANTIC_TEXCOORD4, SEMANTIC_TEXCOORD5, SEMANTIC_TEXCOORD6, SEMANTIC_TEXCOORD7, SHADERDEF_DIRLM, SHADERDEF_INSTANCING, SHADERDEF_LM, SHADERDEF_LMAMBIENT, SHADERDEF_MORPH_NORMAL, SHADERDEF_MORPH_POSITION, SHADERDEF_MORPH_TEXTURE_BASED, SHADERDEF_NOSHADOW, SHADERDEF_SCREENSPACE, SHADERDEF_SKIN, SHADERDEF_TANGENTS, SHADERDEF_UV0, SHADERDEF_UV1, SHADERDEF_VCOLOR, SHADERSTAGE_COMPUTE, SHADERSTAGE_FRAGMENT, SHADERSTAGE_VERTEX, SHADERTAG_MATERIAL, SHADER_DEPTH, SHADER_FORWARD, SHADER_FORWARDHDR, SHADER_PICK, SHADER_SHADOW, SHADOWUPDATE_NONE, SHADOWUPDATE_REALTIME, SHADOWUPDATE_THISFRAME, SHADOW_COUNT, SHADOW_DEPTH, SHADOW_PCF1, SHADOW_PCF3, SHADOW_PCF5, SHADOW_VSM16, SHADOW_VSM32, SHADOW_VSM8, SORTKEY_DEPTH, SORTKEY_FORWARD, SORTMODE_BACK2FRONT, SORTMODE_CUSTOM, SORTMODE_FRONT2BACK, SORTMODE_MANUAL, SORTMODE_MATERIALMESH, SORTMODE_NONE, SPECOCC_AO, SPECOCC_GLOSSDEPENDENT, SPECOCC_NONE, SPECULAR_BLINN, SPECULAR_PHONG, SPRITETYPE_ANIMATED, SPRITETYPE_SIMPLE, SPRITE_RENDERMODE_SIMPLE, SPRITE_RENDERMODE_SLICED, SPRITE_RENDERMODE_TILED, STENCILOP_DECREMENT, STENCILOP_DECREMENTWRAP, STENCILOP_INCREMENT, STENCILOP_INCREMENTWRAP, STENCILOP_INVERT, STENCILOP_KEEP, STENCILOP_REPLACE, STENCILOP_ZERO, Scene, SceneHandler, SceneRegistry, SceneRegistryItem, SceneSettingsHandler, ScopeId, ScopeSpace, ScreenComponent, ScreenComponentSystem, ScriptAttributes, ScriptComponent, ScriptComponentSystem, ScriptHandler, ScriptLegacyComponent, ScriptLegacyComponentSystem, ScriptRegistry, ScriptType, ScrollViewComponent, ScrollViewComponentSystem, ScrollbarComponent, ScrollbarComponentSystem, Shader, ShaderHandler, SingleContactResult, Skeleton, Skin, SkinBatchInstance, SkinInstance, SortedLoopArray, Sound, SoundComponent, SoundComponentSystem, SoundInstance, SoundInstance3d, SoundManager, SoundSlot, Sprite, SpriteAnimationClip, SpriteComponent, SpriteComponentSystem, SpriteHandler, StandardMaterial as StandardMaterial, StencilParameters, TEXHINT_ASSET, TEXHINT_LIGHTMAP, TEXHINT_NONE, TEXHINT_SHADOWMAP, TEXTURELOCK_READ, TEXTURELOCK_WRITE, TEXTUREPROJECTION_CUBE, TEXTUREPROJECTION_EQUIRECT, TEXTUREPROJECTION_NONE, TEXTUREPROJECTION_OCTAHEDRAL, TEXTURETYPE_DEFAULT, TEXTURETYPE_RGBE, TEXTURETYPE_RGBM, TEXTURETYPE_SWIZZLEGGGR, TONEMAP_ACES, TONEMAP_ACES2, TONEMAP_FILMIC, TONEMAP_HEJL, TONEMAP_LINEAR, TYPE_FLOAT32, TYPE_INT16, TYPE_INT32, TYPE_INT8, TYPE_UINT16, TYPE_UINT32, TYPE_UINT8, Tags, Template, TemplateHandler, TextElement, TextHandler, Texture, TextureAtlas, TextureAtlasHandler, TextureHandler, TextureParser, Timer, Touch$1 as Touch, TouchDevice, TouchEvent$1 as TouchEvent, TransformFeedback, UNIFORMTYPE_BOOL, UNIFORMTYPE_BVEC2, UNIFORMTYPE_BVEC3, UNIFORMTYPE_BVEC4, UNIFORMTYPE_FLOAT, UNIFORMTYPE_FLOATARRAY, UNIFORMTYPE_INT, UNIFORMTYPE_IVEC2, UNIFORMTYPE_IVEC3, UNIFORMTYPE_IVEC4, UNIFORMTYPE_MAT2, UNIFORMTYPE_MAT3, UNIFORMTYPE_MAT4, UNIFORMTYPE_TEXTURE2D, UNIFORMTYPE_TEXTURE2D_SHADOW, UNIFORMTYPE_TEXTURE3D, UNIFORMTYPE_TEXTURECUBE, UNIFORMTYPE_TEXTURECUBE_SHADOW, UNIFORMTYPE_VEC2, UNIFORMTYPE_VEC2ARRAY, UNIFORMTYPE_VEC3, UNIFORMTYPE_VEC3ARRAY, UNIFORMTYPE_VEC4, UNIFORMTYPE_VEC4ARRAY, URI, UnsupportedBrowserError, VIEW_CENTER, VIEW_LEFT, VIEW_RIGHT, Vec2, Vec3, Vec4, VertexBuffer, VertexFormat, VertexIterator, WebglGraphicsDevice, WorldClusters, XRDEPTHSENSINGFORMAT_F32, XRDEPTHSENSINGFORMAT_L8A8, XRDEPTHSENSINGUSAGE_CPU, XRDEPTHSENSINGUSAGE_GPU, XRHAND_LEFT, XRHAND_NONE, XRHAND_RIGHT, XRSPACE_BOUNDEDFLOOR, XRSPACE_LOCAL, XRSPACE_LOCALFLOOR, XRSPACE_UNBOUNDED, XRSPACE_VIEWER, XRTARGETRAY_GAZE, XRTARGETRAY_POINTER, XRTARGETRAY_SCREEN, XRTRACKABLE_MESH, XRTRACKABLE_PLANE, XRTRACKABLE_POINT, XRTYPE_AR, XRTYPE_INLINE, XRTYPE_VR, XrDepthSensing, XrDomOverlay, XrHitTest, XrHitTestSource, XrImageTracking, XrInput, XrInputSource, XrLightEstimation, XrManager, XrPlane, XrPlaneDetection, XrTrackedImage, ZoneComponent, ZoneComponentSystem, anim, app, apps, asset, audio, basisInitialize, basisSetDownloadConfig, basisTranscode, calculateNormals, calculateTangents, common, config, createBox, createCapsule, createCone, createCylinder, createMesh, createPlane, createScript, createShader, createShaderFromCode, createSphere, createStyle, createTorus, createURI, data, drawFullscreenQuad, drawQuadWithShader, drawTexture, events, extend, fw, getTouchTargetCoords, gfx, guid, http, inherits, input, isDefined, log, makeArray, math, now, path, platform, posteffect, prefilterCubemap, programlib, registerScript, reprojectTexture, revision, scene, script, semanticToLocation, shFromCubemap, shaderChunks, shadowTypeToString, shape, string, time, type, typedArrayIndexFormats, typedArrayIndexFormatsByteSize, typedArrayToType, typedArrayTypes, typedArrayTypesByteSize, version };
+export { ABSOLUTE_URL, ACTION_GAMEPAD, ACTION_KEYBOARD, ACTION_MOUSE, ADDRESS_CLAMP_TO_EDGE, ADDRESS_MIRRORED_REPEAT, ADDRESS_REPEAT, ANIM_BLEND_1D, ANIM_BLEND_2D_CARTESIAN, ANIM_BLEND_2D_DIRECTIONAL, ANIM_BLEND_DIRECT, ANIM_CONTROL_STATES, ANIM_EQUAL_TO, ANIM_GREATER_THAN, ANIM_GREATER_THAN_EQUAL_TO, ANIM_INTERRUPTION_NEXT, ANIM_INTERRUPTION_NEXT_PREV, ANIM_INTERRUPTION_NONE, ANIM_INTERRUPTION_PREV, ANIM_INTERRUPTION_PREV_NEXT, ANIM_LAYER_ADDITIVE, ANIM_LAYER_OVERWRITE, ANIM_LESS_THAN, ANIM_LESS_THAN_EQUAL_TO, ANIM_NOT_EQUAL_TO, ANIM_PARAMETER_BOOLEAN, ANIM_PARAMETER_FLOAT, ANIM_PARAMETER_INTEGER, ANIM_PARAMETER_TRIGGER, ANIM_STATE_ANY, ANIM_STATE_END, ANIM_STATE_START, ASPECT_AUTO, ASPECT_MANUAL, ASSET_ANIMATION, ASSET_AUDIO, ASSET_CONTAINER, ASSET_CSS, ASSET_CUBEMAP, ASSET_HTML, ASSET_IMAGE, ASSET_JSON, ASSET_MATERIAL, ASSET_MODEL, ASSET_SCRIPT, ASSET_SHADER, ASSET_TEXT, ASSET_TEXTURE, AXIS_KEY, AXIS_MOUSE_X, AXIS_MOUSE_Y, AXIS_PAD_L_X, AXIS_PAD_L_Y, AXIS_PAD_R_X, AXIS_PAD_R_Y, AnimBinder, AnimClip, AnimClipHandler, AnimComponent, AnimComponentLayer, AnimComponentSystem, AnimController, AnimCurve, AnimData, AnimEvaluator, AnimEvents, AnimSnapshot, AnimStateGraph, AnimStateGraphHandler, AnimTarget, AnimTrack, Animation, AnimationComponent, AnimationComponentSystem, AnimationHandler, AppBase, Application, Asset, AssetListLoader, AssetReference, AssetRegistry, AudioHandler, AudioListenerComponent, AudioListenerComponentSystem, AudioSourceComponent, AudioSourceComponentSystem, BAKE_COLOR, BAKE_COLORDIR, BINDGROUP_MESH, BINDGROUP_VIEW, BLENDEQUATION_ADD, BLENDEQUATION_MAX, BLENDEQUATION_MIN, BLENDEQUATION_REVERSE_SUBTRACT, BLENDEQUATION_SUBTRACT, BLENDMODE_CONSTANT_ALPHA, BLENDMODE_CONSTANT_COLOR, BLENDMODE_DST_ALPHA, BLENDMODE_DST_COLOR, BLENDMODE_ONE, BLENDMODE_ONE_MINUS_CONSTANT_ALPHA, BLENDMODE_ONE_MINUS_CONSTANT_COLOR, BLENDMODE_ONE_MINUS_DST_ALPHA, BLENDMODE_ONE_MINUS_DST_COLOR, BLENDMODE_ONE_MINUS_SRC_ALPHA, BLENDMODE_ONE_MINUS_SRC_COLOR, BLENDMODE_SRC_ALPHA, BLENDMODE_SRC_ALPHA_SATURATE, BLENDMODE_SRC_COLOR, BLENDMODE_ZERO, BLEND_ADDITIVE, BLEND_ADDITIVEALPHA, BLEND_MAX, BLEND_MIN, BLEND_MULTIPLICATIVE, BLEND_MULTIPLICATIVE2X, BLEND_NONE, BLEND_NORMAL, BLEND_PREMULTIPLIED, BLEND_SCREEN, BLEND_SUBTRACTIVE, BLUR_BOX, BLUR_GAUSSIAN, BODYFLAG_KINEMATIC_OBJECT, BODYFLAG_NORESPONSE_OBJECT, BODYFLAG_STATIC_OBJECT, BODYGROUP_DEFAULT, BODYGROUP_DYNAMIC, BODYGROUP_ENGINE_1, BODYGROUP_ENGINE_2, BODYGROUP_ENGINE_3, BODYGROUP_KINEMATIC, BODYGROUP_NONE, BODYGROUP_STATIC, BODYGROUP_TRIGGER, BODYGROUP_USER_1, BODYGROUP_USER_2, BODYGROUP_USER_3, BODYGROUP_USER_4, BODYGROUP_USER_5, BODYGROUP_USER_6, BODYGROUP_USER_7, BODYGROUP_USER_8, BODYMASK_ALL, BODYMASK_NONE, BODYMASK_NOT_STATIC, BODYMASK_NOT_STATIC_KINEMATIC, BODYMASK_STATIC, BODYSTATE_ACTIVE_TAG, BODYSTATE_DISABLE_DEACTIVATION, BODYSTATE_DISABLE_SIMULATION, BODYSTATE_ISLAND_SLEEPING, BODYSTATE_WANTS_DEACTIVATION, BODYTYPE_DYNAMIC, BODYTYPE_KINEMATIC, BODYTYPE_STATIC, BUFFER_DYNAMIC, BUFFER_GPUDYNAMIC, BUFFER_STATIC, BUFFER_STREAM, BUTTON_TRANSITION_MODE_SPRITE_CHANGE, BUTTON_TRANSITION_MODE_TINT, BasicMaterial, Batch, BatchGroup, BatchManager, BinaryHandler, BoundingBox, BoundingSphere, Bundle, BundleHandler, BundleRegistry, ButtonComponent, ButtonComponentSystem, CHUNKAPI_1_51, CHUNKAPI_1_55, CLEARFLAG_COLOR, CLEARFLAG_DEPTH, CLEARFLAG_STENCIL, COMPUPDATED_BLEND, COMPUPDATED_CAMERAS, COMPUPDATED_INSTANCES, COMPUPDATED_LIGHTS, CUBEFACE_NEGX, CUBEFACE_NEGY, CUBEFACE_NEGZ, CUBEFACE_POSX, CUBEFACE_POSY, CUBEFACE_POSZ, CUBEPROJ_BOX, CUBEPROJ_NONE, CULLFACE_BACK, CULLFACE_FRONT, CULLFACE_FRONTANDBACK, CULLFACE_NONE, CURVE_CARDINAL, CURVE_CATMULL, CURVE_LINEAR, CURVE_SMOOTHSTEP, CURVE_SPLINE, CURVE_STEP, Camera, CameraComponent, CameraComponentSystem, CanvasFont, CollisionComponent, CollisionComponentSystem, Color, Command, Component, ComponentSystem, ComponentSystemRegistry, ContactPoint, ContactResult, ContainerHandler, ContainerResource, ContextCreationError, Controller, CssHandler, CubemapHandler, Curve, CurveSet, DETAILMODE_ADD, DETAILMODE_MAX, DETAILMODE_MIN, DETAILMODE_MUL, DETAILMODE_OVERLAY, DETAILMODE_SCREEN, DISTANCE_EXPONENTIAL, DISTANCE_INVERSE, DISTANCE_LINEAR, DefaultAnimBinder, ELEMENTTYPE_FLOAT32, ELEMENTTYPE_GROUP, ELEMENTTYPE_IMAGE, ELEMENTTYPE_INT16, ELEMENTTYPE_INT32, ELEMENTTYPE_INT8, ELEMENTTYPE_TEXT, ELEMENTTYPE_UINT16, ELEMENTTYPE_UINT32, ELEMENTTYPE_UINT8, EMITTERSHAPE_BOX, EMITTERSHAPE_SPHERE, EVENT_KEYDOWN, EVENT_KEYUP, EVENT_MOUSEDOWN, EVENT_MOUSEMOVE, EVENT_MOUSEUP, EVENT_MOUSEWHEEL, EVENT_SELECT, EVENT_SELECTEND, EVENT_SELECTSTART, EVENT_TOUCHCANCEL, EVENT_TOUCHEND, EVENT_TOUCHMOVE, EVENT_TOUCHSTART, ElementComponent, ElementComponentSystem, ElementDragHelper, ElementInput, ElementInputEvent, ElementMouseEvent, ElementSelectEvent, ElementTouchEvent, Entity, EntityReference, EnvLighting, EventHandler, FILLMODE_FILL_WINDOW, FILLMODE_KEEP_ASPECT, FILLMODE_NONE, FILTER_LINEAR, FILTER_LINEAR_MIPMAP_LINEAR, FILTER_LINEAR_MIPMAP_NEAREST, FILTER_NEAREST, FILTER_NEAREST_MIPMAP_LINEAR, FILTER_NEAREST_MIPMAP_NEAREST, FITMODE_CONTAIN, FITMODE_COVER, FITMODE_STRETCH, FITTING_BOTH, FITTING_NONE, FITTING_SHRINK, FITTING_STRETCH, FOG_EXP, FOG_EXP2, FOG_LINEAR, FOG_NONE, FONT_BITMAP, FONT_MSDF, FRESNEL_NONE, FRESNEL_SCHLICK, FUNC_ALWAYS, FUNC_EQUAL, FUNC_GREATER, FUNC_GREATEREQUAL, FUNC_LESS, FUNC_LESSEQUAL, FUNC_NEVER, FUNC_NOTEQUAL, FolderHandler, Font, FontHandler, ForwardRenderer, Frustum, GAMMA_NONE, GAMMA_SRGB, GAMMA_SRGBFAST, GAMMA_SRGBHDR, GamePads, GraphNode, GraphicsDevice, HierarchyHandler, HtmlHandler, Http, I18n, INDEXFORMAT_UINT16, INDEXFORMAT_UINT32, INDEXFORMAT_UINT8, INTERPOLATION_CUBIC, INTERPOLATION_LINEAR, INTERPOLATION_STEP, ImageElement, IndexBuffer, IndexedList, JointComponent, JointComponentSystem, JsonHandler, JsonStandardMaterialParser, KEY_0, KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7, KEY_8, KEY_9, KEY_A, KEY_ADD, KEY_ALT, KEY_B, KEY_BACKSPACE, KEY_BACK_SLASH, KEY_C, KEY_CAPS_LOCK, KEY_CLOSE_BRACKET, KEY_COMMA, KEY_CONTEXT_MENU, KEY_CONTROL, KEY_D, KEY_DECIMAL, KEY_DELETE, KEY_DIVIDE, KEY_DOWN, KEY_E, KEY_END, KEY_ENTER, KEY_EQUAL, KEY_ESCAPE, KEY_F, KEY_F1, KEY_F10, KEY_F11, KEY_F12, KEY_F2, KEY_F3, KEY_F4, KEY_F5, KEY_F6, KEY_F7, KEY_F8, KEY_F9, KEY_G, KEY_H, KEY_HOME, KEY_I, KEY_INSERT, KEY_J, KEY_K, KEY_L, KEY_LEFT, KEY_M, KEY_META, KEY_MULTIPLY, KEY_N, KEY_NUMPAD_0, KEY_NUMPAD_1, KEY_NUMPAD_2, KEY_NUMPAD_3, KEY_NUMPAD_4, KEY_NUMPAD_5, KEY_NUMPAD_6, KEY_NUMPAD_7, KEY_NUMPAD_8, KEY_NUMPAD_9, KEY_O, KEY_OPEN_BRACKET, KEY_P, KEY_PAGE_DOWN, KEY_PAGE_UP, KEY_PAUSE, KEY_PERIOD, KEY_PRINT_SCREEN, KEY_Q, KEY_R, KEY_RETURN, KEY_RIGHT, KEY_S, KEY_SEMICOLON, KEY_SEPARATOR, KEY_SHIFT, KEY_SLASH, KEY_SPACE, KEY_SUBTRACT, KEY_T, KEY_TAB, KEY_U, KEY_UP, KEY_V, KEY_W, KEY_WINDOWS, KEY_X, KEY_Y, KEY_Z, Key, Keyboard, KeyboardEvent, LAYERID_DEPTH, LAYERID_IMMEDIATE, LAYERID_SKYBOX, LAYERID_UI, LAYERID_WORLD, LAYER_FX, LAYER_GIZMO, LAYER_HUD, LAYER_WORLD, LIGHTFALLOFF_INVERSESQUARED, LIGHTFALLOFF_LINEAR, LIGHTSHAPE_DISK, LIGHTSHAPE_PUNCTUAL, LIGHTSHAPE_RECT, LIGHTSHAPE_SPHERE, LIGHTTYPE_COUNT, LIGHTTYPE_DIRECTIONAL, LIGHTTYPE_OMNI, LIGHTTYPE_POINT, LIGHTTYPE_SPOT, LINEBATCH_GIZMO, LINEBATCH_OVERLAY, LINEBATCH_WORLD, Layer, LayerComposition, LayoutCalculator, LayoutChildComponent, LayoutChildComponentSystem, LayoutGroupComponent, LayoutGroupComponentSystem, Light, LightComponent, LightComponentSystem, LightingParams, Lightmapper, LocalizedAsset, MASK_AFFECT_DYNAMIC, MASK_AFFECT_LIGHTMAPPED, MASK_BAKE, MOTION_FREE, MOTION_LIMITED, MOTION_LOCKED, MOUSEBUTTON_LEFT, MOUSEBUTTON_MIDDLE, MOUSEBUTTON_NONE, MOUSEBUTTON_RIGHT, Mat3, Mat4, Material, MaterialHandler, Mesh, MeshInstance, Model, ModelComponent, ModelComponentSystem, ModelHandler, Morph, MorphInstance, MorphTarget, Mouse, MouseEvent$1 as MouseEvent, Node$1 as Node, ORIENTATION_HORIZONTAL, ORIENTATION_VERTICAL, OrientedBox, PAD_1, PAD_2, PAD_3, PAD_4, PAD_DOWN, PAD_FACE_1, PAD_FACE_2, PAD_FACE_3, PAD_FACE_4, PAD_LEFT, PAD_L_SHOULDER_1, PAD_L_SHOULDER_2, PAD_L_STICK_BUTTON, PAD_L_STICK_X, PAD_L_STICK_Y, PAD_RIGHT, PAD_R_SHOULDER_1, PAD_R_SHOULDER_2, PAD_R_STICK_BUTTON, PAD_R_STICK_X, PAD_R_STICK_Y, PAD_SELECT, PAD_START, PAD_UP, PAD_VENDOR, PARTICLEMODE_CPU, PARTICLEMODE_GPU, PARTICLEORIENTATION_EMITTER, PARTICLEORIENTATION_SCREEN, PARTICLEORIENTATION_WORLD, PARTICLESORT_DISTANCE, PARTICLESORT_NEWER_FIRST, PARTICLESORT_NONE, PARTICLESORT_OLDER_FIRST, PIXELFORMAT_111110F, PIXELFORMAT_A8, PIXELFORMAT_ASTC_4x4, PIXELFORMAT_ATC_RGB, PIXELFORMAT_ATC_RGBA, PIXELFORMAT_DEPTH, PIXELFORMAT_DEPTHSTENCIL, PIXELFORMAT_DXT1, PIXELFORMAT_DXT3, PIXELFORMAT_DXT5, PIXELFORMAT_ETC1, PIXELFORMAT_ETC2_RGB, PIXELFORMAT_ETC2_RGBA, PIXELFORMAT_L8, PIXELFORMAT_L8_A8, PIXELFORMAT_PVRTC_2BPP_RGBA_1, PIXELFORMAT_PVRTC_2BPP_RGB_1, PIXELFORMAT_PVRTC_4BPP_RGBA_1, PIXELFORMAT_PVRTC_4BPP_RGB_1, PIXELFORMAT_R32F, PIXELFORMAT_R4_G4_B4_A4, PIXELFORMAT_R5_G5_B5_A1, PIXELFORMAT_R5_G6_B5, PIXELFORMAT_R8_G8_B8, PIXELFORMAT_R8_G8_B8_A8, PIXELFORMAT_RGB16F, PIXELFORMAT_RGB32F, PIXELFORMAT_RGBA16F, PIXELFORMAT_RGBA32F, PIXELFORMAT_SRGB, PIXELFORMAT_SRGBA, PRIMITIVE_LINELOOP, PRIMITIVE_LINES, PRIMITIVE_LINESTRIP, PRIMITIVE_POINTS, PRIMITIVE_TRIANGLES, PRIMITIVE_TRIFAN, PRIMITIVE_TRISTRIP, PROJECTION_ORTHOGRAPHIC, PROJECTION_PERSPECTIVE, ParticleEmitter, ParticleSystemComponent, ParticleSystemComponentSystem, PhongMaterial, Picker, Plane, PostEffect$1 as PostEffect, PostEffectQueue, ProgramLibrary, Quat, RENDERSTYLE_POINTS, RENDERSTYLE_SOLID, RENDERSTYLE_WIREFRAME, RESOLUTION_AUTO, RESOLUTION_FIXED, RIGIDBODY_ACTIVE_TAG, RIGIDBODY_CF_KINEMATIC_OBJECT, RIGIDBODY_CF_NORESPONSE_OBJECT, RIGIDBODY_CF_STATIC_OBJECT, RIGIDBODY_DISABLE_DEACTIVATION, RIGIDBODY_DISABLE_SIMULATION, RIGIDBODY_ISLAND_SLEEPING, RIGIDBODY_TYPE_DYNAMIC, RIGIDBODY_TYPE_KINEMATIC, RIGIDBODY_TYPE_STATIC, RIGIDBODY_WANTS_DEACTIVATION, Ray, RaycastResult, ReadStream, RenderComponent, RenderComponentSystem, RenderHandler, RenderTarget, ResourceHandler, ResourceLoader, RigidBodyComponent, RigidBodyComponentSystem, SCALEMODE_BLEND, SCALEMODE_NONE, SCROLLBAR_VISIBILITY_SHOW_ALWAYS, SCROLLBAR_VISIBILITY_SHOW_WHEN_REQUIRED, SCROLL_MODE_BOUNCE, SCROLL_MODE_CLAMP, SCROLL_MODE_INFINITE, SEMANTIC_ATTR, SEMANTIC_ATTR0, SEMANTIC_ATTR1, SEMANTIC_ATTR10, SEMANTIC_ATTR11, SEMANTIC_ATTR12, SEMANTIC_ATTR13, SEMANTIC_ATTR14, SEMANTIC_ATTR15, SEMANTIC_ATTR2, SEMANTIC_ATTR3, SEMANTIC_ATTR4, SEMANTIC_ATTR5, SEMANTIC_ATTR6, SEMANTIC_ATTR7, SEMANTIC_ATTR8, SEMANTIC_ATTR9, SEMANTIC_BLENDINDICES, SEMANTIC_BLENDWEIGHT, SEMANTIC_COLOR, SEMANTIC_NORMAL, SEMANTIC_POSITION, SEMANTIC_TANGENT, SEMANTIC_TEXCOORD, SEMANTIC_TEXCOORD0, SEMANTIC_TEXCOORD1, SEMANTIC_TEXCOORD2, SEMANTIC_TEXCOORD3, SEMANTIC_TEXCOORD4, SEMANTIC_TEXCOORD5, SEMANTIC_TEXCOORD6, SEMANTIC_TEXCOORD7, SHADERDEF_DIRLM, SHADERDEF_INSTANCING, SHADERDEF_LM, SHADERDEF_LMAMBIENT, SHADERDEF_MORPH_NORMAL, SHADERDEF_MORPH_POSITION, SHADERDEF_MORPH_TEXTURE_BASED, SHADERDEF_NOSHADOW, SHADERDEF_SCREENSPACE, SHADERDEF_SKIN, SHADERDEF_TANGENTS, SHADERDEF_UV0, SHADERDEF_UV1, SHADERDEF_VCOLOR, SHADERSTAGE_COMPUTE, SHADERSTAGE_FRAGMENT, SHADERSTAGE_VERTEX, SHADERTAG_MATERIAL, SHADERTYPE_DEPTH, SHADERTYPE_FORWARD, SHADERTYPE_PICK, SHADERTYPE_SHADOW, SHADER_DEPTH, SHADER_FORWARD, SHADER_FORWARDHDR, SHADER_PICK, SHADER_SHADOW, SHADOWUPDATE_NONE, SHADOWUPDATE_REALTIME, SHADOWUPDATE_THISFRAME, SHADOW_COUNT, SHADOW_DEPTH, SHADOW_PCF1, SHADOW_PCF3, SHADOW_PCF5, SHADOW_VSM16, SHADOW_VSM32, SHADOW_VSM8, SORTKEY_DEPTH, SORTKEY_FORWARD, SORTMODE_BACK2FRONT, SORTMODE_CUSTOM, SORTMODE_FRONT2BACK, SORTMODE_MANUAL, SORTMODE_MATERIALMESH, SORTMODE_NONE, SPECOCC_AO, SPECOCC_GLOSSDEPENDENT, SPECOCC_NONE, SPECULAR_BLINN, SPECULAR_PHONG, SPRITETYPE_ANIMATED, SPRITETYPE_SIMPLE, SPRITE_RENDERMODE_SIMPLE, SPRITE_RENDERMODE_SLICED, SPRITE_RENDERMODE_TILED, STENCILOP_DECREMENT, STENCILOP_DECREMENTWRAP, STENCILOP_INCREMENT, STENCILOP_INCREMENTWRAP, STENCILOP_INVERT, STENCILOP_KEEP, STENCILOP_REPLACE, STENCILOP_ZERO, Scene, SceneHandler, SceneRegistry, SceneRegistryItem, SceneSettingsHandler, ScopeId, ScopeSpace, ScreenComponent, ScreenComponentSystem, ScriptAttributes, ScriptComponent, ScriptComponentSystem, ScriptHandler, ScriptLegacyComponent, ScriptLegacyComponentSystem, ScriptRegistry, ScriptType, ScrollViewComponent, ScrollViewComponentSystem, ScrollbarComponent, ScrollbarComponentSystem, Shader, ShaderHandler, SingleContactResult, Skeleton, Skin, SkinBatchInstance, SkinInstance, SortedLoopArray, Sound, SoundComponent, SoundComponentSystem, SoundInstance, SoundInstance3d, SoundManager, SoundSlot, Sprite, SpriteAnimationClip, SpriteComponent, SpriteComponentSystem, SpriteHandler, StandardMaterial as StandardMaterial, StencilParameters, TEXHINT_ASSET, TEXHINT_LIGHTMAP, TEXHINT_NONE, TEXHINT_SHADOWMAP, TEXTURELOCK_READ, TEXTURELOCK_WRITE, TEXTUREPROJECTION_CUBE, TEXTUREPROJECTION_EQUIRECT, TEXTUREPROJECTION_NONE, TEXTUREPROJECTION_OCTAHEDRAL, TEXTURETYPE_DEFAULT, TEXTURETYPE_RGBE, TEXTURETYPE_RGBM, TEXTURETYPE_SWIZZLEGGGR, TONEMAP_ACES, TONEMAP_ACES2, TONEMAP_FILMIC, TONEMAP_HEJL, TONEMAP_LINEAR, TRACEID_RENDER_ACTION, TRACEID_RENDER_FRAME, TRACEID_RENDER_PASS, TRACEID_RENDER_PASS_DETAIL, TRACEID_RENDER_TARGET_ALLOC, TRACEID_SHADER_ALLOC, TRACEID_TEXTURE_ALLOC, TYPE_FLOAT32, TYPE_INT16, TYPE_INT32, TYPE_INT8, TYPE_UINT16, TYPE_UINT32, TYPE_UINT8, Tags, Template, TemplateHandler, TextElement, TextHandler, Texture, TextureAtlas, TextureAtlasHandler, TextureHandler, TextureParser, Timer, Touch$1 as Touch, TouchDevice, TouchEvent$1 as TouchEvent, Tracing, TransformFeedback, UNIFORMTYPE_BOOL, UNIFORMTYPE_BVEC2, UNIFORMTYPE_BVEC3, UNIFORMTYPE_BVEC4, UNIFORMTYPE_FLOAT, UNIFORMTYPE_FLOATARRAY, UNIFORMTYPE_INT, UNIFORMTYPE_IVEC2, UNIFORMTYPE_IVEC3, UNIFORMTYPE_IVEC4, UNIFORMTYPE_MAT2, UNIFORMTYPE_MAT3, UNIFORMTYPE_MAT4, UNIFORMTYPE_TEXTURE2D, UNIFORMTYPE_TEXTURE2D_SHADOW, UNIFORMTYPE_TEXTURE3D, UNIFORMTYPE_TEXTURECUBE, UNIFORMTYPE_TEXTURECUBE_SHADOW, UNIFORMTYPE_VEC2, UNIFORMTYPE_VEC2ARRAY, UNIFORMTYPE_VEC3, UNIFORMTYPE_VEC3ARRAY, UNIFORMTYPE_VEC4, UNIFORMTYPE_VEC4ARRAY, URI, UnsupportedBrowserError, VIEW_CENTER, VIEW_LEFT, VIEW_RIGHT, Vec2, Vec3, Vec4, VertexBuffer, VertexFormat, VertexIterator, WasmModule, WebglGraphicsDevice, WorldClusters, XRDEPTHSENSINGFORMAT_F32, XRDEPTHSENSINGFORMAT_L8A8, XRDEPTHSENSINGUSAGE_CPU, XRDEPTHSENSINGUSAGE_GPU, XRHAND_LEFT, XRHAND_NONE, XRHAND_RIGHT, XRSPACE_BOUNDEDFLOOR, XRSPACE_LOCAL, XRSPACE_LOCALFLOOR, XRSPACE_UNBOUNDED, XRSPACE_VIEWER, XRTARGETRAY_GAZE, XRTARGETRAY_POINTER, XRTARGETRAY_SCREEN, XRTRACKABLE_MESH, XRTRACKABLE_PLANE, XRTRACKABLE_POINT, XRTYPE_AR, XRTYPE_INLINE, XRTYPE_VR, XrDepthSensing, XrDomOverlay, XrHitTest, XrHitTestSource, XrImageTracking, XrInput, XrInputSource, XrLightEstimation, XrManager, XrPlane, XrPlaneDetection, XrTrackedImage, ZoneComponent, ZoneComponentSystem, anim, app, apps, asset, audio, basisInitialize, basisSetDownloadConfig, basisTranscode, bindGroupNames, calculateNormals, calculateTangents, common, config, createBox, createCapsule, createCone, createCylinder, createMesh, createPlane, createScript, createShader, createShaderFromCode, createSphere, createStyle, createTorus, createURI, data, drawFullscreenQuad, drawQuadWithShader, drawTexture, events, extend, fw, getTouchTargetCoords, gfx, guid, http, inherits, input, isDefined, log, makeArray, math, now, path, platform, posteffect, prefilterCubemap, programlib, registerScript, reprojectTexture, revision, scene, script, semanticToLocation, shFromCubemap, shaderChunks, shadowTypeToString, shape, string, time, type, typedArrayIndexFormats, typedArrayIndexFormatsByteSize, typedArrayToType, typedArrayTypes, typedArrayTypesByteSize, uniformTypeToName, version };
 export as namespace pc;

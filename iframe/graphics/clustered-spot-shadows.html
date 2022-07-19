@@ -3,7 +3,6 @@
 <head>
     <script src="../../build/playcanvas-extras.js"></script>
     <script src="../../build/playcanvas-observer.js"></script>
-    <script src="../../build/wasm-loader.js"></script>
     <script src="../../build/urlSearchParamsPolyfill.js"></script>
     <script src="../../build/promisePolyfill.js"></script>
     <script src="../../build/fetchPolyfill.js"></script>
@@ -77,6 +76,9 @@
       React.createElement(LabelGroup, { text: "Static" }, /*#__PURE__*/
       React.createElement(BooleanInput, { type: "toggle", binding: new BindingTwoWay(), link: { observer: data, path: 'settings.static' }, value: data.get('settings.static') })), /*#__PURE__*/
 
+      React.createElement(LabelGroup, { text: "Shadow Intensity" }, /*#__PURE__*/
+      React.createElement(SliderInput, { binding: new BindingTwoWay(), link: { observer: data, path: 'settings.shadowIntensity' }, min: 0, max: 1, value: data.get('settings.shadowIntensity') })), /*#__PURE__*/
+
       React.createElement(Button, { text: "Add Light", onClick: function onClick() {return data.emit('add');} }), /*#__PURE__*/
       React.createElement(Button, { text: "Remove Light", onClick: function onClick() {return data.emit('remove');} }), /*#__PURE__*/
       React.createElement(LabelGroup, { text: "Light Count" }, /*#__PURE__*/
@@ -119,6 +121,7 @@
           shadowType: pc.SHADOW_PCF3, // shadow filter type
           shadowsEnabled: true,
           cookiesEnabled: true,
+          shadowIntensity: 1,
           numLights: 0,
           debug: false,
           debugAtlas: false,
@@ -325,7 +328,10 @@
 
             // show debug atlas
             debugAtlas = value;
-
+          } else if (pathArray[1] === 'shadowIntensity') {
+            for (var _i2 = 0; _i2 < spotLightList.length; _i2++) {
+              spotLightList[_i2].light.shadowIntensity = value;
+            }
           } else {
             // @ts-ignore
             lighting[pathArray[1]] = value;
@@ -523,10 +529,6 @@
                     return data;
                 } else if (arg === 'pcx') {
                     return pcx;
-                } else if (arg === 'loadWasmModuleAsync') {
-                    return loadWasmModuleAsync;
-                } else if (arg === 'wasmSupported') {
-                    return wasmSupported;
                 }
             });
             window.exampleFunction.apply(this, args);
