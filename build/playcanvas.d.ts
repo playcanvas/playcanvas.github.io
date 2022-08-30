@@ -41,6 +41,24 @@ declare const TRACEID_TEXTURE_ALLOC: string;
  * @type {string}
  */
 declare const TRACEID_SHADER_ALLOC: string;
+/**
+ * Logs the vram use by the textures.
+ *
+ * @type {string}
+ */
+declare const TRACEID_VRAM_TEXTURE: string;
+/**
+ * Logs the vram use by the vertex buffers.
+ *
+ * @type {string}
+ */
+declare const TRACEID_VRAM_VB: string;
+/**
+ * Logs the vram use by the index buffers.
+ *
+ * @type {string}
+ */
+declare const TRACEID_VRAM_IB: string;
 
 /**
  * A linear interpolation scheme.
@@ -927,6 +945,12 @@ declare const TEXTURETYPE_RGBM: string;
  */
 declare const TEXTURETYPE_RGBE: string;
 /**
+ * Texture stores high dynamic range data in RGBP encoding.
+ *
+ * @type {string}
+ */
+declare const TEXTURETYPE_RGBP: string;
+/**
  * Texture stores normalmap data swizzled in GGGR format. This is used for tangent space normal
  * maps. The R component is stored in alpha and G is stored in RGB. This packing can result in
  * higher quality when the texture data is compressed.
@@ -1029,11 +1053,14 @@ declare const UNIFORMTYPE_VEC2ARRAY: 21;
 declare const UNIFORMTYPE_VEC3ARRAY: 22;
 declare const UNIFORMTYPE_VEC4ARRAY: 23;
 declare const uniformTypeToName: string[];
+declare const DEVICETYPE_WEBGL: "webgl";
+declare const DEVICETYPE_WEBGPU: "webgpu";
 declare const SHADERSTAGE_VERTEX: 1;
 declare const SHADERSTAGE_FRAGMENT: 2;
 declare const SHADERSTAGE_COMPUTE: 4;
 declare const BINDGROUP_VIEW: 0;
 declare const BINDGROUP_MESH: 1;
+declare const UNIFORM_BUFFER_DEFAULT_SLOT_NAME: "default";
 declare const bindGroupNames: string[];
 declare const typedArrayTypes: (Int8ArrayConstructor | Uint8ArrayConstructor | Int16ArrayConstructor | Uint16ArrayConstructor | Int32ArrayConstructor | Uint32ArrayConstructor | Float32ArrayConstructor)[];
 declare const typedArrayTypesByteSize: number[];
@@ -1064,6 +1091,7 @@ declare const semanticToLocation: object;
  */
 declare const CHUNKAPI_1_51: string;
 declare const CHUNKAPI_1_55: "1.55";
+declare const CHUNKAPI_1_56: "1.56";
 
 /**
  * Subtract the color of the source fragment from the destination fragment and write the result to
@@ -5043,10 +5071,417 @@ declare function end(): string;
 declare function dummyFragmentCode(): string;
 declare function fogCode(value: any, chunks: any): any;
 declare function gammaCode(value: any, chunks: any): any;
-declare function precisionCode(device: any): string;
+declare function precisionCode(device: any, forcePrecision: any, shadowPrecision: any): string;
 declare function skinCode(device: any, chunks: any): any;
 declare function tonemapCode(value: any, chunks: any): any;
-declare function versionCode(device: any): "" | "#version 300 es\n";
+declare function versionCode(device: any): "" | "#version 450\n" | "#version 300 es\n";
+
+declare class Version {
+    globalId: number;
+    revision: number;
+    equals(other: any): boolean;
+    copy(other: any): void;
+    reset(): void;
+}
+
+declare class VersionedObject {
+    version: Version;
+    increment(): void;
+}
+
+/**
+ * The scope for a variable.
+ */
+declare class ScopeId {
+    /**
+     * Create a new ScopeId instance.
+     *
+     * @param {string} name - The variable name.
+     */
+    constructor(name: string);
+    /**
+     * The variable name.
+     *
+     * @type {string}
+     */
+    name: string;
+    value: any;
+    versionObject: VersionedObject;
+    toJSON(key: any): any;
+    /**
+     * Set variable value.
+     *
+     * @param {*} value - The value.
+     */
+    setValue(value: any): void;
+    /**
+     * Get variable value.
+     *
+     * @returns {*} The value.
+     */
+    getValue(): any;
+}
+
+
+/** @typedef {import('./graphics-device.js').GraphicsDevice} GraphicsDevice */
+/**
+ * A vertex format is a descriptor that defines the layout of vertex data inside a
+ * {@link VertexBuffer}.
+ *
+ * @property {object[]} elements The vertex attribute elements.
+ * @property {string} elements[].name The meaning of the vertex element. This is used to link the
+ * vertex data to a shader input. Can be:
+ *
+ * - {@link SEMANTIC_POSITION}
+ * - {@link SEMANTIC_NORMAL}
+ * - {@link SEMANTIC_TANGENT}
+ * - {@link SEMANTIC_BLENDWEIGHT}
+ * - {@link SEMANTIC_BLENDINDICES}
+ * - {@link SEMANTIC_COLOR}
+ * - {@link SEMANTIC_TEXCOORD0}
+ * - {@link SEMANTIC_TEXCOORD1}
+ * - {@link SEMANTIC_TEXCOORD2}
+ * - {@link SEMANTIC_TEXCOORD3}
+ * - {@link SEMANTIC_TEXCOORD4}
+ * - {@link SEMANTIC_TEXCOORD5}
+ * - {@link SEMANTIC_TEXCOORD6}
+ * - {@link SEMANTIC_TEXCOORD7}
+ *
+ * If vertex data has a meaning other that one of those listed above, use the user-defined
+ * semantics: {@link SEMANTIC_ATTR0} to {@link SEMANTIC_ATTR15}.
+ * @property {number} elements[].numComponents The number of components of the vertex attribute.
+ * Can be 1, 2, 3 or 4.
+ * @property {number} elements[].dataType The data type of the attribute. Can be:
+ *
+ * - {@link TYPE_INT8}
+ * - {@link TYPE_UINT8}
+ * - {@link TYPE_INT16}
+ * - {@link TYPE_UINT16}
+ * - {@link TYPE_INT32}
+ * - {@link TYPE_UINT32}
+ * - {@link TYPE_FLOAT32}
+ * @property {boolean} elements[].normalize If true, vertex attribute data will be mapped from a 0
+ * to 255 range down to 0 to 1 when fed to a shader. If false, vertex attribute data is left
+ * unchanged. If this property is unspecified, false is assumed.
+ * @property {number} elements[].offset The number of initial bytes at the start of a vertex that
+ * are not relevant to this attribute.
+ * @property {number} elements[].stride The number of total bytes that are between the start of one
+ * vertex, and the start of the next.
+ * @property {number} elements[].size The size of the attribute in bytes.
+ */
+declare class VertexFormat {
+    /**
+     * @type {VertexFormat}
+     * @private
+     */
+    private static _defaultInstancingFormat;
+    /**
+     * The {@link VertexFormat} used to store matrices of type {@link Mat4} for hardware instancing.
+     *
+     * @type {VertexFormat}
+     */
+    static get defaultInstancingFormat(): VertexFormat;
+    /**
+     * Create a new VertexFormat instance.
+     *
+     * @param {GraphicsDevice} graphicsDevice - The graphics device used to manage this vertex format.
+     * @param {object[]} description - An array of vertex attribute descriptions.
+     * @param {string} description[].semantic - The meaning of the vertex element. This is used to link
+     * the vertex data to a shader input. Can be:
+     *
+     * - {@link SEMANTIC_POSITION}
+     * - {@link SEMANTIC_NORMAL}
+     * - {@link SEMANTIC_TANGENT}
+     * - {@link SEMANTIC_BLENDWEIGHT}
+     * - {@link SEMANTIC_BLENDINDICES}
+     * - {@link SEMANTIC_COLOR}
+     * - {@link SEMANTIC_TEXCOORD0}
+     * - {@link SEMANTIC_TEXCOORD1}
+     * - {@link SEMANTIC_TEXCOORD2}
+     * - {@link SEMANTIC_TEXCOORD3}
+     * - {@link SEMANTIC_TEXCOORD4}
+     * - {@link SEMANTIC_TEXCOORD5}
+     * - {@link SEMANTIC_TEXCOORD6}
+     * - {@link SEMANTIC_TEXCOORD7}
+     *
+     * If vertex data has a meaning other that one of those listed above, use the user-defined
+     * semantics: {@link SEMANTIC_ATTR0} to {@link SEMANTIC_ATTR15}.
+     * @param {number} description[].components - The number of components of the vertex attribute.
+     * Can be 1, 2, 3 or 4.
+     * @param {number} description[].type - The data type of the attribute. Can be:
+     *
+     * - {@link TYPE_INT8}
+     * - {@link TYPE_UINT8}
+     * - {@link TYPE_INT16}
+     * - {@link TYPE_UINT16}
+     * - {@link TYPE_INT32}
+     * - {@link TYPE_UINT32}
+     * - {@link TYPE_FLOAT32}
+     *
+     * @param {boolean} [description[].normalize] - If true, vertex attribute data will be mapped
+     * from a 0 to 255 range down to 0 to 1 when fed to a shader. If false, vertex attribute data
+     * is left unchanged. If this property is unspecified, false is assumed.
+     * @param {number} [vertexCount] - When specified, vertex format will be set up for
+     * non-interleaved format with a specified number of vertices. (example: PPPPNNNNCCCC), where
+     * arrays of individual attributes will be stored one right after the other (subject to
+     * alignment requirements). Note that in this case, the format depends on the number of
+     * vertices, and needs to change when the number of vertices changes. When not specified,
+     * vertex format will be interleaved. (example: PNCPNCPNCPNC).
+     * @example
+     * // Specify 3-component positions (x, y, z)
+     * var vertexFormat = new pc.VertexFormat(graphicsDevice, [
+     *     { semantic: pc.SEMANTIC_POSITION, components: 3, type: pc.TYPE_FLOAT32 }
+     * ]);
+     * @example
+     * // Specify 2-component positions (x, y), a texture coordinate (u, v) and a vertex color (r, g, b, a)
+     * var vertexFormat = new pc.VertexFormat(graphicsDevice, [
+     *     { semantic: pc.SEMANTIC_POSITION, components: 2, type: pc.TYPE_FLOAT32 },
+     *     { semantic: pc.SEMANTIC_TEXCOORD0, components: 2, type: pc.TYPE_FLOAT32 },
+     *     { semantic: pc.SEMANTIC_COLOR, components: 4, type: pc.TYPE_UINT8, normalize: true }
+     * ]);
+     */
+    constructor(graphicsDevice: GraphicsDevice, description: {
+        semantic: string;
+        components: number;
+        type: number;
+        normalize?: boolean;
+    }[], vertexCount?: number);
+    _elements: {
+        name: string;
+        offset: any;
+        stride: any;
+        dataType: number;
+        numComponents: number;
+        normalize: boolean;
+        size: number;
+    }[];
+    hasUv0: boolean;
+    hasUv1: boolean;
+    hasColor: boolean;
+    hasTangents: boolean;
+    verticesByteSize: number;
+    vertexCount: number;
+    interleaved: boolean;
+    size: number;
+    get elements(): {
+        name: string;
+        offset: any;
+        stride: any;
+        dataType: number;
+        numComponents: number;
+        normalize: boolean;
+        size: number;
+    }[];
+    /**
+     * Evaluates hash values for the format allowing fast compare of batching / rendering compatibility.
+     *
+     * @private
+     */
+    private _evaluateHash;
+    batchingHash: number;
+    renderingingHashString: string;
+    renderingingHash: number;
+}
+
+
+
+/**
+ * A vertex buffer is the mechanism via which the application specifies vertex data to the graphics
+ * hardware.
+ */
+declare class VertexBuffer {
+    /**
+     * Create a new VertexBuffer instance.
+     *
+     * @param {GraphicsDevice} graphicsDevice - The graphics device used to manage this vertex
+     * buffer.
+     * @param {VertexFormat} format - The vertex format of this vertex buffer.
+     * @param {number} numVertices - The number of vertices that this vertex buffer will hold.
+     * @param {number} [usage] - The usage type of the vertex buffer (see BUFFER_*). Defaults to BUFFER_STATIC.
+     * @param {ArrayBuffer} [initialData] - Initial data.
+     */
+    constructor(graphicsDevice: GraphicsDevice, format: VertexFormat, numVertices: number, usage?: number, initialData?: ArrayBuffer);
+    device: GraphicsDevice;
+    format: VertexFormat;
+    numVertices: number;
+    usage: number;
+    id: number;
+    impl: any;
+    instancing: boolean;
+    numBytes: number;
+    storage: ArrayBuffer;
+    /**
+     * Frees resources associated with this vertex buffer.
+     */
+    destroy(): void;
+    adjustVramSizeTracking(vram: any, size: any): void;
+    /**
+     * Called when the rendering context was lost. It releases all context related resources.
+     *
+     * @ignore
+     */
+    loseContext(): void;
+    /**
+     * Returns the data format of the specified vertex buffer.
+     *
+     * @returns {VertexFormat} The data format of the specified vertex buffer.
+     */
+    getFormat(): VertexFormat;
+    /**
+     * Returns the usage type of the specified vertex buffer. This indicates whether the buffer can
+     * be modified once and used many times {@link BUFFER_STATIC}, modified repeatedly and used
+     * many times {@link BUFFER_DYNAMIC} or modified once and used at most a few times
+     * {@link BUFFER_STREAM}.
+     *
+     * @returns {number} The usage type of the vertex buffer (see BUFFER_*).
+     */
+    getUsage(): number;
+    /**
+     * Returns the number of vertices stored in the specified vertex buffer.
+     *
+     * @returns {number} The number of vertices stored in the vertex buffer.
+     */
+    getNumVertices(): number;
+    /**
+     * Returns a mapped memory block representing the content of the vertex buffer.
+     *
+     * @returns {ArrayBuffer} An array containing the byte data stored in the vertex buffer.
+     */
+    lock(): ArrayBuffer;
+    /**
+     * Notifies the graphics engine that the client side copy of the vertex buffer's memory can be
+     * returned to the control of the graphics driver.
+     */
+    unlock(): void;
+    /**
+     * Copies data into vertex buffer's memory.
+     *
+     * @param {ArrayBuffer} [data] - Source data to copy.
+     * @returns {boolean} True if function finished successfully, false otherwise.
+     */
+    setData(data?: ArrayBuffer): boolean;
+}
+
+
+/**
+ * An index buffer stores index values into a {@link VertexBuffer}. Indexed graphical primitives
+ * can normally utilize less memory that unindexed primitives (if vertices are shared).
+ *
+ * Typically, index buffers are set on {@link Mesh} objects.
+ */
+declare class IndexBuffer {
+    /**
+     * Create a new IndexBuffer instance.
+     *
+     * @param {GraphicsDevice} graphicsDevice - The graphics device used to manage this index
+     * buffer.
+     * @param {number} format - The type of each index to be stored in the index buffer. Can be:
+     *
+     * - {@link INDEXFORMAT_UINT8}
+     * - {@link INDEXFORMAT_UINT16}
+     * - {@link INDEXFORMAT_UINT32}
+     * @param {number} numIndices - The number of indices to be stored in the index buffer.
+     * @param {number} [usage] - The usage type of the vertex buffer. Can be:
+     *
+     * - {@link BUFFER_DYNAMIC}
+     * - {@link BUFFER_STATIC}
+     * - {@link BUFFER_STREAM}
+     *
+     * Defaults to {@link BUFFER_STATIC}.
+     * @param {ArrayBuffer} [initialData] - Initial data. If left unspecified, the index buffer
+     * will be initialized to zeros.
+     * @example
+     * // Create an index buffer holding 3 16-bit indices. The buffer is marked as
+     * // static, hinting that the buffer will never be modified.
+     * var indices = new UInt16Array([0, 1, 2]);
+     * var indexBuffer = new pc.IndexBuffer(graphicsDevice,
+     *                                      pc.INDEXFORMAT_UINT16,
+     *                                      3,
+     *                                      pc.BUFFER_STATIC,
+     *                                      indices);
+     */
+    constructor(graphicsDevice: GraphicsDevice, format: number, numIndices: number, usage?: number, initialData?: ArrayBuffer);
+    device: GraphicsDevice;
+    format: number;
+    numIndices: number;
+    usage: number;
+    id: number;
+    impl: any;
+    bytesPerIndex: number;
+    numBytes: number;
+    storage: ArrayBuffer;
+    /**
+     * Frees resources associated with this index buffer.
+     */
+    destroy(): void;
+    adjustVramSizeTracking(vram: any, size: any): void;
+    /**
+     * Called when the rendering context was lost. It releases all context related resources.
+     *
+     * @ignore
+     */
+    loseContext(): void;
+    /**
+     * Returns the data format of the specified index buffer.
+     *
+     * @returns {number} The data format of the specified index buffer. Can be:
+     *
+     * - {@link INDEXFORMAT_UINT8}
+     * - {@link INDEXFORMAT_UINT16}
+     * - {@link INDEXFORMAT_UINT32}
+     */
+    getFormat(): number;
+    /**
+     * Returns the number of indices stored in the specified index buffer.
+     *
+     * @returns {number} The number of indices stored in the specified index buffer.
+     */
+    getNumIndices(): number;
+    /**
+     * Gives access to the block of memory that stores the buffer's indices.
+     *
+     * @returns {ArrayBuffer} A contiguous block of memory where index data can be written to.
+     */
+    lock(): ArrayBuffer;
+    /**
+     * Signals that the block of memory returned by a call to the lock function is ready to be
+     * given to the graphics hardware. Only unlocked index buffers can be set on the currently
+     * active device.
+     */
+    unlock(): void;
+    /**
+     * Set preallocated data on the index buffer.
+     *
+     * @param {ArrayBuffer} data - The index data to set.
+     * @returns {boolean} True if the data was set successfully, false otherwise.
+     * @ignore
+     */
+    setData(data: ArrayBuffer): boolean;
+    /**
+     * Get the appropriate typed array from an index buffer.
+     *
+     * @returns {Uint8Array|Uint16Array|Uint32Array} The typed array containing the index data.
+     * @private
+     */
+    private _lockTypedArray;
+    /**
+     * Copies the specified number of elements from data into index buffer. Optimized for
+     * performance from both typed array as well as array.
+     *
+     * @param {Uint8Array|Uint16Array|Uint32Array|number[]} data - The data to write.
+     * @param {number} count - The number of indices to write.
+     * @ignore
+     */
+    writeData(data: Uint8Array | Uint16Array | Uint32Array | number[], count: number): void;
+    /**
+     * Copies index data from index buffer into provided data array.
+     *
+     * @param {Uint8Array|Uint16Array|Uint32Array|number[]} data - The data array to write to.
+     * @returns {number} The number of indices read.
+     * @ignore
+     */
+    readData(data: Uint8Array | Uint16Array | Uint32Array | number[]): number;
+}
 
 
 /**
@@ -5106,6 +5541,18 @@ declare class Shader {
         fshader: string;
         useTransformFeedback?: boolean;
     });
+    /**
+     * Format of the uniform buffer for mesh bind grounp.
+     *
+     * @type {UniformBufferFormat}
+     */
+    meshUniformBufferFormat: any;
+    /**
+     * Format of the bind group for the mesh bind group.
+     *
+     * @type {BindGroupFormat}
+     */
+    meshBindGroupFormat: any;
     id: number;
     device: GraphicsDevice;
     definition: {
@@ -5243,6 +5690,7 @@ declare class RenderTarget {
      * @ignore
      */
     init(): void;
+    get initialized(): any;
     /**
      * Called when the device context was lost. It releases all context related resources.
      *
@@ -5465,51 +5913,6 @@ declare class EventHandler {
     hasEvent(name: string): boolean;
 }
 
-declare class Version {
-    globalId: number;
-    revision: number;
-    equals(other: any): boolean;
-    copy(other: any): void;
-    reset(): void;
-}
-
-declare class VersionedObject {
-    version: Version;
-    increment(): void;
-}
-
-/**
- * The scope for a variable.
- */
-declare class ScopeId {
-    /**
-     * Create a new ScopeId instance.
-     *
-     * @param {string} name - The variable name.
-     */
-    constructor(name: string);
-    /**
-     * The variable name.
-     *
-     * @type {string}
-     */
-    name: string;
-    value: any;
-    versionObject: VersionedObject;
-    /**
-     * Set variable value.
-     *
-     * @param {*} value - The value.
-     */
-    setValue(value: any): void;
-    /**
-     * Get variable value.
-     *
-     * @returns {*} The value.
-     */
-    getValue(): any;
-}
-
 /**
  * The scope for variables.
  */
@@ -5583,9 +5986,13 @@ declare class ProgramLibrary {
 
 
 
+
+
 /** @typedef {import('./render-target.js').RenderTarget} RenderTarget */
 /** @typedef {import('./shader.js').Shader} Shader */
 /** @typedef {import('./texture.js').Texture} Texture */
+/** @typedef {import('./index-buffer.js').IndexBuffer} IndexBuffer */
+/** @typedef {import('./vertex-buffer.js').VertexBuffer} VertexBuffer */
 /**
  * The graphics device manages the underlying graphics context. It is responsible for submitting
  * render state changes and graphics primitives to the hardware. A graphics device is tied to a
@@ -5603,11 +6010,24 @@ declare class GraphicsDevice extends EventHandler {
      */
     canvas: HTMLCanvasElement;
     /**
+     * The graphics device type, DEVICETYPE_WEBGL or DEVICETYPE_WEBGPU.
+     *
+     * @type {string}
+     * @ignore
+     */
+    deviceType: string;
+    /**
      * The scope namespace for shader attributes and variables.
      *
      * @type {ScopeSpace}
      */
     scope: ScopeSpace;
+    /**
+     * The maximum number of supported bones using uniform buffers.
+     *
+     * @type {number}
+     */
+    boneLimit: number;
     /**
      * The maximum supported texture anisotropy setting.
      *
@@ -5703,6 +6123,7 @@ declare class GraphicsDevice extends EventHandler {
     _shaderSwitchesPerFrame: number;
     _primsPerFrame: number[];
     _renderTargetCreationTime: number;
+    textureBias: ScopeId;
     programLib: ProgramLibrary;
     /**
      * Fired when the canvas is resized.
@@ -5718,7 +6139,7 @@ declare class GraphicsDevice extends EventHandler {
     postDestroy(): void;
     toJSON(key: any): any;
     initializeContextCaches(): void;
-    indexBuffer: any;
+    indexBuffer: IndexBuffer;
     vertexBuffers: any[];
     shader: any;
     /**
@@ -5752,6 +6173,22 @@ declare class GraphicsDevice extends EventHandler {
      */
     setRenderTarget(renderTarget: RenderTarget): void;
     /**
+     * Sets the current index buffer on the graphics device. On subsequent calls to
+     * {@link GraphicsDevice#draw}, the specified index buffer will be used to provide index data
+     * for any indexed primitives.
+     *
+     * @param {IndexBuffer} indexBuffer - The index buffer to assign to the device.
+     */
+    setIndexBuffer(indexBuffer: IndexBuffer): void;
+    /**
+     * Sets the current vertex buffer on the graphics device. On subsequent calls to
+     * {@link GraphicsDevice#draw}, the specified vertex buffer(s) will be used to provide vertex
+     * data for any primitives.
+     *
+     * @param {VertexBuffer} vertexBuffer - The vertex buffer to assign to the device.
+     */
+    setVertexBuffer(vertexBuffer: VertexBuffer): void;
+    /**
      * Queries the currently set render target on the device.
      *
      * @returns {RenderTarget} The current render target.
@@ -5760,6 +6197,13 @@ declare class GraphicsDevice extends EventHandler {
      * var renderTarget = device.getRenderTarget();
      */
     getRenderTarget(): RenderTarget;
+    /**
+     * Initialize render target before it can be used.
+     *
+     * @param {RenderTarget} target - The render target to be initialized.
+     * @ignore
+     */
+    initRenderTarget(target: RenderTarget): void;
     /**
      * Reports whether a texture source is a canvas, image, video or ImageBitmap.
      *
@@ -5817,6 +6261,26 @@ declare class GraphicsDevice extends EventHandler {
      */
     set maxPixelRatio(arg: number);
     get maxPixelRatio(): number;
+    /**
+     * Queries the maximum number of bones that can be referenced by a shader. The shader
+     * generators (programlib) use this number to specify the matrix array size of the uniform
+     * 'matrix_pose[0]'. The value is calculated based on the number of available uniform vectors
+     * available after subtracting the number taken by a typical heavyweight shader. If a different
+     * number is required, it can be tuned via {@link GraphicsDevice#setBoneLimit}.
+     *
+     * @returns {number} The maximum number of bones that can be supported by the host hardware.
+     * @ignore
+     */
+    getBoneLimit(): number;
+    /**
+     * Specifies the maximum number of bones that the device can support on the current hardware.
+     * This function allows the default calculated value based on available vector uniforms to be
+     * overridden.
+     *
+     * @param {number} maxBones - The maximum number of bones supported by the host hardware.
+     * @ignore
+     */
+    setBoneLimit(maxBones: number): void;
 }
 
 
@@ -6210,7 +6674,7 @@ declare class Texture {
      * @type {boolean}
      */
     get pot(): boolean;
-    get encoding(): "srgb" | "linear" | "rgbm" | "rgbe";
+    get encoding(): "srgb" | "linear" | "rgbm" | "rgbe" | "rgbp";
     dirtyAll(): void;
     _levelsUpdated: boolean[] | boolean[][];
     _mipmapsUploaded: boolean;
@@ -6327,126 +6791,6 @@ declare const shaderChunks: object;
 
 /** @typedef {import('./graphics-device.js').GraphicsDevice} GraphicsDevice */
 /**
- * An index buffer stores index values into a {@link VertexBuffer}. Indexed graphical primitives
- * can normally utilize less memory that unindexed primitives (if vertices are shared).
- *
- * Typically, index buffers are set on {@link Mesh} objects.
- */
-declare class IndexBuffer {
-    /**
-     * Create a new IndexBuffer instance.
-     *
-     * @param {GraphicsDevice} graphicsDevice - The graphics device used to manage this index
-     * buffer.
-     * @param {number} format - The type of each index to be stored in the index buffer. Can be:
-     *
-     * - {@link INDEXFORMAT_UINT8}
-     * - {@link INDEXFORMAT_UINT16}
-     * - {@link INDEXFORMAT_UINT32}
-     * @param {number} numIndices - The number of indices to be stored in the index buffer.
-     * @param {number} [usage] - The usage type of the vertex buffer. Can be:
-     *
-     * - {@link BUFFER_DYNAMIC}
-     * - {@link BUFFER_STATIC}
-     * - {@link BUFFER_STREAM}
-     *
-     * Defaults to {@link BUFFER_STATIC}.
-     * @param {ArrayBuffer} [initialData] - Initial data. If left unspecified, the index buffer
-     * will be initialized to zeros.
-     * @example
-     * // Create an index buffer holding 3 16-bit indices. The buffer is marked as
-     * // static, hinting that the buffer will never be modified.
-     * var indices = new UInt16Array([0, 1, 2]);
-     * var indexBuffer = new pc.IndexBuffer(graphicsDevice,
-     *                                      pc.INDEXFORMAT_UINT16,
-     *                                      3,
-     *                                      pc.BUFFER_STATIC,
-     *                                      indices);
-     */
-    constructor(graphicsDevice: GraphicsDevice, format: number, numIndices: number, usage?: number, initialData?: ArrayBuffer);
-    device: GraphicsDevice;
-    format: number;
-    numIndices: number;
-    usage: number;
-    impl: any;
-    bytesPerIndex: number;
-    numBytes: number;
-    storage: ArrayBuffer;
-    /**
-     * Frees resources associated with this index buffer.
-     */
-    destroy(): void;
-    /**
-     * Called when the rendering context was lost. It releases all context related resources.
-     *
-     * @ignore
-     */
-    loseContext(): void;
-    /**
-     * Returns the data format of the specified index buffer.
-     *
-     * @returns {number} The data format of the specified index buffer. Can be:
-     *
-     * - {@link INDEXFORMAT_UINT8}
-     * - {@link INDEXFORMAT_UINT16}
-     * - {@link INDEXFORMAT_UINT32}
-     */
-    getFormat(): number;
-    /**
-     * Returns the number of indices stored in the specified index buffer.
-     *
-     * @returns {number} The number of indices stored in the specified index buffer.
-     */
-    getNumIndices(): number;
-    /**
-     * Gives access to the block of memory that stores the buffer's indices.
-     *
-     * @returns {ArrayBuffer} A contiguous block of memory where index data can be written to.
-     */
-    lock(): ArrayBuffer;
-    /**
-     * Signals that the block of memory returned by a call to the lock function is ready to be
-     * given to the graphics hardware. Only unlocked index buffers can be set on the currently
-     * active device.
-     */
-    unlock(): void;
-    /**
-     * Set preallocated data on the index buffer.
-     *
-     * @param {ArrayBuffer} data - The index data to set.
-     * @returns {boolean} True if the data was set successfully, false otherwise.
-     * @ignore
-     */
-    setData(data: ArrayBuffer): boolean;
-    /**
-     * Get the appropriate typed array from an index buffer.
-     *
-     * @returns {Uint8Array|Uint16Array|Uint32Array} The typed array containing the index data.
-     * @private
-     */
-    private _lockTypedArray;
-    /**
-     * Copies the specified number of elements from data into index buffer. Optimized for
-     * performance from both typed array as well as array.
-     *
-     * @param {Uint8Array|Uint16Array|Uint32Array|number[]} data - The data to write.
-     * @param {number} count - The number of indices to write.
-     * @ignore
-     */
-    writeData(data: Uint8Array | Uint16Array | Uint32Array | number[], count: number): void;
-    /**
-     * Copies index data from index buffer into provided data array.
-     *
-     * @param {Uint8Array|Uint16Array|Uint32Array|number[]} data - The data array to write to.
-     * @returns {number} The number of indices read.
-     * @ignore
-     */
-    readData(data: Uint8Array | Uint16Array | Uint32Array | number[]): number;
-}
-
-
-/** @typedef {import('./graphics-device.js').GraphicsDevice} GraphicsDevice */
-/**
  * Representation of a shader uniform.
  *
  * @ignore
@@ -6467,245 +6811,6 @@ declare class ShaderInput {
     dataType: number;
     value: any[];
     array: any[];
-}
-
-
-/** @typedef {import('./graphics-device.js').GraphicsDevice} GraphicsDevice */
-/**
- * A vertex format is a descriptor that defines the layout of vertex data inside a
- * {@link VertexBuffer}.
- *
- * @property {object[]} elements The vertex attribute elements.
- * @property {string} elements[].name The meaning of the vertex element. This is used to link the
- * vertex data to a shader input. Can be:
- *
- * - {@link SEMANTIC_POSITION}
- * - {@link SEMANTIC_NORMAL}
- * - {@link SEMANTIC_TANGENT}
- * - {@link SEMANTIC_BLENDWEIGHT}
- * - {@link SEMANTIC_BLENDINDICES}
- * - {@link SEMANTIC_COLOR}
- * - {@link SEMANTIC_TEXCOORD0}
- * - {@link SEMANTIC_TEXCOORD1}
- * - {@link SEMANTIC_TEXCOORD2}
- * - {@link SEMANTIC_TEXCOORD3}
- * - {@link SEMANTIC_TEXCOORD4}
- * - {@link SEMANTIC_TEXCOORD5}
- * - {@link SEMANTIC_TEXCOORD6}
- * - {@link SEMANTIC_TEXCOORD7}
- *
- * If vertex data has a meaning other that one of those listed above, use the user-defined
- * semantics: {@link SEMANTIC_ATTR0} to {@link SEMANTIC_ATTR15}.
- * @property {number} elements[].numComponents The number of components of the vertex attribute.
- * Can be 1, 2, 3 or 4.
- * @property {number} elements[].dataType The data type of the attribute. Can be:
- *
- * - {@link TYPE_INT8}
- * - {@link TYPE_UINT8}
- * - {@link TYPE_INT16}
- * - {@link TYPE_UINT16}
- * - {@link TYPE_INT32}
- * - {@link TYPE_UINT32}
- * - {@link TYPE_FLOAT32}
- * @property {boolean} elements[].normalize If true, vertex attribute data will be mapped from a 0
- * to 255 range down to 0 to 1 when fed to a shader. If false, vertex attribute data is left
- * unchanged. If this property is unspecified, false is assumed.
- * @property {number} elements[].offset The number of initial bytes at the start of a vertex that
- * are not relevant to this attribute.
- * @property {number} elements[].stride The number of total bytes that are between the start of one
- * vertex, and the start of the next.
- * @property {number} elements[].size The size of the attribute in bytes.
- */
-declare class VertexFormat {
-    /**
-     * @type {VertexFormat}
-     * @private
-     */
-    private static _defaultInstancingFormat;
-    /**
-     * The {@link VertexFormat} used to store matrices of type {@link Mat4} for hardware instancing.
-     *
-     * @type {VertexFormat}
-     */
-    static get defaultInstancingFormat(): VertexFormat;
-    /**
-     * Create a new VertexFormat instance.
-     *
-     * @param {GraphicsDevice} graphicsDevice - The graphics device used to manage this vertex format.
-     * @param {object[]} description - An array of vertex attribute descriptions.
-     * @param {string} description[].semantic - The meaning of the vertex element. This is used to link
-     * the vertex data to a shader input. Can be:
-     *
-     * - {@link SEMANTIC_POSITION}
-     * - {@link SEMANTIC_NORMAL}
-     * - {@link SEMANTIC_TANGENT}
-     * - {@link SEMANTIC_BLENDWEIGHT}
-     * - {@link SEMANTIC_BLENDINDICES}
-     * - {@link SEMANTIC_COLOR}
-     * - {@link SEMANTIC_TEXCOORD0}
-     * - {@link SEMANTIC_TEXCOORD1}
-     * - {@link SEMANTIC_TEXCOORD2}
-     * - {@link SEMANTIC_TEXCOORD3}
-     * - {@link SEMANTIC_TEXCOORD4}
-     * - {@link SEMANTIC_TEXCOORD5}
-     * - {@link SEMANTIC_TEXCOORD6}
-     * - {@link SEMANTIC_TEXCOORD7}
-     *
-     * If vertex data has a meaning other that one of those listed above, use the user-defined
-     * semantics: {@link SEMANTIC_ATTR0} to {@link SEMANTIC_ATTR15}.
-     * @param {number} description[].components - The number of components of the vertex attribute.
-     * Can be 1, 2, 3 or 4.
-     * @param {number} description[].type - The data type of the attribute. Can be:
-     *
-     * - {@link TYPE_INT8}
-     * - {@link TYPE_UINT8}
-     * - {@link TYPE_INT16}
-     * - {@link TYPE_UINT16}
-     * - {@link TYPE_INT32}
-     * - {@link TYPE_UINT32}
-     * - {@link TYPE_FLOAT32}
-     *
-     * @param {boolean} [description[].normalize] - If true, vertex attribute data will be mapped
-     * from a 0 to 255 range down to 0 to 1 when fed to a shader. If false, vertex attribute data
-     * is left unchanged. If this property is unspecified, false is assumed.
-     * @param {number} [vertexCount] - When specified, vertex format will be set up for
-     * non-interleaved format with a specified number of vertices. (example: PPPPNNNNCCCC), where
-     * arrays of individual attributes will be stored one right after the other (subject to
-     * alignment requirements). Note that in this case, the format depends on the number of
-     * vertices, and needs to change when the number of vertices changes. When not specified,
-     * vertex format will be interleaved. (example: PNCPNCPNCPNC).
-     * @example
-     * // Specify 3-component positions (x, y, z)
-     * var vertexFormat = new pc.VertexFormat(graphicsDevice, [
-     *     { semantic: pc.SEMANTIC_POSITION, components: 3, type: pc.TYPE_FLOAT32 }
-     * ]);
-     * @example
-     * // Specify 2-component positions (x, y), a texture coordinate (u, v) and a vertex color (r, g, b, a)
-     * var vertexFormat = new pc.VertexFormat(graphicsDevice, [
-     *     { semantic: pc.SEMANTIC_POSITION, components: 2, type: pc.TYPE_FLOAT32 },
-     *     { semantic: pc.SEMANTIC_TEXCOORD0, components: 2, type: pc.TYPE_FLOAT32 },
-     *     { semantic: pc.SEMANTIC_COLOR, components: 4, type: pc.TYPE_UINT8, normalize: true }
-     * ]);
-     */
-    constructor(graphicsDevice: GraphicsDevice, description: {
-        semantic: string;
-        components: number;
-        type: number;
-        normalize?: boolean;
-    }[], vertexCount?: number);
-    _elements: {
-        name: string;
-        offset: any;
-        stride: any;
-        dataType: number;
-        numComponents: number;
-        normalize: boolean;
-        size: number;
-    }[];
-    hasUv0: boolean;
-    hasUv1: boolean;
-    hasColor: boolean;
-    hasTangents: boolean;
-    verticesByteSize: number;
-    vertexCount: number;
-    interleaved: boolean;
-    size: number;
-    get elements(): {
-        name: string;
-        offset: any;
-        stride: any;
-        dataType: number;
-        numComponents: number;
-        normalize: boolean;
-        size: number;
-    }[];
-    /**
-     * Evaluates hash values for the format allowing fast compare of batching / rendering compatibility.
-     *
-     * @private
-     */
-    private _evaluateHash;
-    batchingHash: number;
-    renderingingHashString: string;
-    renderingingHash: number;
-}
-
-
-
-/**
- * A vertex buffer is the mechanism via which the application specifies vertex data to the graphics
- * hardware.
- */
-declare class VertexBuffer {
-    /**
-     * Create a new VertexBuffer instance.
-     *
-     * @param {GraphicsDevice} graphicsDevice - The graphics device used to manage this vertex
-     * buffer.
-     * @param {VertexFormat} format - The vertex format of this vertex buffer.
-     * @param {number} numVertices - The number of vertices that this vertex buffer will hold.
-     * @param {number} [usage] - The usage type of the vertex buffer (see BUFFER_*). Defaults to BUFFER_STATIC.
-     * @param {ArrayBuffer} [initialData] - Initial data.
-     */
-    constructor(graphicsDevice: GraphicsDevice, format: VertexFormat, numVertices: number, usage?: number, initialData?: ArrayBuffer);
-    device: GraphicsDevice;
-    format: VertexFormat;
-    numVertices: number;
-    usage: number;
-    id: number;
-    impl: any;
-    instancing: boolean;
-    numBytes: number;
-    storage: ArrayBuffer;
-    /**
-     * Frees resources associated with this vertex buffer.
-     */
-    destroy(): void;
-    /**
-     * Called when the rendering context was lost. It releases all context related resources.
-     *
-     * @ignore
-     */
-    loseContext(): void;
-    /**
-     * Returns the data format of the specified vertex buffer.
-     *
-     * @returns {VertexFormat} The data format of the specified vertex buffer.
-     */
-    getFormat(): VertexFormat;
-    /**
-     * Returns the usage type of the specified vertex buffer. This indicates whether the buffer can
-     * be modified once and used many times {@link BUFFER_STATIC}, modified repeatedly and used
-     * many times {@link BUFFER_DYNAMIC} or modified once and used at most a few times
-     * {@link BUFFER_STREAM}.
-     *
-     * @returns {number} The usage type of the vertex buffer (see BUFFER_*).
-     */
-    getUsage(): number;
-    /**
-     * Returns the number of vertices stored in the specified vertex buffer.
-     *
-     * @returns {number} The number of vertices stored in the vertex buffer.
-     */
-    getNumVertices(): number;
-    /**
-     * Returns a mapped memory block representing the content of the vertex buffer.
-     *
-     * @returns {ArrayBuffer} An array containing the byte data stored in the vertex buffer.
-     */
-    lock(): ArrayBuffer;
-    /**
-     * Notifies the graphics engine that the client side copy of the vertex buffer's memory can be
-     * returned to the control of the graphics driver.
-     */
-    unlock(): void;
-    /**
-     * Copies data into vertex buffer's memory.
-     *
-     * @param {ArrayBuffer} [data] - Source data to copy.
-     * @returns {boolean} True if function finished successfully, false otherwise.
-     */
-    setData(data?: ArrayBuffer): boolean;
 }
 
 
@@ -7070,29 +7175,51 @@ declare class SoundManager extends EventHandler {
         forceWebAudioApi?: boolean;
     });
     /**
+     * The underlying AudioContext, lazy loaded in the 'context' property.
+     *
      * @type {AudioContext}
      * @private
      */
     private _context;
     /**
-     * The current state of the underlying AudioContext.
-     *
-     * @type {string}
-     * @private
-     */
-    private _state;
-    /**
      * @type {boolean}
      * @private
      */
     private _forceWebAudioApi;
-    _resumeContext: any;
-    _resumeContextAttached: boolean;
-    _unlock: any;
-    _unlockAttached: boolean;
+    /**
+     * The function callback attached to the Window events USER_INPUT_EVENTS
+     *
+     * @type {EventListenerOrEventListenerObject}
+     * @private
+     */
+    private _resumeContextCallback;
+    /**
+     * Set to to true when suspend() was called explitly (either manually or on visibility change),
+     * and reset to false after resume() is called.
+     * This value is not directly bound to AudioContext.state.
+     *
+     * @type {boolean}
+     * @private
+     */
+    private _selfSuspended;
+    /**
+     * If true, the AudioContext is in a special 'suspended' state where it needs to be resumed
+     * from a User event. In addition, some devices and browsers require that a blank sound be played.
+     *
+     * @type {boolean}
+     * @private
+     */
+    private _unlocked;
+    /**
+     * Set after the unlock flow is triggered, but hasn't completed yet.
+     * Used to avoid starting multiple 'unlock' flows at the same time.
+     *
+     * @type {boolean}
+     * @private
+     */
+    private _unlocking;
     listener: Listener;
     _volume: number;
-    suspended: boolean;
     /**
      * Global volume for the manager. All {@link SoundInstance}s will scale their volume with this
      * volume. Valid between [0, 1].
@@ -7101,6 +7228,7 @@ declare class SoundManager extends EventHandler {
      */
     set volume(arg: number);
     get volume(): number;
+    get suspended(): boolean;
     /**
      * Get the Web Audio API context.
      *
@@ -7135,23 +7263,19 @@ declare class SoundManager extends EventHandler {
      */
     private playSound3d;
     /**
-     * Attempt to resume the AudioContext, but safely handle failure scenarios.
-     * When the browser window loses focus (i.e. switching tab, hiding the app on mobile, etc),
-     * the AudioContext state will be set to 'interrupted' (on iOS Safari) or 'suspended' (on other
-     * browsers), and 'resume' must be expliclty called. However, the Auto-Play policy might block
-     * the AudioContext from running - in those cases, we need to add the interaction listeners,
-     * making the AudioContext be resumed later.
-     *
-     * @private
-     */
-    private _safelyResumeContext;
-    /**
-     * Add the necessary Window EventListeners for resuming the AudioContext to comply with auto-play policies.
+     * Add the necessary Window EventListeners to comply with auto-play policies,
+     * and correctly unlock and resume the AudioContext.
      * For more info, https://developers.google.com/web/updates/2018/11/web-audio-autoplay.
      *
      * @private
      */
-    private _addAudioContextUserInteractionListeners;
+    private _addContextUnlockListeners;
+    /**
+     * Remove all USER_INPUT_EVENTS unlock event listeners, if they're still attached.
+     *
+     * @private
+     */
+    private _removeUserInputListeners;
 }
 
 
@@ -7724,10 +7848,6 @@ interface ResourceHandler {
  * Callback used by {@link ResourceLoaderload } when a resource is loaded (or an error occurs).
  */
 export type ResourceLoaderCallback = (err: string | null, resource?: any) => any;
-/** @typedef {import('../asset/asset.js').Asset} Asset */
-/** @typedef {import('../asset/asset-registry.js').AssetRegistry} AssetRegistry */
-/** @typedef {import('../framework/app-base.js').AppBase} AppBase */
-/** @typedef {import('./handler.js').ResourceHandler} ResourceHandler */
 /**
  * Callback used by {@link ResourceLoader#load} when a resource is loaded (or an error occurs).
  *
@@ -10072,6 +10192,7 @@ declare class Light {
     _type: number;
     _color: Color;
     _intensity: number;
+    _luminance: number;
     _castShadows: boolean;
     _enabled: boolean;
     mask: number;
@@ -10161,6 +10282,8 @@ declare class Light {
     get outerConeAngle(): number;
     set intensity(arg: number);
     get intensity(): number;
+    set luminance(arg: number);
+    get luminance(): number;
     get cookieMatrix(): Mat4;
     get atlasViewport(): Vec4;
     set cookie(arg: any);
@@ -10252,6 +10375,7 @@ declare class LightComponentSystem extends ComponentSystem {
  * @property {Color} color The Color of the light. The alpha component of the color is ignored.
  * Defaults to white (1, 1, 1).
  * @property {number} intensity The brightness of the light. Defaults to 1.
+ * @property {number} luminance The physically based luminance. Defaults to 0.
  * @property {number} shape The light source shape. Can be:
  *
  * - {@link pc.LIGHTSHAPE_PUNCTUAL}: Infinitesimally small point.
@@ -10971,7 +11095,118 @@ declare class InstanceList {
 }
 
 
+
+/**
+ * A class storing description of an individual uniform, stored inside a uniform buffer.
+ *
+ * @ignore
+ */
+declare class UniformFormat {
+    constructor(name: any, type: any, count?: number);
+    /** @type {string} */
+    name: string;
+    /** @type {number} */
+    type: number;
+    /** @type {number} */
+    byteSize: number;
+    /**
+     * Index of the uniform in an array of 32bit values (Float32Array and similar)
+     *
+     * @type {number}
+     */
+    offset: number;
+    /** @type {ScopeId} */
+    scopeId: ScopeId;
+    /**
+     * Count of elements for arrays, otherwise 1.
+     *
+     * @type {number}
+     */
+    count: number;
+    calculateOffset(offset: any): void;
+}
+/**
+ * A descriptor that defines the layout of of data inside the {@link UniformBuffer}.
+ *
+ * @ignore
+ */
+declare class UniformBufferFormat {
+    /**
+     * Create a new UniformBufferFormat instance.
+     *
+     * @param {GraphicsDevice} graphicsDevice - The graphics device.
+     * @param {UniformFormat[]} uniforms - An array of uniforms to be stored in the buffer
+     */
+    constructor(graphicsDevice: GraphicsDevice, uniforms: UniformFormat[]);
+    /** @type {number} */
+    byteSize: number;
+    /** @type {Map<string,UniformFormat>} */
+    map: Map<string, UniformFormat>;
+    scope: ScopeSpace;
+    /** @type {UniformFormat[]} */
+    uniforms: UniformFormat[];
+    /**
+     * Returns format of a uniform with specified name.
+     *
+     * @param {string} name - The name of the uniform.
+     * @returns {UniformFormat} - The format of the uniform.
+     */
+    get(name: string): UniformFormat;
+    getShaderDeclaration(bindGroup: any, bindIndex: any): string;
+}
+
+
+
+
+/**
+ * A uniform buffer represents a GPU memory buffer storing the uniforms.
+ *
+ * @ignore
+ */
+declare class UniformBuffer {
+    /**
+     * Create a new UniformBuffer instance.
+     *
+     * @param {GraphicsDevice} graphicsDevice - The graphics device used to manage this uniform buffer.
+     * @param {UniformBufferFormat} format - Format of the uniform buffer
+     */
+    constructor(graphicsDevice: GraphicsDevice, format: UniformBufferFormat);
+    device: GraphicsDevice;
+    format: UniformBufferFormat;
+    impl: any;
+    storage: ArrayBuffer;
+    storageFloat32: Float32Array;
+    storageInt32: Int32Array;
+    /**
+     * Frees resources associated with this uniform buffer.
+     */
+    destroy(): void;
+    /**
+     * Called when the rendering context was lost. It releases all context related resources.
+     *
+     * @ignore
+     */
+    loseContext(): void;
+    /**
+     * Assign a value to the uniform specified by its format. This is the fast version of assigning
+     * a value to a uniform, avoiding any lookups.
+     *
+     * @param {UniformFormat} uniformFormat - The format of the uniform.
+     */
+    setUniform(uniformFormat: UniformFormat): void;
+    /**
+     * Assign a value to the uniform specified by name.
+     *
+     * @param {string} name - The name of the uniform.
+     */
+    set(name: string): void;
+    update(): void;
+}
+
+
+
 /** @typedef {import('./graphics-device.js').GraphicsDevice} GraphicsDevice */
+/** @typedef {import('./scope-id.js').ScopeId} ScopeId */
 /**
  * @ignore
  */
@@ -10986,6 +11221,8 @@ declare class BindBufferFormat {
  */
 declare class BindTextureFormat {
     constructor(name: any, visibility: any);
+    /** @type {ScopeId} */
+    scopeId: ScopeId;
     /** @type {string} */
     name: string;
     visibility: any;
@@ -11029,6 +11266,7 @@ declare class BindGroupFormat {
 
 
 
+
 /**
  * A bind group represents an collection of {@link UniformBuffer} and {@link Texture} instance,
  * which can be bind on a GPU for rendering.
@@ -11041,127 +11279,45 @@ declare class BindGroup {
      *
      * @param {GraphicsDevice} graphicsDevice - The graphics device used to manage this uniform buffer.
      * @param {BindGroupFormat} format - Format of the bind group.
+     * @param {UniformBuffer} [defaultUniformBuffer] - The default uniform buffer. Typically a bind group only
+     * has a single uniform buffer, and this allows easier access.
      */
-    constructor(graphicsDevice: GraphicsDevice, format: BindGroupFormat);
+    constructor(graphicsDevice: GraphicsDevice, format: BindGroupFormat, defaultUniformBuffer?: UniformBuffer);
     device: GraphicsDevice;
     format: BindGroupFormat;
     dirty: boolean;
     impl: any;
     textures: any[];
     uniformBuffers: any[];
+    /** @type {UniformBuffer} */
+    defaultUniformBuffer: UniformBuffer;
+    /**
+     * Frees resources associated with this bind group.
+     */
+    destroy(): void;
     /**
      * Assign a uniform buffer to a slot.
      *
-     * @param {*} name - The name of the uniform buffer slot
-     * @param {*} uniformBuffer - The Uniform buffer to assign to the slot.
+     * @param {string} name - The name of the uniform buffer slot
+     * @param {UniformBuffer} uniformBuffer - The Uniform buffer to assign to the slot.
      */
-    setUniformBuffer(name: any, uniformBuffer: any): void;
+    setUniformBuffer(name: string, uniformBuffer: UniformBuffer): void;
     /**
-     * Assign a texture to a slot.
+     * Assign a texture to a named slot.
      *
      * @param {string} name - The name of the texture slot.
      * @param {Texture} texture - Texture to assign to the slot.
      */
     setTexture(name: string, texture: Texture): void;
     /**
-     * Frees resources associated with this bind group.
-     */
-    destroy(): void;
-    /**
      * Applies any changes made to the bind group's properties.
      */
     update(): void;
 }
 
-/**
- * A class storing description of an individual uniform, stored inside a uniform buffer.
- *
- * @ignore
- */
-declare class UniformFormat {
-    constructor(name: any, type: any);
-    /** @type {string} */
-    name: string;
-    /** @type {number} */
-    type: number;
-    /** @type {number} */
-    byteSize: number;
-    /**
-     * Index of the uniform in an array of 32bit values (Float32Array and similar)
-     *
-     * @type {number}
-     */
-    offset: number;
-}
-/**
- * A descriptor that defines the layout of of data inside the {@link UniformBuffer}.
- *
- * @ignore
- */
-declare class UniformBufferFormat {
-    /**
-     * Create a new UniformBufferFormat instance.
-     *
-     * @param {UniformFormat[]} uniforms - An array of uniforms to be stored in the buffer
-     */
-    constructor(uniforms: UniformFormat[]);
-    /** @type {number} */
-    byteSize: number;
-    /** @type {Map<string,UniformFormat>} */
-    map: Map<string, UniformFormat>;
-    /** @type {UniformFormat[]} */
-    uniforms: UniformFormat[];
-    /**
-     * Returns format of a uniform with specified name.
-     *
-     * @param {string} name - The name of the uniform.
-     * @returns {UniformFormat} - The format of the uniform.
-     */
-    get(name: string): UniformFormat;
-    getShaderDeclaration(bindGroup: any, bindIndex: any): string;
-}
 
 
 
-/** @typedef {import('./graphics-device.js').GraphicsDevice} GraphicsDevice */
-/** @typedef {import('./uniform-buffer-format.js').UniformBufferFormat} UniformBufferFormat */
-/**
- * A uniform buffer represents a GPU memory buffer storing the uniforms.
- *
- * @ignore
- */
-declare class UniformBuffer {
-    /**
-     * Create a new UniformBuffer instance.
-     *
-     * @param {GraphicsDevice} graphicsDevice - The graphics device used to manage this uniform buffer.
-     * @param {UniformBufferFormat} format - Format of the uniform buffer
-     */
-    constructor(graphicsDevice: GraphicsDevice, format: UniformBufferFormat);
-    device: GraphicsDevice;
-    format: UniformBufferFormat;
-    impl: any;
-    storage: ArrayBuffer;
-    storageFloat32: Float32Array;
-    /**
-     * Frees resources associated with this uniform buffer.
-     */
-    destroy(): void;
-    /**
-     * Called when the rendering context was lost. It releases all context related resources.
-     *
-     * @ignore
-     */
-    loseContext(): void;
-    set(name: any, value: any): void;
-    update(): void;
-}
-
-
-
-
-
-/** @typedef {import('../../graphics/uniform-buffer.js').UniformBuffer} UniformBuffer */
 /** @typedef {import('../../graphics/bind-group.js').BindGroup} BindGroup */
 /** @typedef {import('../../graphics/render-target.js').RenderTarget} RenderTarget */
 /** @typedef {import('./layer-composition.js').LayerComposition} LayerComposition */
@@ -11191,8 +11347,6 @@ declare class RenderAction {
     directionalLightsSet: Set<any>;
     directionalLights: any[];
     directionalLightsIndices: any[];
-    /** @type {Array<UniformBuffer>} */
-    viewUniformBuffers: Array<UniformBuffer>;
     /** @type {Array<BindGroup>} */
     viewBindGroups: Array<BindGroup>;
     destroy(): void;
@@ -11660,7 +11814,7 @@ declare class Sky {
     /**
      * Mesh instance representing the visuals of the sky.
      *
-     * @type {MeshInstance};
+     * @type {MeshInstance}
      */
     meshInstance: MeshInstance;
     /** @type {Mat3} */
@@ -11669,6 +11823,20 @@ declare class Sky {
     destroy(): void;
 }
 
+/**
+ * Lighting parameters, allow configuration of the global lighting parameters.
+ * For details see [Clustered Lighting](https://developer.playcanvas.com/en/user-manual/graphics/lighting/clustered-lighting/)
+ *
+ * @property {number} debugLayer Layer ID of a layer to contain the debug rendering
+ * of clustered lighting. Defaults to undefined, which disables the debug rendering.
+ * Debug rendering is only included in the debug version of the engine.
+ *
+ * @property {Array<number>|null} atlasSplit Atlas textures split description, which applies
+ * to both the shadow and cookie texture atlas. Defaults to null, which enables to automatic
+ * split mode. For details see [Configuring Atlas Split](https://developer.playcanvas.com/en/user-manual/graphics/lighting/clustered-lighting/#configuring-atlas)
+ *
+ * @hideconstructor
+ */
 declare class LightingParams {
     constructor(supportsAreaLights: any, maxTextureSize: any, dirtyLightsFnc: any);
     _maxTextureSize: any;
@@ -11684,22 +11852,76 @@ declare class LightingParams {
     _cookieAtlasResolution: number;
     atlasSplit: any;
     debugLayer: any;
-    set cells(arg: Vec3);
-    get cells(): Vec3;
-    set maxLightsPerCell(arg: number);
-    get maxLightsPerCell(): number;
-    set cookieAtlasResolution(arg: number);
-    get cookieAtlasResolution(): number;
-    set shadowAtlasResolution(arg: number);
-    get shadowAtlasResolution(): number;
-    set shadowType(arg: number);
-    get shadowType(): number;
-    set cookiesEnabled(arg: boolean);
-    get cookiesEnabled(): boolean;
-    set areaLightsEnabled(arg: boolean);
-    get areaLightsEnabled(): boolean;
+    applySettings(render: any): void;
+    /**
+     * If set to true, the clustered lighting will support shadows.
+     * Defaults to true.
+     *
+     * @type {boolean}
+     */
     set shadowsEnabled(arg: boolean);
     get shadowsEnabled(): boolean;
+    /**
+     * If set to true, the clustered lighting will support cookie textures.
+     * Defaults to false.
+     *
+     * @type {boolean}
+     */
+    set cookiesEnabled(arg: boolean);
+    get cookiesEnabled(): boolean;
+    /**
+     * If set to true, the clustered lighting will support area lights.
+     * Defaults to false.
+     *
+     * @type {boolean}
+     */
+    set areaLightsEnabled(arg: boolean);
+    get areaLightsEnabled(): boolean;
+    /**
+     * Resolution of the atlas texture storing all non-directional shadow textures.
+     * Defaults to 2048.
+     *
+     * @type {number}
+     */
+    set shadowAtlasResolution(arg: number);
+    get shadowAtlasResolution(): number;
+    /**
+     * Resolution of the atlas texture storing all non-directional cookie textures.
+     * Defaults to 2048.
+     *
+     * @type {number}
+     */
+    set cookieAtlasResolution(arg: number);
+    get cookieAtlasResolution(): number;
+    /**
+     * Maximum number of lights a cell can store. Defaults to 255.
+     *
+     * @type {number}
+     */
+    set maxLightsPerCell(arg: number);
+    get maxLightsPerCell(): number;
+    /**
+     * The type of shadow filtering used by all shadows. Can be:
+     *
+     * - {@link SHADOW_PCF1}: PCF 1x1 sampling.
+     * - {@link SHADOW_PCF3}: PCF 3x3 sampling.
+     * - {@link SHADOW_PCF5}: PCF 5x5 sampling. Falls back to {@link SHADOW_PCF3} on WebGL 1.0.
+     *
+     * Defaults to {@link SHADOW_PCF3}
+     *
+     * @type {number}
+     */
+    set shadowType(arg: number);
+    get shadowType(): number;
+    cell: Vec3;
+    /**
+     * Number of cells along each world-space axis the space containing lights
+     * is subdivided into. Defaults to Vec(10, 3, 10).
+     *
+     * @type {Vec3}
+     */
+    set cells(arg: Vec3);
+    get cells(): Vec3;
 }
 
 
@@ -12392,6 +12614,12 @@ declare class Scene extends EventHandler {
      */
     set ambientBakeSpherePart(arg: number);
     get ambientBakeSpherePart(): number;
+    /**
+     * True if the clustered lighting is enabled. Set to false before the first frame is rendered
+     * to use non-clustered lighting. Defaults to true.
+     *
+     * @type {boolean}
+     */
     set clusteredLightingEnabled(arg: boolean);
     get clusteredLightingEnabled(): boolean;
     /**
@@ -12443,6 +12671,11 @@ declare class Scene extends EventHandler {
      */
     set layers(arg: LayerComposition);
     get layers(): LayerComposition;
+    /**
+     * A {@link LightingParams} that defines lighting parameters.
+     *
+     * @type {LightingParams}
+     */
     get lighting(): LightingParams;
     /**
      * A range parameter of the bilateral filter. It's used when {@link Scene#lightmapFilterEnabled}
@@ -12540,6 +12773,7 @@ declare class Scene extends EventHandler {
 
 
 
+
 declare class Command {
     constructor(layer: any, blendType: any, command: any);
     _key: number[];
@@ -12599,6 +12833,14 @@ declare class MeshInstance {
      * @ignore
      */
     _shader: Array<Shader>;
+    /**
+     * An array of bind groups, storing uniforms per pass. This has 1:1 relation with the _shades array,
+     * and is indexed by the shader pass constant as well.
+     *
+     * @type {Array<BindGroup>}
+     * @ignore
+     */
+    _bindGroups: Array<BindGroup>;
     _key: number[];
     isStatic: boolean;
     _staticLightList: any;
@@ -12724,6 +12966,14 @@ declare class MeshInstance {
      * @ignore
      */
     clearShaders(): void;
+    destroyBindGroups(): void;
+    /**
+     * @param {GraphicsDevice} device - The graphics device.
+     * @param {number} pass - Shader pass number.
+     * @returns {BindGroup} - The mesh bind group.
+     * @ignore
+     */
+    getBindGroup(device: GraphicsDevice, pass: number): BindGroup;
     _layer: any;
     /**
      * In some circumstances mesh instances are sorted by a distance calculation to determine their
@@ -12793,6 +13043,7 @@ declare class MeshInstance {
      * @ignore
      */
     updatePassShader(scene: Scene, pass: number, staticLightList: any, sortedLights: any, viewUniformFormat: UniformBufferFormat, viewBindGroupFormat: BindGroupFormat): void;
+    ensureMaterial(device: any): void;
     clearParameters(): void;
     getParameters(): {};
     /**
@@ -13983,6 +14234,14 @@ declare class SoundInstance extends EventHandler {
      * @private
      */
     private _lastNode;
+    /**
+     * Set to true if a play() request was issued when the AudioContext was still suspended,
+     * and will therefore wait until it is resumed to play the audio.
+     *
+     * @type {boolean}
+     * @private
+     */
+    private _waitingContextSuspension;
     /** @private */
     private _endedHandler;
     /** @private */
@@ -14126,12 +14385,20 @@ declare class SoundInstance extends EventHandler {
     private _initializeNodes;
     gain: GainNode;
     /**
-     * Begins playback of sound. If the sound is not loaded this will return false. If the sound is
-     * already playing this will restart the sound.
+     * Attempt to begin playback the sound.
+     * If the AudioContext is suspended, the audio will only start once it's resumed.
+     * If the sound is already playing, this will restart the sound.
      *
-     * @returns {boolean} True if the sound was started.
+     * @returns {boolean} True if the sound was started immediately.
      */
     play(): boolean;
+    /**
+     * Immediately play the sound.
+     * This method assumes the AudioContext is ready (not suspended or locked).
+     *
+     * @private
+     */
+    private _playAudioImmediate;
     /**
      * Pauses playback of sound. Call resume() to resume playback from the same position.
      *
@@ -15050,15 +15317,21 @@ export type UpdateShaderCallback = (options: any) => any;
  * @property {boolean} specularVertexColor Use mesh vertex colors for specular. If specularMap or
  * are specularTint are set, they'll be multiplied by vertex colors.
  * @property {string} specularVertexColorChannel Vertex color channels to use for specular. Can be
+ * @property {boolean} specularityFactorTint Multiply specularity factor map and/or specular vertex color by the
+ * constant specular value.
  * "r", "g", "b", "a", "rgb" or any swizzled combination.
  * @property {number} specularityFactor The factor of specular intensity, used to weight the fresnel and specularity. Default is 1.0.
  * @property {Texture|null} specularityFactorMap The factor of specularity as a texture (default is null).
- * @property {number} specularityMapUv Specularity factor map UV channel.
- * @property {Vec2} specularityMapTiling Controls the 2D tiling of the specularity factor map.
- * @property {Vec2} specularityMapOffset Controls the 2D offset of the specularity factor map. Each component is
+ * @property {number} specularityFactorMapUv Specularity factor map UV channel.
+ * @property {Vec2} specularityFactorMapTiling Controls the 2D tiling of the specularity factor map.
+ * @property {Vec2} specularityFactorMapOffset Controls the 2D offset of the specularity factor map. Each component is
  * between 0 and 1.
- * @property {number} specularityMapRotation Controls the 2D rotation (in degrees) of the specularity factor map.
+ * @property {number} specularityFactorMapRotation Controls the 2D rotation (in degrees) of the specularity factor map.
  * @property {string} specularityFactorMapChannel The channel used by the specularity factor texture to sample from (default is 'a').
+ * @property {boolean} specularityFactorVertexColor Use mesh vertex colors for specularity factor. If specularityFactorMap or
+ * are specularityFactorTint are set, they'll be multiplied by vertex colors.
+ * @property {string} specularityFactorVertexColorChannel Vertex color channels to use for specularity factor. Can be
+ * "r", "g", "b", "a", "rgb" or any swizzled combination.
  * @property {boolean} enableGGXSpecular Enables GGX specular. Also enables
  * {@link StandardMaterial#anisotropy}  parameter to set material anisotropy.
  * @property {number} anisotropy Defines amount of anisotropy. Requires
@@ -15170,6 +15443,8 @@ export type UpdateShaderCallback = (options: any) => any;
  * indices of refraction, the one around the object and the one of its own surface. In most
  * situations outer medium is air, so outerIor will be approximately 1. Then you only need to do
  * (1.0 / surfaceIor).
+ * @property {boolean} useDynamicRefraction Enables higher quality refractions using the grab pass
+ * instead of pre-computed cube maps for refractions.
  * @property {Color} emissive The emissive color of the material. This color value is 3-component
  * (RGB), where each component is between 0 and 1.
  * @property {boolean} emissiveTint Multiply emissive map and/or emissive vertex color by the
@@ -15189,6 +15464,31 @@ export type UpdateShaderCallback = (options: any) => any;
  * emissiveTint are set, they'll be multiplied by vertex colors.
  * @property {string} emissiveVertexColorChannel Vertex color channels to use for emission. Can be
  * "r", "g", "b", "a", "rgb" or any swizzled combination.
+ * @property {boolean} useSheen Toggle sheen specular effect on/off.
+ * @property {Color} sheen The specular color of the sheen (fabric) microfiber structure. This color value is 3-component
+ * (RGB), where each component is between 0 and 1.
+ * @property {boolean} sheenTint Multiply sheen map and/or sheen vertex color by the constant sheen value.
+ * @property {Texture|null} sheenMap The sheen microstructure color map of the material (default is null).
+ * @property {number} sheenMapUv Sheen map UV channel.
+ * @property {Vec2} sheenMapTiling Controls the 2D tiling of the sheen map.
+ * @property {Vec2} sheenMapOffset Controls the 2D offset of the sheen map. Each component is
+ * between 0 and 1.
+ * @property {number} sheenMapRotation Controls the 2D rotation (in degrees) of the sheen
+ * map.
+ * @property {string} sheenMapChannel Color channels of the sheen map to use. Can be "r",
+ * "g", "b", "a", "rgb" or any swizzled combination.
+ * @property {number} sheenGlossiness The glossiness of the sheen (fabric) microfiber structure. This color value is 3-component
+ * (RGB), where each component is between 0 and 1.
+ * @property {boolean} sheenGlossinessTint Multiply sheen glossiness map and/or sheen glossiness vertex value by the scalar sheen glossiness value.
+ * @property {Texture|null} sheenGlossinessMap The sheen glossiness microstructure color map of the material (default is null).
+ * @property {number} sheenGlossinessMapUv Sheen map UV channel.
+ * @property {Vec2} sheenGlossinessMapTiling Controls the 2D tiling of the sheen glossiness map.
+ * @property {Vec2} sheenGlossinessMapOffset Controls the 2D offset of the sheen glossiness map. Each component is
+ * between 0 and 1.
+ * @property {number} sheenGlossinessMapRotation Controls the 2D rotation (in degrees) of the sheen glossiness
+ * map.
+ * @property {string} sheenGlossinessMapChannel Color channels of the sheen glossiness map to use. Can be "r",
+ * "g", "b", "a", "rgb" or any swizzled combination.
  * @property {number} opacity The opacity of the material. This value can be between 0 and 1, where
  * 0 is fully transparent and 1 is fully opaque. If you want the material to be semi-transparent
  * you also need to set the {@link Material#blendType} to {@link BLEND_NORMAL},
@@ -15379,7 +15679,6 @@ export type UpdateShaderCallback = (options: any) => any;
  * - fixSeams: if cubemaps require seam fixing (see {@link Texture#options.fixCubemapSeams}).
  * - emissiveEncoding: how emissiveMap is encoded. This value is based on Texture#encoding.
  * - lightMapEncoding: how lightMap is encoded. This value is based on on Texture#encoding.
- * - useRgbm: if decodeRGBM() function is needed in the shader at all.
  * - packedNormal: if normal map contains X in RGB, Y in Alpha, and Z must be reconstructed.
  * - forceFragmentPrecision: Override fragment shader numeric precision. Can be "lowp", "mediump",
  * "highp" or null to use default.
@@ -15392,7 +15691,7 @@ export type UpdateShaderCallback = (options: any) => any;
  * from per-instance {@link VertexBuffer} instead of shader's uniforms.
  * - useMorphPosition: if morphing code should be generated to morph positions.
  * - useMorphNormal: if morphing code should be generated to morph normals.
- * - reflectionSource: one of "envAtlas", "cubeMap", "sphereMap"
+ * - reflectionSource: one of "envAtlasHQ", "envAtlas", "cubeMap", "sphereMap"
  * - reflectionEncoding: one of null, "rgbm", "rgbe", "linear", "srgb"
  * - ambientSource: one of "ambientSH", "envAtlas", "constant"
  * - ambientEncoding: one of null, "rgbm", "rgbe", "linear", "srgb"
@@ -15861,6 +16160,39 @@ declare class StandardMaterial extends Material {
     set specularityFactorMapUv(arg: number);
     get specularityFactorMapUv(): number;
 
+    set useSheen(arg: boolean);
+    get useSheen(): boolean;
+
+    set sheen(arg: Color);
+    get sheen(): Color;
+
+    set sheenMap(arg: Texture|null);
+    get sheenMap(): Texture|null;
+
+    set sheenMapChannel(arg: string);
+    get sheenMapChannel(): string;
+
+    set sheenMapOffset(arg: Vec2);
+    get sheenMapOffset(): Vec2;
+
+    set sheenMapRotation(arg: number);
+    get sheenMapRotation(): number;
+
+    set sheenMapTiling(arg: Vec2);
+    get sheenMapTiling(): Vec2;
+
+    set sheenMapUv(arg: number);
+    get sheenMapUv(): number;
+
+    set sheenTint(arg: boolean);
+    get sheenTint(): boolean;
+
+    set sheenVertexColor(arg: boolean);
+    get sheenVertexColor(): boolean;
+
+    set sheenVertexColorChannel(arg: string);
+    get sheenVertexColorChannel(): string;
+
     set sphereMap(arg: Texture|null);
     get sphereMap(): Texture|null;
 
@@ -15878,6 +16210,9 @@ declare class StandardMaterial extends Material {
 
     set useMetalness(arg: boolean);
     get useMetalness(): boolean;
+
+    set useMetalnessSpecularColor(arg: boolean);
+    get useMetalnessSpecularColor(): boolean;
 
     set useSkybox(arg: boolean);
     get useSkybox(): boolean;
@@ -26380,6 +26715,7 @@ declare class Camera {
     _frustumCulling: boolean;
     _horizontalFov: boolean;
     _layers: number[];
+    _layersSet: Set<number>;
     _nearClip: number;
     _node: any;
     _orthoHeight: number;
@@ -26436,6 +26772,7 @@ declare class Camera {
     get horizontalFov(): boolean;
     set layers(arg: number[]);
     get layers(): number[];
+    get layersSet(): Set<number>;
     set nearClip(arg: number);
     get nearClip(): number;
     set node(arg: any);
@@ -26776,6 +27113,7 @@ declare class ForwardRenderer {
         isNewMaterial: any[];
         lightMaskChanged: any[];
     };
+    renderForwardInternal(camera: any, preparedCalls: any, sortedLights: any, pass: any, drawCallback: any, flipFaces: any): void;
     renderForward(camera: any, allDrawCalls: any, allDrawCallsCount: any, sortedLights: any, pass: any, cullingMask: any, drawCallback: any, layer: any, flipFaces: any): void;
     /**
      * @param {MeshInstance[]} drawCalls - Mesh instances.
@@ -28422,8 +28760,9 @@ declare class SceneGrab {
     layer: Layer;
     colorFormat: number;
     setupUniform(device: any, depth: any, buffer: any): void;
-    allocateTexture(device: any, name: any, format: any, isDepth: any, mipmaps: any): Texture;
-    allocateRenderTarget(renderTarget: any, device: any, format: any, isDepth: any, mipmaps: any, isDepthUniforms: any): any;
+    allocateTexture(device: any, source: any, name: any, format: any, isDepth: any, mipmaps: any): Texture;
+    resizeCondition(target: any, source: any, device: any): boolean;
+    allocateRenderTarget(renderTarget: any, sourceRenderTarget: any, device: any, format: any, isDepth: any, mipmaps: any, isDepthUniforms: any): any;
     releaseRenderTarget(rt: any): void;
     initWebGl2(): void;
     initWebGl1(): void;
@@ -29672,6 +30011,22 @@ declare class AppBase extends EventHandler {
      * @param {number} settings.render.ambientBakeOcclusionBrightness - Brighness of the baked ambient occlusion.
      * @param {number} settings.render.ambientBakeOcclusionContrast - Contrast of the baked ambient occlusion.
      *
+     * @param {boolean} settings.render.clusteredLightingEnabled - Enable clustered lighting.
+     * @param {boolean} settings.render.lightingShadowsEnabled - If set to true, the clustered lighting will support shadows.
+     * @param {boolean} settings.render.lightingCookiesEnabled - If set to true, the clustered lighting will support cookie textures.
+     * @param {boolean} settings.render.lightingAreaLightsEnabled - If set to true, the clustered lighting will support area lights.
+     * @param {number} settings.render.lightingShadowAtlasResolution - Resolution of the atlas texture storing all non-directional shadow textures.
+     * @param {number} settings.render.lightingCookieAtlasResolution - Resolution of the atlas texture storing all non-directional cookie textures.
+     * @param {number} settings.render.lightingMaxLightsPerCell - Maximum number of lights a cell can store.
+     * @param {number} settings.render.lightingShadowType - The type of shadow filtering used by all shadows. Can be:
+     *
+     * - {@link SHADOW_PCF1}: PCF 1x1 sampling.
+     * - {@link SHADOW_PCF3}: PCF 3x3 sampling.
+     * - {@link SHADOW_PCF5}: PCF 5x5 sampling. Falls back to {@link SHADOW_PCF3} on WebGL 1.0.
+     *
+     * @param {Vec3} settings.render.lightingCells - Number of cells along each world-space axis the space containing lights
+     * is subdivided into.
+     *
      * Only lights with bakeDir=true will be used for generating the dominant light direction.
      * @example
      *
@@ -29726,6 +30081,15 @@ declare class AppBase extends EventHandler {
             ambientBakeSpherePart: number;
             ambientBakeOcclusionBrightness: number;
             ambientBakeOcclusionContrast: number;
+            clusteredLightingEnabled: boolean;
+            lightingShadowsEnabled: boolean;
+            lightingCookiesEnabled: boolean;
+            lightingAreaLightsEnabled: boolean;
+            lightingShadowAtlasResolution: number;
+            lightingCookieAtlasResolution: number;
+            lightingMaxLightsPerCell: number;
+            lightingShadowType: number;
+            lightingCells: Vec3;
         };
     }): void;
     /**
@@ -30261,6 +30625,7 @@ declare class CameraComponent extends Component {
      */
     set layers(arg: number[]);
     get layers(): number[];
+    get layersSet(): Set<number>;
     /**
      * The post effects queue for this camera. Use this to add or remove post effects from the camera.
      *
@@ -31192,6 +31557,22 @@ declare class Controller {
      */
     update(dt: object): void;
     /**
+     * Helper function to append an action.
+     *
+     * @param {string} action_name - The name of the action.
+     * @param {object} action - An action object to add.
+     * @param {ACTION_KEYBOARD | ACTION_MOUSE | ACTION_GAMEPAD} action.type - The name of the action.
+     * @param {number[]} [action.keys] - Keyboard: A list of keycodes e.g. `[pc.KEY_A, pc.KEY_ENTER]`.
+     * @param {number} [action.button] - Mouse: e.g. `pc.MOUSEBUTTON_LEFT` - Gamepad: e.g. `pc.PAD_FACE_1`
+     * @param {number} [action.pad] - Gamepad: An index of the pad to register (use {@link PAD_1}, etc).
+     */
+    appendAction(action_name: string, action: {
+        type: "keyboard" | "mouse" | "gamepad";
+        keys?: number[];
+        button?: number;
+        pad?: number;
+    }): void;
+    /**
      * Create or update a action which is enabled when the supplied keys are pressed.
      *
      * @param {string} action - The name of the action.
@@ -31385,6 +31766,7 @@ declare class MouseEvent$1 {
 declare class WebglBuffer {
     bufferId: any;
     destroy(device: any): void;
+    get initialized(): boolean;
     loseContext(): void;
     unlock(device: any, usage: any, target: any, storage: any): void;
 }
@@ -31484,7 +31866,7 @@ declare class WebglShader {
      *
      * @param {string} src - The shader source code.
      * @param {string} infoLog - The info log returned from WebGL on a failed shader compilation.
-     * @returns {[string, {message?: string, line?: number, source?: string}]} A tuple where the first element is the 10 lines of code around the first
+     * @returns {Array} An array where the first element is the 10 lines of code around the first
      * detected error, and the second element an object storing the error messsage, line number and
      * complete shader source.
      * @private
@@ -31521,6 +31903,7 @@ declare class WebglRenderTarget {
     _glMsaaColorBuffer: any;
     _glMsaaDepthBuffer: any;
     destroy(device: any): void;
+    get initialized(): boolean;
     init(device: any, target: any): void;
     /**
      * Checks the completeness status of the currently bound WebGLFramebuffer object.
@@ -31531,7 +31914,6 @@ declare class WebglRenderTarget {
     loseContext(): void;
     resolve(device: any, target: any, color: any, depth: any): void;
 }
-
 
 
 
@@ -31640,9 +32022,7 @@ declare class WebglGraphicsDevice extends GraphicsDevice {
     targetToSlot: {};
     commitFunction: {}[];
     supportsBoneTextures: boolean;
-    boneLimit: number;
     constantTexSource: ScopeId;
-    textureBias: ScopeId;
     supportsMorphTargetTexturesCore: boolean;
     _textureFloatHighPrecision: boolean;
     _textureHalfFloatUpdatable: boolean;
@@ -31652,7 +32032,7 @@ declare class WebglGraphicsDevice extends GraphicsDevice {
     createVertexBufferImpl(vertexBuffer: any, format: any): WebglVertexBuffer;
     createIndexBufferImpl(indexBuffer: any): WebglIndexBuffer;
     createShaderImpl(shader: any): WebglShader;
-    createTextureImpl(): WebglTexture;
+    createTextureImpl(texture: any): WebglTexture;
     createRenderTargetImpl(renderTarget: any): WebglRenderTarget;
     updateMarker(): void;
     pushMarker(name: any): void;
@@ -31832,13 +32212,6 @@ declare class WebglGraphicsDevice extends GraphicsDevice {
      */
     copyRenderTarget(source?: RenderTarget, dest?: RenderTarget, color?: boolean, depth?: boolean): boolean;
     renderTarget: any;
-    /**
-     * Initialize render target before it can be used.
-     *
-     * @param {RenderTarget} target - The render target to be initialized.
-     * @ignore
-     */
-    initRenderTarget(target: RenderTarget): void;
     /**
      * Get copy shader for efficient rendering of fullscreen-quad with texture.
      *
@@ -32414,22 +32787,6 @@ declare class WebglGraphicsDevice extends GraphicsDevice {
      */
     getCullMode(): number;
     /**
-     * Sets the current index buffer on the graphics device. On subsequent calls to
-     * {@link GraphicsDevice#draw}, the specified index buffer will be used to provide index data
-     * for any indexed primitives.
-     *
-     * @param {IndexBuffer} indexBuffer - The index buffer to assign to the device.
-     */
-    setIndexBuffer(indexBuffer: IndexBuffer): void;
-    /**
-     * Sets the current vertex buffer on the graphics device. On subsequent calls to
-     * {@link GraphicsDevice#draw}, the specified vertex buffer(s) will be used to provide vertex
-     * data for any primitives.
-     *
-     * @param {VertexBuffer} vertexBuffer - The vertex buffer to assign to the device.
-     */
-    setVertexBuffer(vertexBuffer: VertexBuffer): void;
-    /**
      * Sets the active shader to be used during subsequent draw calls.
      *
      * @param {Shader} shader - The shader to set to assign to the device.
@@ -32447,26 +32804,6 @@ declare class WebglGraphicsDevice extends GraphicsDevice {
      * @ignore
      */
     getHdrFormat(): number;
-    /**
-     * Queries the maximum number of bones that can be referenced by a shader. The shader
-     * generators (programlib) use this number to specify the matrix array size of the uniform
-     * 'matrix_pose[0]'. The value is calculated based on the number of available uniform vectors
-     * available after subtracting the number taken by a typical heavyweight shader. If a different
-     * number is required, it can be tuned via {@link GraphicsDevice#setBoneLimit}.
-     *
-     * @returns {number} The maximum number of bones that can be supported by the host hardware.
-     * @ignore
-     */
-    getBoneLimit(): number;
-    /**
-     * Specifies the maximum number of bones that the device can support on the current hardware.
-     * This function allows the default calculated value based on available vector uniforms to be
-     * overridden.
-     *
-     * @param {number} maxBones - The maximum number of bones supported by the host hardware.
-     * @ignore
-     */
-    setBoneLimit(maxBones: number): void;
     /**
      * Frees memory from all shaders ever allocated with this device.
      *
@@ -32985,6 +33322,9 @@ declare class Tracing {
      * - {@link TRACEID_RENDER_TARGET_ALLOC}
      * - {@link TRACEID_TEXTURE_ALLOC}
      * - {@link TRACEID_SHADER_ALLOC}
+     * - {@link TRACEID_VRAM_TEXTURE}
+     * - {@link TRACEID_VRAM_VB}
+     * - {@link TRACEID_VRAM_IB}
      *
      * @param {boolean} enabled - New enabled state for the channel.
      */
@@ -33772,7 +34112,7 @@ declare class AnimationHandler implements ResourceHandler {
     handlerType: string;
     maxRetries: number;
     load(url: any, callback: any): void;
-    open(url: any, data: any): any;
+    open(url: any, data: any, asset: any): any;
     patch(asset: any, assets: any): void;
     _parseAnimationV3(data: any): Animation;
     _parseAnimationV4(data: any): Animation;
@@ -35182,7 +35522,9 @@ declare class GlbParser {
 
 
 
+
 /** @typedef {import('../framework/entity.js').Entity} Entity */
+/** @typedef {import('../scene/mesh-instance').MeshInstance} MeshInstance */
 /** @typedef {import('../framework/app-base.js').AppBase} AppBase */
 /** @typedef {import('./handler.js').ResourceHandler} ResourceHandler */
 /** @typedef {import('./handler.js').ResourceHandlerCallback} ResourceHandlerCallback */
@@ -35235,6 +35577,52 @@ declare class ContainerResource {
      * });
      */
     instantiateRenderEntity(options?: object): Entity;
+    /**
+     * Queries the list of available material variants.
+     *
+     * @returns {string[]} An array of variant names.
+     */
+    getMaterialVariants(): string[];
+    /**
+     * Applies a material variant to an entity hierarchy.
+     *
+     * @param {Entity} entity - The entity root to which material variants will be applied
+     * @param {string} [name] - The name of the variant, as queried from getMaterialVariants,
+     * if null the variant will be reset to the default
+     * @example
+     * // load a glb file and instantiate an entity with a render component based on it
+     * app.assets.loadFromUrl("statue.glb", "container", function (err, asset) {
+     *     var entity = asset.resource.instantiateRenderEntity({
+     *         castShadows: true
+     *     });
+     *     app.root.addChild(entity);
+     *     var materialVariants = asset.resource.getMaterialVariants();
+     *     asset.resource.applyMaterialVariant(entity, materialVariants[0]);
+     */
+    applyMaterialVariant(entity: Entity, name?: string): void;
+    /**
+     * Applies a material variant to a set of mesh instances. Compared to the applyMaterialVariant,
+     * this method allows for setting the variant on a specific set of mesh instances instead of the
+     * whole entity.
+     *
+     * @param {MeshInstance[]} instances - An array of mesh instances
+     * @param {string} [name] - The the name of the variant, as quered from getMaterialVariants,
+     * if null the variant will be reset to the default
+     * @example
+     * // load a glb file and instantiate an entity with a render component based on it
+     * app.assets.loadFromUrl("statue.glb", "container", function (err, asset) {
+     *     var entity = asset.resource.instantiateRenderEntity({
+     *         castShadows: true
+     *     });
+     *     app.root.addChild(entity);
+     *     var materialVariants = asset.resource.getMaterialVariants();
+     *     var renders = entity.findComponents("render");
+     *     for (var i = 0; i < renders.length; i++) {
+     *         var renderComponent = renders[i];
+     *         asset.resource.applyMaterialVariantInstances(renderComponent.meshInstances, materialVariants[0]);
+     *     }
+     */
+    applyMaterialVariantInstances(instances: MeshInstance[], name?: string): void;
 }
 /**
  * Loads files that contain multiple resources. For example glTF files can contain textures, models
@@ -35618,5 +36006,5 @@ declare function registerScript(script: typeof ScriptType, name?: string, app?: 
 
 declare const reservedAttributes: {};
 
-export { ABSOLUTE_URL, ACTION_GAMEPAD, ACTION_KEYBOARD, ACTION_MOUSE, ADDRESS_CLAMP_TO_EDGE, ADDRESS_MIRRORED_REPEAT, ADDRESS_REPEAT, ANIM_BLEND_1D, ANIM_BLEND_2D_CARTESIAN, ANIM_BLEND_2D_DIRECTIONAL, ANIM_BLEND_DIRECT, ANIM_CONTROL_STATES, ANIM_EQUAL_TO, ANIM_GREATER_THAN, ANIM_GREATER_THAN_EQUAL_TO, ANIM_INTERRUPTION_NEXT, ANIM_INTERRUPTION_NEXT_PREV, ANIM_INTERRUPTION_NONE, ANIM_INTERRUPTION_PREV, ANIM_INTERRUPTION_PREV_NEXT, ANIM_LAYER_ADDITIVE, ANIM_LAYER_OVERWRITE, ANIM_LESS_THAN, ANIM_LESS_THAN_EQUAL_TO, ANIM_NOT_EQUAL_TO, ANIM_PARAMETER_BOOLEAN, ANIM_PARAMETER_FLOAT, ANIM_PARAMETER_INTEGER, ANIM_PARAMETER_TRIGGER, ANIM_STATE_ANY, ANIM_STATE_END, ANIM_STATE_START, ASPECT_AUTO, ASPECT_MANUAL, ASSET_ANIMATION, ASSET_AUDIO, ASSET_CONTAINER, ASSET_CSS, ASSET_CUBEMAP, ASSET_HTML, ASSET_IMAGE, ASSET_JSON, ASSET_MATERIAL, ASSET_MODEL, ASSET_SCRIPT, ASSET_SHADER, ASSET_TEXT, ASSET_TEXTURE, AXIS_KEY, AXIS_MOUSE_X, AXIS_MOUSE_Y, AXIS_PAD_L_X, AXIS_PAD_L_Y, AXIS_PAD_R_X, AXIS_PAD_R_Y, AnimBinder, AnimClip, AnimClipHandler, AnimComponent, AnimComponentLayer, AnimComponentSystem, AnimController, AnimCurve, AnimData, AnimEvaluator, AnimEvents, AnimSnapshot, AnimStateGraph, AnimStateGraphHandler, AnimTarget, AnimTrack, Animation, AnimationComponent, AnimationComponentSystem, AnimationHandler, AppBase, Application, Asset, AssetListLoader, AssetReference, AssetRegistry, AudioHandler, AudioListenerComponent, AudioListenerComponentSystem, AudioSourceComponent, AudioSourceComponentSystem, BAKE_COLOR, BAKE_COLORDIR, BINDGROUP_MESH, BINDGROUP_VIEW, BLENDEQUATION_ADD, BLENDEQUATION_MAX, BLENDEQUATION_MIN, BLENDEQUATION_REVERSE_SUBTRACT, BLENDEQUATION_SUBTRACT, BLENDMODE_CONSTANT_ALPHA, BLENDMODE_CONSTANT_COLOR, BLENDMODE_DST_ALPHA, BLENDMODE_DST_COLOR, BLENDMODE_ONE, BLENDMODE_ONE_MINUS_CONSTANT_ALPHA, BLENDMODE_ONE_MINUS_CONSTANT_COLOR, BLENDMODE_ONE_MINUS_DST_ALPHA, BLENDMODE_ONE_MINUS_DST_COLOR, BLENDMODE_ONE_MINUS_SRC_ALPHA, BLENDMODE_ONE_MINUS_SRC_COLOR, BLENDMODE_SRC_ALPHA, BLENDMODE_SRC_ALPHA_SATURATE, BLENDMODE_SRC_COLOR, BLENDMODE_ZERO, BLEND_ADDITIVE, BLEND_ADDITIVEALPHA, BLEND_MAX, BLEND_MIN, BLEND_MULTIPLICATIVE, BLEND_MULTIPLICATIVE2X, BLEND_NONE, BLEND_NORMAL, BLEND_PREMULTIPLIED, BLEND_SCREEN, BLEND_SUBTRACTIVE, BLUR_BOX, BLUR_GAUSSIAN, BODYFLAG_KINEMATIC_OBJECT, BODYFLAG_NORESPONSE_OBJECT, BODYFLAG_STATIC_OBJECT, BODYGROUP_DEFAULT, BODYGROUP_DYNAMIC, BODYGROUP_ENGINE_1, BODYGROUP_ENGINE_2, BODYGROUP_ENGINE_3, BODYGROUP_KINEMATIC, BODYGROUP_NONE, BODYGROUP_STATIC, BODYGROUP_TRIGGER, BODYGROUP_USER_1, BODYGROUP_USER_2, BODYGROUP_USER_3, BODYGROUP_USER_4, BODYGROUP_USER_5, BODYGROUP_USER_6, BODYGROUP_USER_7, BODYGROUP_USER_8, BODYMASK_ALL, BODYMASK_NONE, BODYMASK_NOT_STATIC, BODYMASK_NOT_STATIC_KINEMATIC, BODYMASK_STATIC, BODYSTATE_ACTIVE_TAG, BODYSTATE_DISABLE_DEACTIVATION, BODYSTATE_DISABLE_SIMULATION, BODYSTATE_ISLAND_SLEEPING, BODYSTATE_WANTS_DEACTIVATION, BODYTYPE_DYNAMIC, BODYTYPE_KINEMATIC, BODYTYPE_STATIC, BUFFER_DYNAMIC, BUFFER_GPUDYNAMIC, BUFFER_STATIC, BUFFER_STREAM, BUTTON_TRANSITION_MODE_SPRITE_CHANGE, BUTTON_TRANSITION_MODE_TINT, BasicMaterial, Batch, BatchGroup, BatchManager, BinaryHandler, BoundingBox, BoundingSphere, Bundle, BundleHandler, BundleRegistry, ButtonComponent, ButtonComponentSystem, CHUNKAPI_1_51, CHUNKAPI_1_55, CLEARFLAG_COLOR, CLEARFLAG_DEPTH, CLEARFLAG_STENCIL, COMPUPDATED_BLEND, COMPUPDATED_CAMERAS, COMPUPDATED_INSTANCES, COMPUPDATED_LIGHTS, CUBEFACE_NEGX, CUBEFACE_NEGY, CUBEFACE_NEGZ, CUBEFACE_POSX, CUBEFACE_POSY, CUBEFACE_POSZ, CUBEPROJ_BOX, CUBEPROJ_NONE, CULLFACE_BACK, CULLFACE_FRONT, CULLFACE_FRONTANDBACK, CULLFACE_NONE, CURVE_CARDINAL, CURVE_CATMULL, CURVE_LINEAR, CURVE_SMOOTHSTEP, CURVE_SPLINE, CURVE_STEP, Camera, CameraComponent, CameraComponentSystem, CanvasFont, CollisionComponent, CollisionComponentSystem, Color, Command, Component, ComponentSystem, ComponentSystemRegistry, ContactPoint, ContactResult, ContainerHandler, ContainerResource, ContextCreationError, Controller, CssHandler, CubemapHandler, Curve, CurveSet, DETAILMODE_ADD, DETAILMODE_MAX, DETAILMODE_MIN, DETAILMODE_MUL, DETAILMODE_OVERLAY, DETAILMODE_SCREEN, DISTANCE_EXPONENTIAL, DISTANCE_INVERSE, DISTANCE_LINEAR, DefaultAnimBinder, ELEMENTTYPE_FLOAT32, ELEMENTTYPE_GROUP, ELEMENTTYPE_IMAGE, ELEMENTTYPE_INT16, ELEMENTTYPE_INT32, ELEMENTTYPE_INT8, ELEMENTTYPE_TEXT, ELEMENTTYPE_UINT16, ELEMENTTYPE_UINT32, ELEMENTTYPE_UINT8, EMITTERSHAPE_BOX, EMITTERSHAPE_SPHERE, EVENT_KEYDOWN, EVENT_KEYUP, EVENT_MOUSEDOWN, EVENT_MOUSEMOVE, EVENT_MOUSEUP, EVENT_MOUSEWHEEL, EVENT_SELECT, EVENT_SELECTEND, EVENT_SELECTSTART, EVENT_TOUCHCANCEL, EVENT_TOUCHEND, EVENT_TOUCHMOVE, EVENT_TOUCHSTART, ElementComponent, ElementComponentSystem, ElementDragHelper, ElementInput, ElementInputEvent, ElementMouseEvent, ElementSelectEvent, ElementTouchEvent, Entity, EntityReference, EnvLighting, EventHandler, FILLMODE_FILL_WINDOW, FILLMODE_KEEP_ASPECT, FILLMODE_NONE, FILTER_LINEAR, FILTER_LINEAR_MIPMAP_LINEAR, FILTER_LINEAR_MIPMAP_NEAREST, FILTER_NEAREST, FILTER_NEAREST_MIPMAP_LINEAR, FILTER_NEAREST_MIPMAP_NEAREST, FITMODE_CONTAIN, FITMODE_COVER, FITMODE_STRETCH, FITTING_BOTH, FITTING_NONE, FITTING_SHRINK, FITTING_STRETCH, FOG_EXP, FOG_EXP2, FOG_LINEAR, FOG_NONE, FONT_BITMAP, FONT_MSDF, FRESNEL_NONE, FRESNEL_SCHLICK, FUNC_ALWAYS, FUNC_EQUAL, FUNC_GREATER, FUNC_GREATEREQUAL, FUNC_LESS, FUNC_LESSEQUAL, FUNC_NEVER, FUNC_NOTEQUAL, FolderHandler, Font, FontHandler, ForwardRenderer, Frustum, GAMMA_NONE, GAMMA_SRGB, GAMMA_SRGBFAST, GAMMA_SRGBHDR, GamePads, GraphNode, GraphicsDevice, HierarchyHandler, HtmlHandler, Http, I18n, INDEXFORMAT_UINT16, INDEXFORMAT_UINT32, INDEXFORMAT_UINT8, INTERPOLATION_CUBIC, INTERPOLATION_LINEAR, INTERPOLATION_STEP, ImageElement, IndexBuffer, IndexedList, JointComponent, JointComponentSystem, JsonHandler, JsonStandardMaterialParser, KEY_0, KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7, KEY_8, KEY_9, KEY_A, KEY_ADD, KEY_ALT, KEY_B, KEY_BACKSPACE, KEY_BACK_SLASH, KEY_C, KEY_CAPS_LOCK, KEY_CLOSE_BRACKET, KEY_COMMA, KEY_CONTEXT_MENU, KEY_CONTROL, KEY_D, KEY_DECIMAL, KEY_DELETE, KEY_DIVIDE, KEY_DOWN, KEY_E, KEY_END, KEY_ENTER, KEY_EQUAL, KEY_ESCAPE, KEY_F, KEY_F1, KEY_F10, KEY_F11, KEY_F12, KEY_F2, KEY_F3, KEY_F4, KEY_F5, KEY_F6, KEY_F7, KEY_F8, KEY_F9, KEY_G, KEY_H, KEY_HOME, KEY_I, KEY_INSERT, KEY_J, KEY_K, KEY_L, KEY_LEFT, KEY_M, KEY_META, KEY_MULTIPLY, KEY_N, KEY_NUMPAD_0, KEY_NUMPAD_1, KEY_NUMPAD_2, KEY_NUMPAD_3, KEY_NUMPAD_4, KEY_NUMPAD_5, KEY_NUMPAD_6, KEY_NUMPAD_7, KEY_NUMPAD_8, KEY_NUMPAD_9, KEY_O, KEY_OPEN_BRACKET, KEY_P, KEY_PAGE_DOWN, KEY_PAGE_UP, KEY_PAUSE, KEY_PERIOD, KEY_PRINT_SCREEN, KEY_Q, KEY_R, KEY_RETURN, KEY_RIGHT, KEY_S, KEY_SEMICOLON, KEY_SEPARATOR, KEY_SHIFT, KEY_SLASH, KEY_SPACE, KEY_SUBTRACT, KEY_T, KEY_TAB, KEY_U, KEY_UP, KEY_V, KEY_W, KEY_WINDOWS, KEY_X, KEY_Y, KEY_Z, Key, Keyboard, KeyboardEvent, LAYERID_DEPTH, LAYERID_IMMEDIATE, LAYERID_SKYBOX, LAYERID_UI, LAYERID_WORLD, LAYER_FX, LAYER_GIZMO, LAYER_HUD, LAYER_WORLD, LIGHTFALLOFF_INVERSESQUARED, LIGHTFALLOFF_LINEAR, LIGHTSHAPE_DISK, LIGHTSHAPE_PUNCTUAL, LIGHTSHAPE_RECT, LIGHTSHAPE_SPHERE, LIGHTTYPE_COUNT, LIGHTTYPE_DIRECTIONAL, LIGHTTYPE_OMNI, LIGHTTYPE_POINT, LIGHTTYPE_SPOT, LINEBATCH_GIZMO, LINEBATCH_OVERLAY, LINEBATCH_WORLD, Layer, LayerComposition, LayoutCalculator, LayoutChildComponent, LayoutChildComponentSystem, LayoutGroupComponent, LayoutGroupComponentSystem, Light, LightComponent, LightComponentSystem, LightingParams, Lightmapper, LocalizedAsset, MASK_AFFECT_DYNAMIC, MASK_AFFECT_LIGHTMAPPED, MASK_BAKE, MOTION_FREE, MOTION_LIMITED, MOTION_LOCKED, MOUSEBUTTON_LEFT, MOUSEBUTTON_MIDDLE, MOUSEBUTTON_NONE, MOUSEBUTTON_RIGHT, Mat3, Mat4, Material, MaterialHandler, Mesh, MeshInstance, Model, ModelComponent, ModelComponentSystem, ModelHandler, Morph, MorphInstance, MorphTarget, Mouse, MouseEvent$1 as MouseEvent, Node$1 as Node, ORIENTATION_HORIZONTAL, ORIENTATION_VERTICAL, OrientedBox, PAD_1, PAD_2, PAD_3, PAD_4, PAD_DOWN, PAD_FACE_1, PAD_FACE_2, PAD_FACE_3, PAD_FACE_4, PAD_LEFT, PAD_L_SHOULDER_1, PAD_L_SHOULDER_2, PAD_L_STICK_BUTTON, PAD_L_STICK_X, PAD_L_STICK_Y, PAD_RIGHT, PAD_R_SHOULDER_1, PAD_R_SHOULDER_2, PAD_R_STICK_BUTTON, PAD_R_STICK_X, PAD_R_STICK_Y, PAD_SELECT, PAD_START, PAD_UP, PAD_VENDOR, PARTICLEMODE_CPU, PARTICLEMODE_GPU, PARTICLEORIENTATION_EMITTER, PARTICLEORIENTATION_SCREEN, PARTICLEORIENTATION_WORLD, PARTICLESORT_DISTANCE, PARTICLESORT_NEWER_FIRST, PARTICLESORT_NONE, PARTICLESORT_OLDER_FIRST, PIXELFORMAT_111110F, PIXELFORMAT_A8, PIXELFORMAT_ASTC_4x4, PIXELFORMAT_ATC_RGB, PIXELFORMAT_ATC_RGBA, PIXELFORMAT_DEPTH, PIXELFORMAT_DEPTHSTENCIL, PIXELFORMAT_DXT1, PIXELFORMAT_DXT3, PIXELFORMAT_DXT5, PIXELFORMAT_ETC1, PIXELFORMAT_ETC2_RGB, PIXELFORMAT_ETC2_RGBA, PIXELFORMAT_L8, PIXELFORMAT_L8_A8, PIXELFORMAT_PVRTC_2BPP_RGBA_1, PIXELFORMAT_PVRTC_2BPP_RGB_1, PIXELFORMAT_PVRTC_4BPP_RGBA_1, PIXELFORMAT_PVRTC_4BPP_RGB_1, PIXELFORMAT_R32F, PIXELFORMAT_R4_G4_B4_A4, PIXELFORMAT_R5_G5_B5_A1, PIXELFORMAT_R5_G6_B5, PIXELFORMAT_R8_G8_B8, PIXELFORMAT_R8_G8_B8_A8, PIXELFORMAT_RGB16F, PIXELFORMAT_RGB32F, PIXELFORMAT_RGBA16F, PIXELFORMAT_RGBA32F, PIXELFORMAT_SRGB, PIXELFORMAT_SRGBA, PRIMITIVE_LINELOOP, PRIMITIVE_LINES, PRIMITIVE_LINESTRIP, PRIMITIVE_POINTS, PRIMITIVE_TRIANGLES, PRIMITIVE_TRIFAN, PRIMITIVE_TRISTRIP, PROJECTION_ORTHOGRAPHIC, PROJECTION_PERSPECTIVE, ParticleEmitter, ParticleSystemComponent, ParticleSystemComponentSystem, PhongMaterial, Picker, Plane, PostEffect$1 as PostEffect, PostEffectQueue, ProgramLibrary, Quat, RENDERSTYLE_POINTS, RENDERSTYLE_SOLID, RENDERSTYLE_WIREFRAME, RESOLUTION_AUTO, RESOLUTION_FIXED, RIGIDBODY_ACTIVE_TAG, RIGIDBODY_CF_KINEMATIC_OBJECT, RIGIDBODY_CF_NORESPONSE_OBJECT, RIGIDBODY_CF_STATIC_OBJECT, RIGIDBODY_DISABLE_DEACTIVATION, RIGIDBODY_DISABLE_SIMULATION, RIGIDBODY_ISLAND_SLEEPING, RIGIDBODY_TYPE_DYNAMIC, RIGIDBODY_TYPE_KINEMATIC, RIGIDBODY_TYPE_STATIC, RIGIDBODY_WANTS_DEACTIVATION, Ray, RaycastResult, ReadStream, RenderComponent, RenderComponentSystem, RenderHandler, RenderTarget, ResourceHandler, ResourceLoader, RigidBodyComponent, RigidBodyComponentSystem, SCALEMODE_BLEND, SCALEMODE_NONE, SCROLLBAR_VISIBILITY_SHOW_ALWAYS, SCROLLBAR_VISIBILITY_SHOW_WHEN_REQUIRED, SCROLL_MODE_BOUNCE, SCROLL_MODE_CLAMP, SCROLL_MODE_INFINITE, SEMANTIC_ATTR, SEMANTIC_ATTR0, SEMANTIC_ATTR1, SEMANTIC_ATTR10, SEMANTIC_ATTR11, SEMANTIC_ATTR12, SEMANTIC_ATTR13, SEMANTIC_ATTR14, SEMANTIC_ATTR15, SEMANTIC_ATTR2, SEMANTIC_ATTR3, SEMANTIC_ATTR4, SEMANTIC_ATTR5, SEMANTIC_ATTR6, SEMANTIC_ATTR7, SEMANTIC_ATTR8, SEMANTIC_ATTR9, SEMANTIC_BLENDINDICES, SEMANTIC_BLENDWEIGHT, SEMANTIC_COLOR, SEMANTIC_NORMAL, SEMANTIC_POSITION, SEMANTIC_TANGENT, SEMANTIC_TEXCOORD, SEMANTIC_TEXCOORD0, SEMANTIC_TEXCOORD1, SEMANTIC_TEXCOORD2, SEMANTIC_TEXCOORD3, SEMANTIC_TEXCOORD4, SEMANTIC_TEXCOORD5, SEMANTIC_TEXCOORD6, SEMANTIC_TEXCOORD7, SHADERDEF_DIRLM, SHADERDEF_INSTANCING, SHADERDEF_LM, SHADERDEF_LMAMBIENT, SHADERDEF_MORPH_NORMAL, SHADERDEF_MORPH_POSITION, SHADERDEF_MORPH_TEXTURE_BASED, SHADERDEF_NOSHADOW, SHADERDEF_SCREENSPACE, SHADERDEF_SKIN, SHADERDEF_TANGENTS, SHADERDEF_UV0, SHADERDEF_UV1, SHADERDEF_VCOLOR, SHADERSTAGE_COMPUTE, SHADERSTAGE_FRAGMENT, SHADERSTAGE_VERTEX, SHADERTAG_MATERIAL, SHADERTYPE_DEPTH, SHADERTYPE_FORWARD, SHADERTYPE_PICK, SHADERTYPE_SHADOW, SHADER_DEPTH, SHADER_FORWARD, SHADER_FORWARDHDR, SHADER_PICK, SHADER_SHADOW, SHADOWUPDATE_NONE, SHADOWUPDATE_REALTIME, SHADOWUPDATE_THISFRAME, SHADOW_COUNT, SHADOW_DEPTH, SHADOW_PCF1, SHADOW_PCF3, SHADOW_PCF5, SHADOW_VSM16, SHADOW_VSM32, SHADOW_VSM8, SORTKEY_DEPTH, SORTKEY_FORWARD, SORTMODE_BACK2FRONT, SORTMODE_CUSTOM, SORTMODE_FRONT2BACK, SORTMODE_MANUAL, SORTMODE_MATERIALMESH, SORTMODE_NONE, SPECOCC_AO, SPECOCC_GLOSSDEPENDENT, SPECOCC_NONE, SPECULAR_BLINN, SPECULAR_PHONG, SPRITETYPE_ANIMATED, SPRITETYPE_SIMPLE, SPRITE_RENDERMODE_SIMPLE, SPRITE_RENDERMODE_SLICED, SPRITE_RENDERMODE_TILED, STENCILOP_DECREMENT, STENCILOP_DECREMENTWRAP, STENCILOP_INCREMENT, STENCILOP_INCREMENTWRAP, STENCILOP_INVERT, STENCILOP_KEEP, STENCILOP_REPLACE, STENCILOP_ZERO, Scene, SceneHandler, SceneRegistry, SceneRegistryItem, SceneSettingsHandler, ScopeId, ScopeSpace, ScreenComponent, ScreenComponentSystem, ScriptAttributes, ScriptComponent, ScriptComponentSystem, ScriptHandler, ScriptLegacyComponent, ScriptLegacyComponentSystem, ScriptRegistry, ScriptType, ScrollViewComponent, ScrollViewComponentSystem, ScrollbarComponent, ScrollbarComponentSystem, Shader, ShaderHandler, SingleContactResult, Skeleton, Skin, SkinBatchInstance, SkinInstance, SortedLoopArray, Sound, SoundComponent, SoundComponentSystem, SoundInstance, SoundInstance3d, SoundManager, SoundSlot, Sprite, SpriteAnimationClip, SpriteComponent, SpriteComponentSystem, SpriteHandler, StandardMaterial as StandardMaterial, StencilParameters, TEXHINT_ASSET, TEXHINT_LIGHTMAP, TEXHINT_NONE, TEXHINT_SHADOWMAP, TEXTURELOCK_READ, TEXTURELOCK_WRITE, TEXTUREPROJECTION_CUBE, TEXTUREPROJECTION_EQUIRECT, TEXTUREPROJECTION_NONE, TEXTUREPROJECTION_OCTAHEDRAL, TEXTURETYPE_DEFAULT, TEXTURETYPE_RGBE, TEXTURETYPE_RGBM, TEXTURETYPE_SWIZZLEGGGR, TONEMAP_ACES, TONEMAP_ACES2, TONEMAP_FILMIC, TONEMAP_HEJL, TONEMAP_LINEAR, TRACEID_RENDER_ACTION, TRACEID_RENDER_FRAME, TRACEID_RENDER_PASS, TRACEID_RENDER_PASS_DETAIL, TRACEID_RENDER_TARGET_ALLOC, TRACEID_SHADER_ALLOC, TRACEID_TEXTURE_ALLOC, TYPE_FLOAT32, TYPE_INT16, TYPE_INT32, TYPE_INT8, TYPE_UINT16, TYPE_UINT32, TYPE_UINT8, Tags, Template, TemplateHandler, TextElement, TextHandler, Texture, TextureAtlas, TextureAtlasHandler, TextureHandler, TextureParser, Timer, Touch$1 as Touch, TouchDevice, TouchEvent$1 as TouchEvent, Tracing, TransformFeedback, UNIFORMTYPE_BOOL, UNIFORMTYPE_BVEC2, UNIFORMTYPE_BVEC3, UNIFORMTYPE_BVEC4, UNIFORMTYPE_FLOAT, UNIFORMTYPE_FLOATARRAY, UNIFORMTYPE_INT, UNIFORMTYPE_IVEC2, UNIFORMTYPE_IVEC3, UNIFORMTYPE_IVEC4, UNIFORMTYPE_MAT2, UNIFORMTYPE_MAT3, UNIFORMTYPE_MAT4, UNIFORMTYPE_TEXTURE2D, UNIFORMTYPE_TEXTURE2D_SHADOW, UNIFORMTYPE_TEXTURE3D, UNIFORMTYPE_TEXTURECUBE, UNIFORMTYPE_TEXTURECUBE_SHADOW, UNIFORMTYPE_VEC2, UNIFORMTYPE_VEC2ARRAY, UNIFORMTYPE_VEC3, UNIFORMTYPE_VEC3ARRAY, UNIFORMTYPE_VEC4, UNIFORMTYPE_VEC4ARRAY, URI, UnsupportedBrowserError, VIEW_CENTER, VIEW_LEFT, VIEW_RIGHT, Vec2, Vec3, Vec4, VertexBuffer, VertexFormat, VertexIterator, WasmModule, WebglGraphicsDevice, WorldClusters, XRDEPTHSENSINGFORMAT_F32, XRDEPTHSENSINGFORMAT_L8A8, XRDEPTHSENSINGUSAGE_CPU, XRDEPTHSENSINGUSAGE_GPU, XRHAND_LEFT, XRHAND_NONE, XRHAND_RIGHT, XRSPACE_BOUNDEDFLOOR, XRSPACE_LOCAL, XRSPACE_LOCALFLOOR, XRSPACE_UNBOUNDED, XRSPACE_VIEWER, XRTARGETRAY_GAZE, XRTARGETRAY_POINTER, XRTARGETRAY_SCREEN, XRTRACKABLE_MESH, XRTRACKABLE_PLANE, XRTRACKABLE_POINT, XRTYPE_AR, XRTYPE_INLINE, XRTYPE_VR, XrDepthSensing, XrDomOverlay, XrHitTest, XrHitTestSource, XrImageTracking, XrInput, XrInputSource, XrLightEstimation, XrManager, XrPlane, XrPlaneDetection, XrTrackedImage, ZoneComponent, ZoneComponentSystem, anim, app, apps, asset, audio, basisInitialize, basisSetDownloadConfig, basisTranscode, bindGroupNames, calculateNormals, calculateTangents, common, config, createBox, createCapsule, createCone, createCylinder, createMesh, createPlane, createScript, createShader, createShaderFromCode, createSphere, createStyle, createTorus, createURI, data, drawFullscreenQuad, drawQuadWithShader, drawTexture, events, extend, fw, getTouchTargetCoords, gfx, guid, http, inherits, input, isDefined, log, makeArray, math, now, path, platform, posteffect, prefilterCubemap, programlib, registerScript, reprojectTexture, revision, scene, script, semanticToLocation, shFromCubemap, shaderChunks, shadowTypeToString, shape, string, time, type, typedArrayIndexFormats, typedArrayIndexFormatsByteSize, typedArrayToType, typedArrayTypes, typedArrayTypesByteSize, uniformTypeToName, version };
+export { ABSOLUTE_URL, ACTION_GAMEPAD, ACTION_KEYBOARD, ACTION_MOUSE, ADDRESS_CLAMP_TO_EDGE, ADDRESS_MIRRORED_REPEAT, ADDRESS_REPEAT, ANIM_BLEND_1D, ANIM_BLEND_2D_CARTESIAN, ANIM_BLEND_2D_DIRECTIONAL, ANIM_BLEND_DIRECT, ANIM_CONTROL_STATES, ANIM_EQUAL_TO, ANIM_GREATER_THAN, ANIM_GREATER_THAN_EQUAL_TO, ANIM_INTERRUPTION_NEXT, ANIM_INTERRUPTION_NEXT_PREV, ANIM_INTERRUPTION_NONE, ANIM_INTERRUPTION_PREV, ANIM_INTERRUPTION_PREV_NEXT, ANIM_LAYER_ADDITIVE, ANIM_LAYER_OVERWRITE, ANIM_LESS_THAN, ANIM_LESS_THAN_EQUAL_TO, ANIM_NOT_EQUAL_TO, ANIM_PARAMETER_BOOLEAN, ANIM_PARAMETER_FLOAT, ANIM_PARAMETER_INTEGER, ANIM_PARAMETER_TRIGGER, ANIM_STATE_ANY, ANIM_STATE_END, ANIM_STATE_START, ASPECT_AUTO, ASPECT_MANUAL, ASSET_ANIMATION, ASSET_AUDIO, ASSET_CONTAINER, ASSET_CSS, ASSET_CUBEMAP, ASSET_HTML, ASSET_IMAGE, ASSET_JSON, ASSET_MATERIAL, ASSET_MODEL, ASSET_SCRIPT, ASSET_SHADER, ASSET_TEXT, ASSET_TEXTURE, AXIS_KEY, AXIS_MOUSE_X, AXIS_MOUSE_Y, AXIS_PAD_L_X, AXIS_PAD_L_Y, AXIS_PAD_R_X, AXIS_PAD_R_Y, AnimBinder, AnimClip, AnimClipHandler, AnimComponent, AnimComponentLayer, AnimComponentSystem, AnimController, AnimCurve, AnimData, AnimEvaluator, AnimEvents, AnimSnapshot, AnimStateGraph, AnimStateGraphHandler, AnimTarget, AnimTrack, Animation, AnimationComponent, AnimationComponentSystem, AnimationHandler, AppBase, AppOptions, Application, Asset, AssetListLoader, AssetReference, AssetRegistry, AudioHandler, AudioListenerComponent, AudioListenerComponentSystem, AudioSourceComponent, AudioSourceComponentSystem, BAKE_COLOR, BAKE_COLORDIR, BINDGROUP_MESH, BINDGROUP_VIEW, BLENDEQUATION_ADD, BLENDEQUATION_MAX, BLENDEQUATION_MIN, BLENDEQUATION_REVERSE_SUBTRACT, BLENDEQUATION_SUBTRACT, BLENDMODE_CONSTANT_ALPHA, BLENDMODE_CONSTANT_COLOR, BLENDMODE_DST_ALPHA, BLENDMODE_DST_COLOR, BLENDMODE_ONE, BLENDMODE_ONE_MINUS_CONSTANT_ALPHA, BLENDMODE_ONE_MINUS_CONSTANT_COLOR, BLENDMODE_ONE_MINUS_DST_ALPHA, BLENDMODE_ONE_MINUS_DST_COLOR, BLENDMODE_ONE_MINUS_SRC_ALPHA, BLENDMODE_ONE_MINUS_SRC_COLOR, BLENDMODE_SRC_ALPHA, BLENDMODE_SRC_ALPHA_SATURATE, BLENDMODE_SRC_COLOR, BLENDMODE_ZERO, BLEND_ADDITIVE, BLEND_ADDITIVEALPHA, BLEND_MAX, BLEND_MIN, BLEND_MULTIPLICATIVE, BLEND_MULTIPLICATIVE2X, BLEND_NONE, BLEND_NORMAL, BLEND_PREMULTIPLIED, BLEND_SCREEN, BLEND_SUBTRACTIVE, BLUR_BOX, BLUR_GAUSSIAN, BODYFLAG_KINEMATIC_OBJECT, BODYFLAG_NORESPONSE_OBJECT, BODYFLAG_STATIC_OBJECT, BODYGROUP_DEFAULT, BODYGROUP_DYNAMIC, BODYGROUP_ENGINE_1, BODYGROUP_ENGINE_2, BODYGROUP_ENGINE_3, BODYGROUP_KINEMATIC, BODYGROUP_NONE, BODYGROUP_STATIC, BODYGROUP_TRIGGER, BODYGROUP_USER_1, BODYGROUP_USER_2, BODYGROUP_USER_3, BODYGROUP_USER_4, BODYGROUP_USER_5, BODYGROUP_USER_6, BODYGROUP_USER_7, BODYGROUP_USER_8, BODYMASK_ALL, BODYMASK_NONE, BODYMASK_NOT_STATIC, BODYMASK_NOT_STATIC_KINEMATIC, BODYMASK_STATIC, BODYSTATE_ACTIVE_TAG, BODYSTATE_DISABLE_DEACTIVATION, BODYSTATE_DISABLE_SIMULATION, BODYSTATE_ISLAND_SLEEPING, BODYSTATE_WANTS_DEACTIVATION, BODYTYPE_DYNAMIC, BODYTYPE_KINEMATIC, BODYTYPE_STATIC, BUFFER_DYNAMIC, BUFFER_GPUDYNAMIC, BUFFER_STATIC, BUFFER_STREAM, BUTTON_TRANSITION_MODE_SPRITE_CHANGE, BUTTON_TRANSITION_MODE_TINT, BasicMaterial, Batch, BatchGroup, BatchManager, BinaryHandler, BoundingBox, BoundingSphere, Bundle, BundleHandler, BundleRegistry, ButtonComponent, ButtonComponentSystem, CHUNKAPI_1_51, CHUNKAPI_1_55, CHUNKAPI_1_56, CLEARFLAG_COLOR, CLEARFLAG_DEPTH, CLEARFLAG_STENCIL, COMPUPDATED_BLEND, COMPUPDATED_CAMERAS, COMPUPDATED_INSTANCES, COMPUPDATED_LIGHTS, CUBEFACE_NEGX, CUBEFACE_NEGY, CUBEFACE_NEGZ, CUBEFACE_POSX, CUBEFACE_POSY, CUBEFACE_POSZ, CUBEPROJ_BOX, CUBEPROJ_NONE, CULLFACE_BACK, CULLFACE_FRONT, CULLFACE_FRONTANDBACK, CULLFACE_NONE, CURVE_CARDINAL, CURVE_CATMULL, CURVE_LINEAR, CURVE_SMOOTHSTEP, CURVE_SPLINE, CURVE_STEP, Camera, CameraComponent, CameraComponentSystem, CanvasFont, CollisionComponent, CollisionComponentSystem, Color, Command, Component, ComponentSystem, ComponentSystemRegistry, ContactPoint, ContactResult, ContainerHandler, ContainerResource, ContextCreationError, Controller, CssHandler, CubemapHandler, Curve, CurveSet, DETAILMODE_ADD, DETAILMODE_MAX, DETAILMODE_MIN, DETAILMODE_MUL, DETAILMODE_OVERLAY, DETAILMODE_SCREEN, DEVICETYPE_WEBGL, DEVICETYPE_WEBGPU, DISTANCE_EXPONENTIAL, DISTANCE_INVERSE, DISTANCE_LINEAR, DefaultAnimBinder, ELEMENTTYPE_FLOAT32, ELEMENTTYPE_GROUP, ELEMENTTYPE_IMAGE, ELEMENTTYPE_INT16, ELEMENTTYPE_INT32, ELEMENTTYPE_INT8, ELEMENTTYPE_TEXT, ELEMENTTYPE_UINT16, ELEMENTTYPE_UINT32, ELEMENTTYPE_UINT8, EMITTERSHAPE_BOX, EMITTERSHAPE_SPHERE, EVENT_KEYDOWN, EVENT_KEYUP, EVENT_MOUSEDOWN, EVENT_MOUSEMOVE, EVENT_MOUSEUP, EVENT_MOUSEWHEEL, EVENT_SELECT, EVENT_SELECTEND, EVENT_SELECTSTART, EVENT_TOUCHCANCEL, EVENT_TOUCHEND, EVENT_TOUCHMOVE, EVENT_TOUCHSTART, ElementComponent, ElementComponentSystem, ElementDragHelper, ElementInput, ElementInputEvent, ElementMouseEvent, ElementSelectEvent, ElementTouchEvent, Entity, EntityReference, EnvLighting, EventHandler, FILLMODE_FILL_WINDOW, FILLMODE_KEEP_ASPECT, FILLMODE_NONE, FILTER_LINEAR, FILTER_LINEAR_MIPMAP_LINEAR, FILTER_LINEAR_MIPMAP_NEAREST, FILTER_NEAREST, FILTER_NEAREST_MIPMAP_LINEAR, FILTER_NEAREST_MIPMAP_NEAREST, FITMODE_CONTAIN, FITMODE_COVER, FITMODE_STRETCH, FITTING_BOTH, FITTING_NONE, FITTING_SHRINK, FITTING_STRETCH, FOG_EXP, FOG_EXP2, FOG_LINEAR, FOG_NONE, FONT_BITMAP, FONT_MSDF, FRESNEL_NONE, FRESNEL_SCHLICK, FUNC_ALWAYS, FUNC_EQUAL, FUNC_GREATER, FUNC_GREATEREQUAL, FUNC_LESS, FUNC_LESSEQUAL, FUNC_NEVER, FUNC_NOTEQUAL, FolderHandler, Font, FontHandler, ForwardRenderer, Frustum, GAMMA_NONE, GAMMA_SRGB, GAMMA_SRGBFAST, GAMMA_SRGBHDR, GamePads, GraphNode, GraphicsDevice, HierarchyHandler, HtmlHandler, Http, I18n, INDEXFORMAT_UINT16, INDEXFORMAT_UINT32, INDEXFORMAT_UINT8, INTERPOLATION_CUBIC, INTERPOLATION_LINEAR, INTERPOLATION_STEP, ImageElement, IndexBuffer, IndexedList, JointComponent, JointComponentSystem, JsonHandler, JsonStandardMaterialParser, KEY_0, KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7, KEY_8, KEY_9, KEY_A, KEY_ADD, KEY_ALT, KEY_B, KEY_BACKSPACE, KEY_BACK_SLASH, KEY_C, KEY_CAPS_LOCK, KEY_CLOSE_BRACKET, KEY_COMMA, KEY_CONTEXT_MENU, KEY_CONTROL, KEY_D, KEY_DECIMAL, KEY_DELETE, KEY_DIVIDE, KEY_DOWN, KEY_E, KEY_END, KEY_ENTER, KEY_EQUAL, KEY_ESCAPE, KEY_F, KEY_F1, KEY_F10, KEY_F11, KEY_F12, KEY_F2, KEY_F3, KEY_F4, KEY_F5, KEY_F6, KEY_F7, KEY_F8, KEY_F9, KEY_G, KEY_H, KEY_HOME, KEY_I, KEY_INSERT, KEY_J, KEY_K, KEY_L, KEY_LEFT, KEY_M, KEY_META, KEY_MULTIPLY, KEY_N, KEY_NUMPAD_0, KEY_NUMPAD_1, KEY_NUMPAD_2, KEY_NUMPAD_3, KEY_NUMPAD_4, KEY_NUMPAD_5, KEY_NUMPAD_6, KEY_NUMPAD_7, KEY_NUMPAD_8, KEY_NUMPAD_9, KEY_O, KEY_OPEN_BRACKET, KEY_P, KEY_PAGE_DOWN, KEY_PAGE_UP, KEY_PAUSE, KEY_PERIOD, KEY_PRINT_SCREEN, KEY_Q, KEY_R, KEY_RETURN, KEY_RIGHT, KEY_S, KEY_SEMICOLON, KEY_SEPARATOR, KEY_SHIFT, KEY_SLASH, KEY_SPACE, KEY_SUBTRACT, KEY_T, KEY_TAB, KEY_U, KEY_UP, KEY_V, KEY_W, KEY_WINDOWS, KEY_X, KEY_Y, KEY_Z, Key, Keyboard, KeyboardEvent, LAYERID_DEPTH, LAYERID_IMMEDIATE, LAYERID_SKYBOX, LAYERID_UI, LAYERID_WORLD, LAYER_FX, LAYER_GIZMO, LAYER_HUD, LAYER_WORLD, LIGHTFALLOFF_INVERSESQUARED, LIGHTFALLOFF_LINEAR, LIGHTSHAPE_DISK, LIGHTSHAPE_PUNCTUAL, LIGHTSHAPE_RECT, LIGHTSHAPE_SPHERE, LIGHTTYPE_COUNT, LIGHTTYPE_DIRECTIONAL, LIGHTTYPE_OMNI, LIGHTTYPE_POINT, LIGHTTYPE_SPOT, LINEBATCH_GIZMO, LINEBATCH_OVERLAY, LINEBATCH_WORLD, Layer, LayerComposition, LayoutCalculator, LayoutChildComponent, LayoutChildComponentSystem, LayoutGroupComponent, LayoutGroupComponentSystem, Light, LightComponent, LightComponentSystem, LightingParams, Lightmapper, LocalizedAsset, MASK_AFFECT_DYNAMIC, MASK_AFFECT_LIGHTMAPPED, MASK_BAKE, MOTION_FREE, MOTION_LIMITED, MOTION_LOCKED, MOUSEBUTTON_LEFT, MOUSEBUTTON_MIDDLE, MOUSEBUTTON_NONE, MOUSEBUTTON_RIGHT, Mat3, Mat4, Material, MaterialHandler, Mesh, MeshInstance, Model, ModelComponent, ModelComponentSystem, ModelHandler, Morph, MorphInstance, MorphTarget, Mouse, MouseEvent$1 as MouseEvent, Node$1 as Node, ORIENTATION_HORIZONTAL, ORIENTATION_VERTICAL, OrientedBox, PAD_1, PAD_2, PAD_3, PAD_4, PAD_DOWN, PAD_FACE_1, PAD_FACE_2, PAD_FACE_3, PAD_FACE_4, PAD_LEFT, PAD_L_SHOULDER_1, PAD_L_SHOULDER_2, PAD_L_STICK_BUTTON, PAD_L_STICK_X, PAD_L_STICK_Y, PAD_RIGHT, PAD_R_SHOULDER_1, PAD_R_SHOULDER_2, PAD_R_STICK_BUTTON, PAD_R_STICK_X, PAD_R_STICK_Y, PAD_SELECT, PAD_START, PAD_UP, PAD_VENDOR, PARTICLEMODE_CPU, PARTICLEMODE_GPU, PARTICLEORIENTATION_EMITTER, PARTICLEORIENTATION_SCREEN, PARTICLEORIENTATION_WORLD, PARTICLESORT_DISTANCE, PARTICLESORT_NEWER_FIRST, PARTICLESORT_NONE, PARTICLESORT_OLDER_FIRST, PIXELFORMAT_111110F, PIXELFORMAT_A8, PIXELFORMAT_ASTC_4x4, PIXELFORMAT_ATC_RGB, PIXELFORMAT_ATC_RGBA, PIXELFORMAT_DEPTH, PIXELFORMAT_DEPTHSTENCIL, PIXELFORMAT_DXT1, PIXELFORMAT_DXT3, PIXELFORMAT_DXT5, PIXELFORMAT_ETC1, PIXELFORMAT_ETC2_RGB, PIXELFORMAT_ETC2_RGBA, PIXELFORMAT_L8, PIXELFORMAT_L8_A8, PIXELFORMAT_PVRTC_2BPP_RGBA_1, PIXELFORMAT_PVRTC_2BPP_RGB_1, PIXELFORMAT_PVRTC_4BPP_RGBA_1, PIXELFORMAT_PVRTC_4BPP_RGB_1, PIXELFORMAT_R32F, PIXELFORMAT_R4_G4_B4_A4, PIXELFORMAT_R5_G5_B5_A1, PIXELFORMAT_R5_G6_B5, PIXELFORMAT_R8_G8_B8, PIXELFORMAT_R8_G8_B8_A8, PIXELFORMAT_RGB16F, PIXELFORMAT_RGB32F, PIXELFORMAT_RGBA16F, PIXELFORMAT_RGBA32F, PIXELFORMAT_SRGB, PIXELFORMAT_SRGBA, PRIMITIVE_LINELOOP, PRIMITIVE_LINES, PRIMITIVE_LINESTRIP, PRIMITIVE_POINTS, PRIMITIVE_TRIANGLES, PRIMITIVE_TRIFAN, PRIMITIVE_TRISTRIP, PROJECTION_ORTHOGRAPHIC, PROJECTION_PERSPECTIVE, ParticleEmitter, ParticleSystemComponent, ParticleSystemComponentSystem, PhongMaterial, Picker, Plane, PostEffect$1 as PostEffect, PostEffectQueue, ProgramLibrary, Quat, RENDERSTYLE_POINTS, RENDERSTYLE_SOLID, RENDERSTYLE_WIREFRAME, RESOLUTION_AUTO, RESOLUTION_FIXED, RIGIDBODY_ACTIVE_TAG, RIGIDBODY_CF_KINEMATIC_OBJECT, RIGIDBODY_CF_NORESPONSE_OBJECT, RIGIDBODY_CF_STATIC_OBJECT, RIGIDBODY_DISABLE_DEACTIVATION, RIGIDBODY_DISABLE_SIMULATION, RIGIDBODY_ISLAND_SLEEPING, RIGIDBODY_TYPE_DYNAMIC, RIGIDBODY_TYPE_KINEMATIC, RIGIDBODY_TYPE_STATIC, RIGIDBODY_WANTS_DEACTIVATION, Ray, RaycastResult, ReadStream, RenderComponent, RenderComponentSystem, RenderHandler, RenderTarget, ResourceHandler, ResourceLoader, RigidBodyComponent, RigidBodyComponentSystem, SCALEMODE_BLEND, SCALEMODE_NONE, SCROLLBAR_VISIBILITY_SHOW_ALWAYS, SCROLLBAR_VISIBILITY_SHOW_WHEN_REQUIRED, SCROLL_MODE_BOUNCE, SCROLL_MODE_CLAMP, SCROLL_MODE_INFINITE, SEMANTIC_ATTR, SEMANTIC_ATTR0, SEMANTIC_ATTR1, SEMANTIC_ATTR10, SEMANTIC_ATTR11, SEMANTIC_ATTR12, SEMANTIC_ATTR13, SEMANTIC_ATTR14, SEMANTIC_ATTR15, SEMANTIC_ATTR2, SEMANTIC_ATTR3, SEMANTIC_ATTR4, SEMANTIC_ATTR5, SEMANTIC_ATTR6, SEMANTIC_ATTR7, SEMANTIC_ATTR8, SEMANTIC_ATTR9, SEMANTIC_BLENDINDICES, SEMANTIC_BLENDWEIGHT, SEMANTIC_COLOR, SEMANTIC_NORMAL, SEMANTIC_POSITION, SEMANTIC_TANGENT, SEMANTIC_TEXCOORD, SEMANTIC_TEXCOORD0, SEMANTIC_TEXCOORD1, SEMANTIC_TEXCOORD2, SEMANTIC_TEXCOORD3, SEMANTIC_TEXCOORD4, SEMANTIC_TEXCOORD5, SEMANTIC_TEXCOORD6, SEMANTIC_TEXCOORD7, SHADERDEF_DIRLM, SHADERDEF_INSTANCING, SHADERDEF_LM, SHADERDEF_LMAMBIENT, SHADERDEF_MORPH_NORMAL, SHADERDEF_MORPH_POSITION, SHADERDEF_MORPH_TEXTURE_BASED, SHADERDEF_NOSHADOW, SHADERDEF_SCREENSPACE, SHADERDEF_SKIN, SHADERDEF_TANGENTS, SHADERDEF_UV0, SHADERDEF_UV1, SHADERDEF_VCOLOR, SHADERSTAGE_COMPUTE, SHADERSTAGE_FRAGMENT, SHADERSTAGE_VERTEX, SHADERTAG_MATERIAL, SHADERTYPE_DEPTH, SHADERTYPE_FORWARD, SHADERTYPE_PICK, SHADERTYPE_SHADOW, SHADER_DEPTH, SHADER_FORWARD, SHADER_FORWARDHDR, SHADER_PICK, SHADER_SHADOW, SHADOWUPDATE_NONE, SHADOWUPDATE_REALTIME, SHADOWUPDATE_THISFRAME, SHADOW_COUNT, SHADOW_DEPTH, SHADOW_PCF1, SHADOW_PCF3, SHADOW_PCF5, SHADOW_VSM16, SHADOW_VSM32, SHADOW_VSM8, SORTKEY_DEPTH, SORTKEY_FORWARD, SORTMODE_BACK2FRONT, SORTMODE_CUSTOM, SORTMODE_FRONT2BACK, SORTMODE_MANUAL, SORTMODE_MATERIALMESH, SORTMODE_NONE, SPECOCC_AO, SPECOCC_GLOSSDEPENDENT, SPECOCC_NONE, SPECULAR_BLINN, SPECULAR_PHONG, SPRITETYPE_ANIMATED, SPRITETYPE_SIMPLE, SPRITE_RENDERMODE_SIMPLE, SPRITE_RENDERMODE_SLICED, SPRITE_RENDERMODE_TILED, STENCILOP_DECREMENT, STENCILOP_DECREMENTWRAP, STENCILOP_INCREMENT, STENCILOP_INCREMENTWRAP, STENCILOP_INVERT, STENCILOP_KEEP, STENCILOP_REPLACE, STENCILOP_ZERO, Scene, SceneHandler, SceneRegistry, SceneRegistryItem, SceneSettingsHandler, ScopeId, ScopeSpace, ScreenComponent, ScreenComponentSystem, ScriptAttributes, ScriptComponent, ScriptComponentSystem, ScriptHandler, ScriptLegacyComponent, ScriptLegacyComponentSystem, ScriptRegistry, ScriptType, ScrollViewComponent, ScrollViewComponentSystem, ScrollbarComponent, ScrollbarComponentSystem, Shader, ShaderHandler, SingleContactResult, Skeleton, Skin, SkinBatchInstance, SkinInstance, SortedLoopArray, Sound, SoundComponent, SoundComponentSystem, SoundInstance, SoundInstance3d, SoundManager, SoundSlot, Sprite, SpriteAnimationClip, SpriteComponent, SpriteComponentSystem, SpriteHandler, StandardMaterial as StandardMaterial, StencilParameters, TEXHINT_ASSET, TEXHINT_LIGHTMAP, TEXHINT_NONE, TEXHINT_SHADOWMAP, TEXTURELOCK_READ, TEXTURELOCK_WRITE, TEXTUREPROJECTION_CUBE, TEXTUREPROJECTION_EQUIRECT, TEXTUREPROJECTION_NONE, TEXTUREPROJECTION_OCTAHEDRAL, TEXTURETYPE_DEFAULT, TEXTURETYPE_RGBE, TEXTURETYPE_RGBM, TEXTURETYPE_RGBP, TEXTURETYPE_SWIZZLEGGGR, TONEMAP_ACES, TONEMAP_ACES2, TONEMAP_FILMIC, TONEMAP_HEJL, TONEMAP_LINEAR, TRACEID_RENDER_ACTION, TRACEID_RENDER_FRAME, TRACEID_RENDER_PASS, TRACEID_RENDER_PASS_DETAIL, TRACEID_RENDER_TARGET_ALLOC, TRACEID_SHADER_ALLOC, TRACEID_TEXTURE_ALLOC, TRACEID_VRAM_IB, TRACEID_VRAM_TEXTURE, TRACEID_VRAM_VB, TYPE_FLOAT32, TYPE_INT16, TYPE_INT32, TYPE_INT8, TYPE_UINT16, TYPE_UINT32, TYPE_UINT8, Tags, Template, TemplateHandler, TextElement, TextHandler, Texture, TextureAtlas, TextureAtlasHandler, TextureHandler, TextureParser, Timer, Touch$1 as Touch, TouchDevice, TouchEvent$1 as TouchEvent, Tracing, TransformFeedback, UNIFORMTYPE_BOOL, UNIFORMTYPE_BVEC2, UNIFORMTYPE_BVEC3, UNIFORMTYPE_BVEC4, UNIFORMTYPE_FLOAT, UNIFORMTYPE_FLOATARRAY, UNIFORMTYPE_INT, UNIFORMTYPE_IVEC2, UNIFORMTYPE_IVEC3, UNIFORMTYPE_IVEC4, UNIFORMTYPE_MAT2, UNIFORMTYPE_MAT3, UNIFORMTYPE_MAT4, UNIFORMTYPE_TEXTURE2D, UNIFORMTYPE_TEXTURE2D_SHADOW, UNIFORMTYPE_TEXTURE3D, UNIFORMTYPE_TEXTURECUBE, UNIFORMTYPE_TEXTURECUBE_SHADOW, UNIFORMTYPE_VEC2, UNIFORMTYPE_VEC2ARRAY, UNIFORMTYPE_VEC3, UNIFORMTYPE_VEC3ARRAY, UNIFORMTYPE_VEC4, UNIFORMTYPE_VEC4ARRAY, UNIFORM_BUFFER_DEFAULT_SLOT_NAME, URI, UnsupportedBrowserError, VIEW_CENTER, VIEW_LEFT, VIEW_RIGHT, Vec2, Vec3, Vec4, VertexBuffer, VertexFormat, VertexIterator, WasmModule, WebglGraphicsDevice, WorldClusters, XRDEPTHSENSINGFORMAT_F32, XRDEPTHSENSINGFORMAT_L8A8, XRDEPTHSENSINGUSAGE_CPU, XRDEPTHSENSINGUSAGE_GPU, XRHAND_LEFT, XRHAND_NONE, XRHAND_RIGHT, XRSPACE_BOUNDEDFLOOR, XRSPACE_LOCAL, XRSPACE_LOCALFLOOR, XRSPACE_UNBOUNDED, XRSPACE_VIEWER, XRTARGETRAY_GAZE, XRTARGETRAY_POINTER, XRTARGETRAY_SCREEN, XRTRACKABLE_MESH, XRTRACKABLE_PLANE, XRTRACKABLE_POINT, XRTYPE_AR, XRTYPE_INLINE, XRTYPE_VR, XrDepthSensing, XrDomOverlay, XrHitTest, XrHitTestSource, XrImageTracking, XrInput, XrInputSource, XrLightEstimation, XrManager, XrPlane, XrPlaneDetection, XrTrackedImage, ZoneComponent, ZoneComponentSystem, anim, app, apps, asset, audio, basisInitialize, basisSetDownloadConfig, basisTranscode, bindGroupNames, calculateNormals, calculateTangents, common, config, createBox, createCapsule, createCone, createCylinder, createMesh, createPlane, createScript, createShader, createShaderFromCode, createSphere, createStyle, createTorus, createURI, data, drawFullscreenQuad, drawQuadWithShader, drawTexture, events, extend, fw, getTouchTargetCoords, gfx, guid, http, inherits, input, isDefined, log, makeArray, math, now, path, platform, posteffect, prefilterCubemap, programlib, registerScript, reprojectTexture, revision, scene, script, semanticToLocation, shFromCubemap, shaderChunks, shadowTypeToString, shape, string, time, type, typedArrayIndexFormats, typedArrayIndexFormatsByteSize, typedArrayToType, typedArrayTypes, typedArrayTypesByteSize, uniformTypeToName, version };
 export as namespace pc;
