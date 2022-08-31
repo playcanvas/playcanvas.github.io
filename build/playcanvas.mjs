@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.56.0 revision 50ffa14a7
+ * PlayCanvas Engine v1.57.0-dev revision 9e7c4eba7
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 function defineProtoFunc(cls, name, func) {
@@ -598,8 +598,8 @@ const TRACEID_VRAM_TEXTURE = 'VRAM.Texture';
 const TRACEID_VRAM_VB = 'VRAM.Vb';
 const TRACEID_VRAM_IB = 'VRAM.Ib';
 
-const version = '1.56.0';
-const revision = '50ffa14a7';
+const version = '1.57.0-dev';
+const revision = '9e7c4eba7';
 const config = {};
 const common = {};
 const apps = {};
@@ -30627,7 +30627,6 @@ class Light {
     this._type = LIGHTTYPE_DIRECTIONAL;
     this._color = new Color(0.8, 0.8, 0.8);
     this._intensity = 1;
-    this._luminance = 0;
     this._castShadows = false;
     this._enabled = false;
     this.mask = MASK_AFFECT_DYNAMIC;
@@ -30903,18 +30902,6 @@ class Light {
     return this._intensity;
   }
 
-  set luminance(value) {
-    if (this._luminance !== value) {
-      this._luminance = value;
-
-      this._updateFinalColor();
-    }
-  }
-
-  get luminance() {
-    return this._luminance;
-  }
-
   get cookieMatrix() {
     if (!this._cookieMatrix) {
       this._cookieMatrix = new Mat4();
@@ -31161,16 +31148,7 @@ class Light {
     const r = color.r;
     const g = color.g;
     const b = color.b;
-    let i = this._intensity;
-
-    if (this._luminance > 0) {
-      if (this._type === LIGHTTYPE_SPOT) {
-        i = this._luminance / (2 * Math.PI) * (1 - Math.cos(this._outerConeAngle / 2.0));
-      } else if (this._type === LIGHTTYPE_OMNI) {
-        i = this._luminance / (4 * Math.PI);
-      }
-    }
-
+    const i = this._intensity;
     const finalColor = this._finalColor;
     const linearFinalColor = this._linearFinalColor;
     finalColor[0] = r * i;
@@ -77890,10 +77868,6 @@ function _defineProps() {
 
   _defineProperty('intensity', 1, function (newValue, oldValue) {
     this.light.intensity = newValue;
-  });
-
-  _defineProperty('luminance', 0, function (newValue, oldValue) {
-    this.light.lumninance = newValue;
   });
 
   _defineProperty('shape', LIGHTSHAPE_PUNCTUAL, function (newValue, oldValue) {

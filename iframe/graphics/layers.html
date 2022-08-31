@@ -161,7 +161,7 @@
     </script>
     <script>
         function loadEngine(callback) {
-            const enginePath = urlParams && urlParams.get('use_local_engine') || "../../engine/";
+            const enginePath = urlParams && urlParams.get('use_local_engine') || "/build/playcanvas.js";
 
             const script = document.createElement('script');
             script.setAttribute('src', enginePath);
