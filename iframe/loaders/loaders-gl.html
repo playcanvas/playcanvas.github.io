@@ -36,6 +36,8 @@
                 }
             });
         }
+        var event = new CustomEvent("exampleLoading");
+        window.top.dispatchEvent(event);
 
         // include the example class which contains the example function to execute and any assets to load
         "use strict";function _typeof(obj) {"@babel/helpers - typeof";return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) {return typeof obj;} : function (obj) {return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;}, _typeof(obj);}function _regeneratorRuntime() {"use strict";
@@ -188,7 +190,7 @@
     </script>
     <script>
         function loadEngine(callback) {
-            const enginePath = urlParams && urlParams.get('use_local_engine') || "/build/playcanvas.js";
+            const enginePath = urlParams && urlParams.get('use_local_engine') || "../../engine/";
 
             const script = document.createElement('script');
             script.setAttribute('src', enginePath);
