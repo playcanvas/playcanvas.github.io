@@ -26603,7 +26603,6 @@
 	    this._type = LIGHTTYPE_DIRECTIONAL;
 	    this._color = new Color(0.8, 0.8, 0.8);
 	    this._intensity = 1;
-	    this._luminance = 0;
 	    this._castShadows = false;
 	    this._enabled = false;
 	    this.mask = MASK_AFFECT_DYNAMIC;
@@ -26827,15 +26826,6 @@
 	    var g = color.g;
 	    var b = color.b;
 	    var i = this._intensity;
-
-	    if (this._luminance > 0) {
-	      if (this._type === LIGHTTYPE_SPOT) {
-	        i = this._luminance / (2 * Math.PI) * (1 - Math.cos(this._outerConeAngle / 2.0));
-	      } else if (this._type === LIGHTTYPE_OMNI) {
-	        i = this._luminance / (4 * Math.PI);
-	      }
-	    }
-
 	    var finalColor = this._finalColor;
 	    var linearFinalColor = this._linearFinalColor;
 	    finalColor[0] = r * i;
@@ -27095,18 +27085,6 @@
 	    set: function set(value) {
 	      if (this._intensity !== value) {
 	        this._intensity = value;
-
-	        this._updateFinalColor();
-	      }
-	    }
-	  }, {
-	    key: "luminance",
-	    get: function get() {
-	      return this._luminance;
-	    },
-	    set: function set(value) {
-	      if (this._luminance !== value) {
-	        this._luminance = value;
 
 	        this._updateFinalColor();
 	      }
@@ -75568,10 +75546,6 @@
 
 	  _defineProperty('intensity', 1, function (newValue, oldValue) {
 	    this.light.intensity = newValue;
-	  });
-
-	  _defineProperty('luminance', 0, function (newValue, oldValue) {
-	    this.light.lumninance = newValue;
 	  });
 
 	  _defineProperty('shape', LIGHTSHAPE_PUNCTUAL, function (newValue, oldValue) {
