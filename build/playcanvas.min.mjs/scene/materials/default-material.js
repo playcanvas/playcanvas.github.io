@@ -1,0 +1,1 @@
+import"../../core/tracing.js";import{DeviceCache as t}from"../../graphics/device-cache.js";const c=new t;function e(t){return c.get(t)}function r(t,e){c.get(t,(()=>e))}export{e as getDefaultMaterial,r as setDefaultMaterial};

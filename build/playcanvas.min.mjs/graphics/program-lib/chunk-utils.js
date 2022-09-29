@@ -1,0 +1,1 @@
+const e={linear:"decodeLinear",srgb:"decodeGamma",rgbm:"decodeRGBM",rgbe:"decodeRGBE",rgbp:"decodeRGBP"},d={linear:"encodeLinear",srgb:"encodeGamma",rgbm:"encodeRGBM",rgbe:"encodeRGBE",rgbp:"encodeRGBP"};class c{static decodeFunc(d){return e[d]||"decodeGamma"}static encodeFunc(e){return d[e]||"encodeGamma"}}export{c as ChunkUtils};

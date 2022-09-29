@@ -1,0 +1,1 @@
+var e="\nvarying vec3 vViewDir;\n\nuniform samplerCube texture_cubeMap;\n\nvoid main(void) {\n    vec3 dir=vViewDir;\n    dir.x *= -1.0;\n\n    vec3 linear = $DECODE(textureCube(texture_cubeMap, fixSeamsStatic(dir, $FIXCONST)));\n\n    gl_FragColor = vec4(gammaCorrectOutput(toneMap(processEnvironment(linear))), 1.0);\n}\n";export{e as default};

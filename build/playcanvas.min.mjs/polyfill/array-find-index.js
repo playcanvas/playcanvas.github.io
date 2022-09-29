@@ -1,0 +1,1 @@
+import{defineProtoFunc as r}from"./defineProtoFunc.js";r(Array,"findIndex",(function(r){if(null==this)throw new TypeError('"this" is null or not defined');var n=Object(this),t=n.length>>>0;if("function"!=typeof r)throw new TypeError("predicate must be a function");for(var e=arguments[1],i=0;i<t;){var o=n[i];if(r.call(e,o,i,n))return i;i++}return-1}));

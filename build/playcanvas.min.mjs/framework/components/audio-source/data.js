@@ -1,0 +1,1 @@
+import{DISTANCE_INVERSE as s}from"../../../audio/constants.js";class t{constructor(){this.enabled=!0,this.assets=[],this.activate=!0,this.volume=1,this.pitch=1,this.loop=!1,this["3d"]=!0,this.minDistance=1,this.maxDistance=1e4,this.rollOffFactor=1,this.distanceModel=s,this.paused=!0,this.sources={},this.currentSource=null,this.channel=null}}export{t as AudioSourceComponentData};

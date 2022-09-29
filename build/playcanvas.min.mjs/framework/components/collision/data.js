@@ -1,0 +1,1 @@
+import{Vec3 as s}from"../../../math/vec3.js";class t{constructor(){this.enabled=!0,this.type="box",this.halfExtents=new s(.5,.5,.5),this.radius=.5,this.axis=1,this.height=2,this.asset=null,this.renderAsset=null,this.shape=null,this.model=null,this.render=null,this.initialized=!1}}export{t as CollisionComponentData};

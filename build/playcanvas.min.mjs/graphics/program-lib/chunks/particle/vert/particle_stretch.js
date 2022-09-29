@@ -1,0 +1,1 @@
+var e="\n    vec3 moveDir = inVel * stretch;\n    vec3 posPrev = particlePos - moveDir;\n    posPrev += particlePosMoved;\n\n    vec2 centerToVertexV = normalize((mat3(matrix_view) * localPos).xy);\n\n    float interpolation = dot(-velocityV, centerToVertexV) * 0.5 + 0.5;\n\n    particlePos = mix(particlePos, posPrev, interpolation);\n";export{e as default};

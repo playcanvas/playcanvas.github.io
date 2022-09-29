@@ -1,0 +1,1 @@
+class t{constructor(t,a){this.name=t,this.url=a,this.data=null,this._loading=!1,this._onLoadedCallbacks=[]}get loaded(){return!!this.data}get loading(){return this._loading}}export{t as SceneRegistryItem};

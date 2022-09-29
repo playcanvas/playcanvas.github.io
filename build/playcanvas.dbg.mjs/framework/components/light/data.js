@@ -1,0 +1,27 @@
+/**
+ * @license
+ * PlayCanvas Engine v1.57.0 revision f1998a31e (DEBUG PROFILER)
+ * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
+ */
+import { _lightProps, _lightPropsDefault } from './component.js';
+
+class LightComponentData {
+  constructor() {
+    const _props = _lightProps;
+    const _propsDefault = _lightPropsDefault;
+
+    for (let i = 0; i < _props.length; i++) {
+      const value = _propsDefault[i];
+
+      if (value && value.clone) {
+        this[_props[i]] = value.clone();
+      } else {
+        this[_props[i]] = value;
+      }
+    }
+  }
+
+}
+
+export { LightComponentData };
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiZGF0YS5qcyIsInNvdXJjZXMiOlsiLi4vLi4vLi4vLi4vLi4vc3JjL2ZyYW1ld29yay9jb21wb25lbnRzL2xpZ2h0L2RhdGEuanMiXSwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IHsgX2xpZ2h0UHJvcHMsIF9saWdodFByb3BzRGVmYXVsdCB9IGZyb20gJy4vY29tcG9uZW50LmpzJztcblxuY2xhc3MgTGlnaHRDb21wb25lbnREYXRhIHtcbiAgICBjb25zdHJ1Y3RvcigpIHtcbiAgICAgICAgY29uc3QgX3Byb3BzID0gX2xpZ2h0UHJvcHM7XG4gICAgICAgIGNvbnN0IF9wcm9wc0RlZmF1bHQgPSBfbGlnaHRQcm9wc0RlZmF1bHQ7XG5cbiAgICAgICAgZm9yIChsZXQgaSA9IDA7IGkgPCBfcHJvcHMubGVuZ3RoOyBpKyspIHtcbiAgICAgICAgICAgIGNvbnN0IHZhbHVlID0gX3Byb3BzRGVmYXVsdFtpXTtcbiAgICAgICAgICAgIGlmICh2YWx1ZSAmJiB2YWx1ZS5jbG9uZSkge1xuICAgICAgICAgICAgICAgIHRoaXNbX3Byb3BzW2ldXSA9IHZhbHVlLmNsb25lKCk7XG4gICAgICAgICAgICB9IGVsc2Uge1xuICAgICAgICAgICAgICAgIHRoaXNbX3Byb3BzW2ldXSA9IHZhbHVlO1xuICAgICAgICAgICAgfVxuICAgICAgICB9XG4gICAgfVxufVxuXG5leHBvcnQgeyBMaWdodENvbXBvbmVudERhdGEgfTtcbiJdLCJuYW1lcyI6WyJMaWdodENvbXBvbmVudERhdGEiLCJjb25zdHJ1Y3RvciIsIl9wcm9wcyIsIl9saWdodFByb3BzIiwiX3Byb3BzRGVmYXVsdCIsIl9saWdodFByb3BzRGVmYXVsdCIsImkiLCJsZW5ndGgiLCJ2YWx1ZSIsImNsb25lIl0sIm1hcHBpbmdzIjoiOzs7Ozs7O0FBRUEsTUFBTUEsa0JBQU4sQ0FBeUI7QUFDckJDLEVBQUFBLFdBQVcsR0FBRztJQUNWLE1BQU1DLE1BQU0sR0FBR0MsV0FBZixDQUFBO0lBQ0EsTUFBTUMsYUFBYSxHQUFHQyxrQkFBdEIsQ0FBQTs7QUFFQSxJQUFBLEtBQUssSUFBSUMsQ0FBQyxHQUFHLENBQWIsRUFBZ0JBLENBQUMsR0FBR0osTUFBTSxDQUFDSyxNQUEzQixFQUFtQ0QsQ0FBQyxFQUFwQyxFQUF3QztBQUNwQyxNQUFBLE1BQU1FLEtBQUssR0FBR0osYUFBYSxDQUFDRSxDQUFELENBQTNCLENBQUE7O0FBQ0EsTUFBQSxJQUFJRSxLQUFLLElBQUlBLEtBQUssQ0FBQ0MsS0FBbkIsRUFBMEI7UUFDdEIsSUFBS1AsQ0FBQUEsTUFBTSxDQUFDSSxDQUFELENBQVgsSUFBa0JFLEtBQUssQ0FBQ0MsS0FBTixFQUFsQixDQUFBO0FBQ0gsT0FGRCxNQUVPO0FBQ0gsUUFBQSxJQUFBLENBQUtQLE1BQU0sQ0FBQ0ksQ0FBRCxDQUFYLElBQWtCRSxLQUFsQixDQUFBO0FBQ0gsT0FBQTtBQUNKLEtBQUE7QUFDSixHQUFBOztBQWJvQjs7OzsifQ==

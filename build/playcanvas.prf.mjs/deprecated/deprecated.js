@@ -1,0 +1,1009 @@
+/**
+ * @license
+ * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
+ */
+import { version, revision } from '../core/core.js';
+import { string } from '../core/string.js';
+import { now, Timer } from '../core/time.js';
+import '../core/tracing.js';
+import { math } from '../math/math.js';
+import { Color } from '../math/color.js';
+import { Mat4 } from '../math/mat4.js';
+import { Vec2 } from '../math/vec2.js';
+import { Vec3 } from '../math/vec3.js';
+import { Vec4 } from '../math/vec4.js';
+import { BoundingBox } from '../shape/bounding-box.js';
+import { BoundingSphere } from '../shape/bounding-sphere.js';
+import { Frustum } from '../shape/frustum.js';
+import { Plane } from '../shape/plane.js';
+import { TYPE_INT8, TYPE_UINT8, TYPE_INT16, TYPE_UINT16, TYPE_INT32, TYPE_UINT32, TYPE_FLOAT32, ADDRESS_CLAMP_TO_EDGE, ADDRESS_MIRRORED_REPEAT, ADDRESS_REPEAT, BLENDMODE_ZERO, BLENDMODE_ONE, BLENDMODE_SRC_COLOR, BLENDMODE_ONE_MINUS_SRC_COLOR, BLENDMODE_DST_COLOR, BLENDMODE_ONE_MINUS_DST_COLOR, BLENDMODE_SRC_ALPHA, BLENDMODE_SRC_ALPHA_SATURATE, BLENDMODE_ONE_MINUS_SRC_ALPHA, BLENDMODE_DST_ALPHA, BLENDMODE_ONE_MINUS_DST_ALPHA, BUFFER_STATIC, BUFFER_DYNAMIC, BUFFER_STREAM, CULLFACE_NONE, CULLFACE_BACK, CULLFACE_FRONT, CULLFACE_FRONTANDBACK, FILTER_NEAREST, FILTER_LINEAR, FILTER_NEAREST_MIPMAP_NEAREST, FILTER_NEAREST_MIPMAP_LINEAR, FILTER_LINEAR_MIPMAP_NEAREST, FILTER_LINEAR_MIPMAP_LINEAR, INDEXFORMAT_UINT8, INDEXFORMAT_UINT16, INDEXFORMAT_UINT32, PIXELFORMAT_R5_G6_B5, PIXELFORMAT_R8_G8_B8, PIXELFORMAT_R8_G8_B8_A8, PRIMITIVE_POINTS, PRIMITIVE_LINES, PRIMITIVE_LINELOOP, PRIMITIVE_LINESTRIP, PRIMITIVE_TRIANGLES, PRIMITIVE_TRISTRIP, PRIMITIVE_TRIFAN, SEMANTIC_POSITION, SEMANTIC_NORMAL, SEMANTIC_COLOR, SEMANTIC_TEXCOORD, SEMANTIC_TEXCOORD0, SEMANTIC_TEXCOORD1, SEMANTIC_ATTR0, SEMANTIC_ATTR1, SEMANTIC_ATTR2, SEMANTIC_ATTR3, TEXTURELOCK_READ, TEXTURELOCK_WRITE, TEXTURETYPE_RGBM, TEXTURETYPE_DEFAULT, TEXTURETYPE_SWIZZLEGGGR } from '../graphics/constants.js';
+import { begin, dummyFragmentCode, end, fogCode, gammaCode, precisionCode, skinCode, tonemapCode, versionCode } from '../graphics/program-lib/programs/common.js';
+import { drawQuadWithShader } from '../graphics/simple-post-effect.js';
+import { shaderChunks } from '../graphics/program-lib/chunks/chunks.js';
+import { GraphicsDevice } from '../graphics/graphics-device.js';
+import { IndexBuffer } from '../graphics/index-buffer.js';
+import { createFullscreenQuad, drawFullscreenQuad, PostEffect } from '../graphics/post-effect.js';
+import { PostEffectQueue } from '../framework/components/camera/post-effect-queue.js';
+import { ProgramLibrary } from '../graphics/program-library.js';
+import { RenderTarget } from '../graphics/render-target.js';
+import { ScopeId } from '../graphics/scope-id.js';
+import { Shader } from '../graphics/shader.js';
+import { ShaderInput } from '../graphics/shader-input.js';
+import { Texture } from '../graphics/texture.js';
+import { VertexBuffer } from '../graphics/vertex-buffer.js';
+import { VertexFormat } from '../graphics/vertex-format.js';
+import { VertexIterator } from '../graphics/vertex-iterator.js';
+import { LAYERID_WORLD, LAYERID_IMMEDIATE, LINEBATCH_OVERLAY, PROJECTION_ORTHOGRAPHIC, PROJECTION_PERSPECTIVE } from '../scene/constants.js';
+import { calculateTangents, createMesh, createTorus, createCylinder, createCapsule, createCone, createSphere, createPlane, createBox } from '../scene/procedural.js';
+import { partitionSkin } from '../scene/skin-partition.js';
+import { BasicMaterial } from '../scene/materials/basic-material.js';
+import { ForwardRenderer } from '../scene/renderer/forward-renderer.js';
+import { GraphNode } from '../scene/graph-node.js';
+import { Material } from '../scene/materials/material.js';
+import { Mesh } from '../scene/mesh.js';
+import { Morph } from '../scene/morph.js';
+import { Command, MeshInstance } from '../scene/mesh-instance.js';
+import { Model } from '../scene/model.js';
+import { ParticleEmitter } from '../scene/particle-system/particle-emitter.js';
+import { Picker } from '../scene/picker.js';
+import { Scene } from '../scene/scene.js';
+import { Skin } from '../scene/skin.js';
+import { SkinInstance } from '../scene/skin-instance.js';
+import { StandardMaterial } from '../scene/materials/standard-material.js';
+import { Batch } from '../scene/batching/batch.js';
+import { getDefaultMaterial } from '../scene/materials/default-material.js';
+import { Animation, Key, Node } from '../animation/animation.js';
+import { Skeleton } from '../animation/skeleton.js';
+import { Channel } from '../audio/channel.js';
+import { Channel3d } from '../audio/channel3d.js';
+import { Listener } from '../sound/listener.js';
+import { Sound } from '../sound/sound.js';
+import { SoundManager } from '../sound/manager.js';
+import { AssetRegistry } from '../asset/asset-registry.js';
+import { XrInputSource } from '../xr/xr-input-source.js';
+import { Controller } from '../input/controller.js';
+import { ElementInput } from '../input/element-input.js';
+import { GamePads } from '../input/game-pads.js';
+import { Keyboard } from '../input/keyboard.js';
+import { KeyboardEvent } from '../input/keyboard-event.js';
+import { Mouse } from '../input/mouse.js';
+import { MouseEvent } from '../input/mouse-event.js';
+import { TouchDevice } from '../input/touch-device.js';
+import { getTouchTargetCoords, Touch, TouchEvent } from '../input/touch-event.js';
+import { FILLMODE_NONE, FILLMODE_FILL_WINDOW, FILLMODE_KEEP_ASPECT, RESOLUTION_AUTO, RESOLUTION_FIXED } from '../framework/constants.js';
+import { Application } from '../framework/application.js';
+import { getApplication } from '../framework/globals.js';
+import { CameraComponent } from '../framework/components/camera/component.js';
+import { Component } from '../framework/components/component.js';
+import { ComponentSystem } from '../framework/components/system.js';
+import { Entity } from '../framework/entity.js';
+import { LightComponent } from '../framework/components/light/component.js';
+import { ModelComponent } from '../framework/components/model/component.js';
+import { RenderComponent } from '../framework/components/render/component.js';
+import { BODYTYPE_STATIC, BODYTYPE_DYNAMIC, BODYTYPE_KINEMATIC, BODYFLAG_STATIC_OBJECT, BODYFLAG_KINEMATIC_OBJECT, BODYFLAG_NORESPONSE_OBJECT, BODYSTATE_ACTIVE_TAG, BODYSTATE_ISLAND_SLEEPING, BODYSTATE_WANTS_DEACTIVATION, BODYSTATE_DISABLE_DEACTIVATION, BODYSTATE_DISABLE_SIMULATION } from '../framework/components/rigid-body/constants.js';
+import { RigidBodyComponent } from '../framework/components/rigid-body/component.js';
+import { RigidBodyComponentSystem } from '../framework/components/rigid-body/system.js';
+import { basisInitialize } from '../resources/basis.js';
+
+const log = {
+  write: function (text) {
+    console.log(text);
+  },
+  open: function () {
+    log.write('Powered by PlayCanvas ' + version + ' ' + revision);
+  },
+  info: function (text) {
+    console.info('INFO:    ' + text);
+  },
+  debug: function (text) {
+    console.debug('DEBUG:   ' + text);
+  },
+  error: function (text) {
+    console.error('ERROR:   ' + text);
+  },
+  warning: function (text) {
+    console.warn('WARNING: ' + text);
+  },
+  alert: function (text) {
+    log.write('ALERT:   ' + text);
+    alert(text);
+  },
+  assert: function (condition, text) {
+    if (condition === false) {
+      log.write('ASSERT:  ' + text);
+    }
+  }
+};
+
+string.endsWith = function (s, subs) {
+  return s.endsWith(subs);
+};
+
+string.startsWith = function (s, subs) {
+  return s.startsWith(subs);
+};
+
+const time = {
+  now: now,
+  Timer: Timer
+};
+Object.defineProperty(Color.prototype, 'data', {
+  get: function () {
+    if (!this._data) {
+      this._data = new Float32Array(4);
+    }
+
+    this._data[0] = this.r;
+    this._data[1] = this.g;
+    this._data[2] = this.b;
+    this._data[3] = this.a;
+    return this._data;
+  }
+});
+Object.defineProperty(Color.prototype, 'data3', {
+  get: function () {
+    if (!this._data3) {
+      this._data3 = new Float32Array(3);
+    }
+
+    this._data3[0] = this.r;
+    this._data3[1] = this.g;
+    this._data3[2] = this.b;
+    return this._data3;
+  }
+});
+function inherits(Self, Super) {
+  const Temp = function Temp() {};
+
+  const Func = function Func(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8) {
+    Super.call(this, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
+    Self.call(this, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
+  };
+
+  Func._super = Super.prototype;
+  Temp.prototype = Super.prototype;
+  Func.prototype = new Temp();
+  return Func;
+}
+function makeArray(arr) {
+  return Array.prototype.slice.call(arr);
+}
+math.INV_LOG2 = Math.LOG2E;
+math.intToBytes = math.intToBytes32;
+math.bytesToInt = math.bytesToInt32;
+Object.defineProperty(Vec2.prototype, 'data', {
+  get: function () {
+    if (!this._data) {
+      this._data = new Float32Array(2);
+    }
+
+    this._data[0] = this.x;
+    this._data[1] = this.y;
+    return this._data;
+  }
+});
+Vec2.prototype.scale = Vec2.prototype.mulScalar;
+Object.defineProperty(Vec3.prototype, 'data', {
+  get: function () {
+    if (!this._data) {
+      this._data = new Float32Array(3);
+    }
+
+    this._data[0] = this.x;
+    this._data[1] = this.y;
+    this._data[2] = this.z;
+    return this._data;
+  }
+});
+Vec3.prototype.scale = Vec3.prototype.mulScalar;
+Object.defineProperty(Vec4.prototype, 'data', {
+  get: function () {
+    if (!this._data) {
+      this._data = new Float32Array(4);
+    }
+
+    this._data[0] = this.x;
+    this._data[1] = this.y;
+    this._data[2] = this.z;
+    this._data[3] = this.w;
+    return this._data;
+  }
+});
+Vec4.prototype.scale = Vec4.prototype.mulScalar;
+const shape = {
+  Aabb: BoundingBox,
+  Sphere: BoundingSphere,
+  Plane: Plane
+};
+BoundingSphere.prototype.intersectRay = BoundingSphere.prototype.intersectsRay;
+
+Frustum.prototype.update = function (projectionMatrix, viewMatrix) {
+  const viewProj = new Mat4();
+  viewProj.mul2(projectionMatrix, viewMatrix);
+  this.setFromMat4(viewProj);
+};
+
+const ELEMENTTYPE_INT8 = TYPE_INT8;
+const ELEMENTTYPE_UINT8 = TYPE_UINT8;
+const ELEMENTTYPE_INT16 = TYPE_INT16;
+const ELEMENTTYPE_UINT16 = TYPE_UINT16;
+const ELEMENTTYPE_INT32 = TYPE_INT32;
+const ELEMENTTYPE_UINT32 = TYPE_UINT32;
+const ELEMENTTYPE_FLOAT32 = TYPE_FLOAT32;
+function UnsupportedBrowserError(message) {
+  this.name = 'UnsupportedBrowserError';
+  this.message = message || '';
+}
+UnsupportedBrowserError.prototype = Error.prototype;
+function ContextCreationError(message) {
+  this.name = 'ContextCreationError';
+  this.message = message || '';
+}
+ContextCreationError.prototype = Error.prototype;
+const programlib = {
+  begin: begin,
+  dummyFragmentCode: dummyFragmentCode,
+  end: end,
+  fogCode: fogCode,
+  gammaCode: gammaCode,
+  precisionCode: precisionCode,
+  skinCode: skinCode,
+  tonemapCode: tonemapCode,
+  versionCode: versionCode
+};
+const gfx = {
+  ADDRESS_CLAMP_TO_EDGE: ADDRESS_CLAMP_TO_EDGE,
+  ADDRESS_MIRRORED_REPEAT: ADDRESS_MIRRORED_REPEAT,
+  ADDRESS_REPEAT: ADDRESS_REPEAT,
+  BLENDMODE_ZERO: BLENDMODE_ZERO,
+  BLENDMODE_ONE: BLENDMODE_ONE,
+  BLENDMODE_SRC_COLOR: BLENDMODE_SRC_COLOR,
+  BLENDMODE_ONE_MINUS_SRC_COLOR: BLENDMODE_ONE_MINUS_SRC_COLOR,
+  BLENDMODE_DST_COLOR: BLENDMODE_DST_COLOR,
+  BLENDMODE_ONE_MINUS_DST_COLOR: BLENDMODE_ONE_MINUS_DST_COLOR,
+  BLENDMODE_SRC_ALPHA: BLENDMODE_SRC_ALPHA,
+  BLENDMODE_SRC_ALPHA_SATURATE: BLENDMODE_SRC_ALPHA_SATURATE,
+  BLENDMODE_ONE_MINUS_SRC_ALPHA: BLENDMODE_ONE_MINUS_SRC_ALPHA,
+  BLENDMODE_DST_ALPHA: BLENDMODE_DST_ALPHA,
+  BLENDMODE_ONE_MINUS_DST_ALPHA: BLENDMODE_ONE_MINUS_DST_ALPHA,
+  BUFFER_STATIC: BUFFER_STATIC,
+  BUFFER_DYNAMIC: BUFFER_DYNAMIC,
+  BUFFER_STREAM: BUFFER_STREAM,
+  CULLFACE_NONE: CULLFACE_NONE,
+  CULLFACE_BACK: CULLFACE_BACK,
+  CULLFACE_FRONT: CULLFACE_FRONT,
+  CULLFACE_FRONTANDBACK: CULLFACE_FRONTANDBACK,
+  ELEMENTTYPE_INT8: TYPE_INT8,
+  ELEMENTTYPE_UINT8: TYPE_UINT8,
+  ELEMENTTYPE_INT16: TYPE_INT16,
+  ELEMENTTYPE_UINT16: TYPE_UINT16,
+  ELEMENTTYPE_INT32: TYPE_INT32,
+  ELEMENTTYPE_UINT32: TYPE_UINT32,
+  ELEMENTTYPE_FLOAT32: TYPE_FLOAT32,
+  FILTER_NEAREST: FILTER_NEAREST,
+  FILTER_LINEAR: FILTER_LINEAR,
+  FILTER_NEAREST_MIPMAP_NEAREST: FILTER_NEAREST_MIPMAP_NEAREST,
+  FILTER_NEAREST_MIPMAP_LINEAR: FILTER_NEAREST_MIPMAP_LINEAR,
+  FILTER_LINEAR_MIPMAP_NEAREST: FILTER_LINEAR_MIPMAP_NEAREST,
+  FILTER_LINEAR_MIPMAP_LINEAR: FILTER_LINEAR_MIPMAP_LINEAR,
+  INDEXFORMAT_UINT8: INDEXFORMAT_UINT8,
+  INDEXFORMAT_UINT16: INDEXFORMAT_UINT16,
+  INDEXFORMAT_UINT32: INDEXFORMAT_UINT32,
+  PIXELFORMAT_R5_G6_B5: PIXELFORMAT_R5_G6_B5,
+  PIXELFORMAT_R8_G8_B8: PIXELFORMAT_R8_G8_B8,
+  PIXELFORMAT_R8_G8_B8_A8: PIXELFORMAT_R8_G8_B8_A8,
+  PRIMITIVE_POINTS: PRIMITIVE_POINTS,
+  PRIMITIVE_LINES: PRIMITIVE_LINES,
+  PRIMITIVE_LINELOOP: PRIMITIVE_LINELOOP,
+  PRIMITIVE_LINESTRIP: PRIMITIVE_LINESTRIP,
+  PRIMITIVE_TRIANGLES: PRIMITIVE_TRIANGLES,
+  PRIMITIVE_TRISTRIP: PRIMITIVE_TRISTRIP,
+  PRIMITIVE_TRIFAN: PRIMITIVE_TRIFAN,
+  SEMANTIC_POSITION: SEMANTIC_POSITION,
+  SEMANTIC_NORMAL: SEMANTIC_NORMAL,
+  SEMANTIC_COLOR: SEMANTIC_COLOR,
+  SEMANTIC_TEXCOORD: SEMANTIC_TEXCOORD,
+  SEMANTIC_TEXCOORD0: SEMANTIC_TEXCOORD0,
+  SEMANTIC_TEXCOORD1: SEMANTIC_TEXCOORD1,
+  SEMANTIC_ATTR0: SEMANTIC_ATTR0,
+  SEMANTIC_ATTR1: SEMANTIC_ATTR1,
+  SEMANTIC_ATTR2: SEMANTIC_ATTR2,
+  SEMANTIC_ATTR3: SEMANTIC_ATTR3,
+  TEXTURELOCK_READ: TEXTURELOCK_READ,
+  TEXTURELOCK_WRITE: TEXTURELOCK_WRITE,
+  drawQuadWithShader: drawQuadWithShader,
+  programlib: programlib,
+  shaderChunks: shaderChunks,
+  ContextCreationError: ContextCreationError,
+  Device: GraphicsDevice,
+  IndexBuffer: IndexBuffer,
+  ProgramLibrary: ProgramLibrary,
+  RenderTarget: RenderTarget,
+  ScopeId: ScopeId,
+  Shader: Shader,
+  ShaderInput: ShaderInput,
+  Texture: Texture,
+  UnsupportedBrowserError: UnsupportedBrowserError,
+  VertexBuffer: VertexBuffer,
+  VertexFormat: VertexFormat,
+  VertexIterator: VertexIterator
+};
+const posteffect = {
+  createFullscreenQuad: createFullscreenQuad,
+  drawFullscreenQuad: drawFullscreenQuad,
+  PostEffect: PostEffect,
+  PostEffectQueue: PostEffectQueue
+};
+Object.defineProperty(shaderChunks, 'transformSkinnedVS', {
+  get: function () {
+    return '#define SKIN\n' + shaderChunks.transformVS;
+  }
+});
+const deprecatedChunks = {
+  'ambientPrefilteredCube.frag': 'ambientEnv.frag',
+  'ambientPrefilteredCubeLod.frag': 'ambientEnv.frag',
+  'dpAtlasQuad.frag': null,
+  'genParaboloid.frag': null,
+  'prefilterCubemap.frag': null,
+  'reflectionDpAtlas.frag': 'reflectionEnv.frag',
+  'reflectionPrefilteredCube.frag': 'reflectionEnv.frag',
+  'reflectionPrefilteredCubeLod.frag': 'reflectionEnv.frag'
+};
+Object.keys(deprecatedChunks).forEach(chunkName => {
+  deprecatedChunks[chunkName];
+  Object.defineProperty(shaderChunks, chunkName, {
+    get: function () {
+      return null;
+    },
+    set: function () {}
+  });
+});
+Object.defineProperties(RenderTarget.prototype, {
+  _glFrameBuffer: {
+    get: function () {
+      return this.impl._glFrameBuffer;
+    },
+    set: function (rgbm) {}
+  }
+});
+
+VertexFormat.prototype.update = function () {};
+
+Object.defineProperties(Texture.prototype, {
+  rgbm: {
+    get: function () {
+      return this.type === TEXTURETYPE_RGBM;
+    },
+    set: function (rgbm) {
+      this.type = rgbm ? TEXTURETYPE_RGBM : TEXTURETYPE_DEFAULT;
+    }
+  },
+  swizzleGGGR: {
+    get: function () {
+      return this.type === TEXTURETYPE_SWIZZLEGGGR;
+    },
+    set: function (swizzleGGGR) {
+      this.type = swizzleGGGR ? TEXTURETYPE_SWIZZLEGGGR : TEXTURETYPE_DEFAULT;
+    }
+  },
+  _glTexture: {
+    get: function () {
+      return this.impl._glTexture;
+    }
+  }
+});
+const PhongMaterial = StandardMaterial;
+const scene = {
+  partitionSkin: partitionSkin,
+  procedural: {
+    calculateTangents: calculateTangents,
+    createMesh: createMesh,
+    createTorus: createTorus,
+    createCylinder: createCylinder,
+    createCapsule: createCapsule,
+    createCone: createCone,
+    createSphere: createSphere,
+    createPlane: createPlane,
+    createBox: createBox
+  },
+  BasicMaterial: BasicMaterial,
+  Command: Command,
+  ForwardRenderer: ForwardRenderer,
+  GraphNode: GraphNode,
+  Material: Material,
+  Mesh: Mesh,
+  MeshInstance: MeshInstance,
+  Model: Model,
+  ParticleEmitter: ParticleEmitter,
+  PhongMaterial: StandardMaterial,
+  Picker: Picker,
+  Projection: {
+    ORTHOGRAPHIC: PROJECTION_ORTHOGRAPHIC,
+    PERSPECTIVE: PROJECTION_PERSPECTIVE
+  },
+  Scene: Scene,
+  Skin: Skin,
+  SkinInstance: SkinInstance
+};
+Object.defineProperty(Scene.prototype, 'defaultMaterial', {
+  get: function () {
+    return getDefaultMaterial(getApplication().graphicsDevice);
+  }
+});
+['128', '64', '32', '16', '8', '4'].forEach((size, index) => {
+  Object.defineProperty(Scene.prototype, `skyboxPrefiltered${size}`, {
+    get: function () {
+      return this._prefilteredCubemaps[index];
+    },
+    set: function (value) {
+      this._prefilteredCubemaps[index] = value;
+      this.updateShaders = true;
+    }
+  });
+});
+Object.defineProperty(Scene.prototype, 'models', {
+  get: function () {
+    if (!this._models) {
+      this._models = [];
+    }
+
+    return this._models;
+  }
+});
+
+Scene.prototype._updateSkybox = function (device) {
+  this._updateSky(device);
+};
+
+Scene.prototype.addModel = function (model) {
+  if (this.containsModel(model)) return;
+  const layer = this.layers.getLayerById(LAYERID_WORLD);
+  if (!layer) return;
+  layer.addMeshInstances(model.meshInstances);
+  this.models.push(model);
+};
+
+Scene.prototype.addShadowCaster = function (model) {
+  const layer = this.layers.getLayerById(LAYERID_WORLD);
+  if (!layer) return;
+  layer.addShadowCasters(model.meshInstances);
+};
+
+Scene.prototype.removeModel = function (model) {
+  const index = this.models.indexOf(model);
+
+  if (index !== -1) {
+    const layer = this.layers.getLayerById(LAYERID_WORLD);
+    if (!layer) return;
+    layer.removeMeshInstances(model.meshInstances);
+    this.models.splice(index, 1);
+  }
+};
+
+Scene.prototype.removeShadowCasters = function (model) {
+  const layer = this.layers.getLayerById(LAYERID_WORLD);
+  if (!layer) return;
+  layer.removeShadowCasters(model.meshInstances);
+};
+
+Scene.prototype.containsModel = function (model) {
+  return this.models.indexOf(model) >= 0;
+};
+
+Scene.prototype.getModels = function (model) {
+  return this.models;
+};
+
+Object.defineProperty(Batch.prototype, 'model', {
+  get: function () {
+    return null;
+  }
+});
+
+ForwardRenderer.prototype.renderComposition = function (comp) {
+  getApplication().renderComposition(comp);
+};
+
+ForwardRenderer.prototype.updateShader = function (meshInstance, objDefs, staticLightList, pass, sortedLights) {
+  const scene = meshInstance.material._scene || getApplication().scene;
+  return meshInstance.updatePassShader(scene, pass, staticLightList, sortedLights);
+};
+
+MeshInstance.prototype.syncAabb = function () {};
+
+Morph.prototype.getTarget = function (index) {
+  return this.targets[index];
+};
+
+GraphNode.prototype._dirtify = function (local) {
+  if (local) this._dirtifyLocal();else this._dirtifyWorld();
+};
+
+GraphNode.prototype.addLabel = function (label) {
+  this._labels[label] = true;
+};
+
+GraphNode.prototype.getLabels = function () {
+  return Object.keys(this._labels);
+};
+
+GraphNode.prototype.hasLabel = function (label) {
+  return !!this._labels[label];
+};
+
+GraphNode.prototype.removeLabel = function (label) {
+  delete this._labels[label];
+};
+
+GraphNode.prototype.findByLabel = function (label, results = []) {
+  if (this.hasLabel(label)) {
+    results.push(this);
+  }
+
+  for (let i = 0; i < this._children.length; ++i) {
+    results = this._children[i].findByLabel(label, results);
+  }
+
+  return results;
+};
+
+GraphNode.prototype.getChildren = function () {
+  return this.children;
+};
+
+GraphNode.prototype.getName = function () {
+  return this.name;
+};
+
+GraphNode.prototype.getPath = function () {
+  return this.path;
+};
+
+GraphNode.prototype.getRoot = function () {
+  return this.root;
+};
+
+GraphNode.prototype.getParent = function () {
+  return this.parent;
+};
+
+GraphNode.prototype.setName = function (name) {
+  this.name = name;
+};
+
+Material.prototype.getName = function () {
+  return this.name;
+};
+
+Material.prototype.setName = function (name) {
+  this.name = name;
+};
+
+Material.prototype.getShader = function () {
+  return this.shader;
+};
+
+Material.prototype.setShader = function (shader) {
+  this.shader = shader;
+};
+
+function _defineAlias(newName, oldName) {
+  Object.defineProperty(StandardMaterial.prototype, oldName, {
+    get: function () {
+      return this[newName];
+    },
+    set: function (value) {
+      this[newName] = value;
+    }
+  });
+}
+
+_defineAlias('diffuseTint', 'diffuseMapTint');
+
+_defineAlias('specularTint', 'specularMapTint');
+
+_defineAlias('emissiveTint', 'emissiveMapTint');
+
+_defineAlias('aoVertexColor', 'aoMapVertexColor');
+
+_defineAlias('diffuseVertexColor', 'diffuseMapVertexColor');
+
+_defineAlias('specularVertexColor', 'specularMapVertexColor');
+
+_defineAlias('emissiveVertexColor', 'emissiveMapVertexColor');
+
+_defineAlias('metalnessVertexColor', 'metalnessMapVertexColor');
+
+_defineAlias('glossVertexColor', 'glossMapVertexColor');
+
+_defineAlias('opacityVertexColor', 'opacityMapVertexColor');
+
+_defineAlias('lightVertexColor', 'lightMapVertexColor');
+
+const anim = {
+  Animation: Animation,
+  Key: Key,
+  Node: Node,
+  Skeleton: Skeleton
+};
+
+Animation.prototype.getDuration = function () {
+  return this.duration;
+};
+
+Animation.prototype.getName = function () {
+  return this.name;
+};
+
+Animation.prototype.getNodes = function () {
+  return this.nodes;
+};
+
+Animation.prototype.setDuration = function (duration) {
+  this.duration = duration;
+};
+
+Animation.prototype.setName = function (name) {
+  this.name = name;
+};
+
+Skeleton.prototype.getAnimation = function () {
+  return this.animation;
+};
+
+Skeleton.prototype.getCurrentTime = function () {
+  return this.currentTime;
+};
+
+Skeleton.prototype.getLooping = function () {
+  return this.looping;
+};
+
+Skeleton.prototype.getNumNodes = function () {
+  return this.numNodes;
+};
+
+Skeleton.prototype.setAnimation = function (animation) {
+  this.animation = animation;
+};
+
+Skeleton.prototype.setCurrentTime = function (time) {
+  this.currentTime = time;
+};
+
+Skeleton.prototype.setLooping = function (looping) {
+  this.looping = looping;
+};
+
+const audio = {
+  AudioManager: SoundManager,
+  Channel: Channel,
+  Channel3d: Channel3d,
+  Listener: Listener,
+  Sound: Sound
+};
+
+SoundManager.prototype.getListener = function () {
+  return this.listener;
+};
+
+SoundManager.prototype.getVolume = function () {
+  return this.volume;
+};
+
+SoundManager.prototype.setVolume = function (volume) {
+  this.volume = volume;
+};
+
+const asset = {
+  ASSET_ANIMATION: 'animation',
+  ASSET_AUDIO: 'audio',
+  ASSET_IMAGE: 'image',
+  ASSET_JSON: 'json',
+  ASSET_MODEL: 'model',
+  ASSET_MATERIAL: 'material',
+  ASSET_TEXT: 'text',
+  ASSET_TEXTURE: 'texture',
+  ASSET_CUBEMAP: 'cubemap',
+  ASSET_SCRIPT: 'script'
+};
+
+AssetRegistry.prototype.getAssetById = function (id) {
+  return this.get(id);
+};
+
+Object.defineProperty(XrInputSource.prototype, 'ray', {
+  get: function () {
+    return this._rayLocal;
+  }
+});
+Object.defineProperty(XrInputSource.prototype, 'position', {
+  get: function () {
+    return this._localPosition;
+  }
+});
+Object.defineProperty(XrInputSource.prototype, 'rotation', {
+  get: function () {
+    return this._localRotation;
+  }
+});
+const input = {
+  getTouchTargetCoords: getTouchTargetCoords,
+  Controller: Controller,
+  GamePads: GamePads,
+  Keyboard: Keyboard,
+  KeyboardEvent: KeyboardEvent,
+  Mouse: Mouse,
+  MouseEvent: MouseEvent,
+  Touch: Touch,
+  TouchDevice: TouchDevice,
+  TouchEvent: TouchEvent
+};
+Object.defineProperty(ElementInput.prototype, 'wheel', {
+  get: function () {
+    return this.wheelDelta * -2;
+  }
+});
+Object.defineProperty(MouseEvent.prototype, 'wheel', {
+  get: function () {
+    return this.wheelDelta * -2;
+  }
+});
+const RIGIDBODY_TYPE_STATIC = BODYTYPE_STATIC;
+const RIGIDBODY_TYPE_DYNAMIC = BODYTYPE_DYNAMIC;
+const RIGIDBODY_TYPE_KINEMATIC = BODYTYPE_KINEMATIC;
+const RIGIDBODY_CF_STATIC_OBJECT = BODYFLAG_STATIC_OBJECT;
+const RIGIDBODY_CF_KINEMATIC_OBJECT = BODYFLAG_KINEMATIC_OBJECT;
+const RIGIDBODY_CF_NORESPONSE_OBJECT = BODYFLAG_NORESPONSE_OBJECT;
+const RIGIDBODY_ACTIVE_TAG = BODYSTATE_ACTIVE_TAG;
+const RIGIDBODY_ISLAND_SLEEPING = BODYSTATE_ISLAND_SLEEPING;
+const RIGIDBODY_WANTS_DEACTIVATION = BODYSTATE_WANTS_DEACTIVATION;
+const RIGIDBODY_DISABLE_DEACTIVATION = BODYSTATE_DISABLE_DEACTIVATION;
+const RIGIDBODY_DISABLE_SIMULATION = BODYSTATE_DISABLE_SIMULATION;
+const fw = {
+  Application: Application,
+  Component: Component,
+  ComponentSystem: ComponentSystem,
+  Entity: Entity,
+  FillMode: {
+    NONE: FILLMODE_NONE,
+    FILL_WINDOW: FILLMODE_FILL_WINDOW,
+    KEEP_ASPECT: FILLMODE_KEEP_ASPECT
+  },
+  ResolutionMode: {
+    AUTO: RESOLUTION_AUTO,
+    FIXED: RESOLUTION_FIXED
+  }
+};
+
+Application.prototype.isFullscreen = function () {
+  return !!document.fullscreenElement;
+};
+
+Application.prototype.enableFullscreen = function (element, success, error) {
+  element = element || this.graphicsDevice.canvas;
+
+  const s = function s() {
+    success();
+    document.removeEventListener('fullscreenchange', s);
+  };
+
+  const e = function e() {
+    error();
+    document.removeEventListener('fullscreenerror', e);
+  };
+
+  if (success) {
+    document.addEventListener('fullscreenchange', s, false);
+  }
+
+  if (error) {
+    document.addEventListener('fullscreenerror', e, false);
+  }
+
+  if (element.requestFullscreen) {
+    element.requestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+  } else {
+    error();
+  }
+};
+
+Application.prototype.disableFullscreen = function (success) {
+  const s = function s() {
+    success();
+    document.removeEventListener('fullscreenchange', s);
+  };
+
+  if (success) {
+    document.addEventListener('fullscreenchange', s, false);
+  }
+
+  document.exitFullscreen();
+};
+
+Application.prototype.getSceneUrl = function (name) {
+  const entry = this.scenes.find(name);
+
+  if (entry) {
+    return entry.url;
+  }
+
+  return null;
+};
+
+Application.prototype.loadScene = function (url, callback) {
+  this.scenes.loadScene(url, callback);
+};
+
+Application.prototype.loadSceneHierarchy = function (url, callback) {
+  this.scenes.loadSceneHierarchy(url, callback);
+};
+
+Application.prototype.loadSceneSettings = function (url, callback) {
+  this.scenes.loadSceneSettings(url, callback);
+};
+
+Application.prototype.renderMeshInstance = function (meshInstance, options) {
+  const layer = options != null && options.layer ? options.layer : this.scene.defaultDrawLayer;
+  this.scene.immediate.drawMesh(null, null, null, meshInstance, layer);
+};
+
+Application.prototype.renderMesh = function (mesh, material, matrix, options) {
+  const layer = options != null && options.layer ? options.layer : this.scene.defaultDrawLayer;
+  this.scene.immediate.drawMesh(material, matrix, mesh, null, layer);
+};
+
+Application.prototype._addLines = function (positions, colors, options) {
+  const layer = options && options.layer ? options.layer : this.scene.layers.getLayerById(LAYERID_IMMEDIATE);
+  const depthTest = options && options.depthTest !== undefined ? options.depthTest : true;
+  const batch = this.scene.immediate.getBatch(layer, depthTest);
+  batch.addLines(positions, colors);
+};
+
+Application.prototype.renderLine = function (start, end, color) {
+  let endColor = color;
+  let options;
+  const arg3 = arguments[3];
+  const arg4 = arguments[4];
+
+  if (arg3 instanceof Color) {
+    endColor = arg3;
+
+    if (typeof arg4 === 'number') {
+      if (arg4 === LINEBATCH_OVERLAY) {
+        options = {
+          layer: this.scene.layers.getLayerById(LAYERID_IMMEDIATE),
+          depthTest: false
+        };
+      } else {
+        options = {
+          layer: this.scene.layers.getLayerById(LAYERID_IMMEDIATE),
+          depthTest: true
+        };
+      }
+    } else {
+      options = arg4;
+    }
+  } else if (typeof arg3 === 'number') {
+    endColor = color;
+
+    if (arg3 === LINEBATCH_OVERLAY) {
+      options = {
+        layer: this.scene.layers.getLayerById(LAYERID_IMMEDIATE),
+        depthTest: false
+      };
+    } else {
+      options = {
+        layer: this.scene.layers.getLayerById(LAYERID_IMMEDIATE),
+        depthTest: true
+      };
+    }
+  } else if (arg3) {
+    options = arg3;
+  }
+
+  this._addLines([start, end], [color, endColor], options);
+};
+
+Application.prototype.renderLines = function (position, color, options) {
+  if (!options) {
+    options = {
+      layer: this.scene.layers.getLayerById(LAYERID_IMMEDIATE),
+      depthTest: true
+    };
+  } else if (typeof options === 'number') {
+    if (options === LINEBATCH_OVERLAY) {
+      options = {
+        layer: this.scene.layers.getLayerById(LAYERID_IMMEDIATE),
+        depthTest: false
+      };
+    } else {
+      options = {
+        layer: this.scene.layers.getLayerById(LAYERID_IMMEDIATE),
+        depthTest: true
+      };
+    }
+  }
+
+  const multiColor = !!color.length;
+
+  if (multiColor) {
+    if (position.length !== color.length) {
+      console.error('renderLines: position/color arrays have different lengths');
+      return;
+    }
+  }
+
+  if (position.length % 2 !== 0) {
+    console.error('renderLines: array length is not divisible by 2');
+    return;
+  }
+
+  this._addLines(position, color, options);
+};
+
+Application.prototype.enableVr = function () {};
+
+Object.defineProperty(CameraComponent.prototype, 'node', {
+  get: function () {
+    return this.entity;
+  }
+});
+Object.defineProperty(LightComponent.prototype, 'enable', {
+  get: function () {
+    return this.enabled;
+  },
+  set: function (value) {
+    this.enabled = value;
+  }
+});
+
+ModelComponent.prototype.setVisible = function (visible) {
+  this.enabled = visible;
+};
+
+Object.defineProperty(ModelComponent.prototype, 'aabb', {
+  get: function () {
+    return null;
+  },
+  set: function (type) {}
+});
+Object.defineProperty(RenderComponent.prototype, 'aabb', {
+  get: function () {
+    return null;
+  },
+  set: function (type) {}
+});
+Object.defineProperty(RigidBodyComponent.prototype, 'bodyType', {
+  get: function () {
+    return this.type;
+  },
+  set: function (type) {
+    this.type = type;
+  }
+});
+
+RigidBodyComponent.prototype.syncBodyToEntity = function () {
+  this._updateDynamic();
+};
+
+RigidBodyComponentSystem.prototype.setGravity = function () {
+  if (arguments.length === 1) {
+    this.gravity.copy(arguments[0]);
+  } else {
+    this.gravity.set(arguments[0], arguments[1], arguments[2]);
+  }
+};
+
+function basisSetDownloadConfig(glueUrl, wasmUrl, fallbackUrl) {
+  basisInitialize({
+    glueUrl: glueUrl,
+    wasmUrl: wasmUrl,
+    fallbackUrl: fallbackUrl,
+    lazyInit: true
+  });
+}
+function prefilterCubemap(options) {}
+
+export { ContextCreationError, ELEMENTTYPE_FLOAT32, ELEMENTTYPE_INT16, ELEMENTTYPE_INT32, ELEMENTTYPE_INT8, ELEMENTTYPE_UINT16, ELEMENTTYPE_UINT32, ELEMENTTYPE_UINT8, PhongMaterial, RIGIDBODY_ACTIVE_TAG, RIGIDBODY_CF_KINEMATIC_OBJECT, RIGIDBODY_CF_NORESPONSE_OBJECT, RIGIDBODY_CF_STATIC_OBJECT, RIGIDBODY_DISABLE_DEACTIVATION, RIGIDBODY_DISABLE_SIMULATION, RIGIDBODY_ISLAND_SLEEPING, RIGIDBODY_TYPE_DYNAMIC, RIGIDBODY_TYPE_KINEMATIC, RIGIDBODY_TYPE_STATIC, RIGIDBODY_WANTS_DEACTIVATION, UnsupportedBrowserError, anim, asset, audio, basisSetDownloadConfig, fw, gfx, inherits, input, log, makeArray, posteffect, prefilterCubemap, programlib, scene, shape, time };

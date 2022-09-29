@@ -962,6 +962,15 @@ declare const TEXHINT_NONE: 0;
 declare const TEXHINT_SHADOWMAP: 1;
 declare const TEXHINT_ASSET: 2;
 declare const TEXHINT_LIGHTMAP: 3;
+declare const TEXTUREDIMENSION_1D: "1d";
+declare const TEXTUREDIMENSION_2D: "2d";
+declare const TEXTUREDIMENSION_2D_ARRAY: "2d-array";
+declare const TEXTUREDIMENSION_CUBE: "cube";
+declare const TEXTUREDIMENSION_CUBE_ARRAY: "cube-array";
+declare const TEXTUREDIMENSION_3D: "3d";
+declare const SAMPLETYPE_FLOAT: "float";
+declare const SAMPLETYPE_UNFILTERABLE_FLOAT: "unfilterable-float";
+declare const SAMPLETYPE_DEPTH: "depth";
 /**
  * Texture data is not stored a specific projection format.
  *
@@ -1092,6 +1101,7 @@ declare const semanticToLocation: object;
 declare const CHUNKAPI_1_51: string;
 declare const CHUNKAPI_1_55: "1.55";
 declare const CHUNKAPI_1_56: "1.56";
+declare const CHUNKAPI_1_57: "1.57";
 
 /**
  * Subtract the color of the source fragment from the destination fragment and write the result to
@@ -3559,7 +3569,7 @@ declare class Vec3 {
     /**
      * Subtracts a 3-dimensional vector from another in place.
      *
-     * @param {Vec3} rhs - The vector to add to the specified vector.
+     * @param {Vec3} rhs - The vector to subtract from the specified vector.
      * @returns {Vec3} Self for chaining.
      * @example
      * var a = new pc.Vec3(10, 10, 10);
@@ -3574,8 +3584,8 @@ declare class Vec3 {
     /**
      * Subtracts two 3-dimensional vectors from one another and returns the result.
      *
-     * @param {Vec3} lhs - The first vector operand for the addition.
-     * @param {Vec3} rhs - The second vector operand for the addition.
+     * @param {Vec3} lhs - The first vector operand for the subtraction.
+     * @param {Vec3} rhs - The second vector operand for the subtraction.
      * @returns {Vec3} Self for chaining.
      * @example
      * var a = new pc.Vec3(10, 10, 10);
@@ -4906,6 +4916,17 @@ declare class Mat4 {
  */
 declare class BoundingBox {
     /**
+     * Compute the min and max bounding values to encapsulate all specified vertices.
+     *
+     * @param {number[]|Float32Array} vertices - The vertices used to compute the new size for the
+     * AABB.
+     * @param {Vec3} min - Stored computed min value.
+     * @param {Vec3} max - Stored computed max value.
+     * @param {number} [numVerts] - Number of vertices to use from the beginning of vertices array.
+     * All vertices are used if not specified.
+     */
+    static computeMinMax(vertices: number[] | Float32Array, min: Vec3, max: Vec3, numVerts?: number): void;
+    /**
      * Create a new BoundingBox instance. The bounding box is axis-aligned.
      *
      * @param {Vec3} [center] - Center of box. The constructor takes a reference of this parameter.
@@ -5043,8 +5064,8 @@ declare class Plane {
      * parameter.
      */
     constructor(point?: Vec3, normal?: Vec3);
-    normal: Vec3;
     point: Vec3;
+    normal: Vec3;
     /**
      * Test if the plane intersects between two points.
      *
@@ -8975,7 +8996,7 @@ declare class Vec2 {
     /**
      * Subtracts a 2-dimensional vector from another in place.
      *
-     * @param {Vec2} rhs - The vector to add to the specified vector.
+     * @param {Vec2} rhs - The vector to subtract from the specified vector.
      * @returns {Vec2} Self for chaining.
      * @example
      * var a = new pc.Vec2(10, 10);
@@ -8990,8 +9011,8 @@ declare class Vec2 {
     /**
      * Subtracts two 2-dimensional vectors from one another and returns the result.
      *
-     * @param {Vec2} lhs - The first vector operand for the addition.
-     * @param {Vec2} rhs - The second vector operand for the addition.
+     * @param {Vec2} lhs - The first vector operand for the subtraction.
+     * @param {Vec2} rhs - The second vector operand for the subtraction.
      * @returns {Vec2} Self for chaining.
      * @example
      * var a = new pc.Vec2(10, 10);
@@ -9028,6 +9049,132 @@ declare class Vec2 {
      * console.log(v.toString());
      */
     toString(): string;
+}
+
+
+/** @typedef {import('./mat4.js').Mat4} Mat4 */
+/**
+ * A 3x3 matrix.
+ */
+declare class Mat3 {
+    /**
+     * A constant matrix set to the identity.
+     *
+     * @type {Mat3}
+     * @readonly
+     */
+    static readonly IDENTITY: Mat3;
+    /**
+     * A constant matrix with all elements set to 0.
+     *
+     * @type {Mat3}
+     * @readonly
+     */
+    static readonly ZERO: Mat3;
+    /**
+     * Matrix elements in the form of a flat array.
+     *
+     * @type {Float32Array}
+     */
+    data: Float32Array;
+    /**
+     * Creates a duplicate of the specified matrix.
+     *
+     * @returns {this} A duplicate matrix.
+     * @example
+     * var src = new pc.Mat3().translate(10, 20, 30);
+     * var dst = src.clone();
+     * console.log("The two matrices are " + (src.equals(dst) ? "equal" : "different"));
+     */
+    clone(): this;
+    /**
+     * Copies the contents of a source 3x3 matrix to a destination 3x3 matrix.
+     *
+     * @param {Mat3} rhs - A 3x3 matrix to be copied.
+     * @returns {Mat3} Self for chaining.
+     * @example
+     * var src = new pc.Mat3().translate(10, 20, 30);
+     * var dst = new pc.Mat3();
+     * dst.copy(src);
+     * console.log("The two matrices are " + (src.equals(dst) ? "equal" : "different"));
+     */
+    copy(rhs: Mat3): Mat3;
+    /**
+     * Copies the contents of a source array[9] to a destination 3x3 matrix.
+     *
+     * @param {number[]} src - An array[9] to be copied.
+     * @returns {Mat3} Self for chaining.
+     * @example
+     * var dst = new pc.Mat3();
+     * dst.set([0, 1, 2, 3, 4, 5, 6, 7, 8]);
+     */
+    set(src: number[]): Mat3;
+    /**
+     * Reports whether two matrices are equal.
+     *
+     * @param {Mat3} rhs - The other matrix.
+     * @returns {boolean} True if the matrices are equal and false otherwise.
+     * @example
+     * var a = new pc.Mat3().translate(10, 20, 30);
+     * var b = new pc.Mat3();
+     * console.log("The two matrices are " + (a.equals(b) ? "equal" : "different"));
+     */
+    equals(rhs: Mat3): boolean;
+    /**
+     * Reports whether the specified matrix is the identity matrix.
+     *
+     * @returns {boolean} True if the matrix is identity and false otherwise.
+     * @example
+     * var m = new pc.Mat3();
+     * console.log("The matrix is " + (m.isIdentity() ? "identity" : "not identity"));
+     */
+    isIdentity(): boolean;
+    /**
+     * Sets the matrix to the identity matrix.
+     *
+     * @returns {Mat3} Self for chaining.
+     * @example
+     * m.setIdentity();
+     * console.log("The matrix is " + (m.isIdentity() ? "identity" : "not identity"));
+     */
+    setIdentity(): Mat3;
+    /**
+     * Converts the matrix to string form.
+     *
+     * @returns {string} The matrix in string form.
+     * @example
+     * var m = new pc.Mat3();
+     * // Outputs [1, 0, 0, 0, 1, 0, 0, 0, 1]
+     * console.log(m.toString());
+     */
+    toString(): string;
+    /**
+     * Generates the transpose of the specified 3x3 matrix.
+     *
+     * @returns {Mat3} Self for chaining.
+     * @example
+     * var m = new pc.Mat3();
+     *
+     * // Transpose in place
+     * m.transpose();
+     */
+    transpose(): Mat3;
+    /**
+     * Converts the specified 4x4 matrix to a Mat3.
+     *
+     * @param {Mat4} m - The 4x4 matrix to convert.
+     * @returns {Mat3} Self for chaining.
+     */
+    setFromMat4(m: Mat4): Mat3;
+    /**
+     * Transforms a 3-dimensional vector by a 3x3 matrix.
+     *
+     * @param {Vec3} vec - The 3-dimensional vector to be transformed.
+     * @param {Vec3} [res] - An optional 3-dimensional vector to receive the result of the
+     * transformation.
+     * @returns {Vec3} The input vector v transformed by the current instance.
+     */
+    transformVector(vec: Vec3, res?: Vec3): Vec3;
 }
 
 /**
@@ -9161,7 +9308,7 @@ declare class GraphNode extends EventHandler {
      * @type {Mat3}
      * @private
      */
-    private normalMatrix;
+    private _normalMatrix;
     /**
      * @type {boolean}
      * @private
@@ -9236,6 +9383,13 @@ declare class GraphNode extends EventHandler {
      * @type {Vec3}
      */
     get forward(): Vec3;
+    /**
+     * A matrix used to transform the normal.
+     *
+     * @type  {Mat3}
+     * @ignore
+     */
+    get normalMatrix(): Mat3;
     /**
      * Enable or disable a GraphNode. If one of the GraphNode's parents is disabled there will be
      * no other side effects. If all the parents are enabled then the new value will activate or
@@ -9962,6 +10116,8 @@ declare class MorphTarget {
      * @param {BoundingBox} [options.aabb] - Bounding box. Will be automatically generated, if
      * undefined.
      * @param {number} [options.defaultWeight] - Default blend weight to use for this morph target.
+     * @param {boolean} [options.preserveData] - When true, the morph target keeps its data passed using the options,
+     * allowing the clone operation.
      */
     constructor(options: {
         deltaPositions: ArrayBuffer;
@@ -9971,7 +10127,12 @@ declare class MorphTarget {
         name?: string;
         aabb?: BoundingBox;
         defaultWeight?: number;
+        preserveData?: boolean;
     }, ...args: any[]);
+    /**
+     * A used flag. A morph target can be used / owned by the Morph class only one time.
+     */
+    used: boolean;
     options: {
         deltaPositions: ArrayBuffer;
         deltaPositionsType: number;
@@ -9980,11 +10141,17 @@ declare class MorphTarget {
         name?: string;
         aabb?: BoundingBox;
         defaultWeight?: number;
+        preserveData?: boolean;
     };
     _name: string;
     _defaultWeight: number;
     aabb: BoundingBox;
     deltaPositions: ArrayBuffer;
+    destroy(): void;
+    _vertexBufferPositions: VertexBuffer;
+    _vertexBufferNormals: VertexBuffer;
+    texturePositions: any;
+    textureNormals: any;
     /**
      * The name of the morph target.
      *
@@ -9999,15 +10166,17 @@ declare class MorphTarget {
     get defaultWeight(): number;
     get morphPositions(): boolean;
     get morphNormals(): boolean;
+    /**
+     * Returns an identical copy of the specified morph target. This can only be used if the morph target
+     * was created with options.preserveData set to true.
+     *
+     * @returns {MorphTarget} A morph target instance containing the result of the cloning.
+     */
+    clone(): MorphTarget;
     _postInit(): void;
     _initVertexBuffers(graphicsDevice: any): void;
-    _vertexBufferPositions: VertexBuffer;
-    _vertexBufferNormals: VertexBuffer;
     _createVertexBuffer(device: any, data: any, dataType?: number): VertexBuffer;
     _setTexture(name: any, texture: any): void;
-    destroy(): void;
-    texturePositions: any;
-    textureNormals: any;
 }
 
 /**
@@ -10085,7 +10254,6 @@ declare class Morph extends RefCountedObject {
     _createTexture(name: any, format: any, pixelData: any): Texture;
 }
 
-
 /**
  * An instance of {@link Morph}. Contains weights to assign to every {@link MorphTarget}, manages
  * selection of active morph targets.
@@ -10104,12 +10272,6 @@ declare class MorphInstance {
      */
     morph: Morph;
     device: any;
-    /**
-     * The mesh instance this morph instance controls the morphing of.
-     *
-     * @type {MeshInstance}
-     */
-    meshInstance: MeshInstance;
     _weights: any[];
     _weightMap: Map<any, any>;
     _activeTargets: any[];
@@ -10233,6 +10395,7 @@ declare class Light {
     _direction: Vec3;
     _innerConeAngleCos: number;
     _outerConeAngleCos: number;
+    _usePhysicalUnits: any;
     _shadowMap: any;
     _shadowRenderParams: any[];
     shadowDistance: number;
@@ -10264,6 +10427,8 @@ declare class Light {
     get shadowType(): number;
     set shape(arg: number);
     get shape(): number;
+    set usePhysicalUnits(arg: any);
+    get usePhysicalUnits(): any;
     set enabled(arg: boolean);
     get enabled(): boolean;
     set castShadows(arg: boolean);
@@ -10375,7 +10540,7 @@ declare class LightComponentSystem extends ComponentSystem {
  * @property {Color} color The Color of the light. The alpha component of the color is ignored.
  * Defaults to white (1, 1, 1).
  * @property {number} intensity The brightness of the light. Defaults to 1.
- * @property {number} luminance The physically based luminance. Defaults to 0.
+ * @property {number} luminance The physically based luminance. Only used if scene.physicalUnits is true. Defaults to 0.
  * @property {number} shape The light source shape. Can be:
  *
  * - {@link pc.LIGHTSHAPE_PUNCTUAL}: Infinitesimally small point.
@@ -10535,6 +10700,9 @@ declare class LightComponent extends Component {
 
     set intensity(arg: number);
     get intensity(): number;
+
+    set luminance(arg: number);
+    get luminance(): number;
 
     set isStatic(arg: boolean);
     get isStatic(): boolean;
@@ -11220,12 +11388,14 @@ declare class BindBufferFormat {
  * @ignore
  */
 declare class BindTextureFormat {
-    constructor(name: any, visibility: any);
+    constructor(name: any, visibility: any, textureDimension?: string, sampleType?: string);
     /** @type {ScopeId} */
     scopeId: ScopeId;
     /** @type {string} */
     name: string;
     visibility: any;
+    textureDimension: string;
+    sampleType: string;
 }
 /**
  * @ignore
@@ -11668,132 +11838,6 @@ declare class LayerComposition extends EventHandler {
      * @private
      */
     private sortOpaqueLayers;
-}
-
-
-/** @typedef {import('./mat4.js').Mat4} Mat4 */
-/**
- * A 3x3 matrix.
- */
-declare class Mat3 {
-    /**
-     * A constant matrix set to the identity.
-     *
-     * @type {Mat3}
-     * @readonly
-     */
-    static readonly IDENTITY: Mat3;
-    /**
-     * A constant matrix with all elements set to 0.
-     *
-     * @type {Mat3}
-     * @readonly
-     */
-    static readonly ZERO: Mat3;
-    /**
-     * Matrix elements in the form of a flat array.
-     *
-     * @type {Float32Array}
-     */
-    data: Float32Array;
-    /**
-     * Creates a duplicate of the specified matrix.
-     *
-     * @returns {this} A duplicate matrix.
-     * @example
-     * var src = new pc.Mat3().translate(10, 20, 30);
-     * var dst = src.clone();
-     * console.log("The two matrices are " + (src.equals(dst) ? "equal" : "different"));
-     */
-    clone(): this;
-    /**
-     * Copies the contents of a source 3x3 matrix to a destination 3x3 matrix.
-     *
-     * @param {Mat3} rhs - A 3x3 matrix to be copied.
-     * @returns {Mat3} Self for chaining.
-     * @example
-     * var src = new pc.Mat3().translate(10, 20, 30);
-     * var dst = new pc.Mat3();
-     * dst.copy(src);
-     * console.log("The two matrices are " + (src.equals(dst) ? "equal" : "different"));
-     */
-    copy(rhs: Mat3): Mat3;
-    /**
-     * Copies the contents of a source array[9] to a destination 3x3 matrix.
-     *
-     * @param {number[]} src - An array[9] to be copied.
-     * @returns {Mat3} Self for chaining.
-     * @example
-     * var dst = new pc.Mat3();
-     * dst.set([0, 1, 2, 3, 4, 5, 6, 7, 8]);
-     */
-    set(src: number[]): Mat3;
-    /**
-     * Reports whether two matrices are equal.
-     *
-     * @param {Mat3} rhs - The other matrix.
-     * @returns {boolean} True if the matrices are equal and false otherwise.
-     * @example
-     * var a = new pc.Mat3().translate(10, 20, 30);
-     * var b = new pc.Mat3();
-     * console.log("The two matrices are " + (a.equals(b) ? "equal" : "different"));
-     */
-    equals(rhs: Mat3): boolean;
-    /**
-     * Reports whether the specified matrix is the identity matrix.
-     *
-     * @returns {boolean} True if the matrix is identity and false otherwise.
-     * @example
-     * var m = new pc.Mat3();
-     * console.log("The matrix is " + (m.isIdentity() ? "identity" : "not identity"));
-     */
-    isIdentity(): boolean;
-    /**
-     * Sets the matrix to the identity matrix.
-     *
-     * @returns {Mat3} Self for chaining.
-     * @example
-     * m.setIdentity();
-     * console.log("The matrix is " + (m.isIdentity() ? "identity" : "not identity"));
-     */
-    setIdentity(): Mat3;
-    /**
-     * Converts the matrix to string form.
-     *
-     * @returns {string} The matrix in string form.
-     * @example
-     * var m = new pc.Mat3();
-     * // Outputs [1, 0, 0, 0, 1, 0, 0, 0, 1]
-     * console.log(m.toString());
-     */
-    toString(): string;
-    /**
-     * Generates the transpose of the specified 3x3 matrix.
-     *
-     * @returns {Mat3} Self for chaining.
-     * @example
-     * var m = new pc.Mat3();
-     *
-     * // Transpose in place
-     * m.transpose();
-     */
-    transpose(): Mat3;
-    /**
-     * Converts the specified 4x4 matrix to a Mat3.
-     *
-     * @param {Mat4} m - The 4x4 matrix to convert.
-     * @returns {Mat3} Self for chaining.
-     */
-    setFromMat4(m: Mat4): Mat3;
-    /**
-     * Transforms a 3-dimensional vector by a 3x3 matrix.
-     *
-     * @param {Vec3} vec - The 3-dimensional vector to be transformed.
-     * @param {Vec3} [res] - An optional 3-dimensional vector to receive the result of the
-     * transformation.
-     * @returns {Vec3} The input vector v transformed by the current instance.
-     */
-    transformVector(vec: Vec3, res?: Vec3): Vec3;
 }
 
 
@@ -12410,7 +12454,13 @@ declare class Scene extends EventHandler {
      */
     ambientLight: Color;
     /**
-     * The exposure value tweaks the overall brightness of the scene. Defaults to 1.
+     * The luminosity of the scene's ambient light in lux (lm/m^2). Used if physicalUnits is true. Defaults to 0.
+     *
+     * @type {number}
+     */
+    ambientLuminance: number;
+    /**
+     * The exposure value tweaks the overall brightness of the scene. Ignored if physicalUnits is true. Defaults to 1.
      *
      * @type {number}
      */
@@ -12491,6 +12541,12 @@ declare class Scene extends EventHandler {
      * @ignore
      */
     sky: Sky;
+    /**
+     * Use physically based units for cameras and lights. When used, the exposure value is ignored.
+     *
+     * @type {boolean}
+     */
+    physicalUnits: boolean;
     device: any;
     _gravity: Vec3;
     /**
@@ -12524,6 +12580,7 @@ declare class Scene extends EventHandler {
     private _envAtlas;
     _internalEnvAtlas: any;
     _skyboxIntensity: number;
+    _skyboxLuminance: number;
     _skyboxMip: number;
     _skyboxRotation: Quat;
     _skyboxRotationMat3: any;
@@ -12629,8 +12686,8 @@ declare class Scene extends EventHandler {
      * @type {MeshInstance[]}
      * @private
      */
-    private set drawCalls(arg);
-    private get drawCalls();
+    set drawCalls(arg: any[]);
+    get drawCalls(): any[];
     /**
      * The environment lighting atlas.
      *
@@ -12710,12 +12767,19 @@ declare class Scene extends EventHandler {
     set skybox(arg: Texture);
     get skybox(): Texture;
     /**
-     * Multiplier for skybox intensity. Defaults to 1.
+     * Multiplier for skybox intensity. Defaults to 1. Unused if physical units are used.
      *
      * @type {number}
      */
     set skyboxIntensity(arg: number);
     get skyboxIntensity(): number;
+    /**
+     * Luminance (in lm/m^2) of skybox. Defaults to 0. Only used if physical units are used.
+     *
+     * @type {number}
+     */
+    set skyboxLuminance(arg: number);
+    get skyboxLuminance(): number;
     /**
      * The mip level of the skybox to be displayed. Only valid for prefiltered cubemap skyboxes.
      * Defaults to 0 (base level).
@@ -15217,6 +15281,1014 @@ declare class EntityReference extends EventHandler {
     get entity(): Entity;
 }
 
+
+/**
+ * Represents XR hit test source, which provides access to hit results of real world geometry from
+ * AR session.
+ *
+ * @augments EventHandler
+ */
+declare class XrHitTestSource extends EventHandler {
+    /**
+     * Create a new XrHitTestSource instance.
+     *
+     * @param {XrManager} manager - WebXR Manager.
+     * @param {*} xrHitTestSource - XRHitTestSource object that is created by WebXR API.
+     * @param {boolean} transient - True if XRHitTestSource created for input source profile.
+     * @hideconstructor
+     */
+    constructor(manager: XrManager, xrHitTestSource: any, transient: boolean);
+    /**
+     * @type {XrManager}
+     * @private
+     */
+    private manager;
+    /**
+     * @type {XRHitTestSource}
+     * @private
+     */
+    private _xrHitTestSource;
+    /**
+     * @type {boolean}
+     * @private
+     */
+    private _transient;
+    /**
+     * Fired when {@link XrHitTestSource} is removed.
+     *
+     * @event XrHitTestSource#remove
+     * @example
+     * hitTestSource.once('remove', function () {
+     *     // hit test source has been removed
+     * });
+     */
+    /**
+     * Fired when hit test source receives new results. It provides transform information that
+     * tries to match real world picked geometry.
+     *
+     * @event XrHitTestSource#result
+     * @param {Vec3} position - Position of hit test.
+     * @param {Quat} rotation - Rotation of hit test.
+     * @param {XrInputSource|null} inputSource - If is transient hit test source, then it will
+     * provide related input source.
+     * @example
+     * hitTestSource.on('result', function (position, rotation, inputSource) {
+     *     target.setPosition(position);
+     *     target.setRotation(rotation);
+     * });
+     */
+    /**
+     * Stop and remove hit test source.
+     */
+    remove(): void;
+    /** @ignore */
+    onStop(): void;
+    /**
+     * @param {*} frame - XRFrame from requestAnimationFrame callback.
+     * @ignore
+     */
+    update(frame: any): void;
+    /**
+     * @param {XRTransientInputHitTestResult[]} results - Hit test results.
+     * @param {XRHitTestSource} inputSource - Input source.
+     * @private
+     */
+    private updateHitResults;
+}
+
+
+
+/**
+ * Callback used by {@link XrHitTeststart } and {@link XrHitTeststartForInputSource }.
+ */
+export type XrHitTestStartCallback = (err: Error | null, hitTestSource: XrHitTestSource | null) => any;
+/** @typedef {import('./xr-manager.js').XrManager} XrManager */
+/** @typedef {import('../shape/ray.js').Ray} Ray */
+/**
+ * Callback used by {@link XrHitTest#start} and {@link XrHitTest#startForInputSource}.
+ *
+ * @callback XrHitTestStartCallback
+ * @param {Error|null} err - The Error object if failed to create hit test source or null.
+ * @param {XrHitTestSource|null} hitTestSource - Object that provides access to hit results against
+ * real world geometry.
+ */
+/**
+ * Hit Test provides ability to get position and rotation of ray intersecting point with
+ * representation of real world geometry by underlying AR system.
+ *
+ * @augments EventHandler
+ */
+declare class XrHitTest extends EventHandler {
+    /**
+     * Create a new XrHitTest instance.
+     *
+     * @param {XrManager} manager - WebXR Manager.
+     * @hideconstructor
+     */
+    constructor(manager: XrManager);
+    /**
+     * @type {XrManager}
+     * @private
+     */
+    private manager;
+    /**
+     * @type {boolean}
+     * @private
+     */
+    private _supported;
+    /**
+     * @type {XRSession}
+     * @private
+     */
+    private _session;
+    /**
+     * List of active {@link XrHitTestSource}.
+     *
+     * @type {XrHitTestSource[]}
+     */
+    sources: XrHitTestSource[];
+    /**
+     * Fired when new {@link XrHitTestSource} is added to the list.
+     *
+     * @event XrHitTest#add
+     * @param {XrHitTestSource} hitTestSource - Hit test source that has been added.
+     * @example
+     * app.xr.hitTest.on('add', function (hitTestSource) {
+     *     // new hit test source is added
+     * });
+     */
+    /**
+     * Fired when {@link XrHitTestSource} is removed to the list.
+     *
+     * @event XrHitTest#remove
+     * @param {XrHitTestSource} hitTestSource - Hit test source that has been removed.
+     * @example
+     * app.xr.hitTest.on('remove', function (hitTestSource) {
+     *     // hit test source is removed
+     * });
+     */
+    /**
+     * Fired when hit test source receives new results. It provides transform information that
+     * tries to match real world picked geometry.
+     *
+     * @event XrHitTest#result
+     * @param {XrHitTestSource} hitTestSource - Hit test source that produced the hit result.
+     * @param {Vec3} position - Position of hit test.
+     * @param {Quat} rotation - Rotation of hit test.
+     * @param {XrInputSource|null} inputSource - If is transient hit test source, then it will provide related input source.
+     * @example
+     * app.xr.hitTest.on('result', function (hitTestSource, position, rotation, inputSource) {
+     *     target.setPosition(position);
+     *     target.setRotation(rotation);
+     * });
+     */
+    /**
+     * Fired when failed create hit test source.
+     *
+     * @event XrHitTest#error
+     * @param {Error} error - Error object related to failure of creating hit test source.
+     */
+    /** @private */
+    private _onSessionStart;
+    /** @private */
+    private _onSessionEnd;
+    /**
+     * Checks if hit testing is available.
+     *
+     * @param {Function} callback - Error callback.
+     * @param {*} fireError - Event handler on while to fire error event.
+     * @returns {boolean} True if hit test is available.
+     * @private
+     */
+    private isAvailable;
+    /**
+     * Attempts to start hit test with provided reference space.
+     *
+     * @param {object} [options] - Optional object for passing arguments.
+     * @param {string} [options.spaceType] - Reference space type. Defaults to
+     * {@link XRSPACE_VIEWER}. Can be one of the following:
+     *
+     * - {@link XRSPACE_VIEWER}: Viewer - hit test will be facing relative to viewers space.
+     * - {@link XRSPACE_LOCAL}: Local - represents a tracking space with a native origin near the
+     * viewer at the time of creation.
+     * - {@link XRSPACE_LOCALFLOOR}: Local Floor - represents a tracking space with a native origin
+     * at the floor in a safe position for the user to stand. The y axis equals 0 at floor level.
+     * Floor level value might be estimated by the underlying platform.
+     * - {@link XRSPACE_BOUNDEDFLOOR}: Bounded Floor - represents a tracking space with its native
+     * origin at the floor, where the user is expected to move within a pre-established boundary.
+     * - {@link XRSPACE_UNBOUNDED}: Unbounded - represents a tracking space where the user is
+     * expected to move freely around their environment, potentially long distances from their
+     * starting point.
+     *
+     * @param {string} [options.profile] - if hit test source meant to match input source instead
+     * of reference space, then name of profile of the {@link XrInputSource} should be provided.
+     * @param {string[]} [options.entityTypes] - Optional list of underlying entity types against
+     * which hit tests will be performed. Defaults to [ {@link XRTRACKABLE_PLANE} ]. Can be any
+     * combination of the following:
+     *
+     * - {@link XRTRACKABLE_POINT}: Point - indicates that the hit test results will be computed
+     * based on the feature points detected by the underlying Augmented Reality system.
+     * - {@link XRTRACKABLE_PLANE}: Plane - indicates that the hit test results will be computed
+     * based on the planes detected by the underlying Augmented Reality system.
+     * - {@link XRTRACKABLE_MESH}: Mesh - indicates that the hit test results will be computed
+     * based on the meshes detected by the underlying Augmented Reality system.
+     *
+     * @param {Ray} [options.offsetRay] - Optional ray by which hit test ray can be offset.
+     * @param {XrHitTestStartCallback} [options.callback] - Optional callback function called once
+     * hit test source is created or failed.
+     * @example
+     * app.xr.hitTest.start({
+     *     spaceType: pc.XRSPACE_VIEWER,
+     *     callback: function (err, hitTestSource) {
+     *         if (err) return;
+     *         hitTestSource.on('result', function (position, rotation) {
+     *             // position and rotation of hit test result
+     *             // based on Ray facing forward from the Viewer reference space
+     *         });
+     *     }
+     * });
+     * @example
+     * var ray = new pc.Ray(new pc.Vec3(0, 0, 0), new pc.Vec3(0, -1, 0));
+     * app.xr.hitTest.start({
+     *     spaceType: pc.XRSPACE_LOCAL,
+     *     offsetRay: ray,
+     *     callback: function (err, hitTestSource) {
+     *         // hit test source that will sample real world geometry straight down
+     *         // from the position where AR session started
+     *     }
+     * });
+     * @example
+     * app.xr.hitTest.start({
+     *     profile: 'generic-touchscreen',
+     *     callback: function (err, hitTestSource) {
+     *         if (err) return;
+     *         hitTestSource.on('result', function (position, rotation, inputSource) {
+     *             // position and rotation of hit test result
+     *             // that will be created from touch on mobile devices
+     *         });
+     *     }
+     * });
+     */
+    start(options?: {
+        spaceType?: string;
+        profile?: string;
+        entityTypes?: string[];
+        offsetRay?: Ray;
+        callback?: XrHitTestStartCallback;
+    }): void;
+    /**
+     * @param {XRHitTestSource} xrHitTestSource - Hit test source.
+     * @param {boolean} transient - True if hit test source is created from transient input source.
+     * @param {Function} callback - Callback called once hit test source is created.
+     * @private
+     */
+    private _onHitTestSource;
+    /**
+     * @param {*} frame - XRFrame from requestAnimationFrame callback.
+     * @ignore
+     */
+    update(frame: any): void;
+    /**
+     * True if AR Hit Test is supported.
+     *
+     * @type {boolean}
+     */
+    get supported(): boolean;
+}
+
+
+/** @typedef {import('./xr-hand.js').XrHand} XrHand */
+/** @typedef {import('./xr-joint.js').XrJoint} XrJoint */
+/**
+ * Represents finger with related joints and index.
+ */
+declare class XrFinger {
+    /**
+     * Create a new XrFinger instance.
+     *
+     * @param {number} index - Index of a finger.
+     * @param {XrHand} hand - Hand that finger relates to.
+     * @hideconstructor
+     */
+    constructor(index: number, hand: XrHand);
+    /**
+     * @type {number}
+     * @private
+     */
+    private _index;
+    /**
+     * @type {XrHand}
+     * @private
+     */
+    private _hand;
+    /**
+     * @type {XrJoint[]}
+     * @private
+     */
+    private _joints;
+    /**
+     * @type {XrJoint|null}
+     * @private
+     */
+    private _tip;
+    /**
+     * Index of a finger, numeration is: thumb, index, middle, ring, little.
+     *
+     * @type {number}
+     */
+    get index(): number;
+    /**
+     * Hand that finger relates to.
+     *
+     * @type {XrHand}
+     */
+    get hand(): XrHand;
+    /**
+     * List of joints that relates to this finger, starting from joint closest to wrist all the way
+     * to the tip of a finger.
+     *
+     * @type {XrJoint[]}
+     */
+    get joints(): XrJoint[];
+    /**
+     * Tip of a finger, or null if not available.
+     *
+     * @type {XrJoint|null}
+     */
+    get tip(): XrJoint;
+}
+
+
+
+/**
+ * Represents the joint of a finger.
+ */
+declare class XrJoint {
+    /**
+     * Create an XrJoint instance.
+     *
+     * @param {number} index - Index of a joint within a finger.
+     * @param {string} id - Id of a joint based on WebXR Hand Input Specs.
+     * @param {XrHand} hand - Hand that joint relates to.
+     * @param {XrFinger} [finger] - Finger that joint is related to, can be null in case of wrist.
+     * joint.
+     * @hideconstructor
+     */
+    constructor(index: number, id: string, hand: XrHand, finger?: XrFinger);
+    /**
+     * @type {number}
+     * @private
+     */
+    private _index;
+    /**
+     * @type {string}
+     * @private
+     */
+    private _id;
+    /**
+     * @type {XrHand}
+     * @private
+     */
+    private _hand;
+    /**
+     * @type {XrFinger}
+     * @private
+     */
+    private _finger;
+    /**
+     * @type {boolean}
+     * @private
+     */
+    private _wrist;
+    /**
+     * @type {boolean}
+     * @private
+     */
+    private _tip;
+    /**
+     * @type {number}
+     * @private
+     */
+    private _radius;
+    /**
+     * @type {Mat4}
+     * @private
+     */
+    private _localTransform;
+    /**
+     * @type {Mat4}
+     * @private
+     */
+    private _worldTransform;
+    /**
+     * @type {Vec3}
+     * @private
+     */
+    private _localPosition;
+    /**
+     * @type {Quat}
+     * @private
+     */
+    private _localRotation;
+    /**
+     * @type {Vec3}
+     * @private
+     */
+    private _position;
+    /**
+     * @type {Quat}
+     * @private
+     */
+    private _rotation;
+    /**
+     * @type {boolean}
+     * @private
+     */
+    private _dirtyLocal;
+    /**
+     * @param {*} pose - XRJointPose of this joint.
+     * @ignore
+     */
+    update(pose: any): void;
+    /** @private */
+    private _updateTransforms;
+    /**
+     * Get the world space position of a joint.
+     *
+     * @returns {Vec3} The world space position of a joint.
+     */
+    getPosition(): Vec3;
+    /**
+     * Get the world space rotation of a joint.
+     *
+     * @returns {Quat} The world space rotation of a joint.
+     */
+    getRotation(): Quat;
+    /**
+     * Index of a joint within a finger, starting from 0 (root of a finger) all the way to tip of
+     * the finger.
+     *
+     * @type {number}
+     */
+    get index(): number;
+    /**
+     * Hand that joint relates to.
+     *
+     * @type {XrHand}
+     */
+    get hand(): XrHand;
+    /**
+     * Finger that joint relates to.
+     *
+     * @type {XrFinger|null}
+     */
+    get finger(): XrFinger;
+    /**
+     * True if joint is a wrist.
+     *
+     * @type {boolean}
+     */
+    get wrist(): boolean;
+    /**
+     * True if joint is a tip of a finger.
+     *
+     * @type {boolean}
+     */
+    get tip(): boolean;
+    /**
+     * The radius of a joint, which is a distance from joint to the edge of a skin.
+     *
+     * @type {number}
+     */
+    get radius(): number;
+}
+
+
+/**
+ * Represents a hand with fingers and joints.
+ *
+ * @augments EventHandler
+ */
+declare class XrHand extends EventHandler {
+    /**
+     * Represents a hand with fingers and joints.
+     *
+     * @param {XrInputSource} inputSource - Input Source that hand is related to.
+     * @hideconstructor
+     */
+    constructor(inputSource: XrInputSource);
+    /**
+     * @type {XrManager}
+     * @private
+     */
+    private _manager;
+    /**
+     * @type {XrInputSource}
+     * @private
+     */
+    private _inputSource;
+    /**
+     * @type {boolean}
+     * @private
+     */
+    private _tracking;
+    /**
+     * @type {XrFinger[]}
+     * @private
+     */
+    private _fingers;
+    /**
+     * @type {XrJoint[]}
+     * @private
+     */
+    private _joints;
+    /**
+     * @type {Object<string, XrJoint>}
+     * @private
+     */
+    private _jointsById;
+    /**
+     * @type {XrJoint[]}
+     * @private
+     */
+    private _tips;
+    /**
+     * @type {XrJoint|null}
+     * @private
+     */
+    private _wrist;
+    /**
+     * Fired when tracking becomes available.
+     *
+     * @event XrHand#tracking
+     */
+    /**
+     * Fired when tracking is lost.
+     *
+     * @event XrHand#trackinglost
+     */
+    /**
+     * @param {*} frame - XRFrame from requestAnimationFrame callback.
+     * @ignore
+     */
+    update(frame: any): void;
+    /**
+     * @param {number} index - Finger index.
+     * @returns {boolean} True if finger is closed and false otherwise.
+     * @private
+     */
+    private _fingerIsClosed;
+    /**
+     * Returns joint by XRHand id from list in specs: https://immersive-web.github.io/webxr-hand-input/.
+     *
+     * @param {string} id - Id of a joint based on specs ID's in XRHand: https://immersive-web.github.io/webxr-hand-input/.
+     * @returns {XrJoint|null} Joint or null if not available.
+     */
+    getJointById(id: string): XrJoint | null;
+    /**
+     * List of fingers of a hand.
+     *
+     * @type {XrFinger[]}
+     */
+    get fingers(): XrFinger[];
+    /**
+     * List of joints of hand.
+     *
+     * @type {XrJoint[]}
+     */
+    get joints(): XrJoint[];
+    /**
+     * List of joints that are fingertips.
+     *
+     * @type {XrJoint[]}
+     */
+    get tips(): XrJoint[];
+    /**
+     * Wrist of a hand, or null if it is not available by WebXR underlying system.
+     *
+     * @type {XrJoint|null}
+     */
+    get wrist(): XrJoint;
+    /**
+     * True if tracking is available, otherwise tracking might be lost.
+     *
+     * @type {boolean}
+     */
+    get tracking(): boolean;
+}
+
+
+
+/**
+ * Represents XR input source, which is any input mechanism which allows the user to perform
+ * targeted actions in the same virtual space as the viewer. Example XR input sources include, but
+ * are not limited to, handheld controllers, optically tracked hands, and gaze-based input methods
+ * that operate on the viewer's pose.
+ *
+ * @augments EventHandler
+ */
+declare class XrInputSource extends EventHandler {
+    /**
+     * Create a new XrInputSource instance.
+     *
+     * @param {XrManager} manager - WebXR Manager.
+     * @param {*} xrInputSource - [XRInputSource](https://developer.mozilla.org/en-US/docs/Web/API/XRInputSource)
+     * object that is created by WebXR API.
+     * @hideconstructor
+     */
+    constructor(manager: XrManager, xrInputSource: any);
+    /**
+     * @type {number}
+     * @private
+     */
+    private _id;
+    /**
+     * @type {XrManager}
+     * @private
+     */
+    private _manager;
+    /**
+     * @type {XRInputSource}
+     * @private
+     */
+    private _xrInputSource;
+    /**
+     * @type {Ray}
+     * @private
+     */
+    private _ray;
+    /**
+     * @type {Ray}
+     * @private
+     */
+    private _rayLocal;
+    /**
+     * @type {boolean}
+     * @private
+     */
+    private _grip;
+    /**
+     * @type {XrHand}
+     * @private
+     */
+    private _hand;
+    /**
+     * @type {Mat4|null}
+     * @private
+     */
+    private _localTransform;
+    /**
+     * @type {Mat4|null}
+     * @private
+     */
+    private _worldTransform;
+    /**
+     * @type {Vec3}
+     * @private
+     */
+    private _position;
+    /**
+     * @type {Quat}
+     * @private
+     */
+    private _rotation;
+    /**
+     * @type {Mat4|null}
+     * @private
+     */
+    private _localPosition;
+    /**
+     * @type {Mat4|null}
+     * @private
+     */
+    private _localRotation;
+    /**
+     * @type {boolean}
+     * @private
+     */
+    private _dirtyLocal;
+    /**
+     * @type {boolean}
+     * @private
+     */
+    private _dirtyRay;
+    /**
+     * @type {boolean}
+     * @private
+     */
+    private _selecting;
+    /**
+     * @type {boolean}
+     * @private
+     */
+    private _squeezing;
+    /**
+     * @type {boolean}
+     * @private
+     */
+    private _elementInput;
+    /**
+     * @type {Entity|null}
+     * @private
+     */
+    private _elementEntity;
+    /**
+     * @type {XrHitTestSource[]}
+     * @private
+     */
+    private _hitTestSources;
+    /**
+     * Fired when {@link XrInputSource} is removed.
+     *
+     * @event XrInputSource#remove
+     * @example
+     * inputSource.once('remove', function () {
+     *     // input source is not available anymore
+     * });
+     */
+    /**
+     * Fired when input source has triggered primary action. This could be pressing a trigger
+     * button, or touching a screen.
+     *
+     * @event XrInputSource#select
+     * @param {object} evt - XRInputSourceEvent event data from WebXR API.
+     * @example
+     * var ray = new pc.Ray();
+     * inputSource.on('select', function (evt) {
+     *     ray.set(inputSource.getOrigin(), inputSource.getDirection());
+     *     if (obj.intersectsRay(ray)) {
+     *         // selected an object with input source
+     *     }
+     * });
+     */
+    /**
+     * Fired when input source has started to trigger primary action.
+     *
+     * @event XrInputSource#selectstart
+     * @param {object} evt - XRInputSourceEvent event data from WebXR API.
+     */
+    /**
+     * Fired when input source has ended triggering primary action.
+     *
+     * @event XrInputSource#selectend
+     * @param {object} evt - XRInputSourceEvent event data from WebXR API.
+     */
+    /**
+     * Fired when input source has triggered squeeze action. This is associated with "grabbing"
+     * action on the controllers.
+     *
+     * @event XrInputSource#squeeze
+     * @param {object} evt - XRInputSourceEvent event data from WebXR API.
+     */
+    /**
+     * Fired when input source has started to trigger squeeze action.
+     *
+     * @event XrInputSource#squeezestart
+     * @param {object} evt - XRInputSourceEvent event data from WebXR API.
+     * @example
+     * inputSource.on('squeezestart', function (evt) {
+     *     if (obj.containsPoint(inputSource.getPosition())) {
+     *         // grabbed an object
+     *     }
+     * });
+     */
+    /**
+     * Fired when input source has ended triggering squeeze action.
+     *
+     * @event XrInputSource#squeezeend
+     * @param {object} evt - XRInputSourceEvent event data from WebXR API.
+     */
+    /**
+     * Fired when new {@link XrHitTestSource} is added to the input source.
+     *
+     * @event XrInputSource#hittest:add
+     * @param {XrHitTestSource} hitTestSource - Hit test source that has been added.
+     * @example
+     * inputSource.on('hittest:add', function (hitTestSource) {
+     *     // new hit test source is added
+     * });
+     */
+    /**
+     * Fired when {@link XrHitTestSource} is removed to the the input source.
+     *
+     * @event XrInputSource#hittest:remove
+     * @param {XrHitTestSource} hitTestSource - Hit test source that has been removed.
+     * @example
+     * inputSource.on('remove', function (hitTestSource) {
+     *     // hit test source is removed
+     * });
+     */
+    /**
+     * Fired when hit test source receives new results. It provides transform information that
+     * tries to match real world picked geometry.
+     *
+     * @event XrInputSource#hittest:result
+     * @param {XrHitTestSource} hitTestSource - Hit test source that produced the hit result.
+     * @param {Vec3} position - Position of hit test.
+     * @param {Quat} rotation - Rotation of hit test.
+     * @example
+     * inputSource.on('hittest:result', function (hitTestSource, position, rotation) {
+     *     target.setPosition(position);
+     *     target.setRotation(rotation);
+     * });
+     */
+    /**
+     * Unique number associated with instance of input source. Same physical devices when
+     * reconnected will not share this ID.
+     *
+     * @type {number}
+     */
+    get id(): number;
+    /**
+     * XRInputSource object that is associated with this input source.
+     *
+     * @type {object}
+     */
+    get inputSource(): any;
+    /**
+     * Type of ray Input Device is based on. Can be one of the following:
+     *
+     * - {@link XRTARGETRAY_GAZE}: Gaze - indicates the target ray will originate at the viewer and
+     * follow the direction it is facing. This is commonly referred to as a "gaze input" device in
+     * the context of head-mounted displays.
+     * - {@link XRTARGETRAY_SCREEN}: Screen - indicates that the input source was an interaction
+     * with the canvas element associated with an inline session's output context, such as a mouse
+     * click or touch event.
+     * - {@link XRTARGETRAY_POINTER}: Tracked Pointer - indicates that the target ray originates
+     * from either a handheld device or other hand-tracking mechanism and represents that the user
+     * is using their hands or the held device for pointing.
+     *
+     * @type {string}
+     */
+    get targetRayMode(): string;
+    /**
+     * Describes which hand input source is associated with. Can be one of the following:
+     *
+     * - {@link XRHAND_NONE}: None - input source is not meant to be held in hands.
+     * - {@link XRHAND_LEFT}: Left - indicates that input source is meant to be held in left hand.
+     * - {@link XRHAND_RIGHT}: Right - indicates that input source is meant to be held in right
+     * hand.
+     *
+     * @type {string}
+     */
+    get handedness(): string;
+    /**
+     * List of input profile names indicating both the preferred visual representation and behavior
+     * of the input source.
+     *
+     * @type {string[]}
+     */
+    get profiles(): string[];
+    /**
+     * If input source can be held, then it will have node with its world transformation, that can
+     * be used to position and rotate virtual joysticks based on it.
+     *
+     * @type {boolean}
+     */
+    get grip(): boolean;
+    /**
+     * If input source is a tracked hand, then it will point to {@link XrHand} otherwise it is
+     * null.
+     *
+     * @type {XrHand|null}
+     */
+    get hand(): XrHand;
+    /**
+     * If input source has buttons, triggers, thumbstick or touchpad, then this object provides
+     * access to its states.
+     *
+     * @type {Gamepad|null}
+     */
+    get gamepad(): Gamepad;
+    /**
+     * True if input source is in active primary action between selectstart and selectend events.
+     *
+     * @type {boolean}
+     */
+    get selecting(): boolean;
+    /**
+     * True if input source is in active squeeze action between squeezestart and squeezeend events.
+     *
+     * @type {boolean}
+     */
+    get squeezing(): boolean;
+    /**
+     * Set to true to allow input source to interact with Element components. Defaults to true.
+     *
+     * @type {boolean}
+     */
+    set elementInput(arg: boolean);
+    get elementInput(): boolean;
+    /**
+     * If {@link XrInputSource#elementInput} is true, this property will hold entity with Element
+     * component at which this input source is hovering, or null if not hovering over any element.
+     *
+     * @type {Entity|null}
+     */
+    get elementEntity(): Entity;
+    /**
+     * List of active {@link XrHitTestSource} instances created by this input source.
+     *
+     * @type {XrHitTestSource[]}
+     */
+    get hitTestSources(): XrHitTestSource[];
+    /**
+     * @param {*} frame - XRFrame from requestAnimationFrame callback.
+     * @ignore
+     */
+    update(frame: any): void;
+    /** @private */
+    private _updateTransforms;
+    /** @private */
+    private _updateRayTransforms;
+    /**
+     * Get the world space position of input source if it is handheld ({@link XrInputSource#grip}
+     * is true). Otherwise it will return null.
+     *
+     * @returns {Vec3|null} The world space position of handheld input source.
+     */
+    getPosition(): Vec3 | null;
+    /**
+     * Get the local space position of input source if it is handheld ({@link XrInputSource#grip}
+     * is true). Local space is relative to parent of the XR camera. Otherwise it will return null.
+     *
+     * @returns {Vec3|null} The world space position of handheld input source.
+     */
+    getLocalPosition(): Vec3 | null;
+    /**
+     * Get the world space rotation of input source if it is handheld ({@link XrInputSource#grip}
+     * is true). Otherwise it will return null.
+     *
+     * @returns {Quat|null} The world space rotation of handheld input source.
+     */
+    getRotation(): Quat | null;
+    /**
+     * Get the local space rotation of input source if it is handheld ({@link XrInputSource#grip}
+     * is true). Local space is relative to parent of the XR camera. Otherwise it will return null.
+     *
+     * @returns {Vec3|null} The world space rotation of handheld input source.
+     */
+    getLocalRotation(): Vec3 | null;
+    /**
+     * Get the world space origin of input source ray.
+     *
+     * @returns {Vec3} The world space origin of input source ray.
+     */
+    getOrigin(): Vec3;
+    /**
+     * Get the world space direction of input source ray.
+     *
+     * @returns {Vec3} The world space direction of input source ray.
+     */
+    getDirection(): Vec3;
+    /**
+     * Attempts to start hit test source based on this input source.
+     *
+     * @param {object} [options] - Object for passing optional arguments.
+     * @param {string[]} [options.entityTypes] - Optional list of underlying entity types against
+     * which hit tests will be performed. Defaults to [ {@link XRTRACKABLE_PLANE} ]. Can be any
+     * combination of the following:
+     *
+     * - {@link XRTRACKABLE_POINT}: Point - indicates that the hit test results will be computed
+     * based on the feature points detected by the underlying Augmented Reality system.
+     * - {@link XRTRACKABLE_PLANE}: Plane - indicates that the hit test results will be computed
+     * based on the planes detected by the underlying Augmented Reality system.
+     * - {@link XRTRACKABLE_MESH}: Mesh - indicates that the hit test results will be computed
+     * based on the meshes detected by the underlying Augmented Reality system.
+     *
+     * @param {Ray} [options.offsetRay] - Optional ray by which hit test ray can be offset.
+     * @param {XrHitTestStartCallback} [options.callback] - Optional callback function called once
+     * hit test source is created or failed.
+     * @example
+     * app.xr.input.on('add', function (inputSource) {
+     *     inputSource.hitTestStart({
+     *         callback: function (err, hitTestSource) {
+     *             if (err) return;
+     *             hitTestSource.on('result', function (position, rotation) {
+     *                 // position and rotation of hit test result
+     *                 // that will be created from touch on mobile devices
+     *             });
+     *         }
+     *     });
+     * });
+     */
+    hitTestStart(options?: {
+        entityTypes?: string[];
+        offsetRay?: Ray;
+        callback?: XrHitTestStartCallback;
+    }): void;
+    /**
+     * @param {XrHitTestSource} hitTestSource - Hit test source to be added.
+     * @private
+     */
+    private onHitTestSourceAdd;
+    /**
+     * @param {XrHitTestSource} hitTestSource - Hit test source to be removed.
+     * @private
+     */
+    private onHitTestSourceRemove;
+}
+
 declare class ElementComponentData {
     enabled: boolean;
 }
@@ -15231,7 +16303,7 @@ declare class StandardMaterialOptionsBuilder {
     _updateMaterialOptions(options: any, stdMat: any): void;
     _updateEnvOptions(options: any, stdMat: any, scene: any): void;
     _updateLightOptions(options: any, stdMat: any, objDefs: any, sortedLights: any, staticLightList: any): void;
-    _updateTexOptions(options: any, stdMat: any, p: any, hasUv0: any, hasUv1: any, hasVcolor: any, minimalOptions: any): void;
+    _updateTexOptions(options: any, stdMat: any, p: any, hasUv0: any, hasUv1: any, hasVcolor: any, minimalOptions: any, uniqueTextureMap: any): void;
     _collectLights(lType: any, lights: any, lightsFiltered: any, mask: any, staticLightList: any): void;
     _getMapTransformID(xform: any, uv: any): any;
 }
@@ -17175,7 +18247,12 @@ declare class ElementComponent extends Component {
      * of the anchor are not equal. In that case the component will be resized to cover that entire
      * area. e.g. a value of [0, 0, 1, 1] will make the component resize exactly as its parent.
      *
-     * @type {Vec4}
+     * @example
+     * pc.app.root.findByName("Inventory").element.anchor = new pc.Vec4(Math.random() * 0.1, 0, 1, 0);
+     * @example
+     * pc.app.root.findByName("Inventory").element.anchor = [Math.random() * 0.1, 0, 1, 0];
+     *
+     * @type {Vec4 | number[]}
      */
     set anchor(arg: Vec4);
     get anchor(): Vec4;
@@ -17278,7 +18355,12 @@ declare class ElementComponent extends Component {
      * The position of the pivot of the component relative to its anchor. Each value ranges from 0
      * to 1 where [0,0] is the bottom left and [1,1] is the top right.
      *
-     * @type {Vec2}
+     * @example
+     * pc.app.root.findByName("Inventory").element.pivot = [Math.random() * 0.1, Math.random() * 0.1];
+     * @example
+     * pc.app.root.findByName("Inventory").element.pivot = new pc.Vec2(Math.random() * 0.1, Math.random() * 0.1);
+     *
+     * @type {Vec2 | number[]}
      */
     set pivot(arg: Vec2);
     get pivot(): Vec2;
@@ -17367,8 +18449,24 @@ declare class ElementComponent extends Component {
     get worldCorners(): Vec3[];
     _patch(): void;
     _unpatch(): void;
-    _setPosition(x: any, y: any, z: any): any;
-    _setLocalPosition(x: any, y: any, z: any): void;
+    /**
+     * Patched method for setting the position.
+     *
+     * @param {number|Vec3} x - The x coordinate or Vec3
+     * @param {number} y - The y coordinate
+     * @param {number} z - The z coordinate
+     * @private
+     */
+    private _setPosition;
+    /**
+     * Patched method for setting the local position.
+     *
+     * @param {number|Vec3} x - The x coordinate or Vec3
+     * @param {number} y - The y coordinate
+     * @param {number} z - The z coordinate
+     * @private
+     */
+    private _setLocalPosition;
     _sync(): any;
     _dirtyLocal: boolean;
     _dirtyWorld: boolean;
@@ -17394,12 +18492,54 @@ declare class ElementComponent extends Component {
     onLayerAdded(layer: any): void;
     onLayerRemoved(layer: any): void;
     onRemove(): void;
-    _calculateSize(propagateCalculatedWidth: any, propagateCalculatedHeight: any): void;
+    /**
+     * Recalculates these properties:
+     *   - `_localAnchor`
+     *   - `width`
+     *   - `height`
+     *   - Local position is updated if anchors are split
+     *
+     * Assumes these properties are up to date:
+     *   - `_margin`
+     *
+     * @param {boolean} propagateCalculatedWidth - If true, call `_setWidth` instead
+     * of `_setCalculatedWidth`
+     * @param {boolean} propagateCalculatedHeight - If true, call `_setHeight` instead
+     * of `_setCalculatedHeight`
+     * @private
+     */
+    private _calculateSize;
     _sizeDirty: boolean;
-    _setWidth(w: any): void;
-    _setHeight(h: any): void;
-    _setCalculatedWidth(value: any, updateMargins: any): void;
-    _setCalculatedHeight(value: any, updateMargins: any): void;
+    /**
+     * Internal set width without updating margin.
+     *
+     * @param {number} w - The new width.
+     * @private
+     */
+    private _setWidth;
+    /**
+     * Internal set height without updating margin.
+     *
+     * @param {number} h - The new height.
+     * @private
+     */
+    private _setHeight;
+    /**
+     * This method sets the calculated width value and optionally updates the margins.
+     *
+     * @param {number} value - The new calculated width.
+     * @param {boolean} updateMargins - Update margins or not.
+     * @private
+     */
+    private _setCalculatedWidth;
+    /**
+     * This method sets the calculated height value and optionally updates the margins.
+     *
+     * @param {number} value - The new calculated height.
+     * @param {boolean} updateMargins - Update margins or not.
+     * @private
+     */
+    private _setCalculatedHeight;
     _flagChildrenAsDirty(): void;
     addModelToLayers(model: any): void;
     removeModelFromLayers(model: any): void;
@@ -17408,6 +18548,297 @@ declare class ElementComponent extends Component {
     _isScreenSpace(): boolean;
     _isScreenCulled(): boolean;
     _dirtyBatch(): void;
+}
+
+
+
+
+/**
+ * Handles mouse and touch events for {@link ElementComponent}s. When input events occur on an
+ * ElementComponent this fires the appropriate events on the ElementComponent.
+ */
+declare class ElementInput {
+    /**
+     * Create a new ElementInput instance.
+     *
+     * @param {Element} domElement - The DOM element.
+     * @param {object} [options] - Optional arguments.
+     * @param {boolean} [options.useMouse] - Whether to allow mouse input. Defaults to true.
+     * @param {boolean} [options.useTouch] - Whether to allow touch input. Defaults to true.
+     * @param {boolean} [options.useXr] - Whether to allow XR input sources. Defaults to true.
+     */
+    constructor(domElement: Element, options?: {
+        useMouse?: boolean;
+        useTouch?: boolean;
+        useXr?: boolean;
+    });
+    _app: any;
+    _attached: boolean;
+    _target: Element;
+    _enabled: boolean;
+    _lastX: number;
+    _lastY: number;
+    _upHandler: any;
+    _downHandler: any;
+    _moveHandler: any;
+    _wheelHandler: any;
+    _touchstartHandler: any;
+    _touchendHandler: any;
+    _touchcancelHandler: any;
+    _touchmoveHandler: any;
+    _sortHandler: any;
+    _elements: any[];
+    _hoveredElement: any;
+    _pressedElement: any;
+    _touchedElements: {};
+    _touchesForWhichTouchLeaveHasFired: {};
+    _selectedElements: {};
+    _selectedPressedElements: {};
+    _useMouse: boolean;
+    _useTouch: boolean;
+    _useXr: boolean;
+    _selectEventsAttached: boolean;
+    _clickedEntities: {};
+    set enabled(arg: boolean);
+    get enabled(): boolean;
+    set app(arg: any);
+    get app(): any;
+    /**
+     * Attach mouse and touch events to a DOM element.
+     *
+     * @param {Element} domElement - The DOM element.
+     */
+    attach(domElement: Element): void;
+    attachSelectEvents(): void;
+    /**
+     * Remove mouse and touch events from the DOM element that it is attached to.
+     */
+    detach(): void;
+    /**
+     * Add a {@link ElementComponent} to the internal list of ElementComponents that are being
+     * checked for input.
+     *
+     * @param {ElementComponent} element - The ElementComponent.
+     */
+    addElement(element: ElementComponent): void;
+    /**
+     * Remove a {@link ElementComponent} from the internal list of ElementComponents that are being
+     * checked for input.
+     *
+     * @param {ElementComponent} element - The ElementComponent.
+     */
+    removeElement(element: ElementComponent): void;
+    _handleUp(event: any): void;
+    _handleDown(event: any): void;
+    _handleMove(event: any): void;
+    _handleWheel(event: any): void;
+    _determineTouchedElements(event: any): {};
+    _handleTouchStart(event: any): void;
+    _handleTouchEnd(event: any): void;
+    _handleTouchMove(event: any): void;
+    _onElementMouseEvent(eventType: any, event: any): void;
+    _onXrStart(): void;
+    _onXrEnd(): void;
+    _onXrUpdate(): void;
+    _onXrInputRemove(inputSource: any): void;
+    _onSelectStart(inputSource: any, event: any): void;
+    _onSelectEnd(inputSource: any, event: any): void;
+    _onElementSelectEvent(eventType: any, inputSource: any, event: any): void;
+    _fireEvent(name: any, evt: any): void;
+    _calcMouseCoords(event: any): void;
+    _calcTouchCoords(touch: any): {
+        x: number;
+        y: number;
+    };
+    _sortElements(a: any, b: any): any;
+    _getTargetElementByCoords(camera: any, x: any, y: any): any;
+    _getTargetElementByRay(ray: any, camera: any): any;
+    _getTargetElement(camera: any, rayScreen: any, ray3d: any): any;
+    _buildHitCorners(element: any, screenOrWorldCorners: any, scaleX: any, scaleY: any, scaleZ: any): any;
+    _calculateScaleToScreen(element: any): Vec3;
+    _calculateScaleToWorld(element: any): Vec3;
+    _calculateRayScreen(x: any, y: any, camera: any, ray: any): boolean;
+    _calculateRay3d(x: any, y: any, camera: any, ray: any): boolean;
+    _checkElement(ray: any, element: any, screen: any): number;
+}
+/**
+ * Represents an input event fired on a {@link ElementComponent}. When an event is raised on an
+ * ElementComponent it bubbles up to its parent ElementComponents unless we call stopPropagation().
+ */
+declare class ElementInputEvent {
+    /**
+     * Create a new ElementInputEvent instance.
+     *
+     * @param {MouseEvent|TouchEvent} event - The MouseEvent or TouchEvent that was originally
+     * raised.
+     * @param {ElementComponent} element - The ElementComponent that this event was originally
+     * raised on.
+     * @param {CameraComponent} camera - The CameraComponent that this event was originally raised
+     * via.
+     */
+    constructor(event: MouseEvent | TouchEvent, element: ElementComponent, camera: CameraComponent);
+    /**
+     * The MouseEvent or TouchEvent that was originally raised.
+     *
+     * @type {MouseEvent|TouchEvent}
+     */
+    event: MouseEvent | TouchEvent;
+    /**
+     * The ElementComponent that this event was originally raised on.
+     *
+     * @type {ElementComponent}
+     */
+    element: ElementComponent;
+    /**
+     * The CameraComponent that this event was originally raised via.
+     *
+     * @type {CameraComponent}
+     */
+    camera: CameraComponent;
+    _stopPropagation: boolean;
+    /**
+     * Stop propagation of the event to parent {@link ElementComponent}s. This also stops
+     * propagation of the event to other event listeners of the original DOM Event.
+     */
+    stopPropagation(): void;
+}
+/**
+ * Represents a Mouse event fired on a {@link ElementComponent}.
+ *
+ * @augments ElementInputEvent
+ */
+declare class ElementMouseEvent extends ElementInputEvent {
+    /**
+     * Create an instance of an ElementMouseEvent.
+     *
+     * @param {MouseEvent} event - The MouseEvent that was originally raised.
+     * @param {ElementComponent} element - The ElementComponent that this event was originally
+     * raised on.
+     * @param {CameraComponent} camera - The CameraComponent that this event was originally raised
+     * via.
+     * @param {number} x - The x coordinate.
+     * @param {number} y - The y coordinate.
+     * @param {number} lastX - The last x coordinate.
+     * @param {number} lastY - The last y coordinate.
+     */
+    constructor(event: MouseEvent, element: ElementComponent, camera: CameraComponent, x: number, y: number, lastX: number, lastY: number);
+    x: number;
+    y: number;
+    /**
+     * Whether the ctrl key was pressed.
+     *
+     * @type {boolean}
+     */
+    ctrlKey: boolean;
+    /**
+     * Whether the alt key was pressed.
+     *
+     * @type {boolean}
+     */
+    altKey: boolean;
+    /**
+     * Whether the shift key was pressed.
+     *
+     * @type {boolean}
+     */
+    shiftKey: boolean;
+    /**
+     * Whether the meta key was pressed.
+     *
+     * @type {boolean}
+     */
+    metaKey: boolean;
+    /**
+     * The mouse button.
+     *
+     * @type {number}
+     */
+    button: number;
+    /**
+     * The amount of horizontal movement of the cursor.
+     *
+     * @type {number}
+     */
+    dx: number;
+    /**
+     * The amount of vertical movement of the cursor.
+     *
+     * @type {number}
+     */
+    dy: number;
+    /**
+     * The amount of the wheel movement.
+     *
+     * @type {number}
+     */
+    wheelDelta: number;
+}
+/**
+ * Represents a XRInputSourceEvent fired on a {@link ElementComponent}.
+ *
+ * @augments ElementInputEvent
+ */
+declare class ElementSelectEvent extends ElementInputEvent {
+    /**
+     * Create an instance of a ElementSelectEvent.
+     *
+     * @param {object} event - The XRInputSourceEvent that was originally raised.
+     * @param {ElementComponent} element - The ElementComponent that this event was originally
+     * raised on.
+     * @param {CameraComponent} camera - The CameraComponent that this event was originally raised
+     * via.
+     * @param {XrInputSource} inputSource - The XR input source that this event was originally
+     * raised from.
+     */
+    constructor(event: object, element: ElementComponent, camera: CameraComponent, inputSource: XrInputSource);
+    /**
+     * The XR input source that this event was originally raised from.
+     *
+     * @type {XrInputSource}
+     */
+    inputSource: XrInputSource;
+}
+/**
+ * Represents a TouchEvent fired on a {@link ElementComponent}.
+ *
+ * @augments ElementInputEvent
+ */
+declare class ElementTouchEvent extends ElementInputEvent {
+    /**
+     * Create an instance of an ElementTouchEvent.
+     *
+     * @param {TouchEvent} event - The TouchEvent that was originally raised.
+     * @param {ElementComponent} element - The ElementComponent that this event was originally
+     * raised on.
+     * @param {CameraComponent} camera - The CameraComponent that this event was originally raised
+     * via.
+     * @param {number} x - The x coordinate of the touch that triggered the event.
+     * @param {number} y - The y coordinate of the touch that triggered the event.
+     * @param {Touch} touch - The touch object that triggered the event.
+     */
+    constructor(event: TouchEvent, element: ElementComponent, camera: CameraComponent, x: number, y: number, touch: Touch);
+    /**
+     * The Touch objects representing all current points of contact with the surface,
+     * regardless of target or changed status.
+     *
+     * @type {Touch[]}
+     */
+    touches: Touch[];
+    /**
+     * The Touch objects representing individual points of contact whose states changed between
+     * the previous touch event and this one.
+     *
+     * @type {Touch[]}
+     */
+    changedTouches: Touch[];
+    x: number;
+    y: number;
+    /**
+     * The touch object that triggered the event.
+     *
+     * @type {Touch}
+     */
+    touch: Touch;
 }
 
 /**
@@ -17456,11 +18887,26 @@ declare class ElementDragHelper extends EventHandler {
     _onMouseDownOrTouchStart(event: any): void;
     _dragCamera: any;
     _onMouseUpOrTouchEnd(): void;
-    _screenToLocal(event: any): Vec3;
+    /**
+     * This method calculates the `Vec3` intersection point of plane/ray intersection based on
+     * the mouse/touch input event. If there is no intersection, it returns `null`.
+     *
+     * @param {ElementTouchEvent} event - The event.
+     * @returns {Vec3|null} The `Vec3` intersection point of plane/ray intersection, if there
+     * is an intersection, otherwise `null`
+     * @private
+     */
+    private _screenToLocal;
     _determineInputPosition(event: any): void;
     _chooseRayOriginAndDirection(): void;
     _calculateDragScale(): void;
-    _onMove(event: any): void;
+    /**
+     * This method is linked to `_element` events: `mousemove` and `touchmove`
+     *
+     * @param {ElementTouchEvent} event - The event.
+     * @private
+     */
+    private _onMove;
     destroy(): void;
     set enabled(arg: boolean);
     get enabled(): boolean;
@@ -23996,281 +25442,6 @@ declare class XrDomOverlay {
     get root(): Element;
 }
 
-
-/**
- * Represents XR hit test source, which provides access to hit results of real world geometry from
- * AR session.
- *
- * @augments EventHandler
- */
-declare class XrHitTestSource extends EventHandler {
-    /**
-     * Create a new XrHitTestSource instance.
-     *
-     * @param {XrManager} manager - WebXR Manager.
-     * @param {*} xrHitTestSource - XRHitTestSource object that is created by WebXR API.
-     * @param {boolean} transient - True if XRHitTestSource created for input source profile.
-     * @hideconstructor
-     */
-    constructor(manager: XrManager, xrHitTestSource: any, transient: boolean);
-    /**
-     * @type {XrManager}
-     * @private
-     */
-    private manager;
-    /**
-     * @type {XRHitTestSource}
-     * @private
-     */
-    private _xrHitTestSource;
-    /**
-     * @type {boolean}
-     * @private
-     */
-    private _transient;
-    /**
-     * Fired when {@link XrHitTestSource} is removed.
-     *
-     * @event XrHitTestSource#remove
-     * @example
-     * hitTestSource.once('remove', function () {
-     *     // hit test source has been removed
-     * });
-     */
-    /**
-     * Fired when hit test source receives new results. It provides transform information that
-     * tries to match real world picked geometry.
-     *
-     * @event XrHitTestSource#result
-     * @param {Vec3} position - Position of hit test.
-     * @param {Quat} rotation - Rotation of hit test.
-     * @param {XrInputSource|null} inputSource - If is transient hit test source, then it will
-     * provide related input source.
-     * @example
-     * hitTestSource.on('result', function (position, rotation, inputSource) {
-     *     target.setPosition(position);
-     *     target.setRotation(rotation);
-     * });
-     */
-    /**
-     * Stop and remove hit test source.
-     */
-    remove(): void;
-    /** @ignore */
-    onStop(): void;
-    /**
-     * @param {*} frame - XRFrame from requestAnimationFrame callback.
-     * @ignore
-     */
-    update(frame: any): void;
-    /**
-     * @param {XRTransientInputHitTestResult[]} results - Hit test results.
-     * @param {XRHitTestSource} inputSource - Input source.
-     * @private
-     */
-    private updateHitResults;
-}
-
-
-
-/**
- * Callback used by {@link XrHitTeststart } and {@link XrHitTeststartForInputSource }.
- */
-export type XrHitTestStartCallback = (err: Error | null, hitTestSource: XrHitTestSource | null) => any;
-/** @typedef {import('./xr-manager.js').XrManager} XrManager */
-/** @typedef {import('../shape/ray.js').Ray} Ray */
-/**
- * Callback used by {@link XrHitTest#start} and {@link XrHitTest#startForInputSource}.
- *
- * @callback XrHitTestStartCallback
- * @param {Error|null} err - The Error object if failed to create hit test source or null.
- * @param {XrHitTestSource|null} hitTestSource - Object that provides access to hit results against
- * real world geometry.
- */
-/**
- * Hit Test provides ability to get position and rotation of ray intersecting point with
- * representation of real world geometry by underlying AR system.
- *
- * @augments EventHandler
- */
-declare class XrHitTest extends EventHandler {
-    /**
-     * Create a new XrHitTest instance.
-     *
-     * @param {XrManager} manager - WebXR Manager.
-     * @hideconstructor
-     */
-    constructor(manager: XrManager);
-    /**
-     * @type {XrManager}
-     * @private
-     */
-    private manager;
-    /**
-     * @type {boolean}
-     * @private
-     */
-    private _supported;
-    /**
-     * @type {XRSession}
-     * @private
-     */
-    private _session;
-    /**
-     * List of active {@link XrHitTestSource}.
-     *
-     * @type {XrHitTestSource[]}
-     */
-    sources: XrHitTestSource[];
-    /**
-     * Fired when new {@link XrHitTestSource} is added to the list.
-     *
-     * @event XrHitTest#add
-     * @param {XrHitTestSource} hitTestSource - Hit test source that has been added.
-     * @example
-     * app.xr.hitTest.on('add', function (hitTestSource) {
-     *     // new hit test source is added
-     * });
-     */
-    /**
-     * Fired when {@link XrHitTestSource} is removed to the list.
-     *
-     * @event XrHitTest#remove
-     * @param {XrHitTestSource} hitTestSource - Hit test source that has been removed.
-     * @example
-     * app.xr.hitTest.on('remove', function (hitTestSource) {
-     *     // hit test source is removed
-     * });
-     */
-    /**
-     * Fired when hit test source receives new results. It provides transform information that
-     * tries to match real world picked geometry.
-     *
-     * @event XrHitTest#result
-     * @param {XrHitTestSource} hitTestSource - Hit test source that produced the hit result.
-     * @param {Vec3} position - Position of hit test.
-     * @param {Quat} rotation - Rotation of hit test.
-     * @param {XrInputSource|null} inputSource - If is transient hit test source, then it will provide related input source.
-     * @example
-     * app.xr.hitTest.on('result', function (hitTestSource, position, rotation, inputSource) {
-     *     target.setPosition(position);
-     *     target.setRotation(rotation);
-     * });
-     */
-    /**
-     * Fired when failed create hit test source.
-     *
-     * @event XrHitTest#error
-     * @param {Error} error - Error object related to failure of creating hit test source.
-     */
-    /** @private */
-    private _onSessionStart;
-    /** @private */
-    private _onSessionEnd;
-    /**
-     * Checks if hit testing is available.
-     *
-     * @param {Function} callback - Error callback.
-     * @param {*} fireError - Event handler on while to fire error event.
-     * @returns {boolean} True if hit test is available.
-     * @private
-     */
-    private isAvailable;
-    /**
-     * Attempts to start hit test with provided reference space.
-     *
-     * @param {object} [options] - Optional object for passing arguments.
-     * @param {string} [options.spaceType] - Reference space type. Defaults to
-     * {@link XRSPACE_VIEWER}. Can be one of the following:
-     *
-     * - {@link XRSPACE_VIEWER}: Viewer - hit test will be facing relative to viewers space.
-     * - {@link XRSPACE_LOCAL}: Local - represents a tracking space with a native origin near the
-     * viewer at the time of creation.
-     * - {@link XRSPACE_LOCALFLOOR}: Local Floor - represents a tracking space with a native origin
-     * at the floor in a safe position for the user to stand. The y axis equals 0 at floor level.
-     * Floor level value might be estimated by the underlying platform.
-     * - {@link XRSPACE_BOUNDEDFLOOR}: Bounded Floor - represents a tracking space with its native
-     * origin at the floor, where the user is expected to move within a pre-established boundary.
-     * - {@link XRSPACE_UNBOUNDED}: Unbounded - represents a tracking space where the user is
-     * expected to move freely around their environment, potentially long distances from their
-     * starting point.
-     *
-     * @param {string} [options.profile] - if hit test source meant to match input source instead
-     * of reference space, then name of profile of the {@link XrInputSource} should be provided.
-     * @param {string[]} [options.entityTypes] - Optional list of underlying entity types against
-     * which hit tests will be performed. Defaults to [ {@link XRTRACKABLE_PLANE} ]. Can be any
-     * combination of the following:
-     *
-     * - {@link XRTRACKABLE_POINT}: Point - indicates that the hit test results will be computed
-     * based on the feature points detected by the underlying Augmented Reality system.
-     * - {@link XRTRACKABLE_PLANE}: Plane - indicates that the hit test results will be computed
-     * based on the planes detected by the underlying Augmented Reality system.
-     * - {@link XRTRACKABLE_MESH}: Mesh - indicates that the hit test results will be computed
-     * based on the meshes detected by the underlying Augmented Reality system.
-     *
-     * @param {Ray} [options.offsetRay] - Optional ray by which hit test ray can be offset.
-     * @param {XrHitTestStartCallback} [options.callback] - Optional callback function called once
-     * hit test source is created or failed.
-     * @example
-     * app.xr.hitTest.start({
-     *     spaceType: pc.XRSPACE_VIEWER,
-     *     callback: function (err, hitTestSource) {
-     *         if (err) return;
-     *         hitTestSource.on('result', function (position, rotation) {
-     *             // position and rotation of hit test result
-     *             // based on Ray facing forward from the Viewer reference space
-     *         });
-     *     }
-     * });
-     * @example
-     * var ray = new pc.Ray(new pc.Vec3(0, 0, 0), new pc.Vec3(0, -1, 0));
-     * app.xr.hitTest.start({
-     *     spaceType: pc.XRSPACE_LOCAL,
-     *     offsetRay: ray,
-     *     callback: function (err, hitTestSource) {
-     *         // hit test source that will sample real world geometry straight down
-     *         // from the position where AR session started
-     *     }
-     * });
-     * @example
-     * app.xr.hitTest.start({
-     *     profile: 'generic-touchscreen',
-     *     callback: function (err, hitTestSource) {
-     *         if (err) return;
-     *         hitTestSource.on('result', function (position, rotation, inputSource) {
-     *             // position and rotation of hit test result
-     *             // that will be created from touch on mobile devices
-     *         });
-     *     }
-     * });
-     */
-    start(options?: {
-        spaceType?: string;
-        profile?: string;
-        entityTypes?: string[];
-        offsetRay?: Ray;
-        callback?: XrHitTestStartCallback;
-    }): void;
-    /**
-     * @param {XRHitTestSource} xrHitTestSource - Hit test source.
-     * @param {boolean} transient - True if hit test source is created from transient input source.
-     * @param {Function} callback - Callback called once hit test source is created.
-     * @private
-     */
-    private _onHitTestSource;
-    /**
-     * @param {*} frame - XRFrame from requestAnimationFrame callback.
-     * @ignore
-     */
-    update(frame: any): void;
-    /**
-     * True if AR Hit Test is supported.
-     *
-     * @type {boolean}
-     */
-    get supported(): boolean;
-}
-
 /**
  * The tracked image interface that is created by the Image Tracking system and is provided as a
  * list from {@link XrImageTracking#images}. It contains information about the tracking state as
@@ -24767,739 +25938,6 @@ declare class XrPlaneDetection extends EventHandler {
      * @type {XrPlane[]|null}
      */
     get planes(): XrPlane[];
-}
-
-
-/** @typedef {import('./xr-hand.js').XrHand} XrHand */
-/** @typedef {import('./xr-joint.js').XrJoint} XrJoint */
-/**
- * Represents finger with related joints and index.
- */
-declare class XrFinger {
-    /**
-     * Create a new XrFinger instance.
-     *
-     * @param {number} index - Index of a finger.
-     * @param {XrHand} hand - Hand that finger relates to.
-     * @hideconstructor
-     */
-    constructor(index: number, hand: XrHand);
-    /**
-     * @type {number}
-     * @private
-     */
-    private _index;
-    /**
-     * @type {XrHand}
-     * @private
-     */
-    private _hand;
-    /**
-     * @type {XrJoint[]}
-     * @private
-     */
-    private _joints;
-    /**
-     * @type {XrJoint|null}
-     * @private
-     */
-    private _tip;
-    /**
-     * Index of a finger, numeration is: thumb, index, middle, ring, little.
-     *
-     * @type {number}
-     */
-    get index(): number;
-    /**
-     * Hand that finger relates to.
-     *
-     * @type {XrHand}
-     */
-    get hand(): XrHand;
-    /**
-     * List of joints that relates to this finger, starting from joint closest to wrist all the way
-     * to the tip of a finger.
-     *
-     * @type {XrJoint[]}
-     */
-    get joints(): XrJoint[];
-    /**
-     * Tip of a finger, or null if not available.
-     *
-     * @type {XrJoint|null}
-     */
-    get tip(): XrJoint;
-}
-
-
-
-/**
- * Represents the joint of a finger.
- */
-declare class XrJoint {
-    /**
-     * Create an XrJoint instance.
-     *
-     * @param {number} index - Index of a joint within a finger.
-     * @param {string} id - Id of a joint based on WebXR Hand Input Specs.
-     * @param {XrHand} hand - Hand that joint relates to.
-     * @param {XrFinger} [finger] - Finger that joint is related to, can be null in case of wrist.
-     * joint.
-     * @hideconstructor
-     */
-    constructor(index: number, id: string, hand: XrHand, finger?: XrFinger);
-    /**
-     * @type {number}
-     * @private
-     */
-    private _index;
-    /**
-     * @type {string}
-     * @private
-     */
-    private _id;
-    /**
-     * @type {XrHand}
-     * @private
-     */
-    private _hand;
-    /**
-     * @type {XrFinger}
-     * @private
-     */
-    private _finger;
-    /**
-     * @type {boolean}
-     * @private
-     */
-    private _wrist;
-    /**
-     * @type {boolean}
-     * @private
-     */
-    private _tip;
-    /**
-     * @type {number}
-     * @private
-     */
-    private _radius;
-    /**
-     * @type {Mat4}
-     * @private
-     */
-    private _localTransform;
-    /**
-     * @type {Mat4}
-     * @private
-     */
-    private _worldTransform;
-    /**
-     * @type {Vec3}
-     * @private
-     */
-    private _localPosition;
-    /**
-     * @type {Quat}
-     * @private
-     */
-    private _localRotation;
-    /**
-     * @type {Vec3}
-     * @private
-     */
-    private _position;
-    /**
-     * @type {Quat}
-     * @private
-     */
-    private _rotation;
-    /**
-     * @type {boolean}
-     * @private
-     */
-    private _dirtyLocal;
-    /**
-     * @param {*} pose - XRJointPose of this joint.
-     * @ignore
-     */
-    update(pose: any): void;
-    /** @private */
-    private _updateTransforms;
-    /**
-     * Get the world space position of a joint.
-     *
-     * @returns {Vec3} The world space position of a joint.
-     */
-    getPosition(): Vec3;
-    /**
-     * Get the world space rotation of a joint.
-     *
-     * @returns {Quat} The world space rotation of a joint.
-     */
-    getRotation(): Quat;
-    /**
-     * Index of a joint within a finger, starting from 0 (root of a finger) all the way to tip of
-     * the finger.
-     *
-     * @type {number}
-     */
-    get index(): number;
-    /**
-     * Hand that joint relates to.
-     *
-     * @type {XrHand}
-     */
-    get hand(): XrHand;
-    /**
-     * Finger that joint relates to.
-     *
-     * @type {XrFinger|null}
-     */
-    get finger(): XrFinger;
-    /**
-     * True if joint is a wrist.
-     *
-     * @type {boolean}
-     */
-    get wrist(): boolean;
-    /**
-     * True if joint is a tip of a finger.
-     *
-     * @type {boolean}
-     */
-    get tip(): boolean;
-    /**
-     * The radius of a joint, which is a distance from joint to the edge of a skin.
-     *
-     * @type {number}
-     */
-    get radius(): number;
-}
-
-
-/**
- * Represents a hand with fingers and joints.
- *
- * @augments EventHandler
- */
-declare class XrHand extends EventHandler {
-    /**
-     * Represents a hand with fingers and joints.
-     *
-     * @param {XrInputSource} inputSource - Input Source that hand is related to.
-     * @hideconstructor
-     */
-    constructor(inputSource: XrInputSource);
-    /**
-     * @type {XrManager}
-     * @private
-     */
-    private _manager;
-    /**
-     * @type {XrInputSource}
-     * @private
-     */
-    private _inputSource;
-    /**
-     * @type {boolean}
-     * @private
-     */
-    private _tracking;
-    /**
-     * @type {XrFinger[]}
-     * @private
-     */
-    private _fingers;
-    /**
-     * @type {XrJoint[]}
-     * @private
-     */
-    private _joints;
-    /**
-     * @type {Object<string, XrJoint>}
-     * @private
-     */
-    private _jointsById;
-    /**
-     * @type {XrJoint[]}
-     * @private
-     */
-    private _tips;
-    /**
-     * @type {XrJoint|null}
-     * @private
-     */
-    private _wrist;
-    /**
-     * Fired when tracking becomes available.
-     *
-     * @event XrHand#tracking
-     */
-    /**
-     * Fired when tracking is lost.
-     *
-     * @event XrHand#trackinglost
-     */
-    /**
-     * @param {*} frame - XRFrame from requestAnimationFrame callback.
-     * @ignore
-     */
-    update(frame: any): void;
-    /**
-     * @param {number} index - Finger index.
-     * @returns {boolean} True if finger is closed and false otherwise.
-     * @private
-     */
-    private _fingerIsClosed;
-    /**
-     * Returns joint by XRHand id from list in specs: https://immersive-web.github.io/webxr-hand-input/.
-     *
-     * @param {string} id - Id of a joint based on specs ID's in XRHand: https://immersive-web.github.io/webxr-hand-input/.
-     * @returns {XrJoint|null} Joint or null if not available.
-     */
-    getJointById(id: string): XrJoint | null;
-    /**
-     * List of fingers of a hand.
-     *
-     * @type {XrFinger[]}
-     */
-    get fingers(): XrFinger[];
-    /**
-     * List of joints of hand.
-     *
-     * @type {XrJoint[]}
-     */
-    get joints(): XrJoint[];
-    /**
-     * List of joints that are fingertips.
-     *
-     * @type {XrJoint[]}
-     */
-    get tips(): XrJoint[];
-    /**
-     * Wrist of a hand, or null if it is not available by WebXR underlying system.
-     *
-     * @type {XrJoint|null}
-     */
-    get wrist(): XrJoint;
-    /**
-     * True if tracking is available, otherwise tracking might be lost.
-     *
-     * @type {boolean}
-     */
-    get tracking(): boolean;
-}
-
-
-
-/**
- * Represents XR input source, which is any input mechanism which allows the user to perform
- * targeted actions in the same virtual space as the viewer. Example XR input sources include, but
- * are not limited to, handheld controllers, optically tracked hands, and gaze-based input methods
- * that operate on the viewer's pose.
- *
- * @augments EventHandler
- */
-declare class XrInputSource extends EventHandler {
-    /**
-     * Create a new XrInputSource instance.
-     *
-     * @param {XrManager} manager - WebXR Manager.
-     * @param {*} xrInputSource - [XRInputSource](https://developer.mozilla.org/en-US/docs/Web/API/XRInputSource)
-     * object that is created by WebXR API.
-     * @hideconstructor
-     */
-    constructor(manager: XrManager, xrInputSource: any);
-    /**
-     * @type {number}
-     * @private
-     */
-    private _id;
-    /**
-     * @type {XrManager}
-     * @private
-     */
-    private _manager;
-    /**
-     * @type {XRInputSource}
-     * @private
-     */
-    private _xrInputSource;
-    /**
-     * @type {Ray}
-     * @private
-     */
-    private _ray;
-    /**
-     * @type {Ray}
-     * @private
-     */
-    private _rayLocal;
-    /**
-     * @type {boolean}
-     * @private
-     */
-    private _grip;
-    /**
-     * @type {XrHand}
-     * @private
-     */
-    private _hand;
-    /**
-     * @type {Mat4|null}
-     * @private
-     */
-    private _localTransform;
-    /**
-     * @type {Mat4|null}
-     * @private
-     */
-    private _worldTransform;
-    /**
-     * @type {Vec3}
-     * @private
-     */
-    private _position;
-    /**
-     * @type {Quat}
-     * @private
-     */
-    private _rotation;
-    /**
-     * @type {Mat4|null}
-     * @private
-     */
-    private _localPosition;
-    /**
-     * @type {Mat4|null}
-     * @private
-     */
-    private _localRotation;
-    /**
-     * @type {boolean}
-     * @private
-     */
-    private _dirtyLocal;
-    /**
-     * @type {boolean}
-     * @private
-     */
-    private _dirtyRay;
-    /**
-     * @type {boolean}
-     * @private
-     */
-    private _selecting;
-    /**
-     * @type {boolean}
-     * @private
-     */
-    private _squeezing;
-    /**
-     * @type {boolean}
-     * @private
-     */
-    private _elementInput;
-    /**
-     * @type {Entity|null}
-     * @private
-     */
-    private _elementEntity;
-    /**
-     * @type {XrHitTestSource[]}
-     * @private
-     */
-    private _hitTestSources;
-    /**
-     * Fired when {@link XrInputSource} is removed.
-     *
-     * @event XrInputSource#remove
-     * @example
-     * inputSource.once('remove', function () {
-     *     // input source is not available anymore
-     * });
-     */
-    /**
-     * Fired when input source has triggered primary action. This could be pressing a trigger
-     * button, or touching a screen.
-     *
-     * @event XrInputSource#select
-     * @param {object} evt - XRInputSourceEvent event data from WebXR API.
-     * @example
-     * var ray = new pc.Ray();
-     * inputSource.on('select', function (evt) {
-     *     ray.set(inputSource.getOrigin(), inputSource.getDirection());
-     *     if (obj.intersectsRay(ray)) {
-     *         // selected an object with input source
-     *     }
-     * });
-     */
-    /**
-     * Fired when input source has started to trigger primary action.
-     *
-     * @event XrInputSource#selectstart
-     * @param {object} evt - XRInputSourceEvent event data from WebXR API.
-     */
-    /**
-     * Fired when input source has ended triggering primary action.
-     *
-     * @event XrInputSource#selectend
-     * @param {object} evt - XRInputSourceEvent event data from WebXR API.
-     */
-    /**
-     * Fired when input source has triggered squeeze action. This is associated with "grabbing"
-     * action on the controllers.
-     *
-     * @event XrInputSource#squeeze
-     * @param {object} evt - XRInputSourceEvent event data from WebXR API.
-     */
-    /**
-     * Fired when input source has started to trigger squeeze action.
-     *
-     * @event XrInputSource#squeezestart
-     * @param {object} evt - XRInputSourceEvent event data from WebXR API.
-     * @example
-     * inputSource.on('squeezestart', function (evt) {
-     *     if (obj.containsPoint(inputSource.getPosition())) {
-     *         // grabbed an object
-     *     }
-     * });
-     */
-    /**
-     * Fired when input source has ended triggering squeeze action.
-     *
-     * @event XrInputSource#squeezeend
-     * @param {object} evt - XRInputSourceEvent event data from WebXR API.
-     */
-    /**
-     * Fired when new {@link XrHitTestSource} is added to the input source.
-     *
-     * @event XrInputSource#hittest:add
-     * @param {XrHitTestSource} hitTestSource - Hit test source that has been added.
-     * @example
-     * inputSource.on('hittest:add', function (hitTestSource) {
-     *     // new hit test source is added
-     * });
-     */
-    /**
-     * Fired when {@link XrHitTestSource} is removed to the the input source.
-     *
-     * @event XrInputSource#hittest:remove
-     * @param {XrHitTestSource} hitTestSource - Hit test source that has been removed.
-     * @example
-     * inputSource.on('remove', function (hitTestSource) {
-     *     // hit test source is removed
-     * });
-     */
-    /**
-     * Fired when hit test source receives new results. It provides transform information that
-     * tries to match real world picked geometry.
-     *
-     * @event XrInputSource#hittest:result
-     * @param {XrHitTestSource} hitTestSource - Hit test source that produced the hit result.
-     * @param {Vec3} position - Position of hit test.
-     * @param {Quat} rotation - Rotation of hit test.
-     * @example
-     * inputSource.on('hittest:result', function (hitTestSource, position, rotation) {
-     *     target.setPosition(position);
-     *     target.setRotation(rotation);
-     * });
-     */
-    /**
-     * Unique number associated with instance of input source. Same physical devices when
-     * reconnected will not share this ID.
-     *
-     * @type {number}
-     */
-    get id(): number;
-    /**
-     * XRInputSource object that is associated with this input source.
-     *
-     * @type {object}
-     */
-    get inputSource(): any;
-    /**
-     * Type of ray Input Device is based on. Can be one of the following:
-     *
-     * - {@link XRTARGETRAY_GAZE}: Gaze - indicates the target ray will originate at the viewer and
-     * follow the direction it is facing. This is commonly referred to as a "gaze input" device in
-     * the context of head-mounted displays.
-     * - {@link XRTARGETRAY_SCREEN}: Screen - indicates that the input source was an interaction
-     * with the canvas element associated with an inline session's output context, such as a mouse
-     * click or touch event.
-     * - {@link XRTARGETRAY_POINTER}: Tracked Pointer - indicates that the target ray originates
-     * from either a handheld device or other hand-tracking mechanism and represents that the user
-     * is using their hands or the held device for pointing.
-     *
-     * @type {string}
-     */
-    get targetRayMode(): string;
-    /**
-     * Describes which hand input source is associated with. Can be one of the following:
-     *
-     * - {@link XRHAND_NONE}: None - input source is not meant to be held in hands.
-     * - {@link XRHAND_LEFT}: Left - indicates that input source is meant to be held in left hand.
-     * - {@link XRHAND_RIGHT}: Right - indicates that input source is meant to be held in right
-     * hand.
-     *
-     * @type {string}
-     */
-    get handedness(): string;
-    /**
-     * List of input profile names indicating both the preferred visual representation and behavior
-     * of the input source.
-     *
-     * @type {string[]}
-     */
-    get profiles(): string[];
-    /**
-     * If input source can be held, then it will have node with its world transformation, that can
-     * be used to position and rotate virtual joysticks based on it.
-     *
-     * @type {boolean}
-     */
-    get grip(): boolean;
-    /**
-     * If input source is a tracked hand, then it will point to {@link XrHand} otherwise it is
-     * null.
-     *
-     * @type {XrHand|null}
-     */
-    get hand(): XrHand;
-    /**
-     * If input source has buttons, triggers, thumbstick or touchpad, then this object provides
-     * access to its states.
-     *
-     * @type {Gamepad|null}
-     */
-    get gamepad(): Gamepad;
-    /**
-     * True if input source is in active primary action between selectstart and selectend events.
-     *
-     * @type {boolean}
-     */
-    get selecting(): boolean;
-    /**
-     * True if input source is in active squeeze action between squeezestart and squeezeend events.
-     *
-     * @type {boolean}
-     */
-    get squeezing(): boolean;
-    /**
-     * Set to true to allow input source to interact with Element components. Defaults to true.
-     *
-     * @type {boolean}
-     */
-    set elementInput(arg: boolean);
-    get elementInput(): boolean;
-    /**
-     * If {@link XrInputSource#elementInput} is true, this property will hold entity with Element
-     * component at which this input source is hovering, or null if not hovering over any element.
-     *
-     * @type {Entity|null}
-     */
-    get elementEntity(): Entity;
-    /**
-     * List of active {@link XrHitTestSource} instances created by this input source.
-     *
-     * @type {XrHitTestSource[]}
-     */
-    get hitTestSources(): XrHitTestSource[];
-    /**
-     * @param {*} frame - XRFrame from requestAnimationFrame callback.
-     * @ignore
-     */
-    update(frame: any): void;
-    /** @private */
-    private _updateTransforms;
-    /** @private */
-    private _updateRayTransforms;
-    /**
-     * Get the world space position of input source if it is handheld ({@link XrInputSource#grip}
-     * is true). Otherwise it will return null.
-     *
-     * @returns {Vec3|null} The world space position of handheld input source.
-     */
-    getPosition(): Vec3 | null;
-    /**
-     * Get the local space position of input source if it is handheld ({@link XrInputSource#grip}
-     * is true). Local space is relative to parent of the XR camera. Otherwise it will return null.
-     *
-     * @returns {Vec3|null} The world space position of handheld input source.
-     */
-    getLocalPosition(): Vec3 | null;
-    /**
-     * Get the world space rotation of input source if it is handheld ({@link XrInputSource#grip}
-     * is true). Otherwise it will return null.
-     *
-     * @returns {Quat|null} The world space rotation of handheld input source.
-     */
-    getRotation(): Quat | null;
-    /**
-     * Get the local space rotation of input source if it is handheld ({@link XrInputSource#grip}
-     * is true). Local space is relative to parent of the XR camera. Otherwise it will return null.
-     *
-     * @returns {Vec3|null} The world space rotation of handheld input source.
-     */
-    getLocalRotation(): Vec3 | null;
-    /**
-     * Get the world space origin of input source ray.
-     *
-     * @returns {Vec3} The world space origin of input source ray.
-     */
-    getOrigin(): Vec3;
-    /**
-     * Get the world space direction of input source ray.
-     *
-     * @returns {Vec3} The world space direction of input source ray.
-     */
-    getDirection(): Vec3;
-    /**
-     * Attempts to start hit test source based on this input source.
-     *
-     * @param {object} [options] - Object for passing optional arguments.
-     * @param {string[]} [options.entityTypes] - Optional list of underlying entity types against
-     * which hit tests will be performed. Defaults to [ {@link XRTRACKABLE_PLANE} ]. Can be any
-     * combination of the following:
-     *
-     * - {@link XRTRACKABLE_POINT}: Point - indicates that the hit test results will be computed
-     * based on the feature points detected by the underlying Augmented Reality system.
-     * - {@link XRTRACKABLE_PLANE}: Plane - indicates that the hit test results will be computed
-     * based on the planes detected by the underlying Augmented Reality system.
-     * - {@link XRTRACKABLE_MESH}: Mesh - indicates that the hit test results will be computed
-     * based on the meshes detected by the underlying Augmented Reality system.
-     *
-     * @param {Ray} [options.offsetRay] - Optional ray by which hit test ray can be offset.
-     * @param {XrHitTestStartCallback} [options.callback] - Optional callback function called once
-     * hit test source is created or failed.
-     * @example
-     * app.xr.input.on('add', function (inputSource) {
-     *     inputSource.hitTestStart({
-     *         callback: function (err, hitTestSource) {
-     *             if (err) return;
-     *             hitTestSource.on('result', function (position, rotation) {
-     *                 // position and rotation of hit test result
-     *                 // that will be created from touch on mobile devices
-     *             });
-     *         }
-     *     });
-     * });
-     */
-    hitTestStart(options?: {
-        entityTypes?: string[];
-        offsetRay?: Ray;
-        callback?: XrHitTestStartCallback;
-    }): void;
-    /**
-     * @param {XrHitTestSource} hitTestSource - Hit test source to be added.
-     * @private
-     */
-    private onHitTestSourceAdd;
-    /**
-     * @param {XrHitTestSource} hitTestSource - Hit test source to be removed.
-     * @private
-     */
-    private onHitTestSourceRemove;
 }
 
 
@@ -26166,9 +26604,11 @@ declare class XrManager extends EventHandler {
     private _setClipPlanes;
     /**
      * @param {*} frame - XRFrame from requestAnimationFrame callback.
+     *
+     * @returns {boolean} True if update was successful, false otherwise.
      * @ignore
      */
-    update(frame: any): void;
+    update(frame: any): boolean;
     /**
      * True if XR is supported.
      *
@@ -26724,6 +27164,9 @@ declare class Camera {
     _renderTarget: any;
     _scissorRect: Vec4;
     _scissorRectClear: boolean;
+    _aperture: number;
+    _shutter: number;
+    _sensitivity: number;
     _projMat: Mat4;
     _projMatDirty: boolean;
     _projMatSkybox: Mat4;
@@ -26789,6 +27232,12 @@ declare class Camera {
     set scissorRect(arg: Vec4);
     get scissorRect(): Vec4;
     get viewMatrix(): Mat4;
+    set aperture(arg: number);
+    get aperture(): number;
+    set sensitivity(arg: number);
+    get sensitivity(): number;
+    set shutter(arg: number);
+    get shutter(): number;
     /**
      * Creates a duplicate of the camera.
      *
@@ -26827,6 +27276,7 @@ declare class Camera {
     screenToWorld(x: number, y: number, z: number, cw: number, ch: number, worldCoord?: Vec3): Vec3;
     _evaluateProjectionMatrix(): void;
     getProjectionMatrixSkybox(): Mat4;
+    getExposure(): number;
     getScreenSize(sphere: any): number;
 }
 
@@ -27721,296 +28171,6 @@ declare class GamePads {
 
 
 
-/**
- * Handles mouse and touch events for {@link ElementComponent}s. When input events occur on an
- * ElementComponent this fires the appropriate events on the ElementComponent.
- */
-declare class ElementInput {
-    /**
-     * Create a new ElementInput instance.
-     *
-     * @param {Element} domElement - The DOM element.
-     * @param {object} [options] - Optional arguments.
-     * @param {boolean} [options.useMouse] - Whether to allow mouse input. Defaults to true.
-     * @param {boolean} [options.useTouch] - Whether to allow touch input. Defaults to true.
-     * @param {boolean} [options.useXr] - Whether to allow XR input sources. Defaults to true.
-     */
-    constructor(domElement: Element, options?: {
-        useMouse?: boolean;
-        useTouch?: boolean;
-        useXr?: boolean;
-    });
-    _app: any;
-    _attached: boolean;
-    _target: Element;
-    _enabled: boolean;
-    _lastX: number;
-    _lastY: number;
-    _upHandler: any;
-    _downHandler: any;
-    _moveHandler: any;
-    _wheelHandler: any;
-    _touchstartHandler: any;
-    _touchendHandler: any;
-    _touchcancelHandler: any;
-    _touchmoveHandler: any;
-    _sortHandler: any;
-    _elements: any[];
-    _hoveredElement: any;
-    _pressedElement: any;
-    _touchedElements: {};
-    _touchesForWhichTouchLeaveHasFired: {};
-    _selectedElements: {};
-    _selectedPressedElements: {};
-    _useMouse: boolean;
-    _useTouch: boolean;
-    _useXr: boolean;
-    _selectEventsAttached: boolean;
-    _clickedEntities: {};
-    set enabled(arg: boolean);
-    get enabled(): boolean;
-    set app(arg: any);
-    get app(): any;
-    /**
-     * Attach mouse and touch events to a DOM element.
-     *
-     * @param {Element} domElement - The DOM element.
-     */
-    attach(domElement: Element): void;
-    attachSelectEvents(): void;
-    /**
-     * Remove mouse and touch events from the DOM element that it is attached to.
-     */
-    detach(): void;
-    /**
-     * Add a {@link ElementComponent} to the internal list of ElementComponents that are being
-     * checked for input.
-     *
-     * @param {ElementComponent} element - The ElementComponent.
-     */
-    addElement(element: ElementComponent): void;
-    /**
-     * Remove a {@link ElementComponent} from the internal list of ElementComponents that are being
-     * checked for input.
-     *
-     * @param {ElementComponent} element - The ElementComponent.
-     */
-    removeElement(element: ElementComponent): void;
-    _handleUp(event: any): void;
-    _handleDown(event: any): void;
-    _handleMove(event: any): void;
-    _handleWheel(event: any): void;
-    _determineTouchedElements(event: any): {};
-    _handleTouchStart(event: any): void;
-    _handleTouchEnd(event: any): void;
-    _handleTouchMove(event: any): void;
-    _onElementMouseEvent(eventType: any, event: any): void;
-    _onXrStart(): void;
-    _onXrEnd(): void;
-    _onXrUpdate(): void;
-    _onXrInputRemove(inputSource: any): void;
-    _onSelectStart(inputSource: any, event: any): void;
-    _onSelectEnd(inputSource: any, event: any): void;
-    _onElementSelectEvent(eventType: any, inputSource: any, event: any): void;
-    _fireEvent(name: any, evt: any): void;
-    _calcMouseCoords(event: any): void;
-    _calcTouchCoords(touch: any): {
-        x: number;
-        y: number;
-    };
-    _sortElements(a: any, b: any): any;
-    _getTargetElement(camera: any, x: any, y: any): any;
-    _getTargetElementByRay(ray: any, camera: any): any;
-    _buildHitCorners(element: any, screenOrWorldCorners: any, scaleX: any, scaleY: any, scaleZ: any): any;
-    _calculateScaleToScreen(element: any): Vec3;
-    _calculateScaleToWorld(element: any): Vec3;
-    _calculateRayScreen(x: any, y: any, camera: any, ray: any): boolean;
-    _calculateRay3d(x: any, y: any, camera: any, ray: any): boolean;
-    _checkElement(ray: any, element: any, screen: any): number;
-}
-/**
- * Represents an input event fired on a {@link ElementComponent}. When an event is raised on an
- * ElementComponent it bubbles up to its parent ElementComponents unless we call stopPropagation().
- */
-declare class ElementInputEvent {
-    /**
-     * Create a new ElementInputEvent instance.
-     *
-     * @param {MouseEvent|TouchEvent} event - The MouseEvent or TouchEvent that was originally
-     * raised.
-     * @param {ElementComponent} element - The ElementComponent that this event was originally
-     * raised on.
-     * @param {CameraComponent} camera - The CameraComponent that this event was originally raised
-     * via.
-     */
-    constructor(event: MouseEvent | TouchEvent, element: ElementComponent, camera: CameraComponent);
-    /**
-     * The MouseEvent or TouchEvent that was originally raised.
-     *
-     * @type {MouseEvent|TouchEvent}
-     */
-    event: MouseEvent | TouchEvent;
-    /**
-     * The ElementComponent that this event was originally raised on.
-     *
-     * @type {ElementComponent}
-     */
-    element: ElementComponent;
-    /**
-     * The CameraComponent that this event was originally raised via.
-     *
-     * @type {CameraComponent}
-     */
-    camera: CameraComponent;
-    _stopPropagation: boolean;
-    /**
-     * Stop propagation of the event to parent {@link ElementComponent}s. This also stops
-     * propagation of the event to other event listeners of the original DOM Event.
-     */
-    stopPropagation(): void;
-}
-/**
- * Represents a Mouse event fired on a {@link ElementComponent}.
- *
- * @augments ElementInputEvent
- */
-declare class ElementMouseEvent extends ElementInputEvent {
-    /**
-     * Create an instance of an ElementMouseEvent.
-     *
-     * @param {MouseEvent} event - The MouseEvent that was originally raised.
-     * @param {ElementComponent} element - The ElementComponent that this event was originally
-     * raised on.
-     * @param {CameraComponent} camera - The CameraComponent that this event was originally raised
-     * via.
-     * @param {number} x - The x coordinate.
-     * @param {number} y - The y coordinate.
-     * @param {number} lastX - The last x coordinate.
-     * @param {number} lastY - The last y coordinate.
-     */
-    constructor(event: MouseEvent, element: ElementComponent, camera: CameraComponent, x: number, y: number, lastX: number, lastY: number);
-    x: number;
-    y: number;
-    /**
-     * Whether the ctrl key was pressed.
-     *
-     * @type {boolean}
-     */
-    ctrlKey: boolean;
-    /**
-     * Whether the alt key was pressed.
-     *
-     * @type {boolean}
-     */
-    altKey: boolean;
-    /**
-     * Whether the shift key was pressed.
-     *
-     * @type {boolean}
-     */
-    shiftKey: boolean;
-    /**
-     * Whether the meta key was pressed.
-     *
-     * @type {boolean}
-     */
-    metaKey: boolean;
-    /**
-     * The mouse button.
-     *
-     * @type {number}
-     */
-    button: number;
-    /**
-     * The amount of horizontal movement of the cursor.
-     *
-     * @type {number}
-     */
-    dx: number;
-    /**
-     * The amount of vertical movement of the cursor.
-     *
-     * @type {number}
-     */
-    dy: number;
-    /**
-     * The amount of the wheel movement.
-     *
-     * @type {number}
-     */
-    wheelDelta: number;
-}
-/**
- * Represents a XRInputSourceEvent fired on a {@link ElementComponent}.
- *
- * @augments ElementInputEvent
- */
-declare class ElementSelectEvent extends ElementInputEvent {
-    /**
-     * Create an instance of a ElementSelectEvent.
-     *
-     * @param {object} event - The XRInputSourceEvent that was originally raised.
-     * @param {ElementComponent} element - The ElementComponent that this event was originally
-     * raised on.
-     * @param {CameraComponent} camera - The CameraComponent that this event was originally raised
-     * via.
-     * @param {XrInputSource} inputSource - The XR input source that this event was originally
-     * raised from.
-     */
-    constructor(event: object, element: ElementComponent, camera: CameraComponent, inputSource: XrInputSource);
-    /**
-     * The XR input source that this event was originally raised from.
-     *
-     * @type {XrInputSource}
-     */
-    inputSource: XrInputSource;
-}
-/**
- * Represents a TouchEvent fired on a {@link ElementComponent}.
- *
- * @augments ElementInputEvent
- */
-declare class ElementTouchEvent extends ElementInputEvent {
-    /**
-     * Create an instance of an ElementTouchEvent.
-     *
-     * @param {TouchEvent} event - The TouchEvent that was originally raised.
-     * @param {ElementComponent} element - The ElementComponent that this event was originally
-     * raised on.
-     * @param {CameraComponent} camera - The CameraComponent that this event was originally raised
-     * via.
-     * @param {number} x - The x coordinate of the touch that triggered the event.
-     * @param {number} y - The y coordinate of the touch that triggered the event.
-     * @param {Touch} touch - The touch object that triggered the event.
-     */
-    constructor(event: TouchEvent, element: ElementComponent, camera: CameraComponent, x: number, y: number, touch: Touch);
-    /**
-     * The Touch objects representing all current points of contact with the surface,
-     * regardless of target or changed status.
-     *
-     * @type {Touch[]}
-     */
-    touches: Touch[];
-    /**
-     * The Touch objects representing individual points of contact whose states changed between
-     * the previous touch event and this one.
-     *
-     * @type {Touch[]}
-     */
-    changedTouches: Touch[];
-    x: number;
-    y: number;
-    /**
-     * The touch object that triggered the event.
-     *
-     * @type {Touch}
-     */
-    touch: Touch;
-}
-
-
-
-
 
 
 
@@ -28571,6 +28731,10 @@ export type LoadHierarchyCallback = (err: string | null, entity?: Entity) => any
  */
 export type LoadSettingsCallback = (err: string | null) => any;
 /**
+ * Callback used by {@link SceneRegistrychangeScene }.
+ */
+export type ChangeSceneCallback = (err: string | null, entity?: Entity) => any;
+/**
  * Callback used by {@link SceneRegistryloadScene }.
  */
 export type LoadSceneCallback = (err: string | null, entity?: Entity) => any;
@@ -28592,6 +28756,13 @@ export type LoadSceneDataCallback = (err: string | null, sceneItem?: SceneRegist
  *
  * @callback LoadSettingsCallback
  * @param {string|null} err - The error message in the case where the loading or parsing fails.
+ */
+/**
+ * Callback used by {@link SceneRegistry#changeScene}.
+ *
+ * @callback ChangeSceneCallback
+ * @param {string|null} err - The error message in the case where the loading or parsing fails.
+ * @param {Entity} [entity] - The loaded root entity if no errors were encountered.
  */
 /**
  * Callback used by {@link SceneRegistry#loadScene}.
@@ -28667,7 +28838,7 @@ declare class SceneRegistry {
      * scene loading quicker for the user.
      *
      * @param {SceneRegistryItem | string} sceneItem - The scene item (which can be found with
-     * {@link SceneRegistry#find} or URL of the scene file. Usually this will be "scene_id.json".
+     * {@link SceneRegistry#find}, URL of the scene file (e.g."scene_id.json") or name of the scene.
      * @param {LoadSceneDataCallback} callback - The function to call after loading,
      * passed (err, sceneItem) where err is null if no errors occurred.
      * @example
@@ -28689,12 +28860,13 @@ declare class SceneRegistry {
      * app.scenes.unloadSceneData(sceneItem);
      */
     unloadSceneData(sceneItem: SceneRegistryItem | string): void;
+    _loadSceneHierarchy(sceneItem: any, onBeforeAddHierarchy: any, callback: any): void;
     /**
      * Load a scene file, create and initialize the Entity hierarchy and add the hierarchy to the
      * application root Entity.
      *
      * @param {SceneRegistryItem | string} sceneItem - The scene item (which can be found with
-     * {@link SceneRegistry#find} or URL of the scene file. Usually this will be "scene_id.json".
+     * {@link SceneRegistry#find}, URL of the scene file (e.g."scene_id.json") or name of the scene.
      * @param {LoadHierarchyCallback} callback - The function to call after loading,
      * passed (err, entity) where err is null if no errors occurred.
      * @example
@@ -28712,20 +28884,38 @@ declare class SceneRegistry {
      * Load a scene file and apply the scene settings to the current scene.
      *
      * @param {SceneRegistryItem | string} sceneItem - The scene item (which can be found with
-     * {@link SceneRegistry#find} or URL of the scene file. Usually this will be "scene_id.json".
+     * {@link SceneRegistry#find}, URL of the scene file (e.g."scene_id.json") or name of the scene.
      * @param {LoadSettingsCallback} callback - The function called after the settings
      * are applied. Passed (err) where err is null if no error occurred.
      * @example
      * var sceneItem = app.scenes.find("Scene Name");
-     * app.scenes.loadSceneHierarchy(sceneItem, function (err, entity) {
+     * app.scenes.loadSceneSettings(sceneItem, function (err) {
      *     if (!err) {
-     *         var e = app.root.find("My New Entity");
+     *         // success
      *     } else {
      *         // error
      *     }
      * });
      */
     loadSceneSettings(sceneItem: SceneRegistryItem | string, callback: LoadSettingsCallback): void;
+    /**
+     * Change to a new scene. Calling this function will load the scene data, delete all
+     * entities and graph nodes under `app.root` and load the scene settings and hierarchy.
+     *
+     * @param {SceneRegistryItem | string} sceneItem - The scene item (which can be found with
+     * {@link SceneRegistry#find}, URL of the scene file (e.g."scene_id.json") or name of the scene.
+     * @param {ChangeSceneCallback} [callback] - The function to call after loading,
+     * passed (err, entity) where err is null if no errors occurred.
+     * @example
+     * app.scenes.changeScene("Scene Name", function (err, entity) {
+     *     if (!err) {
+     *         // success
+     *     } else {
+     *         // error
+     *     }
+     * });
+     */
+    changeScene(sceneItem: SceneRegistryItem | string, callback?: ChangeSceneCallback): void;
     /**
      * Load the scene hierarchy and scene settings. This is an internal method used by the
      * {@link AppBase}.
@@ -29799,7 +29989,6 @@ declare class AppBase extends EventHandler {
      */
     preload(callback: PreloadAppCallback): void;
     _preloadScripts(sceneData: any, callback: any): void;
-    _handleAreaLightDataProperty(prop: any): void;
     _parseApplicationProperties(props: any, callback: any): void;
     _width: any;
     _height: any;
@@ -29995,6 +30184,7 @@ declare class AppBase extends EventHandler {
      * @param {number|null} [settings.render.skybox] - The asset ID of the cube map texture to be
      * used as the scene's skybox. Defaults to null.
      * @param {number} settings.render.skyboxIntensity - Multiplier for skybox intensity.
+     * @param {number} settings.render.skyboxLuminance - Lux (lm/m^2) value for skybox intensity when physical light units are enabled.
      * @param {number} settings.render.skyboxMip - The mip level of the skybox to be displayed.
      * Only valid for prefiltered cubemap skyboxes.
      * @param {number[]} settings.render.skyboxRotation - Rotation of skybox.
@@ -30010,6 +30200,7 @@ declare class AppBase extends EventHandler {
      * @param {number} settings.render.ambientBakeSpherePart - How much of the sphere to include when baking ambient light.
      * @param {number} settings.render.ambientBakeOcclusionBrightness - Brighness of the baked ambient occlusion.
      * @param {number} settings.render.ambientBakeOcclusionContrast - Contrast of the baked ambient occlusion.
+     * @param {number} settings.render.ambientLuminance - Lux (lm/m^2) value for ambient light intensity.
      *
      * @param {boolean} settings.render.clusteredLightingEnabled - Enable clustered lighting.
      * @param {boolean} settings.render.lightingShadowsEnabled - If set to true, the clustered lighting will support shadows.
@@ -30071,6 +30262,7 @@ declare class AppBase extends EventHandler {
             exposure: number;
             skybox?: number | null;
             skyboxIntensity: number;
+            skyboxLuminance: number;
             skyboxMip: number;
             skyboxRotation: number[];
             lightmapSizeMultiplier: number;
@@ -30081,6 +30273,7 @@ declare class AppBase extends EventHandler {
             ambientBakeSpherePart: number;
             ambientBakeOcclusionBrightness: number;
             ambientBakeOcclusionContrast: number;
+            ambientLuminance: number;
             clusteredLightingEnabled: boolean;
             lightingShadowsEnabled: boolean;
             lightingCookiesEnabled: boolean;
@@ -30093,11 +30286,12 @@ declare class AppBase extends EventHandler {
         };
     }): void;
     /**
-     * Sets the area light LUT asset for this app.
+     * Sets the area light LUT tables for this app.
      *
-     * @param {Asset} asset - LUT asset of type `binary` to be set.
+     * @param {number[]} ltcMat1 - LUT table of type `array` to be set.
+     * @param {number[]} ltcMat2 - LUT table of type `array` to be set.
      */
-    setAreaLightLuts(asset: Asset): void;
+    setAreaLightLuts(ltcMat1: number[], ltcMat2: number[]): void;
     /**
      * Sets the skybox asset to current scene, and subscribes to asset load/change events.
      *
@@ -30647,6 +30841,27 @@ declare class CameraComponent extends Component {
      * @type {Mat4}
      */
     get projectionMatrix(): Mat4;
+    /**
+     * Set camera aperture in f-stops, the default value is 16.0. Higher value means less exposure.
+     *
+     * @type {number}
+     */
+    set aperture(arg: number);
+    get aperture(): number;
+    /**
+     * Set camera sensitivity in ISO, the default value is 1000. Higher value means more exposure.
+     *
+     * @type {number}
+     */
+    set sensitivity(arg: number);
+    get sensitivity(): number;
+    /**
+     * Set camera shutter speed in seconds, the default value is 1/1000s. Longer shutter means more exposure.
+     *
+     * @type {number}
+     */
+    set shutter(arg: number);
+    get shutter(): number;
     /**
      * Controls where on the screen the camera will be rendered in normalized screen coordinates.
      * Defaults to [0, 0, 1, 1].
@@ -31803,18 +32018,23 @@ declare class WebglIndexBuffer extends WebglBuffer {
  */
 declare class WebglShader {
     constructor(shader: any);
-    uniforms: any[];
-    samplers: any[];
-    attributes: any[];
-    glProgram: WebGLProgram;
-    glVertexShader: WebGLShader;
-    glFragmentShader: WebGLShader;
     /**
      * Free the WebGL resources associated with a shader.
      *
      * @param {Shader} shader - The shader to free.
      */
     destroy(shader: Shader): void;
+    glProgram: WebGLProgram;
+    init(): void;
+    uniforms: any[];
+    samplers: any[];
+    attributes: any[];
+    glVertexShader: WebGLShader;
+    glFragmentShader: WebGLShader;
+    /**
+     * Dispose the shader when the context has been lost.
+     */
+    loseContext(): void;
     /**
      * Restore shader after the context has been obtained.
      *
@@ -32002,6 +32222,7 @@ declare class WebglGraphicsDevice extends GraphicsDevice {
     forceDisableMultisampling: boolean;
     _tempEnableSafariTextureUnitWorkaround: boolean;
     _tempMacChromeBlitFramebufferWorkaround: boolean;
+    supportsImageBitmap: boolean;
     defaultClearOptions: {
         color: number[];
         depth: number;
@@ -33449,6 +33670,21 @@ declare function reprojectTexture(source: Texture, target: Texture, options?: {
     rect?: Vec4;
     seamPixels?: number;
 }, ...args: any[]): void;
+
+declare const _default$3: "\n    vec4 dirLm = texture2D(texture_dirLightMap, vUv1);\n\n    if (bakeDir > 0.5) {\n        if (dAtten > 0.00001) {\n            dirLm.xyz = dirLm.xyz * 2.0 - vec3(1.0);\n            dAtten = saturate(dAtten);\n            gl_FragColor.rgb = normalize(dLightDirNormW.xyz*dAtten + dirLm.xyz*dirLm.w) * 0.5 + vec3(0.5);\n            gl_FragColor.a = dirLm.w + dAtten;\n            gl_FragColor.a = max(gl_FragColor.a, 1.0 / 255.0);\n        } else {\n            gl_FragColor = dirLm;\n        }\n    } else {\n        gl_FragColor.rgb = dirLm.xyz;\n        gl_FragColor.a = max(dirLm.w, dAtten > 0.00001? (1.0/255.0) : 0.0);\n    }\n";
+
+declare const _default$2: "\n    gl_FragColor.rgb = dDiffuseLight;\n    gl_FragColor.rgb = pow(gl_FragColor.rgb, vec3(0.5));\n    gl_FragColor.rgb /= 8.0;\n    gl_FragColor.a = clamp( max( max( gl_FragColor.r, gl_FragColor.g ), max( gl_FragColor.b, 1.0 / 255.0 ) ), 0.0,1.0 );\n    gl_FragColor.a = ceil(gl_FragColor.a * 255.0) / 255.0;\n    gl_FragColor.rgb /= gl_FragColor.a;\n";
+
+declare const _default$1: "\n#define SHADER_NAME Dilate\n\nvarying vec2 vUv0;\n\nuniform sampler2D source;\nuniform vec2 pixelOffset;\n\nvoid main(void) {\n    vec4 c = texture2D(source, vUv0);\n    c = c.a>0.0? c : texture2D(source, vUv0 - pixelOffset);\n    c = c.a>0.0? c : texture2D(source, vUv0 + vec2(0, -pixelOffset.y));\n    c = c.a>0.0? c : texture2D(source, vUv0 + vec2(pixelOffset.x, -pixelOffset.y));\n    c = c.a>0.0? c : texture2D(source, vUv0 + vec2(-pixelOffset.x, 0));\n    c = c.a>0.0? c : texture2D(source, vUv0 + vec2(pixelOffset.x, 0));\n    c = c.a>0.0? c : texture2D(source, vUv0 + vec2(-pixelOffset.x, pixelOffset.y));\n    c = c.a>0.0? c : texture2D(source, vUv0 + vec2(0, pixelOffset.y));\n    c = c.a>0.0? c : texture2D(source, vUv0 + pixelOffset);\n    gl_FragColor = c;\n}\n";
+
+declare const _default: "\n// bilateral filter, based on https://www.shadertoy.com/view/4dfGDH# and\n// http://people.csail.mit.edu/sparis/bf_course/course_notes.pdf\n\n// A bilateral filter is a non-linear, edge-preserving, and noise-reducing smoothing filter for images.\n// It replaces the intensity of each pixel with a weighted average of intensity values from nearby pixels.\n// This weight can be based on a Gaussian distribution. Crucially, the weights depend not only on\n// Euclidean distance of pixels, but also on the radiometric differences (e.g., range differences, such\n// as color intensity, depth distance, etc.). This preserves sharp edges.\n\n#define SHADER_NAME BilateralDeNoise\n\nfloat normpdf3(in vec3 v, in float sigma) {\n    return 0.39894 * exp(-0.5 * dot(v, v) / (sigma * sigma)) / sigma;\n}\n\nvec3 decodeRGBM(vec4 rgbm) {\n    vec3 color = (8.0 * rgbm.a) * rgbm.rgb;\n    return color * color;\n}\n\nfloat saturate(float x) {\n    return clamp(x, 0.0, 1.0);\n}\n\nvec4 encodeRGBM(vec3 color) { // modified RGBM\n    vec4 encoded;\n    encoded.rgb = pow(color.rgb, vec3(0.5));\n    encoded.rgb *= 1.0 / 8.0;\n\n    encoded.a = saturate( max( max( encoded.r, encoded.g ), max( encoded.b, 1.0 / 255.0 ) ) );\n    encoded.a = ceil(encoded.a * 255.0) / 255.0;\n\n    encoded.rgb /= encoded.a;\n    return encoded;\n}\n\n// filter size\n#define MSIZE 15\n\nvarying vec2 vUv0;\nuniform sampler2D source;\nuniform vec2 pixelOffset;\nuniform vec2 sigmas;\nuniform float bZnorm;\nuniform float kernel[MSIZE];\n\nvoid main(void) {\n    \n    vec4 pixelRgbm = texture2D(source, vUv0);\n\n    // lightmap specific optimization - skip pixels that were not baked\n    // this also allows dilate filter that work on the output of this to work correctly, as it depends on .a being zero\n    // to dilate, which the following blur filter would otherwise modify\n    if (pixelRgbm.a <= 0.0) {\n        gl_FragColor = pixelRgbm;\n        return ;\n    }\n\n    // range sigma - controls blurriness based on a pixel distance\n    float sigma = sigmas.x;\n\n    // domain sigma - controls blurriness based on a pixel similarity (to preserve edges)\n    float bSigma = sigmas.y;\n\n    vec3 pixelHdr = decodeRGBM(pixelRgbm);\n    vec3 accumulatedHdr = vec3(0.0);\n    float accumulatedFactor = 0.0;\n\n    // read out the texels\n    const int kSize = (MSIZE-1)/2;\n    for (int i = -kSize; i <= kSize; ++i) {\n        for (int j = -kSize; j <= kSize; ++j) {\n            \n            // sample the pixel with offset\n            vec2 coord = vUv0 + vec2(float(i), float(j)) * pixelOffset;\n            vec4 rgbm = texture2D(source, coord);\n\n            // lightmap - only use baked pixels\n            if (rgbm.a > 0.0) {\n                vec3 hdr = decodeRGBM(rgbm);\n\n                // bilateral factors\n                float factor = kernel[kSize + j] * kernel[kSize + i];\n                factor *= normpdf3(hdr - pixelHdr, bSigma) * bZnorm;\n\n                // accumulate\n                accumulatedHdr += factor * hdr;\n                accumulatedFactor += factor;\n            }\n        }\n    }\n\n    gl_FragColor = encodeRGBM(accumulatedHdr / accumulatedFactor);\n}\n";
+
+declare namespace shaderChunksLightmapper {
+    export { _default$3 as bakeDirLmEndPS };
+    export { _default$2 as bakeLmEndPS };
+    export { _default$1 as dilatePS };
+    export { _default as bilateralDeNoisePS };
+}
 
 /**
  * Helper functions to support prefiltering lighting data.
@@ -35649,6 +35885,10 @@ declare class ContainerResource {
  * |---------------------------------------------------------------------|
  * ```
  *
+ * Additional options that can be passed for glTF files:
+ * [options.morphPreserveData] - When true, the morph target keeps its data passed using the options,
+ * allowing the clone operation.
+ *
  * For example, to receive a texture preprocess callback:
  *
  * ```javascript
@@ -35750,14 +35990,15 @@ declare class CssHandler {
  * @ignore
  */
 declare class ImgParser implements TextureParser {
-    constructor(registry: any);
+    constructor(registry: any, device: any);
     crossOrigin: string;
     maxRetries: number;
-    useImageBitmap: boolean;
+    device: any;
     load(url: any, callback: any, asset: any): void;
     open(url: any, data: any, device: any): Texture;
     _loadImage(url: any, originalUrl: any, crossOrigin: any, callback: any): void;
     _loadImageBitmap(url: any, originalUrl: any, crossOrigin: any, callback: any): void;
+    _loadImageBitmapFromData(data: any, callback: any): void;
 }
 
 
@@ -36006,5 +36247,5 @@ declare function registerScript(script: typeof ScriptType, name?: string, app?: 
 
 declare const reservedAttributes: {};
 
-export { ABSOLUTE_URL, ACTION_GAMEPAD, ACTION_KEYBOARD, ACTION_MOUSE, ADDRESS_CLAMP_TO_EDGE, ADDRESS_MIRRORED_REPEAT, ADDRESS_REPEAT, ANIM_BLEND_1D, ANIM_BLEND_2D_CARTESIAN, ANIM_BLEND_2D_DIRECTIONAL, ANIM_BLEND_DIRECT, ANIM_CONTROL_STATES, ANIM_EQUAL_TO, ANIM_GREATER_THAN, ANIM_GREATER_THAN_EQUAL_TO, ANIM_INTERRUPTION_NEXT, ANIM_INTERRUPTION_NEXT_PREV, ANIM_INTERRUPTION_NONE, ANIM_INTERRUPTION_PREV, ANIM_INTERRUPTION_PREV_NEXT, ANIM_LAYER_ADDITIVE, ANIM_LAYER_OVERWRITE, ANIM_LESS_THAN, ANIM_LESS_THAN_EQUAL_TO, ANIM_NOT_EQUAL_TO, ANIM_PARAMETER_BOOLEAN, ANIM_PARAMETER_FLOAT, ANIM_PARAMETER_INTEGER, ANIM_PARAMETER_TRIGGER, ANIM_STATE_ANY, ANIM_STATE_END, ANIM_STATE_START, ASPECT_AUTO, ASPECT_MANUAL, ASSET_ANIMATION, ASSET_AUDIO, ASSET_CONTAINER, ASSET_CSS, ASSET_CUBEMAP, ASSET_HTML, ASSET_IMAGE, ASSET_JSON, ASSET_MATERIAL, ASSET_MODEL, ASSET_SCRIPT, ASSET_SHADER, ASSET_TEXT, ASSET_TEXTURE, AXIS_KEY, AXIS_MOUSE_X, AXIS_MOUSE_Y, AXIS_PAD_L_X, AXIS_PAD_L_Y, AXIS_PAD_R_X, AXIS_PAD_R_Y, AnimBinder, AnimClip, AnimClipHandler, AnimComponent, AnimComponentLayer, AnimComponentSystem, AnimController, AnimCurve, AnimData, AnimEvaluator, AnimEvents, AnimSnapshot, AnimStateGraph, AnimStateGraphHandler, AnimTarget, AnimTrack, Animation, AnimationComponent, AnimationComponentSystem, AnimationHandler, AppBase, AppOptions, Application, Asset, AssetListLoader, AssetReference, AssetRegistry, AudioHandler, AudioListenerComponent, AudioListenerComponentSystem, AudioSourceComponent, AudioSourceComponentSystem, BAKE_COLOR, BAKE_COLORDIR, BINDGROUP_MESH, BINDGROUP_VIEW, BLENDEQUATION_ADD, BLENDEQUATION_MAX, BLENDEQUATION_MIN, BLENDEQUATION_REVERSE_SUBTRACT, BLENDEQUATION_SUBTRACT, BLENDMODE_CONSTANT_ALPHA, BLENDMODE_CONSTANT_COLOR, BLENDMODE_DST_ALPHA, BLENDMODE_DST_COLOR, BLENDMODE_ONE, BLENDMODE_ONE_MINUS_CONSTANT_ALPHA, BLENDMODE_ONE_MINUS_CONSTANT_COLOR, BLENDMODE_ONE_MINUS_DST_ALPHA, BLENDMODE_ONE_MINUS_DST_COLOR, BLENDMODE_ONE_MINUS_SRC_ALPHA, BLENDMODE_ONE_MINUS_SRC_COLOR, BLENDMODE_SRC_ALPHA, BLENDMODE_SRC_ALPHA_SATURATE, BLENDMODE_SRC_COLOR, BLENDMODE_ZERO, BLEND_ADDITIVE, BLEND_ADDITIVEALPHA, BLEND_MAX, BLEND_MIN, BLEND_MULTIPLICATIVE, BLEND_MULTIPLICATIVE2X, BLEND_NONE, BLEND_NORMAL, BLEND_PREMULTIPLIED, BLEND_SCREEN, BLEND_SUBTRACTIVE, BLUR_BOX, BLUR_GAUSSIAN, BODYFLAG_KINEMATIC_OBJECT, BODYFLAG_NORESPONSE_OBJECT, BODYFLAG_STATIC_OBJECT, BODYGROUP_DEFAULT, BODYGROUP_DYNAMIC, BODYGROUP_ENGINE_1, BODYGROUP_ENGINE_2, BODYGROUP_ENGINE_3, BODYGROUP_KINEMATIC, BODYGROUP_NONE, BODYGROUP_STATIC, BODYGROUP_TRIGGER, BODYGROUP_USER_1, BODYGROUP_USER_2, BODYGROUP_USER_3, BODYGROUP_USER_4, BODYGROUP_USER_5, BODYGROUP_USER_6, BODYGROUP_USER_7, BODYGROUP_USER_8, BODYMASK_ALL, BODYMASK_NONE, BODYMASK_NOT_STATIC, BODYMASK_NOT_STATIC_KINEMATIC, BODYMASK_STATIC, BODYSTATE_ACTIVE_TAG, BODYSTATE_DISABLE_DEACTIVATION, BODYSTATE_DISABLE_SIMULATION, BODYSTATE_ISLAND_SLEEPING, BODYSTATE_WANTS_DEACTIVATION, BODYTYPE_DYNAMIC, BODYTYPE_KINEMATIC, BODYTYPE_STATIC, BUFFER_DYNAMIC, BUFFER_GPUDYNAMIC, BUFFER_STATIC, BUFFER_STREAM, BUTTON_TRANSITION_MODE_SPRITE_CHANGE, BUTTON_TRANSITION_MODE_TINT, BasicMaterial, Batch, BatchGroup, BatchManager, BinaryHandler, BoundingBox, BoundingSphere, Bundle, BundleHandler, BundleRegistry, ButtonComponent, ButtonComponentSystem, CHUNKAPI_1_51, CHUNKAPI_1_55, CHUNKAPI_1_56, CLEARFLAG_COLOR, CLEARFLAG_DEPTH, CLEARFLAG_STENCIL, COMPUPDATED_BLEND, COMPUPDATED_CAMERAS, COMPUPDATED_INSTANCES, COMPUPDATED_LIGHTS, CUBEFACE_NEGX, CUBEFACE_NEGY, CUBEFACE_NEGZ, CUBEFACE_POSX, CUBEFACE_POSY, CUBEFACE_POSZ, CUBEPROJ_BOX, CUBEPROJ_NONE, CULLFACE_BACK, CULLFACE_FRONT, CULLFACE_FRONTANDBACK, CULLFACE_NONE, CURVE_CARDINAL, CURVE_CATMULL, CURVE_LINEAR, CURVE_SMOOTHSTEP, CURVE_SPLINE, CURVE_STEP, Camera, CameraComponent, CameraComponentSystem, CanvasFont, CollisionComponent, CollisionComponentSystem, Color, Command, Component, ComponentSystem, ComponentSystemRegistry, ContactPoint, ContactResult, ContainerHandler, ContainerResource, ContextCreationError, Controller, CssHandler, CubemapHandler, Curve, CurveSet, DETAILMODE_ADD, DETAILMODE_MAX, DETAILMODE_MIN, DETAILMODE_MUL, DETAILMODE_OVERLAY, DETAILMODE_SCREEN, DEVICETYPE_WEBGL, DEVICETYPE_WEBGPU, DISTANCE_EXPONENTIAL, DISTANCE_INVERSE, DISTANCE_LINEAR, DefaultAnimBinder, ELEMENTTYPE_FLOAT32, ELEMENTTYPE_GROUP, ELEMENTTYPE_IMAGE, ELEMENTTYPE_INT16, ELEMENTTYPE_INT32, ELEMENTTYPE_INT8, ELEMENTTYPE_TEXT, ELEMENTTYPE_UINT16, ELEMENTTYPE_UINT32, ELEMENTTYPE_UINT8, EMITTERSHAPE_BOX, EMITTERSHAPE_SPHERE, EVENT_KEYDOWN, EVENT_KEYUP, EVENT_MOUSEDOWN, EVENT_MOUSEMOVE, EVENT_MOUSEUP, EVENT_MOUSEWHEEL, EVENT_SELECT, EVENT_SELECTEND, EVENT_SELECTSTART, EVENT_TOUCHCANCEL, EVENT_TOUCHEND, EVENT_TOUCHMOVE, EVENT_TOUCHSTART, ElementComponent, ElementComponentSystem, ElementDragHelper, ElementInput, ElementInputEvent, ElementMouseEvent, ElementSelectEvent, ElementTouchEvent, Entity, EntityReference, EnvLighting, EventHandler, FILLMODE_FILL_WINDOW, FILLMODE_KEEP_ASPECT, FILLMODE_NONE, FILTER_LINEAR, FILTER_LINEAR_MIPMAP_LINEAR, FILTER_LINEAR_MIPMAP_NEAREST, FILTER_NEAREST, FILTER_NEAREST_MIPMAP_LINEAR, FILTER_NEAREST_MIPMAP_NEAREST, FITMODE_CONTAIN, FITMODE_COVER, FITMODE_STRETCH, FITTING_BOTH, FITTING_NONE, FITTING_SHRINK, FITTING_STRETCH, FOG_EXP, FOG_EXP2, FOG_LINEAR, FOG_NONE, FONT_BITMAP, FONT_MSDF, FRESNEL_NONE, FRESNEL_SCHLICK, FUNC_ALWAYS, FUNC_EQUAL, FUNC_GREATER, FUNC_GREATEREQUAL, FUNC_LESS, FUNC_LESSEQUAL, FUNC_NEVER, FUNC_NOTEQUAL, FolderHandler, Font, FontHandler, ForwardRenderer, Frustum, GAMMA_NONE, GAMMA_SRGB, GAMMA_SRGBFAST, GAMMA_SRGBHDR, GamePads, GraphNode, GraphicsDevice, HierarchyHandler, HtmlHandler, Http, I18n, INDEXFORMAT_UINT16, INDEXFORMAT_UINT32, INDEXFORMAT_UINT8, INTERPOLATION_CUBIC, INTERPOLATION_LINEAR, INTERPOLATION_STEP, ImageElement, IndexBuffer, IndexedList, JointComponent, JointComponentSystem, JsonHandler, JsonStandardMaterialParser, KEY_0, KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7, KEY_8, KEY_9, KEY_A, KEY_ADD, KEY_ALT, KEY_B, KEY_BACKSPACE, KEY_BACK_SLASH, KEY_C, KEY_CAPS_LOCK, KEY_CLOSE_BRACKET, KEY_COMMA, KEY_CONTEXT_MENU, KEY_CONTROL, KEY_D, KEY_DECIMAL, KEY_DELETE, KEY_DIVIDE, KEY_DOWN, KEY_E, KEY_END, KEY_ENTER, KEY_EQUAL, KEY_ESCAPE, KEY_F, KEY_F1, KEY_F10, KEY_F11, KEY_F12, KEY_F2, KEY_F3, KEY_F4, KEY_F5, KEY_F6, KEY_F7, KEY_F8, KEY_F9, KEY_G, KEY_H, KEY_HOME, KEY_I, KEY_INSERT, KEY_J, KEY_K, KEY_L, KEY_LEFT, KEY_M, KEY_META, KEY_MULTIPLY, KEY_N, KEY_NUMPAD_0, KEY_NUMPAD_1, KEY_NUMPAD_2, KEY_NUMPAD_3, KEY_NUMPAD_4, KEY_NUMPAD_5, KEY_NUMPAD_6, KEY_NUMPAD_7, KEY_NUMPAD_8, KEY_NUMPAD_9, KEY_O, KEY_OPEN_BRACKET, KEY_P, KEY_PAGE_DOWN, KEY_PAGE_UP, KEY_PAUSE, KEY_PERIOD, KEY_PRINT_SCREEN, KEY_Q, KEY_R, KEY_RETURN, KEY_RIGHT, KEY_S, KEY_SEMICOLON, KEY_SEPARATOR, KEY_SHIFT, KEY_SLASH, KEY_SPACE, KEY_SUBTRACT, KEY_T, KEY_TAB, KEY_U, KEY_UP, KEY_V, KEY_W, KEY_WINDOWS, KEY_X, KEY_Y, KEY_Z, Key, Keyboard, KeyboardEvent, LAYERID_DEPTH, LAYERID_IMMEDIATE, LAYERID_SKYBOX, LAYERID_UI, LAYERID_WORLD, LAYER_FX, LAYER_GIZMO, LAYER_HUD, LAYER_WORLD, LIGHTFALLOFF_INVERSESQUARED, LIGHTFALLOFF_LINEAR, LIGHTSHAPE_DISK, LIGHTSHAPE_PUNCTUAL, LIGHTSHAPE_RECT, LIGHTSHAPE_SPHERE, LIGHTTYPE_COUNT, LIGHTTYPE_DIRECTIONAL, LIGHTTYPE_OMNI, LIGHTTYPE_POINT, LIGHTTYPE_SPOT, LINEBATCH_GIZMO, LINEBATCH_OVERLAY, LINEBATCH_WORLD, Layer, LayerComposition, LayoutCalculator, LayoutChildComponent, LayoutChildComponentSystem, LayoutGroupComponent, LayoutGroupComponentSystem, Light, LightComponent, LightComponentSystem, LightingParams, Lightmapper, LocalizedAsset, MASK_AFFECT_DYNAMIC, MASK_AFFECT_LIGHTMAPPED, MASK_BAKE, MOTION_FREE, MOTION_LIMITED, MOTION_LOCKED, MOUSEBUTTON_LEFT, MOUSEBUTTON_MIDDLE, MOUSEBUTTON_NONE, MOUSEBUTTON_RIGHT, Mat3, Mat4, Material, MaterialHandler, Mesh, MeshInstance, Model, ModelComponent, ModelComponentSystem, ModelHandler, Morph, MorphInstance, MorphTarget, Mouse, MouseEvent$1 as MouseEvent, Node$1 as Node, ORIENTATION_HORIZONTAL, ORIENTATION_VERTICAL, OrientedBox, PAD_1, PAD_2, PAD_3, PAD_4, PAD_DOWN, PAD_FACE_1, PAD_FACE_2, PAD_FACE_3, PAD_FACE_4, PAD_LEFT, PAD_L_SHOULDER_1, PAD_L_SHOULDER_2, PAD_L_STICK_BUTTON, PAD_L_STICK_X, PAD_L_STICK_Y, PAD_RIGHT, PAD_R_SHOULDER_1, PAD_R_SHOULDER_2, PAD_R_STICK_BUTTON, PAD_R_STICK_X, PAD_R_STICK_Y, PAD_SELECT, PAD_START, PAD_UP, PAD_VENDOR, PARTICLEMODE_CPU, PARTICLEMODE_GPU, PARTICLEORIENTATION_EMITTER, PARTICLEORIENTATION_SCREEN, PARTICLEORIENTATION_WORLD, PARTICLESORT_DISTANCE, PARTICLESORT_NEWER_FIRST, PARTICLESORT_NONE, PARTICLESORT_OLDER_FIRST, PIXELFORMAT_111110F, PIXELFORMAT_A8, PIXELFORMAT_ASTC_4x4, PIXELFORMAT_ATC_RGB, PIXELFORMAT_ATC_RGBA, PIXELFORMAT_DEPTH, PIXELFORMAT_DEPTHSTENCIL, PIXELFORMAT_DXT1, PIXELFORMAT_DXT3, PIXELFORMAT_DXT5, PIXELFORMAT_ETC1, PIXELFORMAT_ETC2_RGB, PIXELFORMAT_ETC2_RGBA, PIXELFORMAT_L8, PIXELFORMAT_L8_A8, PIXELFORMAT_PVRTC_2BPP_RGBA_1, PIXELFORMAT_PVRTC_2BPP_RGB_1, PIXELFORMAT_PVRTC_4BPP_RGBA_1, PIXELFORMAT_PVRTC_4BPP_RGB_1, PIXELFORMAT_R32F, PIXELFORMAT_R4_G4_B4_A4, PIXELFORMAT_R5_G5_B5_A1, PIXELFORMAT_R5_G6_B5, PIXELFORMAT_R8_G8_B8, PIXELFORMAT_R8_G8_B8_A8, PIXELFORMAT_RGB16F, PIXELFORMAT_RGB32F, PIXELFORMAT_RGBA16F, PIXELFORMAT_RGBA32F, PIXELFORMAT_SRGB, PIXELFORMAT_SRGBA, PRIMITIVE_LINELOOP, PRIMITIVE_LINES, PRIMITIVE_LINESTRIP, PRIMITIVE_POINTS, PRIMITIVE_TRIANGLES, PRIMITIVE_TRIFAN, PRIMITIVE_TRISTRIP, PROJECTION_ORTHOGRAPHIC, PROJECTION_PERSPECTIVE, ParticleEmitter, ParticleSystemComponent, ParticleSystemComponentSystem, PhongMaterial, Picker, Plane, PostEffect$1 as PostEffect, PostEffectQueue, ProgramLibrary, Quat, RENDERSTYLE_POINTS, RENDERSTYLE_SOLID, RENDERSTYLE_WIREFRAME, RESOLUTION_AUTO, RESOLUTION_FIXED, RIGIDBODY_ACTIVE_TAG, RIGIDBODY_CF_KINEMATIC_OBJECT, RIGIDBODY_CF_NORESPONSE_OBJECT, RIGIDBODY_CF_STATIC_OBJECT, RIGIDBODY_DISABLE_DEACTIVATION, RIGIDBODY_DISABLE_SIMULATION, RIGIDBODY_ISLAND_SLEEPING, RIGIDBODY_TYPE_DYNAMIC, RIGIDBODY_TYPE_KINEMATIC, RIGIDBODY_TYPE_STATIC, RIGIDBODY_WANTS_DEACTIVATION, Ray, RaycastResult, ReadStream, RenderComponent, RenderComponentSystem, RenderHandler, RenderTarget, ResourceHandler, ResourceLoader, RigidBodyComponent, RigidBodyComponentSystem, SCALEMODE_BLEND, SCALEMODE_NONE, SCROLLBAR_VISIBILITY_SHOW_ALWAYS, SCROLLBAR_VISIBILITY_SHOW_WHEN_REQUIRED, SCROLL_MODE_BOUNCE, SCROLL_MODE_CLAMP, SCROLL_MODE_INFINITE, SEMANTIC_ATTR, SEMANTIC_ATTR0, SEMANTIC_ATTR1, SEMANTIC_ATTR10, SEMANTIC_ATTR11, SEMANTIC_ATTR12, SEMANTIC_ATTR13, SEMANTIC_ATTR14, SEMANTIC_ATTR15, SEMANTIC_ATTR2, SEMANTIC_ATTR3, SEMANTIC_ATTR4, SEMANTIC_ATTR5, SEMANTIC_ATTR6, SEMANTIC_ATTR7, SEMANTIC_ATTR8, SEMANTIC_ATTR9, SEMANTIC_BLENDINDICES, SEMANTIC_BLENDWEIGHT, SEMANTIC_COLOR, SEMANTIC_NORMAL, SEMANTIC_POSITION, SEMANTIC_TANGENT, SEMANTIC_TEXCOORD, SEMANTIC_TEXCOORD0, SEMANTIC_TEXCOORD1, SEMANTIC_TEXCOORD2, SEMANTIC_TEXCOORD3, SEMANTIC_TEXCOORD4, SEMANTIC_TEXCOORD5, SEMANTIC_TEXCOORD6, SEMANTIC_TEXCOORD7, SHADERDEF_DIRLM, SHADERDEF_INSTANCING, SHADERDEF_LM, SHADERDEF_LMAMBIENT, SHADERDEF_MORPH_NORMAL, SHADERDEF_MORPH_POSITION, SHADERDEF_MORPH_TEXTURE_BASED, SHADERDEF_NOSHADOW, SHADERDEF_SCREENSPACE, SHADERDEF_SKIN, SHADERDEF_TANGENTS, SHADERDEF_UV0, SHADERDEF_UV1, SHADERDEF_VCOLOR, SHADERSTAGE_COMPUTE, SHADERSTAGE_FRAGMENT, SHADERSTAGE_VERTEX, SHADERTAG_MATERIAL, SHADERTYPE_DEPTH, SHADERTYPE_FORWARD, SHADERTYPE_PICK, SHADERTYPE_SHADOW, SHADER_DEPTH, SHADER_FORWARD, SHADER_FORWARDHDR, SHADER_PICK, SHADER_SHADOW, SHADOWUPDATE_NONE, SHADOWUPDATE_REALTIME, SHADOWUPDATE_THISFRAME, SHADOW_COUNT, SHADOW_DEPTH, SHADOW_PCF1, SHADOW_PCF3, SHADOW_PCF5, SHADOW_VSM16, SHADOW_VSM32, SHADOW_VSM8, SORTKEY_DEPTH, SORTKEY_FORWARD, SORTMODE_BACK2FRONT, SORTMODE_CUSTOM, SORTMODE_FRONT2BACK, SORTMODE_MANUAL, SORTMODE_MATERIALMESH, SORTMODE_NONE, SPECOCC_AO, SPECOCC_GLOSSDEPENDENT, SPECOCC_NONE, SPECULAR_BLINN, SPECULAR_PHONG, SPRITETYPE_ANIMATED, SPRITETYPE_SIMPLE, SPRITE_RENDERMODE_SIMPLE, SPRITE_RENDERMODE_SLICED, SPRITE_RENDERMODE_TILED, STENCILOP_DECREMENT, STENCILOP_DECREMENTWRAP, STENCILOP_INCREMENT, STENCILOP_INCREMENTWRAP, STENCILOP_INVERT, STENCILOP_KEEP, STENCILOP_REPLACE, STENCILOP_ZERO, Scene, SceneHandler, SceneRegistry, SceneRegistryItem, SceneSettingsHandler, ScopeId, ScopeSpace, ScreenComponent, ScreenComponentSystem, ScriptAttributes, ScriptComponent, ScriptComponentSystem, ScriptHandler, ScriptLegacyComponent, ScriptLegacyComponentSystem, ScriptRegistry, ScriptType, ScrollViewComponent, ScrollViewComponentSystem, ScrollbarComponent, ScrollbarComponentSystem, Shader, ShaderHandler, SingleContactResult, Skeleton, Skin, SkinBatchInstance, SkinInstance, SortedLoopArray, Sound, SoundComponent, SoundComponentSystem, SoundInstance, SoundInstance3d, SoundManager, SoundSlot, Sprite, SpriteAnimationClip, SpriteComponent, SpriteComponentSystem, SpriteHandler, StandardMaterial as StandardMaterial, StencilParameters, TEXHINT_ASSET, TEXHINT_LIGHTMAP, TEXHINT_NONE, TEXHINT_SHADOWMAP, TEXTURELOCK_READ, TEXTURELOCK_WRITE, TEXTUREPROJECTION_CUBE, TEXTUREPROJECTION_EQUIRECT, TEXTUREPROJECTION_NONE, TEXTUREPROJECTION_OCTAHEDRAL, TEXTURETYPE_DEFAULT, TEXTURETYPE_RGBE, TEXTURETYPE_RGBM, TEXTURETYPE_RGBP, TEXTURETYPE_SWIZZLEGGGR, TONEMAP_ACES, TONEMAP_ACES2, TONEMAP_FILMIC, TONEMAP_HEJL, TONEMAP_LINEAR, TRACEID_RENDER_ACTION, TRACEID_RENDER_FRAME, TRACEID_RENDER_PASS, TRACEID_RENDER_PASS_DETAIL, TRACEID_RENDER_TARGET_ALLOC, TRACEID_SHADER_ALLOC, TRACEID_TEXTURE_ALLOC, TRACEID_VRAM_IB, TRACEID_VRAM_TEXTURE, TRACEID_VRAM_VB, TYPE_FLOAT32, TYPE_INT16, TYPE_INT32, TYPE_INT8, TYPE_UINT16, TYPE_UINT32, TYPE_UINT8, Tags, Template, TemplateHandler, TextElement, TextHandler, Texture, TextureAtlas, TextureAtlasHandler, TextureHandler, TextureParser, Timer, Touch$1 as Touch, TouchDevice, TouchEvent$1 as TouchEvent, Tracing, TransformFeedback, UNIFORMTYPE_BOOL, UNIFORMTYPE_BVEC2, UNIFORMTYPE_BVEC3, UNIFORMTYPE_BVEC4, UNIFORMTYPE_FLOAT, UNIFORMTYPE_FLOATARRAY, UNIFORMTYPE_INT, UNIFORMTYPE_IVEC2, UNIFORMTYPE_IVEC3, UNIFORMTYPE_IVEC4, UNIFORMTYPE_MAT2, UNIFORMTYPE_MAT3, UNIFORMTYPE_MAT4, UNIFORMTYPE_TEXTURE2D, UNIFORMTYPE_TEXTURE2D_SHADOW, UNIFORMTYPE_TEXTURE3D, UNIFORMTYPE_TEXTURECUBE, UNIFORMTYPE_TEXTURECUBE_SHADOW, UNIFORMTYPE_VEC2, UNIFORMTYPE_VEC2ARRAY, UNIFORMTYPE_VEC3, UNIFORMTYPE_VEC3ARRAY, UNIFORMTYPE_VEC4, UNIFORMTYPE_VEC4ARRAY, UNIFORM_BUFFER_DEFAULT_SLOT_NAME, URI, UnsupportedBrowserError, VIEW_CENTER, VIEW_LEFT, VIEW_RIGHT, Vec2, Vec3, Vec4, VertexBuffer, VertexFormat, VertexIterator, WasmModule, WebglGraphicsDevice, WorldClusters, XRDEPTHSENSINGFORMAT_F32, XRDEPTHSENSINGFORMAT_L8A8, XRDEPTHSENSINGUSAGE_CPU, XRDEPTHSENSINGUSAGE_GPU, XRHAND_LEFT, XRHAND_NONE, XRHAND_RIGHT, XRSPACE_BOUNDEDFLOOR, XRSPACE_LOCAL, XRSPACE_LOCALFLOOR, XRSPACE_UNBOUNDED, XRSPACE_VIEWER, XRTARGETRAY_GAZE, XRTARGETRAY_POINTER, XRTARGETRAY_SCREEN, XRTRACKABLE_MESH, XRTRACKABLE_PLANE, XRTRACKABLE_POINT, XRTYPE_AR, XRTYPE_INLINE, XRTYPE_VR, XrDepthSensing, XrDomOverlay, XrHitTest, XrHitTestSource, XrImageTracking, XrInput, XrInputSource, XrLightEstimation, XrManager, XrPlane, XrPlaneDetection, XrTrackedImage, ZoneComponent, ZoneComponentSystem, anim, app, apps, asset, audio, basisInitialize, basisSetDownloadConfig, basisTranscode, bindGroupNames, calculateNormals, calculateTangents, common, config, createBox, createCapsule, createCone, createCylinder, createMesh, createPlane, createScript, createShader, createShaderFromCode, createSphere, createStyle, createTorus, createURI, data, drawFullscreenQuad, drawQuadWithShader, drawTexture, events, extend, fw, getTouchTargetCoords, gfx, guid, http, inherits, input, isDefined, log, makeArray, math, now, path, platform, posteffect, prefilterCubemap, programlib, registerScript, reprojectTexture, revision, scene, script, semanticToLocation, shFromCubemap, shaderChunks, shadowTypeToString, shape, string, time, type, typedArrayIndexFormats, typedArrayIndexFormatsByteSize, typedArrayToType, typedArrayTypes, typedArrayTypesByteSize, uniformTypeToName, version };
+export { ABSOLUTE_URL, ACTION_GAMEPAD, ACTION_KEYBOARD, ACTION_MOUSE, ADDRESS_CLAMP_TO_EDGE, ADDRESS_MIRRORED_REPEAT, ADDRESS_REPEAT, ANIM_BLEND_1D, ANIM_BLEND_2D_CARTESIAN, ANIM_BLEND_2D_DIRECTIONAL, ANIM_BLEND_DIRECT, ANIM_CONTROL_STATES, ANIM_EQUAL_TO, ANIM_GREATER_THAN, ANIM_GREATER_THAN_EQUAL_TO, ANIM_INTERRUPTION_NEXT, ANIM_INTERRUPTION_NEXT_PREV, ANIM_INTERRUPTION_NONE, ANIM_INTERRUPTION_PREV, ANIM_INTERRUPTION_PREV_NEXT, ANIM_LAYER_ADDITIVE, ANIM_LAYER_OVERWRITE, ANIM_LESS_THAN, ANIM_LESS_THAN_EQUAL_TO, ANIM_NOT_EQUAL_TO, ANIM_PARAMETER_BOOLEAN, ANIM_PARAMETER_FLOAT, ANIM_PARAMETER_INTEGER, ANIM_PARAMETER_TRIGGER, ANIM_STATE_ANY, ANIM_STATE_END, ANIM_STATE_START, ASPECT_AUTO, ASPECT_MANUAL, ASSET_ANIMATION, ASSET_AUDIO, ASSET_CONTAINER, ASSET_CSS, ASSET_CUBEMAP, ASSET_HTML, ASSET_IMAGE, ASSET_JSON, ASSET_MATERIAL, ASSET_MODEL, ASSET_SCRIPT, ASSET_SHADER, ASSET_TEXT, ASSET_TEXTURE, AXIS_KEY, AXIS_MOUSE_X, AXIS_MOUSE_Y, AXIS_PAD_L_X, AXIS_PAD_L_Y, AXIS_PAD_R_X, AXIS_PAD_R_Y, AnimBinder, AnimClip, AnimClipHandler, AnimComponent, AnimComponentLayer, AnimComponentSystem, AnimController, AnimCurve, AnimData, AnimEvaluator, AnimEvents, AnimSnapshot, AnimStateGraph, AnimStateGraphHandler, AnimTarget, AnimTrack, Animation, AnimationComponent, AnimationComponentSystem, AnimationHandler, AppBase, AppOptions, Application, Asset, AssetListLoader, AssetReference, AssetRegistry, AudioHandler, AudioListenerComponent, AudioListenerComponentSystem, AudioSourceComponent, AudioSourceComponentSystem, BAKE_COLOR, BAKE_COLORDIR, BINDGROUP_MESH, BINDGROUP_VIEW, BLENDEQUATION_ADD, BLENDEQUATION_MAX, BLENDEQUATION_MIN, BLENDEQUATION_REVERSE_SUBTRACT, BLENDEQUATION_SUBTRACT, BLENDMODE_CONSTANT_ALPHA, BLENDMODE_CONSTANT_COLOR, BLENDMODE_DST_ALPHA, BLENDMODE_DST_COLOR, BLENDMODE_ONE, BLENDMODE_ONE_MINUS_CONSTANT_ALPHA, BLENDMODE_ONE_MINUS_CONSTANT_COLOR, BLENDMODE_ONE_MINUS_DST_ALPHA, BLENDMODE_ONE_MINUS_DST_COLOR, BLENDMODE_ONE_MINUS_SRC_ALPHA, BLENDMODE_ONE_MINUS_SRC_COLOR, BLENDMODE_SRC_ALPHA, BLENDMODE_SRC_ALPHA_SATURATE, BLENDMODE_SRC_COLOR, BLENDMODE_ZERO, BLEND_ADDITIVE, BLEND_ADDITIVEALPHA, BLEND_MAX, BLEND_MIN, BLEND_MULTIPLICATIVE, BLEND_MULTIPLICATIVE2X, BLEND_NONE, BLEND_NORMAL, BLEND_PREMULTIPLIED, BLEND_SCREEN, BLEND_SUBTRACTIVE, BLUR_BOX, BLUR_GAUSSIAN, BODYFLAG_KINEMATIC_OBJECT, BODYFLAG_NORESPONSE_OBJECT, BODYFLAG_STATIC_OBJECT, BODYGROUP_DEFAULT, BODYGROUP_DYNAMIC, BODYGROUP_ENGINE_1, BODYGROUP_ENGINE_2, BODYGROUP_ENGINE_3, BODYGROUP_KINEMATIC, BODYGROUP_NONE, BODYGROUP_STATIC, BODYGROUP_TRIGGER, BODYGROUP_USER_1, BODYGROUP_USER_2, BODYGROUP_USER_3, BODYGROUP_USER_4, BODYGROUP_USER_5, BODYGROUP_USER_6, BODYGROUP_USER_7, BODYGROUP_USER_8, BODYMASK_ALL, BODYMASK_NONE, BODYMASK_NOT_STATIC, BODYMASK_NOT_STATIC_KINEMATIC, BODYMASK_STATIC, BODYSTATE_ACTIVE_TAG, BODYSTATE_DISABLE_DEACTIVATION, BODYSTATE_DISABLE_SIMULATION, BODYSTATE_ISLAND_SLEEPING, BODYSTATE_WANTS_DEACTIVATION, BODYTYPE_DYNAMIC, BODYTYPE_KINEMATIC, BODYTYPE_STATIC, BUFFER_DYNAMIC, BUFFER_GPUDYNAMIC, BUFFER_STATIC, BUFFER_STREAM, BUTTON_TRANSITION_MODE_SPRITE_CHANGE, BUTTON_TRANSITION_MODE_TINT, BasicMaterial, Batch, BatchGroup, BatchManager, BinaryHandler, BoundingBox, BoundingSphere, Bundle, BundleHandler, BundleRegistry, ButtonComponent, ButtonComponentSystem, CHUNKAPI_1_51, CHUNKAPI_1_55, CHUNKAPI_1_56, CHUNKAPI_1_57, CLEARFLAG_COLOR, CLEARFLAG_DEPTH, CLEARFLAG_STENCIL, COMPUPDATED_BLEND, COMPUPDATED_CAMERAS, COMPUPDATED_INSTANCES, COMPUPDATED_LIGHTS, CUBEFACE_NEGX, CUBEFACE_NEGY, CUBEFACE_NEGZ, CUBEFACE_POSX, CUBEFACE_POSY, CUBEFACE_POSZ, CUBEPROJ_BOX, CUBEPROJ_NONE, CULLFACE_BACK, CULLFACE_FRONT, CULLFACE_FRONTANDBACK, CULLFACE_NONE, CURVE_CARDINAL, CURVE_CATMULL, CURVE_LINEAR, CURVE_SMOOTHSTEP, CURVE_SPLINE, CURVE_STEP, Camera, CameraComponent, CameraComponentSystem, CanvasFont, CollisionComponent, CollisionComponentSystem, Color, Command, Component, ComponentSystem, ComponentSystemRegistry, ContactPoint, ContactResult, ContainerHandler, ContainerResource, ContextCreationError, Controller, CssHandler, CubemapHandler, Curve, CurveSet, DETAILMODE_ADD, DETAILMODE_MAX, DETAILMODE_MIN, DETAILMODE_MUL, DETAILMODE_OVERLAY, DETAILMODE_SCREEN, DEVICETYPE_WEBGL, DEVICETYPE_WEBGPU, DISTANCE_EXPONENTIAL, DISTANCE_INVERSE, DISTANCE_LINEAR, DefaultAnimBinder, ELEMENTTYPE_FLOAT32, ELEMENTTYPE_GROUP, ELEMENTTYPE_IMAGE, ELEMENTTYPE_INT16, ELEMENTTYPE_INT32, ELEMENTTYPE_INT8, ELEMENTTYPE_TEXT, ELEMENTTYPE_UINT16, ELEMENTTYPE_UINT32, ELEMENTTYPE_UINT8, EMITTERSHAPE_BOX, EMITTERSHAPE_SPHERE, EVENT_KEYDOWN, EVENT_KEYUP, EVENT_MOUSEDOWN, EVENT_MOUSEMOVE, EVENT_MOUSEUP, EVENT_MOUSEWHEEL, EVENT_SELECT, EVENT_SELECTEND, EVENT_SELECTSTART, EVENT_TOUCHCANCEL, EVENT_TOUCHEND, EVENT_TOUCHMOVE, EVENT_TOUCHSTART, ElementComponent, ElementComponentSystem, ElementDragHelper, ElementInput, ElementInputEvent, ElementMouseEvent, ElementSelectEvent, ElementTouchEvent, Entity, EntityReference, EnvLighting, EventHandler, FILLMODE_FILL_WINDOW, FILLMODE_KEEP_ASPECT, FILLMODE_NONE, FILTER_LINEAR, FILTER_LINEAR_MIPMAP_LINEAR, FILTER_LINEAR_MIPMAP_NEAREST, FILTER_NEAREST, FILTER_NEAREST_MIPMAP_LINEAR, FILTER_NEAREST_MIPMAP_NEAREST, FITMODE_CONTAIN, FITMODE_COVER, FITMODE_STRETCH, FITTING_BOTH, FITTING_NONE, FITTING_SHRINK, FITTING_STRETCH, FOG_EXP, FOG_EXP2, FOG_LINEAR, FOG_NONE, FONT_BITMAP, FONT_MSDF, FRESNEL_NONE, FRESNEL_SCHLICK, FUNC_ALWAYS, FUNC_EQUAL, FUNC_GREATER, FUNC_GREATEREQUAL, FUNC_LESS, FUNC_LESSEQUAL, FUNC_NEVER, FUNC_NOTEQUAL, FolderHandler, Font, FontHandler, ForwardRenderer, Frustum, GAMMA_NONE, GAMMA_SRGB, GAMMA_SRGBFAST, GAMMA_SRGBHDR, GamePads, GraphNode, GraphicsDevice, HierarchyHandler, HtmlHandler, Http, I18n, INDEXFORMAT_UINT16, INDEXFORMAT_UINT32, INDEXFORMAT_UINT8, INTERPOLATION_CUBIC, INTERPOLATION_LINEAR, INTERPOLATION_STEP, ImageElement, IndexBuffer, IndexedList, JointComponent, JointComponentSystem, JsonHandler, JsonStandardMaterialParser, KEY_0, KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7, KEY_8, KEY_9, KEY_A, KEY_ADD, KEY_ALT, KEY_B, KEY_BACKSPACE, KEY_BACK_SLASH, KEY_C, KEY_CAPS_LOCK, KEY_CLOSE_BRACKET, KEY_COMMA, KEY_CONTEXT_MENU, KEY_CONTROL, KEY_D, KEY_DECIMAL, KEY_DELETE, KEY_DIVIDE, KEY_DOWN, KEY_E, KEY_END, KEY_ENTER, KEY_EQUAL, KEY_ESCAPE, KEY_F, KEY_F1, KEY_F10, KEY_F11, KEY_F12, KEY_F2, KEY_F3, KEY_F4, KEY_F5, KEY_F6, KEY_F7, KEY_F8, KEY_F9, KEY_G, KEY_H, KEY_HOME, KEY_I, KEY_INSERT, KEY_J, KEY_K, KEY_L, KEY_LEFT, KEY_M, KEY_META, KEY_MULTIPLY, KEY_N, KEY_NUMPAD_0, KEY_NUMPAD_1, KEY_NUMPAD_2, KEY_NUMPAD_3, KEY_NUMPAD_4, KEY_NUMPAD_5, KEY_NUMPAD_6, KEY_NUMPAD_7, KEY_NUMPAD_8, KEY_NUMPAD_9, KEY_O, KEY_OPEN_BRACKET, KEY_P, KEY_PAGE_DOWN, KEY_PAGE_UP, KEY_PAUSE, KEY_PERIOD, KEY_PRINT_SCREEN, KEY_Q, KEY_R, KEY_RETURN, KEY_RIGHT, KEY_S, KEY_SEMICOLON, KEY_SEPARATOR, KEY_SHIFT, KEY_SLASH, KEY_SPACE, KEY_SUBTRACT, KEY_T, KEY_TAB, KEY_U, KEY_UP, KEY_V, KEY_W, KEY_WINDOWS, KEY_X, KEY_Y, KEY_Z, Key, Keyboard, KeyboardEvent, LAYERID_DEPTH, LAYERID_IMMEDIATE, LAYERID_SKYBOX, LAYERID_UI, LAYERID_WORLD, LAYER_FX, LAYER_GIZMO, LAYER_HUD, LAYER_WORLD, LIGHTFALLOFF_INVERSESQUARED, LIGHTFALLOFF_LINEAR, LIGHTSHAPE_DISK, LIGHTSHAPE_PUNCTUAL, LIGHTSHAPE_RECT, LIGHTSHAPE_SPHERE, LIGHTTYPE_COUNT, LIGHTTYPE_DIRECTIONAL, LIGHTTYPE_OMNI, LIGHTTYPE_POINT, LIGHTTYPE_SPOT, LINEBATCH_GIZMO, LINEBATCH_OVERLAY, LINEBATCH_WORLD, Layer, LayerComposition, LayoutCalculator, LayoutChildComponent, LayoutChildComponentSystem, LayoutGroupComponent, LayoutGroupComponentSystem, Light, LightComponent, LightComponentSystem, LightingParams, Lightmapper, LocalizedAsset, MASK_AFFECT_DYNAMIC, MASK_AFFECT_LIGHTMAPPED, MASK_BAKE, MOTION_FREE, MOTION_LIMITED, MOTION_LOCKED, MOUSEBUTTON_LEFT, MOUSEBUTTON_MIDDLE, MOUSEBUTTON_NONE, MOUSEBUTTON_RIGHT, Mat3, Mat4, Material, MaterialHandler, Mesh, MeshInstance, Model, ModelComponent, ModelComponentSystem, ModelHandler, Morph, MorphInstance, MorphTarget, Mouse, MouseEvent$1 as MouseEvent, Node$1 as Node, ORIENTATION_HORIZONTAL, ORIENTATION_VERTICAL, OrientedBox, PAD_1, PAD_2, PAD_3, PAD_4, PAD_DOWN, PAD_FACE_1, PAD_FACE_2, PAD_FACE_3, PAD_FACE_4, PAD_LEFT, PAD_L_SHOULDER_1, PAD_L_SHOULDER_2, PAD_L_STICK_BUTTON, PAD_L_STICK_X, PAD_L_STICK_Y, PAD_RIGHT, PAD_R_SHOULDER_1, PAD_R_SHOULDER_2, PAD_R_STICK_BUTTON, PAD_R_STICK_X, PAD_R_STICK_Y, PAD_SELECT, PAD_START, PAD_UP, PAD_VENDOR, PARTICLEMODE_CPU, PARTICLEMODE_GPU, PARTICLEORIENTATION_EMITTER, PARTICLEORIENTATION_SCREEN, PARTICLEORIENTATION_WORLD, PARTICLESORT_DISTANCE, PARTICLESORT_NEWER_FIRST, PARTICLESORT_NONE, PARTICLESORT_OLDER_FIRST, PIXELFORMAT_111110F, PIXELFORMAT_A8, PIXELFORMAT_ASTC_4x4, PIXELFORMAT_ATC_RGB, PIXELFORMAT_ATC_RGBA, PIXELFORMAT_DEPTH, PIXELFORMAT_DEPTHSTENCIL, PIXELFORMAT_DXT1, PIXELFORMAT_DXT3, PIXELFORMAT_DXT5, PIXELFORMAT_ETC1, PIXELFORMAT_ETC2_RGB, PIXELFORMAT_ETC2_RGBA, PIXELFORMAT_L8, PIXELFORMAT_L8_A8, PIXELFORMAT_PVRTC_2BPP_RGBA_1, PIXELFORMAT_PVRTC_2BPP_RGB_1, PIXELFORMAT_PVRTC_4BPP_RGBA_1, PIXELFORMAT_PVRTC_4BPP_RGB_1, PIXELFORMAT_R32F, PIXELFORMAT_R4_G4_B4_A4, PIXELFORMAT_R5_G5_B5_A1, PIXELFORMAT_R5_G6_B5, PIXELFORMAT_R8_G8_B8, PIXELFORMAT_R8_G8_B8_A8, PIXELFORMAT_RGB16F, PIXELFORMAT_RGB32F, PIXELFORMAT_RGBA16F, PIXELFORMAT_RGBA32F, PIXELFORMAT_SRGB, PIXELFORMAT_SRGBA, PRIMITIVE_LINELOOP, PRIMITIVE_LINES, PRIMITIVE_LINESTRIP, PRIMITIVE_POINTS, PRIMITIVE_TRIANGLES, PRIMITIVE_TRIFAN, PRIMITIVE_TRISTRIP, PROJECTION_ORTHOGRAPHIC, PROJECTION_PERSPECTIVE, ParticleEmitter, ParticleSystemComponent, ParticleSystemComponentSystem, PhongMaterial, Picker, Plane, PostEffect$1 as PostEffect, PostEffectQueue, ProgramLibrary, Quat, RENDERSTYLE_POINTS, RENDERSTYLE_SOLID, RENDERSTYLE_WIREFRAME, RESOLUTION_AUTO, RESOLUTION_FIXED, RIGIDBODY_ACTIVE_TAG, RIGIDBODY_CF_KINEMATIC_OBJECT, RIGIDBODY_CF_NORESPONSE_OBJECT, RIGIDBODY_CF_STATIC_OBJECT, RIGIDBODY_DISABLE_DEACTIVATION, RIGIDBODY_DISABLE_SIMULATION, RIGIDBODY_ISLAND_SLEEPING, RIGIDBODY_TYPE_DYNAMIC, RIGIDBODY_TYPE_KINEMATIC, RIGIDBODY_TYPE_STATIC, RIGIDBODY_WANTS_DEACTIVATION, Ray, RaycastResult, ReadStream, RenderComponent, RenderComponentSystem, RenderHandler, RenderTarget, ResourceHandler, ResourceLoader, RigidBodyComponent, RigidBodyComponentSystem, SAMPLETYPE_DEPTH, SAMPLETYPE_FLOAT, SAMPLETYPE_UNFILTERABLE_FLOAT, SCALEMODE_BLEND, SCALEMODE_NONE, SCROLLBAR_VISIBILITY_SHOW_ALWAYS, SCROLLBAR_VISIBILITY_SHOW_WHEN_REQUIRED, SCROLL_MODE_BOUNCE, SCROLL_MODE_CLAMP, SCROLL_MODE_INFINITE, SEMANTIC_ATTR, SEMANTIC_ATTR0, SEMANTIC_ATTR1, SEMANTIC_ATTR10, SEMANTIC_ATTR11, SEMANTIC_ATTR12, SEMANTIC_ATTR13, SEMANTIC_ATTR14, SEMANTIC_ATTR15, SEMANTIC_ATTR2, SEMANTIC_ATTR3, SEMANTIC_ATTR4, SEMANTIC_ATTR5, SEMANTIC_ATTR6, SEMANTIC_ATTR7, SEMANTIC_ATTR8, SEMANTIC_ATTR9, SEMANTIC_BLENDINDICES, SEMANTIC_BLENDWEIGHT, SEMANTIC_COLOR, SEMANTIC_NORMAL, SEMANTIC_POSITION, SEMANTIC_TANGENT, SEMANTIC_TEXCOORD, SEMANTIC_TEXCOORD0, SEMANTIC_TEXCOORD1, SEMANTIC_TEXCOORD2, SEMANTIC_TEXCOORD3, SEMANTIC_TEXCOORD4, SEMANTIC_TEXCOORD5, SEMANTIC_TEXCOORD6, SEMANTIC_TEXCOORD7, SHADERDEF_DIRLM, SHADERDEF_INSTANCING, SHADERDEF_LM, SHADERDEF_LMAMBIENT, SHADERDEF_MORPH_NORMAL, SHADERDEF_MORPH_POSITION, SHADERDEF_MORPH_TEXTURE_BASED, SHADERDEF_NOSHADOW, SHADERDEF_SCREENSPACE, SHADERDEF_SKIN, SHADERDEF_TANGENTS, SHADERDEF_UV0, SHADERDEF_UV1, SHADERDEF_VCOLOR, SHADERSTAGE_COMPUTE, SHADERSTAGE_FRAGMENT, SHADERSTAGE_VERTEX, SHADERTAG_MATERIAL, SHADERTYPE_DEPTH, SHADERTYPE_FORWARD, SHADERTYPE_PICK, SHADERTYPE_SHADOW, SHADER_DEPTH, SHADER_FORWARD, SHADER_FORWARDHDR, SHADER_PICK, SHADER_SHADOW, SHADOWUPDATE_NONE, SHADOWUPDATE_REALTIME, SHADOWUPDATE_THISFRAME, SHADOW_COUNT, SHADOW_DEPTH, SHADOW_PCF1, SHADOW_PCF3, SHADOW_PCF5, SHADOW_VSM16, SHADOW_VSM32, SHADOW_VSM8, SORTKEY_DEPTH, SORTKEY_FORWARD, SORTMODE_BACK2FRONT, SORTMODE_CUSTOM, SORTMODE_FRONT2BACK, SORTMODE_MANUAL, SORTMODE_MATERIALMESH, SORTMODE_NONE, SPECOCC_AO, SPECOCC_GLOSSDEPENDENT, SPECOCC_NONE, SPECULAR_BLINN, SPECULAR_PHONG, SPRITETYPE_ANIMATED, SPRITETYPE_SIMPLE, SPRITE_RENDERMODE_SIMPLE, SPRITE_RENDERMODE_SLICED, SPRITE_RENDERMODE_TILED, STENCILOP_DECREMENT, STENCILOP_DECREMENTWRAP, STENCILOP_INCREMENT, STENCILOP_INCREMENTWRAP, STENCILOP_INVERT, STENCILOP_KEEP, STENCILOP_REPLACE, STENCILOP_ZERO, Scene, SceneHandler, SceneRegistry, SceneRegistryItem, SceneSettingsHandler, ScopeId, ScopeSpace, ScreenComponent, ScreenComponentSystem, ScriptAttributes, ScriptComponent, ScriptComponentSystem, ScriptHandler, ScriptLegacyComponent, ScriptLegacyComponentSystem, ScriptRegistry, ScriptType, ScrollViewComponent, ScrollViewComponentSystem, ScrollbarComponent, ScrollbarComponentSystem, Shader, ShaderHandler, SingleContactResult, Skeleton, Skin, SkinBatchInstance, SkinInstance, SortedLoopArray, Sound, SoundComponent, SoundComponentSystem, SoundInstance, SoundInstance3d, SoundManager, SoundSlot, Sprite, SpriteAnimationClip, SpriteComponent, SpriteComponentSystem, SpriteHandler, StandardMaterial as StandardMaterial, StencilParameters, TEXHINT_ASSET, TEXHINT_LIGHTMAP, TEXHINT_NONE, TEXHINT_SHADOWMAP, TEXTUREDIMENSION_1D, TEXTUREDIMENSION_2D, TEXTUREDIMENSION_2D_ARRAY, TEXTUREDIMENSION_3D, TEXTUREDIMENSION_CUBE, TEXTUREDIMENSION_CUBE_ARRAY, TEXTURELOCK_READ, TEXTURELOCK_WRITE, TEXTUREPROJECTION_CUBE, TEXTUREPROJECTION_EQUIRECT, TEXTUREPROJECTION_NONE, TEXTUREPROJECTION_OCTAHEDRAL, TEXTURETYPE_DEFAULT, TEXTURETYPE_RGBE, TEXTURETYPE_RGBM, TEXTURETYPE_RGBP, TEXTURETYPE_SWIZZLEGGGR, TONEMAP_ACES, TONEMAP_ACES2, TONEMAP_FILMIC, TONEMAP_HEJL, TONEMAP_LINEAR, TRACEID_RENDER_ACTION, TRACEID_RENDER_FRAME, TRACEID_RENDER_PASS, TRACEID_RENDER_PASS_DETAIL, TRACEID_RENDER_TARGET_ALLOC, TRACEID_SHADER_ALLOC, TRACEID_TEXTURE_ALLOC, TRACEID_VRAM_IB, TRACEID_VRAM_TEXTURE, TRACEID_VRAM_VB, TYPE_FLOAT32, TYPE_INT16, TYPE_INT32, TYPE_INT8, TYPE_UINT16, TYPE_UINT32, TYPE_UINT8, Tags, Template, TemplateHandler, TextElement, TextHandler, Texture, TextureAtlas, TextureAtlasHandler, TextureHandler, TextureParser, Timer, Touch$1 as Touch, TouchDevice, TouchEvent$1 as TouchEvent, Tracing, TransformFeedback, UNIFORMTYPE_BOOL, UNIFORMTYPE_BVEC2, UNIFORMTYPE_BVEC3, UNIFORMTYPE_BVEC4, UNIFORMTYPE_FLOAT, UNIFORMTYPE_FLOATARRAY, UNIFORMTYPE_INT, UNIFORMTYPE_IVEC2, UNIFORMTYPE_IVEC3, UNIFORMTYPE_IVEC4, UNIFORMTYPE_MAT2, UNIFORMTYPE_MAT3, UNIFORMTYPE_MAT4, UNIFORMTYPE_TEXTURE2D, UNIFORMTYPE_TEXTURE2D_SHADOW, UNIFORMTYPE_TEXTURE3D, UNIFORMTYPE_TEXTURECUBE, UNIFORMTYPE_TEXTURECUBE_SHADOW, UNIFORMTYPE_VEC2, UNIFORMTYPE_VEC2ARRAY, UNIFORMTYPE_VEC3, UNIFORMTYPE_VEC3ARRAY, UNIFORMTYPE_VEC4, UNIFORMTYPE_VEC4ARRAY, UNIFORM_BUFFER_DEFAULT_SLOT_NAME, URI, UnsupportedBrowserError, VIEW_CENTER, VIEW_LEFT, VIEW_RIGHT, Vec2, Vec3, Vec4, VertexBuffer, VertexFormat, VertexIterator, WasmModule, WebglGraphicsDevice, WorldClusters, XRDEPTHSENSINGFORMAT_F32, XRDEPTHSENSINGFORMAT_L8A8, XRDEPTHSENSINGUSAGE_CPU, XRDEPTHSENSINGUSAGE_GPU, XRHAND_LEFT, XRHAND_NONE, XRHAND_RIGHT, XRSPACE_BOUNDEDFLOOR, XRSPACE_LOCAL, XRSPACE_LOCALFLOOR, XRSPACE_UNBOUNDED, XRSPACE_VIEWER, XRTARGETRAY_GAZE, XRTARGETRAY_POINTER, XRTARGETRAY_SCREEN, XRTRACKABLE_MESH, XRTRACKABLE_PLANE, XRTRACKABLE_POINT, XRTYPE_AR, XRTYPE_INLINE, XRTYPE_VR, XrDepthSensing, XrDomOverlay, XrHitTest, XrHitTestSource, XrImageTracking, XrInput, XrInputSource, XrLightEstimation, XrManager, XrPlane, XrPlaneDetection, XrTrackedImage, ZoneComponent, ZoneComponentSystem, anim, app, apps, asset, audio, basisInitialize, basisSetDownloadConfig, basisTranscode, bindGroupNames, calculateNormals, calculateTangents, common, config, createBox, createCapsule, createCone, createCylinder, createMesh, createPlane, createScript, createShader, createShaderFromCode, createSphere, createStyle, createTorus, createURI, data, drawFullscreenQuad, drawQuadWithShader, drawTexture, events, extend, fw, getTouchTargetCoords, gfx, guid, http, inherits, input, isDefined, log, makeArray, math, now, path, platform, posteffect, prefilterCubemap, programlib, registerScript, reprojectTexture, revision, scene, script, semanticToLocation, shFromCubemap, shaderChunks, shaderChunksLightmapper, shadowTypeToString, shape, string, time, type, typedArrayIndexFormats, typedArrayIndexFormatsByteSize, typedArrayToType, typedArrayTypes, typedArrayTypesByteSize, uniformTypeToName, version };
 export as namespace pc;

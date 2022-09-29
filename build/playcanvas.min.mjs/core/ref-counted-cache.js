@@ -1,0 +1,1 @@
+class e{constructor(){this.cache=new Map}destroy(){this.cache.forEach(((e,c)=>{c.destroy()})),this.cache.clear()}incRef(e){const c=(this.cache.get(e)||0)+1;this.cache.set(e,c)}decRef(e){if(e){let c=this.cache.get(e);c&&(c--,0===c?(this.cache.delete(e),e.destroy()):this.cache.set(e,c))}}}export{e as RefCountedCache};
