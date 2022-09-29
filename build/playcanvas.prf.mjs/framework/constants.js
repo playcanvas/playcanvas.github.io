@@ -1,0 +1,12 @@
+/**
+ * @license
+ * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
+ */
+const FILLMODE_NONE = 'NONE';
+const FILLMODE_FILL_WINDOW = 'FILL_WINDOW';
+const FILLMODE_KEEP_ASPECT = 'KEEP_ASPECT';
+const RESOLUTION_AUTO = 'AUTO';
+const RESOLUTION_FIXED = 'FIXED';
+
+export { FILLMODE_FILL_WINDOW, FILLMODE_KEEP_ASPECT, FILLMODE_NONE, RESOLUTION_AUTO, RESOLUTION_FIXED };

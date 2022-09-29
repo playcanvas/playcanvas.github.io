@@ -1,0 +1,14 @@
+/**
+ * @license
+ * PlayCanvas Engine v1.57.0 revision f1998a31e (DEBUG PROFILER)
+ * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
+ */
+class LayoutGroupComponentData {
+  constructor() {
+    this.enabled = true;
+  }
+
+}
+
+export { LayoutGroupComponentData };
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiZGF0YS5qcyIsInNvdXJjZXMiOlsiLi4vLi4vLi4vLi4vLi4vc3JjL2ZyYW1ld29yay9jb21wb25lbnRzL2xheW91dC1ncm91cC9kYXRhLmpzIl0sInNvdXJjZXNDb250ZW50IjpbImNsYXNzIExheW91dEdyb3VwQ29tcG9uZW50RGF0YSB7XG4gICAgY29uc3RydWN0b3IoKSB7XG4gICAgICAgIHRoaXMuZW5hYmxlZCA9IHRydWU7XG4gICAgfVxufVxuXG5leHBvcnQgeyBMYXlvdXRHcm91cENvbXBvbmVudERhdGEgfTtcbiJdLCJuYW1lcyI6WyJMYXlvdXRHcm91cENvbXBvbmVudERhdGEiLCJjb25zdHJ1Y3RvciIsImVuYWJsZWQiXSwibWFwcGluZ3MiOiI7Ozs7O0FBQUEsTUFBTUEsd0JBQU4sQ0FBK0I7QUFDM0JDLEVBQUFBLFdBQVcsR0FBRztJQUNWLElBQUtDLENBQUFBLE9BQUwsR0FBZSxJQUFmLENBQUE7QUFDSCxHQUFBOztBQUgwQjs7OzsifQ==

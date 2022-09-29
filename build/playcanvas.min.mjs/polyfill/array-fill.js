@@ -1,0 +1,1 @@
+import{defineProtoFunc as t}from"./defineProtoFunc.js";t(Array,"fill",(function(t){if(null==this)throw new TypeError("this is null or not defined");for(var r=Object(this),i=r.length>>>0,n=arguments[1],o=n>>0,e=o<0?Math.max(i+o,0):Math.min(o,i),h=arguments[2],a=void 0===h?i:h>>0,f=a<0?Math.max(i+a,0):Math.min(a,i);e<f;)r[e]=t,e++;return r}));

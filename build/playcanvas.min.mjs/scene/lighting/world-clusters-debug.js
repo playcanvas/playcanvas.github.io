@@ -1,0 +1,1 @@
+import"../../math/color.js";import"../../math/mat4.js";import{Vec3 as t}from"../../math/vec3.js";import"../../graphics/constants.js";import"../constants.js";import"../graph-node.js";import"../mesh.js";import"../mesh-instance.js";import"../materials/standard-material.js";new t(1,1,1),new t(40,0,0);

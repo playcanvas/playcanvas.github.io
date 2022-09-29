@@ -1,0 +1,1 @@
+class s{constructor(){this.shadowCastersSet=new Set,this.shadowCastersList=[]}clearShadowCasters(){this.shadowCastersSet.clear(),this.shadowCastersList.length=0}addShadowCasters(s){for(let t=0;t<s.length;t++){const a=s[t];this.shadowCastersSet.has(a)||(this.shadowCastersSet.add(a),this.shadowCastersList.push(a))}}}export{s as LightCompositionData};

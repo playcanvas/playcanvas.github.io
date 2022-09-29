@@ -1,0 +1,1 @@
+class l{constructor(l){this._blobUrls={};for(let r=0,s=l.length;r<s;r++)l[r].url&&(this._blobUrls[l[r].name]=l[r].url)}hasBlobUrl(l){return!!this._blobUrls[l]}getBlobUrl(l){return this._blobUrls[l]}destroy(){for(const l in this._blobUrls)URL.revokeObjectURL(this._blobUrls[l]);this._blobUrls=null}}export{l as Bundle};

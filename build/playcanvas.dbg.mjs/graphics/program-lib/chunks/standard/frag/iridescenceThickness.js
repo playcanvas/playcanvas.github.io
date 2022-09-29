@@ -1,0 +1,27 @@
+/**
+ * @license
+ * PlayCanvas Engine v1.57.0 revision f1998a31e (DEBUG PROFILER)
+ * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
+ */
+var iridescenceThicknessPS = `
+uniform float material_iridescenceThicknessMax;
+
+#ifdef MAPTEXTURE
+uniform float material_iridescenceThicknessMin;
+#endif
+
+void getIridescenceThickness() {
+
+    #ifdef MAPTEXTURE
+    float blend = texture2DBias($SAMPLER, $UV, textureBias).$CH;
+    float iridescenceThickness = mix(material_iridescenceThicknessMin, material_iridescenceThicknessMax, blend);
+    #else
+    float iridescenceThickness = material_iridescenceThicknessMax;
+    #endif
+
+    dIridescenceThickness = iridescenceThickness; 
+}
+`;
+
+export { iridescenceThicknessPS as default };
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiaXJpZGVzY2VuY2VUaGlja25lc3MuanMiLCJzb3VyY2VzIjpbIi4uLy4uLy4uLy4uLy4uLy4uLy4uL3NyYy9ncmFwaGljcy9wcm9ncmFtLWxpYi9jaHVua3Mvc3RhbmRhcmQvZnJhZy9pcmlkZXNjZW5jZVRoaWNrbmVzcy5qcyJdLCJzb3VyY2VzQ29udGVudCI6WyJleHBvcnQgZGVmYXVsdCAvKiBnbHNsICovYFxudW5pZm9ybSBmbG9hdCBtYXRlcmlhbF9pcmlkZXNjZW5jZVRoaWNrbmVzc01heDtcblxuI2lmZGVmIE1BUFRFWFRVUkVcbnVuaWZvcm0gZmxvYXQgbWF0ZXJpYWxfaXJpZGVzY2VuY2VUaGlja25lc3NNaW47XG4jZW5kaWZcblxudm9pZCBnZXRJcmlkZXNjZW5jZVRoaWNrbmVzcygpIHtcblxuICAgICNpZmRlZiBNQVBURVhUVVJFXG4gICAgZmxvYXQgYmxlbmQgPSB0ZXh0dXJlMkRCaWFzKCRTQU1QTEVSLCAkVVYsIHRleHR1cmVCaWFzKS4kQ0g7XG4gICAgZmxvYXQgaXJpZGVzY2VuY2VUaGlja25lc3MgPSBtaXgobWF0ZXJpYWxfaXJpZGVzY2VuY2VUaGlja25lc3NNaW4sIG1hdGVyaWFsX2lyaWRlc2NlbmNlVGhpY2tuZXNzTWF4LCBibGVuZCk7XG4gICAgI2Vsc2VcbiAgICBmbG9hdCBpcmlkZXNjZW5jZVRoaWNrbmVzcyA9IG1hdGVyaWFsX2lyaWRlc2NlbmNlVGhpY2tuZXNzTWF4O1xuICAgICNlbmRpZlxuXG4gICAgZElyaWRlc2NlbmNlVGhpY2tuZXNzID0gaXJpZGVzY2VuY2VUaGlja25lc3M7IFxufVxuYDtcbiJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiOzs7OztBQUFBLDZCQUEwQixDQUFBO0FBQzFCO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQSxDQWxCQTs7OzsifQ==

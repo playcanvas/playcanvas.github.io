@@ -1,0 +1,1 @@
+class e{constructor(){this.code=""}append(...e){e.forEach((e=>{e.endsWith("\n")?this.code+=e:this.code+=e+"\n"}))}prepend(...e){e.forEach((e=>{e.endsWith("\n")?this.code=e+this.code:this.code=e+"\n"+this.code}))}}export{e as ChunkBuilder};

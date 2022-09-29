@@ -1,0 +1,1 @@
+import{LAYERID_WORLD as e}from"../constants.js";class t{constructor(t,s,i,r,m=[e]){this.dynamic=i,this.maxAabbSize=r,this.id=t,this.name=s,this.layers=m,this._ui=!1,this._sprite=!1,this._obj={model:[],element:[],sprite:[],render:[]}}}t.MODEL="model",t.ELEMENT="element",t.SPRITE="sprite",t.RENDER="render";export{t as BatchGroup};

@@ -1,0 +1,17 @@
+import '../../core/tracing.js';
+import { DeviceCache } from '../../graphics/device-cache.js';
+
+const defaultMaterialDeviceCache = new DeviceCache();
+
+function getDefaultMaterial(device) {
+  const material = defaultMaterialDeviceCache.get(device);
+  return material;
+}
+
+function setDefaultMaterial(device, material) {
+  defaultMaterialDeviceCache.get(device, () => {
+    return material;
+  });
+}
+
+export { getDefaultMaterial, setDefaultMaterial };

@@ -1,0 +1,17 @@
+/**
+ * @license
+ * PlayCanvas Engine v1.57.0 revision f1998a31e (DEBUG PROFILER)
+ * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
+ */
+var transformDeclVS = `
+attribute vec3 vertex_position;
+
+uniform mat4 matrix_model;
+uniform mat4 matrix_viewProjection;
+
+vec3 dPositionW;
+mat4 dModelMatrix;
+`;
+
+export { transformDeclVS as default };
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoidHJhbnNmb3JtRGVjbC5qcyIsInNvdXJjZXMiOlsiLi4vLi4vLi4vLi4vLi4vLi4vLi4vc3JjL2dyYXBoaWNzL3Byb2dyYW0tbGliL2NodW5rcy9jb21tb24vdmVydC90cmFuc2Zvcm1EZWNsLmpzIl0sInNvdXJjZXNDb250ZW50IjpbImV4cG9ydCBkZWZhdWx0IC8qIGdsc2wgKi9gXG5hdHRyaWJ1dGUgdmVjMyB2ZXJ0ZXhfcG9zaXRpb247XG5cbnVuaWZvcm0gbWF0NCBtYXRyaXhfbW9kZWw7XG51bmlmb3JtIG1hdDQgbWF0cml4X3ZpZXdQcm9qZWN0aW9uO1xuXG52ZWMzIGRQb3NpdGlvblc7XG5tYXQ0IGRNb2RlbE1hdHJpeDtcbmA7XG4iXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6Ijs7Ozs7QUFBQSxzQkFBMEIsQ0FBQTtBQUMxQjtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBLENBUkE7Ozs7In0=

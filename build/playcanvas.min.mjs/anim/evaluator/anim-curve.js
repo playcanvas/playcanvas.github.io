@@ -1,0 +1,1 @@
+class t{constructor(t,i,n,r){this._paths=t,this._input=i,this._output=n,this._interpolation=r}get paths(){return this._paths}get input(){return this._input}get output(){return this._output}get interpolation(){return this._interpolation}}export{t as AnimCurve};

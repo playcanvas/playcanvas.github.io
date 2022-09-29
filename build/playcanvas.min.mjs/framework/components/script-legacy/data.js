@@ -1,0 +1,1 @@
+class s{constructor(){this.scripts=[],this.enabled=!0,this.instances={},this._instances={},this.runInTools=!1,this.attributes={},this.initialized=!1,this.postInitialized=!1,this.areScriptsLoaded=!1}}export{s as ScriptLegacyComponentData};

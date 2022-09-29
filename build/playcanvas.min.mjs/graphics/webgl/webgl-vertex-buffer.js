@@ -1,0 +1,1 @@
+import{WebglBuffer as e}from"./webgl-buffer.js";class o extends e{constructor(...e){super(...e),this.vao=null}destroy(e){super.destroy(e),e.boundVao=null,e.gl.bindVertexArray(null)}loseContext(){super.loseContext(),this.vao=null}unlock(e){const o=e.device;super.unlock(o,e.usage,o.gl.ARRAY_BUFFER,e.storage)}}export{o as WebglVertexBuffer};

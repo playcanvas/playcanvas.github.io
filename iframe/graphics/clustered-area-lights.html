@@ -24,6 +24,14 @@
 <body>
     <div id="app">
         <div id="appInner">
+            <!--A link without href, which makes it invisible. Setting href in an example would trigger a download when clicked.-->
+            <div style="width:100%; position:absolute; top:10px">
+                <div style="text-align: center;">
+                    <a id="ar-link" rel="ar" download="asset.usdz">
+                        <img id="button" width="200" src="/arkit.png">
+                    </a>    
+                </div>
+            </div>
             <canvas id='application-canvas'></canvas>
         </div>
     </div>
@@ -79,7 +87,7 @@
         'color': new pc.Asset('color', 'texture', { url: '/../../static/assets/textures/seaside-rocks01-color.jpg' }),
         'normal': new pc.Asset('normal', 'texture', { url: '/../../static/assets/textures/seaside-rocks01-normal.jpg' }),
         'gloss': new pc.Asset('gloss', 'texture', { url: '/../../static/assets/textures/seaside-rocks01-gloss.jpg' }),
-        'luts': new pc.Asset('luts', 'binary', { url: '/../../static/assets/binary/area-light-luts.bin' }) };
+        'luts': new pc.Asset('luts', 'json', { url: '/../../static/assets/json/area-light-luts.json' }) };
 
 
       var assetListLoader = new pc.AssetListLoader(Object.values(assets), app.assets);
@@ -209,7 +217,8 @@
         app.start();
 
         // set the loaded area light LUT data
-        app.setAreaLightLuts(assets.luts);
+        var luts = assets.luts.resource;
+        app.setAreaLightLuts(luts.LTC_MAT_1, luts.LTC_MAT_2);
 
         // set up some general scene rendering properties
         app.scene.toneMapping = pc.TONEMAP_ACES;
