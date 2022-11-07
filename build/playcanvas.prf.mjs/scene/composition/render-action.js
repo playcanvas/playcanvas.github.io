@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import { LIGHTTYPE_DIRECTIONAL } from '../constants.js';
@@ -8,19 +8,31 @@ import { LIGHTTYPE_DIRECTIONAL } from '../constants.js';
 class RenderAction {
   constructor() {
     this.layerIndex = 0;
+
     this.cameraIndex = 0;
+
     this.camera = null;
+
     this.renderTarget = null;
+
     this.lightClusters = null;
+
     this.clearColor = false;
     this.clearDepth = false;
     this.clearStencil = false;
+
     this.triggerPostprocess = false;
+
     this.firstCameraUse = false;
+
     this.lastCameraUse = false;
+
     this.directionalLightsSet = new Set();
+
     this.directionalLights = [];
+
     this.directionalLightsIndices = [];
+
     this.viewBindGroups = [];
   }
 
@@ -31,7 +43,6 @@ class RenderAction {
     });
     this.viewBindGroups.length = 0;
   }
-
   get hasDirectionalShadowLights() {
     return this.directionalLights.length > 0;
   }
@@ -52,7 +63,6 @@ class RenderAction {
     this.directionalLightsSet.clear();
     this.directionalLights.length = 0;
     this.directionalLightsIndices.length = 0;
-
     for (let i = 0; i < dirLights.length; i++) {
       const light = dirLights[i];
 
@@ -62,6 +72,7 @@ class RenderAction {
             if (!this.directionalLightsSet.has(light)) {
               this.directionalLightsSet.add(light);
               this.directionalLights.push(light);
+
               const lightIndex = allLights.indexOf(light);
               this.directionalLightsIndices.push(lightIndex);
             }
@@ -70,7 +81,6 @@ class RenderAction {
       }
     }
   }
-
 }
 
 export { RenderAction };

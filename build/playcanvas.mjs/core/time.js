@@ -20,7 +20,6 @@ class Timer {
   getMilliseconds() {
     return this._b - this._a;
   }
-
 }
 
 export { Timer, now };

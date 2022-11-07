@@ -5,7 +5,6 @@ class ShadowMapCache {
   constructor() {
     this.shadowMapCache = new Map();
   }
-
   destroy() {
     this.clear();
     this.shadowMapCache = null;
@@ -30,7 +29,6 @@ class ShadowMapCache {
   get(device, light) {
     const key = this.getKey(light);
     const shadowMaps = this.shadowMapCache.get(key);
-
     if (shadowMaps && shadowMaps.length) {
       return shadowMaps.pop();
     }
@@ -43,14 +41,12 @@ class ShadowMapCache {
   add(light, shadowMap) {
     const key = this.getKey(light);
     const shadowMaps = this.shadowMapCache.get(key);
-
     if (shadowMaps) {
       shadowMaps.push(shadowMap);
     } else {
       this.shadowMapCache.set(key, [shadowMap]);
     }
   }
-
 }
 
 export { ShadowMapCache };

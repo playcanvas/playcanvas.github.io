@@ -1,7 +1,7 @@
-import '../../math/color.js';
-import '../../math/mat4.js';
-import { Vec3 } from '../../math/vec3.js';
-import '../../graphics/constants.js';
+import '../../core/math/color.js';
+import '../../core/math/mat4.js';
+import { Vec3 } from '../../core/math/vec3.js';
+import '../../platform/graphics/constants.js';
 import '../constants.js';
 import '../graph-node.js';
 import '../mesh.js';

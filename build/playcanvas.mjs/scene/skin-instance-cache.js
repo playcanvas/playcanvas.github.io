@@ -7,19 +7,19 @@ class SkinInstanceCachedObject extends RefCountedObject {
     this.skin = skin;
     this.skinInstance = skinInstance;
   }
-
 }
 
 class SkinInstanceCache {
+
   static createCachedSkinInstance(skin, rootBone, entity) {
     let skinInst = SkinInstanceCache.getCachedSkinInstance(skin, rootBone);
 
     if (!skinInst) {
       skinInst = new SkinInstance(skin);
       skinInst.resolve(rootBone, entity);
+
       SkinInstanceCache.addCachedSkinInstance(skin, rootBone, skinInst);
     }
-
     return skinInst;
   }
 
@@ -27,48 +27,38 @@ class SkinInstanceCache {
     let skinInstance = null;
 
     const cachedObjArray = SkinInstanceCache._skinInstanceCache.get(rootBone);
-
     if (cachedObjArray) {
       const cachedObj = cachedObjArray.find(element => element.skin === skin);
-
       if (cachedObj) {
         cachedObj.incRefCount();
         skinInstance = cachedObj.skinInstance;
       }
     }
-
     return skinInstance;
   }
 
   static addCachedSkinInstance(skin, rootBone, skinInstance) {
     let cachedObjArray = SkinInstanceCache._skinInstanceCache.get(rootBone);
-
     if (!cachedObjArray) {
       cachedObjArray = [];
-
       SkinInstanceCache._skinInstanceCache.set(rootBone, cachedObjArray);
     }
 
     let cachedObj = cachedObjArray.find(element => element.skin === skin);
-
     if (!cachedObj) {
       cachedObj = new SkinInstanceCachedObject(skin, skinInstance);
       cachedObjArray.push(cachedObj);
     }
-
     cachedObj.incRefCount();
   }
 
   static removeCachedSkinInstance(skinInstance) {
     if (skinInstance) {
       const rootBone = skinInstance.rootBone;
-
       if (rootBone) {
         const cachedObjArray = SkinInstanceCache._skinInstanceCache.get(rootBone);
-
         if (cachedObjArray) {
           const cachedObjIndex = cachedObjArray.findIndex(element => element.skinInstance === skinInstance);
-
           if (cachedObjIndex >= 0) {
             const cachedObj = cachedObjArray[cachedObjIndex];
             cachedObj.decRefCount();
@@ -90,9 +80,7 @@ class SkinInstanceCache {
       }
     }
   }
-
 }
-
 SkinInstanceCache._skinInstanceCache = new Map();
 
 export { SkinInstanceCache };

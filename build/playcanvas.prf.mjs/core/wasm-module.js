@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 const cachedResult = func => {
@@ -10,37 +10,34 @@ const cachedResult = func => {
     if (result === uninitToken) {
       result = func();
     }
-
     return result;
   };
 };
-
 class Impl {
+
   static loadScript(url, callback) {
     const s = document.createElement('script');
     s.setAttribute('src', url);
-
     s.onload = () => {
       callback(null);
     };
-
     s.onerror = () => {
       callback(`Failed to load script='${url}'`);
     };
-
     document.body.appendChild(s);
   }
 
   static loadWasm(moduleName, config, callback) {
     const loadUrl = Impl.wasmSupported() && config.glueUrl && config.wasmUrl ? config.glueUrl : config.fallbackUrl;
-
     if (loadUrl) {
       Impl.loadScript(loadUrl, err => {
         if (err) {
           callback(err, null);
         } else {
           const module = window[moduleName];
+
           window[moduleName] = undefined;
+
           module({
             locateFile: () => config.wasmUrl,
             onAbort: () => {
@@ -65,17 +62,13 @@ class Impl {
         callbacks: []
       };
     }
-
     return Impl.modules[name];
   }
-
   static initialize(moduleName, module) {
     if (module.initializing) {
       return;
     }
-
     const config = module.config;
-
     if (config.glueUrl || config.wasmUrl || config.fallbackUrl) {
       module.initializing = true;
       Impl.loadWasm(moduleName, config, (err, instance) => {
@@ -94,7 +87,6 @@ class Impl {
       });
     }
   }
-
 }
 
 Impl.modules = {};
@@ -105,7 +97,6 @@ Impl.wasmSupported = cachedResult(() => {
       if (module instanceof WebAssembly.Module) return new WebAssembly.Instance(module) instanceof WebAssembly.Instance;
     }
   } catch (e) {}
-
   return false;
 });
 
@@ -113,7 +104,6 @@ class WasmModule {
   static setConfig(moduleName, config) {
     const module = Impl.getModule(moduleName);
     module.config = config;
-
     if (module.callbacks.length > 0) {
       Impl.initialize(moduleName, module);
     }
@@ -121,18 +111,15 @@ class WasmModule {
 
   static getInstance(moduleName, callback) {
     const module = Impl.getModule(moduleName);
-
     if (module.instance) {
       callback(module.instance);
     } else {
       module.callbacks.push(callback);
-
       if (module.config) {
         Impl.initialize(moduleName, module);
       }
     }
   }
-
 }
 
 export { WasmModule };

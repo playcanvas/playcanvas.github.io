@@ -1,4 +1,4 @@
-import { Vec3 } from '../../../math/vec3.js';
+import { Vec3 } from '../../../core/math/vec3.js';
 
 class CollisionComponentData {
   constructor() {
@@ -10,12 +10,12 @@ class CollisionComponentData {
     this.height = 2;
     this.asset = null;
     this.renderAsset = null;
+
     this.shape = null;
     this.model = null;
     this.render = null;
     this.initialized = false;
   }
-
 }
 
 export { CollisionComponentData };

@@ -1,8 +1,10 @@
 import { EventHandler } from '../../core/event-handler.js';
 
 class ComponentSystemRegistry extends EventHandler {
+
   constructor() {
     super();
+
     this.anim = void 0;
     this.animation = void 0;
     this.audiolistener = void 0;
@@ -31,38 +33,32 @@ class ComponentSystemRegistry extends EventHandler {
 
   add(system) {
     const id = system.id;
-
     if (this[id]) {
       throw new Error(`ComponentSystem name '${id}' already registered or not allowed`);
     }
-
     this[id] = system;
+
     this.list.push(system);
   }
 
   remove(system) {
     const id = system.id;
-
     if (!this[id]) {
       throw new Error(`No ComponentSystem named '${id}' registered`);
     }
-
     delete this[id];
-    const index = this.list.indexOf(this[id]);
 
+    const index = this.list.indexOf(this[id]);
     if (index !== -1) {
       this.list.splice(index, 1);
     }
   }
-
   destroy() {
     this.off();
-
     for (let i = 0; i < this.list.length; i++) {
       this.list[i].destroy();
     }
   }
-
 }
 
 export { ComponentSystemRegistry };

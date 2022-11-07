@@ -1,15 +1,18 @@
 import '../../core/tracing.js';
-import { Color } from '../../math/color.js';
+import { Color } from '../../core/math/color.js';
 import { SHADERDEF_SKIN, SHADERDEF_SCREENSPACE, SHADERDEF_INSTANCING, SHADERDEF_MORPH_POSITION, SHADERDEF_MORPH_NORMAL, SHADERDEF_MORPH_TEXTURE_BASED } from '../constants.js';
-import { basic } from '../../graphics/program-lib/programs/basic.js';
-import { ShaderProcessorOptions } from '../../graphics/shader-processor-options.js';
+import { basic } from '../shader-lib/programs/basic.js';
+import { ShaderProcessorOptions } from '../../platform/graphics/shader-processor-options.js';
+import { getProgramLibrary } from '../shader-lib/get-program-library.js';
 import { Material } from './material.js';
 
 class BasicMaterial extends Material {
   constructor() {
     super();
+
     this.color = new Color(1, 1, 1, 1);
     this.colorUniform = new Float32Array(4);
+
     this.colorMap = null;
     this.vertexColors = false;
   }
@@ -21,7 +24,6 @@ class BasicMaterial extends Material {
     this.vertexColors = source.vertexColors;
     return this;
   }
-
   updateUniforms(device, scene) {
     this.clearParameters();
     this.colorUniform[0] = this.color.r;
@@ -29,18 +31,15 @@ class BasicMaterial extends Material {
     this.colorUniform[2] = this.color.b;
     this.colorUniform[3] = this.color.a;
     this.setParameter('uColor', this.colorUniform);
-
     if (this.colorMap) {
       this.setParameter('texture_diffuseMap', this.colorMap);
     }
   }
-
   getShaderVariant(device, scene, objDefs, staticLightList, pass, sortedLights, viewUniformFormat, viewBindGroupFormat) {
     if (this.updateShader) {
       this.updateShader(device, scene, objDefs, staticLightList, pass, sortedLights);
       return this.shader;
     }
-
     const options = {
       skin: objDefs && (objDefs & SHADERDEF_SKIN) !== 0,
       screenSpace: objDefs && (objDefs & SHADERDEF_SCREENSPACE) !== 0,
@@ -54,11 +53,10 @@ class BasicMaterial extends Material {
       pass: pass
     };
     const processingOptions = new ShaderProcessorOptions(viewUniformFormat, viewBindGroupFormat);
-    const library = device.getProgramLibrary();
+    const library = getProgramLibrary(device);
     library.register('basic', basic);
     return library.getProgram('basic', options, processingOptions);
   }
-
 }
 
 export { BasicMaterial };

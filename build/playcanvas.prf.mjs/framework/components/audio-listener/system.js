@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import '../../../core/tracing.js';
@@ -22,12 +22,10 @@ class AudioListenerComponentSystem extends ComponentSystem {
     this.current = null;
     this.app.systems.on('update', this.onUpdate, this);
   }
-
   initializeComponentData(component, data, properties) {
     properties = ['enabled'];
     super.initializeComponentData(component, data, properties);
   }
-
   onUpdate(dt) {
     if (this.current) {
       const position = this.current.getPosition();
@@ -36,14 +34,11 @@ class AudioListenerComponentSystem extends ComponentSystem {
       this.manager.listener.setOrientation(wtm);
     }
   }
-
   destroy() {
     super.destroy();
     this.app.systems.off('update', this.onUpdate, this);
   }
-
 }
-
 Component._buildAccessors(AudioListenerComponent.prototype, _schema);
 
 export { AudioListenerComponentSystem };

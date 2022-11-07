@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import { Component } from '../component.js';
@@ -35,35 +35,27 @@ class ButtonComponentSystem extends ComponentSystem {
     this.on('beforeremove', this._onRemoveComponent, this);
     this.app.systems.on('update', this.onUpdate, this);
   }
-
   initializeComponentData(component, data, properties) {
     super.initializeComponentData(component, data, _schema);
   }
-
   onUpdate(dt) {
     const components = this.store;
-
     for (const id in components) {
       const entity = components[id].entity;
       const component = entity.button;
-
       if (component.enabled && entity.enabled) {
         component.onUpdate();
       }
     }
   }
-
   _onRemoveComponent(entity, component) {
     component.onRemove();
   }
-
   destroy() {
     super.destroy();
     this.app.systems.off('update', this.onUpdate, this);
   }
-
 }
-
 Component._buildAccessors(ButtonComponent.prototype, _schema);
 
 export { ButtonComponentSystem };

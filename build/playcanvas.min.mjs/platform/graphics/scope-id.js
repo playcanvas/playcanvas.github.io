@@ -1,0 +1,1 @@
+import{VersionedObject as e}from"./versioned-object.js";class t{constructor(t){this.name=t,this.value=null,this.versionObject=new e}toJSON(e){}setValue(e){this.value=e,this.versionObject.increment()}getValue(){return this.value}}export{t as ScopeId};

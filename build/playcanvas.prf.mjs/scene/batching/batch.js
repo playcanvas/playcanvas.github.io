@@ -1,9 +1,9 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
-import { BoundingBox } from '../../shape/bounding-box.js';
+import { BoundingBox } from '../../core/shape/bounding-box.js';
 
 class Batch {
   constructor(meshInstances, dynamic, batchGroupId) {
@@ -20,21 +20,17 @@ class Batch {
       this.meshInstance.destroy();
     }
   }
-
   addToLayers(scene, layers) {
     for (let i = 0; i < layers.length; i++) {
       const layer = scene.layers.getLayerById(layers[i]);
-
       if (layer) {
         layer.addMeshInstances([this.meshInstance]);
       }
     }
   }
-
   removeFromLayers(scene, layers) {
     for (let i = 0; i < layers.length; i++) {
       const layer = scene.layers.getLayerById(layers[i]);
-
       if (layer) {
         layer.removeMeshInstances([this.meshInstance]);
       }
@@ -43,15 +39,12 @@ class Batch {
 
   updateBoundingBox() {
     this._aabb.copy(this.origMeshInstances[0].aabb);
-
     for (let i = 1; i < this.origMeshInstances.length; i++) {
       this._aabb.add(this.origMeshInstances[i].aabb);
     }
-
     this.meshInstance.aabb = this._aabb;
     this.meshInstance._aabbVer = 0;
   }
-
 }
 
 export { Batch };

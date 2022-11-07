@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import { EventHandler } from './event-handler.js';
@@ -15,21 +15,15 @@ class Tags extends EventHandler {
 
   add() {
     let changed = false;
-
     const tags = this._processArguments(arguments, true);
-
     if (!tags.length) return changed;
-
     for (let i = 0; i < tags.length; i++) {
       if (this._index[tags[i]]) continue;
       changed = true;
       this._index[tags[i]] = true;
-
       this._list.push(tags[i]);
-
       this.fire('add', tags[i], this._parent);
     }
-
     if (changed) this.fire('change', this._parent);
     return changed;
   }
@@ -37,35 +31,25 @@ class Tags extends EventHandler {
   remove() {
     let changed = false;
     if (!this._list.length) return changed;
-
     const tags = this._processArguments(arguments, true);
-
     if (!tags.length) return changed;
-
     for (let i = 0; i < tags.length; i++) {
       if (!this._index[tags[i]]) continue;
       changed = true;
       delete this._index[tags[i]];
-
       this._list.splice(this._list.indexOf(tags[i]), 1);
-
       this.fire('remove', tags[i], this._parent);
     }
-
     if (changed) this.fire('change', this._parent);
     return changed;
   }
 
   clear() {
     if (!this._list.length) return;
-
     const tags = this._list.slice(0);
-
     this._list = [];
     this._index = {};
-
     for (let i = 0; i < tags.length; i++) this.fire('remove', tags[i], this._parent);
-
     this.fire('change', this._parent);
   }
 
@@ -76,23 +60,19 @@ class Tags extends EventHandler {
 
   _has(tags) {
     if (!this._list.length || !tags.length) return false;
-
     for (let i = 0; i < tags.length; i++) {
       if (tags[i].length === 1) {
         if (this._index[tags[i][0]]) return true;
       } else {
         let multiple = true;
-
         for (let t = 0; t < tags[i].length; t++) {
           if (this._index[tags[i][t]]) continue;
           multiple = false;
           break;
         }
-
         if (multiple) return true;
       }
     }
-
     return false;
   }
 
@@ -104,21 +84,17 @@ class Tags extends EventHandler {
     const tags = [];
     let tmp = [];
     if (!args || !args.length) return tags;
-
     for (let i = 0; i < args.length; i++) {
       if (args[i] instanceof Array) {
         if (!flat) tmp = [];
-
         for (let t = 0; t < args[i].length; t++) {
           if (typeof args[i][t] !== 'string') continue;
-
           if (flat) {
             tags.push(args[i][t]);
           } else {
             tmp.push(args[i][t]);
           }
         }
-
         if (!flat && tmp.length) tags.push(tmp);
       } else if (typeof args[i] === 'string') {
         if (flat) {
@@ -128,14 +104,12 @@ class Tags extends EventHandler {
         }
       }
     }
-
     return tags;
   }
 
   get size() {
     return this._list.length;
   }
-
 }
 
 export { Tags };

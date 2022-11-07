@@ -8,6 +8,7 @@ import { ChunkUtils } from './program-lib/chunk-utils.js';
 import { shaderChunks } from './program-lib/chunks/chunks.js';
 import { RenderTarget } from './render-target.js';
 import { GraphicsDevice } from './graphics-device.js';
+import { getProgramLibrary } from './program-library.js';
 import { Texture } from './texture.js';
 import { DeviceCache } from './device-cache.js';
 
@@ -310,7 +311,8 @@ function reprojectTexture(source, target, options = {}) {
   const numSamples = options.hasOwnProperty('numSamples') ? options.numSamples : 1024;
   const shaderKey = `${processFunc}_${decodeFunc}_${encodeFunc}_${sourceFunc}_${targetFunc}_${numSamples}`;
   const device = source.device;
-  let shader = device.programLib._cache[shaderKey];
+
+  let shader = getProgramLibrary(device)._cache[shaderKey];
 
   if (!shader) {
     const defines = `#define PROCESS_FUNC ${processFunc}\n` + `#define DECODE_FUNC ${decodeFunc}\n` + `#define ENCODE_FUNC ${encodeFunc}\n` + `#define SOURCE_FUNC ${sourceFunc}\n` + `#define TARGET_FUNC ${targetFunc}\n` + `#define NUM_SAMPLES ${numSamples}\n` + `#define NUM_SAMPLES_SQRT ${Math.round(Math.sqrt(numSamples)).toFixed(1)}\n` + (device.extTextureLod ? `#define SUPPORTS_TEXLOD\n` : '');

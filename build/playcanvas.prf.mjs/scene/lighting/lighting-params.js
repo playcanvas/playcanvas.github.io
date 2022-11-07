@@ -1,10 +1,10 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
-import { Vec3 } from '../../math/vec3.js';
-import { math } from '../../math/math.js';
+import { Vec3 } from '../../core/math/vec3.js';
+import { math } from '../../core/math/math.js';
 import { SHADOW_PCF3 } from '../constants.js';
 
 class LightingParams {
@@ -20,10 +20,11 @@ class LightingParams {
     this._shadowAtlasResolution = 2048;
     this._cookiesEnabled = false;
     this._cookieAtlasResolution = 2048;
+
     this.atlasSplit = null;
+
     this.debugLayer = undefined;
   }
-
   applySettings(render) {
     this.shadowsEnabled = render.lightingShadowsEnabled;
     this.cookiesEnabled = render.lightingCookiesEnabled;
@@ -38,7 +39,6 @@ class LightingParams {
   set cells(value) {
     this._cells.copy(value);
   }
-
   get cells() {
     return this._cells;
   }
@@ -46,7 +46,6 @@ class LightingParams {
   set maxLightsPerCell(value) {
     this._maxLightsPerCell = math.clamp(value, 1, 255);
   }
-
   get maxLightsPerCell() {
     return this._maxLightsPerCell;
   }
@@ -54,7 +53,6 @@ class LightingParams {
   set cookieAtlasResolution(value) {
     this._cookieAtlasResolution = math.clamp(value, 32, this._maxTextureSize);
   }
-
   get cookieAtlasResolution() {
     return this._cookieAtlasResolution;
   }
@@ -62,7 +60,6 @@ class LightingParams {
   set shadowAtlasResolution(value) {
     this._shadowAtlasResolution = math.clamp(value, 32, this._maxTextureSize);
   }
-
   get shadowAtlasResolution() {
     return this._shadowAtlasResolution;
   }
@@ -74,7 +71,6 @@ class LightingParams {
       this._dirtyLightsFnc();
     }
   }
-
   get shadowType() {
     return this._shadowType;
   }
@@ -86,7 +82,6 @@ class LightingParams {
       this._dirtyLightsFnc();
     }
   }
-
   get cookiesEnabled() {
     return this._cookiesEnabled;
   }
@@ -100,7 +95,6 @@ class LightingParams {
       }
     }
   }
-
   get areaLightsEnabled() {
     return this._areaLightsEnabled;
   }
@@ -112,11 +106,9 @@ class LightingParams {
       this._dirtyLightsFnc();
     }
   }
-
   get shadowsEnabled() {
     return this._shadowsEnabled;
   }
-
 }
 
 export { LightingParams };

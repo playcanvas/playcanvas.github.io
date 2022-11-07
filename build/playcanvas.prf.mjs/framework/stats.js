@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import { getApplication } from './globals.js';
@@ -22,6 +22,7 @@ class ApplicationStats {
       skinTime: 0,
       morphTime: 0,
       instancingTime: 0,
+
       triangles: 0,
       otherPrimitives: 0,
       shaders: 0,
@@ -43,10 +44,13 @@ class ApplicationStats {
       immediate: 0,
       misc: 0,
       total: 0,
+
       skinned: 0,
       instanced: 0,
+
       removedByInstancing: 0
     };
+
     this.misc = {
       renderTargetCreationTime: 0
     };
@@ -69,23 +73,17 @@ class ApplicationStats {
       }
     });
   }
-
   get scene() {
     return getApplication().scene._stats;
   }
-
   get lightmapper() {
     var _getApplication$light;
-
     return (_getApplication$light = getApplication().lightmapper) == null ? void 0 : _getApplication$light.stats;
   }
-
   get batcher() {
     const batcher = getApplication()._batcher;
-
     return batcher ? batcher._stats : null;
   }
-
 }
 
 export { ApplicationStats };

@@ -14,13 +14,10 @@ class JointComponentSystem extends ComponentSystem {
     this.DataType = JointComponentData;
     this.schema = _schema;
   }
-
   initializeComponentData(component, data, properties) {
     component.initFromData(data);
   }
-
 }
-
 Component._buildAccessors(JointComponent.prototype, _schema);
 
 export { JointComponentSystem };

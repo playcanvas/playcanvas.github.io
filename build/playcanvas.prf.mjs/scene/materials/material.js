@@ -1,17 +1,19 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
-import { BLENDMODE_ONE, BLENDMODE_ZERO, BLENDEQUATION_ADD, CULLFACE_BACK, FUNC_LESSEQUAL, BLENDEQUATION_MAX, BLENDEQUATION_MIN, BLENDMODE_DST_COLOR, BLENDMODE_ONE_MINUS_DST_COLOR, BLENDMODE_SRC_COLOR, BLENDMODE_SRC_ALPHA, BLENDMODE_ONE_MINUS_SRC_ALPHA } from '../../graphics/constants.js';
+import { BLENDMODE_ONE, BLENDMODE_ZERO, BLENDEQUATION_ADD, CULLFACE_BACK, FUNC_LESSEQUAL, BLENDEQUATION_MAX, BLENDEQUATION_MIN, BLENDMODE_DST_COLOR, BLENDMODE_ONE_MINUS_DST_COLOR, BLENDMODE_SRC_COLOR, BLENDMODE_SRC_ALPHA, BLENDMODE_ONE_MINUS_SRC_ALPHA } from '../../platform/graphics/constants.js';
 import { BLEND_MAX, BLEND_MIN, BLEND_MULTIPLICATIVE, BLEND_SCREEN, BLEND_MULTIPLICATIVE2X, BLEND_ADDITIVEALPHA, BLEND_ADDITIVE, BLEND_PREMULTIPLIED, BLEND_NORMAL, BLEND_NONE } from '../constants.js';
 import '../../core/tracing.js';
 import { getDefaultMaterial } from './default-material.js';
-import { ShaderProcessorOptions } from '../../graphics/shader-processor-options.js';
+import { ShaderProcessorOptions } from '../../platform/graphics/shader-processor-options.js';
+import { getProgramLibrary } from '../shader-lib/get-program-library.js';
 
 let id = 0;
 
 class Material {
+
   constructor() {
     this._shader = null;
     this.meshInstances = [];
@@ -19,6 +21,7 @@ class Material {
     this.id = id++;
     this.variants = {};
     this.parameters = {};
+
     this.alphaTest = 0;
     this.alphaToCoverage = false;
     this.blend = false;
@@ -46,11 +49,9 @@ class Material {
     this._dirtyBlend = false;
     this.dirty = true;
   }
-
   set shader(shader) {
     this._shader = shader;
   }
-
   get shader() {
     return this._shader;
   }
@@ -58,10 +59,8 @@ class Material {
   get transparent() {
     return this.blend;
   }
-
   set blendType(type) {
     let blend = true;
-
     switch (type) {
       case BLEND_NONE:
         blend = false;
@@ -69,122 +68,100 @@ class Material {
         this.blendDst = BLENDMODE_ZERO;
         this.blendEquation = BLENDEQUATION_ADD;
         break;
-
       case BLEND_NORMAL:
         this.blendSrc = BLENDMODE_SRC_ALPHA;
         this.blendDst = BLENDMODE_ONE_MINUS_SRC_ALPHA;
         this.blendEquation = BLENDEQUATION_ADD;
         break;
-
       case BLEND_PREMULTIPLIED:
         this.blendSrc = BLENDMODE_ONE;
         this.blendDst = BLENDMODE_ONE_MINUS_SRC_ALPHA;
         this.blendEquation = BLENDEQUATION_ADD;
         break;
-
       case BLEND_ADDITIVE:
         this.blendSrc = BLENDMODE_ONE;
         this.blendDst = BLENDMODE_ONE;
         this.blendEquation = BLENDEQUATION_ADD;
         break;
-
       case BLEND_ADDITIVEALPHA:
         this.blendSrc = BLENDMODE_SRC_ALPHA;
         this.blendDst = BLENDMODE_ONE;
         this.blendEquation = BLENDEQUATION_ADD;
         break;
-
       case BLEND_MULTIPLICATIVE2X:
         this.blendSrc = BLENDMODE_DST_COLOR;
         this.blendDst = BLENDMODE_SRC_COLOR;
         this.blendEquation = BLENDEQUATION_ADD;
         break;
-
       case BLEND_SCREEN:
         this.blendSrc = BLENDMODE_ONE_MINUS_DST_COLOR;
         this.blendDst = BLENDMODE_ONE;
         this.blendEquation = BLENDEQUATION_ADD;
         break;
-
       case BLEND_MULTIPLICATIVE:
         this.blendSrc = BLENDMODE_DST_COLOR;
         this.blendDst = BLENDMODE_ZERO;
         this.blendEquation = BLENDEQUATION_ADD;
         break;
-
       case BLEND_MIN:
         this.blendSrc = BLENDMODE_ONE;
         this.blendDst = BLENDMODE_ONE;
         this.blendEquation = BLENDEQUATION_MIN;
         break;
-
       case BLEND_MAX:
         this.blendSrc = BLENDMODE_ONE;
         this.blendDst = BLENDMODE_ONE;
         this.blendEquation = BLENDEQUATION_MAX;
         break;
     }
-
     if (this.blend !== blend) {
       this.blend = blend;
-
       if (this._scene) {
         this._scene.layers._dirtyBlend = true;
       } else {
         this._dirtyBlend = true;
       }
     }
-
     this._updateMeshInstanceKeys();
   }
-
   get blendType() {
     if (!this.blend) {
       return BLEND_NONE;
     }
-
     if (this.blendSrc === BLENDMODE_SRC_ALPHA && this.blendDst === BLENDMODE_ONE_MINUS_SRC_ALPHA && this.blendEquation === BLENDEQUATION_ADD) {
       return BLEND_NORMAL;
     }
-
     if (this.blendSrc === BLENDMODE_ONE && this.blendDst === BLENDMODE_ONE && this.blendEquation === BLENDEQUATION_ADD) {
       return BLEND_ADDITIVE;
     }
-
     if (this.blendSrc === BLENDMODE_SRC_ALPHA && this.blendDst === BLENDMODE_ONE && this.blendEquation === BLENDEQUATION_ADD) {
       return BLEND_ADDITIVEALPHA;
     }
-
     if (this.blendSrc === BLENDMODE_DST_COLOR && this.blendDst === BLENDMODE_SRC_COLOR && this.blendEquation === BLENDEQUATION_ADD) {
       return BLEND_MULTIPLICATIVE2X;
     }
-
     if (this.blendSrc === BLENDMODE_ONE_MINUS_DST_COLOR && this.blendDst === BLENDMODE_ONE && this.blendEquation === BLENDEQUATION_ADD) {
       return BLEND_SCREEN;
     }
-
     if (this.blendSrc === BLENDMODE_ONE && this.blendDst === BLENDMODE_ONE && this.blendEquation === BLENDEQUATION_MIN) {
       return BLEND_MIN;
     }
-
     if (this.blendSrc === BLENDMODE_ONE && this.blendDst === BLENDMODE_ONE && this.blendEquation === BLENDEQUATION_MAX) {
       return BLEND_MAX;
     }
-
     if (this.blendSrc === BLENDMODE_DST_COLOR && this.blendDst === BLENDMODE_ZERO && this.blendEquation === BLENDEQUATION_ADD) {
       return BLEND_MULTIPLICATIVE;
     }
-
     if (this.blendSrc === BLENDMODE_ONE && this.blendDst === BLENDMODE_ONE_MINUS_SRC_ALPHA && this.blendEquation === BLENDEQUATION_ADD) {
       return BLEND_PREMULTIPLIED;
     }
-
     return BLEND_NORMAL;
   }
 
   copy(source) {
     this.name = source.name;
     this._shader = source._shader;
+
     this.alphaTest = source.alphaTest;
     this.alphaToCoverage = source.alphaToCoverage;
     this.blend = source.blend;
@@ -202,7 +179,6 @@ class Material {
     this.depthBias = source.depthBias;
     this.slopeDepthBias = source.slopeDepthBias;
     if (source.stencilFront) this.stencilFront = source.stencilFront.clone();
-
     if (source.stencilBack) {
       if (source.stencilFront === source.stencilBack) {
         this.stencilBack = this.stencilFront;
@@ -210,7 +186,6 @@ class Material {
         this.stencilBack = source.stencilBack.clone();
       }
     }
-
     this.redWrite = source.redWrite;
     this.greenWrite = source.greenWrite;
     this.blueWrite = source.blueWrite;
@@ -222,17 +197,13 @@ class Material {
     const clone = new this.constructor();
     return clone.copy(this);
   }
-
   _updateMeshInstanceKeys() {
     const meshInstances = this.meshInstances;
-
     for (let i = 0; i < meshInstances.length; i++) {
       meshInstances[i].updateKey();
     }
   }
-
   updateUniforms(device, scene) {}
-
   getShaderVariant(device, scene, objDefs, staticLightList, pass, sortedLights, viewUniformFormat, viewBindGroupFormat) {
     const key = `shader-id-${this._shader.id}`;
     const shaderDefinition = this._shader.definition;
@@ -244,11 +215,14 @@ class Material {
         return shaderDefinition;
       }
     };
+
     const libraryModuleName = 'shader';
-    const library = device.getProgramLibrary();
+    const library = getProgramLibrary(device);
     library.register(libraryModuleName, materialGenerator);
+
     const processingOptions = new ShaderProcessorOptions(viewUniformFormat, viewBindGroupFormat);
     const variant = library.getProgram(libraryModuleName, {}, processingOptions);
+
     library.unregister(libraryModuleName);
     return variant;
   }
@@ -261,16 +235,14 @@ class Material {
   clearParameters() {
     this.parameters = {};
   }
-
   getParameters() {
     return this.parameters;
   }
-
   clearVariants() {
     this.variants = {};
+
     const meshInstances = this.meshInstances;
     const count = meshInstances.length;
-
     for (let i = 0; i < count; i++) {
       meshInstances[i].clearShaders();
     }
@@ -283,21 +255,16 @@ class Material {
   setParameter(name, data) {
     if (data === undefined && typeof name === 'object') {
       const uniformObject = name;
-
       if (uniformObject.length) {
         for (let i = 0; i < uniformObject.length; i++) {
           this.setParameter(uniformObject[i]);
         }
-
         return;
       }
-
       name = uniformObject.name;
       data = uniformObject.value;
     }
-
     const param = this.parameters[name];
-
     if (param) {
       param.data = data;
     } else {
@@ -317,15 +284,12 @@ class Material {
   setParameters(device, names) {
     const parameters = this.parameters;
     if (names === undefined) names = parameters;
-
     for (const paramName in names) {
       const parameter = parameters[paramName];
-
       if (parameter) {
         if (!parameter.scopeId) {
           parameter.scopeId = device.scope.resolve(paramName);
         }
-
         parameter.scopeId.setValue(parameter.data);
       }
     }
@@ -334,21 +298,17 @@ class Material {
   destroy() {
     this.variants = {};
     this._shader = null;
-
     for (let i = 0; i < this.meshInstances.length; i++) {
       const meshInstance = this.meshInstances[i];
       meshInstance.clearShaders();
       meshInstance._material = null;
-
       if (meshInstance.mesh) {
         const defaultMaterial = getDefaultMaterial(meshInstance.mesh.device);
-
         if (this !== defaultMaterial) {
           meshInstance.material = defaultMaterial;
         }
       }
     }
-
     this.meshInstances.length = 0;
   }
 
@@ -359,12 +319,10 @@ class Material {
   removeMeshInstanceRef(meshInstance) {
     const meshInstances = this.meshInstances;
     const i = meshInstances.indexOf(meshInstance);
-
     if (i !== -1) {
       meshInstances.splice(i, 1);
     }
   }
-
 }
 
 export { Material };

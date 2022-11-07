@@ -1,6 +1,7 @@
 import { DEVICETYPE_WEBGPU, SEMANTIC_POSITION, SEMANTIC_NORMAL, SEMANTIC_TANGENT, SEMANTIC_TEXCOORD0, SEMANTIC_TEXCOORD1, SEMANTIC_TEXCOORD2, SEMANTIC_TEXCOORD3, SEMANTIC_TEXCOORD4, SEMANTIC_TEXCOORD5, SEMANTIC_TEXCOORD6, SEMANTIC_TEXCOORD7, SEMANTIC_COLOR, SEMANTIC_BLENDINDICES, SEMANTIC_BLENDWEIGHT } from '../constants.js';
 import { Shader } from '../shader.js';
 import { shaderChunks } from './chunks/chunks.js';
+import { getProgramLibrary } from '../program-library.js';
 import { precisionCode, versionCode, dummyFragmentCode } from './programs/common.js';
 
 const attrib2Semantic = {
@@ -68,7 +69,8 @@ function createShader(device, vsName, psName, useTransformFeedback = false) {
 }
 
 function createShaderFromCode(device, vsCode, psCode, uName, useTransformFeedback = false, psPreamble = "") {
-  const shaderCache = device.programLib._cache;
+  const shaderCache = getProgramLibrary(device)._cache;
+
   const cached = shaderCache[uName];
   if (cached !== undefined) return cached;
   psCode = precisionCode(device) + "\n" + (psCode || dummyFragmentCode());

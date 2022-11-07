@@ -1,13 +1,12 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-dev revision e102f2b2a (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import { EventHandler } from '../core/event-handler.js';
 import { platform } from '../core/platform.js';
 import { now } from '../core/time.js';
 import { ScopeSpace } from './scope-space.js';
-import { ProgramLibrary } from './program-library.js';
 import { PRIMITIVE_TRIFAN, PRIMITIVE_POINTS } from './constants.js';
 import '../core/tracing.js';
 
@@ -68,7 +67,6 @@ class GraphicsDevice extends EventHandler {
     this.scope = new ScopeSpace("Device");
     this.textureBias = this.scope.resolve("textureBias");
     this.textureBias.setValue(0.0);
-    this.programLib = new ProgramLibrary(this);
   }
 
   destroy() {
@@ -89,14 +87,6 @@ class GraphicsDevice extends EventHandler {
     this.vertexBuffers = [];
     this.shader = null;
     this.renderTarget = null;
-  }
-
-  getProgramLibrary() {
-    return this.programLib;
-  }
-
-  setProgramLibrary(programLib) {
-    this.programLib = programLib;
   }
 
   setRenderTarget(renderTarget) {

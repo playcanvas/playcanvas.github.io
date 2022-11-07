@@ -1,0 +1,1 @@
+var e="\n#define texture2DBias texture2D\n\n#ifndef SUPPORTS_TEXLOD\n\n// fallback for lod instructions\n#define texture2DLodEXT texture2D\n#define texture2DProjLodEXT textureProj\n#define textureCubeLodEXT textureCube\n#define textureShadow texture2D\n\n#else\n\n#define textureShadow(res, uv) texture2DGradEXT(res, uv, vec2(1, 1), vec2(1, 1))\n\n#endif\n\n";export{e as default};

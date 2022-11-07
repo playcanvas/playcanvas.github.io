@@ -1,0 +1,28 @@
+/**
+ * @license
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (DEBUG PROFILER)
+ * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
+ */
+var webgpuPS = `
+
+layout(location = 0) out highp vec4 pc_fragColor;
+#define gl_FragColor pc_fragColor
+
+#define texture2D(res, uv) texture(sampler2D(res, res ## _sampler), uv)
+#define texture2DBias(res, uv, bias) texture(sampler2D(res, res ## _sampler), uv, bias)
+#define texture2DLodEXT(res, uv, lod) textureLod(sampler2D(res, res ## _sampler), uv, lod)
+
+// TODO: implement other texture sampling macros
+// #define textureCube texture
+// #define texture2DProj textureProj
+// #define texture2DProjLodEXT textureProjLod
+// #define textureCubeLodEXT textureLod
+// #define texture2DGradEXT textureGrad
+// #define texture2DProjGradEXT textureProjGrad
+// #define textureCubeGradEXT textureGrad
+#define GL2
+#define SUPPORTS_TEXLOD
+`;
+
+export { webgpuPS as default };
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoid2ViZ3B1LmpzIiwic291cmNlcyI6WyIuLi8uLi8uLi8uLi8uLi8uLi9zcmMvcGxhdGZvcm0vZ3JhcGhpY3Mvc2hhZGVyLWNodW5rcy9mcmFnL3dlYmdwdS5qcyJdLCJzb3VyY2VzQ29udGVudCI6WyJleHBvcnQgZGVmYXVsdCAvKiBnbHNsICovYFxuXG5sYXlvdXQobG9jYXRpb24gPSAwKSBvdXQgaGlnaHAgdmVjNCBwY19mcmFnQ29sb3I7XG4jZGVmaW5lIGdsX0ZyYWdDb2xvciBwY19mcmFnQ29sb3JcblxuI2RlZmluZSB0ZXh0dXJlMkQocmVzLCB1dikgdGV4dHVyZShzYW1wbGVyMkQocmVzLCByZXMgIyMgX3NhbXBsZXIpLCB1dilcbiNkZWZpbmUgdGV4dHVyZTJEQmlhcyhyZXMsIHV2LCBiaWFzKSB0ZXh0dXJlKHNhbXBsZXIyRChyZXMsIHJlcyAjIyBfc2FtcGxlciksIHV2LCBiaWFzKVxuI2RlZmluZSB0ZXh0dXJlMkRMb2RFWFQocmVzLCB1diwgbG9kKSB0ZXh0dXJlTG9kKHNhbXBsZXIyRChyZXMsIHJlcyAjIyBfc2FtcGxlciksIHV2LCBsb2QpXG5cbi8vIFRPRE86IGltcGxlbWVudCBvdGhlciB0ZXh0dXJlIHNhbXBsaW5nIG1hY3Jvc1xuLy8gI2RlZmluZSB0ZXh0dXJlQ3ViZSB0ZXh0dXJlXG4vLyAjZGVmaW5lIHRleHR1cmUyRFByb2ogdGV4dHVyZVByb2pcbi8vICNkZWZpbmUgdGV4dHVyZTJEUHJvakxvZEVYVCB0ZXh0dXJlUHJvakxvZFxuLy8gI2RlZmluZSB0ZXh0dXJlQ3ViZUxvZEVYVCB0ZXh0dXJlTG9kXG4vLyAjZGVmaW5lIHRleHR1cmUyREdyYWRFWFQgdGV4dHVyZUdyYWRcbi8vICNkZWZpbmUgdGV4dHVyZTJEUHJvakdyYWRFWFQgdGV4dHVyZVByb2pHcmFkXG4vLyAjZGVmaW5lIHRleHR1cmVDdWJlR3JhZEVYVCB0ZXh0dXJlR3JhZFxuI2RlZmluZSBHTDJcbiNkZWZpbmUgU1VQUE9SVFNfVEVYTE9EXG5gO1xuIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7Ozs7O0FBQUEsZUFBMEIsQ0FBQTtBQUMxQjtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQSxDQUFDOzs7OyJ9

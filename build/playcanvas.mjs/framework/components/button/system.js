@@ -30,35 +30,27 @@ class ButtonComponentSystem extends ComponentSystem {
     this.on('beforeremove', this._onRemoveComponent, this);
     this.app.systems.on('update', this.onUpdate, this);
   }
-
   initializeComponentData(component, data, properties) {
     super.initializeComponentData(component, data, _schema);
   }
-
   onUpdate(dt) {
     const components = this.store;
-
     for (const id in components) {
       const entity = components[id].entity;
       const component = entity.button;
-
       if (component.enabled && entity.enabled) {
         component.onUpdate();
       }
     }
   }
-
   _onRemoveComponent(entity, component) {
     component.onRemove();
   }
-
   destroy() {
     super.destroy();
     this.app.systems.off('update', this.onUpdate, this);
   }
-
 }
-
 Component._buildAccessors(ButtonComponent.prototype, _schema);
 
 export { ButtonComponentSystem };

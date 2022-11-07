@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-dev revision e102f2b2a (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 const math = {
@@ -69,6 +69,9 @@ const math = {
     val |= val >> 16;
     val++;
     return val;
+  },
+  nearestPowerOfTwo: function (val) {
+    return Math.pow(2, Math.round(Math.log(val) / Math.log(2)));
   },
   random: function (min, max) {
     const diff = max - min;

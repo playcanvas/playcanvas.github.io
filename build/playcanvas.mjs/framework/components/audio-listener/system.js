@@ -17,12 +17,10 @@ class AudioListenerComponentSystem extends ComponentSystem {
     this.current = null;
     this.app.systems.on('update', this.onUpdate, this);
   }
-
   initializeComponentData(component, data, properties) {
     properties = ['enabled'];
     super.initializeComponentData(component, data, properties);
   }
-
   onUpdate(dt) {
     if (this.current) {
       const position = this.current.getPosition();
@@ -31,14 +29,11 @@ class AudioListenerComponentSystem extends ComponentSystem {
       this.manager.listener.setOrientation(wtm);
     }
   }
-
   destroy() {
     super.destroy();
     this.app.systems.off('update', this.onUpdate, this);
   }
-
 }
-
 Component._buildAccessors(AudioListenerComponent.prototype, _schema);
 
 export { AudioListenerComponentSystem };

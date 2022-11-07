@@ -2,7 +2,6 @@ class RefCountedObject {
   constructor() {
     this._refCount = 0;
   }
-
   incRefCount() {
     this._refCount++;
   }
@@ -14,7 +13,6 @@ class RefCountedObject {
   get refCount() {
     return this._refCount;
   }
-
 }
 
 export { RefCountedObject };

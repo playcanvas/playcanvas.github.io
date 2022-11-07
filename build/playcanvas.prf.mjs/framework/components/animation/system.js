@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import { Component } from '../component.js';
@@ -22,12 +22,12 @@ class AnimationComponentSystem extends ComponentSystem {
   }
 
   initializeComponentData(component, data, properties) {
-    for (const property in data) {
+    properties = ['activate', 'enabled', 'loop', 'speed', 'assets'];
+    for (const property of properties) {
       if (data.hasOwnProperty(property)) {
         component[property] = data[property];
       }
     }
-
     super.initializeComponentData(component, data, _schema);
   }
 
@@ -40,23 +40,19 @@ class AnimationComponentSystem extends ComponentSystem {
     clone.animation.enabled = entity.animation.enabled;
     const clonedAnimations = {};
     const animations = entity.animation.animations;
-
     for (const key in animations) {
       if (animations.hasOwnProperty(key)) {
         clonedAnimations[key] = animations[key];
       }
     }
-
     clone.animation.animations = clonedAnimations;
     const clonedAnimationsIndex = {};
     const animationsIndex = entity.animation.animationsIndex;
-
     for (const key in animationsIndex) {
       if (animationsIndex.hasOwnProperty(key)) {
         clonedAnimationsIndex[key] = animationsIndex[key];
       }
     }
-
     clone.animation.animationsIndex = clonedAnimationsIndex;
     return clone.animation;
   }
@@ -67,25 +63,20 @@ class AnimationComponentSystem extends ComponentSystem {
 
   onUpdate(dt) {
     const components = this.store;
-
     for (const id in components) {
       if (components.hasOwnProperty(id)) {
         const component = components[id];
-
         if (component.data.enabled && component.entity.enabled) {
           component.entity.animation.update(dt);
         }
       }
     }
   }
-
   destroy() {
     super.destroy();
     this.app.systems.off('update', this.onUpdate, this);
   }
-
 }
-
 Component._buildAccessors(AnimationComponent.prototype, _schema);
 
 export { AnimationComponentSystem };

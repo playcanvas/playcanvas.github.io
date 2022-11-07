@@ -1,13 +1,13 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import { extend } from '../../../core/core.js';
-import { Vec3 } from '../../../math/vec3.js';
-import { BoundingBox } from '../../../shape/bounding-box.js';
+import { Vec3 } from '../../../core/math/vec3.js';
+import { BoundingBox } from '../../../core/shape/bounding-box.js';
 import { getDefaultMaterial } from '../../../scene/materials/default-material.js';
-import { Asset } from '../../../asset/asset.js';
+import { Asset } from '../../asset/asset.js';
 import { Component } from '../component.js';
 import { ComponentSystem } from '../system.js';
 import { ModelComponent } from './component.js';
@@ -25,10 +25,8 @@ class ModelComponentSystem extends ComponentSystem {
     this.defaultMaterial = getDefaultMaterial(app.graphicsDevice);
     this.on('beforeremove', this.onRemove, this);
   }
-
   initializeComponentData(component, _data, properties) {
     properties = ['material', 'materialAsset', 'asset', 'castShadows', 'receiveShadows', 'castShadowsLightmap', 'lightmapped', 'lightmapSizeMultiplier', 'type', 'mapping', 'layers', 'isStatic', 'batchGroupId'];
-
     if (_data.batchGroupId === null || _data.batchGroupId === undefined) {
       _data.batchGroupId = -1;
     }
@@ -36,20 +34,16 @@ class ModelComponentSystem extends ComponentSystem {
     if (_data.layers && _data.layers.length) {
       _data.layers = _data.layers.slice(0);
     }
-
     for (let i = 0; i < properties.length; i++) {
       if (_data.hasOwnProperty(properties[i])) {
         component[properties[i]] = _data[properties[i]];
       }
     }
-
     if (_data.aabbCenter && _data.aabbHalfExtents) {
       component.customAabb = new BoundingBox(new Vec3(_data.aabbCenter), new Vec3(_data.aabbHalfExtents));
     }
-
     super.initializeComponentData(component, _data, ['enabled']);
   }
-
   cloneComponent(entity, clone) {
     const data = {
       type: entity.model.type,
@@ -65,31 +59,26 @@ class ModelComponentSystem extends ComponentSystem {
       batchGroupId: entity.model.batchGroupId,
       mapping: extend({}, entity.model.mapping)
     };
-    let materialAsset = entity.model.materialAsset;
 
+    let materialAsset = entity.model.materialAsset;
     if (!(materialAsset instanceof Asset) && materialAsset != null) {
       materialAsset = this.app.assets.get(materialAsset);
     }
-
     const material = entity.model.material;
-
     if (!material || material === this.defaultMaterial || !materialAsset || material === materialAsset.resource) {
       data.materialAsset = materialAsset;
     }
-
     const component = this.addComponent(clone, data);
 
     if (entity.model.model && entity.model.type === 'asset' && !entity.model.asset) {
       component.model = entity.model.model.clone();
       component._clonedModel = true;
     }
-
     if (!data.materialAsset) component.material = material;
 
     if (entity.model.model) {
       const meshInstances = entity.model.model.meshInstances;
       const meshInstancesClone = component.model.meshInstances;
-
       for (let i = 0; i < meshInstances.length; i++) {
         meshInstancesClone[i].mask = meshInstances[i].mask;
         meshInstancesClone[i].material = meshInstances[i].material;
@@ -97,20 +86,15 @@ class ModelComponentSystem extends ComponentSystem {
         meshInstancesClone[i].receiveShadow = meshInstances[i].receiveShadow;
       }
     }
-
     if (entity.model.customAabb) {
       component.customAabb = entity.model.customAabb.clone();
     }
-
     return component;
   }
-
   onRemove(entity, component) {
     component.onRemove();
   }
-
 }
-
 Component._buildAccessors(ModelComponent.prototype, _schema);
 
 export { ModelComponentSystem };

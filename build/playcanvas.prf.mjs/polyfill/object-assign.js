@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 if (typeof Object.assign != 'function') {
@@ -10,12 +10,9 @@ if (typeof Object.assign != 'function') {
       if (target == null) {
         throw new TypeError('Cannot convert undefined or null to object');
       }
-
       var to = Object(target);
-
       for (var index = 1; index < arguments.length; index++) {
         var nextSource = arguments[index];
-
         if (nextSource != null) {
           for (var nextKey in nextSource) {
             if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
@@ -24,7 +21,6 @@ if (typeof Object.assign != 'function') {
           }
         }
       }
-
       return to;
     },
     writable: true,

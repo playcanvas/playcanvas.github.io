@@ -1,6 +1,6 @@
 import { sortPriority } from '../../../core/sort.js';
-import { Color } from '../../../math/color.js';
-import { Vec4 } from '../../../math/vec4.js';
+import { Color } from '../../../core/math/color.js';
+import { Vec4 } from '../../../core/math/vec4.js';
 import { Component } from '../component.js';
 import { ComponentSystem } from '../system.js';
 import { CameraComponent } from './component.js';
@@ -9,6 +9,7 @@ import { CameraComponentData } from './data.js';
 const _schema = ['enabled'];
 
 class CameraComponentSystem extends ComponentSystem {
+
   constructor(app) {
     super(app);
     this.cameras = [];
@@ -20,16 +21,12 @@ class CameraComponentSystem extends ComponentSystem {
     this.app.on('prerender', this.onAppPrerender, this);
     this.app.systems.on('update', this.onUpdate, this);
   }
-
   initializeComponentData(component, data, properties) {
-    properties = ['aspectRatio', 'aspectRatioMode', 'calculateProjection', 'calculateTransform', 'clearColor', 'clearColorBuffer', 'clearDepthBuffer', 'clearStencilBuffer', 'cullFaces', 'farClip', 'flipFaces', 'fov', 'frustumCulling', 'horizontalFov', 'layers', 'renderTarget', 'nearClip', 'orthoHeight', 'projection', 'priority', 'rect', 'scissorRect', 'aperture', 'shutter', 'sensitivity'];
-
+    properties = ['aspectRatio', 'aspectRatioMode', 'calculateProjection', 'calculateTransform', 'clearColor', 'clearColorBuffer', 'clearDepthBuffer', 'clearStencilBuffer', 'renderSceneColorMap', 'renderSceneDepthMap', 'cullFaces', 'farClip', 'flipFaces', 'fov', 'frustumCulling', 'horizontalFov', 'layers', 'renderTarget', 'nearClip', 'orthoHeight', 'projection', 'priority', 'rect', 'scissorRect', 'aperture', 'shutter', 'sensitivity'];
     for (let i = 0; i < properties.length; i++) {
       const property = properties[i];
-
       if (data.hasOwnProperty(property)) {
         const value = data[property];
-
         switch (property) {
           case 'rect':
           case 'scissorRect':
@@ -38,28 +35,22 @@ class CameraComponentSystem extends ComponentSystem {
             } else {
               component[property] = value;
             }
-
             break;
-
           case 'clearColor':
             if (Array.isArray(value)) {
               component[property] = new Color(value[0], value[1], value[2], value[3]);
             } else {
               component[property] = value;
             }
-
             break;
-
           default:
             component[property] = value;
             break;
         }
       }
     }
-
     super.initializeComponentData(component, data, ['enabled']);
   }
-
   cloneComponent(entity, clone) {
     const c = entity.camera;
     return this.addComponent(clone, {
@@ -71,6 +62,8 @@ class CameraComponentSystem extends ComponentSystem {
       clearColorBuffer: c.clearColorBuffer,
       clearDepthBuffer: c.clearDepthBuffer,
       clearStencilBuffer: c.clearStencilBuffer,
+      renderSceneDepthMap: c.renderSceneDepthMap,
+      renderSceneColorMap: c.renderSceneColorMap,
       cullFaces: c.cullFaces,
       enabled: c.enabled,
       farClip: c.farClip,
@@ -91,40 +84,31 @@ class CameraComponentSystem extends ComponentSystem {
       shutter: c.shutter
     });
   }
-
   onBeforeRemove(entity, component) {
     this.removeCamera(component);
   }
-
   onUpdate(dt) {}
-
   onAppPrerender() {
     for (let i = 0, len = this.cameras.length; i < len; i++) {
       this.cameras[i].onAppPrerender();
     }
   }
-
   addCamera(camera) {
     this.cameras.push(camera);
     sortPriority(this.cameras);
   }
-
   removeCamera(camera) {
     const index = this.cameras.indexOf(camera);
-
     if (index >= 0) {
       this.cameras.splice(index, 1);
       sortPriority(this.cameras);
     }
   }
-
   destroy() {
     super.destroy();
     this.app.systems.off('update', this.onUpdate, this);
   }
-
 }
-
 Component._buildAccessors(CameraComponent.prototype, _schema);
 
 export { CameraComponentSystem };

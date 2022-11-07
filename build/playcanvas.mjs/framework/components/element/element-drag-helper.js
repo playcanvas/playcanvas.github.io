@@ -1,22 +1,17 @@
 import { platform } from '../../../core/platform.js';
 import { EventHandler } from '../../../core/event-handler.js';
-import { Quat } from '../../../math/quat.js';
-import { Vec2 } from '../../../math/vec2.js';
-import { Vec3 } from '../../../math/vec3.js';
+import { Quat } from '../../../core/math/quat.js';
+import { Vec2 } from '../../../core/math/vec2.js';
+import { Vec3 } from '../../../core/math/vec3.js';
 import { ElementComponent } from './component.js';
-import { Ray } from '../../../shape/ray.js';
-import { Plane } from '../../../shape/plane.js';
+import { Ray } from '../../../core/shape/ray.js';
+import { Plane } from '../../../core/shape/plane.js';
 
 const _inputScreenPosition = new Vec2();
-
 const _inputWorldPosition = new Vec3();
-
 const _ray = new Ray();
-
 const _plane = new Plane();
-
 const _entityRotation = new Quat();
-
 const OPPOSITE_AXIS = {
   x: 'y',
   y: 'x'
@@ -25,15 +20,12 @@ const OPPOSITE_AXIS = {
 class ElementDragHelper extends EventHandler {
   constructor(element, axis) {
     super();
-
     if (!element || !(element instanceof ElementComponent)) {
       throw new Error('Element was null or not an ElementComponent');
     }
-
     if (axis && axis !== 'x' && axis !== 'y') {
       throw new Error('Unrecognized axis: ' + axis);
     }
-
     this._element = element;
     this._app = element.system.app;
     this._axis = axis || null;
@@ -44,106 +36,76 @@ class ElementDragHelper extends EventHandler {
     this._deltaMousePosition = new Vec3();
     this._deltaHandlePosition = new Vec3();
     this._isDragging = false;
-
     this._toggleLifecycleListeners('on');
   }
 
   _toggleLifecycleListeners(onOrOff) {
     this._element[onOrOff]('mousedown', this._onMouseDownOrTouchStart, this);
-
     this._element[onOrOff]('touchstart', this._onMouseDownOrTouchStart, this);
   }
-
   _toggleDragListeners(onOrOff) {
     const isOn = onOrOff === 'on';
 
     if (this._hasDragListeners && isOn) {
       return;
     }
-
     if (!this._handleMouseUpOrTouchEnd) {
       this._handleMouseUpOrTouchEnd = this._onMouseUpOrTouchEnd.bind(this);
     }
 
     if (this._app.mouse) {
       this._element[onOrOff]('mousemove', this._onMove, this);
-
       this._element[onOrOff]('mouseup', this._handleMouseUpOrTouchEnd, false);
     }
 
     if (platform.touch) {
       this._element[onOrOff]('touchmove', this._onMove, this);
-
       this._element[onOrOff]('touchend', this._handleMouseUpOrTouchEnd, this);
-
       this._element[onOrOff]('touchcancel', this._handleMouseUpOrTouchEnd, this);
     }
-
     this._hasDragListeners = isOn;
   }
-
   _onMouseDownOrTouchStart(event) {
     if (this._element && !this._isDragging && this.enabled) {
       this._dragCamera = event.camera;
-
       this._calculateDragScale();
-
       const currentMousePosition = this._screenToLocal(event);
-
       if (currentMousePosition) {
         this._toggleDragListeners('on');
-
         this._isDragging = true;
-
         this._dragStartMousePosition.copy(currentMousePosition);
-
         this._dragStartHandlePosition.copy(this._element.entity.getLocalPosition());
-
         this.fire('drag:start');
       }
     }
   }
-
   _onMouseUpOrTouchEnd() {
     if (this._isDragging) {
       this._isDragging = false;
-
       this._toggleDragListeners('off');
-
       this.fire('drag:end');
     }
   }
 
   _screenToLocal(event) {
     this._determineInputPosition(event);
-
     this._chooseRayOriginAndDirection();
-
     _plane.point.copy(this._element.entity.getLocalPosition());
-
     _plane.normal.copy(this._element.entity.forward).mulScalar(-1);
-
     const denominator = _plane.normal.dot(_ray.direction);
 
     if (Math.abs(denominator) > 0) {
       const rayOriginToPlaneOrigin = _plane.point.sub(_ray.origin);
-
       const collisionDistance = rayOriginToPlaneOrigin.dot(_plane.normal) / denominator;
-
       const position = _ray.origin.add(_ray.direction.mulScalar(collisionDistance));
-
       _entityRotation.copy(this._element.entity.getRotation()).invert().transformVector(position, position);
-
       position.mul(this._dragScale);
       return position;
     }
-
     return null;
   }
-
   _determineInputPosition(event) {
     const devicePixelRatio = this._app.graphicsDevice.maxPixelRatio;
-
     if (typeof event.x !== 'undefined' && typeof event.y !== 'undefined') {
       _inputScreenPosition.x = event.x * devicePixelRatio;
       _inputScreenPosition.y = event.y * devicePixelRatio;
@@ -154,21 +116,16 @@ class ElementDragHelper extends EventHandler {
       console.warn('Could not determine position from input event');
     }
   }
-
   _chooseRayOriginAndDirection() {
     if (this._element.screen && this._element.screen.screen.screenSpace) {
       _ray.origin.set(_inputScreenPosition.x, -_inputScreenPosition.y, 0);
-
       _ray.direction.copy(Vec3.FORWARD);
     } else {
       _inputWorldPosition.copy(this._dragCamera.screenToWorld(_inputScreenPosition.x, _inputScreenPosition.y, 1));
-
       _ray.origin.copy(this._dragCamera.entity.getPosition());
-
       _ray.direction.copy(_inputWorldPosition).sub(_ray.origin).normalize();
     }
   }
-
   _calculateDragScale() {
     let current = this._element.entity.parent;
     const screen = this._element.screen && this._element.screen.screen;
@@ -176,16 +133,13 @@ class ElementDragHelper extends EventHandler {
     const screenScale = isWithin2DScreen ? screen.scale : 1;
     const dragScale = this._dragScale;
     dragScale.set(screenScale, screenScale, screenScale);
-
     while (current) {
       dragScale.mul(current.getLocalScale());
       current = current.parent;
-
       if (isWithin2DScreen && current.screen) {
         break;
       }
     }
-
     dragScale.x = 1 / dragScale.x;
     dragScale.y = 1 / dragScale.y;
     dragScale.z = 1 / dragScale.z;
@@ -198,44 +152,34 @@ class ElementDragHelper extends EventHandler {
       _deltaHandlePosition: deltaHandlePosition,
       _axis: axis
     } = this;
-
     if (element && this._isDragging && this.enabled && element.enabled && element.entity.enabled) {
       const currentMousePosition = this._screenToLocal(event);
-
       if (currentMousePosition) {
         deltaMousePosition.sub2(currentMousePosition, this._dragStartMousePosition);
         deltaHandlePosition.add2(this._dragStartHandlePosition, deltaMousePosition);
-
         if (axis) {
           const currentPosition = element.entity.getLocalPosition();
           const constrainedAxis = OPPOSITE_AXIS[axis];
           deltaHandlePosition[constrainedAxis] = currentPosition[constrainedAxis];
         }
-
         element.entity.setLocalPosition(deltaHandlePosition);
         this.fire('drag:move', deltaHandlePosition);
       }
     }
   }
-
   destroy() {
     this._toggleLifecycleListeners('off');
-
     this._toggleDragListeners('off');
   }
-
   set enabled(value) {
     this._enabled = value;
   }
-
   get enabled() {
     return this._enabled;
   }
-
   get isDragging() {
     return this._isDragging;
   }
-
 }
 
 export { ElementDragHelper };

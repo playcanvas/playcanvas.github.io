@@ -1,1 +1,1 @@
-let n;function t(){return n}function e(t){n=t}export{t as getApplication,e as setApplication};
+import{GraphicsDeviceAccess as c}from"../platform/graphics/graphics-device-access.js";let e;function i(){return e}function r(i){e=i,c.set(null==i?void 0:i.graphicsDevice)}export{i as getApplication,r as setApplication};

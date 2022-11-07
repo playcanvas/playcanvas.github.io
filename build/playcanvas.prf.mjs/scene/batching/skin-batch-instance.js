@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import { SkinInstance } from '../skin-instance.js';
@@ -12,17 +12,16 @@ class SkinBatchInstance extends SkinInstance {
     this.init(device, numBones);
     this.device = device;
     this.rootNode = rootNode;
+
     this.bones = nodes;
   }
-
   updateMatrices(rootNode, skinUpdateIndex) {}
-
   updateMatrixPalette(rootNode, skinUpdateIndex) {
     const mp = this.matrixPalette;
     const count = this.bones.length;
-
     for (let i = 0; i < count; i++) {
       const pe = this.bones[i].getWorldTransform().data;
+
       const base = i * 12;
       mp[base] = pe[0];
       mp[base + 1] = pe[4];
@@ -37,10 +36,8 @@ class SkinBatchInstance extends SkinInstance {
       mp[base + 10] = pe[10];
       mp[base + 11] = pe[14];
     }
-
     this.uploadBones(this.device);
   }
-
 }
 
 export { SkinBatchInstance };

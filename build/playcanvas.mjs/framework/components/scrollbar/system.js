@@ -29,17 +29,13 @@ class ScrollbarComponentSystem extends ComponentSystem {
     this.schema = _schema;
     this.on('beforeremove', this._onRemoveComponent, this);
   }
-
   initializeComponentData(component, data, properties) {
     super.initializeComponentData(component, data, _schema);
   }
-
   _onRemoveComponent(entity, component) {
     component.onRemove();
   }
-
 }
-
 Component._buildAccessors(ScrollbarComponent.prototype, _schema);
 
 export { ScrollbarComponentSystem };

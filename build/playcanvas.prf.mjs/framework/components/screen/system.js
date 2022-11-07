@@ -1,10 +1,10 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import { IndexedList } from '../../../core/indexed-list.js';
-import { Vec2 } from '../../../math/vec2.js';
+import { Vec2 } from '../../../core/math/vec2.js';
 import { Component } from '../component.js';
 import { ComponentSystem } from '../system.js';
 import { ScreenComponent } from './component.js';
@@ -20,62 +20,53 @@ class ScreenComponentSystem extends ComponentSystem {
     this.DataType = ScreenComponentData;
     this.schema = _schema;
     this.windowResolution = new Vec2();
+
     this._drawOrderSyncQueue = new IndexedList();
     this.app.graphicsDevice.on('resizecanvas', this._onResize, this);
     this.app.systems.on('update', this._onUpdate, this);
     this.on('beforeremove', this.onRemoveComponent, this);
   }
-
   initializeComponentData(component, data, properties) {
     if (data.priority !== undefined) component.priority = data.priority;
     if (data.screenSpace !== undefined) component.screenSpace = data.screenSpace;
     component.cull = component.screenSpace;
     if (data.scaleMode !== undefined) component.scaleMode = data.scaleMode;
     if (data.scaleBlend !== undefined) component.scaleBlend = data.scaleBlend;
-
     if (data.resolution !== undefined) {
       if (data.resolution instanceof Vec2) {
         component._resolution.copy(data.resolution);
       } else {
         component._resolution.set(data.resolution[0], data.resolution[1]);
       }
-
       component.resolution = component._resolution;
     }
-
     if (data.referenceResolution !== undefined) {
       if (data.referenceResolution instanceof Vec2) {
         component._referenceResolution.copy(data.referenceResolution);
       } else {
         component._referenceResolution.set(data.referenceResolution[0], data.referenceResolution[1]);
       }
-
       component.referenceResolution = component._referenceResolution;
     }
 
     component.syncDrawOrder();
     super.initializeComponentData(component, data, properties);
   }
-
   destroy() {
     super.destroy();
     this.app.graphicsDevice.off('resizecanvas', this._onResize, this);
     this.app.systems.off('update', this._onUpdate, this);
   }
-
   _onUpdate(dt) {
     const components = this.store;
-
     for (const id in components) {
       if (components[id].entity.screen.update) components[id].entity.screen.update(dt);
     }
   }
-
   _onResize(width, height) {
     this.windowResolution.x = width;
     this.windowResolution.y = height;
   }
-
   cloneComponent(entity, clone) {
     const screen = entity.screen;
     return this.addComponent(clone, {
@@ -86,27 +77,21 @@ class ScreenComponentSystem extends ComponentSystem {
       referenceResolution: screen.referenceResolution.clone()
     });
   }
-
   onRemoveComponent(entity, component) {
     component.onRemove();
   }
-
   processDrawOrderSyncQueue() {
     const list = this._drawOrderSyncQueue.list();
-
     for (let i = 0; i < list.length; i++) {
       const item = list[i];
       item.callback.call(item.scope);
     }
-
     this._drawOrderSyncQueue.clear();
   }
-
   queueDrawOrderSync(id, fn, scope) {
     if (!this._drawOrderSyncQueue.list().length) {
       this.app.once('prerender', this.processDrawOrderSyncQueue, this);
     }
-
     if (!this._drawOrderSyncQueue.has(id)) {
       this._drawOrderSyncQueue.push(id, {
         callback: fn,
@@ -114,9 +99,7 @@ class ScreenComponentSystem extends ComponentSystem {
       });
     }
   }
-
 }
-
 Component._buildAccessors(ScreenComponent.prototype, _schema);
 
 export { ScreenComponentSystem };

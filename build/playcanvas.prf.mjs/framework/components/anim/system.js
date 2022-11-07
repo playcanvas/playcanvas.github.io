@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import { Component } from '../component.js';
@@ -20,7 +20,6 @@ class AnimComponentSystem extends ComponentSystem {
     this.on('beforeremove', this.onBeforeRemove, this);
     this.app.systems.on('animationUpdate', this.onAnimationUpdate, this);
   }
-
   initializeComponentData(component, data, properties) {
     super.initializeComponentData(component, data, _schema);
     const complexProperties = ['animationAssets', 'stateGraph', 'layers', 'masks'];
@@ -28,12 +27,10 @@ class AnimComponentSystem extends ComponentSystem {
       if (complexProperties.includes(key)) return;
       component[key] = data[key];
     });
-
     if (data.stateGraph) {
       component.stateGraph = data.stateGraph;
       component.loadStateGraph(component.stateGraph);
     }
-
     if (data.layers) {
       data.layers.forEach((layer, i) => {
         layer._controller.states.forEach(stateKey => {
@@ -45,7 +42,6 @@ class AnimComponentSystem extends ComponentSystem {
     } else if (data.animationAssets) {
       component.animationAssets = Object.assign(component.animationAssets, data.animationAssets);
     }
-
     if (data.masks) {
       Object.keys(data.masks).forEach(key => {
         if (component.layers[key]) {
@@ -59,25 +55,20 @@ class AnimComponentSystem extends ComponentSystem {
       });
     }
   }
-
   onAnimationUpdate(dt) {
     const components = this.store;
-
     for (const id in components) {
       if (components.hasOwnProperty(id)) {
         const component = components[id].entity.anim;
         const componentData = component.data;
-
         if (componentData.enabled && component.entity.enabled && component.playing) {
           component.update(dt);
         }
       }
     }
   }
-
   cloneComponent(entity, clone) {
     let masks;
-
     if (!entity.anim.rootBone || entity.anim.rootBone === entity) {
       masks = {};
       entity.anim.layers.forEach((layer, i) => {
@@ -95,7 +86,6 @@ class AnimComponentSystem extends ComponentSystem {
         }
       });
     }
-
     const data = {
       stateGraphAsset: entity.anim.stateGraphAsset,
       animationAssets: entity.anim.animationAssets,
@@ -112,18 +102,14 @@ class AnimComponentSystem extends ComponentSystem {
     };
     return this.addComponent(clone, data);
   }
-
   onBeforeRemove(entity, component) {
     component.onBeforeRemove();
   }
-
   destroy() {
     super.destroy();
     this.app.systems.off('animationUpdate', this.onAnimationUpdate, this);
   }
-
 }
-
 Component._buildAccessors(AnimComponent.prototype, _schema);
 
 export { AnimComponentSystem };

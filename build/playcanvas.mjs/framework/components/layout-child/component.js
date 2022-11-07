@@ -3,6 +3,7 @@ import { Component } from '../component.js';
 class LayoutChildComponent extends Component {
   constructor(system, entity) {
     super(system, entity);
+
     this._minWidth = 0;
     this._minHeight = 0;
     this._maxWidth = null;
@@ -18,7 +19,6 @@ class LayoutChildComponent extends Component {
       this.fire('resize');
     }
   }
-
   get minWidth() {
     return this._minWidth;
   }
@@ -29,7 +29,6 @@ class LayoutChildComponent extends Component {
       this.fire('resize');
     }
   }
-
   get minHeight() {
     return this._minHeight;
   }
@@ -40,7 +39,6 @@ class LayoutChildComponent extends Component {
       this.fire('resize');
     }
   }
-
   get maxWidth() {
     return this._maxWidth;
   }
@@ -51,7 +49,6 @@ class LayoutChildComponent extends Component {
       this.fire('resize');
     }
   }
-
   get maxHeight() {
     return this._maxHeight;
   }
@@ -62,7 +59,6 @@ class LayoutChildComponent extends Component {
       this.fire('resize');
     }
   }
-
   get fitWidthProportion() {
     return this._fitWidthProportion;
   }
@@ -73,7 +69,6 @@ class LayoutChildComponent extends Component {
       this.fire('resize');
     }
   }
-
   get fitHeightProportion() {
     return this._fitHeightProportion;
   }
@@ -84,11 +79,9 @@ class LayoutChildComponent extends Component {
       this.fire('resize');
     }
   }
-
   get excludeFromLayout() {
     return this._excludeFromLayout;
   }
-
 }
 
 export { LayoutChildComponent };

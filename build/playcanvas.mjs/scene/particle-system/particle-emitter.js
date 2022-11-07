@@ -1,22 +1,23 @@
 import '../../core/time.js';
 import '../../core/tracing.js';
-import { math } from '../../math/math.js';
-import { Mat4 } from '../../math/mat4.js';
-import { Quat } from '../../math/quat.js';
-import { Vec3 } from '../../math/vec3.js';
-import { BoundingBox } from '../../shape/bounding-box.js';
-import { Curve } from '../../math/curve.js';
-import { CurveSet } from '../../math/curve-set.js';
-import { FILTER_LINEAR, PRIMITIVE_TRIANGLES, CULLFACE_NONE, BUFFER_DYNAMIC, INDEXFORMAT_UINT16, SEMANTIC_ATTR0, TYPE_FLOAT32, SEMANTIC_ATTR1, SEMANTIC_ATTR2, SEMANTIC_ATTR3, SEMANTIC_ATTR4, SEMANTIC_TEXCOORD0, ADDRESS_CLAMP_TO_EDGE, PIXELFORMAT_R8_G8_B8_A8, PIXELFORMAT_RGBA32F, FILTER_NEAREST } from '../../graphics/constants.js';
-import { createShaderFromCode } from '../../graphics/program-lib/utils.js';
-import { shaderChunks } from '../../graphics/program-lib/chunks/chunks.js';
-import { IndexBuffer } from '../../graphics/index-buffer.js';
-import { RenderTarget } from '../../graphics/render-target.js';
-import { Texture } from '../../graphics/texture.js';
-import { VertexBuffer } from '../../graphics/vertex-buffer.js';
-import { VertexFormat } from '../../graphics/vertex-format.js';
-import { DeviceCache } from '../../graphics/device-cache.js';
-import { particle } from '../../graphics/program-lib/programs/particle.js';
+import { math } from '../../core/math/math.js';
+import { Mat4 } from '../../core/math/mat4.js';
+import { Quat } from '../../core/math/quat.js';
+import { Vec3 } from '../../core/math/vec3.js';
+import { BoundingBox } from '../../core/shape/bounding-box.js';
+import { Curve } from '../../core/math/curve.js';
+import { CurveSet } from '../../core/math/curve-set.js';
+import { FILTER_LINEAR, PRIMITIVE_TRIANGLES, CULLFACE_NONE, BUFFER_DYNAMIC, INDEXFORMAT_UINT16, SEMANTIC_ATTR0, TYPE_FLOAT32, SEMANTIC_ATTR1, SEMANTIC_ATTR2, SEMANTIC_ATTR3, SEMANTIC_ATTR4, SEMANTIC_TEXCOORD0, ADDRESS_CLAMP_TO_EDGE, PIXELFORMAT_R8_G8_B8_A8, PIXELFORMAT_RGBA32F, FILTER_NEAREST } from '../../platform/graphics/constants.js';
+import { createShaderFromCode } from '../shader-lib/utils.js';
+import { shaderChunks } from '../shader-lib/chunks/chunks.js';
+import { IndexBuffer } from '../../platform/graphics/index-buffer.js';
+import { RenderTarget } from '../../platform/graphics/render-target.js';
+import { Texture } from '../../platform/graphics/texture.js';
+import { VertexBuffer } from '../../platform/graphics/vertex-buffer.js';
+import { VertexFormat } from '../../platform/graphics/vertex-format.js';
+import { DeviceCache } from '../../platform/graphics/device-cache.js';
+import { particle } from '../shader-lib/programs/particle.js';
+import { getProgramLibrary } from '../shader-lib/get-program-library.js';
 import { EMITTERSHAPE_BOX, PARTICLESORT_NONE, PARTICLEORIENTATION_SCREEN, PARTICLEORIENTATION_WORLD, PARTICLEMODE_GPU, BLEND_NORMAL } from '../constants.js';
 import { Material } from '../materials/material.js';
 import { Mesh } from '../mesh.js';
@@ -25,7 +26,6 @@ import { ParticleCPUUpdater } from './cpu-updater.js';
 import { ParticleGPUUpdater } from './gpu-updater.js';
 
 const particleVerts = [[-1, -1], [1, -1], [1, 1], [-1, 1]];
-
 function _createTexture(device, width, height, pixelData, format = PIXELFORMAT_RGBA32F, mult8Bit, filter) {
   let mipFilter = FILTER_NEAREST;
   if (filter && format === PIXELFORMAT_R8_G8_B8_A8) mipFilter = FILTER_LINEAR;
@@ -42,32 +42,27 @@ function _createTexture(device, width, height, pixelData, format = PIXELFORMAT_R
     name: 'ParticleSystemTexture'
   });
   const pixels = texture.lock();
-
   if (format === PIXELFORMAT_R8_G8_B8_A8) {
     const temp = new Uint8Array(pixelData.length);
-
     for (let i = 0; i < pixelData.length; i++) {
       temp[i] = pixelData[i] * mult8Bit * 255;
     }
-
     pixelData = temp;
   }
-
   pixels.set(pixelData);
   texture.unlock();
   return texture;
 }
-
 function saturate(x) {
   return Math.max(Math.min(x, 1), 0);
 }
-
 const default0Curve = new Curve([0, 0, 1, 0]);
 const default1Curve = new Curve([0, 1, 1, 1]);
 const default0Curve3 = new CurveSet([0, 0, 1, 0], [0, 0, 1, 0], [0, 0, 1, 0]);
 const default1Curve3 = new CurveSet([0, 1, 1, 1], [0, 1, 1, 1], [0, 1, 1, 1]);
 let particleTexHeight = 2;
 const particleTexChannels = 4;
+
 const extentsInnerRatioUniform = new Float32Array(3);
 const spawnMatrix = new Mat4();
 const tmpVec3 = new Vec3();
@@ -75,7 +70,6 @@ const bMin = new Vec3();
 const bMax = new Vec3();
 let setPropertyTarget;
 let setPropertyOptions;
-
 function setProperty(pName, defaultVal) {
   if (setPropertyOptions[pName] !== undefined && setPropertyOptions[pName] !== null) {
     setPropertyTarget[pName] = setPropertyOptions[pName];
@@ -83,84 +77,65 @@ function setProperty(pName, defaultVal) {
     setPropertyTarget[pName] = defaultVal;
   }
 }
-
 function pack3NFloats(a, b, c) {
   const packed = a * 255 << 16 | b * 255 << 8 | c * 255;
   return packed / (1 << 24);
 }
-
 function packTextureXYZ_NXYZ(qXYZ, qXYZ2) {
   const num = qXYZ.length / 3;
   const colors = new Array(num * 4);
-
   for (let i = 0; i < num; i++) {
     colors[i * 4] = qXYZ[i * 3];
     colors[i * 4 + 1] = qXYZ[i * 3 + 1];
     colors[i * 4 + 2] = qXYZ[i * 3 + 2];
     colors[i * 4 + 3] = pack3NFloats(qXYZ2[i * 3], qXYZ2[i * 3 + 1], qXYZ2[i * 3 + 2]);
   }
-
   return colors;
 }
-
 function packTextureRGBA(qRGB, qA) {
   const colors = new Array(qA.length * 4);
-
   for (let i = 0; i < qA.length; i++) {
     colors[i * 4] = qRGB[i * 3];
     colors[i * 4 + 1] = qRGB[i * 3 + 1];
     colors[i * 4 + 2] = qRGB[i * 3 + 2];
     colors[i * 4 + 3] = qA[i];
   }
-
   return colors;
 }
-
 function packTexture5Floats(qA, qB, qC, qD, qE) {
   const colors = new Array(qA.length * 4);
-
   for (let i = 0; i < qA.length; i++) {
     colors[i * 4] = qA[i];
     colors[i * 4 + 1] = qB[i];
     colors[i * 4 + 2] = 0;
     colors[i * 4 + 3] = pack3NFloats(qC[i], qD[i], qE[i]);
   }
-
   return colors;
 }
-
 function packTexture2Floats(qA, qB) {
   const colors = new Array(qA.length * 4);
-
   for (let i = 0; i < qA.length; i++) {
     colors[i * 4] = qA[i];
     colors[i * 4 + 1] = qB[i];
     colors[i * 4 + 2] = 0;
     colors[i * 4 + 3] = 0;
   }
-
   return colors;
 }
-
 function calcEndTime(emitter) {
   const interval = Math.max(emitter.rate, emitter.rate2) * emitter.numParticles + emitter.lifetime;
   return Date.now() + interval * 1000;
 }
-
 function subGraph(A, B) {
   const r = new Float32Array(A.length);
-
   for (let i = 0; i < A.length; i++) {
     r[i] = A[i] - B[i];
   }
-
   return r;
 }
-
 function maxUnsignedGraphValue(A, outUMax) {
   const chans = outUMax.length;
   const values = A.length / chans;
-
   for (let i = 0; i < values; i++) {
     for (let j = 0; j < chans; j++) {
       const a = Math.abs(A[i * chans + j]);
@@ -168,11 +143,9 @@ function maxUnsignedGraphValue(A, outUMax) {
     }
   }
 }
-
 function normalizeGraph(A, uMax) {
   const chans = uMax.length;
   const values = A.length / chans;
-
   for (let i = 0; i < values; i++) {
     for (let j = 0; j < chans; j++) {
       A[i * chans + j] /= uMax[j] === 0 ? 1 : uMax[j];
@@ -181,7 +154,6 @@ function normalizeGraph(A, uMax) {
     }
   }
 }
-
 function divGraphFrom2Curves(curve1, curve2, outUMax) {
   const sub = subGraph(curve2, curve1);
   maxUnsignedGraphValue(sub, outUMax);
@@ -190,7 +162,6 @@ function divGraphFrom2Curves(curve1, curve2, outUMax) {
 }
 
 const particleEmitterDeviceCache = new DeviceCache();
-
 class ParticleEmitter {
   constructor(graphicsDevice, options) {
     this.graphicsDevice = graphicsDevice;
@@ -198,6 +169,7 @@ class ParticleEmitter {
     const precision = 32;
     this.precision = precision;
     this._addTimeTime = 0;
+
     setPropertyTarget = this;
     setPropertyOptions = options;
     setProperty('numParticles', 1);
@@ -205,7 +177,6 @@ class ParticleEmitter {
     if (this.numParticles > graphicsDevice.maxTextureSize) {
       this.numParticles = graphicsDevice.maxTextureSize;
     }
-
     setProperty('rate', 1);
     setProperty('rate2', this.rate);
     setProperty('lifetime', 50);
@@ -256,6 +227,7 @@ class ParticleEmitter {
     this.emitterPosUniform = new Float32Array(3);
     this.wrapBoundsUniform = new Float32Array(3);
     this.emitterScaleUniform = new Float32Array([1, 1, 1]);
+
     setProperty('colorGraph', default1Curve3);
     setProperty('colorGraph2', this.colorGraph);
     setProperty('scaleGraph', default1Curve);
@@ -305,6 +277,7 @@ class ParticleEmitter {
     this.worldBoundsMul = new Vec3();
     this.worldBoundsAdd = new Vec3();
     this.timeToSwitchBounds = 0;
+
     this.shaderParticleUpdateRespawn = null;
     this.shaderParticleUpdateNoRespawn = null;
     this.shaderParticleUpdateOnStop = null;
@@ -322,13 +295,11 @@ class ParticleEmitter {
     this._layer = null;
     this.rebuild();
   }
-
   get defaultParamTexture() {
     return particleEmitterDeviceCache.get(this.graphicsDevice, () => {
       const resolution = 16;
       const centerPoint = resolution * 0.5 + 0.5;
       const dtex = new Float32Array(resolution * resolution * 4);
-
       for (let y = 0; y < resolution; y++) {
         for (let x = 0; x < resolution; x++) {
           const xgrad = x + 1 - centerPoint;
@@ -341,20 +312,16 @@ class ParticleEmitter {
           dtex[p * 4 + 3] = c;
         }
       }
-
       const texture = _createTexture(this.graphicsDevice, resolution, resolution, dtex, PIXELFORMAT_R8_G8_B8_A8, 1.0, true);
-
       texture.minFilter = FILTER_LINEAR;
       texture.magFilter = FILTER_LINEAR;
       return texture;
     });
   }
-
   onChangeCamera() {
     this.regenShader();
     this.resetMaterial();
   }
-
   calculateBoundsMad() {
     this.worldBoundsMul.x = 1.0 / this.worldBoundsSize.x;
     this.worldBoundsMul.y = 1.0 / this.worldBoundsSize.y;
@@ -364,47 +331,37 @@ class ParticleEmitter {
     this.worldBoundsAdd.y += 0.5;
     this.worldBoundsAdd.z += 0.5;
   }
-
   calculateWorldBounds() {
     if (!this.node) return;
     this.prevWorldBoundsSize.copy(this.worldBoundsSize);
     this.prevWorldBoundsCenter.copy(this.worldBounds.center);
-
     if (!this.useCpu) {
       let recalculateLocalBounds = false;
-
       if (this.emitterShape === EMITTERSHAPE_BOX) {
         recalculateLocalBounds = !this.emitterExtents.equals(this.prevEmitterExtents);
       } else {
         recalculateLocalBounds = !(this.emitterRadius === this.prevEmitterRadius);
       }
-
       if (recalculateLocalBounds) {
         this.calculateLocalBounds();
       }
     }
-
     const nodeWT = this.node.getWorldTransform();
-
     if (this.localSpace) {
       this.worldBoundsNoTrail.copy(this.localBounds);
     } else {
       this.worldBoundsNoTrail.setFromTransformedAabb(this.localBounds, nodeWT);
     }
-
     this.worldBoundsTrail[0].add(this.worldBoundsNoTrail);
     this.worldBoundsTrail[1].add(this.worldBoundsNoTrail);
     const now = this.simTimeTotal;
-
     if (now >= this.timeToSwitchBounds) {
       this.worldBoundsTrail[0].copy(this.worldBoundsTrail[1]);
       this.worldBoundsTrail[1].copy(this.worldBoundsNoTrail);
       this.timeToSwitchBounds = now + this.lifetime;
     }
-
     this.worldBounds.copy(this.worldBoundsTrail[0]);
     this.worldBoundsSize.copy(this.worldBounds.halfExtents).mulScalar(2);
-
     if (this.localSpace) {
       this.meshInstance.aabb.setFromTransformedAabb(this.worldBounds, nodeWT);
       this.meshInstance.mesh.aabb.setFromTransformedAabb(this.worldBounds, nodeWT);
@@ -412,11 +369,9 @@ class ParticleEmitter {
       this.meshInstance.aabb.copy(this.worldBounds);
       this.meshInstance.mesh.aabb.copy(this.worldBounds);
     }
-
     this.meshInstance._aabbVer = 1 - this.meshInstance._aabbVer;
     if (this.pack8) this.calculateBoundsMad();
   }
-
   resetWorldBounds() {
     if (!this.node) return;
     this.worldBoundsNoTrail.setFromTransformedAabb(this.localBounds, this.localSpace ? Mat4.IDENTITY : this.node.getWorldTransform());
@@ -429,7 +384,6 @@ class ParticleEmitter {
     this.simTimeTotal = 0;
     this.timeToSwitchBounds = 0;
   }
-
   calculateLocalBounds() {
     let minx = Number.MAX_VALUE;
     let miny = Number.MAX_VALUE;
@@ -448,10 +402,8 @@ class ParticleEmitter {
     const accumR = [0, 0];
     const accumW = [0, 0];
     let x, y, z;
-
     for (let i = 0; i < this.precision + 1; i++) {
       const index = Math.min(i, this.precision - 1);
-
       for (let j = 0; j < 2; j++) {
         x = lVels[j][index * 3 + 0] * stepWeight + accumX[j];
         y = lVels[j][index * 3 + 1] * stepWeight + accumY[j];
@@ -466,17 +418,14 @@ class ParticleEmitter {
         accumY[j] = y;
         accumZ[j] = z;
       }
-
       for (let j = 0; j < 2; j++) {
         accumW[j] += stepWeight * Math.sqrt(wVels[j][index * 3 + 0] * wVels[j][index * 3 + 0] + wVels[j][index * 3 + 1] * wVels[j][index * 3 + 1] + wVels[j][index * 3 + 2] * wVels[j][index * 3 + 2]);
       }
-
       accumR[0] += this.qRadialSpeed[index] * stepWeight;
       accumR[1] += this.qRadialSpeed2[index] * stepWeight;
       maxR = Math.max(maxR, Math.max(Math.abs(accumR[0]), Math.abs(accumR[1])));
       maxScale = Math.max(maxScale, this.qScale[index]);
     }
-
     if (this.emitterShape === EMITTERSHAPE_BOX) {
       x = this.emitterExtents.x * 0.5;
       y = this.emitterExtents.y * 0.5;
@@ -486,7 +435,6 @@ class ParticleEmitter {
       y = this.emitterRadius;
       z = this.emitterRadius;
     }
-
     const w = Math.max(accumW[0], accumW[1]);
     bMin.x = minx - maxScale - x - maxR - w;
     bMin.y = miny - maxScale - y - maxR - w;
@@ -496,32 +444,29 @@ class ParticleEmitter {
     bMax.z = maxz + maxScale + z + maxR + w;
     this.localBounds.setMinMax(bMin, bMax);
   }
-
   rebuild() {
     const gd = this.graphicsDevice;
     if (this.colorMap === null) this.colorMap = this.defaultParamTexture;
     this.spawnBounds = this.emitterShape === EMITTERSHAPE_BOX ? this.emitterExtents : this.emitterRadius;
-    this.useCpu = this.useCpu || this.sort > PARTICLESORT_NONE || gd.maxVertexTextures <= 1 || gd.fragmentUniformsCount < 64 || gd.forceCpuParticles || !gd.extTextureFloat;
+    this.useCpu = this.useCpu || this.sort > PARTICLESORT_NONE ||
+    gd.maxVertexTextures <= 1 ||
+    gd.fragmentUniformsCount < 64 ||
+    gd.forceCpuParticles || !gd.extTextureFloat;
 
     this._destroyResources();
-
     this.pack8 = (this.pack8 || !gd.textureFloatRenderable) && !this.useCpu;
     particleTexHeight = this.useCpu || this.pack8 ? 4 : 2;
     this.useMesh = false;
-
     if (this.mesh) {
       const totalVertCount = this.numParticles * this.mesh.vertexBuffer.numVertices;
-
       if (totalVertCount > 65535) ; else {
         this.useMesh = true;
       }
     }
-
     this.numParticlesPot = math.nextPowerOfTwo(this.numParticles);
     this.rebuildGraphs();
     this.calculateLocalBounds();
     this.resetWorldBounds();
-
     if (this.node) {
       this.worldBounds.setFromTransformedAabb(this.localBounds, this.localSpace ? Mat4.IDENTITY : this.node.getWorldTransform());
       this.worldBoundsTrail[0].copy(this.worldBounds);
@@ -533,40 +478,30 @@ class ParticleEmitter {
     }
 
     this.vbToSort = new Array(this.numParticles);
-
     for (let iSort = 0; iSort < this.numParticles; iSort++) this.vbToSort[iSort] = [0, 0];
-
     this.particleDistance = new Float32Array(this.numParticles);
-
     this._gpuUpdater.randomize();
-
     this.particleTex = new Float32Array(this.numParticlesPot * particleTexHeight * particleTexChannels);
     const emitterPos = this.node === null || this.localSpace ? Vec3.ZERO : this.node.getPosition();
-
     if (this.emitterShape === EMITTERSHAPE_BOX) {
       if (this.node === null || this.localSpace) {
         spawnMatrix.setTRS(Vec3.ZERO, Quat.IDENTITY, this.spawnBounds);
       } else {
         spawnMatrix.setTRS(Vec3.ZERO, this.node.getRotation(), tmpVec3.copy(this.spawnBounds).mul(this.node.localScale));
       }
-
       extentsInnerRatioUniform[0] = this.emitterExtents.x !== 0 ? this.emitterExtentsInner.x / this.emitterExtents.x : 0;
       extentsInnerRatioUniform[1] = this.emitterExtents.y !== 0 ? this.emitterExtentsInner.y / this.emitterExtents.y : 0;
       extentsInnerRatioUniform[2] = this.emitterExtents.z !== 0 ? this.emitterExtentsInner.z / this.emitterExtents.z : 0;
     }
-
     for (let i = 0; i < this.numParticles; i++) {
       this._cpuUpdater.calcSpawnPosition(this.particleTex, spawnMatrix, extentsInnerRatioUniform, emitterPos, i);
-
       if (this.useCpu) this.particleTex[i * particleTexChannels + 3 + this.numParticlesPot * 2 * particleTexChannels] = 1;
     }
 
     this.particleTexStart = new Float32Array(this.numParticlesPot * particleTexHeight * particleTexChannels);
-
     for (let i = 0; i < this.particleTexStart.length; i++) {
       this.particleTexStart[i] = this.particleTex[i];
     }
-
     if (!this.useCpu) {
       if (this.pack8) {
         this.particleTexIN = _createTexture(gd, this.numParticlesPot, particleTexHeight, this.particleTex, PIXELFORMAT_R8_G8_B8_A8, 1, false);
@@ -577,7 +512,6 @@ class ParticleEmitter {
         this.particleTexOUT = _createTexture(gd, this.numParticlesPot, particleTexHeight, this.particleTex);
         this.particleTexStart = _createTexture(gd, this.numParticlesPot, particleTexHeight, this.particleTexStart);
       }
-
       this.rtParticleTexIN = new RenderTarget({
         colorBuffer: this.particleTexIN,
         depth: false
@@ -588,20 +522,18 @@ class ParticleEmitter {
       });
       this.swapTex = false;
     }
-
     const shaderCodeStart = (this.localSpace ? '#define LOCAL_SPACE\n' : '') + shaderChunks.particleUpdaterInitPS + (this.pack8 ? shaderChunks.particleInputRgba8PS + shaderChunks.particleOutputRgba8PS : shaderChunks.particleInputFloatPS + shaderChunks.particleOutputFloatPS) + (this.emitterShape === EMITTERSHAPE_BOX ? shaderChunks.particleUpdaterAABBPS : shaderChunks.particleUpdaterSpherePS) + shaderChunks.particleUpdaterStartPS;
     const shaderCodeRespawn = shaderCodeStart + shaderChunks.particleUpdaterRespawnPS + shaderChunks.particleUpdaterEndPS;
     const shaderCodeNoRespawn = shaderCodeStart + shaderChunks.particleUpdaterNoRespawnPS + shaderChunks.particleUpdaterEndPS;
     const shaderCodeOnStop = shaderCodeStart + shaderChunks.particleUpdaterOnStopPS + shaderChunks.particleUpdaterEndPS;
+
     const params = this.emitterShape + '' + this.pack8 + '' + this.localSpace;
     this.shaderParticleUpdateRespawn = createShaderFromCode(gd, shaderChunks.fullscreenQuadVS, shaderCodeRespawn, 'fsQuad0' + params);
     this.shaderParticleUpdateNoRespawn = createShaderFromCode(gd, shaderChunks.fullscreenQuadVS, shaderCodeNoRespawn, 'fsQuad1' + params);
     this.shaderParticleUpdateOnStop = createShaderFromCode(gd, shaderChunks.fullscreenQuadVS, shaderCodeOnStop, 'fsQuad2' + params);
     this.numParticleVerts = this.useMesh ? this.mesh.vertexBuffer.numVertices : 4;
     this.numParticleIndices = this.useMesh ? this.mesh.indexBuffer[0].numIndices : 6;
-
     this._allocate(this.numParticles);
-
     const mesh = new Mesh(gd);
     mesh.vertexBuffer = this.vertexBuffer;
     mesh.indexBuffer[0] = this.indexBuffer;
@@ -625,27 +557,21 @@ class ParticleEmitter {
     this.meshInstance.updateKey();
     this.meshInstance.cull = true;
     this.meshInstance._noDepthDrawGl1 = true;
-
     if (this.localSpace) {
       this.meshInstance.aabb.setFromTransformedAabb(this.worldBounds, this.node.getWorldTransform());
     } else {
       this.meshInstance.aabb.copy(this.worldBounds);
     }
-
     this.meshInstance._updateAabb = false;
     this.meshInstance.visible = wasVisible;
-
     this._initializeTextures();
-
     this.resetTime();
     this.addTime(0, false);
     if (this.preWarm) this.prewarm(this.lifetime);
   }
-
   _isAnimated() {
     return this.animNumFrames >= 1 && (this.animTilesX > 1 || this.animTilesY > 1) && (this.colorMap && this.colorMap !== this.defaultParamTexture || this.normalMap);
   }
-
   rebuildGraphs() {
     const precision = this.precision;
     const gd = this.graphicsDevice;
@@ -663,12 +589,10 @@ class ParticleEmitter {
     this.qScale2 = this.scaleGraph2.quantize(precision);
     this.qAlpha2 = this.alphaGraph2.quantize(precision);
     this.qRadialSpeed2 = this.radialSpeedGraph2.quantize(precision);
-
     for (let i = 0; i < precision; i++) {
       this.qRotSpeed[i] *= math.DEG_TO_RAD;
       this.qRotSpeed2[i] *= math.DEG_TO_RAD;
     }
-
     this.localVelocityUMax = new Float32Array(3);
     this.velocityUMax = new Float32Array(3);
     this.colorUMax = new Float32Array(3);
@@ -683,7 +607,6 @@ class ParticleEmitter {
     this.qScaleDiv = divGraphFrom2Curves(this.qScale, this.qScale2, this.scaleUMax);
     this.qAlphaDiv = divGraphFrom2Curves(this.qAlpha, this.qAlpha2, this.alphaUMax);
     this.qRadialSpeedDiv = divGraphFrom2Curves(this.qRadialSpeed, this.qRadialSpeed2, this.radialSpeedUMax);
-
     if (this.pack8) {
       const umax = [0, 0, 0];
       maxUnsignedGraphValue(this.qVelocity, umax);
@@ -710,37 +633,30 @@ class ParticleEmitter {
       const maxRad = Math.max(rumax[0], rumax2[0]);
       this.maxVel = maxVel + lmaxVel + maxRad;
     }
-
     if (!this.useCpu) {
       this.internalTex0 = _createTexture(gd, precision, 1, packTextureXYZ_NXYZ(this.qLocalVelocity, this.qLocalVelocityDiv));
       this.internalTex1 = _createTexture(gd, precision, 1, packTextureXYZ_NXYZ(this.qVelocity, this.qVelocityDiv));
       this.internalTex2 = _createTexture(gd, precision, 1, packTexture5Floats(this.qRotSpeed, this.qScale, this.qScaleDiv, this.qRotSpeedDiv, this.qAlphaDiv));
       this.internalTex3 = _createTexture(gd, precision, 1, packTexture2Floats(this.qRadialSpeed, this.qRadialSpeedDiv));
     }
-
     this.colorParam = _createTexture(gd, precision, 1, packTextureRGBA(this.qColor, this.qAlpha), PIXELFORMAT_R8_G8_B8_A8, 1.0, true);
   }
-
   _initializeTextures() {
     if (this.colorMap) {
       this.material.setParameter('colorMap', this.colorMap);
-
       if (this.lighting && this.normalMap) {
         this.material.setParameter('normalMap', this.normalMap);
       }
     }
   }
-
   regenShader() {
-    const programLib = this.graphicsDevice.getProgramLibrary();
-    this.graphicsDevice.programLib.register('particle', particle);
+    const programLib = getProgramLibrary(this.graphicsDevice);
+    programLib.register('particle', particle);
     const hasNormal = this.normalMap !== null;
     this.normalOption = 0;
-
     if (this.lighting) {
       this.normalOption = hasNormal ? 2 : 1;
     }
-
     this.material.getShaderVariant = function (dev, sc, defs, staticLightList, pass, sortedLights, viewUniformFormat, viewBindGroupFormat) {
       if (this.emitter.scene) {
         if (this.emitter.camera !== this.emitter.scene._activeCamera) {
@@ -772,29 +688,23 @@ class ParticleEmitter {
       });
       return shader;
     };
-
     this.material.shader = this.material.getShaderVariant();
   }
-
   resetMaterial() {
     const material = this.material;
     material.setParameter('stretch', this.stretch);
-
     if (this._isAnimated()) {
       material.setParameter('animTexTilesParams', this.animTilesParams);
       material.setParameter('animTexParams', this.animParams);
       material.setParameter('animTexIndexParams', this.animIndexParams);
     }
-
     material.setParameter('colorMult', this.intensity);
-
     if (!this.useCpu) {
       material.setParameter('internalTex0', this.internalTex0);
       material.setParameter('internalTex1', this.internalTex1);
       material.setParameter('internalTex2', this.internalTex2);
       material.setParameter('internalTex3', this.internalTex3);
     }
-
     material.setParameter('colorParam', this.colorParam);
     material.setParameter('numParticles', this.numParticles);
     material.setParameter('numParticlesPot', this.numParticlesPot);
@@ -808,57 +718,46 @@ class ParticleEmitter {
     material.setParameter('graphNumSamples', this.precision);
     material.setParameter('graphSampleSize', 1.0 / this.precision);
     material.setParameter('emitterScale', new Float32Array([1, 1, 1]));
-
     if (this.pack8) {
       this._gpuUpdater._setInputBounds();
-
       material.setParameter('inBoundsSize', this._gpuUpdater.inBoundsSizeUniform);
       material.setParameter('inBoundsCenter', this._gpuUpdater.inBoundsCenterUniform);
       material.setParameter('maxVel', this.maxVel);
     }
-
     if (this.wrap && this.wrapBounds) {
       this.wrapBoundsUniform[0] = this.wrapBounds.x;
       this.wrapBoundsUniform[1] = this.wrapBounds.y;
       this.wrapBoundsUniform[2] = this.wrapBounds.z;
       material.setParameter('wrapBounds', this.wrapBoundsUniform);
     }
-
     if (this.colorMap) {
       material.setParameter('colorMap', this.colorMap);
     }
-
     if (this.lighting) {
       if (this.normalMap) {
         material.setParameter('normalMap', this.normalMap);
       }
     }
-
     if (this.depthSoftening > 0) {
       material.setParameter('softening', 1.0 / (this.depthSoftening * this.depthSoftening * 100));
     }
 
     if (this.stretch > 0.0) material.cull = CULLFACE_NONE;
-
     this._compParticleFaceParams();
   }
-
   _compParticleFaceParams() {
     let tangent, binormal;
-
     if (this.orientation === PARTICLEORIENTATION_SCREEN) {
       tangent = new Float32Array([1, 0, 0]);
       binormal = new Float32Array([0, 0, 1]);
     } else {
       let n;
-
       if (this.orientation === PARTICLEORIENTATION_WORLD) {
         n = this.particleNormal.normalize();
       } else {
         const emitterMat = this.node === null ? Mat4.IDENTITY : this.node.getWorldTransform();
         n = emitterMat.transformVector(this.particleNormal).normalize();
       }
-
       const t = new Vec3(1, 0, 0);
       if (Math.abs(t.dot(n)) === 1) t.set(0, 0, 1);
       const b = new Vec3().cross(n, t).normalize();
@@ -866,7 +765,6 @@ class ParticleEmitter {
       tangent = new Float32Array([t.x, t.y, t.z]);
       binormal = new Float32Array([b.x, b.y, b.z]);
     }
-
     this.material.setParameter('faceTangent', tangent);
     this.material.setParameter('faceBinorm', binormal);
   }
@@ -874,7 +772,6 @@ class ParticleEmitter {
   _allocate(numParticles) {
     const psysVertCount = numParticles * this.numParticleVerts;
     const psysIndexCount = numParticles * this.numParticleIndices;
-
     if (this.vertexBuffer === undefined || this.vertexBuffer.getNumVertices() !== psysVertCount) {
       if (!this.useCpu) {
         const elements = [{
@@ -882,7 +779,6 @@ class ParticleEmitter {
           components: 4,
           type: TYPE_FLOAT32
         }];
-
         if (this.useMesh) {
           elements.push({
             semantic: SEMANTIC_ATTR1,
@@ -890,7 +786,6 @@ class ParticleEmitter {
             type: TYPE_FLOAT32
           });
         }
-
         const particleFormat = new VertexFormat(this.graphicsDevice, elements);
         this.vertexBuffer = new VertexBuffer(this.graphicsDevice, particleFormat, psysVertCount, BUFFER_DYNAMIC);
         this.indexBuffer = new IndexBuffer(this.graphicsDevice, INDEXFORMAT_UINT16, psysIndexCount);
@@ -923,11 +818,9 @@ class ParticleEmitter {
 
       const data = new Float32Array(this.vertexBuffer.lock());
       let meshData, stride, texCoordOffset;
-
       if (this.useMesh) {
         meshData = new Float32Array(this.mesh.vertexBuffer.lock());
         stride = meshData.length / this.mesh.vertexBuffer.numVertices;
-
         for (let elem = 0; elem < this.mesh.vertexBuffer.format.elements.length; elem++) {
           if (this.mesh.vertexBuffer.format.elements[elem].name === SEMANTIC_TEXCOORD0) {
             texCoordOffset = this.mesh.vertexBuffer.format.elements[elem].offset / 4;
@@ -935,10 +828,8 @@ class ParticleEmitter {
           }
         }
       }
-
       for (let i = 0; i < psysVertCount; i++) {
         const id = Math.floor(i / this.numParticleVerts);
-
         if (!this.useMesh) {
           const vertID = i % 4;
           data[i * 4] = particleVerts[vertID][0];
@@ -955,14 +846,11 @@ class ParticleEmitter {
           data[i * 6 + 5] = 1.0 - meshData[vert * stride + texCoordOffset + 1];
         }
       }
-
       if (this.useCpu) {
         this.vbCPU = new Float32Array(data);
         this.vbOld = new Float32Array(this.vbCPU.length);
       }
-
       this.vertexBuffer.unlock();
-
       if (this.useMesh) {
         this.mesh.vertexBuffer.unlock();
       }
@@ -970,7 +858,6 @@ class ParticleEmitter {
       let dst = 0;
       const indices = new Uint16Array(this.indexBuffer.lock());
       if (this.useMesh) meshData = new Uint16Array(this.mesh.indexBuffer[0].lock());
-
       for (let i = 0; i < numParticles; i++) {
         if (!this.useMesh) {
           const baseIndex = i * 4;
@@ -986,17 +873,14 @@ class ParticleEmitter {
           }
         }
       }
-
       this.indexBuffer.unlock();
       if (this.useMesh) this.mesh.indexBuffer[0].unlock();
     }
   }
-
   reset() {
     this.beenReset = true;
     this.seed = Math.random();
     this.material.setParameter('seed', this.seed);
-
     if (this.useCpu) {
       for (let i = 0; i < this.particleTexStart.length; i++) {
         this.particleTex[i] = this.particleTexStart[i];
@@ -1004,51 +888,45 @@ class ParticleEmitter {
     } else {
       this._initializeTextures();
     }
-
     this.resetWorldBounds();
     this.resetTime();
     const origLoop = this.loop;
     this.loop = true;
     this.addTime(0, false);
     this.loop = origLoop;
-
     if (this.preWarm) {
       this.prewarm(this.lifetime);
     }
   }
-
   prewarm(time) {
     const lifetimeFraction = time / this.lifetime;
     const iterations = Math.min(Math.floor(lifetimeFraction * this.precision), this.precision);
     const stepDelta = time / iterations;
-
     for (let i = 0; i < iterations; i++) {
       this.addTime(stepDelta, false);
     }
   }
-
   resetTime() {
     this.endTime = calcEndTime(this);
   }
-
   finishFrame() {
     if (this.useCpu) this.vertexBuffer.unlock();
   }
-
   addTime(delta, isOnStop) {
     const device = this.graphicsDevice;
     this.simTimeTotal += delta;
     this.calculateWorldBounds();
-
     if (this._isAnimated()) {
       const tilesParams = this.animTilesParams;
       tilesParams[0] = 1.0 / this.animTilesX;
       tilesParams[1] = 1.0 / this.animTilesY;
+
       const params = this.animParams;
       params[0] = this.animStartFrame;
       params[1] = this.animNumFrames * this.animSpeed;
       params[2] = this.animNumFrames - 1;
       params[3] = this.animNumAnimations - 1;
+
       const animIndexParams = this.animIndexParams;
       animIndexParams[0] = this.animIndex;
       animIndexParams[1] = this.randomizeAnimIndex;
@@ -1060,26 +938,22 @@ class ParticleEmitter {
         this.onChangeCamera();
       }
     }
-
     if (this.emitterShape === EMITTERSHAPE_BOX) {
       extentsInnerRatioUniform[0] = this.emitterExtents.x !== 0 ? this.emitterExtentsInner.x / this.emitterExtents.x : 0;
       extentsInnerRatioUniform[1] = this.emitterExtents.y !== 0 ? this.emitterExtentsInner.y / this.emitterExtents.y : 0;
       extentsInnerRatioUniform[2] = this.emitterExtents.z !== 0 ? this.emitterExtentsInner.z / this.emitterExtents.z : 0;
-
       if (this.meshInstance.node === null) {
         spawnMatrix.setTRS(Vec3.ZERO, Quat.IDENTITY, this.emitterExtents);
       } else {
         spawnMatrix.setTRS(Vec3.ZERO, this.meshInstance.node.getRotation(), tmpVec3.copy(this.emitterExtents).mul(this.meshInstance.node.localScale));
       }
     }
-
     let emitterPos;
     const emitterScale = this.meshInstance.node === null ? Vec3.ONE : this.meshInstance.node.localScale;
     this.emitterScaleUniform[0] = emitterScale.x;
     this.emitterScaleUniform[1] = emitterScale.y;
     this.emitterScaleUniform[2] = emitterScale.z;
     this.material.setParameter('emitterScale', this.emitterScaleUniform);
-
     if (this.localSpace && this.meshInstance.node) {
       emitterPos = this.meshInstance.node.getPosition();
       this.emitterPosUniform[0] = emitterPos.x;
@@ -1087,14 +961,11 @@ class ParticleEmitter {
       this.emitterPosUniform[2] = emitterPos.z;
       this.material.setParameter('emitterPos', this.emitterPosUniform);
     }
-
     this._compParticleFaceParams();
-
     if (!this.useCpu) {
       this._gpuUpdater.update(device, spawnMatrix, extentsInnerRatioUniform, delta, isOnStop);
     } else {
       const data = new Float32Array(this.vertexBuffer.lock());
-
       this._cpuUpdater.update(data, this.vbToSort, this.particleTex, spawnMatrix, extentsInnerRatioUniform, emitterPos, delta, isOnStop);
     }
 
@@ -1104,63 +975,51 @@ class ParticleEmitter {
         this.meshInstance.visible = false;
       }
     }
-
     if (this.meshInstance) {
       this.meshInstance.drawOrder = this.drawOrder;
     }
   }
-
   _destroyResources() {
     if (this.particleTexIN) {
       this.particleTexIN.destroy();
       this.particleTexIN = null;
     }
-
     if (this.particleTexOUT) {
       this.particleTexOUT.destroy();
       this.particleTexOUT = null;
     }
-
     if (this.particleTexStart && this.particleTexStart.destroy) {
       this.particleTexStart.destroy();
       this.particleTexStart = null;
     }
-
     if (this.rtParticleTexIN) {
       this.rtParticleTexIN.destroy();
       this.rtParticleTexIN = null;
     }
-
     if (this.rtParticleTexOUT) {
       this.rtParticleTexOUT.destroy();
       this.rtParticleTexOUT = null;
     }
-
     if (this.internalTex0) {
       this.internalTex0.destroy();
       this.internalTex0 = null;
     }
-
     if (this.internalTex1) {
       this.internalTex1.destroy();
       this.internalTex1 = null;
     }
-
     if (this.internalTex2) {
       this.internalTex2.destroy();
       this.internalTex2 = null;
     }
-
     if (this.internalTex3) {
       this.internalTex3.destroy();
       this.internalTex3 = null;
     }
-
     if (this.colorParam) {
       this.colorParam.destroy();
       this.colorParam = null;
     }
-
     if (this.vertexBuffer) {
       this.vertexBuffer.destroy();
       this.vertexBuffer = undefined;
@@ -1170,19 +1029,17 @@ class ParticleEmitter {
       this.indexBuffer.destroy();
       this.indexBuffer = undefined;
     }
-
     if (this.material) {
       this.material.destroy();
       this.material = null;
     }
+
   }
 
   destroy() {
     this.camera = null;
-
     this._destroyResources();
   }
-
 }
 
 export { ParticleEmitter };

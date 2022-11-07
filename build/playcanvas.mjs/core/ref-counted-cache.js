@@ -2,7 +2,6 @@ class RefCountedCache {
   constructor() {
     this.cache = new Map();
   }
-
   destroy() {
     this.cache.forEach((refCount, object) => {
       object.destroy();
@@ -18,10 +17,8 @@ class RefCountedCache {
   decRef(object) {
     if (object) {
       let refCount = this.cache.get(object);
-
       if (refCount) {
         refCount--;
-
         if (refCount === 0) {
           this.cache.delete(object);
           object.destroy();
@@ -31,7 +28,6 @@ class RefCountedCache {
       }
     }
   }
-
 }
 
 export { RefCountedCache };

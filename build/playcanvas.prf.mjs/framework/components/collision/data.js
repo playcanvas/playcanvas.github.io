@@ -1,9 +1,9 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
-import { Vec3 } from '../../../math/vec3.js';
+import { Vec3 } from '../../../core/math/vec3.js';
 
 class CollisionComponentData {
   constructor() {
@@ -15,12 +15,12 @@ class CollisionComponentData {
     this.height = 2;
     this.asset = null;
     this.renderAsset = null;
+
     this.shape = null;
     this.model = null;
     this.render = null;
     this.initialized = false;
   }
-
 }
 
 export { CollisionComponentData };

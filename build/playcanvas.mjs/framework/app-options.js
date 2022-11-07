@@ -16,7 +16,6 @@ class AppOptions {
     this.componentSystems = [];
     this.resourceHandlers = [];
   }
-
 }
 
 export { AppOptions };

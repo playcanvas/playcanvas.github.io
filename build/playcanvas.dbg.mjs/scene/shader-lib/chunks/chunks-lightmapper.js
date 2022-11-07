@@ -1,0 +1,19 @@
+/**
+ * @license
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (DEBUG PROFILER)
+ * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
+ */
+import bakeDirLmEndPS from './lightmapper/frag/bakeDirLmEnd.js';
+import bakeLmEndPS from './lightmapper/frag/bakeLmEnd.js';
+import dilatePS from './lightmapper/frag/dilate.js';
+import bilateralDeNoisePS from './lightmapper/frag/bilateralDeNoise.js';
+
+const shaderChunksLightmapper = {
+  bakeDirLmEndPS,
+  bakeLmEndPS,
+  dilatePS,
+  bilateralDeNoisePS
+};
+
+export { shaderChunksLightmapper };
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiY2h1bmtzLWxpZ2h0bWFwcGVyLmpzIiwic291cmNlcyI6WyIuLi8uLi8uLi8uLi8uLi9zcmMvc2NlbmUvc2hhZGVyLWxpYi9jaHVua3MvY2h1bmtzLWxpZ2h0bWFwcGVyLmpzIl0sInNvdXJjZXNDb250ZW50IjpbImltcG9ydCBiYWtlRGlyTG1FbmRQUyBmcm9tICcuL2xpZ2h0bWFwcGVyL2ZyYWcvYmFrZURpckxtRW5kLmpzJztcbmltcG9ydCBiYWtlTG1FbmRQUyBmcm9tICcuL2xpZ2h0bWFwcGVyL2ZyYWcvYmFrZUxtRW5kLmpzJztcbmltcG9ydCBkaWxhdGVQUyBmcm9tICcuL2xpZ2h0bWFwcGVyL2ZyYWcvZGlsYXRlLmpzJztcbmltcG9ydCBiaWxhdGVyYWxEZU5vaXNlUFMgZnJvbSAnLi9saWdodG1hcHBlci9mcmFnL2JpbGF0ZXJhbERlTm9pc2UuanMnO1xuXG5jb25zdCBzaGFkZXJDaHVua3NMaWdodG1hcHBlciA9IHtcbiAgICBiYWtlRGlyTG1FbmRQUyxcbiAgICBiYWtlTG1FbmRQUyxcbiAgICBkaWxhdGVQUyxcbiAgICBiaWxhdGVyYWxEZU5vaXNlUFNcbn07XG5cbmV4cG9ydCB7IHNoYWRlckNodW5rc0xpZ2h0bWFwcGVyIH07XG4iXSwibmFtZXMiOlsic2hhZGVyQ2h1bmtzTGlnaHRtYXBwZXIiLCJiYWtlRGlyTG1FbmRQUyIsImJha2VMbUVuZFBTIiwiZGlsYXRlUFMiLCJiaWxhdGVyYWxEZU5vaXNlUFMiXSwibWFwcGluZ3MiOiI7Ozs7Ozs7Ozs7QUFLQSxNQUFNQSx1QkFBdUIsR0FBRztFQUM1QkMsY0FBYztFQUNkQyxXQUFXO0VBQ1hDLFFBQVE7QUFDUkMsRUFBQUEsa0JBQUFBO0FBQ0o7Ozs7In0=

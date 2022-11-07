@@ -1,10 +1,10 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import '../../core/tracing.js';
-import { DeviceCache } from '../../graphics/device-cache.js';
+import { DeviceCache } from '../../platform/graphics/device-cache.js';
 
 const defaultMaterialDeviceCache = new DeviceCache();
 

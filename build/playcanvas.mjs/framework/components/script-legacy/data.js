@@ -2,6 +2,7 @@ class ScriptLegacyComponentData {
   constructor() {
     this.scripts = [];
     this.enabled = true;
+
     this.instances = {};
     this._instances = {};
     this.runInTools = false;
@@ -10,7 +11,6 @@ class ScriptLegacyComponentData {
     this.postInitialized = false;
     this.areScriptsLoaded = false;
   }
-
 }
 
 export { ScriptLegacyComponentData };

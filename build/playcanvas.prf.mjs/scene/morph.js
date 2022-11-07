@@ -1,26 +1,27 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import '../core/tracing.js';
 import { RefCountedObject } from '../core/ref-counted-object.js';
-import { Vec3 } from '../math/vec3.js';
-import { FloatPacking } from '../math/float-packing.js';
-import { BoundingBox } from '../shape/bounding-box.js';
-import { Texture } from '../graphics/texture.js';
-import { VertexBuffer } from '../graphics/vertex-buffer.js';
-import { VertexFormat } from '../graphics/vertex-format.js';
-import { getApplication } from '../framework/globals.js';
-import { PIXELFORMAT_RGB32F, PIXELFORMAT_RGBA16F, BUFFER_STATIC, FILTER_NEAREST, ADDRESS_CLAMP_TO_EDGE, SEMANTIC_ATTR15, TYPE_FLOAT32 } from '../graphics/constants.js';
+import { Vec3 } from '../core/math/vec3.js';
+import { FloatPacking } from '../core/math/float-packing.js';
+import { BoundingBox } from '../core/shape/bounding-box.js';
+import { Texture } from '../platform/graphics/texture.js';
+import { VertexBuffer } from '../platform/graphics/vertex-buffer.js';
+import { VertexFormat } from '../platform/graphics/vertex-format.js';
+import { PIXELFORMAT_RGB32F, PIXELFORMAT_RGBA16F, BUFFER_STATIC, FILTER_NEAREST, ADDRESS_CLAMP_TO_EDGE, SEMANTIC_ATTR15, TYPE_FLOAT32 } from '../platform/graphics/constants.js';
+import { GraphicsDeviceAccess } from '../platform/graphics/graphics-device-access.js';
 
 const _floatRounding = 0.2;
 
 class Morph extends RefCountedObject {
   constructor(targets, graphicsDevice) {
     super();
+    this.device = graphicsDevice || GraphicsDeviceAccess.get();
+
     targets.forEach(target => void 0);
-    this.device = graphicsDevice || getApplication().graphicsDevice;
     this._targets = targets.slice();
 
     if (this.device.supportsMorphTargetTexturesCore) {
@@ -40,31 +41,23 @@ class Morph extends RefCountedObject {
         this._useTextureMorph = true;
       }
     }
-
     this._init();
-
     this._updateMorphFlags();
-
     this._calculateAabb();
   }
-
   get morphPositions() {
     return this._morphPositions;
   }
-
   get morphNormals() {
     return this._morphNormals;
   }
-
   get maxActiveTargets() {
     if (this._useTextureMorph) return this._targets.length;
     return this._morphPositions && this._morphNormals ? 4 : 8;
   }
-
   get useTextureMorph() {
     return this._useTextureMorph;
   }
-
   _init() {
     if (this._useTextureMorph) {
       this._useTextureMorph = this._initTextureBased();
@@ -80,14 +73,11 @@ class Morph extends RefCountedObject {
       this._targets[i]._postInit();
     }
   }
-
   _initTextureBased() {
     const deltaArrays = [],
-          deltaInfos = [];
-
+      deltaInfos = [];
     for (let i = 0; i < this._targets.length; i++) {
       const target = this._targets[i];
-
       if (target.options.deltaPositions) {
         deltaArrays.push(target.options.deltaPositions);
         deltaInfos.push({
@@ -95,7 +85,6 @@ class Morph extends RefCountedObject {
           name: 'texturePositions'
         });
       }
-
       if (target.options.deltaNormals) {
         deltaArrays.push(target.options.deltaNormals);
         deltaInfos.push({
@@ -106,13 +95,11 @@ class Morph extends RefCountedObject {
     }
 
     const ids = [],
-          usedDataIndices = [];
+      usedDataIndices = [];
     let freeIndex = 1;
     const dataCount = deltaArrays[0].length;
-
     for (let v = 0; v < dataCount; v += 3) {
       let vertexUsed = false;
-
       for (let i = 0; i < deltaArrays.length; i++) {
         const data = deltaArrays[i];
 
@@ -121,7 +108,6 @@ class Morph extends RefCountedObject {
           break;
         }
       }
-
       if (vertexUsed) {
         ids.push(freeIndex + _floatRounding);
         usedDataIndices.push(v / 3);
@@ -132,6 +118,7 @@ class Morph extends RefCountedObject {
     }
 
     const maxTextureSize = Math.min(this.device.maxTextureSize, 4096);
+
     let morphTextureWidth = Math.ceil(Math.sqrt(freeIndex));
     morphTextureWidth = Math.min(morphTextureWidth, maxTextureSize);
     const morphTextureHeight = Math.ceil(freeIndex / morphTextureWidth);
@@ -139,13 +126,12 @@ class Morph extends RefCountedObject {
     if (morphTextureHeight > maxTextureSize) {
       return false;
     }
-
     this.morphTextureWidth = morphTextureWidth;
     this.morphTextureHeight = morphTextureHeight;
+
     let halfFloat = false;
     let numComponents = 3;
     const float2Half = FloatPacking.float2Half;
-
     if (this._textureFormat === Morph.FORMAT_HALF_FLOAT) {
       halfFloat = true;
       numComponents = 4;
@@ -153,13 +139,11 @@ class Morph extends RefCountedObject {
 
     const arraySize = this.morphTextureWidth * this.morphTextureHeight * numComponents;
     const packedDeltas = halfFloat ? new Uint16Array(arraySize) : new Float32Array(arraySize);
-
     for (let i = 0; i < deltaArrays.length; i++) {
       const data = deltaArrays[i];
 
       for (let v = 0; v < usedDataIndices.length; v++) {
         const index = usedDataIndices[v];
-
         if (halfFloat) {
           packedDeltas[v * numComponents + numComponents] = float2Half(data[index * 3]);
           packedDeltas[v * numComponents + numComponents + 1] = float2Half(data[index * 3 + 1]);
@@ -173,7 +157,6 @@ class Morph extends RefCountedObject {
 
       const target = deltaInfos[i].target;
       const format = this._textureFormat === Morph.FORMAT_FLOAT ? PIXELFORMAT_RGB32F : PIXELFORMAT_RGBA16F;
-
       target._setTexture(deltaInfos[i].name, this._createTexture('MorphTarget', format, packedDeltas));
     }
 
@@ -188,48 +171,38 @@ class Morph extends RefCountedObject {
 
   destroy() {
     var _this$vertexBufferIds;
-
     (_this$vertexBufferIds = this.vertexBufferIds) == null ? void 0 : _this$vertexBufferIds.destroy();
     this.vertexBufferIds = null;
-
     for (let i = 0; i < this._targets.length; i++) {
       this._targets[i].destroy();
     }
-
     this._targets.length = 0;
   }
 
   get targets() {
     return this._targets;
   }
-
   _updateMorphFlags() {
     this._morphPositions = false;
     this._morphNormals = false;
-
     for (let i = 0; i < this._targets.length; i++) {
       const target = this._targets[i];
-
       if (target.morphPositions) {
         this._morphPositions = true;
       }
-
       if (target.morphNormals) {
         this._morphNormals = true;
       }
     }
   }
-
   _calculateAabb() {
     const min = new Vec3();
     const max = new Vec3();
-
     for (let i = 0; i < this._targets.length; i++) {
       const targetAabb = this._targets[i].aabb;
       min.min(targetAabb.getMin());
       max.max(targetAabb.getMax());
     }
-
     this.aabb = new BoundingBox();
     this.aabb.setMinMax(min, max);
   }
@@ -247,17 +220,13 @@ class Morph extends RefCountedObject {
       addressV: ADDRESS_CLAMP_TO_EDGE,
       name: name
     });
-
     if (pixelData) {
       texture.lock().set(pixelData);
       texture.unlock();
     }
-
     return texture;
   }
-
 }
-
 Morph.FORMAT_FLOAT = 0;
 Morph.FORMAT_HALF_FLOAT = 1;
 

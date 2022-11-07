@@ -14,7 +14,6 @@ class SceneRegistryItem {
   get loading() {
     return this._loading;
   }
-
 }
 
 export { SceneRegistryItem };

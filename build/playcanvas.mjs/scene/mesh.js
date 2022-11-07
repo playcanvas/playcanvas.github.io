@@ -1,14 +1,14 @@
 import '../core/tracing.js';
 import { RefCountedObject } from '../core/ref-counted-object.js';
-import { Vec3 } from '../math/vec3.js';
-import { BoundingBox } from '../shape/bounding-box.js';
-import { SEMANTIC_POSITION, SEMANTIC_BLENDWEIGHT, SEMANTIC_BLENDINDICES, TYPE_UINT16, TYPE_INT16, TYPE_UINT8, TYPE_INT8, BUFFER_STATIC, BUFFER_DYNAMIC, TYPE_FLOAT32, SEMANTIC_NORMAL, SEMANTIC_TEXCOORD, SEMANTIC_COLOR, PRIMITIVE_TRIANGLES, INDEXFORMAT_UINT32, INDEXFORMAT_UINT16, PRIMITIVE_POINTS, typedArrayIndexFormats, PRIMITIVE_LINES } from '../graphics/constants.js';
-import { IndexBuffer } from '../graphics/index-buffer.js';
-import { VertexBuffer } from '../graphics/vertex-buffer.js';
-import { VertexFormat } from '../graphics/vertex-format.js';
-import { VertexIterator } from '../graphics/vertex-iterator.js';
+import { Vec3 } from '../core/math/vec3.js';
+import { BoundingBox } from '../core/shape/bounding-box.js';
+import { SEMANTIC_POSITION, SEMANTIC_BLENDWEIGHT, SEMANTIC_BLENDINDICES, TYPE_UINT16, TYPE_INT16, TYPE_UINT8, TYPE_INT8, BUFFER_STATIC, BUFFER_DYNAMIC, TYPE_FLOAT32, SEMANTIC_NORMAL, SEMANTIC_TEXCOORD, SEMANTIC_COLOR, PRIMITIVE_TRIANGLES, INDEXFORMAT_UINT32, INDEXFORMAT_UINT16, PRIMITIVE_POINTS, typedArrayIndexFormats, PRIMITIVE_LINES } from '../platform/graphics/constants.js';
+import { IndexBuffer } from '../platform/graphics/index-buffer.js';
+import { VertexBuffer } from '../platform/graphics/vertex-buffer.js';
+import { VertexFormat } from '../platform/graphics/vertex-format.js';
+import { VertexIterator } from '../platform/graphics/vertex-iterator.js';
+import { GraphicsDeviceAccess } from '../platform/graphics/graphics-device-access.js';
 import { RENDERSTYLE_WIREFRAME, RENDERSTYLE_POINTS, RENDERSTYLE_SOLID } from './constants.js';
-import { getApplication } from '../framework/globals.js';
 
 let id = 0;
 
@@ -16,18 +16,23 @@ class GeometryData {
   constructor() {
     this.initDefaults();
   }
-
   initDefaults() {
     this.recreate = false;
+
     this.verticesUsage = BUFFER_STATIC;
     this.indicesUsage = BUFFER_STATIC;
+
     this.maxVertices = 0;
     this.maxIndices = 0;
+
     this.vertexCount = 0;
     this.indexCount = 0;
+
     this.vertexStreamsUpdated = false;
     this.indexStreamUpdated = false;
+
     this.vertexStreamDictionary = {};
+
     this.indices = null;
   }
 
@@ -43,7 +48,6 @@ GeometryData.DEFAULT_COMPONENTS_POSITION = 3;
 GeometryData.DEFAULT_COMPONENTS_NORMAL = 3;
 GeometryData.DEFAULT_COMPONENTS_UV = 2;
 GeometryData.DEFAULT_COMPONENTS_COLORS = 4;
-
 class GeometryVertexStream {
   constructor(data, componentCount, dataType, dataTypeNormalize) {
     this.data = data;
@@ -51,25 +55,30 @@ class GeometryVertexStream {
     this.dataType = dataType;
     this.dataTypeNormalize = dataTypeNormalize;
   }
-
 }
 
 class Mesh extends RefCountedObject {
   constructor(graphicsDevice) {
     super();
     this.id = id++;
-    this.device = graphicsDevice || getApplication().graphicsDevice;
+    this.device = graphicsDevice || GraphicsDeviceAccess.get();
+
     this.vertexBuffer = null;
+
     this.indexBuffer = [null];
+
     this.primitive = [{
       type: 0,
       base: 0,
       count: 0
     }];
+
     this.skin = null;
     this._morph = null;
     this._geometryData = null;
+
     this._aabb = new BoundingBox();
+
     this.boneAabb = null;
   }
 
@@ -78,15 +87,12 @@ class Mesh extends RefCountedObject {
       if (this._morph) {
         this._morph.decRefCount();
       }
-
       this._morph = morph;
-
       if (morph) {
         morph.incRefCount();
       }
     }
   }
-
   get morph() {
     return this._morph;
   }
@@ -94,14 +100,12 @@ class Mesh extends RefCountedObject {
   set aabb(aabb) {
     this._aabb = aabb;
   }
-
   get aabb() {
     return this._aabb;
   }
 
   destroy() {
     const morph = this.morph;
-
     if (morph) {
       this.morph = null;
 
@@ -109,20 +113,16 @@ class Mesh extends RefCountedObject {
         morph.destroy();
       }
     }
-
     if (this.vertexBuffer) {
       this.vertexBuffer.destroy();
       this.vertexBuffer = null;
     }
-
     for (let j = 0; j < this.indexBuffer.length; j++) {
       this._destroyIndexBuffer(j);
     }
-
     this.indexBuffer.length = 0;
     this._geometryData = null;
   }
-
   _destroyIndexBuffer(index) {
     if (this.indexBuffer[index]) {
       this.indexBuffer[index].destroy();
@@ -150,18 +150,18 @@ class Mesh extends RefCountedObject {
     const posElement = iterator.element[SEMANTIC_POSITION];
     const weightsElement = iterator.element[SEMANTIC_BLENDWEIGHT];
     const indicesElement = iterator.element[SEMANTIC_BLENDINDICES];
-    const numVerts = this.vertexBuffer.numVertices;
 
+    const numVerts = this.vertexBuffer.numVertices;
     for (let j = 0; j < numVerts; j++) {
       for (let k = 0; k < 4; k++) {
         const boneWeight = weightsElement.array[weightsElement.index + k];
-
         if (boneWeight > 0) {
           const boneIndex = indicesElement.array[indicesElement.index + k];
           boneUsed[boneIndex] = true;
           x = posElement.array[posElement.index];
           y = posElement.array[posElement.index + 1];
           z = posElement.array[posElement.index + 2];
+
           bMax = boneMax[boneIndex];
           bMin = boneMin[boneIndex];
           if (bMin.x > x) bMin.x = x;
@@ -170,7 +170,6 @@ class Mesh extends RefCountedObject {
           if (bMax.x < x) bMax.x = x;
           if (bMax.y < y) bMax.y = y;
           if (bMax.z < z) bMax.z = z;
-
           if (morphTargets) {
             let minMorphX = maxMorphX = x;
             let minMorphY = maxMorphY = y;
@@ -181,26 +180,22 @@ class Mesh extends RefCountedObject {
               const dx = target.deltaPositions[j * 3];
               const dy = target.deltaPositions[j * 3 + 1];
               const dz = target.deltaPositions[j * 3 + 2];
-
               if (dx < 0) {
                 minMorphX += dx;
               } else {
                 maxMorphX += dx;
               }
-
               if (dy < 0) {
                 minMorphY += dy;
               } else {
                 maxMorphY += dy;
               }
-
               if (dz < 0) {
                 minMorphZ += dz;
               } else {
                 maxMorphZ += dz;
               }
             }
-
             if (bMin.x > minMorphX) bMin.x = minMorphX;
             if (bMin.y > minMorphY) bMin.y = minMorphY;
             if (bMin.z > minMorphZ) bMin.z = minMorphZ;
@@ -210,32 +205,25 @@ class Mesh extends RefCountedObject {
           }
         }
       }
-
       iterator.next();
     }
 
     const positionElement = this.vertexBuffer.getFormat().elements.find(e => e.name === SEMANTIC_POSITION);
-
     if (positionElement && positionElement.normalize) {
       const func = (() => {
         switch (positionElement.dataType) {
           case TYPE_INT8:
             return x => Math.max(x / 127.0, -1.0);
-
           case TYPE_UINT8:
             return x => x / 255.0;
-
           case TYPE_INT16:
             return x => Math.max(x / 32767.0, -1.0);
-
           case TYPE_UINT16:
             return x => x / 65535.0;
-
           default:
             return x => x;
         }
       })();
-
       for (let i = 0; i < numBones; i++) {
         if (boneUsed[i]) {
           const min = boneMin[i];
@@ -271,9 +259,7 @@ class Mesh extends RefCountedObject {
 
   clear(verticesDynamic, indicesDynamic, maxVertices = 0, maxIndices = 0) {
     this._initGeometryData();
-
     this._geometryData.initDefaults();
-
     this._geometryData.recreate = true;
     this._geometryData.maxVertices = maxVertices;
     this._geometryData.maxIndices = maxIndices;
@@ -283,11 +269,8 @@ class Mesh extends RefCountedObject {
 
   setVertexStream(semantic, data, componentCount, numVertices, dataType = TYPE_FLOAT32, dataTypeNormalize = false) {
     this._initGeometryData();
-
     const vertexCount = numVertices || data.length / componentCount;
-
     this._geometryData._changeVertexCount(vertexCount, semantic);
-
     this._geometryData.vertexStreamsUpdated = true;
     this._geometryData.vertexStreamDictionary[semantic] = new GeometryVertexStream(data, componentCount, dataType, dataTypeNormalize);
   }
@@ -298,11 +281,9 @@ class Mesh extends RefCountedObject {
 
     if (this._geometryData) {
       const stream = this._geometryData.vertexStreamDictionary[semantic];
-
       if (stream) {
         done = true;
         count = this._geometryData.vertexCount;
-
         if (ArrayBuffer.isView(data)) {
           data.set(stream.data);
         } else {
@@ -311,14 +292,12 @@ class Mesh extends RefCountedObject {
         }
       }
     }
-
     if (!done) {
       if (this.vertexBuffer) {
         const iterator = new VertexIterator(this.vertexBuffer);
         count = iterator.readData(semantic, data);
       }
     }
-
     return count;
   }
 
@@ -344,7 +323,6 @@ class Mesh extends RefCountedObject {
 
   setIndices(indices, numIndices) {
     this._initGeometryData();
-
     this._geometryData.indexStreamUpdated = true;
     this._geometryData.indices = indices;
     this._geometryData.indexCount = numIndices || indices.length;
@@ -372,7 +350,6 @@ class Mesh extends RefCountedObject {
     if (this._geometryData && this._geometryData.indices) {
       const streamIndices = this._geometryData.indices;
       count = this._geometryData.indexCount;
-
       if (ArrayBuffer.isView(indices)) {
         indices.set(streamIndices);
       } else {
@@ -385,7 +362,6 @@ class Mesh extends RefCountedObject {
         count = indexBuffer.readData(indices);
       }
     }
-
     return count;
   }
 
@@ -393,7 +369,6 @@ class Mesh extends RefCountedObject {
     if (this._geometryData) {
       if (updateBoundingBox) {
         const stream = this._geometryData.vertexStreamDictionary[SEMANTIC_POSITION];
-
         if (stream) {
           if (stream.componentCount === 3) {
             this._aabb.compute(stream.data, this._geometryData.vertexCount);
@@ -402,12 +377,10 @@ class Mesh extends RefCountedObject {
       }
 
       let destroyVB = this._geometryData.recreate;
-
       if (this._geometryData.vertexCount > this._geometryData.maxVertices) {
         destroyVB = true;
         this._geometryData.maxVertices = this._geometryData.vertexCount;
       }
-
       if (destroyVB) {
         if (this.vertexBuffer) {
           this.vertexBuffer.destroy();
@@ -416,12 +389,10 @@ class Mesh extends RefCountedObject {
       }
 
       let destroyIB = this._geometryData.recreate;
-
       if (this._geometryData.indexCount > this._geometryData.maxIndices) {
         destroyIB = true;
         this._geometryData.maxIndices = this._geometryData.indexCount;
       }
-
       if (destroyIB) {
         if (this.indexBuffer.length > 0 && this.indexBuffer[0]) {
           this.indexBuffer[0].destroy();
@@ -438,7 +409,6 @@ class Mesh extends RefCountedObject {
       }
 
       this.primitive[0].type = primitiveType;
-
       if (this.indexBuffer.length > 0 && this.indexBuffer[0]) {
         if (this._geometryData.indexStreamUpdated) {
           this.primitive[0].count = this._geometryData.indexCount;
@@ -456,13 +426,13 @@ class Mesh extends RefCountedObject {
       this._geometryData.vertexStreamsUpdated = false;
       this._geometryData.indexStreamUpdated = false;
       this._geometryData.recreate = false;
+
       this.updateRenderStates();
     }
   }
 
   _buildVertexFormat(vertexCount) {
     const vertexDesc = [];
-
     for (const semantic in this._geometryData.vertexStreamDictionary) {
       const stream = this._geometryData.vertexStreamDictionary[semantic];
       vertexDesc.push({
@@ -472,28 +442,25 @@ class Mesh extends RefCountedObject {
         normalize: stream.dataTypeNormalize
       });
     }
-
     return new VertexFormat(this.device, vertexDesc, vertexCount);
   }
 
   _updateVertexBuffer() {
     if (!this.vertexBuffer) {
       const allocateVertexCount = this._geometryData.maxVertices;
-
       const format = this._buildVertexFormat(allocateVertexCount);
-
       this.vertexBuffer = new VertexBuffer(this.device, format, allocateVertexCount, this._geometryData.verticesUsage);
     }
 
     const iterator = new VertexIterator(this.vertexBuffer);
-    const numVertices = this._geometryData.vertexCount;
 
+    const numVertices = this._geometryData.vertexCount;
     for (const semantic in this._geometryData.vertexStreamDictionary) {
       const stream = this._geometryData.vertexStreamDictionary[semantic];
       iterator.writeData(semantic, stream.data, numVertices);
+
       delete this._geometryData.vertexStreamDictionary[semantic];
     }
-
     iterator.end();
   }
 
@@ -502,12 +469,11 @@ class Mesh extends RefCountedObject {
       const createFormat = this._geometryData.maxVertices > 0xffff ? INDEXFORMAT_UINT32 : INDEXFORMAT_UINT16;
       this.indexBuffer[0] = new IndexBuffer(this.device, createFormat, this._geometryData.maxIndices, this._geometryData.indicesUsage);
     }
-
     const srcIndices = this._geometryData.indices;
-
     if (srcIndices) {
       const indexBuffer = this.indexBuffer[0];
       indexBuffer.writeData(srcIndices, this._geometryData.indexCount);
+
       this._geometryData.indices = null;
     }
   }
@@ -529,18 +495,14 @@ class Mesh extends RefCountedObject {
     if (this.primitive[RENDERSTYLE_POINTS]) {
       this.prepareRenderState(RENDERSTYLE_POINTS);
     }
-
     if (this.primitive[RENDERSTYLE_WIREFRAME]) {
       this.prepareRenderState(RENDERSTYLE_WIREFRAME);
     }
   }
-
   generateWireframe() {
     this._destroyIndexBuffer(RENDERSTYLE_WIREFRAME);
-
     const lines = [];
     let format;
-
     if (this.indexBuffer.length > 0 && this.indexBuffer[0]) {
       const offsets = [[0, 1], [1, 2], [2, 0]];
       const base = this.primitive[RENDERSTYLE_SOLID].base;
@@ -548,29 +510,24 @@ class Mesh extends RefCountedObject {
       const indexBuffer = this.indexBuffer[RENDERSTYLE_SOLID];
       const srcIndices = new typedArrayIndexFormats[indexBuffer.format](indexBuffer.storage);
       const uniqueLineIndices = {};
-
       for (let j = base; j < base + count; j += 3) {
         for (let k = 0; k < 3; k++) {
           const i1 = srcIndices[j + offsets[k][0]];
           const i2 = srcIndices[j + offsets[k][1]];
           const line = i1 > i2 ? i2 << 16 | i1 : i1 << 16 | i2;
-
           if (uniqueLineIndices[line] === undefined) {
             uniqueLineIndices[line] = 0;
             lines.push(i1, i2);
           }
         }
       }
-
       format = indexBuffer.format;
     } else {
       for (let i = 0; i < this.vertexBuffer.numVertices; i += 3) {
         lines.push(i, i + 1, i + 1, i + 2, i + 2, i);
       }
-
       format = lines.length > 65535 ? INDEXFORMAT_UINT32 : INDEXFORMAT_UINT16;
     }
-
     const wireBuffer = new IndexBuffer(this.vertexBuffer.device, format, lines.length);
     const dstIndices = new typedArrayIndexFormats[wireBuffer.format](wireBuffer.storage);
     dstIndices.set(lines);
@@ -583,7 +540,6 @@ class Mesh extends RefCountedObject {
     };
     this.indexBuffer[RENDERSTYLE_WIREFRAME] = wireBuffer;
   }
-
 }
 
 export { Mesh };

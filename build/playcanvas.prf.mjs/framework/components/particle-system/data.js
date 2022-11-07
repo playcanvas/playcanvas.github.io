@@ -1,9 +1,9 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
-import { Vec3 } from '../../../math/vec3.js';
+import { Vec3 } from '../../../core/math/vec3.js';
 import { EMITTERSHAPE_BOX, PARTICLEMODE_GPU, PARTICLEORIENTATION_SCREEN, BLEND_NORMAL, LAYERID_WORLD } from '../../../scene/constants.js';
 
 class ParticleSystemComponentData {
@@ -53,6 +53,7 @@ class ParticleSystemComponentData {
     this.randomizeAnimIndex = false;
     this.animSpeed = 1;
     this.animLoop = true;
+
     this.scaleGraph = null;
     this.scaleGraph2 = null;
     this.colorGraph = null;
@@ -73,7 +74,6 @@ class ParticleSystemComponentData {
     this.autoPlay = true;
     this.layers = [LAYERID_WORLD];
   }
-
 }
 
 export { ParticleSystemComponentData };

@@ -17,12 +17,12 @@ class AnimationComponentSystem extends ComponentSystem {
   }
 
   initializeComponentData(component, data, properties) {
-    for (const property in data) {
+    properties = ['activate', 'enabled', 'loop', 'speed', 'assets'];
+    for (const property of properties) {
       if (data.hasOwnProperty(property)) {
         component[property] = data[property];
       }
     }
-
     super.initializeComponentData(component, data, _schema);
   }
 
@@ -35,23 +35,19 @@ class AnimationComponentSystem extends ComponentSystem {
     clone.animation.enabled = entity.animation.enabled;
     const clonedAnimations = {};
     const animations = entity.animation.animations;
-
     for (const key in animations) {
       if (animations.hasOwnProperty(key)) {
         clonedAnimations[key] = animations[key];
       }
     }
-
     clone.animation.animations = clonedAnimations;
     const clonedAnimationsIndex = {};
     const animationsIndex = entity.animation.animationsIndex;
-
     for (const key in animationsIndex) {
       if (animationsIndex.hasOwnProperty(key)) {
         clonedAnimationsIndex[key] = animationsIndex[key];
       }
     }
-
     clone.animation.animationsIndex = clonedAnimationsIndex;
     return clone.animation;
   }
@@ -62,25 +58,20 @@ class AnimationComponentSystem extends ComponentSystem {
 
   onUpdate(dt) {
     const components = this.store;
-
     for (const id in components) {
       if (components.hasOwnProperty(id)) {
         const component = components[id];
-
         if (component.data.enabled && component.entity.enabled) {
           component.entity.animation.update(dt);
         }
       }
     }
   }
-
   destroy() {
     super.destroy();
     this.app.systems.off('update', this.onUpdate, this);
   }
-
 }
-
 Component._buildAccessors(AnimationComponent.prototype, _schema);
 
 export { AnimationComponentSystem };

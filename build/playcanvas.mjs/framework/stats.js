@@ -17,6 +17,7 @@ class ApplicationStats {
       skinTime: 0,
       morphTime: 0,
       instancingTime: 0,
+
       triangles: 0,
       otherPrimitives: 0,
       shaders: 0,
@@ -38,10 +39,13 @@ class ApplicationStats {
       immediate: 0,
       misc: 0,
       total: 0,
+
       skinned: 0,
       instanced: 0,
+
       removedByInstancing: 0
     };
+
     this.misc = {
       renderTargetCreationTime: 0
     };
@@ -64,23 +68,17 @@ class ApplicationStats {
       }
     });
   }
-
   get scene() {
     return getApplication().scene._stats;
   }
-
   get lightmapper() {
     var _getApplication$light;
-
     return (_getApplication$light = getApplication().lightmapper) == null ? void 0 : _getApplication$light.stats;
   }
-
   get batcher() {
     const batcher = getApplication()._batcher;
-
     return batcher ? batcher._stats : null;
   }
-
 }
 
 export { ApplicationStats };

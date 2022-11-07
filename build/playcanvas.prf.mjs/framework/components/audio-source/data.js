@@ -1,9 +1,9 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
-import { DISTANCE_INVERSE } from '../../../audio/constants.js';
+import { DISTANCE_INVERSE } from '../../../platform/audio/constants.js';
 
 class AudioSourceComponentData {
   constructor() {
@@ -18,12 +18,12 @@ class AudioSourceComponentData {
     this.maxDistance = 10000;
     this.rollOffFactor = 1;
     this.distanceModel = DISTANCE_INVERSE;
+
     this.paused = true;
     this.sources = {};
     this.currentSource = null;
     this.channel = null;
   }
-
 }
 
 export { AudioSourceComponentData };

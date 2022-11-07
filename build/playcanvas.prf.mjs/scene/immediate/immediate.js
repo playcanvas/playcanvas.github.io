@@ -1,11 +1,11 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
-import { PRIMITIVE_TRISTRIP } from '../../graphics/constants.js';
-import { shaderChunks } from '../../graphics/program-lib/chunks/chunks.js';
-import { createShaderFromCode } from '../../graphics/program-lib/utils.js';
+import { PRIMITIVE_TRISTRIP } from '../../platform/graphics/constants.js';
+import { shaderChunks } from '../shader-lib/chunks/chunks.js';
+import { createShaderFromCode } from '../shader-lib/utils.js';
 import { BLEND_NORMAL } from '../constants.js';
 import { BasicMaterial } from '../materials/basic-material.js';
 import { GraphNode } from '../graph-node.js';
@@ -14,7 +14,6 @@ import { MeshInstance } from '../mesh-instance.js';
 import { ImmediateBatches } from './immediate-batches.js';
 
 const tempPoints = [];
-
 class Immediate {
   constructor(device) {
     this.device = device;
@@ -23,11 +22,16 @@ class Immediate {
     this.depthTextureShader = null;
     this.cubeLocalPos = null;
     this.cubeWorldPos = null;
+
     this.batchesMap = new Map();
+
     this.allBatches = new Set();
+
     this.updatedLayers = new Set();
+
     this._materialDepth = null;
     this._materialNoDepth = null;
+
     this.layerMeshInstances = new Map();
   }
 
@@ -45,7 +49,6 @@ class Immediate {
     if (!this._materialDepth) {
       this._materialDepth = this.createMaterial(true);
     }
-
     return this._materialDepth;
   }
 
@@ -53,19 +56,18 @@ class Immediate {
     if (!this._materialNoDepth) {
       this._materialNoDepth = this.createMaterial(false);
     }
-
     return this._materialNoDepth;
   }
 
   getBatch(layer, depthTest) {
     let batches = this.batchesMap.get(layer);
-
     if (!batches) {
       batches = new ImmediateBatches(this.device);
       this.batchesMap.set(layer, batches);
     }
 
     this.allBatches.add(batches);
+
     const material = depthTest ? this.materialDepth : this.materialNoDepth;
     return batches.getBatch(material, layer);
   }
@@ -93,7 +95,6 @@ class Immediate {
             `;
       this.textureShader = createShaderFromCode(this.device, Immediate.getTextureVS(), fshader, 'DebugTextureShader');
     }
-
     return this.textureShader;
   }
 
@@ -109,7 +110,6 @@ class Immediate {
             `;
       this.depthTextureShader = createShaderFromCode(this.device, Immediate.getTextureVS(), fshader, 'DebugDepthTextureShader');
     }
-
     return this.depthTextureShader;
   }
 
@@ -119,7 +119,6 @@ class Immediate {
       this.quadMesh.setPositions([-0.5, -0.5, 0, 0.5, -0.5, 0, -0.5, 0.5, 0, 0.5, 0.5, 0]);
       this.quadMesh.update(PRIMITIVE_TRISTRIP);
     }
-
     return this.quadMesh;
   }
 
@@ -130,26 +129,21 @@ class Immediate {
     }
 
     let layerMeshInstances = this.layerMeshInstances.get(layer);
-
     if (!layerMeshInstances) {
       layerMeshInstances = [];
       this.layerMeshInstances.set(layer, layerMeshInstances);
     }
-
     layerMeshInstances.push(meshInstance);
   }
-
   drawWireAlignedBox(min, max, color, depthTest, layer) {
     tempPoints.push(min.x, min.y, min.z, min.x, max.y, min.z, min.x, max.y, min.z, max.x, max.y, min.z, max.x, max.y, min.z, max.x, min.y, min.z, max.x, min.y, min.z, min.x, min.y, min.z, min.x, min.y, max.z, min.x, max.y, max.z, min.x, max.y, max.z, max.x, max.y, max.z, max.x, max.y, max.z, max.x, min.y, max.z, max.x, min.y, max.z, min.x, min.y, max.z, min.x, min.y, min.z, min.x, min.y, max.z, min.x, max.y, min.z, min.x, max.y, max.z, max.x, max.y, min.z, max.x, max.y, max.z, max.x, min.y, min.z, max.x, min.y, max.z);
     const batch = this.getBatch(layer, depthTest);
     batch.addLinesArrays(tempPoints, color);
     tempPoints.length = 0;
   }
-
   drawWireSphere(center, radius, color, numSegments, depthTest, layer) {
     const step = 2 * Math.PI / numSegments;
     let angle = 0;
-
     for (let i = 0; i < numSegments; i++) {
       const sin0 = Math.sin(angle);
       const cos0 = Math.cos(angle);
@@ -163,12 +157,10 @@ class Immediate {
       tempPoints.push(center.x, center.y + radius * sin0, center.z + radius * cos0);
       tempPoints.push(center.x, center.y + radius * sin1, center.z + radius * cos1);
     }
-
     const batch = this.getBatch(layer, depthTest);
     batch.addLinesArrays(tempPoints, color);
     tempPoints.length = 0;
   }
-
   getGraphNode(matrix) {
     const graphNode = new GraphNode('ImmediateDebug');
     graphNode.worldTransform = matrix;
@@ -185,13 +177,12 @@ class Immediate {
 
     if (!this.updatedLayers.has(layer)) {
       this.updatedLayers.add(layer);
-      const meshInstances = this.layerMeshInstances.get(layer);
 
+      const meshInstances = this.layerMeshInstances.get(layer);
       if (meshInstances) {
         for (let i = 0; i < meshInstances.length; i++) {
           visibleList.list[visibleList.length + i] = meshInstances[i];
         }
-
         visibleList.length += meshInstances.length;
         meshInstances.length = 0;
       }
@@ -200,9 +191,9 @@ class Immediate {
 
   onPostRender() {
     this.allBatches.clear();
+
     this.updatedLayers.clear();
   }
-
 }
 
 export { Immediate };

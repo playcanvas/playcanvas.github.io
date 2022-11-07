@@ -1,11 +1,12 @@
-import { Vec2 } from '../math/vec2.js';
-import { Vec3 } from '../math/vec3.js';
+import { Vec2 } from '../core/math/vec2.js';
+import { Vec3 } from '../core/math/vec3.js';
 import '../core/tracing.js';
-import { SEMANTIC_TANGENT, SEMANTIC_BLENDINDICES, TYPE_UINT8, SEMANTIC_BLENDWEIGHT } from '../graphics/constants.js';
+import { SEMANTIC_TANGENT, SEMANTIC_BLENDINDICES, TYPE_UINT8, SEMANTIC_BLENDWEIGHT } from '../platform/graphics/constants.js';
 import { Mesh } from './mesh.js';
 
 const primitiveUv1Padding = 4.0 / 64;
 const primitiveUv1PaddingScale = 1.0 - primitiveUv1Padding * 2;
+
 const shapePrimitives = [];
 
 function calculateNormals(positions, indices) {
@@ -53,7 +54,6 @@ function calculateNormals(positions, indices) {
     normals[i * 3 + 1] *= invLen;
     normals[i * 3 + 2] *= invLen;
   }
-
   return normals;
 }
 
@@ -71,7 +71,6 @@ function calculateTangents(positions, normals, uvs, indices) {
   const tan1 = new Float32Array(vertexCount * 3);
   const tan2 = new Float32Array(vertexCount * 3);
   const tangents = [];
-
   for (let i = 0; i < triangleCount; i++) {
     const i1 = indices[i * 3];
     const i2 = indices[i * 3 + 1];
@@ -90,11 +89,8 @@ function calculateTangents(positions, normals, uvs, indices) {
     const z2 = v3.z - v1.z;
     const s1 = w2.x - w1.x;
     const s2 = w3.x - w1.x;
-
     const _t = w2.y - w1.y;
-
     const _t2 = w3.y - w1.y;
-
     const area = s1 * _t2 - s2 * _t;
 
     if (area === 0) {
@@ -105,7 +101,6 @@ function calculateTangents(positions, normals, uvs, indices) {
       sdir.set((_t2 * x1 - _t * x2) * r, (_t2 * y1 - _t * y2) * r, (_t2 * z1 - _t * z2) * r);
       tdir.set((s1 * x2 - s2 * x1) * r, (s1 * y2 - s2 * y1) * r, (s1 * z2 - s2 * z1) * r);
     }
-
     tan1[i1 * 3 + 0] += sdir.x;
     tan1[i1 * 3 + 1] += sdir.y;
     tan1[i1 * 3 + 2] += sdir.z;
@@ -125,67 +120,57 @@ function calculateTangents(positions, normals, uvs, indices) {
     tan2[i3 * 3 + 1] += tdir.y;
     tan2[i3 * 3 + 2] += tdir.z;
   }
-
   const t1 = new Vec3();
   const t2 = new Vec3();
   const n = new Vec3();
   const temp = new Vec3();
-
   for (let i = 0; i < vertexCount; i++) {
     n.set(normals[i * 3], normals[i * 3 + 1], normals[i * 3 + 2]);
     t1.set(tan1[i * 3], tan1[i * 3 + 1], tan1[i * 3 + 2]);
     t2.set(tan2[i * 3], tan2[i * 3 + 1], tan2[i * 3 + 2]);
+
     const ndott = n.dot(t1);
     temp.copy(n).mulScalar(ndott);
     temp.sub2(t1, temp).normalize();
     tangents[i * 4] = temp.x;
     tangents[i * 4 + 1] = temp.y;
     tangents[i * 4 + 2] = temp.z;
+
     temp.cross(n, t1);
     tangents[i * 4 + 3] = temp.dot(t2) < 0.0 ? -1.0 : 1.0;
   }
-
   return tangents;
 }
 
 function createMesh(device, positions, opts) {
   const mesh = new Mesh(device);
   mesh.setPositions(positions);
-
   if (opts) {
     if (opts.normals) {
       mesh.setNormals(opts.normals);
     }
-
     if (opts.tangents) {
       mesh.setVertexStream(SEMANTIC_TANGENT, opts.tangents, 4);
     }
-
     if (opts.colors) {
       mesh.setColors32(opts.colors);
     }
-
     if (opts.uvs) {
       mesh.setUvs(0, opts.uvs);
     }
-
     if (opts.uvs1) {
       mesh.setUvs(1, opts.uvs1);
     }
-
     if (opts.blendIndices) {
       mesh.setVertexStream(SEMANTIC_BLENDINDICES, opts.blendIndices, 4, opts.blendIndices.length / 4, TYPE_UINT8);
     }
-
     if (opts.blendWeights) {
       mesh.setVertexStream(SEMANTIC_BLENDWEIGHT, opts.blendWeights, 4);
     }
-
     if (opts.indices) {
       mesh.setIndices(opts.indices);
     }
   }
-
   mesh.update();
   return mesh;
 }
@@ -196,11 +181,11 @@ function createTorus(device, opts) {
   const segments = opts && opts.segments !== undefined ? opts.segments : 30;
   const sides = opts && opts.sides !== undefined ? opts.sides : 20;
   const calcTangents = opts && opts.calculateTangents !== undefined ? opts.calculateTangents : false;
+
   const positions = [];
   const normals = [];
   const uvs = [];
   const indices = [];
-
   for (let i = 0; i <= sides; i++) {
     for (let j = 0; j <= segments; j++) {
       const x = Math.cos(2 * Math.PI * j / segments) * (rt + rc * Math.cos(2 * Math.PI * i / sides));
@@ -214,7 +199,6 @@ function createTorus(device, opts) {
       positions.push(x, y, z);
       normals.push(nx, ny, nz);
       uvs.push(u, 1.0 - v);
-
       if (i < sides && j < segments) {
         const first = i * (segments + 1) + j;
         const second = (i + 1) * (segments + 1) + j;
@@ -225,21 +209,17 @@ function createTorus(device, opts) {
       }
     }
   }
-
   const options = {
     normals: normals,
     uvs: uvs,
     uvs1: uvs,
     indices: indices
   };
-
   if (calcTangents) {
     options.tangents = calculateTangents(positions, normals, uvs, indices);
   }
-
   return createMesh(device, positions, options);
 }
-
 function _createConeData(baseRadius, peakRadius, height, heightSegments, capSegments, roundedCaps) {
   const pos = new Vec3();
   const bottomToTop = new Vec3();
@@ -271,6 +251,7 @@ function _createConeData(baseRadius, peakRadius, height, heightSegments, capSegm
         let u = j / capSegments;
         let v = i / heightSegments;
         uvs.push(u, 1 - v);
+
         const _v = v;
         v = u;
         u = _v;
@@ -278,7 +259,6 @@ function _createConeData(baseRadius, peakRadius, height, heightSegments, capSegm
         v = v * primitiveUv1PaddingScale + primitiveUv1Padding;
         u /= 3;
         uvs1.push(u, 1 - v);
-
         if (i < heightSegments && j < capSegments) {
           const first = i * (capSegments + 1) + j;
           const second = i * (capSegments + 1) + (j + 1);
@@ -290,7 +270,6 @@ function _createConeData(baseRadius, peakRadius, height, heightSegments, capSegm
       }
     }
   }
-
   if (roundedCaps) {
     const latitudeBands = Math.floor(capSegments / 2);
     const longitudeBands = capSegments;
@@ -300,7 +279,6 @@ function _createConeData(baseRadius, peakRadius, height, heightSegments, capSegm
       const theta = lat * Math.PI * 0.5 / latitudeBands;
       const sinTheta = Math.sin(theta);
       const cosTheta = Math.cos(theta);
-
       for (let lon = 0; lon <= longitudeBands; lon++) {
         const phi = lon * 2 * Math.PI / longitudeBands - Math.PI / 2;
         const sinPhi = Math.sin(phi);
@@ -313,6 +291,7 @@ function _createConeData(baseRadius, peakRadius, height, heightSegments, capSegm
         positions.push(x * peakRadius, y * peakRadius + capOffset, z * peakRadius);
         normals.push(x, y, z);
         uvs.push(u, 1 - v);
+
         u = u * primitiveUv1PaddingScale + primitiveUv1Padding;
         v = v * primitiveUv1PaddingScale + primitiveUv1Padding;
         u /= 3;
@@ -321,9 +300,7 @@ function _createConeData(baseRadius, peakRadius, height, heightSegments, capSegm
         uvs1.push(u, 1 - v);
       }
     }
-
     offset = (heightSegments + 1) * (capSegments + 1);
-
     for (let lat = 0; lat < latitudeBands; ++lat) {
       for (let lon = 0; lon < longitudeBands; ++lon) {
         const first = lat * (longitudeBands + 1) + lon;
@@ -337,7 +314,6 @@ function _createConeData(baseRadius, peakRadius, height, heightSegments, capSegm
       const theta = Math.PI * 0.5 + lat * Math.PI * 0.5 / latitudeBands;
       const sinTheta = Math.sin(theta);
       const cosTheta = Math.cos(theta);
-
       for (let lon = 0; lon <= longitudeBands; lon++) {
         const phi = lon * 2 * Math.PI / longitudeBands - Math.PI / 2;
         const sinPhi = Math.sin(phi);
@@ -350,6 +326,7 @@ function _createConeData(baseRadius, peakRadius, height, heightSegments, capSegm
         positions.push(x * peakRadius, y * peakRadius - capOffset, z * peakRadius);
         normals.push(x, y, z);
         uvs.push(u, 1 - v);
+
         u = u * primitiveUv1PaddingScale + primitiveUv1Padding;
         v = v * primitiveUv1PaddingScale + primitiveUv1Padding;
         u /= 3;
@@ -358,9 +335,7 @@ function _createConeData(baseRadius, peakRadius, height, heightSegments, capSegm
         uvs1.push(u, 1 - v);
       }
     }
-
     offset = (heightSegments + 1) * (capSegments + 1) + (longitudeBands + 1) * (latitudeBands + 1);
-
     for (let lat = 0; lat < latitudeBands; ++lat) {
       for (let lon = 0; lon < longitudeBands; ++lon) {
         const first = lat * (longitudeBands + 1) + lon;
@@ -371,7 +346,6 @@ function _createConeData(baseRadius, peakRadius, height, heightSegments, capSegm
     }
   } else {
     offset = (heightSegments + 1) * (capSegments + 1);
-
     if (baseRadius > 0) {
       for (let i = 0; i < capSegments; i++) {
         const theta = i / capSegments * 2 * Math.PI;
@@ -383,13 +357,13 @@ function _createConeData(baseRadius, peakRadius, height, heightSegments, capSegm
         positions.push(x * baseRadius, y, z * baseRadius);
         normals.push(0, -1, 0);
         uvs.push(u, 1 - v);
+
         u = u * primitiveUv1PaddingScale + primitiveUv1Padding;
         v = v * primitiveUv1PaddingScale + primitiveUv1Padding;
         u /= 3;
         v /= 3;
         u += 1 / 3;
         uvs1.push(u, 1 - v);
-
         if (i > 1) {
           indices.push(offset, offset + i, offset + i - 1);
         }
@@ -397,7 +371,6 @@ function _createConeData(baseRadius, peakRadius, height, heightSegments, capSegm
     }
 
     offset += capSegments;
-
     if (peakRadius > 0) {
       for (let i = 0; i < capSegments; i++) {
         const theta = i / capSegments * 2 * Math.PI;
@@ -409,20 +382,19 @@ function _createConeData(baseRadius, peakRadius, height, heightSegments, capSegm
         positions.push(x * peakRadius, y, z * peakRadius);
         normals.push(0, 1, 0);
         uvs.push(u, 1 - v);
+
         u = u * primitiveUv1PaddingScale + primitiveUv1Padding;
         v = v * primitiveUv1PaddingScale + primitiveUv1Padding;
         u /= 3;
         v /= 3;
         u += 2 / 3;
         uvs1.push(u, 1 - v);
-
         if (i > 1) {
           indices.push(offset, offset + i - 1, offset + i);
         }
       }
     }
   }
-
   return {
     positions: positions,
     normals: normals,
@@ -441,11 +413,9 @@ function createCylinder(device, opts) {
   const calcTangents = opts && opts.calculateTangents !== undefined ? opts.calculateTangents : false;
 
   const options = _createConeData(radius, radius, height, heightSegments, capSegments, false);
-
   if (calcTangents) {
     options.tangents = calculateTangents(options.positions, options.normals, options.uvs, options.indices);
   }
-
   return createMesh(device, options.positions, options);
 }
 
@@ -457,11 +427,9 @@ function createCapsule(device, opts) {
   const calcTangents = opts && opts.calculateTangents !== undefined ? opts.calculateTangents : false;
 
   const options = _createConeData(radius, radius, height - 2 * radius, heightSegments, sides, true);
-
   if (calcTangents) {
     options.tangents = calculateTangents(options.positions, options.normals, options.uvs, options.indices);
   }
-
   return createMesh(device, options.positions, options);
 }
 
@@ -472,13 +440,10 @@ function createCone(device, opts) {
   const heightSegments = opts && opts.heightSegments !== undefined ? opts.heightSegments : 5;
   const capSegments = opts && opts.capSegments !== undefined ? opts.capSegments : 18;
   const calcTangents = opts && opts.calculateTangents !== undefined ? opts.calculateTangents : false;
-
   const options = _createConeData(baseRadius, peakRadius, height, heightSegments, capSegments, false);
-
   if (calcTangents) {
     options.tangents = calculateTangents(options.positions, options.normals, options.uvs, options.indices);
   }
-
   return createMesh(device, options.positions, options);
 }
 
@@ -487,16 +452,15 @@ function createSphere(device, opts) {
   const latitudeBands = opts && opts.latitudeBands !== undefined ? opts.latitudeBands : 16;
   const longitudeBands = opts && opts.longitudeBands !== undefined ? opts.longitudeBands : 16;
   const calcTangents = opts && opts.calculateTangents !== undefined ? opts.calculateTangents : false;
+
   const positions = [];
   const normals = [];
   const uvs = [];
   const indices = [];
-
   for (let lat = 0; lat <= latitudeBands; lat++) {
     const theta = lat * Math.PI / latitudeBands;
     const sinTheta = Math.sin(theta);
     const cosTheta = Math.cos(theta);
-
     for (let lon = 0; lon <= longitudeBands; lon++) {
       const phi = lon * 2 * Math.PI / longitudeBands - Math.PI / 2;
       const sinPhi = Math.sin(phi);
@@ -511,7 +475,6 @@ function createSphere(device, opts) {
       uvs.push(u, 1 - v);
     }
   }
-
   for (let lat = 0; lat < latitudeBands; ++lat) {
     for (let lon = 0; lon < longitudeBands; ++lon) {
       const first = lat * (longitudeBands + 1) + lon;
@@ -520,18 +483,15 @@ function createSphere(device, opts) {
       indices.push(first + 1, second + 1, second);
     }
   }
-
   const options = {
     normals: normals,
     uvs: uvs,
     uvs1: uvs,
     indices: indices
   };
-
   if (calcTangents) {
     options.tangents = calculateTangents(positions, normals, uvs, indices);
   }
-
   return createMesh(device, positions, options);
 }
 
@@ -540,12 +500,13 @@ function createPlane(device, opts) {
   const ws = opts && opts.widthSegments !== undefined ? opts.widthSegments : 5;
   const ls = opts && opts.lengthSegments !== undefined ? opts.lengthSegments : 5;
   const calcTangents = opts && opts.calculateTangents !== undefined ? opts.calculateTangents : false;
+
   const positions = [];
   const normals = [];
   const uvs = [];
   const indices = [];
-  let vcounter = 0;
 
+  let vcounter = 0;
   for (let i = 0; i <= ws; i++) {
     for (let j = 0; j <= ls; j++) {
       const x = -he.x + 2 * he.x * i / ws;
@@ -556,27 +517,22 @@ function createPlane(device, opts) {
       positions.push(x, y, z);
       normals.push(0, 1, 0);
       uvs.push(u, 1 - v);
-
       if (i < ws && j < ls) {
         indices.push(vcounter + ls + 1, vcounter + 1, vcounter);
         indices.push(vcounter + ls + 1, vcounter + ls + 2, vcounter + 1);
       }
-
       vcounter++;
     }
   }
-
   const options = {
     normals: normals,
     uvs: uvs,
     uvs1: uvs,
     indices: indices
   };
-
   if (calcTangents) {
     options.tangents = calculateTangents(positions, normals, uvs, indices);
   }
-
   return createMesh(device, positions, options);
 }
 
@@ -587,8 +543,20 @@ function createBox(device, opts) {
   const hs = opts && opts.heightSegments !== undefined ? opts.heightSegments : 1;
   const calcTangents = opts && opts.calculateTangents !== undefined ? opts.calculateTangents : false;
   const corners = [new Vec3(-he.x, -he.y, he.z), new Vec3(he.x, -he.y, he.z), new Vec3(he.x, he.y, he.z), new Vec3(-he.x, he.y, he.z), new Vec3(he.x, -he.y, -he.z), new Vec3(-he.x, -he.y, -he.z), new Vec3(-he.x, he.y, -he.z), new Vec3(he.x, he.y, -he.z)];
-  const faceAxes = [[0, 1, 3], [4, 5, 7], [3, 2, 6], [1, 0, 4], [1, 4, 2], [5, 0, 6]];
-  const faceNormals = [[0, 0, 1], [0, 0, -1], [0, 1, 0], [0, -1, 0], [1, 0, 0], [-1, 0, 0]];
+  const faceAxes = [[0, 1, 3],
+  [4, 5, 7],
+  [3, 2, 6],
+  [1, 0, 4],
+  [1, 4, 2],
+  [5, 0, 6]];
+
+  const faceNormals = [[0, 0, 1],
+  [0, 0, -1],
+  [0, 1, 0],
+  [0, -1, 0],
+  [1, 0, 0],
+  [-1, 0, 0]];
+
   const sides = {
     FRONT: 0,
     BACK: 1,
@@ -603,13 +571,11 @@ function createBox(device, opts) {
   const uvs1 = [];
   const indices = [];
   let vcounter = 0;
-
   const generateFace = (side, uSegments, vSegments) => {
     const temp1 = new Vec3();
     const temp2 = new Vec3();
     const temp3 = new Vec3();
     const r = new Vec3();
-
     for (let i = 0; i <= uSegments; i++) {
       for (let j = 0; j <= vSegments; j++) {
         temp1.lerp(corners[faceAxes[side][0]], corners[faceAxes[side][1]], i / uSegments);
@@ -621,6 +587,7 @@ function createBox(device, opts) {
         positions.push(r.x, r.y, r.z);
         normals.push(faceNormals[side][0], faceNormals[side][1], faceNormals[side][2]);
         uvs.push(u, 1 - v);
+
         u = u * primitiveUv1PaddingScale + primitiveUv1Padding;
         v = v * primitiveUv1PaddingScale + primitiveUv1Padding;
         u /= 3;
@@ -628,17 +595,14 @@ function createBox(device, opts) {
         u += side % 3 / 3;
         v += Math.floor(side / 3) / 3;
         uvs1.push(u, 1 - v);
-
         if (i < uSegments && j < vSegments) {
           indices.push(vcounter + vSegments + 1, vcounter + 1, vcounter);
           indices.push(vcounter + vSegments + 1, vcounter + vSegments + 2, vcounter + 1);
         }
-
         vcounter++;
       }
     }
   };
-
   generateFace(sides.FRONT, ws, hs);
   generateFace(sides.BACK, ws, hs);
   generateFace(sides.TOP, ws, ls);
@@ -651,17 +615,14 @@ function createBox(device, opts) {
     uvs1: uvs1,
     indices: indices
   };
-
   if (calcTangents) {
     options.tangents = calculateTangents(positions, normals, uvs, indices);
   }
-
   return createMesh(device, positions, options);
 }
 
 function getShapePrimitive(device, type) {
   let primData = null;
-
   for (let i = 0; i < shapePrimitives.length; i++) {
     if (shapePrimitives[i].type === type && shapePrimitives[i].device === device) {
       primData = shapePrimitives[i].primData;
@@ -670,7 +631,6 @@ function getShapePrimitive(device, type) {
 
   if (!primData) {
     let mesh, area;
-
     switch (type) {
       case 'box':
         mesh = createBox(device, {
@@ -683,7 +643,6 @@ function getShapePrimitive(device, type) {
           uv: 2.0 / 3
         };
         break;
-
       case 'capsule':
         mesh = createCapsule(device, {
           radius: 0.5,
@@ -696,7 +655,6 @@ function getShapePrimitive(device, type) {
           uv: 1.0 / 3 + 1.0 / 3 / 3 * 2
         };
         break;
-
       case 'cone':
         mesh = createCone(device, {
           baseRadius: 0.5,
@@ -710,7 +668,6 @@ function getShapePrimitive(device, type) {
           uv: 1.0 / 3 + 1.0 / 3 / 3
         };
         break;
-
       case 'cylinder':
         mesh = createCylinder(device, {
           radius: 0.5,
@@ -723,7 +680,6 @@ function getShapePrimitive(device, type) {
           uv: 1.0 / 3 + 1.0 / 3 / 3 * 2
         };
         break;
-
       case 'plane':
         mesh = createPlane(device, {
           halfExtents: new Vec2(0.5, 0.5),
@@ -737,7 +693,6 @@ function getShapePrimitive(device, type) {
           uv: 1
         };
         break;
-
       case 'sphere':
         mesh = createSphere(device, {
           radius: 0.5
@@ -749,7 +704,6 @@ function getShapePrimitive(device, type) {
           uv: 1
         };
         break;
-
       case 'torus':
         mesh = createTorus(device, {
           tubeRadius: 0.2,
@@ -762,7 +716,6 @@ function getShapePrimitive(device, type) {
           uv: 1
         };
         break;
-
       default:
         throw new Error('Invalid primitive type: ' + type);
     }
@@ -772,13 +725,13 @@ function getShapePrimitive(device, type) {
       mesh: mesh,
       area: area
     };
+
     shapePrimitives.push({
       type: type,
       device: device,
       primData: primData
     });
   }
-
   return primData;
 }
 

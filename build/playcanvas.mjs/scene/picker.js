@@ -1,8 +1,8 @@
-import { Color } from '../math/color.js';
-import { PIXELFORMAT_R8_G8_B8_A8, FILTER_NEAREST, ADDRESS_CLAMP_TO_EDGE, CLEARFLAG_DEPTH } from '../graphics/constants.js';
-import { GraphicsDevice } from '../graphics/graphics-device.js';
-import { RenderTarget } from '../graphics/render-target.js';
-import { Texture } from '../graphics/texture.js';
+import { Color } from '../core/math/color.js';
+import { PIXELFORMAT_R8_G8_B8_A8, FILTER_NEAREST, ADDRESS_CLAMP_TO_EDGE, CLEARFLAG_DEPTH } from '../platform/graphics/constants.js';
+import { GraphicsDevice } from '../platform/graphics/graphics-device.js';
+import { RenderTarget } from '../platform/graphics/render-target.js';
+import { Texture } from '../platform/graphics/texture.js';
 import { SHADER_PICK, SORTMODE_NONE } from './constants.js';
 import { Camera } from './camera.js';
 import { Command } from './mesh-instance.js';

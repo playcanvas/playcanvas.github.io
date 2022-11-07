@@ -5,27 +5,22 @@ const path = {
   join: function () {
     const num = arguments.length;
     let result = arguments[0];
-
     for (let index = 0; index < num - 1; ++index) {
       const one = arguments[index];
       const two = arguments[index + 1];
-
       if (!isDefined(one) || !isDefined(two)) {
         throw new Error('undefined argument to pc.path.join');
       }
-
       if (two[0] === path.delimiter) {
         result = two;
         continue;
       }
-
       if (one && two && one[one.length - 1] !== path.delimiter && two[0] !== path.delimiter) {
         result += path.delimiter + two;
       } else {
         result += two;
       }
     }
-
     return result;
   },
   normalize: function (pathname) {
@@ -34,30 +29,23 @@ const path = {
     const parts = pathname.split('/');
     let result = '';
     let cleaned = [];
-
     for (let i = 0; i < parts.length; i++) {
       if (parts[i] === '') continue;
       if (parts[i] === '.') continue;
-
       if (parts[i] === '..' && cleaned.length > 0) {
         cleaned = cleaned.slice(0, cleaned.length - 2);
         continue;
       }
-
       if (i > 0) cleaned.push(path.delimiter);
       cleaned.push(parts[i]);
     }
-
     result = cleaned.join('');
-
     if (!lead && result[0] === path.delimiter) {
       result = result.slice(1);
     }
-
     if (trail && result[result.length - 1] !== path.delimiter) {
       result += path.delimiter;
     }
-
     return result;
   },
   split: function (pathname) {
@@ -75,11 +63,9 @@ const path = {
   },
   getExtension: function (pathname) {
     const ext = pathname.split('?')[0].split('.').pop();
-
     if (ext !== pathname) {
       return '.' + ext;
     }
-
     return '';
   },
   isRelativePath: function (pathname) {
@@ -89,7 +75,6 @@ const path = {
     let result = '';
     const parts = pathname.split('/');
     let i = 0;
-
     if (parts.length > 1) {
       if (path.isRelativePath(pathname)) {
         if (parts[0] === '.') {
@@ -102,7 +87,6 @@ const path = {
           }
         } else {
           result = '.';
-
           for (i = 0; i < parts.length - 1; ++i) {
             result += '/' + parts[i];
           }
@@ -113,7 +97,6 @@ const path = {
         }
       }
     }
-
     return result;
   }
 };

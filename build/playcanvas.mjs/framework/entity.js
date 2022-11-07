@@ -1,12 +1,13 @@
 import '../core/tracing.js';
 import { guid } from '../core/guid.js';
 import { GraphNode } from '../scene/graph-node.js';
-import { AppBase } from './app-base.js';
+import { getApplication } from './globals.js';
 
 const _enableList = [];
 
 class Entity extends GraphNode {
-  constructor(name, app) {
+
+  constructor(name, app = getApplication()) {
     super(name);
     this.anim = void 0;
     this.animation = void 0;
@@ -33,44 +34,28 @@ class Entity extends GraphNode {
     this._destroying = false;
     this._guid = null;
     this._template = false;
-    if (name instanceof AppBase) app = name;
-
-    if (!app) {
-      app = AppBase.getApplication();
-
-      if (!app) {
-        throw new Error("Couldn't find current application");
-      }
-    }
-
     this._app = app;
   }
 
   addComponent(type, data) {
     const system = this._app.systems[type];
-
     if (!system) {
       return null;
     }
-
     if (this.c[type]) {
       return null;
     }
-
     return system.addComponent(this, data);
   }
 
   removeComponent(type) {
     const system = this._app.systems[type];
-
     if (!system) {
       return;
     }
-
     if (!this.c[type]) {
       return;
     }
-
     system.removeComponent(this);
   }
 
@@ -94,13 +79,11 @@ class Entity extends GraphNode {
     if (!this._guid) {
       this.setGuid(guid.create());
     }
-
     return this._guid;
   }
 
   setGuid(guid) {
     const index = this._app._entityIndex;
-
     if (this._guid) {
       delete index[this._guid];
     }
@@ -113,23 +96,17 @@ class Entity extends GraphNode {
     let enableFirst = false;
     if (node === this && _enableList.length === 0) enableFirst = true;
     node._beingEnabled = true;
-
     node._onHierarchyStateChanged(enabled);
-
     if (node._onHierarchyStatePostChanged) _enableList.push(node);
     const c = node._children;
-
     for (let i = 0, len = c.length; i < len; i++) {
       if (c[i]._enabled) this._notifyHierarchyStateChanged(c[i], enabled);
     }
-
     node._beingEnabled = false;
-
     if (enableFirst) {
       for (let i = 0; i < _enableList.length; i++) {
         _enableList[i]._onHierarchyStatePostChanged();
       }
-
       _enableList.length = 0;
     }
   }
@@ -138,11 +115,9 @@ class Entity extends GraphNode {
     super._onHierarchyStateChanged(enabled);
 
     const components = this.c;
-
     for (const type in components) {
       if (components.hasOwnProperty(type)) {
         const component = components[type];
-
         if (component.enabled) {
           if (enabled) {
             component.onEnable();
@@ -156,7 +131,6 @@ class Entity extends GraphNode {
 
   _onHierarchyStatePostChanged() {
     const components = this.c;
-
     for (const type in components) {
       if (components.hasOwnProperty(type)) components[type].onPostStateChange();
     }
@@ -165,11 +139,9 @@ class Entity extends GraphNode {
   findByGuid(guid) {
     if (this._guid === guid) return this;
     const e = this._app._entityIndex[guid];
-
     if (e && (e === this || e.isDescendantOf(this))) {
       return e;
     }
-
     return null;
   }
 
@@ -185,61 +157,51 @@ class Entity extends GraphNode {
     }
 
     if (this._parent) this._parent.removeChild(this);
-    const children = this._children;
 
+    const children = this._children;
     while (children.length) {
       const child = children.pop();
       child._parent = null;
-
       if (child instanceof Entity) {
         child.destroy();
       }
     }
 
     this.fire('destroy', this);
+
     this.off();
 
     if (this._guid) {
       delete this._app._entityIndex[this._guid];
     }
-
     this._destroying = false;
   }
 
   clone() {
     const duplicatedIdsMap = {};
-
     const clone = this._cloneRecursively(duplicatedIdsMap);
-
     duplicatedIdsMap[this.getGuid()] = clone;
     resolveDuplicatedEntityReferenceProperties(this, this, clone, duplicatedIdsMap);
     return clone;
   }
 
   _cloneRecursively(duplicatedIdsMap) {
-    const clone = new this.constructor(this._app);
-
+    const clone = new this.constructor(undefined, this._app);
     super._cloneInternal(clone);
-
     for (const type in this.c) {
       const component = this.c[type];
       component.system.cloneComponent(this, clone);
     }
-
     for (let i = 0; i < this._children.length; i++) {
       const oldChild = this._children[i];
-
       if (oldChild instanceof Entity) {
         const newChild = oldChild._cloneRecursively(duplicatedIdsMap);
-
         clone.addChild(newChild);
         duplicatedIdsMap[oldChild.getGuid()] = newChild;
       }
     }
-
     return clone;
   }
-
 }
 
 function resolveDuplicatedEntityReferenceProperties(oldSubtreeRoot, oldEntity, newEntity, duplicatedIdsMap) {
@@ -249,16 +211,13 @@ function resolveDuplicatedEntityReferenceProperties(oldSubtreeRoot, oldEntity, n
     for (const componentName in components) {
       const component = components[componentName];
       const entityProperties = component.system.getPropertiesOfType('entity');
-
       for (let i = 0, len = entityProperties.length; i < len; i++) {
         const propertyDescriptor = entityProperties[i];
         const propertyName = propertyDescriptor.name;
         const oldEntityReferenceId = component[propertyName];
         const entityIsWithinOldSubtree = !!oldSubtreeRoot.findByGuid(oldEntityReferenceId);
-
         if (entityIsWithinOldSubtree) {
           const newEntityReferenceId = duplicatedIdsMap[oldEntityReferenceId].getGuid();
-
           if (newEntityReferenceId) {
             newEntity.c[componentName][propertyName] = newEntityReferenceId;
           }
@@ -281,11 +240,9 @@ function resolveDuplicatedEntityReferenceProperties(oldSubtreeRoot, oldEntity, n
     const _old = oldEntity.children.filter(function (e) {
       return e instanceof Entity;
     });
-
     const _new = newEntity.children.filter(function (e) {
       return e instanceof Entity;
     });
-
     for (let i = 0, len = _old.length; i < len; i++) {
       resolveDuplicatedEntityReferenceProperties(oldSubtreeRoot, _old[i], _new[i], duplicatedIdsMap);
     }

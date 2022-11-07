@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import { BODYFLAG_NORESPONSE_OBJECT, BODYGROUP_TRIGGER, BODYMASK_NOT_STATIC, BODYSTATE_ACTIVE_TAG, BODYSTATE_DISABLE_SIMULATION } from '../rigid-body/constants.js';
@@ -12,25 +12,20 @@ class Trigger {
     this.entity = component.entity;
     this.component = component;
     this.app = app;
-
     if (typeof Ammo !== 'undefined' && !ammoVec1) {
       ammoVec1 = new Ammo.btVector3();
       ammoQuat = new Ammo.btQuaternion();
       ammoTransform = new Ammo.btTransform();
     }
-
     this.initialize(data);
   }
-
   initialize(data) {
     const entity = this.entity;
     const shape = data.shape;
-
     if (shape && typeof Ammo !== 'undefined') {
       if (entity.trigger) {
         entity.trigger.destroy();
       }
-
       const mass = 1;
       const pos = entity.getPosition();
       const rot = entity.getRotation();
@@ -48,20 +43,17 @@ class Trigger {
       body.setCollisionFlags(body.getCollisionFlags() | BODYFLAG_NORESPONSE_OBJECT);
       body.entity = entity;
       this.body = body;
-
       if (this.component.enabled && entity.enabled) {
         this.enable();
       }
     }
   }
-
   destroy() {
     const body = this.body;
     if (!body) return;
     this.disable();
     this.app.systems.rigidbody.destroyBody(body);
   }
-
   _getEntityTransform(transform) {
     const pos = this.entity.getPosition();
     const rot = this.entity.getRotation();
@@ -70,42 +62,34 @@ class Trigger {
     transform.setOrigin(ammoVec1);
     transform.setRotation(ammoQuat);
   }
-
   updateTransform() {
     this._getEntityTransform(ammoTransform);
-
     const body = this.body;
     body.setWorldTransform(ammoTransform);
     body.activate();
   }
-
   enable() {
     const body = this.body;
     if (!body) return;
     const systems = this.app.systems;
     systems.rigidbody.addBody(body, BODYGROUP_TRIGGER, BODYMASK_NOT_STATIC ^ BODYGROUP_TRIGGER);
-
     systems.rigidbody._triggers.push(this);
 
     body.forceActivationState(BODYSTATE_ACTIVE_TAG);
     this.updateTransform();
   }
-
   disable() {
     const body = this.body;
     if (!body) return;
     const systems = this.app.systems;
-
     const idx = systems.rigidbody._triggers.indexOf(this);
-
     if (idx > -1) {
       systems.rigidbody._triggers.splice(idx, 1);
     }
-
     systems.rigidbody.removeBody(body);
+
     body.forceActivationState(BODYSTATE_DISABLE_SIMULATION);
   }
-
 }
 
 export { Trigger };

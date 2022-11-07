@@ -1,14 +1,14 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
-import { math } from '../../math/math.js';
-import { Mat3 } from '../../math/mat3.js';
-import { Mat4 } from '../../math/mat4.js';
-import { Vec3 } from '../../math/vec3.js';
-import { CULLFACE_NONE } from '../../graphics/constants.js';
-import { drawQuadWithShader } from '../../graphics/simple-post-effect.js';
+import { math } from '../../core/math/math.js';
+import { Mat3 } from '../../core/math/mat3.js';
+import { Mat4 } from '../../core/math/mat4.js';
+import { Vec3 } from '../../core/math/vec3.js';
+import { CULLFACE_NONE } from '../../platform/graphics/constants.js';
+import { drawQuadWithShader } from '../../platform/graphics/simple-post-effect.js';
 import { EMITTERSHAPE_BOX } from '../constants.js';
 
 const spawnMatrix3 = new Mat3();
@@ -63,7 +63,6 @@ class ParticleGPUUpdater {
     this.constantFaceTangent = gd.scope.resolve('faceTangent');
     this.constantFaceBinorm = gd.scope.resolve('faceBinorm');
   }
-
   _setInputBounds() {
     this.inBoundsSizeUniform[0] = this._emitter.prevWorldBoundsSize.x;
     this.inBoundsSizeUniform[1] = this._emitter.prevWorldBoundsSize.y;
@@ -74,7 +73,6 @@ class ParticleGPUUpdater {
     this.inBoundsCenterUniform[2] = this._emitter.prevWorldBoundsCenter.z;
     this.constantInBoundsCenter.setValue(this.inBoundsCenterUniform);
   }
-
   randomize() {
     this.frameRandomUniform[0] = Math.random();
     this.frameRandomUniform[1] = Math.random();
@@ -99,7 +97,6 @@ class ParticleGPUUpdater {
     this.constantInternalTex3.setValue(emitter.internalTex3);
     const node = emitter.meshInstance.node;
     const emitterScale = node === null ? Vec3.ONE : node.localScale;
-
     if (emitter.pack8) {
       this.worldBoundsMulUniform[0] = emitter.worldBoundsMul.x;
       this.worldBoundsMulUniform[1] = emitter.worldBoundsMul.y;
@@ -109,17 +106,13 @@ class ParticleGPUUpdater {
       this.worldBoundsAddUniform[1] = emitter.worldBoundsAdd.y;
       this.worldBoundsAddUniform[2] = emitter.worldBoundsAdd.z;
       this.constantOutBoundsAdd.setValue(this.worldBoundsAddUniform);
-
       this._setInputBounds();
-
       let maxVel = emitter.maxVel * Math.max(Math.max(emitterScale.x, emitterScale.y), emitterScale.z);
       maxVel = Math.max(maxVel, 1);
       this.constantMaxVel.setValue(maxVel);
     }
-
     const emitterPos = node === null || emitter.localSpace ? Vec3.ZERO : node.getPosition();
     const emitterMatrix = node === null ? Mat4.IDENTITY : node.getWorldTransform();
-
     if (emitter.emitterShape === EMITTERSHAPE_BOX) {
       spawnMatrix3.setFromMat4(spawnMatrix);
       this.constantSpawnBounds.setValue(spawnMatrix3.data);
@@ -128,7 +121,6 @@ class ParticleGPUUpdater {
       this.constantSpawnBoundsSphere.setValue(emitter.emitterRadius);
       this.constantSpawnBoundsSphereInnerRatio.setValue(emitter.emitterRadius === 0 ? 0 : emitter.emitterRadiusInner / emitter.emitterRadius);
     }
-
     this.constantInitialVelocity.setValue(emitter.initialVelocity);
     emitterMatrix3.setFromMat4(emitterMatrix);
     emitterMatrix.invertTo3x3(emitterMatrix3Inv);
@@ -158,6 +150,7 @@ class ParticleGPUUpdater {
     const texOUT = emitter.swapTex ? emitter.particleTexIN : emitter.particleTexOUT;
     this.constantParticleTexIN.setValue(texIN);
     drawQuadWithShader(device, emitter.swapTex ? emitter.rtParticleTexIN : emitter.rtParticleTexOUT, !isOnStop ? emitter.loop ? emitter.shaderParticleUpdateRespawn : emitter.shaderParticleUpdateNoRespawn : emitter.shaderParticleUpdateOnStop);
+
     emitter.material.setParameter('particleTexOUT', texIN);
     emitter.material.setParameter('particleTexIN', texOUT);
     emitter.beenReset = false;
@@ -168,7 +161,6 @@ class ParticleGPUUpdater {
     emitter.prevWorldBoundsCenter.copy(emitter.worldBounds.center);
     if (emitter.pack8) this._setInputBounds();
   }
-
 }
 
 export { ParticleGPUUpdater };

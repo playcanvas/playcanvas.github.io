@@ -1,10 +1,10 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
-import { Color } from '../../../math/color.js';
-import { Vec4 } from '../../../math/vec4.js';
+import { Color } from '../../../core/math/color.js';
+import { Vec4 } from '../../../core/math/vec4.js';
 import { BUTTON_TRANSITION_MODE_TINT } from './constants.js';
 
 class ButtonComponentData {
@@ -25,7 +25,6 @@ class ButtonComponentData {
     this.inactiveSpriteAsset = null;
     this.inactiveSpriteFrame = 0;
   }
-
 }
 
 export { ButtonComponentData };

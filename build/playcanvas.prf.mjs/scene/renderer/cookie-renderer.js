@@ -1,14 +1,14 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
-import { Vec4 } from '../../math/vec4.js';
-import { Mat4 } from '../../math/mat4.js';
-import { PIXELFORMAT_R8_G8_B8_A8, FILTER_NEAREST, ADDRESS_CLAMP_TO_EDGE } from '../../graphics/constants.js';
-import { Texture } from '../../graphics/texture.js';
-import { createShaderFromCode } from '../../graphics/program-lib/utils.js';
-import { drawQuadWithShader } from '../../graphics/simple-post-effect.js';
+import { Vec4 } from '../../core/math/vec4.js';
+import { Mat4 } from '../../core/math/mat4.js';
+import { PIXELFORMAT_R8_G8_B8_A8, FILTER_NEAREST, ADDRESS_CLAMP_TO_EDGE } from '../../platform/graphics/constants.js';
+import { Texture } from '../../platform/graphics/texture.js';
+import { createShaderFromCode } from '../shader-lib/utils.js';
+import { drawQuadWithShader } from '../../platform/graphics/simple-post-effect.js';
 import { LIGHTTYPE_OMNI } from '../constants.js';
 import { LightCamera } from './light-camera.js';
 
@@ -25,6 +25,7 @@ const textureBlitFragmentShader = `
     void main(void) {
         gl_FragColor = texture2D(blitTexture, uv0);
     }`;
+
 const textureCubeBlitFragmentShader = `
     varying vec2 uv0;
     uniform samplerCube blitTexture;
@@ -34,7 +35,6 @@ const textureCubeBlitFragmentShader = `
         vec4 worldPos = invViewProj * projPos;
         gl_FragColor = textureCube(blitTexture, worldPos.xyz);
     }`;
-
 const _viewport = new Vec4();
 
 class CookieRenderer {
@@ -46,24 +46,19 @@ class CookieRenderer {
     this.blitTextureId = null;
     this.invViewProjId = null;
   }
-
   destroy() {}
-
   getShader(shader, fragment) {
     if (!this[shader]) this[shader] = createShaderFromCode(this.device, textureBlitVertexShader, fragment, `cookie_renderer_${shader}`);
     if (!this.blitTextureId) this.blitTextureId = this.device.scope.resolve('blitTexture');
     if (!this.invViewProjId) this.invViewProjId = this.device.scope.resolve('invViewProj');
     return this[shader];
   }
-
   get shader2d() {
     return this.getShader('blitShader2d', textureBlitFragmentShader);
   }
-
   get shaderCube() {
     return this.getShader('blitShaderCube', textureCubeBlitFragmentShader);
   }
-
   static createTexture(device, resolution) {
     const texture = new Texture(device, {
       name: 'CookieAtlas',
@@ -83,7 +78,6 @@ class CookieRenderer {
   initInvViewProjMatrices() {
     if (!CookieRenderer._invViewProjMatrices) {
       CookieRenderer._invViewProjMatrices = [];
-
       for (let face = 0; face < 6; face++) {
         const camera = LightCamera.create(null, LIGHTTYPE_OMNI, face);
         const projMat = camera.projectionMatrix;
@@ -92,13 +86,11 @@ class CookieRenderer {
       }
     }
   }
-
   render(light, renderTarget) {
     if (light.enabled && light.cookie && light.visibleThisFrame) {
       const faceCount = light.numShadowFaces;
       const shader = faceCount > 1 ? this.shaderCube : this.shader2d;
       const device = this.device;
-
       if (faceCount > 1) {
         this.initInvViewProjMatrices();
       }
@@ -107,7 +99,6 @@ class CookieRenderer {
 
       for (let face = 0; face < faceCount; face++) {
         _viewport.copy(light.atlasViewport);
-
         if (faceCount > 1) {
           const smallSize = _viewport.z / 3;
           const offset = this.lightTextureAtlas.cubeSlotsOffsets[face];
@@ -115,18 +106,15 @@ class CookieRenderer {
           _viewport.y += smallSize * offset.y;
           _viewport.z = smallSize;
           _viewport.w = smallSize;
+
           this.invViewProjId.setValue(CookieRenderer._invViewProjMatrices[face].data);
         }
-
         _viewport.mulScalar(renderTarget.colorBuffer.width);
-
         drawQuadWithShader(device, renderTarget, shader, _viewport);
       }
     }
   }
-
 }
-
 CookieRenderer._invViewProjMatrices = null;
 
 export { CookieRenderer };

@@ -1,13 +1,14 @@
 import '../../../core/tracing.js';
-import { AnimClip } from '../../../anim/evaluator/anim-clip.js';
-import { AnimEvaluator } from '../../../anim/evaluator/anim-evaluator.js';
-import { AnimTrack } from '../../../anim/evaluator/anim-track.js';
-import { DefaultAnimBinder } from '../../../anim/binder/default-anim-binder.js';
-import { Skeleton } from '../../../animation/skeleton.js';
-import { Asset } from '../../../asset/asset.js';
+import { AnimClip } from '../../anim/evaluator/anim-clip.js';
+import { AnimEvaluator } from '../../anim/evaluator/anim-evaluator.js';
+import { AnimTrack } from '../../anim/evaluator/anim-track.js';
+import { DefaultAnimBinder } from '../../anim/binder/default-anim-binder.js';
+import { Skeleton } from '../../../scene/animation/skeleton.js';
+import { Asset } from '../../asset/asset.js';
 import { Component } from '../component.js';
 
 class AnimationComponent extends Component {
+
   constructor(system, entity) {
     super(system, entity);
     this._animations = {};
@@ -32,19 +33,16 @@ class AnimationComponent extends Component {
     this._animations = value;
     this.onSetAnimations();
   }
-
   get animations() {
     return this._animations;
   }
 
   set assets(value) {
     const assets = this._assets;
-
     if (assets && assets.length) {
       for (let i = 0; i < assets.length; i++) {
         if (assets[i]) {
           const asset = this.system.app.assets.get(assets[i]);
-
           if (asset) {
             asset.off('change', this.onAssetChanged, this);
             asset.off('remove', this.onAssetRemoved, this);
@@ -56,14 +54,12 @@ class AnimationComponent extends Component {
         }
       }
     }
-
     this._assets = value;
     const assetIds = value.map(value => {
       return value instanceof Asset ? value.id : value;
     });
     this.loadAnimationAssets(assetIds);
   }
-
   get assets() {
     return this._assets;
   }
@@ -74,50 +70,44 @@ class AnimationComponent extends Component {
       this.skeleton.addTime(0);
       this.skeleton.updateGraph();
     }
-
     if (this.animEvaluator) {
       const clips = this.animEvaluator.clips;
-
       for (let i = 0; i < clips.length; ++i) {
         clips[i].time = currentTime;
       }
     }
   }
-
   get currentTime() {
     if (this.skeleton) {
       return this.skeleton._time;
     }
-
     if (this.animEvaluator) {
       const clips = this.animEvaluator.clips;
-
       if (clips.length > 0) {
         return clips[clips.length - 1].time;
       }
     }
-
     return 0;
   }
 
   get duration() {
-    return this.animations[this.currAnim].duration;
+    if (this.currAnim) {
+      return this.animations[this.currAnim].duration;
+    }
+    return 0;
   }
 
   set loop(value) {
     this._loop = value;
-
     if (this.skeleton) {
       this.skeleton.looping = value;
     }
-
     if (this.animEvaluator) {
       for (let i = 0; i < this.animEvaluator.clips.length; ++i) {
         this.animEvaluator.clips[i].loop = value;
       }
     }
   }
-
   get loop() {
     return this._loop;
   }
@@ -126,28 +116,22 @@ class AnimationComponent extends Component {
     if (!this.enabled || !this.entity.enabled) {
       return;
     }
-
     if (!this.animations[name]) {
       return;
     }
-
     this.prevAnim = this.currAnim;
     this.currAnim = name;
-
     if (this.model) {
       if (!this.skeleton && !this.animEvaluator) {
         this._createAnimationController();
       }
-
       const prevAnim = this.animations[this.prevAnim];
       const currAnim = this.animations[this.currAnim];
       this.blending = blendTime > 0 && !!this.prevAnim;
-
       if (this.blending) {
         this.blend = 0;
         this.blendSpeed = 1 / blendTime;
       }
-
       if (this.skeleton) {
         if (this.blending) {
           this.fromSkel.animation = prevAnim;
@@ -157,10 +141,8 @@ class AnimationComponent extends Component {
           this.skeleton.animation = currAnim;
         }
       }
-
       if (this.animEvaluator) {
         const animEvaluator = this.animEvaluator;
-
         if (this.blending) {
           while (animEvaluator.clips.length > 1) {
             animEvaluator.removeClip(0);
@@ -168,7 +150,6 @@ class AnimationComponent extends Component {
         } else {
           this.animEvaluator.removeClips();
         }
-
         const clip = new AnimClip(this.animations[this.currAnim], 0, 1.0, true, this.loop);
         clip.name = this.currAnim;
         clip.blendWeight = this.blending ? 0 : 1;
@@ -176,7 +157,6 @@ class AnimationComponent extends Component {
         this.animEvaluator.addClip(clip);
       }
     }
-
     this.playing = true;
   }
 
@@ -195,21 +175,16 @@ class AnimationComponent extends Component {
       }
     }
   }
-
   onSetAnimations() {
     const modelComponent = this.entity.model;
-
     if (modelComponent) {
       const m = modelComponent.model;
-
       if (m && m !== this.model) {
         this.setModel(m);
       }
     }
-
     if (!this.currAnim && this.activate && this.enabled && this.entity.enabled) {
       const animationNames = Object.keys(this._animations);
-
       if (animationNames.length > 0) {
         this.play(animationNames[0]);
       }
@@ -226,13 +201,12 @@ class AnimationComponent extends Component {
   _createAnimationController() {
     const model = this.model;
     const animations = this.animations;
+
     let hasJson = false;
     let hasGlb = false;
-
     for (const animation in animations) {
       if (animations.hasOwnProperty(animation)) {
         const anim = animations[animation];
-
         if (anim.constructor === AnimTrack) {
           hasGlb = true;
         } else {
@@ -240,9 +214,7 @@ class AnimationComponent extends Component {
         }
       }
     }
-
     const graph = model.getGraph();
-
     if (hasJson) {
       this.fromSkel = new Skeleton(graph);
       this.toSkel = new Skeleton(graph);
@@ -257,7 +229,6 @@ class AnimationComponent extends Component {
   loadAnimationAssets(ids) {
     if (!ids || !ids.length) return;
     const assets = this.system.app.assets;
-
     const onAssetReady = asset => {
       if (asset.resources.length > 1) {
         for (let i = 0; i < asset.resources.length; i++) {
@@ -268,7 +239,6 @@ class AnimationComponent extends Component {
         this.animations[asset.name] = asset.resource;
         this.animationsIndex[asset.id] = asset.name;
       }
-
       this.animations = this.animations;
     };
 
@@ -277,7 +247,6 @@ class AnimationComponent extends Component {
       asset.on('change', this.onAssetChanged, this);
       asset.off('remove', this.onAssetRemoved, this);
       asset.on('remove', this.onAssetRemoved, this);
-
       if (asset.resource) {
         onAssetReady(asset);
       } else {
@@ -285,10 +254,8 @@ class AnimationComponent extends Component {
         if (this.enabled && this.entity.enabled) assets.load(asset);
       }
     };
-
     for (let i = 0, l = ids.length; i < l; i++) {
       const asset = assets.get(ids[i]);
-
       if (asset) {
         onAssetAdd(asset);
       } else {
@@ -305,7 +272,6 @@ class AnimationComponent extends Component {
 
       if (newValue) {
         let restarted = false;
-
         if (newValue.length > 1) {
           if (oldValue && oldValue.length > 1) {
             for (let i = 0; i < oldValue.length; i++) {
@@ -314,12 +280,9 @@ class AnimationComponent extends Component {
           } else {
             delete this.animations[asset.name];
           }
-
           restarted = false;
-
           for (let i = 0; i < newValue.length; i++) {
             this.animations[newValue[i].name] = newValue[i];
-
             if (!restarted && this.currAnim === newValue[i].name) {
               if (this.playing && this.enabled && this.entity.enabled) {
                 restarted = true;
@@ -327,10 +290,8 @@ class AnimationComponent extends Component {
               }
             }
           }
-
           if (!restarted) {
             this._stopCurrentAnimation();
-
             this.onSetAnimations();
           }
         } else {
@@ -339,42 +300,34 @@ class AnimationComponent extends Component {
               delete this.animations[oldValue[i].name];
             }
           }
-
           this.animations[asset.name] = newValue[0] || newValue;
           restarted = false;
-
           if (this.currAnim === asset.name) {
             if (this.playing && this.enabled && this.entity.enabled) {
               restarted = true;
               this.play(asset.name);
             }
           }
-
           if (!restarted) {
             this._stopCurrentAnimation();
-
             this.onSetAnimations();
           }
         }
-
         this.animationsIndex[asset.id] = asset.name;
       } else {
         if (oldValue.length > 1) {
           for (let i = 0; i < oldValue.length; i++) {
             delete this.animations[oldValue[i].name];
-
             if (this.currAnim === oldValue[i].name) {
               this._stopCurrentAnimation();
             }
           }
         } else {
           delete this.animations[asset.name];
-
           if (this.currAnim === asset.name) {
             this._stopCurrentAnimation();
           }
         }
-
         delete this.animationsIndex[asset.id];
       }
     }
@@ -382,7 +335,6 @@ class AnimationComponent extends Component {
 
   onAssetRemoved(asset) {
     asset.off('remove', this.onAssetRemoved, this);
-
     if (this.animations) {
       if (asset.resources.length > 1) {
         for (let i = 0; i < asset.resources.length; i++) {
@@ -393,7 +345,6 @@ class AnimationComponent extends Component {
         delete this.animations[asset.name];
         if (this.currAnim === asset.name) this._stopCurrentAnimation();
       }
-
       delete this.animationsIndex[asset.id];
     }
   }
@@ -401,27 +352,23 @@ class AnimationComponent extends Component {
   _stopCurrentAnimation() {
     this.currAnim = null;
     this.playing = false;
-
     if (this.skeleton) {
       this.skeleton.currentTime = 0;
       this.skeleton.animation = null;
     }
-
     if (this.animEvaluator) {
       for (let i = 0; i < this.animEvaluator.clips.length; ++i) {
         this.animEvaluator.clips[i].stop();
       }
-
       this.animEvaluator.update(0);
       this.animEvaluator.removeClips();
     }
   }
-
   onEnable() {
     super.onEnable();
+
     const assets = this.assets;
     const registry = this.system.app.assets;
-
     if (assets) {
       for (let i = 0, len = assets.length; i < len; i++) {
         let asset = assets[i];
@@ -429,29 +376,23 @@ class AnimationComponent extends Component {
         if (asset && !asset.resource) registry.load(asset);
       }
     }
-
     if (this.activate && !this.currAnim) {
       const animationNames = Object.keys(this.animations);
-
       if (animationNames.length > 0) {
         this.play(animationNames[0]);
       }
     }
   }
-
   onBeforeRemove() {
     for (let i = 0; i < this.assets.length; i++) {
       let asset = this.assets[i];
-
       if (typeof asset === 'number') {
         asset = this.system.app.assets.get(asset);
       }
-
       if (!asset) continue;
       asset.off('change', this.onAssetChanged, this);
       asset.off('remove', this.onAssetRemoved, this);
     }
-
     this.skeleton = null;
     this.fromSkel = null;
     this.toSkel = null;
@@ -461,7 +402,6 @@ class AnimationComponent extends Component {
   update(dt) {
     if (this.blending) {
       this.blend += dt * this.blendSpeed;
-
       if (this.blend >= 1) {
         this.blend = 1;
       }
@@ -469,36 +409,30 @@ class AnimationComponent extends Component {
 
     if (this.playing) {
       const skeleton = this.skeleton;
-
       if (skeleton !== null && this.model !== null) {
         if (this.blending) {
           skeleton.blend(this.fromSkel, this.toSkel, this.blend);
         } else {
           const delta = dt * this.speed;
           skeleton.addTime(delta);
-
           if (this.speed > 0 && skeleton._time === skeleton.animation.duration && !this.loop) {
             this.playing = false;
           } else if (this.speed < 0 && skeleton._time === 0 && !this.loop) {
             this.playing = false;
           }
         }
-
         if (this.blending && this.blend === 1) {
           skeleton.animation = this.toSkel.animation;
         }
-
         skeleton.updateGraph();
       }
     }
 
     const animEvaluator = this.animEvaluator;
-
     if (animEvaluator) {
       for (let i = 0; i < animEvaluator.clips.length; ++i) {
         const clip = animEvaluator.clips[i];
         clip.speed = this.speed;
-
         if (!this.playing) {
           clip.pause();
         } else {
@@ -509,7 +443,6 @@ class AnimationComponent extends Component {
       if (this.blending && animEvaluator.clips.length > 1) {
         animEvaluator.clips[1].blendWeight = this.blend;
       }
-
       animEvaluator.update(dt);
     }
 
@@ -517,7 +450,6 @@ class AnimationComponent extends Component {
       this.blending = false;
     }
   }
-
 }
 
 export { AnimationComponent };

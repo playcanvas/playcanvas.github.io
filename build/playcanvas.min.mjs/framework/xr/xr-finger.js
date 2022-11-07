@@ -1,0 +1,1 @@
+class t{constructor(t,i){this._index=void 0,this._hand=void 0,this._joints=[],this._tip=null,this._index=t,this._hand=i,this._hand._fingers.push(this)}get index(){return this._index}get hand(){return this._hand}get joints(){return this._joints}get tip(){return this._tip}}export{t as XrFinger};

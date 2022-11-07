@@ -1,9 +1,9 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
-import { Vec3 } from '../../../math/vec3.js';
+import { Vec3 } from '../../../core/math/vec3.js';
 import { Component } from '../component.js';
 import { ComponentSystem } from '../system.js';
 import { ZoneComponent } from './component.js';
@@ -20,10 +20,8 @@ class ZoneComponentSystem extends ComponentSystem {
     this.schema = _schema;
     this.on('beforeremove', this._onBeforeRemove, this);
   }
-
   initializeComponentData(component, data, properties) {
     component.enabled = data.hasOwnProperty('enabled') ? !!data.enabled : true;
-
     if (data.size) {
       if (data.size instanceof Vec3) {
         component.size.copy(data.size);
@@ -32,20 +30,16 @@ class ZoneComponentSystem extends ComponentSystem {
       }
     }
   }
-
   cloneComponent(entity, clone) {
     const data = {
       size: entity.zone.size
     };
     return this.addComponent(clone, data);
   }
-
   _onBeforeRemove(entity, component) {
     component._onBeforeRemove();
   }
-
 }
-
 Component._buildAccessors(ZoneComponent.prototype, _schema);
 
 export { ZoneComponentSystem };

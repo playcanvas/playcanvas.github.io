@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 let desktop = false;
@@ -13,12 +13,10 @@ let touch = false;
 let gamepads = false;
 let workers = false;
 let passiveEvents = false;
-
 if (typeof navigator !== 'undefined') {
   const ua = navigator.userAgent;
   if (/(windows|mac os|linux|cros)/i.test(ua)) desktop = true;
   if (/xbox/i.test(ua)) xbox = true;
-
   if (/(windows phone|iemobile|wpdesktop)/i.test(ua)) {
     desktop = false;
     mobile = true;
@@ -32,14 +30,11 @@ if (typeof navigator !== 'undefined') {
     mobile = true;
     ios = true;
   }
-
   if (typeof window !== 'undefined') {
     touch = 'ontouchstart' in window || 'maxTouchPoints' in navigator && navigator.maxTouchPoints > 0;
   }
-
   gamepads = 'getGamepads' in navigator;
   workers = typeof Worker !== 'undefined';
-
   try {
     const opts = Object.defineProperty({}, 'passive', {
       get: function () {
@@ -53,6 +48,7 @@ if (typeof navigator !== 'undefined') {
 }
 
 const environment = typeof window !== 'undefined' ? 'browser' : 'node';
+
 const platform = {
   environment: environment,
   global: environment === 'browser' ? window : global,

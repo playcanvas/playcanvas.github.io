@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import '../../../core/tracing.js';
@@ -12,23 +12,18 @@ class ScriptLegacyComponent extends Component {
     super(system, entity);
     this.on('set_scripts', this.onSetScripts, this);
   }
-
   send(name, functionName) {
     const args = Array.prototype.slice.call(arguments, 2);
     const instances = this.entity.script.instances;
     let fn;
-
     if (instances && instances[name]) {
       fn = instances[name].instance[functionName];
-
       if (fn) {
         return fn.apply(instances[name].instance, args);
       }
     }
-
     return undefined;
   }
-
   onEnable() {
     if (this.data.areScriptsLoaded && !this.system.preloading) {
       if (!this.data.initialized) {
@@ -36,17 +31,14 @@ class ScriptLegacyComponent extends Component {
       } else {
         this.system._enableScriptComponent(this);
       }
-
       if (!this.data.postInitialized) {
         this.system._postInitializeScriptComponent(this);
       }
     }
   }
-
   onDisable() {
     this.system._disableScriptComponent(this);
   }
-
   onSetScripts(name, oldValue, newValue) {
     if (!this.system._inTools || this.runInTools) {
       if (this._updateScriptAttributes(oldValue, newValue)) {
@@ -56,10 +48,9 @@ class ScriptLegacyComponent extends Component {
       if (this.enabled) {
         this.system._disableScriptComponent(this);
       }
-
       this.system._destroyScriptComponent(this);
-
       this.data.areScriptsLoaded = false;
+
       const scripts = newValue;
       const urls = scripts.map(function (s) {
         return s.url;
@@ -75,7 +66,6 @@ class ScriptLegacyComponent extends Component {
 
   _updateScriptAttributes(oldValue, newValue) {
     let onlyUpdateAttributes = true;
-
     if (oldValue.length !== newValue.length) {
       onlyUpdateAttributes = false;
     } else {
@@ -86,7 +76,6 @@ class ScriptLegacyComponent extends Component {
         }
       }
     }
-
     if (onlyUpdateAttributes) {
       for (const key in this.instances) {
         if (this.instances.hasOwnProperty(key)) {
@@ -94,7 +83,6 @@ class ScriptLegacyComponent extends Component {
         }
       }
     }
-
     return onlyUpdateAttributes;
   }
 
@@ -102,23 +90,18 @@ class ScriptLegacyComponent extends Component {
     const cached = [];
     const prefix = this.system.app._scriptPrefix || '';
     const regex = /^http(s)?:\/\//i;
-
     for (let i = 0, len = urls.length; i < len; i++) {
       let url = urls[i];
-
       if (!regex.test(url)) {
         url = path.join(prefix, url);
       }
-
       const type = this.system.app.loader.getFromCache(url, 'script');
 
       if (!type) {
         return false;
       }
-
       cached.push(type);
     }
-
     for (let i = 0, len = cached.length; i < len; i++) {
       const ScriptType = cached[i];
 
@@ -129,12 +112,10 @@ class ScriptLegacyComponent extends Component {
       if (ScriptType && this.entity.script) {
         if (!this.entity.script.instances[ScriptType._pcScriptName]) {
           const instance = new ScriptType(this.entity);
-
           this.system._preRegisterInstance(this.entity, urls[i], ScriptType._pcScriptName, instance);
         }
       }
     }
-
     if (this.data) {
       this.data.areScriptsLoaded = true;
     }
@@ -143,17 +124,14 @@ class ScriptLegacyComponent extends Component {
       this.system.onInitialize(this.entity);
       this.system.onPostInitialize(this.entity);
     }
-
     return true;
   }
-
   _loadScripts(urls) {
     let count = urls.length;
     const prefix = this.system.app._scriptPrefix || '';
     urls.forEach(url => {
       let _url = null;
       let _unprefixed = null;
-
       if (url.toLowerCase().startsWith('http://') || url.toLowerCase().startsWith('https://')) {
         _unprefixed = url;
         _url = url;
@@ -161,22 +139,18 @@ class ScriptLegacyComponent extends Component {
         _unprefixed = url;
         _url = path.join(prefix, url);
       }
-
       this.system.app.loader.load(_url, 'script', (err, ScriptType) => {
         count--;
-
         if (!err) {
           if (ScriptType && this.entity.script) {
             if (!this.entity.script.instances[ScriptType._pcScriptName]) {
               const instance = new ScriptType(this.entity);
-
               this.system._preRegisterInstance(this.entity, _unprefixed, ScriptType._pcScriptName, instance);
             }
           }
         } else {
           console.error(err);
         }
-
         if (count === 0) {
           this.data.areScriptsLoaded = true;
 
@@ -188,7 +162,6 @@ class ScriptLegacyComponent extends Component {
       });
     });
   }
-
 }
 
 export { ScriptLegacyComponent };

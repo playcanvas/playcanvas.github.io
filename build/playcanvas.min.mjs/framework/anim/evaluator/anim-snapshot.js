@@ -1,0 +1,1 @@
+import{AnimCache as t}from"./anim-cache.js";class s{constructor(s){this._name=s.name+"Snapshot",this._time=-1,this._cache=[],this._results=[];for(let e=0;e<s._inputs.length;++e)this._cache[e]=new t;const e=s._curves,o=s._outputs;for(let t=0;t<e.length;++t){const s=o[e[t]._output],c=[];for(let t=0;t<s._components;++t)c[t]=0;this._results[t]=c}}}export{s as AnimSnapshot};

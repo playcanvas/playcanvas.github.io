@@ -1,8 +1,8 @@
 import '../../../core/tracing.js';
-import { AnimTrack } from '../../../anim/evaluator/anim-track.js';
-import { AnimTransition } from '../../../anim/controller/anim-transition.js';
-import { ANIM_LAYER_OVERWRITE } from '../../../anim/controller/constants.js';
-import { math } from '../../../math/math.js';
+import { AnimTrack } from '../../anim/evaluator/anim-track.js';
+import { AnimTransition } from '../../anim/controller/anim-transition.js';
+import { ANIM_LAYER_OVERWRITE } from '../../anim/controller/constants.js';
+import { math } from '../../../core/math/math.js';
 
 class AnimComponentLayer {
   constructor(name, controller, component, weight = 1, blendType = ANIM_LAYER_OVERWRITE, normalizedWeight = true) {
@@ -26,7 +26,6 @@ class AnimComponentLayer {
   set playing(value) {
     this._controller.playing = value;
   }
-
   get playing() {
     return this._controller.playing;
   }
@@ -56,14 +55,11 @@ class AnimComponentLayer {
     const layerPlaying = controller.playing;
     controller.playing = true;
     controller.activeStateCurrentTime = time;
-
     if (!layerPlaying) {
       controller.update(0);
     }
-
     controller.playing = layerPlaying;
   }
-
   get activeStateCurrentTime() {
     return this._controller.activeStateCurrentTime;
   }
@@ -76,7 +72,6 @@ class AnimComponentLayer {
     if (this.transitioning) {
       return this._controller.transitionProgress;
     }
-
     return null;
   }
 
@@ -86,24 +81,19 @@ class AnimComponentLayer {
 
   set weight(value) {
     this._weight = value;
-
     this._component.dirtifyTargets();
   }
-
   get weight() {
     return this._weight;
   }
-
   set blendType(value) {
     if (value !== this._blendType) {
       this._blendType = value;
-
       if (this._controller.normalizeWeights) {
         this._component.rebind();
       }
     }
   }
-
   get blendType() {
     return this._blendType;
   }
@@ -112,10 +102,8 @@ class AnimComponentLayer {
     if (this._controller.assignMask(value)) {
       this._component.rebind();
     }
-
     this._mask = value;
   }
-
   get mask() {
     return this._mask;
   }
@@ -135,7 +123,6 @@ class AnimComponentLayer {
   rebind() {
     this._controller.rebind();
   }
-
   update(dt) {
     if (this._blendTime) {
       if (this._blendTimeElapsed < this._blendTime) {
@@ -149,7 +136,6 @@ class AnimComponentLayer {
         this._targetWeight = 0;
       }
     }
-
     this._controller.update(dt);
   }
 
@@ -164,7 +150,6 @@ class AnimComponentLayer {
     if (this._controller.assignMask(mask)) {
       this._component.rebind();
     }
-
     this._mask = mask;
   }
 
@@ -172,16 +157,13 @@ class AnimComponentLayer {
     if (animTrack.constructor !== AnimTrack) {
       return;
     }
-
     this._controller.assignAnimation(nodePath, animTrack, speed, loop);
-
     if (this._controller._transitions.length === 0) {
       this._controller._transitions.push(new AnimTransition({
         from: 'START',
         to: nodePath
       }));
     }
-
     if (this._component.activate && this._component.playable) {
       this._component.playing = true;
     }
@@ -205,7 +187,6 @@ class AnimComponentLayer {
       transitionOffset
     }));
   }
-
 }
 
 export { AnimComponentLayer };

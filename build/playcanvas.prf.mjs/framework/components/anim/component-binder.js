@@ -1,23 +1,22 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
-import { AnimTarget } from '../../../anim/evaluator/anim-target.js';
-import { DefaultAnimBinder } from '../../../anim/binder/default-anim-binder.js';
-import { AnimBinder } from '../../../anim/binder/anim-binder.js';
-import { Color } from '../../../math/color.js';
-import { Quat } from '../../../math/quat.js';
-import { Vec2 } from '../../../math/vec2.js';
-import { Vec3 } from '../../../math/vec3.js';
-import { Vec4 } from '../../../math/vec4.js';
+import { AnimTarget } from '../../anim/evaluator/anim-target.js';
+import { DefaultAnimBinder } from '../../anim/binder/default-anim-binder.js';
+import { AnimBinder } from '../../anim/binder/anim-binder.js';
+import { Color } from '../../../core/math/color.js';
+import { Quat } from '../../../core/math/quat.js';
+import { Vec2 } from '../../../core/math/vec2.js';
+import { Vec3 } from '../../../core/math/vec3.js';
+import { Vec4 } from '../../../core/math/vec4.js';
 
 const v2 = new Vec2();
 const v3 = new Vec3();
 const v4 = new Vec4();
 const c = new Color();
 const q = new Quat();
-
 class AnimComponentBinder extends DefaultAnimBinder {
   constructor(animComponent, graph, layerName, mask, layerIndex) {
     super(graph);
@@ -26,28 +25,23 @@ class AnimComponentBinder extends DefaultAnimBinder {
     this.layerName = layerName;
     this.layerIndex = layerIndex;
   }
-
   static _packFloat(values) {
     return values[0];
   }
-
   static _packBoolean(values) {
     return !!values[0];
   }
-
   static _packVec2(values) {
     v2.x = values[0];
     v2.y = values[1];
     return v2;
   }
-
   static _packVec3(values) {
     v3.x = values[0];
     v3.y = values[1];
     v3.z = values[2];
     return v3;
   }
-
   static _packVec4(values) {
     v4.x = values[0];
     v4.y = values[1];
@@ -55,7 +49,6 @@ class AnimComponentBinder extends DefaultAnimBinder {
     v4.w = values[3];
     return v4;
   }
-
   static _packColor(values) {
     c.r = values[0];
     c.g = values[1];
@@ -63,7 +56,6 @@ class AnimComponentBinder extends DefaultAnimBinder {
     c.a = values[3];
     return c;
   }
-
   static _packQuat(values) {
     q.x = values[0];
     q.y = values[1];
@@ -71,7 +63,6 @@ class AnimComponentBinder extends DefaultAnimBinder {
     q.w = values[3];
     return q;
   }
-
   resolve(path) {
     const encodedPath = AnimBinder.encode(path.entityPath, path.component, path.propertyPath);
     let target = this.targetCache[encodedPath];
@@ -79,20 +70,17 @@ class AnimComponentBinder extends DefaultAnimBinder {
     let entity;
     let propertyComponent;
     let targetPath;
-
     switch (path.component) {
       case 'entity':
         entity = this._getEntityFromHierarchy(path.entityPath);
         targetPath = AnimBinder.encode(entity.path, 'entity', path.propertyPath);
         propertyComponent = entity;
         break;
-
       case 'graph':
         propertyComponent = this.findNode(path);
         if (!propertyComponent) return null;
         targetPath = AnimBinder.encode(propertyComponent.path, 'graph', path.propertyPath);
         break;
-
       default:
         entity = this._getEntityFromHierarchy(path.entityPath);
         propertyComponent = entity.findComponent(path.component);
@@ -100,52 +88,42 @@ class AnimComponentBinder extends DefaultAnimBinder {
         targetPath = AnimBinder.encode(entity.path, path.component, path.propertyPath);
         break;
     }
-
     target = this._createAnimTargetForProperty(propertyComponent, path.propertyPath, targetPath);
     this.targetCache[encodedPath] = target;
     return target;
   }
-
   update(deltaTime) {
     const activeNodes = this.activeNodes;
-
     if (activeNodes) {
       for (let i = 0; i < activeNodes.length; i++) {
         activeNodes[i]._dirtifyLocal();
       }
     }
   }
-
   _getEntityFromHierarchy(entityHierarchy) {
     if (!this.animComponent.entity.name === entityHierarchy[0]) {
       return null;
     }
-
     const currEntity = this.animComponent.entity;
-
     if (entityHierarchy.length === 1) {
       return currEntity;
     }
-
     return currEntity._parent.findByPath(entityHierarchy);
   }
 
   _resolvePath(object, path, resolveLeaf) {
     const steps = path.length - (resolveLeaf ? 0 : 1);
-
     for (let i = 0; i < steps; i++) {
       object = object[path[i]];
     }
-
     return object;
   }
 
   _setter(object, path, packFunc) {
     const obj = this._resolvePath(object, path);
-
     const key = path[path.length - 1];
-    const setterFuncName = 'set' + key.substring(0, 1).toUpperCase() + key.substring(1);
 
+    const setterFuncName = 'set' + key.substring(0, 1).toUpperCase() + key.substring(1);
     if (obj[setterFuncName]) {
       const getterFunc = obj['get' + key.substring(0, 1).toUpperCase() + key.substring(1)].bind(obj);
       let baseValues = getterFunc();
@@ -158,7 +136,6 @@ class AnimComponentBinder extends DefaultAnimBinder {
         get: () => baseValues
       };
     }
-
     const prop = obj[key];
 
     if (typeof prop === 'object' && prop.hasOwnProperty('copy')) {
@@ -180,25 +157,20 @@ class AnimComponentBinder extends DefaultAnimBinder {
       obj[key] = packFunc(values);
     };
   }
-
   _createAnimTargetForProperty(propertyComponent, propertyHierarchy, targetPath) {
     if (this.handlers && propertyHierarchy[0].startsWith('weight.')) {
       return this.handlers.weight(propertyComponent, propertyHierarchy[0].replace('weight.', ''));
     } else if (this.handlers && propertyHierarchy[0] === 'material' && propertyHierarchy.length === 2) {
       const materialPropertyName = propertyHierarchy[1];
-
       if (materialPropertyName.endsWith('Map')) {
         return this.handlers.materialTexture(propertyComponent, materialPropertyName);
       }
     }
-
     const property = this._resolvePath(propertyComponent, propertyHierarchy, true);
-
     if (typeof property === 'undefined') return null;
     let setter;
     let animDataType;
     let animDataComponents;
-
     if (typeof property === 'number') {
       setter = this._setter(propertyComponent, propertyHierarchy, AnimComponentBinder._packFloat);
       animDataType = 'vector';
@@ -214,31 +186,26 @@ class AnimComponentBinder extends DefaultAnimBinder {
           animDataType = 'vector';
           animDataComponents = 2;
           break;
-
         case Vec3:
           setter = this._setter(propertyComponent, propertyHierarchy, AnimComponentBinder._packVec3);
           animDataType = 'vector';
           animDataComponents = 3;
           break;
-
         case Vec4:
           setter = this._setter(propertyComponent, propertyHierarchy, AnimComponentBinder._packVec4);
           animDataType = 'vector';
           animDataComponents = 4;
           break;
-
         case Color:
           setter = this._setter(propertyComponent, propertyHierarchy, AnimComponentBinder._packColor);
           animDataType = 'vector';
           animDataComponents = 4;
           break;
-
         case Quat:
           setter = this._setter(propertyComponent, propertyHierarchy, AnimComponentBinder._packQuat);
           animDataType = 'quaternion';
           animDataComponents = 4;
           break;
-
         default:
           return null;
       }
@@ -250,33 +217,25 @@ class AnimComponentBinder extends DefaultAnimBinder {
         propertyComponent.material.update();
       }, animDataType, animDataComponents, targetPath);
     }
-
     return new AnimTarget(setter, animDataType, animDataComponents, targetPath);
   }
-
   rebind() {
     this.targetCache = {};
-
     if (this.animComponent.rootBone) {
       this.graph = this.animComponent.rootBone;
     } else {
       this.graph = this.animComponent.entity;
     }
-
     const nodes = {};
-
     const flatten = function flatten(node) {
       nodes[node.name] = node;
-
       for (let i = 0; i < node.children.length; ++i) {
         flatten(node.children[i]);
       }
     };
-
     flatten(this.graph);
     this.nodes = nodes;
   }
-
 }
 
 export { AnimComponentBinder };

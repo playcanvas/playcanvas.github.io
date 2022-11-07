@@ -1,35 +1,30 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
-import { _matTex2D } from '../../graphics/program-lib/programs/standard.js';
-import { PIXELFORMAT_DXT5, TEXTURETYPE_SWIZZLEGGGR } from '../../graphics/constants.js';
+import { _matTex2D } from '../shader-lib/programs/standard.js';
+import { PIXELFORMAT_DXT5, TEXTURETYPE_SWIZZLEGGGR } from '../../platform/graphics/constants.js';
 import { SHADER_FORWARDHDR, GAMMA_SRGBHDR, TONEMAP_LINEAR, SHADERDEF_TANGENTS, SHADERDEF_SCREENSPACE, SHADERDEF_SKIN, SHADERDEF_INSTANCING, SHADERDEF_MORPH_POSITION, SHADERDEF_MORPH_NORMAL, SHADERDEF_MORPH_TEXTURE_BASED, BLEND_NONE, GAMMA_NONE, SPECULAR_PHONG, SHADERDEF_NOSHADOW, SHADERDEF_LM, SHADERDEF_DIRLM, SHADERDEF_LMAMBIENT, MASK_AFFECT_DYNAMIC, LIGHTTYPE_DIRECTIONAL, LIGHTTYPE_OMNI, LIGHTTYPE_SPOT, SHADERDEF_UV0, SHADERDEF_UV1, SHADERDEF_VCOLOR } from '../constants.js';
-import { Quat } from '../../math/quat.js';
+import { Quat } from '../../core/math/quat.js';
 
 const arraysEqual = (a, b) => {
   if (a.length !== b.length) {
     return false;
   }
-
   for (let i = 0; i < a.length; ++i) {
     if (a[i] !== b[i]) {
       return false;
     }
   }
-
   return true;
 };
-
 const notWhite = color => {
   return color.r !== 1 || color.g !== 1 || color.b !== 1;
 };
-
 const notBlack = color => {
   return color.r !== 0 || color.g !== 0 || color.b !== 0;
 };
-
 class StandardMaterialOptionsBuilder {
   constructor() {
     this._mapXForms = null;
@@ -37,31 +32,21 @@ class StandardMaterialOptionsBuilder {
 
   updateMinRef(options, scene, stdMat, objDefs, staticLightList, pass, sortedLights) {
     this._updateSharedOptions(options, scene, stdMat, objDefs, pass);
-
     this._updateMinOptions(options, stdMat);
-
     this._updateUVOptions(options, stdMat, objDefs, true);
   }
-
   updateRef(options, scene, stdMat, objDefs, staticLightList, pass, sortedLights) {
     this._updateSharedOptions(options, scene, stdMat, objDefs, pass);
-
     this._updateEnvOptions(options, stdMat, scene);
-
     this._updateMaterialOptions(options, stdMat);
-
     if (pass === SHADER_FORWARDHDR) {
       if (options.gamma) options.gamma = GAMMA_SRGBHDR;
       options.toneMap = TONEMAP_LINEAR;
     }
-
     options.hasTangents = objDefs && (objDefs & SHADERDEF_TANGENTS) !== 0;
-
     this._updateLightOptions(options, stdMat, objDefs, sortedLights, staticLightList);
-
     this._updateUVOptions(options, stdMat, objDefs, false);
   }
-
   _updateSharedOptions(options, scene, stdMat, objDefs, pass) {
     options.pass = pass;
     options.alphaTest = stdMat.alphaTest > 0;
@@ -91,37 +76,29 @@ class StandardMaterialOptionsBuilder {
       options.clusteredLightingAreaLightsEnabled = false;
     }
   }
-
   _updateUVOptions(options, stdMat, objDefs, minimalOptions) {
     let hasUv0 = false;
     let hasUv1 = false;
     let hasVcolor = false;
-
     if (objDefs) {
       hasUv0 = (objDefs & SHADERDEF_UV0) !== 0;
       hasUv1 = (objDefs & SHADERDEF_UV1) !== 0;
       hasVcolor = (objDefs & SHADERDEF_VCOLOR) !== 0;
     }
-
     options.vertexColors = false;
     this._mapXForms = [];
     const uniqueTextureMap = {};
-
     for (const p in _matTex2D) {
       this._updateTexOptions(options, stdMat, p, hasUv0, hasUv1, hasVcolor, minimalOptions, uniqueTextureMap);
     }
-
     this._mapXForms = null;
   }
-
   _updateMinOptions(options, stdMat) {
     options.opacityTint = stdMat.opacity !== 1 && stdMat.blendType !== BLEND_NONE;
     options.lights = [];
   }
-
   _updateMaterialOptions(options, stdMat) {
     var _stdMat$diffuseMap, _stdMat$diffuseDetail, _stdMat$emissiveMap, _stdMat$lightMap;
-
     const diffuseTint = (stdMat.diffuseTint || !stdMat.diffuseMap && !stdMat.diffuseVertexColor) && notWhite(stdMat.diffuse);
     const useSpecular = !!(stdMat.useMetalness || stdMat.specularMap || stdMat.sphereMap || stdMat.cubeMap || notBlack(stdMat.specular) || stdMat.specularityFactor > 0 && stdMat.useMetalness || stdMat.enableGGXSpecular || stdMat.clearCoat > 0);
     const useSpecularColor = !stdMat.useMetalness || stdMat.useMetalnessSpecularColor;
@@ -162,6 +139,7 @@ class StandardMaterialOptionsBuilder {
     options.cubeMapProjection = stdMat.cubeMapProjection;
     options.customFragmentShader = stdMat.customFragmentShader;
     options.refraction = (stdMat.refraction || !!stdMat.refractionMap) && (stdMat.useDynamicRefraction || !!options.reflectionSource);
+    options.refractionTint = stdMat.refraction !== 1.0 ? 1 : 0;
     options.useDynamicRefraction = stdMat.useDynamicRefraction;
     options.refractionIndexTint = stdMat.refractionIndex !== 1.0 / 1.5 ? 1 : 0;
     options.thicknessTint = stdMat.useDynamicRefraction && stdMat.thickness !== 1.0 ? 1 : 0;
@@ -188,7 +166,6 @@ class StandardMaterialOptionsBuilder {
     options.sheenTint = stdMat.useSheen && notWhite(stdMat.sheen) ? 2 : 0;
     options.sheenGlossinessTint = 1;
   }
-
   _updateEnvOptions(options, stdMat, scene) {
     options.fog = stdMat.useFog ? scene.fog : 'none';
     options.gamma = stdMat.useGammaTonemap ? scene.gammaCorrection : GAMMA_NONE;
@@ -231,7 +208,6 @@ class StandardMaterialOptionsBuilder {
       options.ambientEncoding = null;
     } else {
       const envAtlas = stdMat.envAtlas || (stdMat.useSkybox && scene.envAtlas ? scene.envAtlas : null);
-
       if (envAtlas && !isPhong) {
         options.ambientSource = 'envAtlas';
         options.ambientEncoding = envAtlas.encoding;
@@ -241,10 +217,9 @@ class StandardMaterialOptionsBuilder {
       }
     }
 
-    options.skyboxIntensity = usingSceneEnv && (scene.skyboxIntensity !== 1 || scene.skyboxLuminance !== 0);
+    options.skyboxIntensity = usingSceneEnv && (scene.skyboxIntensity !== 1 || scene.physicalUnits);
     options.useCubeMapRotation = usingSceneEnv && scene.skyboxRotation && !scene.skyboxRotation.equals(Quat.IDENTITY);
   }
-
   _updateLightOptions(options, stdMat, objDefs, sortedLights, staticLightList) {
     options.lightMap = false;
     options.lightMapChannel = '';
@@ -252,10 +227,8 @@ class StandardMaterialOptionsBuilder {
     options.lightMapTransform = 0;
     options.lightMapWithoutAmbient = false;
     options.dirLightMap = false;
-
     if (objDefs) {
       options.noShadow = (objDefs & SHADERDEF_NOSHADOW) !== 0;
-
       if ((objDefs & SHADERDEF_LM) !== 0) {
         options.lightMapEncoding = 'rgbm';
         options.lightMap = true;
@@ -263,7 +236,6 @@ class StandardMaterialOptionsBuilder {
         options.lightMapUv = 1;
         options.lightMapTransform = 0;
         options.lightMapWithoutAmbient = !stdMat.lightMap;
-
         if ((objDefs & SHADERDEF_DIRLM) !== 0) {
           options.dirLightMap = true;
         }
@@ -273,30 +245,24 @@ class StandardMaterialOptionsBuilder {
         }
       }
     }
-
     if (stdMat.useLighting) {
       const lightsFiltered = [];
       const mask = objDefs ? objDefs >> 16 : MASK_AFFECT_DYNAMIC;
-      options.lightMaskDynamic = !!(mask & MASK_AFFECT_DYNAMIC);
 
+      options.lightMaskDynamic = !!(mask & MASK_AFFECT_DYNAMIC);
       if (sortedLights) {
         this._collectLights(LIGHTTYPE_DIRECTIONAL, sortedLights[LIGHTTYPE_DIRECTIONAL], lightsFiltered, mask);
-
         this._collectLights(LIGHTTYPE_OMNI, sortedLights[LIGHTTYPE_OMNI], lightsFiltered, mask, staticLightList);
-
         this._collectLights(LIGHTTYPE_SPOT, sortedLights[LIGHTTYPE_SPOT], lightsFiltered, mask, staticLightList);
       }
-
       options.lights = lightsFiltered;
     } else {
       options.lights = [];
     }
-
     if (options.lights.length === 0) {
       options.noShadow = true;
     }
   }
-
   _updateTexOptions(options, stdMat, p, hasUv0, hasUv1, hasVcolor, minimalOptions, uniqueTextureMap) {
     const mname = p + 'Map';
     const vname = p + 'VertexColor';
@@ -313,12 +279,10 @@ class StandardMaterialOptionsBuilder {
       options[uname] = 0;
       options[iname] = undefined;
     }
-
     options[vname] = false;
     options[vcname] = '';
     const isOpacity = p === 'opacity';
     if (isOpacity && stdMat.blendType === BLEND_NONE && stdMat.alphaTest === 0.0 && !stdMat.alphaToCoverage) return;
-
     if (!minimalOptions || isOpacity) {
       if (p !== 'height' && stdMat[vname]) {
         if (hasVcolor) {
@@ -327,21 +291,17 @@ class StandardMaterialOptionsBuilder {
           options.vertexColors = true;
         }
       }
-
       if (stdMat[mname]) {
         let allow = true;
         if (stdMat[uname] === 0 && !hasUv0) allow = false;
         if (stdMat[uname] === 1 && !hasUv1) allow = false;
-
         if (allow) {
           const mapId = stdMat[mname].id;
           let identifier = uniqueTextureMap[mapId];
-
           if (identifier === undefined) {
             uniqueTextureMap[mapId] = p;
             identifier = p;
           }
-
           options[mname] = !!stdMat[mname];
           options[iname] = identifier;
           options[tname] = this._getMapTransformID(stdMat.getUniform(tname), stdMat[uname]);
@@ -351,11 +311,9 @@ class StandardMaterialOptionsBuilder {
       }
     }
   }
-
   _collectLights(lType, lights, lightsFiltered, mask, staticLightList) {
     for (let i = 0; i < lights.length; i++) {
       const light = lights[i];
-
       if (light.enabled) {
         if (light.mask & mask) {
           if (lType !== LIGHTTYPE_DIRECTIONAL) {
@@ -363,41 +321,33 @@ class StandardMaterialOptionsBuilder {
               continue;
             }
           }
-
           lightsFiltered.push(light);
         }
       }
     }
-
     if (staticLightList) {
       for (let i = 0; i < staticLightList.length; i++) {
         const light = staticLightList[i];
-
         if (light._type === lType) {
           lightsFiltered.push(light);
         }
       }
     }
   }
-
   _getMapTransformID(xform, uv) {
     if (!xform) return 0;
     let xforms = this._mapXForms[uv];
-
     if (!xforms) {
       xforms = [];
       this._mapXForms[uv] = xforms;
     }
-
     for (let i = 0; i < xforms.length; i++) {
       if (arraysEqual(xforms[i][0].value, xform[0].value) && arraysEqual(xforms[i][1].value, xform[1].value)) {
         return i + 1;
       }
     }
-
     return xforms.push(xform);
   }
-
 }
 
 export { StandardMaterialOptionsBuilder };

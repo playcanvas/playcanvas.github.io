@@ -1,9 +1,9 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
-import { Vec3 } from '../../../math/vec3.js';
+import { Vec3 } from '../../../core/math/vec3.js';
 import { Component } from '../component.js';
 
 class ZoneComponent extends Component {
@@ -21,23 +21,18 @@ class ZoneComponent extends Component {
       this.size.set(data[0], data[1], data[2]);
     }
   }
-
   get size() {
     return this._size;
   }
-
   onEnable() {
     this._checkState();
   }
-
   onDisable() {
     this._checkState();
   }
-
   _onSetEnabled(prop, old, value) {
     this._checkState();
   }
-
   _checkState() {
     const state = this.enabled && this.entity.enabled;
     if (state === this._oldState) return;
@@ -45,11 +40,9 @@ class ZoneComponent extends Component {
     this.fire('enable');
     this.fire('state', this.enabled);
   }
-
   _onBeforeRemove() {
     this.fire('remove');
   }
-
 }
 
 export { ZoneComponent };

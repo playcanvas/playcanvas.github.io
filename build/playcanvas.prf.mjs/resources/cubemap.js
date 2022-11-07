@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-dev revision e102f2b2a (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import { ADDRESS_CLAMP_TO_EDGE, PIXELFORMAT_R8_G8_B8, PIXELFORMAT_R8_G8_B8_A8, TEXTURETYPE_RGBM, TEXTURETYPE_DEFAULT } from '../graphics/constants.js';

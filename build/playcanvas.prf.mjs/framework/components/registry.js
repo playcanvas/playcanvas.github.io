@@ -1,13 +1,15 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import { EventHandler } from '../../core/event-handler.js';
 
 class ComponentSystemRegistry extends EventHandler {
+
   constructor() {
     super();
+
     this.anim = void 0;
     this.animation = void 0;
     this.audiolistener = void 0;
@@ -36,38 +38,32 @@ class ComponentSystemRegistry extends EventHandler {
 
   add(system) {
     const id = system.id;
-
     if (this[id]) {
       throw new Error(`ComponentSystem name '${id}' already registered or not allowed`);
     }
-
     this[id] = system;
+
     this.list.push(system);
   }
 
   remove(system) {
     const id = system.id;
-
     if (!this[id]) {
       throw new Error(`No ComponentSystem named '${id}' registered`);
     }
-
     delete this[id];
-    const index = this.list.indexOf(this[id]);
 
+    const index = this.list.indexOf(this[id]);
     if (index !== -1) {
       this.list.splice(index, 1);
     }
   }
-
   destroy() {
     this.off();
-
     for (let i = 0; i < this.list.length; i++) {
       this.list[i].destroy();
     }
   }
-
 }
 
 export { ComponentSystemRegistry };

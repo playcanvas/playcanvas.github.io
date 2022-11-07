@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import '../../core/tracing.js';
@@ -16,45 +16,55 @@ const tempSet = new Set();
 const tempClusterArray = [];
 
 class LayerComposition extends EventHandler {
+
   constructor(name = 'Untitled') {
     super();
     this.name = name;
+
     this.layerList = [];
+
     this.subLayerList = [];
+
     this.subLayerEnabled = [];
+
     this._opaqueOrder = {};
     this._transparentOrder = {};
     this._dirty = false;
     this._dirtyBlend = false;
     this._dirtyLights = false;
     this._dirtyCameras = false;
+
     this._meshInstances = [];
     this._meshInstancesSet = new Set();
+
     this._lights = [];
+
     this._lightsMap = new Map();
+
     this._lightCompositionData = [];
+
     this._splitLights = [[], [], []];
+
     this.cameras = [];
+
     this._renderActions = [];
+
     this._worldClusters = [];
+
     this._emptyWorldClusters = null;
   }
-
   destroy() {
     if (this._emptyWorldClusters) {
       this._emptyWorldClusters.destroy();
-
       this._emptyWorldClusters = null;
     }
 
     this._worldClusters.forEach(cluster => {
       cluster.destroy();
     });
-
     this._worldClusters = null;
 
     this._renderActions.forEach(ra => ra.destroy());
-
     this._renderActions = null;
   }
 
@@ -65,7 +75,6 @@ class LayerComposition extends EventHandler {
 
       this._emptyWorldClusters.update([], false, null);
     }
-
     return this._emptyWorldClusters;
   }
 
@@ -74,16 +83,13 @@ class LayerComposition extends EventHandler {
     target._splitLights[LIGHTTYPE_DIRECTIONAL].length = 0;
     target._splitLights[LIGHTTYPE_OMNI].length = 0;
     target._splitLights[LIGHTTYPE_SPOT].length = 0;
-
     for (let i = 0; i < lights.length; i++) {
       const light = lights[i];
-
       if (light.enabled) {
         target._splitLights[light._type].push(light);
       }
     }
   }
-
   _update(device, clusteredLightingEnabled = false) {
     const len = this.layerList.length;
     let result = 0;
@@ -91,15 +97,12 @@ class LayerComposition extends EventHandler {
     if (!this._dirty || !this._dirtyLights || !this._dirtyCameras) {
       for (let i = 0; i < len; i++) {
         const layer = this.layerList[i];
-
         if (layer._dirty) {
           this._dirty = true;
         }
-
         if (layer._dirtyLights) {
           this._dirtyLights = true;
         }
-
         if (layer._dirtyCameras) {
           this._dirtyCameras = true;
         }
@@ -109,51 +112,42 @@ class LayerComposition extends EventHandler {
     function addUniqueMeshInstance(destArray, destSet, srcArray) {
       let dirtyBlend = false;
       const srcLen = srcArray.length;
-
       for (let s = 0; s < srcLen; s++) {
         const meshInst = srcArray[s];
-
         if (!destSet.has(meshInst)) {
           destSet.add(meshInst);
           destArray.push(meshInst);
           const material = meshInst.material;
-
           if (material && material._dirtyBlend) {
             dirtyBlend = true;
             material._dirtyBlend = false;
           }
         }
       }
-
       return dirtyBlend;
     }
 
     if (this._dirty) {
       result |= COMPUPDATED_INSTANCES;
       this._meshInstances.length = 0;
-
       this._meshInstancesSet.clear();
-
       for (let i = 0; i < len; i++) {
         const layer = this.layerList[i];
-
         if (!layer.passThrough) {
           this._dirtyBlend = addUniqueMeshInstance(this._meshInstances, this._meshInstancesSet, layer.opaqueMeshInstances) || this._dirtyBlend;
           this._dirtyBlend = addUniqueMeshInstance(this._meshInstances, this._meshInstancesSet, layer.transparentMeshInstances) || this._dirtyBlend;
         }
-
         layer._dirty = false;
       }
-
       this._dirty = false;
     }
 
     function moveByBlendType(dest, src, moveTransparent) {
       for (let s = 0; s < src.length;) {
         var _src$s$material;
-
         if (((_src$s$material = src[s].material) == null ? void 0 : _src$s$material.transparent) === moveTransparent) {
           dest.push(src[s]);
+
           src[s] = src[src.length - 1];
           src.length--;
         } else {
@@ -164,19 +158,16 @@ class LayerComposition extends EventHandler {
 
     if (this._dirtyBlend) {
       result |= COMPUPDATED_BLEND;
-
       for (let i = 0; i < len; i++) {
         const layer = this.layerList[i];
-
         if (!layer.passThrough) {
           moveByBlendType(layer.opaqueMeshInstances, layer.transparentMeshInstances, false);
+
           moveByBlendType(layer.transparentMeshInstances, layer.opaqueMeshInstances, true);
         }
       }
-
       this._dirtyBlend = false;
     }
-
     if (this._dirtyLights) {
       result |= COMPUPDATED_LIGHTS;
       this._dirtyLights = false;
@@ -186,12 +177,11 @@ class LayerComposition extends EventHandler {
     if (result) {
       this.updateShadowCasters();
     }
-
     if (this._dirtyCameras || result & COMPUPDATED_LIGHTS) {
       this._dirtyCameras = false;
       result |= COMPUPDATED_CAMERAS;
-      this.cameras.length = 0;
 
+      this.cameras.length = 0;
       for (let i = 0; i < len; i++) {
         const layer = this.layerList[i];
         layer._dirtyCameras = false;
@@ -199,7 +189,6 @@ class LayerComposition extends EventHandler {
         for (let j = 0; j < layer.cameras.length; j++) {
           const camera = layer.cameras[j];
           const index = this.cameras.indexOf(camera);
-
           if (index < 0) {
             this.cameras.push(camera);
           }
@@ -211,19 +200,21 @@ class LayerComposition extends EventHandler {
       }
 
       const cameraLayers = [];
-      let renderActionCount = 0;
 
+      let renderActionCount = 0;
       for (let i = 0; i < this.cameras.length; i++) {
         const camera = this.cameras[i];
         cameraLayers.length = 0;
+
         let cameraFirstRenderAction = true;
         const cameraFirstRenderActionIndex = renderActionCount;
+
         let lastRenderAction = null;
+
         let postProcessMarked = false;
 
         for (let j = 0; j < len; j++) {
           const layer = this.layerList[j];
-
           if (layer) {
             if (layer.cameras.length > 0) {
               if (camera.layers.indexOf(layer.id) >= 0) {
@@ -238,7 +229,6 @@ class LayerComposition extends EventHandler {
                 }
 
                 const cameraIndex = layer.cameras.indexOf(camera);
-
                 if (cameraIndex >= 0) {
                   lastRenderAction = this.addRenderAction(this._renderActions, renderActionCount, layer, j, cameraIndex, cameraFirstRenderAction, postProcessMarked);
                   renderActionCount++;
@@ -267,7 +257,6 @@ class LayerComposition extends EventHandler {
       for (let i = renderActionCount; i < this._renderActions.length; i++) {
         this._renderActions[i].destroy();
       }
-
       this._renderActions.length = renderActionCount;
     }
 
@@ -276,72 +265,57 @@ class LayerComposition extends EventHandler {
         this.allocateLightClusters(device);
       }
     }
-
     if (result & (COMPUPDATED_LIGHTS | COMPUPDATED_LIGHTS)) {
       this._logRenderActions();
     }
-
     return result;
   }
-
   updateShadowCasters() {
     const lightCount = this._lights.length;
-
     for (let i = 0; i < lightCount; i++) {
       this._lightCompositionData[i].clearShadowCasters();
     }
 
     const len = this.layerList.length;
-
     for (let i = 0; i < len; i++) {
       const layer = this.layerList[i];
 
       if (!tempSet.has(layer)) {
         tempSet.add(layer);
-        const lights = layer._lights;
 
+        const lights = layer._lights;
         for (let j = 0; j < lights.length; j++) {
           if (lights[j].castShadows) {
             const lightIndex = this._lightsMap.get(lights[j]);
-
             const lightCompData = this._lightCompositionData[lightIndex];
+
             lightCompData.addShadowCasters(layer.shadowCasters);
           }
         }
       }
     }
-
     tempSet.clear();
   }
-
   updateLights() {
     this._lights.length = 0;
-
     this._lightsMap.clear();
-
     const count = this.layerList.length;
-
     for (let i = 0; i < count; i++) {
       const layer = this.layerList[i];
 
       if (!tempSet.has(layer)) {
         tempSet.add(layer);
         const lights = layer._lights;
-
         for (let j = 0; j < lights.length; j++) {
           const light = lights[j];
 
           let lightIndex = this._lightsMap.get(light);
-
           if (lightIndex === undefined) {
             lightIndex = this._lights.length;
-
             this._lightsMap.set(light, lightIndex);
-
             this._lights.push(light);
 
             let lightCompData = this._lightCompositionData[lightIndex];
-
             if (!lightCompData) {
               lightCompData = new LightCompositionData();
               this._lightCompositionData[lightIndex] = lightCompData;
@@ -351,10 +325,8 @@ class LayerComposition extends EventHandler {
       }
 
       this._splitLightsArray(layer);
-
       layer._dirtyLights = false;
     }
-
     tempSet.clear();
 
     this._splitLightsArray(this);
@@ -372,7 +344,6 @@ class LayerComposition extends EventHandler {
         if (layer === raLayer) {
           return ra.lightClusters;
         }
-
         if (ra.lightClusters) {
           if (set.equals(layer._clusteredLightsSet, raLayer._clusteredLightsSet)) {
             return ra.lightClusters;
@@ -386,10 +357,12 @@ class LayerComposition extends EventHandler {
 
   allocateLightClusters(device) {
     tempClusterArray.push(...this._worldClusters);
-    const emptyWorldClusters = this.getEmptyWorldClusters(device);
-    this._worldClusters.length = 0;
-    const count = this._renderActions.length;
 
+    const emptyWorldClusters = this.getEmptyWorldClusters(device);
+
+    this._worldClusters.length = 0;
+
+    const count = this._renderActions.length;
     for (let i = 0; i < count; i++) {
       const ra = this._renderActions[i];
       const layer = this.layerList[ra.layerIndex];
@@ -397,10 +370,8 @@ class LayerComposition extends EventHandler {
       if (layer.hasClusteredLights) {
         const transparent = this.subLayerList[ra.layerIndex];
         const meshInstances = transparent ? layer.transparentMeshInstances : layer.opaqueMeshInstances;
-
         if (meshInstances.length) {
           let clusters = this.findCompatibleCluster(layer, i, emptyWorldClusters);
-
           if (!clusters) {
             if (tempClusterArray.length) {
               clusters = tempClusterArray.pop();
@@ -409,12 +380,9 @@ class LayerComposition extends EventHandler {
             if (!clusters) {
               clusters = new WorldClusters(device);
             }
-
             clusters.name = 'Cluster-' + this._worldClusters.length;
-
             this._worldClusters.push(clusters);
           }
-
           ra.lightClusters = clusters;
         }
       }
@@ -432,14 +400,12 @@ class LayerComposition extends EventHandler {
 
   addRenderAction(renderActions, renderActionIndex, layer, layerIndex, cameraIndex, cameraFirstRenderAction, postProcessMarked) {
     let renderAction = renderActions[renderActionIndex];
-
     if (!renderAction) {
       renderAction = renderActions[renderActionIndex] = new RenderAction();
     }
 
     let rt = layer.renderTarget;
     const camera = layer.cameras[cameraIndex];
-
     if (camera && camera.renderTarget) {
       if (layer.id !== LAYERID_DEPTH) {
         rt = camera.renderTarget;
@@ -447,7 +413,6 @@ class LayerComposition extends EventHandler {
     }
 
     let used = false;
-
     for (let i = renderActionIndex - 1; i >= 0; i--) {
       if (renderActions[i].camera === camera && renderActions[i].renderTarget === rt) {
         used = true;
@@ -459,6 +424,7 @@ class LayerComposition extends EventHandler {
     let clearColor = needsClear ? camera.clearColorBuffer : false;
     let clearDepth = needsClear ? camera.clearDepthBuffer : false;
     let clearStencil = needsClear ? camera.clearStencilBuffer : false;
+
     clearColor || (clearColor = layer.clearColorBuffer);
     clearDepth || (clearDepth = layer.clearDepthBuffer);
     clearStencil || (clearStencil = layer.clearStencilBuffer);
@@ -495,7 +461,6 @@ class LayerComposition extends EventHandler {
       }
 
       const thisCamera = ra == null ? void 0 : ra.camera.camera;
-
       if (thisCamera) {
         if (!fromCamera.camera.rect.equals(thisCamera.rect) || !fromCamera.camera.scissorRect.equals(thisCamera.scissorRect)) {
           break;
@@ -507,22 +472,18 @@ class LayerComposition extends EventHandler {
   }
 
   _logRenderActions() {}
-
   _isLayerAdded(layer) {
     if (this.layerList.indexOf(layer) >= 0) {
       return true;
     }
-
     return false;
   }
-
   _isSublayerAdded(layer, transparent) {
     for (let i = 0; i < this.layerList.length; i++) {
       if (this.layerList[i] === layer && this.subLayerList[i] === transparent) {
         return true;
       }
     }
-
     return false;
   }
 
@@ -545,11 +506,8 @@ class LayerComposition extends EventHandler {
     this.layerList.splice(index, 0, layer, layer);
     this.subLayerList.splice(index, 0, false, true);
     const count = this.layerList.length;
-
     this._updateOpaqueOrder(index, count - 1);
-
     this._updateTransparentOrder(index, count - 1);
-
     this.subLayerEnabled.splice(index, 0, true, true);
     this._dirty = true;
     this._dirtyLights = true;
@@ -561,7 +519,6 @@ class LayerComposition extends EventHandler {
     let id = this.layerList.indexOf(layer);
     delete this._opaqueOrder[id];
     delete this._transparentOrder[id];
-
     while (id >= 0) {
       this.layerList.splice(id, 1);
       this.subLayerList.splice(id, 1);
@@ -574,9 +531,7 @@ class LayerComposition extends EventHandler {
     }
 
     const count = this.layerList.length;
-
     this._updateOpaqueOrder(0, count - 1);
-
     this._updateTransparentOrder(0, count - 1);
   }
 
@@ -596,9 +551,7 @@ class LayerComposition extends EventHandler {
     this.layerList.splice(index, 0, layer);
     this.subLayerList.splice(index, 0, false);
     const count = this.subLayerList.length;
-
     this._updateOpaqueOrder(index, count - 1);
-
     this.subLayerEnabled.splice(index, 0, true);
     this._dirty = true;
     this._dirtyLights = true;
@@ -612,14 +565,11 @@ class LayerComposition extends EventHandler {
         this.layerList.splice(i, 1);
         this.subLayerList.splice(i, 1);
         len--;
-
         this._updateOpaqueOrder(i, len - 1);
-
         this.subLayerEnabled.splice(i, 1);
         this._dirty = true;
         this._dirtyLights = true;
         this._dirtyCameras = true;
-
         if (this.layerList.indexOf(layer) < 0) {
           this.fire('remove', layer);
         }
@@ -645,9 +595,7 @@ class LayerComposition extends EventHandler {
     this.layerList.splice(index, 0, layer);
     this.subLayerList.splice(index, 0, true);
     const count = this.subLayerList.length;
-
     this._updateTransparentOrder(index, count - 1);
-
     this.subLayerEnabled.splice(index, 0, true);
     this._dirty = true;
     this._dirtyLights = true;
@@ -661,14 +609,11 @@ class LayerComposition extends EventHandler {
         this.layerList.splice(i, 1);
         this.subLayerList.splice(i, 1);
         len--;
-
         this._updateTransparentOrder(i, len - 1);
-
         this.subLayerEnabled.splice(i, 1);
         this._dirty = true;
         this._dirtyLights = true;
         this._dirtyCameras = true;
-
         if (this.layerList.indexOf(layer) < 0) {
           this.fire('remove', layer);
         }
@@ -677,20 +622,16 @@ class LayerComposition extends EventHandler {
       }
     }
   }
-
   _getSublayerIndex(layer, transparent) {
     let id = this.layerList.indexOf(layer);
     if (id < 0) return -1;
-
     if (this.subLayerList[id] !== transparent) {
       id = this.layerList.indexOf(layer, id + 1);
       if (id < 0) return -1;
-
       if (this.subLayerList[id] !== transparent) {
         return -1;
       }
     }
-
     return id;
   }
 
@@ -706,7 +647,6 @@ class LayerComposition extends EventHandler {
     for (let i = 0; i < this.layerList.length; i++) {
       if (this.layerList[i].id === id) return this.layerList[i];
     }
-
     return null;
   }
 
@@ -714,10 +654,8 @@ class LayerComposition extends EventHandler {
     for (let i = 0; i < this.layerList.length; i++) {
       if (this.layerList[i].name === name) return this.layerList[i];
     }
-
     return null;
   }
-
   _updateOpaqueOrder(startIndex, endIndex) {
     for (let i = startIndex; i <= endIndex; i++) {
       if (this.subLayerList[i] === false) {
@@ -725,7 +663,6 @@ class LayerComposition extends EventHandler {
       }
     }
   }
-
   _updateTransparentOrder(startIndex, endIndex) {
     for (let i = startIndex; i <= endIndex; i++) {
       if (this.subLayerList[i] === true) {
@@ -740,7 +677,6 @@ class LayerComposition extends EventHandler {
 
     for (let i = 0, len = layersA.length; i < len; i++) {
       const id = layersA[i];
-
       if (order.hasOwnProperty(id)) {
         topLayerA = Math.max(topLayerA, order[id]);
       }
@@ -748,7 +684,6 @@ class LayerComposition extends EventHandler {
 
     for (let i = 0, len = layersB.length; i < len; i++) {
       const id = layersB[i];
-
       if (order.hasOwnProperty(id)) {
         topLayerB = Math.max(topLayerB, order[id]);
       }
@@ -770,7 +705,6 @@ class LayerComposition extends EventHandler {
   sortOpaqueLayers(layersA, layersB) {
     return this._sortLayersDescending(layersA, layersB, this._opaqueOrder);
   }
-
 }
 
 export { LayerComposition };

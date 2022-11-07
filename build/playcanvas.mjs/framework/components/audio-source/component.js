@@ -1,5 +1,5 @@
-import { Asset } from '../../../asset/asset.js';
-import { Channel3d } from '../../../audio/channel3d.js';
+import { Asset } from '../../asset/asset.js';
+import { Channel3d } from '../../../platform/audio/channel3d.js';
 import { Component } from '../component.js';
 
 class AudioSourceComponent extends Component {
@@ -20,14 +20,11 @@ class AudioSourceComponent extends Component {
     if (!this.enabled || !this.entity.enabled) {
       return;
     }
-
     if (this.channel) {
       this.stop();
     }
-
     let channel;
     const componentData = this.data;
-
     if (componentData.sources[name]) {
       if (!componentData['3d']) {
         channel = this.system.manager.playSound(componentData.sources[name], componentData);
@@ -60,20 +57,16 @@ class AudioSourceComponent extends Component {
       this.channel = null;
     }
   }
-
   onSetAssets(name, oldValue, newValue) {
     const newAssets = [];
     const len = newValue.length;
-
     if (oldValue && oldValue.length) {
       for (let i = 0; i < oldValue.length; i++) {
         if (oldValue[i]) {
           const asset = this.system.app.assets.get(oldValue[i]);
-
           if (asset) {
             asset.off('change', this.onAssetChanged, this);
             asset.off('remove', this.onAssetRemoved, this);
-
             if (this.currentSource === asset.name) {
               this.stop();
             }
@@ -81,7 +74,6 @@ class AudioSourceComponent extends Component {
         }
       }
     }
-
     if (len) {
       for (let i = 0; i < len; i++) {
         if (oldValue.indexOf(newValue[i]) < 0) {
@@ -98,14 +90,11 @@ class AudioSourceComponent extends Component {
       this.loadAudioSourceAssets(newAssets);
     }
   }
-
   onAssetChanged(asset, attribute, newValue, oldValue) {
     if (attribute === 'resource') {
       const sources = this.data.sources;
-
       if (sources) {
         this.data.sources[asset.name] = newValue;
-
         if (this.data.currentSource === asset.name) {
           if (this.channel) {
             if (this.channel.paused) {
@@ -119,20 +108,16 @@ class AudioSourceComponent extends Component {
       }
     }
   }
-
   onAssetRemoved(asset) {
     asset.off('remove', this.onAssetRemoved, this);
-
     if (this.data.sources[asset.name]) {
       delete this.data.sources[asset.name];
-
       if (this.data.currentSource === asset.name) {
         this.stop();
         this.data.currentSource = null;
       }
     }
   }
-
   onSetLoop(name, oldValue, newValue) {
     if (oldValue !== newValue) {
       if (this.channel) {
@@ -140,7 +125,6 @@ class AudioSourceComponent extends Component {
       }
     }
   }
-
   onSetVolume(name, oldValue, newValue) {
     if (oldValue !== newValue) {
       if (this.channel) {
@@ -148,7 +132,6 @@ class AudioSourceComponent extends Component {
       }
     }
   }
-
   onSetPitch(name, oldValue, newValue) {
     if (oldValue !== newValue) {
       if (this.channel) {
@@ -156,7 +139,6 @@ class AudioSourceComponent extends Component {
       }
     }
   }
-
   onSetMaxDistance(name, oldValue, newValue) {
     if (oldValue !== newValue) {
       if (this.channel instanceof Channel3d) {
@@ -164,7 +146,6 @@ class AudioSourceComponent extends Component {
       }
     }
   }
-
   onSetMinDistance(name, oldValue, newValue) {
     if (oldValue !== newValue) {
       if (this.channel instanceof Channel3d) {
@@ -172,7 +153,6 @@ class AudioSourceComponent extends Component {
       }
     }
   }
-
   onSetRollOffFactor(name, oldValue, newValue) {
     if (oldValue !== newValue) {
       if (this.channel instanceof Channel3d) {
@@ -180,7 +160,6 @@ class AudioSourceComponent extends Component {
       }
     }
   }
-
   onSetDistanceModel(name, oldValue, newValue) {
     if (oldValue !== newValue) {
       if (this.channel instanceof Channel3d) {
@@ -188,20 +167,16 @@ class AudioSourceComponent extends Component {
       }
     }
   }
-
   onSet3d(name, oldValue, newValue) {
     if (oldValue !== newValue) {
       if (this.system.initialized && this.currentSource) {
         let paused = false;
         let suspended = false;
-
         if (this.channel) {
           paused = this.channel.paused;
           suspended = this.channel.suspended;
         }
-
         this.play(this.currentSource);
-
         if (this.channel) {
           this.channel.paused = paused;
           this.channel.suspended = suspended;
@@ -209,23 +184,18 @@ class AudioSourceComponent extends Component {
       }
     }
   }
-
   onEnable() {
     const assets = this.data.assets;
-
     if (assets) {
       const registry = this.system.app.assets;
-
       for (let i = 0, len = assets.length; i < len; i++) {
         let asset = assets[i];
         if (!(asset instanceof Asset)) asset = registry.get(asset);
-
         if (asset && !asset.resource) {
           registry.load(asset);
         }
       }
     }
-
     if (this.system.initialized) {
       if (this.data.activate && !this.channel) {
         this.play(this.currentSource);
@@ -234,11 +204,9 @@ class AudioSourceComponent extends Component {
       }
     }
   }
-
   onDisable() {
     this.pause();
   }
-
   loadAudioSourceAssets(ids) {
     const assets = ids.map(id => {
       return this.system.app.assets.get(id);
@@ -254,15 +222,14 @@ class AudioSourceComponent extends Component {
     const _done = () => {
       this.data.sources = sources;
       this.data.currentSource = currentSource;
-
       if (this.enabled && this.activate && currentSource) {
         this.onEnable();
       }
     };
-
     assets.forEach((asset, index) => {
       if (asset) {
         currentSource = currentSource || asset.name;
+
         asset.off('change', this.onAssetChanged, this);
         asset.on('change', this.onAssetChanged, this);
         asset.off('remove', this.onAssetRemoved, this);
@@ -272,7 +239,6 @@ class AudioSourceComponent extends Component {
         asset.ready(asset => {
           sources[asset.name] = asset.resource;
           count--;
-
           if (count === 0) {
             _done();
           }
@@ -280,11 +246,9 @@ class AudioSourceComponent extends Component {
         if (!asset.resource && this.enabled && this.entity.enabled) this.system.app.assets.load(asset);
       } else {
         count--;
-
         if (count === 0) {
           _done();
         }
-
         this.system.app.assets.on('add:' + ids[index], asset => {
           asset.ready(asset => {
             this.data.sources[asset.name] = asset.resource;
@@ -294,7 +258,6 @@ class AudioSourceComponent extends Component {
       }
     });
   }
-
 }
 
 export { AudioSourceComponent };

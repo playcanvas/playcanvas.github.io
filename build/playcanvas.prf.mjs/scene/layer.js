@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import '../core/tracing.js';
@@ -9,52 +9,42 @@ import { SORTMODE_MATERIALMESH, SORTMODE_BACK2FRONT, SHADER_FORWARD, BLEND_NONE,
 import { Material } from './materials/material.js';
 
 let keyA, keyB, sortPos, sortDir;
-
 function sortManual(drawCallA, drawCallB) {
   return drawCallA.drawOrder - drawCallB.drawOrder;
 }
-
 function sortMaterialMesh(drawCallA, drawCallB) {
   keyA = drawCallA._key[SORTKEY_FORWARD];
   keyB = drawCallB._key[SORTKEY_FORWARD];
-
   if (keyA === keyB && drawCallA.mesh && drawCallB.mesh) {
     return drawCallB.mesh.id - drawCallA.mesh.id;
   }
-
   return keyB - keyA;
 }
-
 function sortBackToFront(drawCallA, drawCallB) {
   return drawCallB.zdist - drawCallA.zdist;
 }
-
 function sortFrontToBack(drawCallA, drawCallB) {
   return drawCallA.zdist - drawCallB.zdist;
 }
-
 const sortCallbacks = [null, sortManual, sortMaterialMesh, sortBackToFront, sortFrontToBack];
-
 function sortLights(lightA, lightB) {
   return lightB.key - lightA.key;
 }
 
 let layerCounter = 0;
-
 class VisibleInstanceList {
   constructor() {
     this.list = [];
     this.length = 0;
     this.done = false;
   }
-
 }
-
 class InstanceList {
   constructor() {
     this.opaqueMeshInstances = [];
     this.transparentMeshInstances = [];
     this.shadowCasters = [];
+
     this.visibleOpaque = [];
     this.visibleTransparent = [];
   }
@@ -63,7 +53,6 @@ class InstanceList {
     if (!this.visibleOpaque[index]) {
       this.visibleOpaque[index] = new VisibleInstanceList();
     }
-
     if (!this.visibleTransparent[index]) {
       this.visibleTransparent[index] = new VisibleInstanceList();
     }
@@ -76,12 +65,10 @@ class InstanceList {
     if (index < this.visibleOpaque.length) {
       this.visibleOpaque.splice(index, 1);
     }
-
     if (index < this.visibleTransparent.length) {
       this.visibleTransparent.splice(index, 1);
     }
   }
-
 }
 
 class Layer {
@@ -94,48 +81,64 @@ class Layer {
     }
 
     this.name = options.name;
+
     this._enabled = options.enabled === undefined ? true : options.enabled;
     this._refCounter = this._enabled ? 1 : 0;
-    this.opaqueSortMode = options.opaqueSortMode === undefined ? SORTMODE_MATERIALMESH : options.opaqueSortMode;
-    this.transparentSortMode = options.transparentSortMode === undefined ? SORTMODE_BACK2FRONT : options.transparentSortMode;
 
+    this.opaqueSortMode = options.opaqueSortMode === undefined ? SORTMODE_MATERIALMESH : options.opaqueSortMode;
+
+    this.transparentSortMode = options.transparentSortMode === undefined ? SORTMODE_BACK2FRONT : options.transparentSortMode;
     if (options.renderTarget) {
       this.renderTarget = options.renderTarget;
     }
 
     this.shaderPass = options.shaderPass === undefined ? SHADER_FORWARD : options.shaderPass;
+
     this.passThrough = options.passThrough === undefined ? false : options.passThrough;
+
     this._clearColorBuffer = !!options.clearColorBuffer;
+
     this._clearDepthBuffer = !!options.clearDepthBuffer;
+
     this._clearStencilBuffer = !!options.clearStencilBuffer;
+
     this.onPreCull = options.onPreCull;
     this.onPreRender = options.onPreRender;
     this.onPreRenderOpaque = options.onPreRenderOpaque;
     this.onPreRenderTransparent = options.onPreRenderTransparent;
+
     this.onPostCull = options.onPostCull;
     this.onPostRender = options.onPostRender;
     this.onPostRenderOpaque = options.onPostRenderOpaque;
     this.onPostRenderTransparent = options.onPostRenderTransparent;
+
     this.onDrawCall = options.onDrawCall;
     this.onEnable = options.onEnable;
     this.onDisable = options.onDisable;
-
     if (this._enabled && this.onEnable) {
       this.onEnable();
     }
 
     this.layerReference = options.layerReference;
+
     this.instances = options.layerReference ? options.layerReference.instances : new InstanceList();
+
     this.cullingMask = options.cullingMask ? options.cullingMask : 0xFFFFFFFF;
+
     this.opaqueMeshInstances = this.instances.opaqueMeshInstances;
     this.transparentMeshInstances = this.instances.transparentMeshInstances;
     this.shadowCasters = this.instances.shadowCasters;
+
     this.customSortCallback = null;
     this.customCalculateSortValues = null;
+
     this._lights = [];
     this._lightsSet = new Set();
+
     this._clusteredLightsSet = new Set();
+
     this._splitLights = [[], [], []];
+
     this.cameras = [];
     this._dirty = false;
     this._dirtyLights = false;
@@ -149,7 +152,9 @@ class Layer {
     this._renderTime = 0;
     this._forwardDrawCalls = 0;
     this._shadowDrawCalls = 0;
+
     this._shaderVersion = -1;
+
     this._lightCube = null;
   }
 
@@ -161,7 +166,6 @@ class Layer {
     this._renderTarget = rt;
     this._dirtyCameras = true;
   }
-
   get renderTarget() {
     return this._renderTarget;
   }
@@ -169,7 +173,6 @@ class Layer {
   set enabled(val) {
     if (val !== this._enabled) {
       this._enabled = val;
-
       if (val) {
         this.incrementCounter();
         if (this.onEnable) this.onEnable();
@@ -179,7 +182,6 @@ class Layer {
       }
     }
   }
-
   get enabled() {
     return this._enabled;
   }
@@ -188,7 +190,6 @@ class Layer {
     this._clearColorBuffer = val;
     this._dirtyCameras = true;
   }
-
   get clearColorBuffer() {
     return this._clearColorBuffer;
   }
@@ -197,7 +198,6 @@ class Layer {
     this._clearDepthBuffer = val;
     this._dirtyCameras = true;
   }
-
   get clearDepthBuffer() {
     return this._clearDepthBuffer;
   }
@@ -206,7 +206,6 @@ class Layer {
     this._clearStencilBuffer = val;
     this._dirtyCameras = true;
   }
-
   get clearStencilBuffer() {
     return this._clearStencilBuffer;
   }
@@ -220,7 +219,6 @@ class Layer {
       this._enabled = true;
       if (this.onEnable) this.onEnable();
     }
-
     this._refCounter++;
   }
 
@@ -231,14 +229,12 @@ class Layer {
     } else if (this._refCounter === 0) {
       return;
     }
-
     this._refCounter--;
   }
 
   addMeshInstances(meshInstances, skipShadowCasters) {
     const sceneShaderVer = this._shaderVersion;
     const casters = this.shadowCasters;
-
     for (let i = 0; i < meshInstances.length; i++) {
       const m = meshInstances[i];
       const mat = m.material;
@@ -247,18 +243,15 @@ class Layer {
       if (this.opaqueMeshInstances.indexOf(m) < 0 && this.transparentMeshInstances.indexOf(m) < 0) {
         arr.push(m);
       }
-
       if (!skipShadowCasters && m.castShadow && casters.indexOf(m) < 0) casters.push(m);
 
       if (!this.passThrough && sceneShaderVer >= 0 && mat._shaderVersion !== sceneShaderVer) {
         if (mat.getShaderVariant !== Material.prototype.getShaderVariant) {
           mat.clearVariants();
         }
-
         mat._shaderVersion = sceneShaderVer;
       }
     }
-
     if (!this.passThrough) this._dirty = true;
   }
 
@@ -266,16 +259,13 @@ class Layer {
     let spliceOffset = -1;
     let spliceCount = 0;
     const len = arr.length;
-
     for (let j = 0; j < len; j++) {
       const drawCall = arr[j];
-
       if (drawCall === m) {
         spliceOffset = j;
         spliceCount = 1;
         break;
       }
-
       if (drawCall._staticSource === m) {
         if (spliceOffset < 0) spliceOffset = j;
         spliceCount++;
@@ -283,7 +273,6 @@ class Layer {
         break;
       }
     }
-
     if (spliceOffset >= 0) {
       arr.splice(spliceOffset, spliceCount);
     }
@@ -293,10 +282,11 @@ class Layer {
     const opaque = this.opaqueMeshInstances;
     const transparent = this.transparentMeshInstances;
     const casters = this.shadowCasters;
-
     for (let i = 0; i < meshInstances.length; i++) {
       const m = meshInstances[i];
+
       this.removeMeshInstanceFromArray(m, opaque);
+
       this.removeMeshInstanceFromArray(m, transparent);
 
       if (!skipShadowCasters) {
@@ -304,7 +294,6 @@ class Layer {
         if (j >= 0) casters.splice(j, 1);
       }
     }
-
     this._dirty = true;
   }
 
@@ -312,7 +301,6 @@ class Layer {
     if (this.opaqueMeshInstances.length === 0 && this.transparentMeshInstances.length === 0) {
       if (skipShadowCasters || this.shadowCasters.length === 0) return;
     }
-
     this.opaqueMeshInstances.length = 0;
     this.transparentMeshInstances.length = 0;
     if (!skipShadowCasters) this.shadowCasters.length = 0;
@@ -321,79 +309,61 @@ class Layer {
 
   addLight(light) {
     const l = light.light;
-
     if (!this._lightsSet.has(l)) {
       this._lightsSet.add(l);
-
-      if (l.type !== LIGHTTYPE_DIRECTIONAL) {
-        this._clusteredLightsSet.add(l);
-      }
-
       this._lights.push(l);
-
       this._dirtyLights = true;
-
       this._generateLightHash();
+    }
+    if (l.type !== LIGHTTYPE_DIRECTIONAL) {
+      this._clusteredLightsSet.add(l);
     }
   }
 
   removeLight(light) {
     const l = light.light;
-
     if (this._lightsSet.has(l)) {
       this._lightsSet.delete(l);
-
-      if (l.type !== LIGHTTYPE_DIRECTIONAL) {
-        this._clusteredLightsSet.delete(l);
-      }
-
       this._lights.splice(this._lights.indexOf(l), 1);
-
       this._dirtyLights = true;
-
       this._generateLightHash();
+    }
+    if (l.type !== LIGHTTYPE_DIRECTIONAL) {
+      this._clusteredLightsSet.delete(l);
     }
   }
 
   clearLights() {
     this._lightsSet.clear();
-
     this._clusteredLightsSet.clear();
-
     this._lights.length = 0;
     this._dirtyLights = true;
   }
 
   addShadowCasters(meshInstances) {
     const arr = this.shadowCasters;
-
     for (let i = 0; i < meshInstances.length; i++) {
       const m = meshInstances[i];
       if (!m.castShadow) continue;
       if (arr.indexOf(m) < 0) arr.push(m);
     }
-
     this._dirtyLights = true;
   }
 
   removeShadowCasters(meshInstances) {
     const arr = this.shadowCasters;
-
     for (let i = 0; i < meshInstances.length; i++) {
       const id = arr.indexOf(meshInstances[i]);
       if (id >= 0) arr.splice(id, 1);
     }
-
     this._dirtyLights = true;
   }
 
   _generateLightHash() {
     if (this._lights.length > 0) {
       this._lights.sort(sortLights);
-
       let str = '';
       let strStatic = '';
-
       for (let i = 0; i < this._lights.length; i++) {
         if (this._lights[i].isStatic) {
           strStatic += this._lights[i].key;
@@ -401,13 +371,11 @@ class Layer {
           str += this._lights[i].key;
         }
       }
-
       if (str.length === 0) {
         this._lightHash = 0;
       } else {
         this._lightHash = hashCode(str);
       }
-
       if (strStatic.length === 0) {
         this._staticLightHash = 0;
       } else {
@@ -427,10 +395,10 @@ class Layer {
 
   removeCamera(camera) {
     const index = this.cameras.indexOf(camera);
-
     if (index >= 0) {
       this.cameras.splice(index, 1);
       this._dirtyCameras = true;
+
       this.instances.delete(index);
     }
   }
@@ -445,12 +413,10 @@ class Layer {
       const drawCall = drawCalls[i];
       if (drawCall.command) continue;
       if (drawCall.layer <= LAYER_FX) continue;
-
       if (drawCall.calculateSortDistance) {
         drawCall.zdist = drawCall.calculateSortDistance(drawCall, camPos, camFwd);
         continue;
       }
-
       const meshPos = drawCall.aabb.center;
       const tempx = meshPos.x - camPos.x;
       const tempy = meshPos.y - camPos.y;
@@ -464,19 +430,15 @@ class Layer {
     const sortMode = transparent ? this.transparentSortMode : this.opaqueSortMode;
     if (sortMode === SORTMODE_NONE) return;
     const visible = transparent ? objects.visibleTransparent[cameraPass] : objects.visibleOpaque[cameraPass];
-
     if (sortMode === SORTMODE_CUSTOM) {
       sortPos = cameraNode.getPosition();
       sortDir = cameraNode.forward;
-
       if (this.customCalculateSortValues) {
         this.customCalculateSortValues(visible.list, visible.length, sortPos, sortDir);
       }
-
       if (visible.list.length !== visible.length) {
         visible.list.length = visible.length;
       }
-
       if (this.customSortCallback) {
         visible.list.sort(this.customSortCallback);
       }
@@ -484,18 +446,14 @@ class Layer {
       if (sortMode === SORTMODE_BACK2FRONT || sortMode === SORTMODE_FRONT2BACK) {
         sortPos = cameraNode.getPosition();
         sortDir = cameraNode.forward;
-
         this._calculateSortDistances(visible.list, visible.length, sortPos, sortDir);
       }
-
       if (visible.list.length !== visible.length) {
         visible.list.length = visible.length;
       }
-
       visible.list.sort(sortCallbacks[sortMode]);
     }
   }
-
 }
 
 export { Layer };

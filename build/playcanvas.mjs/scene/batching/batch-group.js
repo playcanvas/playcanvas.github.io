@@ -16,9 +16,7 @@ class BatchGroup {
       render: []
     };
   }
-
 }
-
 BatchGroup.MODEL = 'model';
 BatchGroup.ELEMENT = 'element';
 BatchGroup.SPRITE = 'sprite';

@@ -3,13 +3,16 @@ import { now } from '../core/time.js';
 import { path } from '../core/path.js';
 import { EventHandler } from '../core/event-handler.js';
 import '../core/tracing.js';
-import { math } from '../math/math.js';
-import { Color } from '../math/color.js';
-import { Vec3 } from '../math/vec3.js';
-import { Mat4 } from '../math/mat4.js';
-import { Quat } from '../math/quat.js';
-import { http } from '../net/http.js';
-import { PRIMITIVE_TRIANGLES, PRIMITIVE_TRISTRIP, PRIMITIVE_TRIFAN } from '../graphics/constants.js';
+import { math } from '../core/math/math.js';
+import { Color } from '../core/math/color.js';
+import { Vec3 } from '../core/math/vec3.js';
+import { Mat4 } from '../core/math/mat4.js';
+import { Quat } from '../core/math/quat.js';
+import { http } from '../platform/net/http.js';
+import { PRIMITIVE_TRIANGLES, PRIMITIVE_TRISTRIP, PRIMITIVE_TRIFAN } from '../platform/graphics/constants.js';
+import { GraphicsDeviceAccess } from '../platform/graphics/graphics-device-access.js';
+import { setProgramLibrary } from '../scene/shader-lib/get-program-library.js';
+import { ProgramLibrary } from '../scene/shader-lib/program-library.js';
 import { LAYERID_WORLD, LAYERID_SKYBOX, SORTMODE_NONE, LAYERID_UI, SORTMODE_MANUAL, LAYERID_IMMEDIATE, LAYERID_DEPTH, SPECULAR_BLINN } from '../scene/constants.js';
 import { ForwardRenderer } from '../scene/renderer/forward-renderer.js';
 import { FrameGraph } from '../scene/frame-graph.js';
@@ -21,36 +24,33 @@ import { Material } from '../scene/materials/material.js';
 import { LightsBuffer } from '../scene/lighting/lights-buffer.js';
 import { StandardMaterial } from '../scene/materials/standard-material.js';
 import { setDefaultMaterial } from '../scene/materials/default-material.js';
-import { BundleHandler } from '../resources/bundle.js';
-import { ResourceLoader } from '../resources/loader.js';
-import { Asset } from '../asset/asset.js';
-import { AssetRegistry } from '../asset/asset-registry.js';
-import { BundleRegistry } from '../bundles/bundle-registry.js';
-import { ScriptRegistry } from '../script/script-registry.js';
-import { I18n } from '../i18n/i18n.js';
+import { BundleHandler } from './handlers/bundle.js';
+import { ResourceLoader } from './handlers/loader.js';
+import { Asset } from './asset/asset.js';
+import { AssetRegistry } from './asset/asset-registry.js';
+import { BundleRegistry } from './bundle/bundle-registry.js';
+import { ScriptRegistry } from './script/script-registry.js';
+import { I18n } from './i18n/i18n.js';
 import { ComponentSystemRegistry } from './components/registry.js';
 import { script } from './script.js';
 import { ApplicationStats } from './stats.js';
 import { Entity } from './entity.js';
 import { SceneRegistry } from './scene-registry.js';
-import { SceneGrab } from './scene-grab.js';
+import { SceneGrab } from './graphics/scene-grab.js';
 import { FILLMODE_KEEP_ASPECT, RESOLUTION_FIXED, RESOLUTION_AUTO, FILLMODE_FILL_WINDOW } from './constants.js';
-import { getApplication, setApplication } from './globals.js';
+import { setApplication, getApplication } from './globals.js';
 
 class Progress {
   constructor(length) {
     this.length = length;
     this.count = 0;
   }
-
   inc() {
     this.count++;
   }
-
   done() {
     return this.count === this.length;
   }
-
 }
 
 let app = null;
@@ -58,49 +58,70 @@ let app = null;
 class AppBase extends EventHandler {
   constructor(canvas) {
     super();
+
     AppBase._applications[canvas.id] = this;
     setApplication(this);
     app = this;
+
     this._destroyRequested = false;
+
     this._inFrameUpdate = false;
+
     this._time = 0;
+
     this.timeScale = 1;
+
     this.maxDeltaTime = 0.1;
+
     this.frame = 0;
+
     this.autoRender = true;
+
     this.renderNextFrame = false;
+
     this.useLegacyScriptAttributeCloning = script.legacy;
     this._librariesLoaded = false;
     this._fillMode = FILLMODE_KEEP_ASPECT;
     this._resolutionMode = RESOLUTION_FIXED;
     this._allowResize = true;
+
     this.context = this;
   }
 
   init(appOptions) {
     const device = appOptions.graphicsDevice;
+
     this.graphicsDevice = device;
-
+    GraphicsDeviceAccess.set(device);
     this._initDefaultMaterial();
-
+    this._initProgramLibrary();
     this.stats = new ApplicationStats(device);
+
     this._soundManager = appOptions.soundManager;
+
     this.loader = new ResourceLoader(this);
     LightsBuffer.init(device);
-    this._entityIndex = {};
-    this.scene = new Scene(device);
 
+    this._entityIndex = {};
+
+    this.scene = new Scene(device);
     this._registerSceneImmediate(this.scene);
 
     this.root = new Entity();
     this.root._enabledInHierarchy = true;
+
     this.assets = new AssetRegistry(this.loader);
     if (appOptions.assetPrefix) this.assets.prefix = appOptions.assetPrefix;
+
     this.bundles = new BundleRegistry(this.assets);
+
     this.enableBundles = typeof TextDecoder !== 'undefined';
     this.scriptsOrder = appOptions.scriptsOrder || [];
+
     this.scripts = new ScriptRegistry(this);
+
     this.i18n = new I18n(this);
+
     this.scenes = new SceneRegistry(this);
     const self = this;
     this.defaultLayerWorld = new Layer({
@@ -138,58 +159,64 @@ class AppBase extends EventHandler {
     defaultLayerComposition.pushTransparent(this.defaultLayerImmediate);
     defaultLayerComposition.pushTransparent(this.defaultLayerUi);
     this.scene.layers = defaultLayerComposition;
+
     this.scene.on('set:layers', function (oldComp, newComp) {
       const list = newComp.layerList;
       let layer;
-
       for (let i = 0; i < list.length; i++) {
         layer = list[i];
-
         switch (layer.id) {
           case LAYERID_DEPTH:
             self.sceneGrab.patch(layer);
             break;
-
           case LAYERID_UI:
             layer.passThrough = self.defaultLayerUi.passThrough;
             break;
-
           case LAYERID_IMMEDIATE:
             layer.passThrough = self.defaultLayerImmediate.passThrough;
             break;
         }
       }
     });
+
     AreaLightLuts.createPlaceholder(device);
+
     this.renderer = new ForwardRenderer(device);
     this.renderer.scene = this.scene;
-    this.frameGraph = new FrameGraph();
-    this.lightmapper = null;
 
+    this.frameGraph = new FrameGraph();
+
+    this.lightmapper = null;
     if (appOptions.lightmapper) {
       this.lightmapper = new appOptions.lightmapper(device, this.root, this.scene, this.renderer, this.assets);
       this.once('prerender', this._firstBake, this);
     }
 
     this._batcher = null;
-
     if (appOptions.batchManager) {
       this._batcher = new appOptions.batchManager(device, this.root, this.scene);
       this.once('prerender', this._firstBatch, this);
     }
 
     this.keyboard = appOptions.keyboard || null;
+
     this.mouse = appOptions.mouse || null;
+
     this.touch = appOptions.touch || null;
+
     this.gamepads = appOptions.gamepads || null;
+
     this.elementInput = appOptions.elementInput || null;
     if (this.elementInput) this.elementInput.app = this;
+
     this.xr = appOptions.xr ? new appOptions.xr(this) : null;
     if (this.elementInput) this.elementInput.attachSelectEvents();
-    this._inTools = false;
-    this._skyboxAsset = null;
-    this._scriptPrefix = appOptions.scriptPrefix || '';
 
+    this._inTools = false;
+
+    this._skyboxAsset = null;
+
+    this._scriptPrefix = appOptions.scriptPrefix || '';
     if (this.enableBundles) {
       this.loader.addHandler("bundle", new BundleHandler(this));
     }
@@ -198,10 +225,13 @@ class AppBase extends EventHandler {
       const handler = new resourceHandler(this);
       this.loader.addHandler(handler.handlerType, handler);
     });
+
     this.systems = new ComponentSystemRegistry();
+
     appOptions.componentSystems.forEach(componentSystem => {
       this.systems.add(new componentSystem(this));
     });
+
     this._visibilityChangeHandler = this.onVisibilityChange.bind(this);
 
     if (typeof document !== 'undefined') {
@@ -234,6 +264,11 @@ class AppBase extends EventHandler {
     setDefaultMaterial(this.graphicsDevice, material);
   }
 
+  _initProgramLibrary() {
+    const library = new ProgramLibrary(this.graphicsDevice, new StandardMaterial());
+    setProgramLibrary(this.graphicsDevice, library);
+  }
+
   get soundManager() {
     return this._soundManager;
   }
@@ -256,16 +291,12 @@ class AppBase extends EventHandler {
         callback(err);
         return;
       }
-
       const props = response.application_properties;
       const scenes = response.scenes;
       const assets = response.assets;
-
       this._parseApplicationProperties(props, err => {
         this._parseScenes(scenes);
-
         this._parseAssets(assets);
-
         if (!err) {
           callback(null);
         } else {
@@ -277,6 +308,7 @@ class AppBase extends EventHandler {
 
   preload(callback) {
     this.fire("preload:start");
+
     const assets = this.assets.list({
       preload: true
     });
@@ -287,7 +319,6 @@ class AppBase extends EventHandler {
       if (!this.graphicsDevice) {
         return;
       }
-
       if (!_done && progress.done()) {
         _done = true;
         this.fire("preload:end");
@@ -296,14 +327,12 @@ class AppBase extends EventHandler {
     };
 
     const total = assets.length;
-
     if (progress.length) {
       const onAssetLoad = asset => {
         progress.inc();
         this.fire('preload:progress', progress.count / total);
         if (progress.done()) done();
       };
-
       const onAssetError = (err, asset) => {
         progress.inc();
         this.fire('preload:progress', progress.count / total);
@@ -325,32 +354,25 @@ class AppBase extends EventHandler {
       done();
     }
   }
-
   _preloadScripts(sceneData, callback) {
     if (!script.legacy) {
       callback();
       return;
     }
-
     this.systems.script.preloading = true;
-
     const scripts = this._getScriptReferences(sceneData);
-
     const l = scripts.length;
     const progress = new Progress(l);
     const regex = /^http(s)?:\/\//;
-
     if (l) {
       const onLoad = (err, ScriptType) => {
         if (err) console.error(err);
         progress.inc();
-
         if (progress.done()) {
           this.systems.script.preloading = false;
           callback();
         }
       };
-
       for (let i = 0; i < l; i++) {
         let scriptUrl = scripts[i];
         if (!regex.test(scriptUrl.toLowerCase()) && this._scriptPrefix) scriptUrl = path.join(this._scriptPrefix, scripts[i]);
@@ -372,45 +394,37 @@ class AppBase extends EventHandler {
     if (!props.fillMode) props.fillMode = props.fill_mode;
     this._width = props.width;
     this._height = props.height;
-
     if (props.useDevicePixelRatio) {
       this.graphicsDevice.maxPixelRatio = window.devicePixelRatio;
     }
-
     this.setCanvasResolution(props.resolutionMode, this._width, this._height);
     this.setCanvasFillMode(props.fillMode, this._width, this._height);
 
     if (props.layers && props.layerOrder) {
       const composition = new LayerComposition("application");
       const layers = {};
-
       for (const key in props.layers) {
         const data = props.layers[key];
         data.id = parseInt(key, 10);
         data.enabled = data.id !== LAYERID_DEPTH;
         layers[key] = new Layer(data);
       }
-
       for (let i = 0, len = props.layerOrder.length; i < len; i++) {
         const sublayer = props.layerOrder[i];
         const layer = layers[sublayer.layer];
         if (!layer) continue;
-
         if (sublayer.transparent) {
           composition.pushTransparent(layer);
         } else {
           composition.pushOpaque(layer);
         }
-
         composition.subLayerEnabled[i] = sublayer.enabled;
       }
-
       this.scene.layers = composition;
     }
 
     if (props.batchGroups) {
       const batcher = this.batcher;
-
       if (batcher) {
         for (let i = 0, len = props.batchGroups.length; i < len; i++) {
           const grp = props.batchGroups[i];
@@ -422,7 +436,6 @@ class AppBase extends EventHandler {
     if (props.i18nAssets) {
       this.i18n.assets = props.i18nAssets;
     }
-
     this._loadLibraries(props.libraries, callback);
   }
 
@@ -430,11 +443,9 @@ class AppBase extends EventHandler {
     const len = urls.length;
     let count = len;
     const regex = /^http(s)?:\/\//;
-
     if (len) {
       const onLoad = (err, script) => {
         count--;
-
         if (err) {
           callback(err);
         } else if (count === 0) {
@@ -442,7 +453,6 @@ class AppBase extends EventHandler {
           callback(null);
         }
       };
-
       for (let i = 0; i < len; ++i) {
         let url = urls[i];
         if (!regex.test(url.toLowerCase()) && this._scriptPrefix) url = path.join(this._scriptPrefix, url);
@@ -456,7 +466,6 @@ class AppBase extends EventHandler {
 
   _parseScenes(scenes) {
     if (!scenes) return;
-
     for (let i = 0; i < scenes.length; i++) {
       this.scenes.add(scenes[i].name, scenes[i].url);
     }
@@ -466,7 +475,6 @@ class AppBase extends EventHandler {
     const list = [];
     const scriptsIndex = {};
     const bundlesIndex = {};
-
     if (!script.legacy) {
       for (let i = 0; i < this.scriptsOrder.length; i++) {
         const id = this.scriptsOrder[i];
@@ -503,7 +511,6 @@ class AppBase extends EventHandler {
         list.push(assets[id]);
       }
     }
-
     for (let i = 0; i < list.length; i++) {
       const data = list[i];
       const asset = new Asset(data.name, data.type, data.file, data.data);
@@ -511,51 +518,40 @@ class AppBase extends EventHandler {
       asset.preload = data.preload ? data.preload : false;
       asset.loaded = data.type === 'script' && data.data && data.data.loadingType > 0;
       asset.tags.add(data.tags);
-
       if (data.i18n) {
         for (const locale in data.i18n) {
           asset.addLocalizedAssetId(locale, data.i18n[locale]);
         }
       }
-
       this.assets.add(asset);
     }
   }
 
   _getScriptReferences(scene) {
     let priorityScripts = [];
-
     if (scene.settings.priority_scripts) {
       priorityScripts = scene.settings.priority_scripts;
     }
-
     const _scripts = [];
     const _index = {};
 
     for (let i = 0; i < priorityScripts.length; i++) {
       _scripts.push(priorityScripts[i]);
-
       _index[priorityScripts[i]] = true;
     }
 
     const entities = scene.entities;
-
     for (const key in entities) {
       if (!entities[key].components.script) {
         continue;
       }
-
       const scripts = entities[key].components.script.scripts;
-
       for (let i = 0; i < scripts.length; i++) {
         if (_index[scripts[i].url]) continue;
-
         _scripts.push(scripts[i].url);
-
         _index[scripts[i].url] = true;
       }
     }
-
     return _scripts;
   }
 
@@ -565,11 +561,9 @@ class AppBase extends EventHandler {
       timestamp: now(),
       target: this
     });
-
     if (!this._librariesLoaded) {
       this.onLibrariesLoaded();
     }
-
     this.systems.fire('initialize', this.root);
     this.fire('initialize');
     this.systems.fire('postInitialize', this.root);
@@ -582,15 +576,12 @@ class AppBase extends EventHandler {
     if (this.controller) {
       this.controller.update(dt);
     }
-
     if (this.mouse) {
       this.mouse.update();
     }
-
     if (this.keyboard) {
       this.keyboard.update();
     }
-
     if (this.gamepads) {
       this.gamepads.update();
     }
@@ -599,18 +590,20 @@ class AppBase extends EventHandler {
   update(dt) {
     this.frame++;
     this.graphicsDevice.updateClientRect();
+
     if (script.legacy) this.systems.fire('fixedUpdate', 1.0 / 60.0);
     this.systems.fire(this._inTools ? 'toolsUpdate' : 'update', dt);
     this.systems.fire('animationUpdate', dt);
     this.systems.fire('postUpdate', dt);
+
     this.fire("update", dt);
+
     this.inputUpdate(dt);
   }
 
   render() {
     this.fire('prerender');
     this.root.syncHierarchy();
-
     if (this._batcher) {
       this._batcher.updateAll();
     }
@@ -628,7 +621,6 @@ class AppBase extends EventHandler {
     const stats = this.stats.frame;
     stats.dt = dt;
     stats.ms = ms;
-
     if (now > stats._timeToCountFrames) {
       stats.fps = stats._fpsAccum;
       stats._fpsAccum = 0;
@@ -643,6 +635,7 @@ class AppBase extends EventHandler {
 
   _fillFrameStats() {
     let stats = this.stats.frame;
+
     stats.cameras = this.renderer._camerasRendered;
     stats.materials = this.renderer._materialSwitches;
     stats.shaders = this.graphicsDevice._shaderSwitchesPerFrame;
@@ -659,15 +652,12 @@ class AppBase extends EventHandler {
     stats.lightClusters = this.renderer._lightClusters;
     stats.lightClustersTime = this.renderer._lightClustersTime;
     stats.otherPrimitives = 0;
-
     for (let i = 0; i < prims.length; i++) {
       if (i < PRIMITIVE_TRIANGLES) {
         stats.otherPrimitives += prims[i];
       }
-
       prims[i] = 0;
     }
-
     this.renderer._camerasRendered = 0;
     this.renderer._materialSwitches = 0;
     this.renderer._shadowMapUpdates = 0;
@@ -681,6 +671,7 @@ class AppBase extends EventHandler {
     this.renderer._shadowMapTime = 0;
     this.renderer._depthMapTime = 0;
     this.renderer._forwardTime = 0;
+
     stats = this.stats.drawCalls;
     stats.forward = this.renderer._forwardDrawCalls;
     stats.culled = this.renderer._numDrawCallsCulled;
@@ -718,7 +709,6 @@ class AppBase extends EventHandler {
       width = this.graphicsDevice.canvas.clientWidth;
       height = this.graphicsDevice.canvas.clientHeight;
     }
-
     this.graphicsDevice.resizeCanvas(width, height);
   }
 
@@ -740,14 +730,13 @@ class AppBase extends EventHandler {
 
   resizeCanvas(width, height) {
     if (!this._allowResize) return undefined;
+
     if (this.xr && this.xr.session) return undefined;
     const windowWidth = window.innerWidth;
     const windowHeight = window.innerHeight;
-
     if (this._fillMode === FILLMODE_KEEP_ASPECT) {
       const r = this.graphicsDevice.canvas.width / this.graphicsDevice.canvas.height;
       const winR = windowWidth / windowHeight;
-
       if (r > winR) {
         width = windowWidth;
         height = width / r;
@@ -763,6 +752,7 @@ class AppBase extends EventHandler {
     this.graphicsDevice.canvas.style.width = width + 'px';
     this.graphicsDevice.canvas.style.height = height + 'px';
     this.updateCanvasSize();
+
     return {
       width: width,
       height: height
@@ -771,7 +761,6 @@ class AppBase extends EventHandler {
 
   updateCanvasSize() {
     var _this$xr;
-
     if (!this._allowResize || (_this$xr = this.xr) != null && _this$xr.active) {
       return;
     }
@@ -784,7 +773,6 @@ class AppBase extends EventHandler {
 
   onLibrariesLoaded() {
     this._librariesLoaded = true;
-
     if (this.systems.rigidbody) {
       this.systems.rigidbody.onLibraryLoaded();
     }
@@ -792,18 +780,14 @@ class AppBase extends EventHandler {
 
   applySceneSettings(settings) {
     let asset;
-
     if (this.systems.rigidbody && typeof Ammo !== 'undefined') {
       const gravity = settings.physics.gravity;
       this.systems.rigidbody.gravity.set(gravity[0], gravity[1], gravity[2]);
     }
-
     this.scene.applySettings(settings);
-
     if (settings.render.hasOwnProperty('skybox')) {
       if (settings.render.skybox) {
         asset = this.assets.get(settings.render.skybox);
-
         if (asset) {
           this.setSkybox(asset);
         } else {
@@ -826,7 +810,6 @@ class AppBase extends EventHandler {
       const onSkyboxRemoved = () => {
         this.setSkybox(null);
       };
-
       const onSkyboxChanged = () => {
         this.scene.setSkybox(this._skyboxAsset ? this._skyboxAsset.resources : null);
       };
@@ -834,38 +817,30 @@ class AppBase extends EventHandler {
       if (this._skyboxAsset) {
         this.assets.off('load:' + this._skyboxAsset.id, onSkyboxChanged, this);
         this.assets.off('remove:' + this._skyboxAsset.id, onSkyboxRemoved, this);
-
         this._skyboxAsset.off('change', onSkyboxChanged, this);
       }
 
       this._skyboxAsset = asset;
-
       if (this._skyboxAsset) {
         this.assets.on('load:' + this._skyboxAsset.id, onSkyboxChanged, this);
         this.assets.once('remove:' + this._skyboxAsset.id, onSkyboxRemoved, this);
-
         this._skyboxAsset.on('change', onSkyboxChanged, this);
-
         if (this.scene.skyboxMip === 0 && !this._skyboxAsset.loadFaces) {
           this._skyboxAsset.loadFaces = true;
         }
-
         this.assets.load(this._skyboxAsset);
       }
-
       onSkyboxChanged();
     }
   }
 
   _firstBake() {
     var _this$lightmapper;
-
     (_this$lightmapper = this.lightmapper) == null ? void 0 : _this$lightmapper.bake(null, this.scene.lightmapMode);
   }
 
   _firstBatch() {
     var _this$batcher;
-
     (_this$batcher = this.batcher) == null ? void 0 : _this$batcher.generate();
   }
 
@@ -908,14 +883,12 @@ class AppBase extends EventHandler {
   drawTexture(x, y, width, height, texture, material, layer = this.scene.defaultDrawLayer) {
     const matrix = new Mat4();
     matrix.setTRS(new Vec3(x, y, 0.0), Quat.IDENTITY, new Vec3(width, height, 0.0));
-
     if (!material) {
       material = new Material();
       material.setParameter("colorMap", texture);
       material.shader = this.scene.immediate.getTextureShader();
       material.update();
     }
-
     this.drawQuad(matrix, material, layer);
   }
 
@@ -928,53 +901,43 @@ class AppBase extends EventHandler {
 
   destroy() {
     var _this$lightmapper2;
-
     if (this._inFrameUpdate) {
       this._destroyRequested = true;
       return;
     }
-
     const canvasId = this.graphicsDevice.canvas.id;
     this.off('librariesloaded');
-
     if (typeof document !== 'undefined') {
       document.removeEventListener('visibilitychange', this._visibilityChangeHandler, false);
       document.removeEventListener('mozvisibilitychange', this._visibilityChangeHandler, false);
       document.removeEventListener('msvisibilitychange', this._visibilityChangeHandler, false);
       document.removeEventListener('webkitvisibilitychange', this._visibilityChangeHandler, false);
     }
-
     this._visibilityChangeHandler = null;
     this.root.destroy();
     this.root = null;
-
     if (this.mouse) {
       this.mouse.off();
       this.mouse.detach();
       this.mouse = null;
     }
-
     if (this.keyboard) {
       this.keyboard.off();
       this.keyboard.detach();
       this.keyboard = null;
     }
-
     if (this.touch) {
       this.touch.off();
       this.touch.detach();
       this.touch = null;
     }
-
     if (this.elementInput) {
       this.elementInput.detach();
       this.elementInput = null;
     }
-
     if (this.controller) {
       this.controller = null;
     }
-
     this.systems.destroy();
 
     if (this.scene.layers) {
@@ -982,25 +945,21 @@ class AppBase extends EventHandler {
     }
 
     const assets = this.assets.list();
-
     for (let i = 0; i < assets.length; i++) {
       assets[i].unload();
       assets[i].off();
     }
-
     this.assets.off();
+
     this.bundles.destroy();
     this.bundles = null;
     this.i18n.destroy();
     this.i18n = null;
-
     for (const key in this.loader.getHandler('script')._cache) {
       const element = this.loader.getHandler('script')._cache[key];
-
       const parent = element.parentNode;
       if (parent) parent.removeChild(element);
     }
-
     this.loader.getHandler('script')._cache = {};
     this.loader.destroy();
     this.loader = null;
@@ -1008,19 +967,17 @@ class AppBase extends EventHandler {
     this.scene = null;
     this.systems = null;
     this.context = null;
+
     this.scripts.destroy();
     this.scripts = null;
     this.scenes.destroy();
     this.scenes = null;
     (_this$lightmapper2 = this.lightmapper) == null ? void 0 : _this$lightmapper2.destroy();
     this.lightmapper = null;
-
     if (this._batcher) {
       this._batcher.destroy();
-
       this._batcher = null;
     }
-
     this._entityIndex = {};
     this.defaultLayerDepth.onPreRenderOpaque = null;
     this.defaultLayerDepth.onPostRenderOpaque = null;
@@ -1039,13 +996,10 @@ class AppBase extends EventHandler {
 
     if (this._soundManager) {
       this._soundManager.destroy();
-
       this._soundManager = null;
     }
-
     script.app = null;
     AppBase._applications[canvasId] = null;
-
     if (getApplication() === this) {
       setApplication(null);
     }
@@ -1058,7 +1012,6 @@ class AppBase extends EventHandler {
   _registerSceneImmediate(scene) {
     this.on('postrender', scene.immediate.onPostRender, scene.immediate);
   }
-
 }
 
 AppBase._applications = {};
@@ -1069,10 +1022,8 @@ const makeTick = function makeTick(_app) {
   let frameRequest;
   return function (timestamp, frame) {
     var _application$xr;
-
     if (!application.graphicsDevice) return;
     setApplication(application);
-
     if (frameRequest) {
       window.cancelAnimationFrame(frameRequest);
       frameRequest = null;
@@ -1091,28 +1042,21 @@ const makeTick = function makeTick(_app) {
     } else {
       frameRequest = platform.browser ? window.requestAnimationFrame(application.tick) : null;
     }
-
     if (application.graphicsDevice.contextLost) return;
-
     application._fillFrameStatsBasic(currentTime, dt, ms);
-
     application._inFrameUpdate = true;
     application.fire("frameupdate", ms);
     let shouldRenderFrame = true;
-
     if (frame) {
       var _application$xr2;
-
       shouldRenderFrame = (_application$xr2 = application.xr) == null ? void 0 : _application$xr2.update(frame);
       application.graphicsDevice.defaultFramebuffer = frame.session.renderState.baseLayer.framebuffer;
     } else {
       application.graphicsDevice.defaultFramebuffer = null;
     }
-
     if (shouldRenderFrame) {
       application.update(dt);
       application.fire("framerender");
-
       if (application.autoRender || application.renderNextFrame) {
         application.updateCanvasSize();
         application.render();
@@ -1123,9 +1067,7 @@ const makeTick = function makeTick(_app) {
       _frameEndData.target = application;
       application.fire("frameend", _frameEndData);
     }
-
     application._inFrameUpdate = false;
-
     if (application._destroyRequested) {
       application.destroy();
     }

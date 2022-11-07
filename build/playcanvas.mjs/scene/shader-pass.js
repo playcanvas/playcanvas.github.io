@@ -7,13 +7,10 @@ class ShaderPass {
       case SHADER_FORWARD:
       case SHADER_FORWARDHDR:
         return SHADERTYPE_FORWARD;
-
       case SHADER_DEPTH:
         return SHADERTYPE_DEPTH;
-
       case SHADER_PICK:
         return SHADERTYPE_PICK;
-
       default:
         return shaderPass >= SHADER_SHADOW && shaderPass < SHADER_SHADOW + SHADOW_COUNT * LIGHTTYPE_COUNT ? SHADERTYPE_SHADOW : SHADERTYPE_FORWARD;
     }
@@ -52,10 +49,8 @@ class ShaderPass {
     } else if (ShaderPass.isShadow(pass)) {
       return '#define SHADOW_PASS\n';
     }
-
     return '';
   }
-
 }
 
 export { ShaderPass };

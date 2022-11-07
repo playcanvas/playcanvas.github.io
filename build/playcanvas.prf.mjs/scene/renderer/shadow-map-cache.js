@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import { LIGHTTYPE_OMNI } from '../constants.js';
@@ -10,7 +10,6 @@ class ShadowMapCache {
   constructor() {
     this.shadowMapCache = new Map();
   }
-
   destroy() {
     this.clear();
     this.shadowMapCache = null;
@@ -35,7 +34,6 @@ class ShadowMapCache {
   get(device, light) {
     const key = this.getKey(light);
     const shadowMaps = this.shadowMapCache.get(key);
-
     if (shadowMaps && shadowMaps.length) {
       return shadowMaps.pop();
     }
@@ -48,14 +46,12 @@ class ShadowMapCache {
   add(light, shadowMap) {
     const key = this.getKey(light);
     const shadowMaps = this.shadowMapCache.get(key);
-
     if (shadowMaps) {
       shadowMaps.push(shadowMap);
     } else {
       this.shadowMapCache.set(key, [shadowMap]);
     }
   }
-
 }
 
 export { ShadowMapCache };

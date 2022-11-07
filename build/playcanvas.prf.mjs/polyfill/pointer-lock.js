@@ -1,13 +1,12 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 (function () {
   if (typeof navigator === 'undefined' || typeof document === 'undefined') {
     return;
   }
-
   navigator.pointer = navigator.pointer || navigator.webkitPointer || navigator.mozPointer;
 
   var pointerlockchange = function pointerlockchange() {
@@ -15,13 +14,11 @@
     e.initCustomEvent('pointerlockchange', true, false, null);
     document.dispatchEvent(e);
   };
-
   var pointerlockerror = function pointerlockerror() {
     var e = document.createEvent('CustomEvent');
     e.initCustomEvent('pointerlockerror', true, false, null);
     document.dispatchEvent(e);
   };
-
   document.addEventListener('webkitpointerlockchange', pointerlockchange, false);
   document.addEventListener('webkitpointerlocklost', pointerlockchange, false);
   document.addEventListener('mozpointerlockchange', pointerlockchange, false);
@@ -36,7 +33,6 @@
   } else {
     Element.prototype.requestPointerLock = Element.prototype.requestPointerLock || Element.prototype.webkitRequestPointerLock || Element.prototype.mozRequestPointerLock;
   }
-
   if (!Element.prototype.requestPointerLock && navigator.pointer) {
     Element.prototype.requestPointerLock = function () {
       var el = this;
@@ -46,7 +42,6 @@
   }
 
   document.exitPointerLock = document.exitPointerLock || document.webkitExitPointerLock || document.mozExitPointerLock;
-
   if (!document.exitPointerLock) {
     document.exitPointerLock = function () {
       if (navigator.pointer) {

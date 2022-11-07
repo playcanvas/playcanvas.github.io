@@ -1,11 +1,11 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import { EventHandler } from '../../../core/event-handler.js';
-import { math } from '../../../math/math.js';
-import { Asset } from '../../../asset/asset.js';
+import { math } from '../../../core/math/math.js';
+import { Asset } from '../../asset/asset.js';
 import { SPRITE_RENDERMODE_SIMPLE } from '../../../scene/constants.js';
 
 class SpriteAnimationClip extends EventHandler {
@@ -29,7 +29,6 @@ class SpriteAnimationClip extends EventHandler {
       const fps = this.fps || Number.MIN_VALUE;
       return this._sprite.frameKeys.length / Math.abs(fps);
     }
-
     return 0;
   }
 
@@ -37,10 +36,8 @@ class SpriteAnimationClip extends EventHandler {
     this._setFrame(value);
 
     const fps = this.fps || Number.MIN_VALUE;
-
     this._setTime(this._frame / fps);
   }
-
   get frame() {
     return this._frame;
   }
@@ -56,51 +53,39 @@ class SpriteAnimationClip extends EventHandler {
   set sprite(value) {
     if (this._sprite) {
       this._sprite.off('set:meshes', this._onSpriteMeshesChange, this);
-
       this._sprite.off('set:pixelsPerUnit', this._onSpritePpuChanged, this);
-
       this._sprite.off('set:atlas', this._onSpriteMeshesChange, this);
-
       if (this._sprite.atlas) {
         this._sprite.atlas.off('set:texture', this._onSpriteMeshesChange, this);
       }
     }
-
     this._sprite = value;
-
     if (this._sprite) {
       this._sprite.on('set:meshes', this._onSpriteMeshesChange, this);
-
       this._sprite.on('set:pixelsPerUnit', this._onSpritePpuChanged, this);
-
       this._sprite.on('set:atlas', this._onSpriteMeshesChange, this);
-
       if (this._sprite.atlas) {
         this._sprite.atlas.on('set:texture', this._onSpriteMeshesChange, this);
       }
     }
-
     if (this._component.currentClip === this) {
       let mi;
 
       if (!value || !value.atlas) {
         mi = this._component._meshInstance;
-
         if (mi) {
           mi.deleteParameter('texture_emissiveMap');
           mi.deleteParameter('texture_opacityMap');
         }
-
         this._component._hideModel();
       } else {
+
         if (value.atlas.texture) {
           mi = this._component._meshInstance;
-
           if (mi) {
             mi.setParameter('texture_emissiveMap', value.atlas.texture);
             mi.setParameter('texture_opacityMap', value.atlas.texture);
           }
-
           if (this._component.enabled && this._component.entity.enabled) {
             this._component._showModel();
           }
@@ -122,25 +107,20 @@ class SpriteAnimationClip extends EventHandler {
   set spriteAsset(value) {
     const assets = this._component.system.app.assets;
     let id = value;
-
     if (value instanceof Asset) {
       id = value.id;
     }
-
     if (this._spriteAsset !== id) {
       if (this._spriteAsset) {
         const prev = assets.get(this._spriteAsset);
-
         if (prev) {
           this._unbindSpriteAsset(prev);
         }
       }
-
       this._spriteAsset = id;
 
       if (this._spriteAsset) {
         const asset = assets.get(this._spriteAsset);
-
         if (!asset) {
           this.sprite = null;
           assets.on('add:' + this._spriteAsset, this._onSpriteAssetAdded, this);
@@ -152,28 +132,24 @@ class SpriteAnimationClip extends EventHandler {
       }
     }
   }
-
   get spriteAsset() {
     return this._spriteAsset;
   }
 
   set time(value) {
     this._setTime(value);
-
     if (this._sprite) {
       this.frame = Math.min(this._sprite.frameKeys.length - 1, Math.floor(this._time * Math.abs(this.fps)));
     } else {
       this.frame = 0;
     }
   }
-
   get time() {
     return this._time;
   }
 
   _onSpriteAssetAdded(asset) {
     this._component.system.app.assets.off('add:' + asset.id, this._onSpriteAssetAdded, this);
-
     if (this._spriteAsset === asset.id) {
       this._bindSpriteAsset(asset);
     }
@@ -182,14 +158,12 @@ class SpriteAnimationClip extends EventHandler {
   _bindSpriteAsset(asset) {
     asset.on('load', this._onSpriteAssetLoad, this);
     asset.on('remove', this._onSpriteAssetRemove, this);
-
     if (asset.resource) {
       this._onSpriteAssetLoad(asset);
     } else {
       this._component.system.app.assets.load(asset);
     }
   }
-
   _unbindSpriteAsset(asset) {
     asset.off('load', this._onSpriteAssetLoad, this);
     asset.off('remove', this._onSpriteAssetRemove, this);
@@ -216,14 +190,12 @@ class SpriteAnimationClip extends EventHandler {
 
   _onTextureAtlasLoad(atlasAsset) {
     const spriteAsset = this._spriteAsset;
-
     if (spriteAsset instanceof Asset) {
       this._onSpriteAssetLoad(spriteAsset);
     } else {
       this._onSpriteAssetLoad(this._component.system.app.assets.get(spriteAsset));
     }
   }
-
   _onSpriteAssetRemove(asset) {
     this.sprite = null;
   }
@@ -249,40 +221,31 @@ class SpriteAnimationClip extends EventHandler {
     const time = this._time + dt * this._component.speed * dir;
     const duration = this.duration;
     const end = time > duration || time < 0;
-
     this._setTime(time);
-
     let frame = this.frame;
-
     if (this._sprite) {
       frame = Math.floor(this._sprite.frameKeys.length * this._time / duration);
     } else {
       frame = 0;
     }
-
     if (frame !== this._frame) {
       this._setFrame(frame);
     }
-
     if (end) {
       if (this.loop) {
         this.fire('loop');
-
         this._component.fire('loop', this);
       } else {
         this._playing = false;
         this._paused = false;
         this.fire('end');
-
         this._component.fire('end', this);
       }
     }
   }
-
   _setTime(value) {
     this._time = value;
     const duration = this.duration;
-
     if (this._time < 0) {
       if (this.loop) {
         this._time = this._time % duration + duration;
@@ -297,19 +260,16 @@ class SpriteAnimationClip extends EventHandler {
       }
     }
   }
-
   _setFrame(value) {
     if (this._sprite) {
       this._frame = math.clamp(value, 0, this._sprite.frameKeys.length - 1);
     } else {
       this._frame = value;
     }
-
     if (this._component.currentClip === this) {
       this._component._showFrame(this._frame);
     }
   }
-
   _destroy() {
     if (this._sprite) {
       this.sprite = null;
@@ -326,7 +286,6 @@ class SpriteAnimationClip extends EventHandler {
     this._paused = false;
     this.frame = 0;
     this.fire('play');
-
     this._component.fire('play', this);
   }
 
@@ -334,7 +293,6 @@ class SpriteAnimationClip extends EventHandler {
     if (!this._playing || this._paused) return;
     this._paused = true;
     this.fire('pause');
-
     this._component.fire('pause', this);
   }
 
@@ -342,7 +300,6 @@ class SpriteAnimationClip extends EventHandler {
     if (!this._paused) return;
     this._paused = false;
     this.fire('resume');
-
     this._component.fire('resume', this);
   }
 
@@ -353,10 +310,8 @@ class SpriteAnimationClip extends EventHandler {
     this._time = 0;
     this.frame = 0;
     this.fire('stop');
-
     this._component.fire('stop', this);
   }
-
 }
 
 export { SpriteAnimationClip };

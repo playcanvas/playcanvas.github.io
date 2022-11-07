@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import { defineProtoFunc } from './defineProtoFunc.js';
@@ -9,8 +9,8 @@ defineProtoFunc(Array, 'find', function (predicate) {
   if (this == null) {
     throw TypeError('"this" is null or not defined');
   }
-
   var o = Object(this);
+
   var len = o.length >>> 0;
 
   if (typeof predicate !== 'function') {
@@ -18,15 +18,14 @@ defineProtoFunc(Array, 'find', function (predicate) {
   }
 
   var thisArg = arguments[1];
+
   var k = 0;
 
   while (k < len) {
     var kValue = o[k];
-
     if (predicate.call(thisArg, kValue, k, o)) {
       return kValue;
     }
-
     k++;
   }
 

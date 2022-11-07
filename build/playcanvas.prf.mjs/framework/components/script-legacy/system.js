@@ -1,17 +1,17 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import { extend } from '../../../core/core.js';
 import { events } from '../../../core/events.js';
 import '../../../core/tracing.js';
-import { Color } from '../../../math/color.js';
-import { Curve } from '../../../math/curve.js';
-import { CurveSet } from '../../../math/curve-set.js';
-import { Vec2 } from '../../../math/vec2.js';
-import { Vec3 } from '../../../math/vec3.js';
-import { Vec4 } from '../../../math/vec4.js';
+import { Color } from '../../../core/math/color.js';
+import { Curve } from '../../../core/math/curve.js';
+import { CurveSet } from '../../../core/math/curve-set.js';
+import { Vec2 } from '../../../core/math/vec2.js';
+import { Vec3 } from '../../../core/math/vec3.js';
+import { Vec4 } from '../../../core/math/vec4.js';
 import { Entity } from '../../entity.js';
 import { Component } from '../component.js';
 import { ComponentSystem } from '../system.js';
@@ -27,7 +27,6 @@ const FIXED_UPDATE = 'fixedUpdate';
 const TOOLS_UPDATE = 'toolsUpdate';
 const ON_ENABLE = 'onEnable';
 const ON_DISABLE = 'onDisable';
-
 class ScriptLegacyComponentSystem extends ComponentSystem {
   constructor(app) {
     super(app);
@@ -35,7 +34,9 @@ class ScriptLegacyComponentSystem extends ComponentSystem {
     this.ComponentType = ScriptLegacyComponent;
     this.DataType = ScriptLegacyComponentData;
     this.schema = _schema;
+
     this.preloading = false;
+
     this.instancesWithUpdate = [];
     this.instancesWithFixedUpdate = [];
     this.instancesWithPostUpdate = [];
@@ -48,7 +49,6 @@ class ScriptLegacyComponentSystem extends ComponentSystem {
     this.app.systems.on(POST_UPDATE, this.onPostUpdate, this);
     this.app.systems.on(TOOLS_UPDATE, this.onToolsUpdate, this);
   }
-
   initializeComponentData(component, data, properties) {
     properties = ['runInTools', 'enabled', 'scripts'];
 
@@ -56,19 +56,15 @@ class ScriptLegacyComponentSystem extends ComponentSystem {
       data.scripts.forEach(function (script) {
         if (script.attributes && Array.isArray(script.attributes)) {
           const dict = {};
-
           for (let i = 0; i < script.attributes.length; i++) {
             dict[script.attributes[i].name] = script.attributes[i];
           }
-
           script.attributes = dict;
         }
       });
     }
-
     super.initializeComponentData(component, data, properties);
   }
-
   cloneComponent(entity, clone) {
     const src = this.store[entity.getGuid()];
     const data = {
@@ -76,26 +72,21 @@ class ScriptLegacyComponentSystem extends ComponentSystem {
       scripts: [],
       enabled: src.data.enabled
     };
-    const scripts = src.data.scripts;
 
+    const scripts = src.data.scripts;
     for (let i = 0, len = scripts.length; i < len; i++) {
       const attributes = scripts[i].attributes;
-
       if (attributes) {
         delete scripts[i].attributes;
       }
-
       data.scripts.push(extend({}, scripts[i]));
-
       if (attributes) {
         data.scripts[i].attributes = this._cloneAttributes(attributes);
         scripts[i].attributes = attributes;
       }
     }
-
     return this.addComponent(clone, data);
   }
-
   onBeforeRemove(entity, component) {
     if (component.enabled) {
       this._disableScriptComponent(component);
@@ -103,17 +94,13 @@ class ScriptLegacyComponentSystem extends ComponentSystem {
 
     this._destroyScriptComponent(component);
   }
-
   onInitialize(root) {
     this._registerInstances(root);
-
     if (root.enabled) {
       if (root.script && root.script.enabled) {
         this._initializeScriptComponent(root.script);
       }
-
       const children = root._children;
-
       for (let i = 0, len = children.length; i < len; i++) {
         if (children[i] instanceof Entity) {
           this.onInitialize(children[i]);
@@ -121,15 +108,12 @@ class ScriptLegacyComponentSystem extends ComponentSystem {
       }
     }
   }
-
   onPostInitialize(root) {
     if (root.enabled) {
       if (root.script && root.script.enabled) {
         this._postInitializeScriptComponent(root.script);
       }
-
       const children = root._children;
-
       for (let i = 0, len = children.length; i < len; i++) {
         if (children[i] instanceof Entity) {
           this.onPostInitialize(children[i]);
@@ -137,134 +121,102 @@ class ScriptLegacyComponentSystem extends ComponentSystem {
       }
     }
   }
-
   _callInstancesMethod(script, method) {
     const instances = script.data.instances;
-
     for (const name in instances) {
       if (instances.hasOwnProperty(name)) {
         const instance = instances[name].instance;
-
         if (instance[method]) {
           instance[method]();
         }
       }
     }
   }
-
   _initializeScriptComponent(script) {
     this._callInstancesMethod(script, INITIALIZE);
-
     script.data.initialized = true;
 
     if (script.enabled && script.entity.enabled) {
       this._enableScriptComponent(script);
     }
   }
-
   _enableScriptComponent(script) {
     this._callInstancesMethod(script, ON_ENABLE);
   }
-
   _disableScriptComponent(script) {
     this._callInstancesMethod(script, ON_DISABLE);
   }
-
   _destroyScriptComponent(script) {
     const instances = script.data.instances;
-
     for (const name in instances) {
       if (instances.hasOwnProperty(name)) {
         const instance = instances[name].instance;
-
         if (instance.destroy) {
           instance.destroy();
         }
-
         if (instance.update) {
           const index = this.instancesWithUpdate.indexOf(instance);
-
           if (index >= 0) {
             this.instancesWithUpdate.splice(index, 1);
           }
         }
-
         if (instance.fixedUpdate) {
           const index = this.instancesWithFixedUpdate.indexOf(instance);
-
           if (index >= 0) {
             this.instancesWithFixedUpdate.splice(index, 1);
           }
         }
-
         if (instance.postUpdate) {
           const index = this.instancesWithPostUpdate.indexOf(instance);
-
           if (index >= 0) {
             this.instancesWithPostUpdate.splice(index, 1);
           }
         }
-
         if (instance.toolsUpdate) {
           const index = this.instancesWithToolsUpdate.indexOf(instance);
-
           if (index >= 0) {
             this.instancesWithToolsUpdate.splice(index, 1);
           }
         }
-
         if (script.instances[name].instance === script[name]) {
           delete script[name];
         }
-
         delete script.instances[name];
       }
     }
   }
-
   _postInitializeScriptComponent(script) {
     this._callInstancesMethod(script, POST_INITIALIZE);
-
     script.data.postInitialized = true;
   }
-
   _updateInstances(method, updateList, dt) {
     for (let i = 0, len = updateList.length; i < len; i++) {
       const item = updateList[i];
-
       if (item && item.entity && item.entity.enabled && item.entity.script.enabled) {
         item[method](dt);
       }
     }
   }
-
   onUpdate(dt) {
     this._updateInstances(UPDATE, this.instancesWithUpdate, dt);
   }
-
   onFixedUpdate(dt) {
     this._updateInstances(FIXED_UPDATE, this.instancesWithFixedUpdate, dt);
   }
-
   onPostUpdate(dt) {
     this._updateInstances(POST_UPDATE, this.instancesWithPostUpdate, dt);
   }
-
   onToolsUpdate(dt) {
     this._updateInstances(TOOLS_UPDATE, this.instancesWithToolsUpdate, dt);
   }
-
   broadcast(name, functionName) {
     const args = Array.prototype.slice.call(arguments, 2);
     const dataStore = this.store;
-
     for (const id in dataStore) {
       if (dataStore.hasOwnProperty(id)) {
         const data = dataStore[id].data;
-
         if (data.instances[name]) {
           const fn = data.instances[name].instance[functionName];
-
           if (fn) {
             fn.apply(data.instances[name].instance, args);
           }
@@ -272,15 +224,12 @@ class ScriptLegacyComponentSystem extends ComponentSystem {
       }
     }
   }
-
   _preRegisterInstance(entity, url, name, instance) {
     if (entity.script) {
       entity.script.data._instances = entity.script.data._instances || {};
-
       if (entity.script.data._instances[name]) {
         throw Error(`Script name collision '${name}'. Scripts from '${url}' and '${entity.script.data._instances[name].url}' {${entity.getGuid()}}`);
       }
-
       entity.script.data._instances[name] = {
         url: url,
         name: name,
@@ -288,33 +237,26 @@ class ScriptLegacyComponentSystem extends ComponentSystem {
       };
     }
   }
-
   _registerInstances(entity) {
     if (entity.script) {
       if (entity.script.data._instances) {
         entity.script.instances = entity.script.data._instances;
-
         for (const instanceName in entity.script.instances) {
           const preRegistered = entity.script.instances[instanceName];
           const instance = preRegistered.instance;
           events.attach(instance);
-
           if (instance.update) {
             this.instancesWithUpdate.push(instance);
           }
-
           if (instance.fixedUpdate) {
             this.instancesWithFixedUpdate.push(instance);
           }
-
           if (instance.postUpdate) {
             this.instancesWithPostUpdate.push(instance);
           }
-
           if (instance.toolsUpdate) {
             this.instancesWithToolsUpdate.push(instance);
           }
-
           if (entity.script.scripts) {
             this._createAccessors(entity, preRegistered);
           }
@@ -329,22 +271,17 @@ class ScriptLegacyComponentSystem extends ComponentSystem {
         delete entity.script.data._instances;
       }
     }
-
     const children = entity._children;
-
     for (let i = 0, len = children.length; i < len; i++) {
       if (children[i] instanceof Entity) {
         this._registerInstances(children[i]);
       }
     }
   }
-
   _cloneAttributes(attributes) {
     const result = {};
-
     for (const key in attributes) {
       if (!attributes.hasOwnProperty(key)) continue;
-
       if (attributes[key].type !== 'entity') {
         result[key] = extend({}, attributes[key]);
       } else {
@@ -355,45 +292,36 @@ class ScriptLegacyComponentSystem extends ComponentSystem {
         attributes[key].value = val;
       }
     }
-
     return result;
   }
-
   _createAccessors(entity, instance) {
     const len = entity.script.scripts.length;
     const url = instance.url;
-
     for (let i = 0; i < len; i++) {
       const script = entity.script.scripts[i];
-
       if (script.url === url) {
         const attributes = script.attributes;
-
         if (script.name && attributes) {
           for (const key in attributes) {
             if (attributes.hasOwnProperty(key)) {
               this._createAccessor(attributes[key], instance);
             }
           }
-
           entity.script.data.attributes[script.name] = this._cloneAttributes(attributes);
         }
-
         break;
       }
     }
   }
-
   _createAccessor(attribute, instance) {
     const self = this;
+
     attribute = {
       name: attribute.name,
       value: attribute.value,
       type: attribute.type
     };
-
     this._convertAttributeValue(attribute);
-
     Object.defineProperty(instance.instance, attribute.name, {
       get: function () {
         return attribute.value;
@@ -401,27 +329,21 @@ class ScriptLegacyComponentSystem extends ComponentSystem {
       set: function (value) {
         const oldValue = attribute.value;
         attribute.value = value;
-
         self._convertAttributeValue(attribute);
-
         instance.instance.fire('set', attribute.name, oldValue, attribute.value);
       },
       configurable: true
     });
   }
-
   _updateAccessors(entity, instance) {
     const len = entity.script.scripts.length;
     const url = instance.url;
-
     for (let i = 0; i < len; i++) {
       const scriptComponent = entity.script;
       const script = scriptComponent.scripts[i];
-
       if (script.url === url) {
         const name = script.name;
         const attributes = script.attributes;
-
         if (name) {
           if (attributes) {
             for (const key in attributes) {
@@ -432,11 +354,9 @@ class ScriptLegacyComponentSystem extends ComponentSystem {
           }
 
           const previousAttributes = scriptComponent.data.attributes[name];
-
           if (previousAttributes) {
             for (const key in previousAttributes) {
               const oldAttribute = previousAttributes[key];
-
               if (!(key in attributes)) {
                 delete instance.instance[oldAttribute.name];
               } else {
@@ -448,19 +368,16 @@ class ScriptLegacyComponentSystem extends ComponentSystem {
               }
             }
           }
-
           if (attributes) {
             scriptComponent.data.attributes[name] = this._cloneAttributes(attributes);
           } else {
             delete scriptComponent.data.attributes[name];
           }
         }
-
         break;
       }
     }
   }
-
   _convertAttributeValue(attribute) {
     if (attribute.type === 'rgb' || attribute.type === 'rgba') {
       if (Array.isArray(attribute.value)) {
@@ -477,6 +394,7 @@ class ScriptLegacyComponentSystem extends ComponentSystem {
     } else if (attribute.type === 'curve' || attribute.type === 'colorcurve') {
       const curveType = attribute.value.keys[0] instanceof Array ? CurveSet : Curve;
       attribute.value = new curveType(attribute.value.keys);
+
       attribute.value.type = attribute.value.type;
     }
   }
@@ -490,9 +408,7 @@ class ScriptLegacyComponentSystem extends ComponentSystem {
     this.app.systems.off(POST_UPDATE, this.onPostUpdate, this);
     this.app.systems.off(TOOLS_UPDATE, this.onToolsUpdate, this);
   }
-
 }
-
 Component._buildAccessors(ScriptLegacyComponent.prototype, _schema);
 
 export { ScriptLegacyComponentSystem };

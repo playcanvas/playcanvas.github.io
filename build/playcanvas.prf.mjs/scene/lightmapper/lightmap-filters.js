@@ -1,11 +1,11 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-dev revision 1331860ee (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
-import { createShaderFromCode } from '../../graphics/program-lib/utils.js';
-import { shaderChunks } from '../../graphics/program-lib/chunks/chunks.js';
-import { shaderChunksLightmapper } from '../../graphics/program-lib/chunks/chunks-lightmapper.js';
+import { createShaderFromCode } from '../shader-lib/utils.js';
+import { shaderChunks } from '../shader-lib/chunks/chunks.js';
+import { shaderChunksLightmapper } from '../shader-lib/chunks/chunks-lightmapper.js';
 
 const DENOISE_FILTER_SIZE = 15;
 

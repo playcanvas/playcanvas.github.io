@@ -1,7 +1,7 @@
 import { platform } from '../core/platform.js';
-import { WebglGraphicsDevice } from '../graphics/webgl/webgl-graphics-device.js';
-import { SoundManager } from '../sound/manager.js';
-import { Lightmapper } from '../scene/lightmapper/lightmapper.js';
+import { WebglGraphicsDevice } from '../platform/graphics/webgl/webgl-graphics-device.js';
+import { SoundManager } from '../platform/sound/manager.js';
+import { Lightmapper } from './lightmapper/lightmapper.js';
 import { BatchManager } from '../scene/batching/batch-manager.js';
 import { AppBase } from './app-base.js';
 import { AppOptions } from './app-options.js';
@@ -30,31 +30,31 @@ import { ZoneComponentSystem } from './components/zone/system.js';
 import { CameraComponentSystem } from './components/camera/system.js';
 import { LightComponentSystem } from './components/light/system.js';
 import { ScriptComponentSystem } from './components/script/system.js';
-import { RenderHandler } from '../resources/render.js';
-import { AnimationHandler } from '../resources/animation.js';
-import { AnimClipHandler } from '../resources/anim-clip.js';
-import { AnimStateGraphHandler } from '../resources/anim-state-graph.js';
-import { AudioHandler } from '../resources/audio.js';
-import { BinaryHandler } from '../resources/binary.js';
-import { ContainerHandler } from '../resources/container.js';
-import { CssHandler } from '../resources/css.js';
-import { CubemapHandler } from '../resources/cubemap.js';
-import { FolderHandler } from '../resources/folder.js';
-import { FontHandler } from '../resources/font.js';
-import { HierarchyHandler } from '../resources/hierarchy.js';
-import { HtmlHandler } from '../resources/html.js';
-import { JsonHandler } from '../resources/json.js';
-import { MaterialHandler } from '../resources/material.js';
-import { ModelHandler } from '../resources/model.js';
-import { SceneHandler } from '../resources/scene.js';
-import { ScriptHandler } from '../resources/script.js';
-import { ShaderHandler } from '../resources/shader.js';
-import { SpriteHandler } from '../resources/sprite.js';
-import { TemplateHandler } from '../resources/template.js';
-import { TextHandler } from '../resources/text.js';
-import { TextureAtlasHandler } from '../resources/texture-atlas.js';
-import { TextureHandler } from '../resources/texture.js';
-import { XrManager } from '../xr/xr-manager.js';
+import { RenderHandler } from './handlers/render.js';
+import { AnimationHandler } from './handlers/animation.js';
+import { AnimClipHandler } from './handlers/anim-clip.js';
+import { AnimStateGraphHandler } from './handlers/anim-state-graph.js';
+import { AudioHandler } from './handlers/audio.js';
+import { BinaryHandler } from './handlers/binary.js';
+import { ContainerHandler } from './handlers/container.js';
+import { CssHandler } from './handlers/css.js';
+import { CubemapHandler } from './handlers/cubemap.js';
+import { FolderHandler } from './handlers/folder.js';
+import { FontHandler } from './handlers/font.js';
+import { HierarchyHandler } from './handlers/hierarchy.js';
+import { HtmlHandler } from './handlers/html.js';
+import { JsonHandler } from './handlers/json.js';
+import { MaterialHandler } from './handlers/material.js';
+import { ModelHandler } from './handlers/model.js';
+import { SceneHandler } from './handlers/scene.js';
+import { ScriptHandler } from './handlers/script.js';
+import { ShaderHandler } from './handlers/shader.js';
+import { SpriteHandler } from './handlers/sprite.js';
+import { TemplateHandler } from './handlers/template.js';
+import { TextHandler } from './handlers/text.js';
+import { TextureAtlasHandler } from './handlers/texture-atlas.js';
+import { TextureHandler } from './handlers/texture.js';
+import { XrManager } from './xr/xr-manager.js';
 
 class Application extends AppBase {
   constructor(canvas, options = {}) {
@@ -71,34 +71,28 @@ class Application extends AppBase {
     appOptions.scriptPrefix = options.scriptPrefix;
     appOptions.assetPrefix = options.assetPrefix;
     appOptions.scriptsOrder = options.scriptsOrder;
-    appOptions.soundManager = new SoundManager(options);
+    appOptions.soundManager = new SoundManager();
     appOptions.lightmapper = Lightmapper;
     appOptions.batchManager = BatchManager;
     appOptions.xr = XrManager;
     this.init(appOptions);
   }
-
   createDevice(canvas, options) {
     if (!options.graphicsDeviceOptions) {
       options.graphicsDeviceOptions = {};
     }
-
     if (platform.browser && !!navigator.xr) {
       options.graphicsDeviceOptions.xrCompatible = true;
     }
-
     options.graphicsDeviceOptions.alpha = options.graphicsDeviceOptions.alpha || false;
     return new WebglGraphicsDevice(canvas, options.graphicsDeviceOptions);
   }
-
   addComponentSystems(appOptions) {
     appOptions.componentSystems = [RigidBodyComponentSystem, CollisionComponentSystem, JointComponentSystem, AnimationComponentSystem, AnimComponentSystem, ModelComponentSystem, RenderComponentSystem, CameraComponentSystem, LightComponentSystem, script.legacy ? ScriptLegacyComponentSystem : ScriptComponentSystem, AudioSourceComponentSystem, SoundComponentSystem, AudioListenerComponentSystem, ParticleSystemComponentSystem, ScreenComponentSystem, ElementComponentSystem, ButtonComponentSystem, ScrollViewComponentSystem, ScrollbarComponentSystem, SpriteComponentSystem, LayoutGroupComponentSystem, LayoutChildComponentSystem, ZoneComponentSystem];
   }
-
   addResourceHandles(appOptions) {
     appOptions.resourceHandlers = [RenderHandler, AnimationHandler, AnimClipHandler, AnimStateGraphHandler, ModelHandler, MaterialHandler, TextureHandler, TextHandler, JsonHandler, AudioHandler, ScriptHandler, SceneHandler, CubemapHandler, HtmlHandler, CssHandler, ShaderHandler, HierarchyHandler, FolderHandler, FontHandler, BinaryHandler, TextureAtlasHandler, SpriteHandler, TemplateHandler, ContainerHandler];
   }
-
 }
 
 export { Application };

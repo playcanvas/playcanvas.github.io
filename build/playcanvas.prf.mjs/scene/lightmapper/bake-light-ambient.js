@@ -1,11 +1,11 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-dev revision 1331860ee (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
-import { Vec3 } from '../../math/vec3.js';
-import { random } from '../../math/random.js';
-import { Color } from '../../math/color.js';
+import { Vec3 } from '../../core/math/vec3.js';
+import { random } from '../../core/math/random.js';
+import { Color } from '../../core/math/color.js';
 import { Entity } from '../../framework/entity.js';
 import { SHADOW_PCF3 } from '../constants.js';
 import { BakeLight } from './bake-light.js';

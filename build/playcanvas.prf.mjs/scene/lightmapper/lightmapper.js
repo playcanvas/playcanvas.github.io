@@ -1,20 +1,20 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-dev revision 1331860ee (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import { now } from '../../core/time.js';
 import '../../core/tracing.js';
-import { math } from '../../math/math.js';
-import { Color } from '../../math/color.js';
-import { Vec3 } from '../../math/vec3.js';
-import { BoundingBox } from '../../shape/bounding-box.js';
-import { PIXELFORMAT_R8_G8_B8_A8, TEXTURETYPE_RGBM, CHUNKAPI_1_55, CULLFACE_NONE, TEXHINT_LIGHTMAP, FILTER_NEAREST, ADDRESS_CLAMP_TO_EDGE, FILTER_LINEAR, TEXTURETYPE_DEFAULT } from '../../graphics/constants.js';
-import { shaderChunks } from '../../graphics/program-lib/chunks/chunks.js';
-import { shaderChunksLightmapper } from '../../graphics/program-lib/chunks/chunks-lightmapper.js';
-import { drawQuadWithShader } from '../../graphics/simple-post-effect.js';
-import { RenderTarget } from '../../graphics/render-target.js';
-import { Texture } from '../../graphics/texture.js';
+import { math } from '../../core/math/math.js';
+import { Color } from '../../core/math/color.js';
+import { Vec3 } from '../../core/math/vec3.js';
+import { BoundingBox } from '../../core/shape/bounding-box.js';
+import { PIXELFORMAT_R8_G8_B8_A8, TEXTURETYPE_RGBM, CHUNKAPI_1_55, CULLFACE_NONE, TEXHINT_LIGHTMAP, FILTER_NEAREST, ADDRESS_CLAMP_TO_EDGE, FILTER_LINEAR, TEXTURETYPE_DEFAULT } from '../../platform/graphics/constants.js';
+import { shaderChunks } from '../shader-lib/chunks/chunks.js';
+import { shaderChunksLightmapper } from '../shader-lib/chunks/chunks-lightmapper.js';
+import { drawQuadWithShader } from '../../platform/graphics/simple-post-effect.js';
+import { RenderTarget } from '../../platform/graphics/render-target.js';
+import { Texture } from '../../platform/graphics/texture.js';
 import { MeshInstance } from '../mesh-instance.js';
 import { LightingParams } from '../lighting/lighting-params.js';
 import { WorldClusters } from '../lighting/world-clusters.js';

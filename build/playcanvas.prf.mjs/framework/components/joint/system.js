@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import { Component } from '../component.js';
@@ -19,13 +19,10 @@ class JointComponentSystem extends ComponentSystem {
     this.DataType = JointComponentData;
     this.schema = _schema;
   }
-
   initializeComponentData(component, data, properties) {
     component.initFromData(data);
   }
-
 }
-
 Component._buildAccessors(JointComponent.prototype, _schema);
 
 export { JointComponentSystem };

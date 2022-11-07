@@ -1,13 +1,13 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
-import { Color } from '../../../math/color.js';
-import { Vec2 } from '../../../math/vec2.js';
-import { Vec4 } from '../../../math/vec4.js';
-import { PIXELFORMAT_R8_G8_B8_A8 } from '../../../graphics/constants.js';
-import { Texture } from '../../../graphics/texture.js';
+import { Color } from '../../../core/math/color.js';
+import { Vec2 } from '../../../core/math/vec2.js';
+import { Vec4 } from '../../../core/math/vec4.js';
+import { PIXELFORMAT_R8_G8_B8_A8 } from '../../../platform/graphics/constants.js';
+import { Texture } from '../../../platform/graphics/texture.js';
 import { BLEND_PREMULTIPLIED, SPRITE_RENDERMODE_SLICED, SPRITE_RENDERMODE_TILED } from '../../../scene/constants.js';
 import { StandardMaterial } from '../../../scene/materials/standard-material.js';
 import { Component } from '../component.js';
@@ -27,22 +27,20 @@ class ElementComponentSystem extends ComponentSystem {
     this.schema = _schema;
     this._unicodeConverter = null;
     this._rtlReorder = null;
+
     this._defaultTexture = new Texture(app.graphicsDevice, {
       width: 1,
       height: 1,
       format: PIXELFORMAT_R8_G8_B8_A8,
       name: 'element-system'
     });
-
     const pixels = this._defaultTexture.lock();
-
     const pixelData = new Uint8Array(4);
     pixelData[0] = 255.0;
     pixelData[1] = 255.0;
     pixelData[2] = 255.0;
     pixelData[3] = 255.0;
     pixels.set(pixelData);
-
     this._defaultTexture.unlock();
 
     this.defaultImageMaterial = null;
@@ -57,20 +55,17 @@ class ElementComponentSystem extends ComponentSystem {
     this.defaultScreenSpaceImageMask9SlicedMaterial = null;
     this.defaultScreenSpaceImageMask9TiledMaterial = null;
     this.defaultScreenSpaceImageMaskMaterial = null;
+
     this._defaultTextMaterials = {};
     this.defaultImageMaterials = [];
     this.on('beforeremove', this.onRemoveComponent, this);
   }
-
   destroy() {
     super.destroy();
-
     this._defaultTexture.destroy();
   }
-
   initializeComponentData(component, data, properties) {
     component._beingInitialized = true;
-
     if (data.anchor !== undefined) {
       if (data.anchor instanceof Vec4) {
         component.anchor.copy(data.anchor);
@@ -78,7 +73,6 @@ class ElementComponentSystem extends ComponentSystem {
         component.anchor.set(data.anchor[0], data.anchor[1], data.anchor[2], data.anchor[3]);
       }
     }
-
     if (data.pivot !== undefined) {
       if (data.pivot instanceof Vec2) {
         component.pivot.copy(data.pivot);
@@ -86,60 +80,48 @@ class ElementComponentSystem extends ComponentSystem {
         component.pivot.set(data.pivot[0], data.pivot[1]);
       }
     }
-
     const splitHorAnchors = Math.abs(component.anchor.x - component.anchor.z) > 0.001;
     const splitVerAnchors = Math.abs(component.anchor.y - component.anchor.w) > 0.001;
     let _marginChange = false;
     let color;
-
     if (data.margin !== undefined) {
       if (data.margin instanceof Vec4) {
         component.margin.copy(data.margin);
       } else {
         component._margin.set(data.margin[0], data.margin[1], data.margin[2], data.margin[3]);
       }
-
       _marginChange = true;
     }
-
     if (data.left !== undefined) {
       component._margin.x = data.left;
       _marginChange = true;
     }
-
     if (data.bottom !== undefined) {
       component._margin.y = data.bottom;
       _marginChange = true;
     }
-
     if (data.right !== undefined) {
       component._margin.z = data.right;
       _marginChange = true;
     }
-
     if (data.top !== undefined) {
       component._margin.w = data.top;
       _marginChange = true;
     }
-
     if (_marginChange) {
       component.margin = component._margin;
     }
-
     let shouldForceSetAnchor = false;
-
     if (data.width !== undefined && !splitHorAnchors) {
       component.width = data.width;
     } else if (splitHorAnchors) {
       shouldForceSetAnchor = true;
     }
-
     if (data.height !== undefined && !splitVerAnchors) {
       component.height = data.height;
     } else if (splitVerAnchors) {
       shouldForceSetAnchor = true;
     }
-
     if (shouldForceSetAnchor) {
       component.anchor = component.anchor;
     }
@@ -147,40 +129,30 @@ class ElementComponentSystem extends ComponentSystem {
     if (data.enabled !== undefined) {
       component.enabled = data.enabled;
     }
-
     if (data.useInput !== undefined) {
       component.useInput = data.useInput;
     }
-
     if (data.fitMode !== undefined) {
       component.fitMode = data.fitMode;
     }
-
     component.batchGroupId = data.batchGroupId === undefined || data.batchGroupId === null ? -1 : data.batchGroupId;
-
     if (data.layers && Array.isArray(data.layers)) {
       component.layers = data.layers.slice(0);
     }
-
     if (data.type !== undefined) {
       component.type = data.type;
     }
-
     if (component.type === ELEMENTTYPE_IMAGE) {
       if (data.rect !== undefined) {
         component.rect = data.rect;
       }
-
       if (data.color !== undefined) {
         color = data.color;
-
         if (!(color instanceof Color)) {
           color = new Color(data.color[0], data.color[1], data.color[2]);
         }
-
         component.color = color;
       }
-
       if (data.opacity !== undefined) component.opacity = data.opacity;
       if (data.textureAsset !== undefined) component.textureAsset = data.textureAsset;
       if (data.texture) component.texture = data.texture;
@@ -190,7 +162,6 @@ class ElementComponentSystem extends ComponentSystem {
       if (data.pixelsPerUnit !== undefined && data.pixelsPerUnit !== null) component.pixelsPerUnit = data.pixelsPerUnit;
       if (data.materialAsset !== undefined) component.materialAsset = data.materialAsset;
       if (data.material) component.material = data.material;
-
       if (data.mask !== undefined) {
         component.mask = data.mask;
       }
@@ -199,34 +170,26 @@ class ElementComponentSystem extends ComponentSystem {
       if (data.autoHeight !== undefined) component.autoHeight = data.autoHeight;
       if (data.rtlReorder !== undefined) component.rtlReorder = data.rtlReorder;
       if (data.unicodeConverter !== undefined) component.unicodeConverter = data.unicodeConverter;
-
       if (data.text !== null && data.text !== undefined) {
         component.text = data.text;
       } else if (data.key !== null && data.key !== undefined) {
         component.key = data.key;
       }
-
       if (data.color !== undefined) {
         color = data.color;
-
         if (!(color instanceof Color)) {
           color = new Color(color[0], color[1], color[2]);
         }
-
         component.color = color;
       }
-
       if (data.opacity !== undefined) {
         component.opacity = data.opacity;
       }
-
       if (data.spacing !== undefined) component.spacing = data.spacing;
-
       if (data.fontSize !== undefined) {
         component.fontSize = data.fontSize;
         if (!data.lineHeight) component.lineHeight = data.fontSize;
       }
-
       if (data.lineHeight !== undefined) component.lineHeight = data.lineHeight;
       if (data.maxLines !== undefined) component.maxLines = data.maxLines;
       if (data.wrapLines !== undefined) component.wrapLines = data.wrapLines;
@@ -245,23 +208,18 @@ class ElementComponentSystem extends ComponentSystem {
     }
 
     const result = component._parseUpToScreen();
-
     if (result.screen) {
       component._updateScreen(result.screen);
     }
-
     super.initializeComponentData(component, data, properties);
     component._beingInitialized = false;
-
     if (component.type === ELEMENTTYPE_IMAGE && component._image._meshDirty) {
       component._image._updateMesh(component._image.mesh);
     }
   }
-
   onRemoveComponent(entity, component) {
     component.onRemove();
   }
-
   cloneComponent(entity, clone) {
     const source = entity.element;
     const data = {
@@ -310,27 +268,21 @@ class ElementComponentSystem extends ComponentSystem {
       shadowOffset: source.shadowOffset && source.shadowOffset.clone() || source.shadowOffset,
       enableMarkup: source.enableMarkup
     };
-
     if (source.key !== undefined && source.key !== null) {
       data.key = source.key;
     } else {
       data.text = source.text;
     }
-
     return this.addComponent(clone, data);
   }
-
   getTextElementMaterial(screenSpace, msdf, textAttibutes) {
     const hash = (screenSpace && 1 << 0) | (msdf && 1 << 1) | (textAttibutes && 1 << 2);
     let material = this._defaultTextMaterials[hash];
-
     if (material) {
       return material;
     }
-
     let name = "TextMaterial";
     material = new StandardMaterial();
-
     if (msdf) {
       material.msdfMap = this._defaultTexture;
       material.msdfTextAttribute = textAttibutes;
@@ -343,7 +295,6 @@ class ElementComponentSystem extends ComponentSystem {
       material.opacityMap = this._defaultTexture;
       material.opacityMapChannel = 'a';
     }
-
     if (screenSpace) {
       name = 'ScreenSpace' + name;
       material.depthTest = false;
@@ -363,7 +314,6 @@ class ElementComponentSystem extends ComponentSystem {
     this._defaultTextMaterials[hash] = material;
     return material;
   }
-
   _createBaseImageMaterial() {
     const material = new StandardMaterial();
     material.diffuse.set(0, 0, 0);
@@ -382,7 +332,6 @@ class ElementComponentSystem extends ComponentSystem {
     material.depthWrite = false;
     return material;
   }
-
   getImageElementMaterial(screenSpace, mask, nineSliced, nineSliceTiled) {
     if (screenSpace) {
       if (mask) {
@@ -400,7 +349,6 @@ class ElementComponentSystem extends ComponentSystem {
             this.defaultScreenSpaceImageMask9SlicedMaterial.update();
             this.defaultImageMaterials.push(this.defaultScreenSpaceImageMask9SlicedMaterial);
           }
-
           return this.defaultScreenSpaceImageMask9SlicedMaterial;
         } else if (nineSliceTiled) {
           if (!this.defaultScreenSpaceImageMask9TiledMaterial) {
@@ -416,7 +364,6 @@ class ElementComponentSystem extends ComponentSystem {
             this.defaultScreenSpaceImageMask9TiledMaterial.update();
             this.defaultImageMaterials.push(this.defaultScreenSpaceImageMask9TiledMaterial);
           }
-
           return this.defaultScreenSpaceImageMask9TiledMaterial;
         } else {
           if (!this.defaultScreenSpaceImageMaskMaterial) {
@@ -431,7 +378,6 @@ class ElementComponentSystem extends ComponentSystem {
             this.defaultScreenSpaceImageMaskMaterial.update();
             this.defaultImageMaterials.push(this.defaultScreenSpaceImageMaskMaterial);
           }
-
           return this.defaultScreenSpaceImageMaskMaterial;
         }
       } else {
@@ -444,7 +390,6 @@ class ElementComponentSystem extends ComponentSystem {
             this.defaultScreenSpaceImage9SlicedMaterial.update();
             this.defaultImageMaterials.push(this.defaultScreenSpaceImage9SlicedMaterial);
           }
-
           return this.defaultScreenSpaceImage9SlicedMaterial;
         } else if (nineSliceTiled) {
           if (!this.defaultScreenSpaceImage9TiledMaterial) {
@@ -455,7 +400,6 @@ class ElementComponentSystem extends ComponentSystem {
             this.defaultScreenSpaceImage9TiledMaterial.update();
             this.defaultImageMaterials.push(this.defaultScreenSpaceImage9TiledMaterial);
           }
-
           return this.defaultScreenSpaceImage9TiledMaterial;
         } else {
           if (!this.defaultScreenSpaceImageMaterial) {
@@ -465,7 +409,6 @@ class ElementComponentSystem extends ComponentSystem {
             this.defaultScreenSpaceImageMaterial.update();
             this.defaultImageMaterials.push(this.defaultScreenSpaceImageMaterial);
           }
-
           return this.defaultScreenSpaceImageMaterial;
         }
       }
@@ -484,7 +427,6 @@ class ElementComponentSystem extends ComponentSystem {
             this.defaultImage9SlicedMaskMaterial.update();
             this.defaultImageMaterials.push(this.defaultImage9SlicedMaskMaterial);
           }
-
           return this.defaultImage9SlicedMaskMaterial;
         } else if (nineSliceTiled) {
           if (!this.defaultImage9TiledMaskMaterial) {
@@ -499,7 +441,6 @@ class ElementComponentSystem extends ComponentSystem {
             this.defaultImage9TiledMaskMaterial.update();
             this.defaultImageMaterials.push(this.defaultImage9TiledMaskMaterial);
           }
-
           return this.defaultImage9TiledMaskMaterial;
         } else {
           if (!this.defaultImageMaskMaterial) {
@@ -513,7 +454,6 @@ class ElementComponentSystem extends ComponentSystem {
             this.defaultImageMaskMaterial.update();
             this.defaultImageMaterials.push(this.defaultImageMaskMaterial);
           }
-
           return this.defaultImageMaskMaterial;
         }
       } else {
@@ -525,7 +465,6 @@ class ElementComponentSystem extends ComponentSystem {
             this.defaultImage9SlicedMaterial.update();
             this.defaultImageMaterials.push(this.defaultImage9SlicedMaterial);
           }
-
           return this.defaultImage9SlicedMaterial;
         } else if (nineSliceTiled) {
           if (!this.defaultImage9TiledMaterial) {
@@ -535,7 +474,6 @@ class ElementComponentSystem extends ComponentSystem {
             this.defaultImage9TiledMaterial.update();
             this.defaultImageMaterials.push(this.defaultImage9TiledMaterial);
           }
-
           return this.defaultImage9TiledMaterial;
         } else {
           if (!this.defaultImageMaterial) {
@@ -544,7 +482,6 @@ class ElementComponentSystem extends ComponentSystem {
             this.defaultImageMaterial.update();
             this.defaultImageMaterials.push(this.defaultImageMaterial);
           }
-
           return this.defaultImageMaterial;
         }
       }
@@ -554,21 +491,16 @@ class ElementComponentSystem extends ComponentSystem {
   registerUnicodeConverter(func) {
     this._unicodeConverter = func;
   }
-
   registerRtlReorder(func) {
     this._rtlReorder = func;
   }
-
   getUnicodeConverter() {
     return this._unicodeConverter;
   }
-
   getRtlReorder() {
     return this._rtlReorder;
   }
-
 }
-
 Component._buildAccessors(ElementComponent.prototype, _schema);
 
 export { ElementComponentSystem };

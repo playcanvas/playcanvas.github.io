@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 class SortedLoopArray {
@@ -18,21 +18,17 @@ class SortedLoopArray {
     const search = item[this._sortBy];
     let middle;
     let current;
-
     while (left <= right) {
       middle = Math.floor((left + right) / 2);
       current = this.items[middle][this._sortBy];
-
       if (current <= search) {
         left = middle + 1;
       } else if (current > search) {
         right = middle - 1;
       }
     }
-
     return left;
   }
-
   _doSort(a, b) {
     const sortBy = this._sortBy;
     return a[sortBy] - b[sortBy];
@@ -40,10 +36,8 @@ class SortedLoopArray {
 
   insert(item) {
     const index = this._binarySearch(item);
-
     this.items.splice(index, 0, item);
     this.length++;
-
     if (this.loopIndex >= index) {
       this.loopIndex++;
     }
@@ -59,7 +53,6 @@ class SortedLoopArray {
     if (idx < 0) return;
     this.items.splice(idx, 1);
     this.length--;
-
     if (this.loopIndex >= idx) {
       this.loopIndex--;
     }
@@ -68,12 +61,10 @@ class SortedLoopArray {
   sort() {
     const current = this.loopIndex >= 0 ? this.items[this.loopIndex] : null;
     this.items.sort(this._sortHandler);
-
     if (current !== null) {
       this.loopIndex = this.items.indexOf(current);
     }
   }
-
 }
 
 export { SortedLoopArray };

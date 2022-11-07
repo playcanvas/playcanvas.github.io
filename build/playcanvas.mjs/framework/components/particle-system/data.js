@@ -1,4 +1,4 @@
-import { Vec3 } from '../../../math/vec3.js';
+import { Vec3 } from '../../../core/math/vec3.js';
 import { EMITTERSHAPE_BOX, PARTICLEMODE_GPU, PARTICLEORIENTATION_SCREEN, BLEND_NORMAL, LAYERID_WORLD } from '../../../scene/constants.js';
 
 class ParticleSystemComponentData {
@@ -48,6 +48,7 @@ class ParticleSystemComponentData {
     this.randomizeAnimIndex = false;
     this.animSpeed = 1;
     this.animLoop = true;
+
     this.scaleGraph = null;
     this.scaleGraph2 = null;
     this.colorGraph = null;
@@ -68,7 +69,6 @@ class ParticleSystemComponentData {
     this.autoPlay = true;
     this.layers = [LAYERID_WORLD];
   }
-
 }
 
 export { ParticleSystemComponentData };

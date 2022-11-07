@@ -1,6 +1,6 @@
-import { createShaderFromCode } from '../../graphics/program-lib/utils.js';
-import { shaderChunks } from '../../graphics/program-lib/chunks/chunks.js';
-import { shaderChunksLightmapper } from '../../graphics/program-lib/chunks/chunks-lightmapper.js';
+import { createShaderFromCode } from '../shader-lib/utils.js';
+import { shaderChunks } from '../shader-lib/chunks/chunks.js';
+import { shaderChunksLightmapper } from '../shader-lib/chunks/chunks-lightmapper.js';
 
 const DENOISE_FILTER_SIZE = 15;
 

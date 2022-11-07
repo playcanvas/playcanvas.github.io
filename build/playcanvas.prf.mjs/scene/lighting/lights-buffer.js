@@ -1,13 +1,13 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
-import { Vec3 } from '../../math/vec3.js';
-import { ADDRESS_CLAMP_TO_EDGE, TEXTURETYPE_DEFAULT, FILTER_NEAREST, PIXELFORMAT_R8_G8_B8_A8, PIXELFORMAT_RGBA32F } from '../../graphics/constants.js';
-import { FloatPacking } from '../../math/float-packing.js';
+import { Vec3 } from '../../core/math/vec3.js';
+import { ADDRESS_CLAMP_TO_EDGE, TEXTURETYPE_DEFAULT, FILTER_NEAREST, PIXELFORMAT_R8_G8_B8_A8, PIXELFORMAT_RGBA32F } from '../../platform/graphics/constants.js';
+import { FloatPacking } from '../../core/math/float-packing.js';
 import { MASK_AFFECT_DYNAMIC, MASK_AFFECT_LIGHTMAPPED, LIGHTTYPE_SPOT, LIGHTSHAPE_PUNCTUAL } from '../constants.js';
-import { Texture } from '../../graphics/texture.js';
+import { Texture } from '../../platform/graphics/texture.js';
 import { LightCamera } from '../renderer/light-camera.js';
 
 const epsilon = 0.000001;
@@ -15,6 +15,7 @@ const tempVec3 = new Vec3();
 const tempAreaLightSizes = new Float32Array(6);
 const areaHalfAxisWidth = new Vec3(-0.5, 0, 0);
 const areaHalfAxisHeight = new Vec3(0, 0, 0.5);
+
 const TextureIndex8 = {
   FLAGS: 0,
   COLOR_A: 1,
@@ -23,6 +24,7 @@ const TextureIndex8 = {
   SHADOW_BIAS: 4,
   COOKIE_A: 5,
   COOKIE_B: 6,
+
   COUNT_ALWAYS: 7,
   POSITION_X: 7,
   POSITION_Y: 8,
@@ -31,10 +33,13 @@ const TextureIndex8 = {
   SPOT_DIRECTION_X: 11,
   SPOT_DIRECTION_Y: 12,
   SPOT_DIRECTION_Z: 13,
+
   PROJ_MAT_00: 14,
   ATLAS_VIEWPORT_A: 14,
+
   PROJ_MAT_01: 15,
   ATLAS_VIEWPORT_B: 15,
+
   PROJ_MAT_02: 16,
   PROJ_MAT_03: 17,
   PROJ_MAT_10: 18,
@@ -57,20 +62,26 @@ const TextureIndex8 = {
   AREA_DATA_HEIGHT_Z: 35,
   COUNT: 36
 };
+
 const TextureIndexFloat = {
   POSITION_RANGE: 0,
   SPOT_DIRECTION: 1,
+
   PROJ_MAT_0: 2,
   ATLAS_VIEWPORT: 2,
+
   PROJ_MAT_1: 3,
   PROJ_MAT_2: 4,
   PROJ_MAT_3: 5,
+
   AREA_DATA_WIDTH: 6,
   AREA_DATA_HEIGHT: 7,
+
   COUNT: 8
 };
 
 class LightsBuffer {
+
   static initShaderDefines() {
     const clusterTextureFormat = LightsBuffer.lightTextureFormat === LightsBuffer.FORMAT_FLOAT ? 'FLOAT' : '8BIT';
     LightsBuffer.shaderDefines = `
@@ -92,7 +103,6 @@ class LightsBuffer {
     LightsBuffer.lightTextureFormat = device.extTextureFloat && device.maxTextures > 8 ? LightsBuffer.FORMAT_FLOAT : LightsBuffer.FORMAT_8BIT;
     LightsBuffer.initShaderDefines();
   }
-
   static createTexture(device, width, height, format, name) {
     const tex = new Texture(device, {
       name: name,
@@ -109,13 +119,15 @@ class LightsBuffer {
     });
     return tex;
   }
-
   constructor(device) {
     this.device = device;
+
     this.cookiesEnabled = false;
     this.shadowsEnabled = false;
     this.areaLightsEnabled = false;
+
     this.maxLights = 255;
+
     let pixelsPerLight8 = TextureIndex8.COUNT_ALWAYS;
     let pixelsPerLightFloat = 0;
 
@@ -145,64 +157,53 @@ class LightsBuffer {
     this._lightsTextureInvSizeData[1] = pixelsPerLightFloat ? 1.0 / this.lightsTextureFloat.height : 0;
     this._lightsTextureInvSizeData[2] = 1.0 / this.lightsTexture8.width;
     this._lightsTextureInvSizeData[3] = 1.0 / this.lightsTexture8.height;
+
     this.invMaxColorValue = 0;
     this.invMaxAttenuation = 0;
     this.boundsMin = new Vec3();
     this.boundsDelta = new Vec3();
   }
-
   destroy() {
     if (this.lightsTexture8) {
       this.lightsTexture8.destroy();
       this.lightsTexture8 = null;
     }
-
     if (this.lightsTextureFloat) {
       this.lightsTextureFloat.destroy();
       this.lightsTextureFloat = null;
     }
   }
-
   setCompressionRanges(maxAttenuation, maxColorValue) {
     this.invMaxColorValue = 1 / maxColorValue;
     this.invMaxAttenuation = 1 / maxAttenuation;
   }
-
   setBounds(min, delta) {
     this.boundsMin.copy(min);
     this.boundsDelta.copy(delta);
   }
-
   uploadTextures() {
     if (this.lightsTextureFloat) {
       this.lightsTextureFloat.lock().set(this.lightsFloat);
       this.lightsTextureFloat.unlock();
     }
-
     this.lightsTexture8.lock().set(this.lights8);
     this.lightsTexture8.unlock();
   }
-
   updateUniforms() {
     this._lightsTexture8Id.setValue(this.lightsTexture8);
-
     if (LightsBuffer.lightTextureFormat === LightsBuffer.FORMAT_FLOAT) {
       this._lightsTextureFloatId.setValue(this.lightsTextureFloat);
     }
-
     this._lightsTextureInvSizeId.setValue(this._lightsTextureInvSizeData);
   }
-
   getSpotDirection(direction, spot) {
     const mat = spot._node.getWorldTransform();
-
     mat.getY(direction).mulScalar(-1);
     direction.normalize();
   }
 
   getLightAreaSizes(light) {
     const mat = light._node.getWorldTransform();
-
     mat.transformVector(areaHalfAxisWidth, tempVec3);
     tempAreaLightSizes[0] = tempVec3.x;
     tempAreaLightSizes[1] = tempVec3.y;
@@ -213,36 +214,32 @@ class LightsBuffer {
     tempAreaLightSizes[5] = tempVec3.z;
     return tempAreaLightSizes;
   }
-
   addLightDataFlags(data8, index, light, isSpot, castShadows, shadowIntensity) {
     data8[index + 0] = isSpot ? 255 : 0;
     data8[index + 1] = light._shape * 64;
     data8[index + 2] = light._falloffMode * 255;
     data8[index + 3] = castShadows ? shadowIntensity * 255 : 0;
   }
-
   addLightDataColor(data8, index, light, gammaCorrection, isCookie) {
     const invMaxColorValue = this.invMaxColorValue;
     const color = gammaCorrection ? light._linearFinalColor : light._finalColor;
     FloatPacking.float2Bytes(color[0] * invMaxColorValue, data8, index + 0, 2);
     FloatPacking.float2Bytes(color[1] * invMaxColorValue, data8, index + 2, 2);
     FloatPacking.float2Bytes(color[2] * invMaxColorValue, data8, index + 4, 2);
+
     data8[index + 6] = isCookie ? 255 : 0;
+
     const isDynamic = !!(light.mask & MASK_AFFECT_DYNAMIC);
     const isLightmapped = !!(light.mask & MASK_AFFECT_LIGHTMAPPED);
     data8[index + 7] = isDynamic && isLightmapped ? 127 : isLightmapped ? 255 : 0;
   }
-
   addLightDataSpotAngles(data8, index, light) {
     FloatPacking.float2Bytes(light._innerConeAngleCos * (0.5 - epsilon) + 0.5, data8, index + 0, 2);
     FloatPacking.float2Bytes(light._outerConeAngleCos * (0.5 - epsilon) + 0.5, data8, index + 2, 2);
   }
-
   addLightDataShadowBias(data8, index, light) {
     const lightRenderData = light.getRenderData(null, 0);
-
     const biases = light._getUniformBiasValues(lightRenderData);
-
     FloatPacking.float2BytesRange(biases.bias, data8, index, -1, 20, 2);
     FloatPacking.float2Bytes(biases.normalBias, data8, index + 2, 2);
   }
@@ -254,24 +251,20 @@ class LightsBuffer {
     FloatPacking.float2Bytes(normPos.z, data8, index + 8, 4);
     FloatPacking.float2Bytes(light.attenuationEnd * this.invMaxAttenuation, data8, index + 12, 4);
   }
-
   addLightDataSpotDirection(data8, index, light) {
     this.getSpotDirection(tempVec3, light);
     FloatPacking.float2Bytes(tempVec3.x * (0.5 - epsilon) + 0.5, data8, index + 0, 4);
     FloatPacking.float2Bytes(tempVec3.y * (0.5 - epsilon) + 0.5, data8, index + 4, 4);
     FloatPacking.float2Bytes(tempVec3.z * (0.5 - epsilon) + 0.5, data8, index + 8, 4);
   }
-
   addLightDataLightProjMatrix(data8, index, lightProjectionMatrix) {
     const matData = lightProjectionMatrix.data;
-
-    for (let m = 0; m < 12; m++) FloatPacking.float2BytesRange(matData[m], data8, index + 4 * m, -2, 2, 4);
-
+    for (let m = 0; m < 12; m++)
+    FloatPacking.float2BytesRange(matData[m], data8, index + 4 * m, -2, 2, 4);
     for (let m = 12; m < 16; m++) {
       FloatPacking.float2MantissaExponent(matData[m], data8, index + 4 * m, 4);
     }
   }
-
   addLightDataCookies(data8, index, light) {
     const isRgb = light._cookieChannel === 'rgb';
     data8[index + 0] = Math.floor(light.cookieIntensity * 255);
@@ -285,7 +278,6 @@ class LightsBuffer {
       data8[index + 7] = channel === 'aaa' ? 255 : 0;
     }
   }
-
   addLightAtlasViewport(data8, index, atlasViewport) {
     FloatPacking.float2Bytes(atlasViewport.x, data8, index + 0, 2);
     FloatPacking.float2Bytes(atlasViewport.y, data8, index + 2, 2);
@@ -294,7 +286,6 @@ class LightsBuffer {
 
   addLightAreaSizes(data8, index, light) {
     const areaSizes = this.getLightAreaSizes(light);
-
     for (let i = 0; i < 6; i++) {
       FloatPacking.float2MantissaExponent(areaSizes[i], data8, index + 4 * i, 4);
     }
@@ -306,12 +297,9 @@ class LightsBuffer {
     const isCookie = this.cookiesEnabled && !!light._cookie && hasAtlasViewport;
     const isArea = this.areaLightsEnabled && light.shape !== LIGHTSHAPE_PUNCTUAL;
     const castShadows = this.shadowsEnabled && light.castShadows && hasAtlasViewport;
-
     const pos = light._node.getPosition();
-
     let lightProjectionMatrix = null;
     let atlasViewport = null;
-
     if (isSpot) {
       if (castShadows) {
         const lightRenderData = light.getRenderData(null, 0);
@@ -327,7 +315,9 @@ class LightsBuffer {
 
     const data8 = this.lights8;
     const data8Start = lightIndex * this.lightsTexture8.width * 4;
+
     this.addLightDataFlags(data8, data8Start + 4 * TextureIndex8.FLAGS, light, isSpot, castShadows, light.shadowIntensity);
+
     this.addLightDataColor(data8, data8Start + 4 * TextureIndex8.COLOR_A, light, gammaCorrection, isCookie);
 
     if (isSpot) {
@@ -345,6 +335,7 @@ class LightsBuffer {
     if (LightsBuffer.lightTextureFormat === LightsBuffer.FORMAT_FLOAT) {
       const dataFloat = this.lightsFloat;
       const dataFloatStart = lightIndex * this.lightsTextureFloat.width * 4;
+
       dataFloat[dataFloatStart + 4 * TextureIndexFloat.POSITION_RANGE + 0] = pos.x;
       dataFloat[dataFloatStart + 4 * TextureIndexFloat.POSITION_RANGE + 1] = pos.y;
       dataFloat[dataFloatStart + 4 * TextureIndexFloat.POSITION_RANGE + 2] = pos.z;
@@ -359,10 +350,8 @@ class LightsBuffer {
 
       if (lightProjectionMatrix) {
         const matData = lightProjectionMatrix.data;
-
         for (let m = 0; m < 16; m++) dataFloat[dataFloatStart + 4 * TextureIndexFloat.PROJ_MAT_0 + m] = matData[m];
       }
-
       if (atlasViewport) {
         dataFloat[dataFloatStart + 4 * TextureIndexFloat.ATLAS_VIEWPORT + 0] = atlasViewport.x;
         dataFloat[dataFloatStart + 4 * TextureIndexFloat.ATLAS_VIEWPORT + 1] = atlasViewport.y;
@@ -379,6 +368,7 @@ class LightsBuffer {
         dataFloat[dataFloatStart + 4 * TextureIndexFloat.AREA_DATA_HEIGHT + 2] = areaSizes[5];
       }
     } else {
+
       this.addLightDataPositionRange(data8, data8Start + 4 * TextureIndex8.POSITION_X, light, pos);
 
       if (isSpot) {
@@ -388,7 +378,6 @@ class LightsBuffer {
       if (lightProjectionMatrix) {
         this.addLightDataLightProjMatrix(data8, data8Start + 4 * TextureIndex8.PROJ_MAT_00, lightProjectionMatrix);
       }
-
       if (atlasViewport) {
         this.addLightAtlasViewport(data8, data8Start + 4 * TextureIndex8.ATLAS_VIEWPORT_A, atlasViewport);
       }
@@ -398,9 +387,7 @@ class LightsBuffer {
       }
     }
   }
-
 }
-
 LightsBuffer.FORMAT_FLOAT = 0;
 LightsBuffer.FORMAT_8BIT = 1;
 LightsBuffer.lightTextureFormat = LightsBuffer.FORMAT_8BIT;

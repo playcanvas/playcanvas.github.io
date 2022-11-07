@@ -1,5 +1,5 @@
 import '../../core/tracing.js';
-import { DeviceCache } from '../../graphics/device-cache.js';
+import { DeviceCache } from '../../platform/graphics/device-cache.js';
 
 const defaultMaterialDeviceCache = new DeviceCache();
 

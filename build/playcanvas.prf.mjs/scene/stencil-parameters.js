@@ -1,9 +1,9 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
-import { FUNC_ALWAYS, STENCILOP_KEEP } from '../graphics/constants.js';
+import { FUNC_ALWAYS, STENCILOP_KEEP } from '../platform/graphics/constants.js';
 
 class StencilParameters {
   constructor(options) {
@@ -15,7 +15,6 @@ class StencilParameters {
     this.zfail = options.zfail || STENCILOP_KEEP;
     this.zpass = options.zpass || STENCILOP_KEEP;
   }
-
   clone() {
     return new StencilParameters({
       func: this.func,
@@ -27,7 +26,6 @@ class StencilParameters {
       zpass: this.zpass
     });
   }
-
 }
 
 export { StencilParameters };

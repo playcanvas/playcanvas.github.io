@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <script src="../../build/playcanvas-extras.js"></script>
     <script src="../../build/playcanvas-observer.js"></script>
     <script src="../../build/urlSearchParamsPolyfill.js"></script>
     <script src="../../build/promisePolyfill.js"></script>
@@ -104,6 +103,22 @@
           entity3.setLocalScale(0.01, 0.01, 0.01);
           app.root.addChild(entity3);
 
+          // a render component with a sphere and cone primitives
+          var material = new pc.StandardMaterial();
+          material.diffuse = pc.Color.RED;
+          material.update();
+
+          var entity = new pc.Entity("TwoMeshInstances");
+          entity.addComponent('render', {
+            type: 'asset',
+            meshInstances: [
+            new pc.MeshInstance(pc.createSphere(app.graphicsDevice), material),
+            new pc.MeshInstance(pc.createCone(app.graphicsDevice), material)] });
+
+
+          app.root.addChild(entity);
+          entity.setLocalPosition(0, 1.5, -1.5);
+
           // Create an Entity with a camera component
           var camera = new pc.Entity();
           camera.addComponent("camera", {
@@ -124,7 +139,11 @@
           var link = document.getElementById('ar-link');
 
           // export the whole scene into a glb format
-          new pcx.GltfExporter().build(app.root).then(function (arrayBuffer) {
+          var options = {
+            maxTextureSize: 1024 };
+
+
+          new pcx.GltfExporter().build(app.root, options).then(function (arrayBuffer) {
 
             var blob = new Blob([arrayBuffer], { type: 'application/octet-stream' });
 
@@ -166,16 +185,22 @@
         var urlParams = new URLSearchParams(queryString);
     </script>
     <script>
+        function loadScript(url, onload) {
+            const script = document.createElement('script');
+            script.setAttribute('src', url);
+            script.onload = onload;
+            document.head.appendChild(script);
+        }
+
         function loadEngine(callback) {
             const enginePath = urlParams && urlParams.get('use_local_engine') || "/build/playcanvas.js";
 
-            const script = document.createElement('script');
-            script.setAttribute('src', enginePath);
-            script.onload = function() {
+            loadScript(enginePath, () => {
                 window.top.pc = window.pc;
-                callback();
-            };
-            document.head.appendChild(script);
+                loadScript('../../build/playcanvas-extras.js', () => {
+                    callback();
+                });
+            });
         }
 
         function setupApplication(app) {

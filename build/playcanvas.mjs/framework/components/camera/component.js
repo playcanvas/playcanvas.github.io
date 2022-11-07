@@ -61,6 +61,7 @@ const properties = [{
 }];
 
 class CameraComponent extends Component {
+
   constructor(system, entity) {
     super(system, entity);
     this.onPostprocessing = null;
@@ -71,8 +72,12 @@ class CameraComponent extends Component {
     this._camera = new Camera();
     this._camera.node = entity;
     this._priority = 0;
+
     this._disablePostEffectsLayer = LAYERID_UI;
+
     this._postEffects = new PostEffectQueue(system.app, this);
+    this._sceneDepthMapRequested = false;
+    this._sceneColorMapRequested = false;
   }
 
   get camera() {
@@ -83,7 +88,6 @@ class CameraComponent extends Component {
     this._camera.clearColorBuffer = value;
     this.dirtyLayerCompositionCameras();
   }
-
   get clearColorBuffer() {
     return this._camera.clearColorBuffer;
   }
@@ -92,7 +96,6 @@ class CameraComponent extends Component {
     this._camera.clearDepthBuffer = value;
     this.dirtyLayerCompositionCameras();
   }
-
   get clearDepthBuffer() {
     return this._camera.clearDepthBuffer;
   }
@@ -101,7 +104,6 @@ class CameraComponent extends Component {
     this._camera.clearStencilBuffer = value;
     this.dirtyLayerCompositionCameras();
   }
-
   get clearStencilBuffer() {
     return this._camera.clearStencilBuffer;
   }
@@ -110,17 +112,14 @@ class CameraComponent extends Component {
     this._disablePostEffectsLayer = layer;
     this.dirtyLayerCompositionCameras();
   }
-
   get disablePostEffectsLayer() {
     return this._disablePostEffectsLayer;
   }
 
   _enableDepthLayer(value) {
     const hasDepthLayer = this.layers.find(layerId => layerId === LAYERID_DEPTH);
-
     if (hasDepthLayer) {
       const depthLayer = this.system.app.scene.layers.getLayerById(LAYERID_DEPTH);
-
       if (value) {
         depthLayer == null ? void 0 : depthLayer.incrementCounter();
       } else {
@@ -129,26 +128,39 @@ class CameraComponent extends Component {
     } else if (value) {
       return false;
     }
-
     return true;
   }
 
   requestSceneColorMap(enabled) {
     this._renderSceneColorMap += enabled ? 1 : -1;
-
     this._enableDepthLayer(enabled);
   }
-
+  set renderSceneColorMap(value) {
+    if (value && !this._sceneColorMapRequested) {
+      this.requestSceneColorMap(true);
+      this._sceneColorMapRequested = true;
+    } else if (this._sceneColorMapRequested) {
+      this.requestSceneColorMap(false);
+      this._sceneColorMapRequested = false;
+    }
+  }
   get renderSceneColorMap() {
     return this._renderSceneColorMap > 0;
   }
 
   requestSceneDepthMap(enabled) {
     this._renderSceneDepthMap += enabled ? 1 : -1;
-
     this._enableDepthLayer(enabled);
   }
-
+  set renderSceneDepthMap(value) {
+    if (value && !this._sceneDepthMapRequested) {
+      this.requestSceneDepthMap(true);
+      this._sceneDepthMapRequested = true;
+    } else if (this._sceneDepthMapRequested) {
+      this.requestSceneDepthMap(false);
+      this._sceneDepthMapRequested = false;
+    }
+  }
   get renderSceneDepthMap() {
     return this._renderSceneDepthMap > 0;
   }
@@ -159,27 +171,22 @@ class CameraComponent extends Component {
 
   set layers(newValue) {
     const layers = this._camera.layers;
-
     for (let i = 0; i < layers.length; i++) {
       const layer = this.system.app.scene.layers.getLayerById(layers[i]);
       if (!layer) continue;
       layer.removeCamera(this);
     }
-
     this._camera.layers = newValue;
     if (!this.enabled || !this.entity.enabled) return;
-
     for (let i = 0; i < newValue.length; i++) {
       const layer = this.system.app.scene.layers.getLayerById(newValue[i]);
       if (!layer) continue;
       layer.addCamera(this);
     }
   }
-
   get layers() {
     return this._camera.layers;
   }
-
   get layersSet() {
     return this._camera.layersSet;
   }
@@ -187,7 +194,6 @@ class CameraComponent extends Component {
   get postEffectsEnabled() {
     return this._postEffects.enabled;
   }
-
   get postEffects() {
     return this._postEffects;
   }
@@ -196,7 +202,6 @@ class CameraComponent extends Component {
     this._priority = newValue;
     this.dirtyLayerCompositionCameras();
   }
-
   get priority() {
     return this._priority;
   }
@@ -208,7 +213,6 @@ class CameraComponent extends Component {
   set aperture(newValue) {
     this._camera.aperture = newValue;
   }
-
   get aperture() {
     return this._camera.aperture;
   }
@@ -216,7 +220,6 @@ class CameraComponent extends Component {
   set sensitivity(newValue) {
     this._camera.sensitivity = newValue;
   }
-
   get sensitivity() {
     return this._camera.sensitivity;
   }
@@ -224,7 +227,6 @@ class CameraComponent extends Component {
   set shutter(newValue) {
     this._camera.shutter = newValue;
   }
-
   get shutter() {
     return this._camera.shutter;
   }
@@ -233,7 +235,6 @@ class CameraComponent extends Component {
     this._camera.rect = value;
     this.fire('set:rect', this._camera.rect);
   }
-
   get rect() {
     return this._camera.rect;
   }
@@ -242,7 +243,6 @@ class CameraComponent extends Component {
     this._camera.renderTarget = value;
     this.dirtyLayerCompositionCameras();
   }
-
   get renderTarget() {
     return this._camera.renderTarget;
   }
@@ -250,7 +250,6 @@ class CameraComponent extends Component {
   get viewMatrix() {
     return this._camera.viewMatrix;
   }
-
   dirtyLayerCompositionCameras() {
     const layerComp = this.system.app.scene.layers;
     layerComp._dirtyCameras = true;
@@ -274,31 +273,24 @@ class CameraComponent extends Component {
     this._camera._viewMatDirty = true;
     this._camera._viewProjMatDirty = true;
   }
-
   addCameraToLayers() {
     const layers = this.layers;
-
     for (let i = 0; i < layers.length; i++) {
       const layer = this.system.app.scene.layers.getLayerById(layers[i]);
-
       if (layer) {
         layer.addCamera(this);
       }
     }
   }
-
   removeCameraFromLayers() {
     const layers = this.layers;
-
     for (let i = 0; i < layers.length; i++) {
       const layer = this.system.app.scene.layers.getLayerById(layers[i]);
-
       if (layer) {
         layer.removeCamera(this);
       }
     }
   }
-
   onLayersChanged(oldComp, newComp) {
     this.addCameraToLayers();
     oldComp.off('add', this.onLayerAdded, this);
@@ -306,38 +298,31 @@ class CameraComponent extends Component {
     newComp.on('add', this.onLayerAdded, this);
     newComp.on('remove', this.onLayerRemoved, this);
   }
-
   onLayerAdded(layer) {
     const index = this.layers.indexOf(layer.id);
     if (index < 0) return;
     layer.addCamera(this);
   }
-
   onLayerRemoved(layer) {
     const index = this.layers.indexOf(layer.id);
     if (index < 0) return;
     layer.removeCamera(this);
   }
-
   onEnable() {
     const system = this.system;
     const scene = system.app.scene;
     const layers = scene.layers;
     system.addCamera(this);
     scene.on('set:layers', this.onLayersChanged, this);
-
     if (layers) {
       layers.on('add', this.onLayerAdded, this);
       layers.on('remove', this.onLayerRemoved, this);
     }
-
     if (this.enabled && this.entity.enabled) {
       this.addCameraToLayers();
     }
-
     this.postEffects.enable();
   }
-
   onDisable() {
     const system = this.system;
     const scene = system.app.scene;
@@ -345,15 +330,12 @@ class CameraComponent extends Component {
     this.postEffects.disable();
     this.removeCameraFromLayers();
     scene.off('set:layers', this.onLayersChanged, this);
-
     if (layers) {
       layers.off('add', this.onLayerAdded, this);
       layers.off('remove', this.onLayerRemoved, this);
     }
-
     system.removeCamera(this);
   }
-
   onRemove() {
     this.onDisable();
     this.off();
@@ -381,7 +363,6 @@ class CameraComponent extends Component {
       if (callback) callback(new Error('Camera is not in XR'));
       return;
     }
-
     this._camera.xr.end(callback);
   }
 
@@ -392,6 +373,7 @@ class CameraComponent extends Component {
         this[name] = source[name];
       }
     });
+
     this.clearColorBuffer = source.clearColorBuffer;
     this.clearDepthBuffer = source.clearDepthBuffer;
     this.clearStencilBuffer = source.clearStencilBuffer;
@@ -404,7 +386,6 @@ class CameraComponent extends Component {
     this.sensitivity = source.sensitivity;
     this.shutter = source.shutter;
   }
-
 }
 
 properties.forEach(function (property) {
@@ -420,7 +401,6 @@ properties.forEach(function (property) {
       this._camera[name] = newValue;
     };
   }
-
   Object.defineProperty(CameraComponent.prototype, name, options);
 });
 

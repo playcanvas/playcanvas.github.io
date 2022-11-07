@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import { Component } from '../component.js';
@@ -18,7 +18,6 @@ class LayoutChildComponentSystem extends ComponentSystem {
     this.DataType = LayoutChildComponentData;
     this.schema = _schema;
   }
-
   initializeComponentData(component, data, properties) {
     if (data.enabled !== undefined) component.enabled = data.enabled;
     if (data.minWidth !== undefined) component.minWidth = data.minWidth;
@@ -30,7 +29,6 @@ class LayoutChildComponentSystem extends ComponentSystem {
     if (data.excludeFromLayout !== undefined) component.excludeFromLayout = data.excludeFromLayout;
     super.initializeComponentData(component, data, properties);
   }
-
   cloneComponent(entity, clone) {
     const layoutChild = entity.layoutchild;
     return this.addComponent(clone, {
@@ -44,9 +42,7 @@ class LayoutChildComponentSystem extends ComponentSystem {
       excludeFromLayout: layoutChild.excludeFromLayout
     });
   }
-
 }
-
 Component._buildAccessors(LayoutChildComponent.prototype, _schema);
 
 export { LayoutChildComponentSystem };

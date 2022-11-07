@@ -1,26 +1,23 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
-import { FloatPacking } from '../math/float-packing.js';
-import { Texture } from '../graphics/texture.js';
-import { DeviceCache } from '../graphics/device-cache.js';
-import { ADDRESS_CLAMP_TO_EDGE, TEXTURETYPE_DEFAULT, FILTER_LINEAR, FILTER_NEAREST, PIXELFORMAT_R8_G8_B8_A8, PIXELFORMAT_RGBA32F, PIXELFORMAT_RGBA16F } from '../graphics/constants.js';
+import { FloatPacking } from '../core/math/float-packing.js';
+import { Texture } from '../platform/graphics/texture.js';
+import { DeviceCache } from '../platform/graphics/device-cache.js';
+import { ADDRESS_CLAMP_TO_EDGE, TEXTURETYPE_DEFAULT, FILTER_LINEAR, FILTER_NEAREST, PIXELFORMAT_R8_G8_B8_A8, PIXELFORMAT_RGBA32F, PIXELFORMAT_RGBA16F } from '../platform/graphics/constants.js';
 
 class AreaLightCacheEntry {
   constructor(texture0, texture1) {
     this.texture0 = texture0;
     this.texture1 = texture1;
   }
-
   destroy() {
     var _this$texture, _this$texture2;
-
     (_this$texture = this.texture0) == null ? void 0 : _this$texture.destroy();
     (_this$texture2 = this.texture1) == null ? void 0 : _this$texture2.destroy();
   }
-
 }
 
 const deviceCache = new DeviceCache();
@@ -41,12 +38,13 @@ class AreaLightLuts {
     });
     return tex;
   }
-
   static applyTextures(device, texture1, texture2) {
     deviceCache.remove(device);
+
     deviceCache.get(device, () => {
       return new AreaLightCacheEntry(texture1, texture1 === texture2 ? null : texture2);
     });
+
     device.scope.resolve('areaLightsLutTex1').setValue(texture1);
     device.scope.resolve('areaLightsLutTex2').setValue(texture2);
   }
@@ -67,47 +65,37 @@ class AreaLightLuts {
       texture.upload();
       return texture;
     }
-
     function offsetScale(data, offset, scale) {
       const count = data.length;
       const ret = new Float32Array(count);
-
       for (let i = 0; i < count; i++) {
         const n = i % 4;
         ret[i] = (data[i] + offset[n]) * scale[n];
       }
-
       return ret;
     }
-
     function convertToHalfFloat(data) {
       const count = data.length;
       const ret = new Uint16Array(count);
       const float2Half = FloatPacking.float2Half;
-
       for (let i = 0; i < count; i++) {
         ret[i] = float2Half(data[i]);
       }
-
       return ret;
     }
-
     function convertToUint(data) {
       const count = data.length;
       const ret = new Uint8ClampedArray(count);
-
       for (let i = 0; i < count; i++) {
         ret[i] = data[i] * 255;
       }
-
       return ret;
     }
-
     const srcData1 = ltcMat1;
     const srcData2 = ltcMat2;
+
     let data1, data2;
     const format = device.areaLightLutFormat;
-
     if (format === PIXELFORMAT_RGBA32F) {
       data1 = srcData1;
       data2 = srcData2;
@@ -125,9 +113,9 @@ class AreaLightLuts {
 
     const tex1 = buildTexture(device, data1, format);
     const tex2 = buildTexture(device, data2, format);
+
     AreaLightLuts.applyTextures(device, tex1, tex2);
   }
-
 }
 
 export { AreaLightLuts };

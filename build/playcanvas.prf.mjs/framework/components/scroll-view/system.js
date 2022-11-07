@@ -1,13 +1,13 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import { Component } from '../component.js';
 import { ComponentSystem } from '../system.js';
 import { ScrollViewComponent } from './component.js';
 import { ScrollViewComponentData } from './data.js';
-import { Vec2 } from '../../../math/vec2.js';
+import { Vec2 } from '../../../core/math/vec2.js';
 
 const _schema = [{
   name: 'enabled',
@@ -67,47 +67,36 @@ class ScrollViewComponentSystem extends ComponentSystem {
     this.on('beforeremove', this._onRemoveComponent, this);
     this.app.systems.on('update', this.onUpdate, this);
   }
-
   initializeComponentData(component, data, properties) {
     if (data.dragThreshold === undefined) {
       data.dragThreshold = DEFAULT_DRAG_THRESHOLD;
     }
-
     if (data.useMouseWheel === undefined) {
       data.useMouseWheel = true;
     }
-
     if (data.mouseWheelSensitivity === undefined) {
       data.mouseWheelSensitivity = new Vec2(1, 1);
     }
-
     super.initializeComponentData(component, data, _schema);
   }
-
   onUpdate(dt) {
     const components = this.store;
-
     for (const id in components) {
       const entity = components[id].entity;
       const component = entity.scrollview;
-
       if (component.enabled && entity.enabled) {
         component.onUpdate();
       }
     }
   }
-
   _onRemoveComponent(entity, component) {
     component.onRemove();
   }
-
   destroy() {
     super.destroy();
     this.app.systems.off('update', this.onUpdate, this);
   }
-
 }
-
 Component._buildAccessors(ScrollViewComponent.prototype, _schema);
 
 export { ScrollViewComponentSystem };

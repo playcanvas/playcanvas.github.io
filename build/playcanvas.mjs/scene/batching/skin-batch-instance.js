@@ -7,17 +7,16 @@ class SkinBatchInstance extends SkinInstance {
     this.init(device, numBones);
     this.device = device;
     this.rootNode = rootNode;
+
     this.bones = nodes;
   }
-
   updateMatrices(rootNode, skinUpdateIndex) {}
-
   updateMatrixPalette(rootNode, skinUpdateIndex) {
     const mp = this.matrixPalette;
     const count = this.bones.length;
-
     for (let i = 0; i < count; i++) {
       const pe = this.bones[i].getWorldTransform().data;
+
       const base = i * 12;
       mp[base] = pe[0];
       mp[base + 1] = pe[4];
@@ -32,10 +31,8 @@ class SkinBatchInstance extends SkinInstance {
       mp[base + 10] = pe[10];
       mp[base + 11] = pe[14];
     }
-
     this.uploadBones(this.device);
   }
-
 }
 
 export { SkinBatchInstance };

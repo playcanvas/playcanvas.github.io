@@ -1,9 +1,9 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
-import { Channel3d } from '../../../audio/channel3d.js';
+import { Channel3d } from '../../../platform/audio/channel3d.js';
 import '../../../core/tracing.js';
 import { Entity } from '../../entity.js';
 import { Component } from '../component.js';
@@ -26,32 +26,25 @@ class AudioSourceComponentSystem extends ComponentSystem {
     this.app.systems.on('update', this.onUpdate, this);
     this.on('remove', this.onRemove, this);
   }
-
   initializeComponentData(component, data, properties) {
     properties = ['activate', 'volume', 'pitch', 'loop', '3d', 'minDistance', 'maxDistance', 'rollOffFactor', 'distanceModel', 'enabled', 'assets'];
     super.initializeComponentData(component, data, properties);
     component.paused = !(component.enabled && component.activate);
   }
-
   onInitialize(root) {
     if (root.audiosource && root.enabled && root.audiosource.enabled && root.audiosource.activate) {
       root.audiosource.play(root.audiosource.currentSource);
     }
-
     const children = root._children;
-
     for (let i = 0, len = children.length; i < len; i++) {
       if (children[i] instanceof Entity) {
         this.onInitialize(children[i]);
       }
     }
-
     this.initialized = true;
   }
-
   onUpdate(dt) {
     const components = this.store;
-
     for (const id in components) {
       if (components.hasOwnProperty(id)) {
         const component = components[id];
@@ -65,7 +58,6 @@ class AudioSourceComponentSystem extends ComponentSystem {
       }
     }
   }
-
   onRemove(entity, data) {
     if (data.channel) {
       data.channel.stop();
@@ -76,15 +68,12 @@ class AudioSourceComponentSystem extends ComponentSystem {
   setVolume(volume) {
     this.manager.setVolume(volume);
   }
-
   destroy() {
     super.destroy();
     this.app.systems.off('initialize', this.onInitialize, this);
     this.app.systems.off('update', this.onUpdate, this);
   }
-
 }
-
 Component._buildAccessors(AudioSourceComponent.prototype, _schema);
 
 export { AudioSourceComponentSystem };

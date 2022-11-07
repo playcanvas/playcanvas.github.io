@@ -4,7 +4,6 @@ class Skin {
     this.inverseBindPose = ibp;
     this.boneNames = boneNames;
   }
-
 }
 
 export { Skin };

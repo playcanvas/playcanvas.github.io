@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import { Component } from '../component.js';
@@ -34,17 +34,13 @@ class ScrollbarComponentSystem extends ComponentSystem {
     this.schema = _schema;
     this.on('beforeremove', this._onRemoveComponent, this);
   }
-
   initializeComponentData(component, data, properties) {
     super.initializeComponentData(component, data, _schema);
   }
-
   _onRemoveComponent(entity, component) {
     component.onRemove();
   }
-
 }
-
 Component._buildAccessors(ScrollbarComponent.prototype, _schema);
 
 export { ScrollbarComponentSystem };

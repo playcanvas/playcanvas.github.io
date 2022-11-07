@@ -1,10 +1,10 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-dev revision 1331860ee (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
-import { BoundingBox } from '../../shape/bounding-box.js';
-import { BoundingSphere } from '../../shape/bounding-sphere.js';
+import { BoundingBox } from '../../core/shape/bounding-box.js';
+import { BoundingSphere } from '../../core/shape/bounding-sphere.js';
 import { LIGHTTYPE_DIRECTIONAL } from '../constants.js';
 
 const tempSphere = new BoundingSphere();

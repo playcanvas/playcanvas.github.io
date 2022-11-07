@@ -1,11 +1,11 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import '../../../core/tracing.js';
-import { Quat } from '../../../math/quat.js';
-import { Vec3 } from '../../../math/vec3.js';
+import { Quat } from '../../../core/math/quat.js';
+import { Vec3 } from '../../../core/math/vec3.js';
 import { BODYGROUP_STATIC, BODYMASK_NOT_STATIC, BODYTYPE_STATIC, BODYTYPE_DYNAMIC, BODYTYPE_KINEMATIC, BODYGROUP_KINEMATIC, BODYMASK_ALL, BODYGROUP_DYNAMIC, BODYFLAG_KINEMATIC_OBJECT, BODYSTATE_DISABLE_DEACTIVATION, BODYSTATE_ACTIVE_TAG, BODYSTATE_DISABLE_SIMULATION } from './constants.js';
 import { Component } from '../component.js';
 
@@ -45,13 +45,11 @@ class RigidBodyComponent extends Component {
   set angularDamping(damping) {
     if (this._angularDamping !== damping) {
       this._angularDamping = damping;
-
       if (this._body) {
         this._body.setDamping(this._linearDamping, damping);
       }
     }
   }
-
   get angularDamping() {
     return this._angularDamping;
   }
@@ -59,15 +57,12 @@ class RigidBodyComponent extends Component {
   set angularFactor(factor) {
     if (!this._angularFactor.equals(factor)) {
       this._angularFactor.copy(factor);
-
       if (this._body && this._type === BODYTYPE_DYNAMIC) {
         ammoVec1.setValue(factor.x, factor.y, factor.z);
-
         this._body.setAngularFactor(ammoVec1);
       }
     }
   }
-
   get angularFactor() {
     return this._angularFactor;
   }
@@ -75,35 +70,26 @@ class RigidBodyComponent extends Component {
   set angularVelocity(velocity) {
     if (this._body && this._type === BODYTYPE_DYNAMIC) {
       this._body.activate();
-
       ammoVec1.setValue(velocity.x, velocity.y, velocity.z);
-
       this._body.setAngularVelocity(ammoVec1);
-
       this._angularVelocity.copy(velocity);
     }
   }
-
   get angularVelocity() {
     if (this._body && this._type === BODYTYPE_DYNAMIC) {
       const velocity = this._body.getAngularVelocity();
-
       this._angularVelocity.set(velocity.x(), velocity.y(), velocity.z());
     }
-
     return this._angularVelocity;
   }
-
   set body(body) {
     if (this._body !== body) {
       this._body = body;
-
       if (body && this._simulationEnabled) {
         body.activate();
       }
     }
   }
-
   get body() {
     return this._body;
   }
@@ -111,13 +97,11 @@ class RigidBodyComponent extends Component {
   set friction(friction) {
     if (this._friction !== friction) {
       this._friction = friction;
-
       if (this._body) {
         this._body.setFriction(friction);
       }
     }
   }
-
   get friction() {
     return this._friction;
   }
@@ -132,7 +116,6 @@ class RigidBodyComponent extends Component {
       }
     }
   }
-
   get group() {
     return this._group;
   }
@@ -140,13 +123,11 @@ class RigidBodyComponent extends Component {
   set linearDamping(damping) {
     if (this._linearDamping !== damping) {
       this._linearDamping = damping;
-
       if (this._body) {
         this._body.setDamping(damping, this._angularDamping);
       }
     }
   }
-
   get linearDamping() {
     return this._linearDamping;
   }
@@ -154,15 +135,12 @@ class RigidBodyComponent extends Component {
   set linearFactor(factor) {
     if (!this._linearFactor.equals(factor)) {
       this._linearFactor.copy(factor);
-
       if (this._body && this._type === BODYTYPE_DYNAMIC) {
         ammoVec1.setValue(factor.x, factor.y, factor.z);
-
         this._body.setLinearFactor(ammoVec1);
       }
     }
   }
-
   get linearFactor() {
     return this._linearFactor;
   }
@@ -170,22 +148,16 @@ class RigidBodyComponent extends Component {
   set linearVelocity(velocity) {
     if (this._body && this._type === BODYTYPE_DYNAMIC) {
       this._body.activate();
-
       ammoVec1.setValue(velocity.x, velocity.y, velocity.z);
-
       this._body.setLinearVelocity(ammoVec1);
-
       this._linearVelocity.copy(velocity);
     }
   }
-
   get linearVelocity() {
     if (this._body && this._type === BODYTYPE_DYNAMIC) {
       const velocity = this._body.getLinearVelocity();
-
       this._linearVelocity.set(velocity.x(), velocity.y(), velocity.z());
     }
-
     return this._linearVelocity;
   }
 
@@ -199,7 +171,6 @@ class RigidBodyComponent extends Component {
       }
     }
   }
-
   get mask() {
     return this._mask;
   }
@@ -207,27 +178,21 @@ class RigidBodyComponent extends Component {
   set mass(mass) {
     if (this._mass !== mass) {
       this._mass = mass;
-
       if (this._body && this._type === BODYTYPE_DYNAMIC) {
         const enabled = this.enabled && this.entity.enabled;
-
         if (enabled) {
           this.disableSimulation();
         }
 
         this._body.getCollisionShape().calculateLocalInertia(mass, ammoVec1);
-
         this._body.setMassProps(mass, ammoVec1);
-
         this._body.updateInertiaTensor();
-
         if (enabled) {
           this.enableSimulation();
         }
       }
     }
   }
-
   get mass() {
     return this._mass;
   }
@@ -235,13 +200,11 @@ class RigidBodyComponent extends Component {
   set restitution(restitution) {
     if (this._restitution !== restitution) {
       this._restitution = restitution;
-
       if (this._body) {
         this._body.setRestitution(restitution);
       }
     }
   }
-
   get restitution() {
     return this._restitution;
   }
@@ -249,13 +212,11 @@ class RigidBodyComponent extends Component {
   set rollingFriction(friction) {
     if (this._rollingFriction !== friction) {
       this._rollingFriction = friction;
-
       if (this._body) {
         this._body.setRollingFriction(friction);
       }
     }
   }
-
   get rollingFriction() {
     return this._rollingFriction;
   }
@@ -270,12 +231,10 @@ class RigidBodyComponent extends Component {
           this._group = BODYGROUP_DYNAMIC;
           this._mask = BODYMASK_ALL;
           break;
-
         case BODYTYPE_KINEMATIC:
           this._group = BODYGROUP_KINEMATIC;
           this._mask = BODYMASK_ALL;
           break;
-
         case BODYTYPE_STATIC:
         default:
           this._group = BODYGROUP_STATIC;
@@ -286,7 +245,6 @@ class RigidBodyComponent extends Component {
       this.createBody();
     }
   }
-
   get type() {
     return this._type;
   }
@@ -294,7 +252,6 @@ class RigidBodyComponent extends Component {
   createBody() {
     const entity = this.entity;
     let shape;
-
     if (entity.collision) {
       shape = entity.collision.shape;
 
@@ -303,19 +260,15 @@ class RigidBodyComponent extends Component {
         delete entity.trigger;
       }
     }
-
     if (shape) {
       if (this._body) this.system.onRemove(entity, this);
       const mass = this._type === BODYTYPE_DYNAMIC ? this._mass : 0;
-
       this._getEntityTransform(ammoTransform);
-
       const body = this.system.createBody(mass, shape, ammoTransform);
       body.setRestitution(this._restitution);
       body.setFriction(this._friction);
       body.setRollingFriction(this._rollingFriction);
       body.setDamping(this._linearDamping, this._angularDamping);
-
       if (this._type === BODYTYPE_DYNAMIC) {
         const linearFactor = this._linearFactor;
         ammoVec1.setValue(linearFactor.x, linearFactor.y, linearFactor.z);
@@ -327,10 +280,8 @@ class RigidBodyComponent extends Component {
         body.setCollisionFlags(body.getCollisionFlags() | BODYFLAG_KINEMATIC_OBJECT);
         body.setActivationState(BODYSTATE_DISABLE_DEACTIVATION);
       }
-
       body.entity = entity;
       this.body = body;
-
       if (this.enabled && entity.enabled) {
         this.enableSimulation();
       }
@@ -346,71 +297,53 @@ class RigidBodyComponent extends Component {
       this._body.activate();
     }
   }
-
   enableSimulation() {
     const entity = this.entity;
-
     if (entity.collision && entity.collision.enabled && !this._simulationEnabled) {
       const body = this._body;
-
       if (body) {
         this.system.addBody(body, this._group, this._mask);
-
         switch (this._type) {
           case BODYTYPE_DYNAMIC:
             this.system._dynamic.push(this);
-
             body.forceActivationState(BODYSTATE_ACTIVE_TAG);
             this.syncEntityToBody();
             break;
-
           case BODYTYPE_KINEMATIC:
             this.system._kinematic.push(this);
-
             body.forceActivationState(BODYSTATE_DISABLE_DEACTIVATION);
             break;
-
           case BODYTYPE_STATIC:
             body.forceActivationState(BODYSTATE_ACTIVE_TAG);
             this.syncEntityToBody();
             break;
         }
-
         if (entity.collision.type === 'compound') {
           this.system._compounds.push(entity.collision);
         }
-
         body.activate();
         this._simulationEnabled = true;
       }
     }
   }
-
   disableSimulation() {
     const body = this._body;
-
     if (body && this._simulationEnabled) {
       const system = this.system;
-
       let idx = system._compounds.indexOf(this.entity.collision);
-
       if (idx > -1) {
         system._compounds.splice(idx, 1);
       }
-
       idx = system._dynamic.indexOf(this);
-
       if (idx > -1) {
         system._dynamic.splice(idx, 1);
       }
-
       idx = system._kinematic.indexOf(this);
-
       if (idx > -1) {
         system._kinematic.splice(idx, 1);
       }
-
       system.removeBody(body);
+
       body.forceActivationState(BODYSTATE_DISABLE_SIMULATION);
       this._simulationEnabled = false;
     }
@@ -419,14 +352,12 @@ class RigidBodyComponent extends Component {
   applyForce() {
     let x, y, z;
     let px, py, pz;
-
     switch (arguments.length) {
       case 1:
         x = arguments[0].x;
         y = arguments[0].y;
         z = arguments[0].z;
         break;
-
       case 2:
         x = arguments[0].x;
         y = arguments[0].y;
@@ -435,13 +366,11 @@ class RigidBodyComponent extends Component {
         py = arguments[1].y;
         pz = arguments[1].z;
         break;
-
       case 3:
         x = arguments[0];
         y = arguments[1];
         z = arguments[2];
         break;
-
       case 6:
         x = arguments[0];
         y = arguments[1];
@@ -451,13 +380,10 @@ class RigidBodyComponent extends Component {
         pz = arguments[5];
         break;
     }
-
     const body = this._body;
-
     if (body) {
       body.activate();
       ammoVec1.setValue(x, y, z);
-
       if (px !== undefined) {
         ammoVec2.setValue(px, py, pz);
         body.applyForce(ammoVec1, ammoVec2);
@@ -469,26 +395,21 @@ class RigidBodyComponent extends Component {
 
   applyTorque() {
     let x, y, z;
-
     switch (arguments.length) {
       case 1:
         x = arguments[0].x;
         y = arguments[0].y;
         z = arguments[0].z;
         break;
-
       case 3:
         x = arguments[0];
         y = arguments[1];
         z = arguments[2];
         break;
-
       default:
         return;
     }
-
     const body = this._body;
-
     if (body) {
       body.activate();
       ammoVec1.setValue(x, y, z);
@@ -499,14 +420,12 @@ class RigidBodyComponent extends Component {
   applyImpulse() {
     let x, y, z;
     let px, py, pz;
-
     switch (arguments.length) {
       case 1:
         x = arguments[0].x;
         y = arguments[0].y;
         z = arguments[0].z;
         break;
-
       case 2:
         x = arguments[0].x;
         y = arguments[0].y;
@@ -515,13 +434,11 @@ class RigidBodyComponent extends Component {
         py = arguments[1].y;
         pz = arguments[1].z;
         break;
-
       case 3:
         x = arguments[0];
         y = arguments[1];
         z = arguments[2];
         break;
-
       case 6:
         x = arguments[0];
         y = arguments[1];
@@ -530,17 +447,13 @@ class RigidBodyComponent extends Component {
         py = arguments[4];
         pz = arguments[5];
         break;
-
       default:
         return;
     }
-
     const body = this._body;
-
     if (body) {
       body.activate();
       ammoVec1.setValue(x, y, z);
-
       if (px !== undefined) {
         ammoVec2.setValue(px, py, pz);
         body.applyImpulse(ammoVec1, ammoVec2);
@@ -552,26 +465,21 @@ class RigidBodyComponent extends Component {
 
   applyTorqueImpulse() {
     let x, y, z;
-
     switch (arguments.length) {
       case 1:
         x = arguments[0].x;
         y = arguments[0].y;
         z = arguments[0].z;
         break;
-
       case 3:
         x = arguments[0];
         y = arguments[1];
         z = arguments[2];
         break;
-
       default:
         return;
     }
-
     const body = this._body;
-
     if (body) {
       body.activate();
       ammoVec1.setValue(x, y, z);
@@ -603,20 +511,15 @@ class RigidBodyComponent extends Component {
 
   syncEntityToBody() {
     const body = this._body;
-
     if (body) {
       this._getEntityTransform(ammoTransform);
-
       body.setWorldTransform(ammoTransform);
-
       if (this._type === BODYTYPE_KINEMATIC) {
         const motionState = body.getMotionState();
-
         if (motionState) {
           motionState.setWorldTransform(ammoTransform);
         }
       }
-
       body.activate();
     }
   }
@@ -626,7 +529,6 @@ class RigidBodyComponent extends Component {
 
     if (body.isActive()) {
       const motionState = body.getMotionState();
-
       if (motionState) {
         motionState.getWorldTransform(ammoTransform);
         const p = ammoTransform.getOrigin();
@@ -639,10 +541,8 @@ class RigidBodyComponent extends Component {
 
   _updateKinematic() {
     const motionState = this._body.getMotionState();
-
     if (motionState) {
       this._getEntityTransform(ammoTransform);
-
       motionState.setWorldTransform(ammoTransform);
     }
   }
@@ -652,7 +552,6 @@ class RigidBodyComponent extends Component {
       if (arguments[0]) {
         this.entity.setPosition(arguments[0]);
       }
-
       if (arguments[1]) {
         if (arguments[1] instanceof Quat) {
           this.entity.setRotation(arguments[1]);
@@ -664,25 +563,19 @@ class RigidBodyComponent extends Component {
       if (arguments.length === 6) {
         this.entity.setEulerAngles(arguments[3], arguments[4], arguments[5]);
       }
-
       this.entity.setPosition(arguments[0], arguments[1], arguments[2]);
     }
-
     this.syncEntityToBody();
   }
-
   onEnable() {
     if (!this._body) {
       this.createBody();
     }
-
     this.enableSimulation();
   }
-
   onDisable() {
     this.disableSimulation();
   }
-
 }
 
 export { RigidBodyComponent };

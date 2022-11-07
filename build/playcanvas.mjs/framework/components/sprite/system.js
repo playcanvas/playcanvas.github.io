@@ -1,6 +1,6 @@
-import { Color } from '../../../math/color.js';
-import { PIXELFORMAT_R8_G8_B8_A8, CULLFACE_NONE } from '../../../graphics/constants.js';
-import { Texture } from '../../../graphics/texture.js';
+import { Color } from '../../../core/math/color.js';
+import { PIXELFORMAT_R8_G8_B8_A8, CULLFACE_NONE } from '../../../platform/graphics/constants.js';
+import { Texture } from '../../../platform/graphics/texture.js';
 import { BLEND_PREMULTIPLIED, SPRITE_RENDERMODE_SLICED, SPRITE_RENDERMODE_TILED } from '../../../scene/constants.js';
 import { StandardMaterial } from '../../../scene/materials/standard-material.js';
 import { Component } from '../component.js';
@@ -17,18 +17,20 @@ class SpriteComponentSystem extends ComponentSystem {
     this.ComponentType = SpriteComponent;
     this.DataType = SpriteComponentData;
     this.schema = _schema;
+
     this._defaultTexture = null;
+
     this._defaultMaterial = null;
+
     this._default9SlicedMaterialSlicedMode = null;
+
     this._default9SlicedMaterialTiledMode = null;
     this.app.systems.on('update', this.onUpdate, this);
     this.on('beforeremove', this.onBeforeRemove, this);
   }
-
   set defaultMaterial(material) {
     this._defaultMaterial = material;
   }
-
   get defaultMaterial() {
     if (!this._defaultMaterial) {
       const texture = new Texture(this.app.graphicsDevice, {
@@ -61,14 +63,11 @@ class SpriteComponentSystem extends ComponentSystem {
       this._defaultTexture = texture;
       this._defaultMaterial = material;
     }
-
     return this._defaultMaterial;
   }
-
   set default9SlicedMaterialSlicedMode(material) {
     this._default9SlicedMaterialSlicedMode = material;
   }
-
   get default9SlicedMaterialSlicedMode() {
     if (!this._default9SlicedMaterialSlicedMode) {
       const material = this.defaultMaterial.clone();
@@ -76,14 +75,11 @@ class SpriteComponentSystem extends ComponentSystem {
       material.update();
       this._default9SlicedMaterialSlicedMode = material;
     }
-
     return this._default9SlicedMaterialSlicedMode;
   }
-
   set default9SlicedMaterialTiledMode(material) {
     this._default9SlicedMaterialTiledMode = material;
   }
-
   get default9SlicedMaterialTiledMode() {
     if (!this._default9SlicedMaterialTiledMode) {
       const material = this.defaultMaterial.clone();
@@ -91,36 +87,27 @@ class SpriteComponentSystem extends ComponentSystem {
       material.update();
       this._default9SlicedMaterialTiledMode = material;
     }
-
     return this._default9SlicedMaterialTiledMode;
   }
-
   destroy() {
     super.destroy();
     this.app.systems.off('update', this.onUpdate, this);
-
     if (this._defaultTexture) {
       this._defaultTexture.destroy();
-
       this._defaultTexture = null;
     }
   }
-
   initializeComponentData(component, data, properties) {
     if (data.enabled !== undefined) {
       component.enabled = data.enabled;
     }
-
     component.type = data.type;
-
     if (data.layers && Array.isArray(data.layers)) {
       component.layers = data.layers.slice(0);
     }
-
     if (data.drawOrder !== undefined) {
       component.drawOrder = data.drawOrder;
     }
-
     if (data.color !== undefined) {
       if (data.color instanceof Color) {
         component.color.set(data.color.r, data.color.g, data.color.b, data.opacity !== undefined ? data.opacity : 1);
@@ -134,53 +121,41 @@ class SpriteComponentSystem extends ComponentSystem {
     if (data.opacity !== undefined) {
       component.opacity = data.opacity;
     }
-
     if (data.flipX !== undefined) {
       component.flipX = data.flipX;
     }
-
     if (data.flipY !== undefined) {
       component.flipY = data.flipY;
     }
-
     if (data.width !== undefined) {
       component.width = data.width;
     }
-
     if (data.height !== undefined) {
       component.height = data.height;
     }
-
     if (data.spriteAsset !== undefined) {
       component.spriteAsset = data.spriteAsset;
     }
-
     if (data.sprite) {
       component.sprite = data.sprite;
     }
-
     if (data.frame !== undefined) {
       component.frame = data.frame;
     }
-
     if (data.clips) {
       for (const name in data.clips) {
         component.addClip(data.clips[name]);
       }
     }
-
     if (data.speed !== undefined) {
       component.speed = data.speed;
     }
-
     if (data.autoPlayClip) {
       component.autoPlayClip = data.autoPlayClip;
     }
-
     component.batchGroupId = data.batchGroupId === undefined || data.batchGroupId === null ? -1 : data.batchGroupId;
     super.initializeComponentData(component, data, properties);
   }
-
   cloneComponent(entity, clone) {
     const source = entity.sprite;
     return this.addComponent(clone, {
@@ -201,17 +176,13 @@ class SpriteComponentSystem extends ComponentSystem {
       layers: source.layers.slice(0)
     });
   }
-
   onUpdate(dt) {
     const components = this.store;
-
     for (const id in components) {
       if (components.hasOwnProperty(id)) {
         const component = components[id];
-
         if (component.data.enabled && component.entity.enabled) {
           const sprite = component.entity.sprite;
-
           if (sprite._currentClip) {
             sprite._currentClip._update(dt);
           }
@@ -219,13 +190,10 @@ class SpriteComponentSystem extends ComponentSystem {
       }
     }
   }
-
   onBeforeRemove(entity, component) {
     component.onDestroy();
   }
-
 }
-
 Component._buildAccessors(SpriteComponent.prototype, _schema);
 
 export { SpriteComponentSystem };

@@ -1,4 +1,4 @@
-import { FUNC_ALWAYS, STENCILOP_KEEP } from '../graphics/constants.js';
+import { FUNC_ALWAYS, STENCILOP_KEEP } from '../platform/graphics/constants.js';
 
 class StencilParameters {
   constructor(options) {
@@ -10,7 +10,6 @@ class StencilParameters {
     this.zfail = options.zfail || STENCILOP_KEEP;
     this.zpass = options.zpass || STENCILOP_KEEP;
   }
-
   clone() {
     return new StencilParameters({
       func: this.func,
@@ -22,7 +21,6 @@ class StencilParameters {
       zpass: this.zpass
     });
   }
-
 }
 
 export { StencilParameters };

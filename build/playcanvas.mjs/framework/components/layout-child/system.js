@@ -13,7 +13,6 @@ class LayoutChildComponentSystem extends ComponentSystem {
     this.DataType = LayoutChildComponentData;
     this.schema = _schema;
   }
-
   initializeComponentData(component, data, properties) {
     if (data.enabled !== undefined) component.enabled = data.enabled;
     if (data.minWidth !== undefined) component.minWidth = data.minWidth;
@@ -25,7 +24,6 @@ class LayoutChildComponentSystem extends ComponentSystem {
     if (data.excludeFromLayout !== undefined) component.excludeFromLayout = data.excludeFromLayout;
     super.initializeComponentData(component, data, properties);
   }
-
   cloneComponent(entity, clone) {
     const layoutChild = entity.layoutchild;
     return this.addComponent(clone, {
@@ -39,9 +37,7 @@ class LayoutChildComponentSystem extends ComponentSystem {
       excludeFromLayout: layoutChild.excludeFromLayout
     });
   }
-
 }
-
 Component._buildAccessors(LayoutChildComponent.prototype, _schema);
 
 export { LayoutChildComponentSystem };

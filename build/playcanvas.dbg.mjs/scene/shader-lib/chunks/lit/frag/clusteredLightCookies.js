@@ -1,0 +1,26 @@
+/**
+ * @license
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (DEBUG PROFILER)
+ * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
+ */
+var clusteredLightCookiesPS = `
+vec3 _getCookieClustered(sampler2D tex, vec2 uv, float intensity, bool isRgb, vec4 cookieChannel) {
+    vec4 pixel = mix(vec4(1.0), texture2D(tex, uv), intensity);
+    return isRgb == true ? pixel.rgb : vec3(dot(pixel, cookieChannel));
+}
+
+// getCookie2D for clustered lighting including channel selector
+vec3 getCookie2DClustered(sampler2D tex, mat4 transform, vec3 worldPosition, float intensity, bool isRgb, vec4 cookieChannel) {
+    vec4 projPos = transform * vec4(worldPosition, 1.0);
+    return _getCookieClustered(tex, projPos.xy / projPos.w, intensity, isRgb, cookieChannel);
+}
+
+// getCookie for clustered omni light with the cookie texture being stored in the cookie atlas
+vec3 getCookieCubeClustered(sampler2D tex, vec3 dir, float intensity, bool isRgb, vec4 cookieChannel, float shadowTextureResolution, float shadowEdgePixels, vec3 omniAtlasViewport) {
+    vec2 uv = getCubemapAtlasCoordinates(omniAtlasViewport, shadowEdgePixels, shadowTextureResolution, dir);
+    return _getCookieClustered(tex, uv, intensity, isRgb, cookieChannel);
+}
+`;
+
+export { clusteredLightCookiesPS as default };
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiY2x1c3RlcmVkTGlnaHRDb29raWVzLmpzIiwic291cmNlcyI6WyIuLi8uLi8uLi8uLi8uLi8uLi8uLi9zcmMvc2NlbmUvc2hhZGVyLWxpYi9jaHVua3MvbGl0L2ZyYWcvY2x1c3RlcmVkTGlnaHRDb29raWVzLmpzIl0sInNvdXJjZXNDb250ZW50IjpbImV4cG9ydCBkZWZhdWx0IC8qIGdsc2wgKi9gXG52ZWMzIF9nZXRDb29raWVDbHVzdGVyZWQoc2FtcGxlcjJEIHRleCwgdmVjMiB1diwgZmxvYXQgaW50ZW5zaXR5LCBib29sIGlzUmdiLCB2ZWM0IGNvb2tpZUNoYW5uZWwpIHtcbiAgICB2ZWM0IHBpeGVsID0gbWl4KHZlYzQoMS4wKSwgdGV4dHVyZTJEKHRleCwgdXYpLCBpbnRlbnNpdHkpO1xuICAgIHJldHVybiBpc1JnYiA9PSB0cnVlID8gcGl4ZWwucmdiIDogdmVjMyhkb3QocGl4ZWwsIGNvb2tpZUNoYW5uZWwpKTtcbn1cblxuLy8gZ2V0Q29va2llMkQgZm9yIGNsdXN0ZXJlZCBsaWdodGluZyBpbmNsdWRpbmcgY2hhbm5lbCBzZWxlY3RvclxudmVjMyBnZXRDb29raWUyRENsdXN0ZXJlZChzYW1wbGVyMkQgdGV4LCBtYXQ0IHRyYW5zZm9ybSwgdmVjMyB3b3JsZFBvc2l0aW9uLCBmbG9hdCBpbnRlbnNpdHksIGJvb2wgaXNSZ2IsIHZlYzQgY29va2llQ2hhbm5lbCkge1xuICAgIHZlYzQgcHJvalBvcyA9IHRyYW5zZm9ybSAqIHZlYzQod29ybGRQb3NpdGlvbiwgMS4wKTtcbiAgICByZXR1cm4gX2dldENvb2tpZUNsdXN0ZXJlZCh0ZXgsIHByb2pQb3MueHkgLyBwcm9qUG9zLncsIGludGVuc2l0eSwgaXNSZ2IsIGNvb2tpZUNoYW5uZWwpO1xufVxuXG4vLyBnZXRDb29raWUgZm9yIGNsdXN0ZXJlZCBvbW5pIGxpZ2h0IHdpdGggdGhlIGNvb2tpZSB0ZXh0dXJlIGJlaW5nIHN0b3JlZCBpbiB0aGUgY29va2llIGF0bGFzXG52ZWMzIGdldENvb2tpZUN1YmVDbHVzdGVyZWQoc2FtcGxlcjJEIHRleCwgdmVjMyBkaXIsIGZsb2F0IGludGVuc2l0eSwgYm9vbCBpc1JnYiwgdmVjNCBjb29raWVDaGFubmVsLCBmbG9hdCBzaGFkb3dUZXh0dXJlUmVzb2x1dGlvbiwgZmxvYXQgc2hhZG93RWRnZVBpeGVscywgdmVjMyBvbW5pQXRsYXNWaWV3cG9ydCkge1xuICAgIHZlYzIgdXYgPSBnZXRDdWJlbWFwQXRsYXNDb29yZGluYXRlcyhvbW5pQXRsYXNWaWV3cG9ydCwgc2hhZG93RWRnZVBpeGVscywgc2hhZG93VGV4dHVyZVJlc29sdXRpb24sIGRpcik7XG4gICAgcmV0dXJuIF9nZXRDb29raWVDbHVzdGVyZWQodGV4LCB1diwgaW50ZW5zaXR5LCBpc1JnYiwgY29va2llQ2hhbm5lbCk7XG59XG5gO1xuIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7Ozs7O0FBQUEsOEJBQTBCLENBQUE7QUFDMUI7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQSxDQUFDOzs7OyJ9

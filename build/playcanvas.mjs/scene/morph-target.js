@@ -1,22 +1,21 @@
 import '../core/tracing.js';
-import { BoundingBox } from '../shape/bounding-box.js';
-import { BUFFER_STATIC, TYPE_FLOAT32, SEMANTIC_ATTR0 } from '../graphics/constants.js';
-import { VertexBuffer } from '../graphics/vertex-buffer.js';
-import { VertexFormat } from '../graphics/vertex-format.js';
+import { BoundingBox } from '../core/shape/bounding-box.js';
+import { BUFFER_STATIC, TYPE_FLOAT32, SEMANTIC_ATTR0 } from '../platform/graphics/constants.js';
+import { VertexBuffer } from '../platform/graphics/vertex-buffer.js';
+import { VertexFormat } from '../platform/graphics/vertex-format.js';
 
 class MorphTarget {
+
   constructor(options) {
     this.used = false;
-
     if (arguments.length === 2) {
       options = arguments[1];
     }
-
     this.options = options;
     this._name = options.name;
     this._defaultWeight = options.defaultWeight || 0;
-    this.aabb = options.aabb;
 
+    this.aabb = options.aabb;
     if (!this.aabb) {
       this.aabb = new BoundingBox();
       if (options.deltaPositions) this.aabb.compute(options.deltaPositions);
@@ -24,10 +23,8 @@ class MorphTarget {
 
     this.deltaPositions = options.deltaPositions;
   }
-
   destroy() {
     var _this$_vertexBufferPo, _this$_vertexBufferNo, _this$texturePosition, _this$textureNormals;
-
     (_this$_vertexBufferPo = this._vertexBufferPositions) == null ? void 0 : _this$_vertexBufferPo.destroy();
     this._vertexBufferPositions = null;
     (_this$_vertexBufferNo = this._vertexBufferNormals) == null ? void 0 : _this$_vertexBufferNo.destroy();
@@ -45,11 +42,9 @@ class MorphTarget {
   get defaultWeight() {
     return this._defaultWeight;
   }
-
   get morphPositions() {
     return !!this._vertexBufferPositions || !!this.texturePositions;
   }
-
   get morphNormals() {
     return !!this._vertexBufferNormals || !!this.textureNormals;
   }
@@ -57,7 +52,6 @@ class MorphTarget {
   clone() {
     return new MorphTarget(this.options);
   }
-
   _postInit() {
     if (!this.options.preserveData) {
       this.options = null;
@@ -65,7 +59,6 @@ class MorphTarget {
 
     this.used = true;
   }
-
   _initVertexBuffers(graphicsDevice) {
     const options = this.options;
     this._vertexBufferPositions = this._createVertexBuffer(graphicsDevice, options.deltaPositions, options.deltaPositionsType);
@@ -75,7 +68,6 @@ class MorphTarget {
       this.deltaPositions = this._vertexBufferPositions.lock();
     }
   }
-
   _createVertexBuffer(device, data, dataType = TYPE_FLOAT32) {
     if (data) {
       const formatDesc = [{
@@ -85,14 +77,11 @@ class MorphTarget {
       }];
       return new VertexBuffer(device, new VertexFormat(device, formatDesc), data.length / 3, BUFFER_STATIC, data);
     }
-
     return null;
   }
-
   _setTexture(name, texture) {
     this[name] = texture;
   }
-
 }
 
 export { MorphTarget };

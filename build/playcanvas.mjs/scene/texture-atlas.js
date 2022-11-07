@@ -3,6 +3,7 @@ import { EventHandler } from '../core/event-handler.js';
 class TextureAtlas extends EventHandler {
   constructor() {
     super();
+
     this._texture = null;
     this._frames = null;
   }
@@ -11,7 +12,6 @@ class TextureAtlas extends EventHandler {
     this._texture = value;
     this.fire('set:texture', value);
   }
-
   get texture() {
     return this._texture;
   }
@@ -20,14 +20,12 @@ class TextureAtlas extends EventHandler {
     this._frames = value;
     this.fire('set:frames', value);
   }
-
   get frames() {
     return this._frames;
   }
 
   setFrame(key, data) {
     let frame = this._frames[key];
-
     if (!frame) {
       frame = {
         rect: data.rect.clone(),
@@ -40,13 +38,11 @@ class TextureAtlas extends EventHandler {
       frame.pivot.copy(data.pivot);
       frame.border.copy(data.border);
     }
-
     this.fire('set:frame', key.toString(), frame);
   }
 
   removeFrame(key) {
     const frame = this._frames[key];
-
     if (frame) {
       delete this._frames[key];
       this.fire('remove:frame', key.toString(), frame);
@@ -58,7 +54,6 @@ class TextureAtlas extends EventHandler {
       this._texture.destroy();
     }
   }
-
 }
 
 export { TextureAtlas };

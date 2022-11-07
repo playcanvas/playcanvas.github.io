@@ -1,14 +1,15 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import { EventHandler } from '../core/event-handler.js';
-import { Vec2 } from '../math/vec2.js';
+import { Vec2 } from '../core/math/vec2.js';
 import { SPRITE_RENDERMODE_SIMPLE, SPRITE_RENDERMODE_SLICED, SPRITE_RENDERMODE_TILED } from './constants.js';
 import { createMesh } from './procedural.js';
 
 const spriteNormals = [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1];
+
 const spriteIndices = [0, 1, 3, 2, 3, 1];
 
 class Sprite extends EventHandler {
@@ -20,9 +21,9 @@ class Sprite extends EventHandler {
     this._atlas = options && options.atlas !== undefined ? options.atlas : null;
     this._frameKeys = options && options.frameKeys !== undefined ? options.frameKeys : null;
     this._meshes = [];
+
     this._updatingProperties = false;
     this._meshesDirty = false;
-
     if (this._atlas && this._frameKeys) {
       this._createMeshes();
     }
@@ -30,7 +31,6 @@ class Sprite extends EventHandler {
 
   set frameKeys(value) {
     this._frameKeys = value;
-
     if (this._atlas && this._frameKeys) {
       if (this._updatingProperties) {
         this._meshesDirty = true;
@@ -38,44 +38,32 @@ class Sprite extends EventHandler {
         this._createMeshes();
       }
     }
-
     this.fire('set:frameKeys', value);
   }
-
   get frameKeys() {
     return this._frameKeys;
   }
 
   set atlas(value) {
     if (value === this._atlas) return;
-
     if (this._atlas) {
       this._atlas.off('set:frames', this._onSetFrames, this);
-
       this._atlas.off('set:frame', this._onFrameChanged, this);
-
       this._atlas.off('remove:frame', this._onFrameRemoved, this);
     }
-
     this._atlas = value;
-
     if (this._atlas && this._frameKeys) {
       this._atlas.on('set:frames', this._onSetFrames, this);
-
       this._atlas.on('set:frame', this._onFrameChanged, this);
-
       this._atlas.on('remove:frame', this._onFrameRemoved, this);
-
       if (this._updatingProperties) {
         this._meshesDirty = true;
       } else {
         this._createMeshes();
       }
     }
-
     this.fire('set:atlas', value);
   }
-
   get atlas() {
     return this._atlas;
   }
@@ -93,7 +81,6 @@ class Sprite extends EventHandler {
       }
     }
   }
-
   get pixelsPerUnit() {
     return this._pixelsPerUnit;
   }
@@ -114,7 +101,6 @@ class Sprite extends EventHandler {
       }
     }
   }
-
   get renderMode() {
     return this._renderMode;
   }
@@ -122,13 +108,10 @@ class Sprite extends EventHandler {
   get meshes() {
     return this._meshes;
   }
-
   _createMeshes() {
     const len = this._meshes.length;
-
     for (let i = 0; i < len; i++) {
       const mesh = this._meshes[i];
-
       if (mesh) {
         mesh.destroy();
       }
@@ -136,16 +119,15 @@ class Sprite extends EventHandler {
 
     const count = this._frameKeys.length;
     this._meshes = new Array(count);
+
     const createMeshFunc = this.renderMode === SPRITE_RENDERMODE_SLICED || this._renderMode === SPRITE_RENDERMODE_TILED ? this._create9SliceMesh : this._createSimpleMesh;
 
     for (let i = 0; i < count; i++) {
       const frame = this._atlas.frames[this._frameKeys[i]];
       this._meshes[i] = frame ? createMeshFunc.call(this, frame) : null;
     }
-
     this.fire('set:meshes');
   }
-
   _createSimpleMesh(frame) {
     const rect = frame.rect;
     const texWidth = this._atlas.texture.width;
@@ -154,7 +136,9 @@ class Sprite extends EventHandler {
     const h = rect.w / this._pixelsPerUnit;
     const hp = frame.pivot.x;
     const vp = frame.pivot.y;
+
     const positions = [-hp * w, -vp * h, 0, (1 - hp) * w, -vp * h, 0, (1 - hp) * w, (1 - vp) * h, 0, -hp * w, (1 - vp) * h, 0];
+
     const lu = rect.x / texWidth;
     const bv = 1.0 - rect.y / texHeight;
     const ru = (rect.x + rect.z) / texWidth;
@@ -167,20 +151,19 @@ class Sprite extends EventHandler {
     });
     return mesh;
   }
-
   _create9SliceMesh() {
     const he = Vec2.ONE;
     const ws = 3;
     const ls = 3;
+
     const positions = [];
     const normals = [];
     const uvs = [];
     const indices = [];
-    let vcounter = 0;
 
+    let vcounter = 0;
     for (let i = 0; i <= ws; i++) {
       const u = i === 0 || i === ws ? 0 : 1;
-
       for (let j = 0; j <= ls; j++) {
         const x = -he.x + 2.0 * he.x * (i <= 1 ? 0 : 3) / ws;
         const y = 0.0;
@@ -189,16 +172,13 @@ class Sprite extends EventHandler {
         positions.push(-x, y, z);
         normals.push(0.0, 1.0, 0.0);
         uvs.push(u, v);
-
         if (i < ws && j < ls) {
           indices.push(vcounter + ls + 1, vcounter + 1, vcounter);
           indices.push(vcounter + ls + 1, vcounter + ls + 2, vcounter + 1);
         }
-
         vcounter++;
       }
     }
-
     const options = {
       normals: normals,
       uvs: uvs,
@@ -206,7 +186,6 @@ class Sprite extends EventHandler {
     };
     return createMesh(this._device, positions, options);
   }
-
   _onSetFrames(frames) {
     if (this._updatingProperties) {
       this._meshesDirty = true;
@@ -214,12 +193,9 @@ class Sprite extends EventHandler {
       this._createMeshes();
     }
   }
-
   _onFrameChanged(frameKey, frame) {
     const idx = this._frameKeys.indexOf(frameKey);
-
     if (idx < 0) return;
-
     if (frame) {
       if (this.renderMode === SPRITE_RENDERMODE_SIMPLE) {
         this._meshes[idx] = this._createSimpleMesh(frame);
@@ -227,30 +203,23 @@ class Sprite extends EventHandler {
     } else {
       this._meshes[idx] = null;
     }
-
     this.fire('set:meshes');
   }
-
   _onFrameRemoved(frameKey) {
     const idx = this._frameKeys.indexOf(frameKey);
-
     if (idx < 0) return;
     this._meshes[idx] = null;
     this.fire('set:meshes');
   }
-
   startUpdate() {
     this._updatingProperties = true;
     this._meshesDirty = false;
   }
-
   endUpdate() {
     this._updatingProperties = false;
-
     if (this._meshesDirty && this._atlas && this._frameKeys) {
       this._createMeshes();
     }
-
     this._meshesDirty = false;
   }
 
@@ -258,10 +227,8 @@ class Sprite extends EventHandler {
     for (const mesh of this._meshes) {
       if (mesh) mesh.destroy();
     }
-
     this._meshes.length = 0;
   }
-
 }
 
 export { Sprite };

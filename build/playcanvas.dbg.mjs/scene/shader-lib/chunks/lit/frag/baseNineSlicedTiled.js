@@ -1,0 +1,21 @@
+/**
+ * @license
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (DEBUG PROFILER)
+ * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
+ */
+var baseNineSlicedTiledPS = `
+#define NINESLICED
+#define NINESLICETILED
+
+varying vec2 vMask;
+varying vec2 vTiledUv;
+
+uniform mediump vec4 innerOffset;
+uniform mediump vec2 outerScale;
+uniform mediump vec4 atlasRect;
+
+vec2 nineSlicedUv;
+`;
+
+export { baseNineSlicedTiledPS as default };
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiYmFzZU5pbmVTbGljZWRUaWxlZC5qcyIsInNvdXJjZXMiOlsiLi4vLi4vLi4vLi4vLi4vLi4vLi4vc3JjL3NjZW5lL3NoYWRlci1saWIvY2h1bmtzL2xpdC9mcmFnL2Jhc2VOaW5lU2xpY2VkVGlsZWQuanMiXSwic291cmNlc0NvbnRlbnQiOlsiZXhwb3J0IGRlZmF1bHQgLyogZ2xzbCAqL2BcbiNkZWZpbmUgTklORVNMSUNFRFxuI2RlZmluZSBOSU5FU0xJQ0VUSUxFRFxuXG52YXJ5aW5nIHZlYzIgdk1hc2s7XG52YXJ5aW5nIHZlYzIgdlRpbGVkVXY7XG5cbnVuaWZvcm0gbWVkaXVtcCB2ZWM0IGlubmVyT2Zmc2V0O1xudW5pZm9ybSBtZWRpdW1wIHZlYzIgb3V0ZXJTY2FsZTtcbnVuaWZvcm0gbWVkaXVtcCB2ZWM0IGF0bGFzUmVjdDtcblxudmVjMiBuaW5lU2xpY2VkVXY7XG5gO1xuIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7Ozs7O0FBQUEsNEJBQTBCLENBQUE7QUFDMUI7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBLENBQUM7Ozs7In0=

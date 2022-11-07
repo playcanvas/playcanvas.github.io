@@ -1,13 +1,14 @@
 import { EventHandler } from '../../core/event-handler.js';
-import { Color } from '../../math/color.js';
-import { Vec2 } from '../../math/vec2.js';
-import { Vec3 } from '../../math/vec3.js';
-import { Vec4 } from '../../math/vec4.js';
+import { Color } from '../../core/math/color.js';
+import { Vec2 } from '../../core/math/vec2.js';
+import { Vec3 } from '../../core/math/vec3.js';
+import { Vec4 } from '../../core/math/vec4.js';
 
 class ComponentSystem extends EventHandler {
   constructor(app) {
     super();
     this.app = app;
+
     this.store = {};
     this.schema = [];
   }
@@ -53,14 +54,11 @@ class ComponentSystem extends EventHandler {
         name = descriptor;
         type = undefined;
       }
-
       let value = data[name];
-
       if (value !== undefined) {
         if (type !== undefined) {
           value = convertValue(value, type);
         }
-
         component[name] = value;
       } else {
         component[name] = component.data[name];
@@ -82,62 +80,46 @@ class ComponentSystem extends EventHandler {
     });
     return matchingProperties;
   }
-
   destroy() {
     this.off();
   }
-
 }
-
 function convertValue(value, type) {
   if (!value) {
     return value;
   }
-
   switch (type) {
     case 'rgb':
       if (value instanceof Color) {
         return value.clone();
       }
-
       return new Color(value[0], value[1], value[2]);
-
     case 'rgba':
       if (value instanceof Color) {
         return value.clone();
       }
-
       return new Color(value[0], value[1], value[2], value[3]);
-
     case 'vec2':
       if (value instanceof Vec2) {
         return value.clone();
       }
-
       return new Vec2(value[0], value[1]);
-
     case 'vec3':
       if (value instanceof Vec3) {
         return value.clone();
       }
-
       return new Vec3(value[0], value[1], value[2]);
-
     case 'vec4':
       if (value instanceof Vec4) {
         return value.clone();
       }
-
       return new Vec4(value[0], value[1], value[2], value[3]);
-
     case 'boolean':
     case 'number':
     case 'string':
       return value;
-
     case 'entity':
       return value;
-
     default:
       throw new Error('Could not convert unhandled type: ' + type);
   }

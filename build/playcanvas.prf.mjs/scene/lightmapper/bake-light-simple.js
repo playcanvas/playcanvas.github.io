@@ -1,10 +1,10 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-dev revision 1331860ee (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
-import { Vec2 } from '../../math/vec2.js';
-import { random } from '../../math/random.js';
+import { Vec2 } from '../../core/math/vec2.js';
+import { random } from '../../core/math/random.js';
 import { LIGHTTYPE_DIRECTIONAL } from '../constants.js';
 import { BakeLight } from './bake-light.js';
 

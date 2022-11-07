@@ -42,6 +42,12 @@ declare const TRACEID_TEXTURE_ALLOC: string;
  */
 declare const TRACEID_SHADER_ALLOC: string;
 /**
+ * Logs the compilation time of shaders.
+ *
+ * @type {string}
+ */
+declare const TRACEID_SHADER_COMPILE: string;
+/**
  * Logs the vram use by the textures.
  *
  * @type {string}
@@ -102,6 +108,25 @@ declare const CURVE_SPLINE: number;
  * @type {number}
  */
 declare const CURVE_STEP: number;
+
+/**
+ * Linear distance model.
+ *
+ * @type {string}
+ */
+declare const DISTANCE_LINEAR: string;
+/**
+ * Inverse distance model.
+ *
+ * @type {string}
+ */
+declare const DISTANCE_INVERSE: string;
+/**
+ * Exponential distance model.
+ *
+ * @type {string}
+ */
+declare const DISTANCE_EXPONENTIAL: string;
 
 /**
  * Ignores the integer part of texture coordinates, using only the fractional part.
@@ -1102,6 +1127,661 @@ declare const CHUNKAPI_1_51: string;
 declare const CHUNKAPI_1_55: "1.55";
 declare const CHUNKAPI_1_56: "1.56";
 declare const CHUNKAPI_1_57: "1.57";
+declare const CHUNKAPI_1_58: "1.58";
+
+declare const ACTION_MOUSE: "mouse";
+declare const ACTION_KEYBOARD: "keyboard";
+declare const ACTION_GAMEPAD: "gamepad";
+declare const AXIS_MOUSE_X: "mousex";
+declare const AXIS_MOUSE_Y: "mousey";
+declare const AXIS_PAD_L_X: "padlx";
+declare const AXIS_PAD_L_Y: "padly";
+declare const AXIS_PAD_R_X: "padrx";
+declare const AXIS_PAD_R_Y: "padry";
+declare const AXIS_KEY: "key";
+/**
+ * Name of event fired when a key is pressed.
+ *
+ * @type {string}
+ */
+declare const EVENT_KEYDOWN: string;
+/**
+ * Name of event fired when a key is released.
+ *
+ * @type {string}
+ */
+declare const EVENT_KEYUP: string;
+/**
+ * Name of event fired when a mouse button is pressed.
+ *
+ * @type {string}
+ */
+declare const EVENT_MOUSEDOWN: string;
+/**
+ * Name of event fired when the mouse is moved.
+ *
+ * @type {string}
+ */
+declare const EVENT_MOUSEMOVE: string;
+/**
+ * Name of event fired when a mouse button is released.
+ *
+ * @type {string}
+ */
+declare const EVENT_MOUSEUP: string;
+/**
+ * Name of event fired when the mouse wheel is rotated.
+ *
+ * @type {string}
+ */
+declare const EVENT_MOUSEWHEEL: string;
+/**
+ * Name of event fired when a new touch occurs. For example, a finger is placed on the device.
+ *
+ * @type {string}
+ */
+declare const EVENT_TOUCHSTART: string;
+/**
+ * Name of event fired when touch ends. For example, a finger is lifted off the device.
+ *
+ * @type {string}
+ */
+declare const EVENT_TOUCHEND: string;
+/**
+ * Name of event fired when a touch moves.
+ *
+ * @type {string}
+ */
+declare const EVENT_TOUCHMOVE: string;
+/**
+ * Name of event fired when a touch point is interrupted in some way. The exact reasons for
+ * canceling a touch can vary from device to device. For example, a modal alert pops up during the
+ * interaction; the touch point leaves the document area, or there are more touch points than the
+ * device supports, in which case the earliest touch point is canceled.
+ *
+ * @type {string}
+ */
+declare const EVENT_TOUCHCANCEL: string;
+/**
+ * Name of event fired when a new xr select occurs. For example, primary trigger was pressed.
+ *
+ * @type {string}
+ */
+declare const EVENT_SELECT: string;
+/**
+ * Name of event fired when a new xr select starts. For example, primary trigger is now pressed.
+ *
+ * @type {string}
+ */
+declare const EVENT_SELECTSTART: string;
+/**
+ * Name of event fired when xr select ends. For example, a primary trigger is now released.
+ *
+ * @type {string}
+ */
+declare const EVENT_SELECTEND: string;
+/**
+ * @type {number}
+ */
+declare const KEY_BACKSPACE: number;
+/**
+ * @type {number}
+ */
+declare const KEY_TAB: number;
+/**
+ * @type {number}
+ */
+declare const KEY_RETURN: number;
+/**
+ * @type {number}
+ */
+declare const KEY_ENTER: number;
+/**
+ * @type {number}
+ */
+declare const KEY_SHIFT: number;
+/**
+ * @type {number}
+ */
+declare const KEY_CONTROL: number;
+/**
+ * @type {number}
+ */
+declare const KEY_ALT: number;
+/**
+ * @type {number}
+ */
+declare const KEY_PAUSE: number;
+/**
+ * @type {number}
+ */
+declare const KEY_CAPS_LOCK: number;
+/**
+ * @type {number}
+ */
+declare const KEY_ESCAPE: number;
+/**
+ * @type {number}
+ */
+declare const KEY_SPACE: number;
+/**
+ * @type {number}
+ */
+declare const KEY_PAGE_UP: number;
+/**
+ * @type {number}
+ */
+declare const KEY_PAGE_DOWN: number;
+/**
+ * @type {number}
+ */
+declare const KEY_END: number;
+/**
+ * @type {number}
+ */
+declare const KEY_HOME: number;
+/**
+ * @type {number}
+ */
+declare const KEY_LEFT: number;
+/**
+ * @type {number}
+ */
+declare const KEY_UP: number;
+/**
+ * @type {number}
+ */
+declare const KEY_RIGHT: number;
+/**
+ * @type {number}
+ */
+declare const KEY_DOWN: number;
+/**
+ * @type {number}
+ */
+declare const KEY_PRINT_SCREEN: number;
+/**
+ * @type {number}
+ */
+declare const KEY_INSERT: number;
+/**
+ * @type {number}
+ */
+declare const KEY_DELETE: number;
+/**
+ * @type {number}
+ */
+declare const KEY_0: number;
+/**
+ * @type {number}
+ */
+declare const KEY_1: number;
+/**
+ * @type {number}
+ */
+declare const KEY_2: number;
+/**
+ * @type {number}
+ */
+declare const KEY_3: number;
+/**
+ * @type {number}
+ */
+declare const KEY_4: number;
+/**
+ * @type {number}
+ */
+declare const KEY_5: number;
+/**
+ * @type {number}
+ */
+declare const KEY_6: number;
+/**
+ * @type {number}
+ */
+declare const KEY_7: number;
+/**
+ * @type {number}
+ */
+declare const KEY_8: number;
+/**
+ * @type {number}
+ */
+declare const KEY_9: number;
+/**
+ * @type {number}
+ */
+declare const KEY_SEMICOLON: number;
+/**
+ * @type {number}
+ */
+declare const KEY_EQUAL: number;
+/**
+ * @type {number}
+ */
+declare const KEY_A: number;
+/**
+ * @type {number}
+ */
+declare const KEY_B: number;
+/**
+ * @type {number}
+ */
+declare const KEY_C: number;
+/**
+ * @type {number}
+ */
+declare const KEY_D: number;
+/**
+ * @type {number}
+ */
+declare const KEY_E: number;
+/**
+ * @type {number}
+ */
+declare const KEY_F: number;
+/**
+ * @type {number}
+ */
+declare const KEY_G: number;
+/**
+ * @type {number}
+ */
+declare const KEY_H: number;
+/**
+ * @type {number}
+ */
+declare const KEY_I: number;
+/**
+ * @type {number}
+ */
+declare const KEY_J: number;
+/**
+ * @type {number}
+ */
+declare const KEY_K: number;
+/**
+ * @type {number}
+ */
+declare const KEY_L: number;
+/**
+ * @type {number}
+ */
+declare const KEY_M: number;
+/**
+ * @type {number}
+ */
+declare const KEY_N: number;
+/**
+ * @type {number}
+ */
+declare const KEY_O: number;
+/**
+ * @type {number}
+ */
+declare const KEY_P: number;
+/**
+ * @type {number}
+ */
+declare const KEY_Q: number;
+/**
+ * @type {number}
+ */
+declare const KEY_R: number;
+/**
+ * @type {number}
+ */
+declare const KEY_S: number;
+/**
+ * @type {number}
+ */
+declare const KEY_T: number;
+/**
+ * @type {number}
+ */
+declare const KEY_U: number;
+/**
+ * @type {number}
+ */
+declare const KEY_V: number;
+/**
+ * @type {number}
+ */
+declare const KEY_W: number;
+/**
+ * @type {number}
+ */
+declare const KEY_X: number;
+/**
+ * @type {number}
+ */
+declare const KEY_Y: number;
+/**
+ * @type {number}
+ */
+declare const KEY_Z: number;
+/**
+ * @type {number}
+ */
+declare const KEY_WINDOWS: number;
+/**
+ * @type {number}
+ */
+declare const KEY_CONTEXT_MENU: number;
+/**
+ * @type {number}
+ */
+declare const KEY_NUMPAD_0: number;
+/**
+ * @type {number}
+ */
+declare const KEY_NUMPAD_1: number;
+/**
+ * @type {number}
+ */
+declare const KEY_NUMPAD_2: number;
+/**
+ * @type {number}
+ */
+declare const KEY_NUMPAD_3: number;
+/**
+ * @type {number}
+ */
+declare const KEY_NUMPAD_4: number;
+/**
+ * @type {number}
+ */
+declare const KEY_NUMPAD_5: number;
+/**
+ * @type {number}
+ */
+declare const KEY_NUMPAD_6: number;
+/**
+ * @type {number}
+ */
+declare const KEY_NUMPAD_7: number;
+/**
+ * @type {number}
+ */
+declare const KEY_NUMPAD_8: number;
+/**
+ * @type {number}
+ */
+declare const KEY_NUMPAD_9: number;
+/**
+ * @type {number}
+ */
+declare const KEY_MULTIPLY: number;
+/**
+ * @type {number}
+ */
+declare const KEY_ADD: number;
+/**
+ * @type {number}
+ */
+declare const KEY_SEPARATOR: number;
+/**
+ * @type {number}
+ */
+declare const KEY_SUBTRACT: number;
+/**
+ * @type {number}
+ */
+declare const KEY_DECIMAL: number;
+/**
+ * @type {number}
+ */
+declare const KEY_DIVIDE: number;
+/**
+ * @type {number}
+ */
+declare const KEY_F1: number;
+/**
+ * @type {number}
+ */
+declare const KEY_F2: number;
+/**
+ * @type {number}
+ */
+declare const KEY_F3: number;
+/**
+ * @type {number}
+ */
+declare const KEY_F4: number;
+/**
+ * @type {number}
+ */
+declare const KEY_F5: number;
+/**
+ * @type {number}
+ */
+declare const KEY_F6: number;
+/**
+ * @type {number}
+ */
+declare const KEY_F7: number;
+/**
+ * @type {number}
+ */
+declare const KEY_F8: number;
+/**
+ * @type {number}
+ */
+declare const KEY_F9: number;
+/**
+ * @type {number}
+ */
+declare const KEY_F10: number;
+/**
+ * @type {number}
+ */
+declare const KEY_F11: number;
+/**
+ * @type {number}
+ */
+declare const KEY_F12: number;
+/**
+ * @type {number}
+ */
+declare const KEY_COMMA: number;
+/**
+ * @type {number}
+ */
+declare const KEY_PERIOD: number;
+/**
+ * @type {number}
+ */
+declare const KEY_SLASH: number;
+/**
+ * @type {number}
+ */
+declare const KEY_OPEN_BRACKET: number;
+/**
+ * @type {number}
+ */
+declare const KEY_BACK_SLASH: number;
+/**
+ * @type {number}
+ */
+declare const KEY_CLOSE_BRACKET: number;
+/**
+ * @type {number}
+ */
+declare const KEY_META: number;
+/**
+ * No mouse buttons pressed.
+ *
+ * @type {number}
+ */
+declare const MOUSEBUTTON_NONE: number;
+/**
+ * The left mouse button.
+ *
+ * @type {number}
+ */
+declare const MOUSEBUTTON_LEFT: number;
+/**
+ * The middle mouse button.
+ *
+ * @type {number}
+ */
+declare const MOUSEBUTTON_MIDDLE: number;
+/**
+ * The right mouse button.
+ *
+ * @type {number}
+ */
+declare const MOUSEBUTTON_RIGHT: number;
+/**
+ * Index for pad 1.
+ *
+ * @type {number}
+ */
+declare const PAD_1: number;
+/**
+ * Index for pad 2.
+ *
+ * @type {number}
+ */
+declare const PAD_2: number;
+/**
+ * Index for pad 3.
+ *
+ * @type {number}
+ */
+declare const PAD_3: number;
+/**
+ * Index for pad 4.
+ *
+ * @type {number}
+ */
+declare const PAD_4: number;
+/**
+ * The first face button, from bottom going clockwise.
+ *
+ * @type {number}
+ */
+declare const PAD_FACE_1: number;
+/**
+ * The second face button, from bottom going clockwise.
+ *
+ * @type {number}
+ */
+declare const PAD_FACE_2: number;
+/**
+ * The third face button, from bottom going clockwise.
+ *
+ * @type {number}
+ */
+declare const PAD_FACE_3: number;
+/**
+ * The fourth face button, from bottom going clockwise.
+ *
+ * @type {number}
+ */
+declare const PAD_FACE_4: number;
+/**
+ * The first shoulder button on the left.
+ *
+ * @type {number}
+ */
+declare const PAD_L_SHOULDER_1: number;
+/**
+ * The first shoulder button on the right.
+ *
+ * @type {number}
+ */
+declare const PAD_R_SHOULDER_1: number;
+/**
+ * The second shoulder button on the left.
+ *
+ * @type {number}
+ */
+declare const PAD_L_SHOULDER_2: number;
+/**
+ * The second shoulder button on the right.
+ *
+ * @type {number}
+ */
+declare const PAD_R_SHOULDER_2: number;
+/**
+ * The select button.
+ *
+ * @type {number}
+ */
+declare const PAD_SELECT: number;
+/**
+ * The start button.
+ *
+ * @type {number}
+ */
+declare const PAD_START: number;
+/**
+ * The button when depressing the left analogue stick.
+ *
+ * @type {number}
+ */
+declare const PAD_L_STICK_BUTTON: number;
+/**
+ * The button when depressing the right analogue stick.
+ *
+ * @type {number}
+ */
+declare const PAD_R_STICK_BUTTON: number;
+/**
+ * Direction pad up.
+ *
+ * @type {number}
+ */
+declare const PAD_UP: number;
+/**
+ * Direction pad down.
+ *
+ * @type {number}
+ */
+declare const PAD_DOWN: number;
+/**
+ * Direction pad left.
+ *
+ * @type {number}
+ */
+declare const PAD_LEFT: number;
+/**
+ * Direction pad right.
+ *
+ * @type {number}
+ */
+declare const PAD_RIGHT: number;
+/**
+ * Vendor specific button.
+ *
+ * @type {number}
+ */
+declare const PAD_VENDOR: number;
+/**
+ * Horizontal axis on the left analogue stick.
+ *
+ * @type {number}
+ */
+declare const PAD_L_STICK_X: number;
+/**
+ * Vertical axis on the left analogue stick.
+ *
+ * @type {number}
+ */
+declare const PAD_L_STICK_Y: number;
+/**
+ * Horizontal axis on the right analogue stick.
+ *
+ * @type {number}
+ */
+declare const PAD_R_STICK_X: number;
+/**
+ * Vertical axis on the right analogue stick.
+ *
+ * @type {number}
+ */
+declare const PAD_R_STICK_Y: number;
 
 /**
  * Subtract the color of the source fragment from the destination fragment and write the result to
@@ -1796,930 +2476,6 @@ declare const ORIENTATION_HORIZONTAL: number;
 declare const ORIENTATION_VERTICAL: number;
 
 /**
- * A stepped interpolation scheme.
- *
- * @type {number}
- * @ignore
- */
-declare const INTERPOLATION_STEP: number;
-/**
- * A linear interpolation scheme.
- *
- * @type {number}
- * @ignore
- */
-declare const INTERPOLATION_LINEAR: number;
-/**
- * A cubic spline interpolation scheme.
- *
- * @type {number}
- * @ignore
- */
-declare const INTERPOLATION_CUBIC: number;
-
-/**
- * Used to set the anim state graph transition interruption source to no state.
- *
- * @type {string}
- */
-declare const ANIM_INTERRUPTION_NONE: string;
-/**
- * Used to set the anim state graph transition interruption source as the previous state only.
- *
- * @type {string}
- */
-declare const ANIM_INTERRUPTION_PREV: string;
-/**
- * Used to set the anim state graph transition interruption source as the next state only.
- *
- * @type {string}
- */
-declare const ANIM_INTERRUPTION_NEXT: string;
-/**
- * Used to set the anim state graph transition interruption sources as the previous state followed
- * by the next state.
- *
- * @type {string}
- */
-declare const ANIM_INTERRUPTION_PREV_NEXT: string;
-/**
- * Used to set the anim state graph transition interruption sources as the next state followed by
- * the previous state.
- *
- * @type {string}
- */
-declare const ANIM_INTERRUPTION_NEXT_PREV: string;
-/**
- * Used to set an anim state graph transition condition predicate as '>'.
- *
- * @type {string}
- */
-declare const ANIM_GREATER_THAN: string;
-/**
- * Used to set an anim state graph transition condition predicate as '<'.
- *
- * @type {string}
- */
-declare const ANIM_LESS_THAN: string;
-/**
- * Used to set an anim state graph transition condition predicate as '>='.
- *
- * @type {string}
- */
-declare const ANIM_GREATER_THAN_EQUAL_TO: string;
-/**
- * Used to set an anim state graph transition condition predicate as '<='.
- *
- * @type {string}
- */
-declare const ANIM_LESS_THAN_EQUAL_TO: string;
-/**
- * Used to set an anim state graph transition condition predicate as '==='.
- *
- * @type {string}
- */
-declare const ANIM_EQUAL_TO: string;
-/**
- * Used to set an anim state graph transition condition predicate as '!=='.
- *
- * @type {string}
- */
-declare const ANIM_NOT_EQUAL_TO: string;
-/**
- * Used to set an anim state graph parameter as type integer.
- *
- * @type {string}
- */
-declare const ANIM_PARAMETER_INTEGER: string;
-/**
- * Used to set an anim state graph parameter as type float.
- *
- * @type {string}
- */
-declare const ANIM_PARAMETER_FLOAT: string;
-/**
- * Used to set an anim state graph parameter as type boolean.
- *
- * @type {string}
- */
-declare const ANIM_PARAMETER_BOOLEAN: string;
-/**
- * Used to set an anim state graph parameter as type trigger.
- *
- * @type {string}
- */
-declare const ANIM_PARAMETER_TRIGGER: string;
-/**
- * @type {string}
- */
-declare const ANIM_BLEND_1D: string;
-/**
- * @type {string}
- */
-declare const ANIM_BLEND_2D_DIRECTIONAL: string;
-/**
- * @type {string}
- */
-declare const ANIM_BLEND_2D_CARTESIAN: string;
-/**
- * @type {string}
- */
-declare const ANIM_BLEND_DIRECT: string;
-/**
- * The starting state in an anim state graph layer.
- *
- * @type {string}
- */
-declare const ANIM_STATE_START: string;
-/**
- * The ending state in an anim state graph layer.
- *
- * @type {string}
- */
-declare const ANIM_STATE_END: string;
-/**
- * Used to indicate any state in an anim state graph layer.
- *
- * @type {string}
- */
-declare const ANIM_STATE_ANY: string;
-declare const ANIM_CONTROL_STATES: string[];
-/**
- * Used to indicate that a layers animations should overwrite all previous layers.
- *
- * @type {string}
- */
-declare const ANIM_LAYER_OVERWRITE: string;
-/**
- * Used to indicate that a layers animations should blend additively with previous layers.
- *
- * @type {string}
- */
-declare const ANIM_LAYER_ADDITIVE: string;
-
-declare const FONT_MSDF: "msdf";
-declare const FONT_BITMAP: "bitmap";
-
-/**
- * Linear distance model.
- *
- * @type {string}
- */
-declare const DISTANCE_LINEAR: string;
-/**
- * Inverse distance model.
- *
- * @type {string}
- */
-declare const DISTANCE_INVERSE: string;
-/**
- * Exponential distance model.
- *
- * @type {string}
- */
-declare const DISTANCE_EXPONENTIAL: string;
-
-declare const ABSOLUTE_URL: RegExp;
-/**
- * Asset type name for animation.
- *
- * @type {string}
- */
-declare const ASSET_ANIMATION: string;
-/**
- * Asset type name for audio.
- *
- * @type {string}
- */
-declare const ASSET_AUDIO: string;
-/**
- * Asset type name for image.
- *
- * @type {string}
- */
-declare const ASSET_IMAGE: string;
-/**
- * Asset type name for json.
- *
- * @type {string}
- */
-declare const ASSET_JSON: string;
-/**
- * Asset type name for model.
- *
- * @type {string}
- */
-declare const ASSET_MODEL: string;
-/**
- * Asset type name for material.
- *
- * @type {string}
- */
-declare const ASSET_MATERIAL: string;
-/**
- * Asset type name for text.
- *
- * @type {string}
- */
-declare const ASSET_TEXT: string;
-/**
- * Asset type name for texture.
- *
- * @type {string}
- */
-declare const ASSET_TEXTURE: string;
-/**
- * Asset type name for cubemap.
- *
- * @type {string}
- */
-declare const ASSET_CUBEMAP: string;
-/**
- * Asset type name for shader.
- *
- * @type {string}
- */
-declare const ASSET_SHADER: string;
-/**
- * Asset type name for CSS.
- *
- * @type {string}
- */
-declare const ASSET_CSS: string;
-/**
- * Asset type name for HTML.
- *
- * @type {string}
- */
-declare const ASSET_HTML: string;
-/**
- * Asset type name for script.
- *
- * @type {string}
- */
-declare const ASSET_SCRIPT: string;
-/**
- * Asset type name for a container.
- *
- * @type {string}
- */
-declare const ASSET_CONTAINER: string;
-
-declare const ACTION_MOUSE: "mouse";
-declare const ACTION_KEYBOARD: "keyboard";
-declare const ACTION_GAMEPAD: "gamepad";
-declare const AXIS_MOUSE_X: "mousex";
-declare const AXIS_MOUSE_Y: "mousey";
-declare const AXIS_PAD_L_X: "padlx";
-declare const AXIS_PAD_L_Y: "padly";
-declare const AXIS_PAD_R_X: "padrx";
-declare const AXIS_PAD_R_Y: "padry";
-declare const AXIS_KEY: "key";
-/**
- * Name of event fired when a key is pressed.
- *
- * @type {string}
- */
-declare const EVENT_KEYDOWN: string;
-/**
- * Name of event fired when a key is released.
- *
- * @type {string}
- */
-declare const EVENT_KEYUP: string;
-/**
- * Name of event fired when a mouse button is pressed.
- *
- * @type {string}
- */
-declare const EVENT_MOUSEDOWN: string;
-/**
- * Name of event fired when the mouse is moved.
- *
- * @type {string}
- */
-declare const EVENT_MOUSEMOVE: string;
-/**
- * Name of event fired when a mouse button is released.
- *
- * @type {string}
- */
-declare const EVENT_MOUSEUP: string;
-/**
- * Name of event fired when the mouse wheel is rotated.
- *
- * @type {string}
- */
-declare const EVENT_MOUSEWHEEL: string;
-/**
- * Name of event fired when a new touch occurs. For example, a finger is placed on the device.
- *
- * @type {string}
- */
-declare const EVENT_TOUCHSTART: string;
-/**
- * Name of event fired when touch ends. For example, a finger is lifted off the device.
- *
- * @type {string}
- */
-declare const EVENT_TOUCHEND: string;
-/**
- * Name of event fired when a touch moves.
- *
- * @type {string}
- */
-declare const EVENT_TOUCHMOVE: string;
-/**
- * Name of event fired when a touch point is interrupted in some way. The exact reasons for
- * canceling a touch can vary from device to device. For example, a modal alert pops up during the
- * interaction; the touch point leaves the document area, or there are more touch points than the
- * device supports, in which case the earliest touch point is canceled.
- *
- * @type {string}
- */
-declare const EVENT_TOUCHCANCEL: string;
-/**
- * Name of event fired when a new xr select occurs. For example, primary trigger was pressed.
- *
- * @type {string}
- */
-declare const EVENT_SELECT: string;
-/**
- * Name of event fired when a new xr select starts. For example, primary trigger is now pressed.
- *
- * @type {string}
- */
-declare const EVENT_SELECTSTART: string;
-/**
- * Name of event fired when xr select ends. For example, a primary trigger is now released.
- *
- * @type {string}
- */
-declare const EVENT_SELECTEND: string;
-/**
- * @type {number}
- */
-declare const KEY_BACKSPACE: number;
-/**
- * @type {number}
- */
-declare const KEY_TAB: number;
-/**
- * @type {number}
- */
-declare const KEY_RETURN: number;
-/**
- * @type {number}
- */
-declare const KEY_ENTER: number;
-/**
- * @type {number}
- */
-declare const KEY_SHIFT: number;
-/**
- * @type {number}
- */
-declare const KEY_CONTROL: number;
-/**
- * @type {number}
- */
-declare const KEY_ALT: number;
-/**
- * @type {number}
- */
-declare const KEY_PAUSE: number;
-/**
- * @type {number}
- */
-declare const KEY_CAPS_LOCK: number;
-/**
- * @type {number}
- */
-declare const KEY_ESCAPE: number;
-/**
- * @type {number}
- */
-declare const KEY_SPACE: number;
-/**
- * @type {number}
- */
-declare const KEY_PAGE_UP: number;
-/**
- * @type {number}
- */
-declare const KEY_PAGE_DOWN: number;
-/**
- * @type {number}
- */
-declare const KEY_END: number;
-/**
- * @type {number}
- */
-declare const KEY_HOME: number;
-/**
- * @type {number}
- */
-declare const KEY_LEFT: number;
-/**
- * @type {number}
- */
-declare const KEY_UP: number;
-/**
- * @type {number}
- */
-declare const KEY_RIGHT: number;
-/**
- * @type {number}
- */
-declare const KEY_DOWN: number;
-/**
- * @type {number}
- */
-declare const KEY_PRINT_SCREEN: number;
-/**
- * @type {number}
- */
-declare const KEY_INSERT: number;
-/**
- * @type {number}
- */
-declare const KEY_DELETE: number;
-/**
- * @type {number}
- */
-declare const KEY_0: number;
-/**
- * @type {number}
- */
-declare const KEY_1: number;
-/**
- * @type {number}
- */
-declare const KEY_2: number;
-/**
- * @type {number}
- */
-declare const KEY_3: number;
-/**
- * @type {number}
- */
-declare const KEY_4: number;
-/**
- * @type {number}
- */
-declare const KEY_5: number;
-/**
- * @type {number}
- */
-declare const KEY_6: number;
-/**
- * @type {number}
- */
-declare const KEY_7: number;
-/**
- * @type {number}
- */
-declare const KEY_8: number;
-/**
- * @type {number}
- */
-declare const KEY_9: number;
-/**
- * @type {number}
- */
-declare const KEY_SEMICOLON: number;
-/**
- * @type {number}
- */
-declare const KEY_EQUAL: number;
-/**
- * @type {number}
- */
-declare const KEY_A: number;
-/**
- * @type {number}
- */
-declare const KEY_B: number;
-/**
- * @type {number}
- */
-declare const KEY_C: number;
-/**
- * @type {number}
- */
-declare const KEY_D: number;
-/**
- * @type {number}
- */
-declare const KEY_E: number;
-/**
- * @type {number}
- */
-declare const KEY_F: number;
-/**
- * @type {number}
- */
-declare const KEY_G: number;
-/**
- * @type {number}
- */
-declare const KEY_H: number;
-/**
- * @type {number}
- */
-declare const KEY_I: number;
-/**
- * @type {number}
- */
-declare const KEY_J: number;
-/**
- * @type {number}
- */
-declare const KEY_K: number;
-/**
- * @type {number}
- */
-declare const KEY_L: number;
-/**
- * @type {number}
- */
-declare const KEY_M: number;
-/**
- * @type {number}
- */
-declare const KEY_N: number;
-/**
- * @type {number}
- */
-declare const KEY_O: number;
-/**
- * @type {number}
- */
-declare const KEY_P: number;
-/**
- * @type {number}
- */
-declare const KEY_Q: number;
-/**
- * @type {number}
- */
-declare const KEY_R: number;
-/**
- * @type {number}
- */
-declare const KEY_S: number;
-/**
- * @type {number}
- */
-declare const KEY_T: number;
-/**
- * @type {number}
- */
-declare const KEY_U: number;
-/**
- * @type {number}
- */
-declare const KEY_V: number;
-/**
- * @type {number}
- */
-declare const KEY_W: number;
-/**
- * @type {number}
- */
-declare const KEY_X: number;
-/**
- * @type {number}
- */
-declare const KEY_Y: number;
-/**
- * @type {number}
- */
-declare const KEY_Z: number;
-/**
- * @type {number}
- */
-declare const KEY_WINDOWS: number;
-/**
- * @type {number}
- */
-declare const KEY_CONTEXT_MENU: number;
-/**
- * @type {number}
- */
-declare const KEY_NUMPAD_0: number;
-/**
- * @type {number}
- */
-declare const KEY_NUMPAD_1: number;
-/**
- * @type {number}
- */
-declare const KEY_NUMPAD_2: number;
-/**
- * @type {number}
- */
-declare const KEY_NUMPAD_3: number;
-/**
- * @type {number}
- */
-declare const KEY_NUMPAD_4: number;
-/**
- * @type {number}
- */
-declare const KEY_NUMPAD_5: number;
-/**
- * @type {number}
- */
-declare const KEY_NUMPAD_6: number;
-/**
- * @type {number}
- */
-declare const KEY_NUMPAD_7: number;
-/**
- * @type {number}
- */
-declare const KEY_NUMPAD_8: number;
-/**
- * @type {number}
- */
-declare const KEY_NUMPAD_9: number;
-/**
- * @type {number}
- */
-declare const KEY_MULTIPLY: number;
-/**
- * @type {number}
- */
-declare const KEY_ADD: number;
-/**
- * @type {number}
- */
-declare const KEY_SEPARATOR: number;
-/**
- * @type {number}
- */
-declare const KEY_SUBTRACT: number;
-/**
- * @type {number}
- */
-declare const KEY_DECIMAL: number;
-/**
- * @type {number}
- */
-declare const KEY_DIVIDE: number;
-/**
- * @type {number}
- */
-declare const KEY_F1: number;
-/**
- * @type {number}
- */
-declare const KEY_F2: number;
-/**
- * @type {number}
- */
-declare const KEY_F3: number;
-/**
- * @type {number}
- */
-declare const KEY_F4: number;
-/**
- * @type {number}
- */
-declare const KEY_F5: number;
-/**
- * @type {number}
- */
-declare const KEY_F6: number;
-/**
- * @type {number}
- */
-declare const KEY_F7: number;
-/**
- * @type {number}
- */
-declare const KEY_F8: number;
-/**
- * @type {number}
- */
-declare const KEY_F9: number;
-/**
- * @type {number}
- */
-declare const KEY_F10: number;
-/**
- * @type {number}
- */
-declare const KEY_F11: number;
-/**
- * @type {number}
- */
-declare const KEY_F12: number;
-/**
- * @type {number}
- */
-declare const KEY_COMMA: number;
-/**
- * @type {number}
- */
-declare const KEY_PERIOD: number;
-/**
- * @type {number}
- */
-declare const KEY_SLASH: number;
-/**
- * @type {number}
- */
-declare const KEY_OPEN_BRACKET: number;
-/**
- * @type {number}
- */
-declare const KEY_BACK_SLASH: number;
-/**
- * @type {number}
- */
-declare const KEY_CLOSE_BRACKET: number;
-/**
- * @type {number}
- */
-declare const KEY_META: number;
-/**
- * No mouse buttons pressed.
- *
- * @type {number}
- */
-declare const MOUSEBUTTON_NONE: number;
-/**
- * The left mouse button.
- *
- * @type {number}
- */
-declare const MOUSEBUTTON_LEFT: number;
-/**
- * The middle mouse button.
- *
- * @type {number}
- */
-declare const MOUSEBUTTON_MIDDLE: number;
-/**
- * The right mouse button.
- *
- * @type {number}
- */
-declare const MOUSEBUTTON_RIGHT: number;
-/**
- * Index for pad 1.
- *
- * @type {number}
- */
-declare const PAD_1: number;
-/**
- * Index for pad 2.
- *
- * @type {number}
- */
-declare const PAD_2: number;
-/**
- * Index for pad 3.
- *
- * @type {number}
- */
-declare const PAD_3: number;
-/**
- * Index for pad 4.
- *
- * @type {number}
- */
-declare const PAD_4: number;
-/**
- * The first face button, from bottom going clockwise.
- *
- * @type {number}
- */
-declare const PAD_FACE_1: number;
-/**
- * The second face button, from bottom going clockwise.
- *
- * @type {number}
- */
-declare const PAD_FACE_2: number;
-/**
- * The third face button, from bottom going clockwise.
- *
- * @type {number}
- */
-declare const PAD_FACE_3: number;
-/**
- * The fourth face button, from bottom going clockwise.
- *
- * @type {number}
- */
-declare const PAD_FACE_4: number;
-/**
- * The first shoulder button on the left.
- *
- * @type {number}
- */
-declare const PAD_L_SHOULDER_1: number;
-/**
- * The first shoulder button on the right.
- *
- * @type {number}
- */
-declare const PAD_R_SHOULDER_1: number;
-/**
- * The second shoulder button on the left.
- *
- * @type {number}
- */
-declare const PAD_L_SHOULDER_2: number;
-/**
- * The second shoulder button on the right.
- *
- * @type {number}
- */
-declare const PAD_R_SHOULDER_2: number;
-/**
- * The select button.
- *
- * @type {number}
- */
-declare const PAD_SELECT: number;
-/**
- * The start button.
- *
- * @type {number}
- */
-declare const PAD_START: number;
-/**
- * The button when depressing the left analogue stick.
- *
- * @type {number}
- */
-declare const PAD_L_STICK_BUTTON: number;
-/**
- * The button when depressing the right analogue stick.
- *
- * @type {number}
- */
-declare const PAD_R_STICK_BUTTON: number;
-/**
- * Direction pad up.
- *
- * @type {number}
- */
-declare const PAD_UP: number;
-/**
- * Direction pad down.
- *
- * @type {number}
- */
-declare const PAD_DOWN: number;
-/**
- * Direction pad left.
- *
- * @type {number}
- */
-declare const PAD_LEFT: number;
-/**
- * Direction pad right.
- *
- * @type {number}
- */
-declare const PAD_RIGHT: number;
-/**
- * Vendor specific button.
- *
- * @type {number}
- */
-declare const PAD_VENDOR: number;
-/**
- * Horizontal axis on the left analogue stick.
- *
- * @type {number}
- */
-declare const PAD_L_STICK_X: number;
-/**
- * Vertical axis on the left analogue stick.
- *
- * @type {number}
- */
-declare const PAD_L_STICK_Y: number;
-/**
- * Horizontal axis on the right analogue stick.
- *
- * @type {number}
- */
-declare const PAD_R_STICK_X: number;
-/**
- * Vertical axis on the right analogue stick.
- *
- * @type {number}
- */
-declare const PAD_R_STICK_Y: number;
-
-/**
  * When resizing the window the size of the canvas will not change.
  *
  * @type {string}
@@ -2957,6 +2713,257 @@ declare const SPRITETYPE_SIMPLE: string;
  * @type {string}
  */
 declare const SPRITETYPE_ANIMATED: string;
+
+/**
+ * A stepped interpolation scheme.
+ *
+ * @type {number}
+ * @ignore
+ */
+declare const INTERPOLATION_STEP: number;
+/**
+ * A linear interpolation scheme.
+ *
+ * @type {number}
+ * @ignore
+ */
+declare const INTERPOLATION_LINEAR: number;
+/**
+ * A cubic spline interpolation scheme.
+ *
+ * @type {number}
+ * @ignore
+ */
+declare const INTERPOLATION_CUBIC: number;
+
+/**
+ * Used to set the anim state graph transition interruption source to no state.
+ *
+ * @type {string}
+ */
+declare const ANIM_INTERRUPTION_NONE: string;
+/**
+ * Used to set the anim state graph transition interruption source as the previous state only.
+ *
+ * @type {string}
+ */
+declare const ANIM_INTERRUPTION_PREV: string;
+/**
+ * Used to set the anim state graph transition interruption source as the next state only.
+ *
+ * @type {string}
+ */
+declare const ANIM_INTERRUPTION_NEXT: string;
+/**
+ * Used to set the anim state graph transition interruption sources as the previous state followed
+ * by the next state.
+ *
+ * @type {string}
+ */
+declare const ANIM_INTERRUPTION_PREV_NEXT: string;
+/**
+ * Used to set the anim state graph transition interruption sources as the next state followed by
+ * the previous state.
+ *
+ * @type {string}
+ */
+declare const ANIM_INTERRUPTION_NEXT_PREV: string;
+/**
+ * Used to set an anim state graph transition condition predicate as '>'.
+ *
+ * @type {string}
+ */
+declare const ANIM_GREATER_THAN: string;
+/**
+ * Used to set an anim state graph transition condition predicate as '<'.
+ *
+ * @type {string}
+ */
+declare const ANIM_LESS_THAN: string;
+/**
+ * Used to set an anim state graph transition condition predicate as '>='.
+ *
+ * @type {string}
+ */
+declare const ANIM_GREATER_THAN_EQUAL_TO: string;
+/**
+ * Used to set an anim state graph transition condition predicate as '<='.
+ *
+ * @type {string}
+ */
+declare const ANIM_LESS_THAN_EQUAL_TO: string;
+/**
+ * Used to set an anim state graph transition condition predicate as '==='.
+ *
+ * @type {string}
+ */
+declare const ANIM_EQUAL_TO: string;
+/**
+ * Used to set an anim state graph transition condition predicate as '!=='.
+ *
+ * @type {string}
+ */
+declare const ANIM_NOT_EQUAL_TO: string;
+/**
+ * Used to set an anim state graph parameter as type integer.
+ *
+ * @type {string}
+ */
+declare const ANIM_PARAMETER_INTEGER: string;
+/**
+ * Used to set an anim state graph parameter as type float.
+ *
+ * @type {string}
+ */
+declare const ANIM_PARAMETER_FLOAT: string;
+/**
+ * Used to set an anim state graph parameter as type boolean.
+ *
+ * @type {string}
+ */
+declare const ANIM_PARAMETER_BOOLEAN: string;
+/**
+ * Used to set an anim state graph parameter as type trigger.
+ *
+ * @type {string}
+ */
+declare const ANIM_PARAMETER_TRIGGER: string;
+/**
+ * @type {string}
+ */
+declare const ANIM_BLEND_1D: string;
+/**
+ * @type {string}
+ */
+declare const ANIM_BLEND_2D_DIRECTIONAL: string;
+/**
+ * @type {string}
+ */
+declare const ANIM_BLEND_2D_CARTESIAN: string;
+/**
+ * @type {string}
+ */
+declare const ANIM_BLEND_DIRECT: string;
+/**
+ * The starting state in an anim state graph layer.
+ *
+ * @type {string}
+ */
+declare const ANIM_STATE_START: string;
+/**
+ * The ending state in an anim state graph layer.
+ *
+ * @type {string}
+ */
+declare const ANIM_STATE_END: string;
+/**
+ * Used to indicate any state in an anim state graph layer.
+ *
+ * @type {string}
+ */
+declare const ANIM_STATE_ANY: string;
+declare const ANIM_CONTROL_STATES: string[];
+/**
+ * Used to indicate that a layers animations should overwrite all previous layers.
+ *
+ * @type {string}
+ */
+declare const ANIM_LAYER_OVERWRITE: string;
+/**
+ * Used to indicate that a layers animations should blend additively with previous layers.
+ *
+ * @type {string}
+ */
+declare const ANIM_LAYER_ADDITIVE: string;
+
+declare const ABSOLUTE_URL: RegExp;
+/**
+ * Asset type name for animation.
+ *
+ * @type {string}
+ */
+declare const ASSET_ANIMATION: string;
+/**
+ * Asset type name for audio.
+ *
+ * @type {string}
+ */
+declare const ASSET_AUDIO: string;
+/**
+ * Asset type name for image.
+ *
+ * @type {string}
+ */
+declare const ASSET_IMAGE: string;
+/**
+ * Asset type name for json.
+ *
+ * @type {string}
+ */
+declare const ASSET_JSON: string;
+/**
+ * Asset type name for model.
+ *
+ * @type {string}
+ */
+declare const ASSET_MODEL: string;
+/**
+ * Asset type name for material.
+ *
+ * @type {string}
+ */
+declare const ASSET_MATERIAL: string;
+/**
+ * Asset type name for text.
+ *
+ * @type {string}
+ */
+declare const ASSET_TEXT: string;
+/**
+ * Asset type name for texture.
+ *
+ * @type {string}
+ */
+declare const ASSET_TEXTURE: string;
+/**
+ * Asset type name for cubemap.
+ *
+ * @type {string}
+ */
+declare const ASSET_CUBEMAP: string;
+/**
+ * Asset type name for shader.
+ *
+ * @type {string}
+ */
+declare const ASSET_SHADER: string;
+/**
+ * Asset type name for CSS.
+ *
+ * @type {string}
+ */
+declare const ASSET_CSS: string;
+/**
+ * Asset type name for HTML.
+ *
+ * @type {string}
+ */
+declare const ASSET_HTML: string;
+/**
+ * Asset type name for script.
+ *
+ * @type {string}
+ */
+declare const ASSET_SCRIPT: string;
+/**
+ * Asset type name for a container.
+ *
+ * @type {string}
+ */
+declare const ASSET_CONTAINER: string;
+
+declare const FONT_MSDF: "msdf";
+declare const FONT_BITMAP: "bitmap";
 
 /**
  * Inline - always available type of session. It has limited features availability and is rendered
@@ -5089,13 +5096,10 @@ declare class Plane {
 
 declare function begin(): string;
 declare function end(): string;
-declare function dummyFragmentCode(): string;
 declare function fogCode(value: any, chunks: any): any;
 declare function gammaCode(value: any, chunks: any): any;
-declare function precisionCode(device: any, forcePrecision: any, shadowPrecision: any): string;
 declare function skinCode(device: any, chunks: any): any;
 declare function tonemapCode(value: any, chunks: any): any;
-declare function versionCode(device: any): "" | "#version 450\n" | "#version 300 es\n";
 
 declare class Version {
     globalId: number;
@@ -5502,806 +5506,6 @@ declare class IndexBuffer {
      * @ignore
      */
     readData(data: Uint8Array | Uint16Array | Uint32Array | number[]): number;
-}
-
-
-/**
- * A shader is a program that is responsible for rendering graphical primitives on a device's
- * graphics processor. The shader is generated from a shader definition. This shader definition
- * specifies the code for processing vertices and fragments processed by the GPU. The language of
- * the code is GLSL (or more specifically ESSL, the OpenGL ES Shading Language). The shader
- * definition also describes how the PlayCanvas engine should map vertex buffer elements onto the
- * attributes specified in the vertex shader code.
- */
-declare class Shader {
-    /**
-     * Creates a new Shader instance.
-     *
-     * @param {GraphicsDevice} graphicsDevice - The graphics device used to manage this shader.
-     * @param {object} definition - The shader definition from which to build the shader.
-     * @param {string} [definition.name] - The name of the shader.
-     * @param {Object<string, string>} definition.attributes - Object detailing the mapping of
-     * vertex shader attribute names to semantics SEMANTIC_*. This enables the engine to match
-     * vertex buffer data as inputs to the shader.
-     * @param {string} definition.vshader - Vertex shader source (GLSL code).
-     * @param {string} definition.fshader - Fragment shader source (GLSL code).
-     * @param {boolean} [definition.useTransformFeedback] - Specifies that this shader outputs
-     * post-VS data to a buffer.
-     * @example
-     * // Create a shader that renders primitives with a solid red color
-     * var shaderDefinition = {
-     *     attributes: {
-     *         aPosition: pc.SEMANTIC_POSITION
-     *     },
-     *     vshader: [
-     *         "attribute vec3 aPosition;",
-     *         "",
-     *         "void main(void)",
-     *         "{",
-     *         "    gl_Position = vec4(aPosition, 1.0);",
-     *         "}"
-     *     ].join("\n"),
-     *     fshader: [
-     *         "precision " + graphicsDevice.precision + " float;",
-     *         "",
-     *         "void main(void)",
-     *         "{",
-     *         "    gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);",
-     *         "}"
-     *     ].join("\n")
-     * };
-     *
-     * var shader = new pc.Shader(graphicsDevice, shaderDefinition);
-     */
-    constructor(graphicsDevice: GraphicsDevice, definition: {
-        name?: string;
-        attributes: {
-            [x: string]: string;
-        };
-        vshader: string;
-        fshader: string;
-        useTransformFeedback?: boolean;
-    });
-    /**
-     * Format of the uniform buffer for mesh bind grounp.
-     *
-     * @type {UniformBufferFormat}
-     */
-    meshUniformBufferFormat: any;
-    /**
-     * Format of the bind group for the mesh bind group.
-     *
-     * @type {BindGroupFormat}
-     */
-    meshBindGroupFormat: any;
-    id: number;
-    device: GraphicsDevice;
-    definition: {
-        name?: string;
-        attributes: {
-            [x: string]: string;
-        };
-        vshader: string;
-        fshader: string;
-        useTransformFeedback?: boolean;
-    };
-    name: string;
-    impl: any;
-    /**
-     * Initialize a shader back to its default state.
-     *
-     * @private
-     */
-    private init;
-    ready: boolean;
-    failed: boolean;
-    /**
-     * Frees resources associated with this shader.
-     */
-    destroy(): void;
-    /**
-     * Called when the WebGL context was lost. It releases all context related resources.
-     *
-     * @ignore
-     */
-    loseContext(): void;
-    restoreContext(): void;
-}
-
-
-/**
- * A render target is a rectangular rendering surface.
- */
-declare class RenderTarget {
-    /**
-     * Creates a new RenderTarget instance. A color buffer or a depth buffer must be set.
-     *
-     * @param {object} options - Object for passing optional arguments.
-     * @param {boolean} [options.autoResolve] - If samples > 1, enables or disables automatic MSAA
-     * resolve after rendering to this RT (see {@link RenderTarget#resolve}). Defaults to true.
-     * @param {Texture} [options.colorBuffer] - The texture that this render target will treat as a
-     * rendering surface.
-     * @param {boolean} [options.depth] - If set to true, depth buffer will be created. Defaults to
-     * true. Ignored if depthBuffer is defined.
-     * @param {Texture} [options.depthBuffer] - The texture that this render target will treat as a
-     * depth/stencil surface (WebGL2 only). If set, the 'depth' and 'stencil' properties are
-     * ignored. Texture must have {@link PIXELFORMAT_DEPTH} or {@link PIXELFORMAT_DEPTHSTENCIL}
-     * format.
-     * @param {number} [options.face] - If the colorBuffer parameter is a cubemap, use this option
-     * to specify the face of the cubemap to render to. Can be:
-     *
-     * - {@link CUBEFACE_POSX}
-     * - {@link CUBEFACE_NEGX}
-     * - {@link CUBEFACE_POSY}
-     * - {@link CUBEFACE_NEGY}
-     * - {@link CUBEFACE_POSZ}
-     * - {@link CUBEFACE_NEGZ}
-     *
-     * Defaults to {@link CUBEFACE_POSX}.
-     * @param {boolean} [options.flipY] - When set to true the image will be flipped in Y. Default
-     * is false.
-     * @param {string} [options.name] - The name of the render target.
-     * @param {number} [options.samples] - Number of hardware anti-aliasing samples (WebGL2 only).
-     * Default is 1.
-     * @param {boolean} [options.stencil] - If set to true, depth buffer will include stencil.
-     * Defaults to false. Ignored if depthBuffer is defined or depth is false.
-     * @example
-     * // Create a 512x512x24-bit render target with a depth buffer
-     * var colorBuffer = new pc.Texture(graphicsDevice, {
-     *     width: 512,
-     *     height: 512,
-     *     format: pc.PIXELFORMAT_R8_G8_B8
-     * });
-     * var renderTarget = new pc.RenderTarget({
-     *     colorBuffer: colorBuffer,
-     *     depth: true
-     * });
-     *
-     * // Set the render target on a camera component
-     * camera.renderTarget = renderTarget;
-     *
-     * // Destroy render target at a later stage. Note that the color buffer needs
-     * // to be destroyed separately.
-     * renderTarget.colorBuffer.destroy();
-     * renderTarget.destroy();
-     * camera.renderTarget = null;
-     */
-    constructor(options: {
-        autoResolve?: boolean;
-        colorBuffer?: Texture;
-        depth?: boolean;
-        depthBuffer?: Texture;
-        face?: number;
-        flipY?: boolean;
-        name?: string;
-        samples?: number;
-        stencil?: boolean;
-    }, ...args: any[]);
-    id: number;
-    _colorBuffer: any;
-    _depthBuffer: Texture;
-    _face: number;
-    _depth: boolean;
-    _stencil: boolean;
-    _device: any;
-    _samples: number;
-    autoResolve: boolean;
-    name: any;
-    flipY: boolean;
-    impl: any;
-    /**
-     * Frees resources associated with this render target.
-     */
-    destroy(): void;
-    /**
-     * Free device resources associated with this render target.
-     *
-     * @ignore
-     */
-    destroyFrameBuffers(): void;
-    /**
-     * Free textures associated with this render target.
-     *
-     * @ignore
-     */
-    destroyTextureBuffers(): void;
-    /**
-     * Initialises the resources associated with this render target.
-     *
-     * @ignore
-     */
-    init(): void;
-    get initialized(): any;
-    /**
-     * Called when the device context was lost. It releases all context related resources.
-     *
-     * @ignore
-     */
-    loseContext(): void;
-    /**
-     * If samples > 1, resolves the anti-aliased render target (WebGL2 only). When you're rendering
-     * to an anti-aliased render target, pixels aren't written directly to the readable texture.
-     * Instead, they're first written to a MSAA buffer, where each sample for each pixel is stored
-     * independently. In order to read the results, you first need to 'resolve' the buffer - to
-     * average all samples and create a simple texture with one color per pixel. This function
-     * performs this averaging and updates the colorBuffer and the depthBuffer. If autoResolve is
-     * set to true, the resolve will happen after every rendering to this render target, otherwise
-     * you can do it manually, during the app update or inside a {@link Command}.
-     *
-     * @param {boolean} [color] - Resolve color buffer. Defaults to true.
-     * @param {boolean} [depth] - Resolve depth buffer. Defaults to true if the render target has a
-     * depth buffer.
-     */
-    resolve(color?: boolean, depth?: boolean): void;
-    /**
-     * Copies color and/or depth contents of source render target to this one. Formats, sizes and
-     * anti-aliasing samples must match. Depth buffer can only be copied on WebGL 2.0.
-     *
-     * @param {RenderTarget} source - Source render target to copy from.
-     * @param {boolean} [color] - If true will copy the color buffer. Defaults to false.
-     * @param {boolean} [depth] - If true will copy the depth buffer. Defaults to false.
-     * @returns {boolean} True if the copy was successful, false otherwise.
-     */
-    copy(source: RenderTarget, color?: boolean, depth?: boolean): boolean;
-    /**
-     * Number of antialiasing samples the render target uses.
-     *
-     * @type {number}
-     */
-    get samples(): number;
-    /**
-     * True if the render target contains the depth attachment.
-     *
-     * @type {boolean}
-     */
-    get depth(): boolean;
-    /**
-     * True if the render target contains the stencil attachment.
-     *
-     * @type {boolean}
-     */
-    get stencil(): boolean;
-    /**
-     * Color buffer set up on the render target.
-     *
-     * @type {Texture}
-     */
-    get colorBuffer(): Texture;
-    /**
-     * Depth buffer set up on the render target. Only available, if depthBuffer was set in
-     * constructor. Not available if depth property was used instead.
-     *
-     * @type {Texture}
-     */
-    get depthBuffer(): Texture;
-    /**
-     * If the render target is bound to a cubemap, this property specifies which face of the
-     * cubemap is rendered to. Can be:
-     *
-     * - {@link CUBEFACE_POSX}
-     * - {@link CUBEFACE_NEGX}
-     * - {@link CUBEFACE_POSY}
-     * - {@link CUBEFACE_NEGY}
-     * - {@link CUBEFACE_POSZ}
-     * - {@link CUBEFACE_NEGZ}
-     *
-     * @type {number}
-     */
-    get face(): number;
-    /**
-     * Width of the render target in pixels.
-     *
-     * @type {number}
-     */
-    get width(): number;
-    /**
-     * Height of the render target in pixels.
-     *
-     * @type {number}
-     */
-    get height(): number;
-}
-
-/**
- * Callback used by {@link EventHandler } functions. Note the callback is limited to 8 arguments.
- */
-export type HandleEventCallback = (arg1?: any, arg2?: any, arg3?: any, arg4?: any, arg5?: any, arg6?: any, arg7?: any, arg8?: any) => any;
-/**
- * Callback used by {@link EventHandler} functions. Note the callback is limited to 8 arguments.
- *
- * @callback HandleEventCallback
- * @param {*} [arg1] - First argument that is passed from caller.
- * @param {*} [arg2] - Second argument that is passed from caller.
- * @param {*} [arg3] - Third argument that is passed from caller.
- * @param {*} [arg4] - Fourth argument that is passed from caller.
- * @param {*} [arg5] - Fifth argument that is passed from caller.
- * @param {*} [arg6] - Sixth argument that is passed from caller.
- * @param {*} [arg7] - Seventh argument that is passed from caller.
- * @param {*} [arg8] - Eighth argument that is passed from caller.
- */
-/**
- * Abstract base class that implements functionality for event handling.
- */
-declare class EventHandler {
-    /**
-     * @type {object}
-     * @private
-     */
-    private _callbacks;
-    /**
-     * @type {object}
-     * @private
-     */
-    private _callbackActive;
-    /**
-     * Reinitialize the event handler.
-     *
-     * @private
-     */
-    private initEventHandler;
-    /**
-     * Registers a new event handler.
-     *
-     * @param {string} name - Name of the event to bind the callback to.
-     * @param {HandleEventCallback} callback - Function that is called when event is fired. Note
-     * the callback is limited to 8 arguments.
-     * @param {object} [scope] - Object to use as 'this' when the event is fired, defaults to
-     * current this.
-     * @param {boolean} [once=false] - If true, the callback will be unbound after being fired once.
-     * @private
-     */
-    private _addCallback;
-    /**
-     * Attach an event handler to an event.
-     *
-     * @param {string} name - Name of the event to bind the callback to.
-     * @param {HandleEventCallback} callback - Function that is called when event is fired. Note
-     * the callback is limited to 8 arguments.
-     * @param {object} [scope] - Object to use as 'this' when the event is fired, defaults to
-     * current this.
-     * @returns {EventHandler} Self for chaining.
-     * @example
-     * obj.on('test', function (a, b) {
-     *     console.log(a + b);
-     * });
-     * obj.fire('test', 1, 2); // prints 3 to the console
-     */
-    on(name: string, callback: HandleEventCallback, scope?: object): EventHandler;
-    /**
-     * Detach an event handler from an event. If callback is not provided then all callbacks are
-     * unbound from the event, if scope is not provided then all events with the callback will be
-     * unbound.
-     *
-     * @param {string} [name] - Name of the event to unbind.
-     * @param {HandleEventCallback} [callback] - Function to be unbound.
-     * @param {object} [scope] - Scope that was used as the this when the event is fired.
-     * @returns {EventHandler} Self for chaining.
-     * @example
-     * var handler = function () {
-     * };
-     * obj.on('test', handler);
-     *
-     * obj.off(); // Removes all events
-     * obj.off('test'); // Removes all events called 'test'
-     * obj.off('test', handler); // Removes all handler functions, called 'test'
-     * obj.off('test', handler, this); // Removes all handler functions, called 'test' with scope this
-     */
-    off(name?: string, callback?: HandleEventCallback, scope?: object): EventHandler;
-    /**
-     * Fire an event, all additional arguments are passed on to the event listener.
-     *
-     * @param {string} name - Name of event to fire.
-     * @param {*} [arg1] - First argument that is passed to the event handler.
-     * @param {*} [arg2] - Second argument that is passed to the event handler.
-     * @param {*} [arg3] - Third argument that is passed to the event handler.
-     * @param {*} [arg4] - Fourth argument that is passed to the event handler.
-     * @param {*} [arg5] - Fifth argument that is passed to the event handler.
-     * @param {*} [arg6] - Sixth argument that is passed to the event handler.
-     * @param {*} [arg7] - Seventh argument that is passed to the event handler.
-     * @param {*} [arg8] - Eighth argument that is passed to the event handler.
-     * @returns {EventHandler} Self for chaining.
-     * @example
-     * obj.fire('test', 'This is the message');
-     */
-    fire(name: string, arg1?: any, arg2?: any, arg3?: any, arg4?: any, arg5?: any, arg6?: any, arg7?: any, arg8?: any): EventHandler;
-    /**
-     * Attach an event handler to an event. This handler will be removed after being fired once.
-     *
-     * @param {string} name - Name of the event to bind the callback to.
-     * @param {HandleEventCallback} callback - Function that is called when event is fired. Note
-     * the callback is limited to 8 arguments.
-     * @param {object} [scope] - Object to use as 'this' when the event is fired, defaults to
-     * current this.
-     * @returns {EventHandler} Self for chaining.
-     * @example
-     * obj.once('test', function (a, b) {
-     *     console.log(a + b);
-     * });
-     * obj.fire('test', 1, 2); // prints 3 to the console
-     * obj.fire('test', 1, 2); // not going to get handled
-     */
-    once(name: string, callback: HandleEventCallback, scope?: object): EventHandler;
-    /**
-     * Test if there are any handlers bound to an event name.
-     *
-     * @param {string} name - The name of the event to test.
-     * @returns {boolean} True if the object has handlers bound to the specified event name.
-     * @example
-     * obj.on('test', function () { }); // bind an event to 'test'
-     * obj.hasEvent('test'); // returns true
-     * obj.hasEvent('hello'); // returns false
-     */
-    hasEvent(name: string): boolean;
-}
-
-/**
- * The scope for variables.
- */
-declare class ScopeSpace {
-    /**
-     * Create a new ScopeSpace instance.
-     *
-     * @param {string} name - The scope name.
-     */
-    constructor(name: string);
-    /**
-     * The scope name.
-     *
-     * @type {string}
-     */
-    name: string;
-    variables: Map<any, any>;
-    /**
-     * Get (or create, if it doesn't already exist) a variable in the scope.
-     *
-     * @param {string} name - The variable name.
-     * @returns {ScopeId} The variable instance.
-     */
-    resolve(name: string): ScopeId;
-    /**
-     * Clears value for any uniform with matching value (used to remove deleted textures).
-     *
-     * @param {*} value - The value to clear.
-     * @ignore
-     */
-    removeValue(value: any): void;
-}
-
-/**
- * A class responsible for creation and caching of required shaders.
- * There is a two level cache. The first level generates the shader based on the provided options.
- * The second level processes this generated shader using processing options - in most cases
- * modifies it to support uniform buffers.
- *
- * @ignore
- */
-declare class ProgramLibrary {
-    constructor(device: any);
-    /**
-     * A cache of shaders processed using processing options.
-     *
-     * @type {Map<string, Shader>}
-     */
-    processedCache: Map<string, Shader>;
-    _device: any;
-    _cache: {};
-    _generators: {};
-    _isClearingCache: boolean;
-    _precached: boolean;
-    _programsCollection: any[];
-    _defaultStdMatOption: {};
-    _defaultStdMatOptionMin: {};
-    register(name: any, generator: any): void;
-    unregister(name: any): void;
-    isRegistered(name: any): boolean;
-    generateShader(generator: any, name: any, key: any, options: any): any;
-    getProgram(name: any, options: any, processingOptions: any): Shader;
-    storeNewProgram(name: any, options: any): void;
-    dumpPrograms(): void;
-    clearCache(): void;
-    removeFromCache(shader: any): void;
-    _getDefaultStdMatOptions(pass: any): {};
-    precompile(cache: any): void;
-}
-
-
-
-
-
-
-/** @typedef {import('./render-target.js').RenderTarget} RenderTarget */
-/** @typedef {import('./shader.js').Shader} Shader */
-/** @typedef {import('./texture.js').Texture} Texture */
-/** @typedef {import('./index-buffer.js').IndexBuffer} IndexBuffer */
-/** @typedef {import('./vertex-buffer.js').VertexBuffer} VertexBuffer */
-/**
- * The graphics device manages the underlying graphics context. It is responsible for submitting
- * render state changes and graphics primitives to the hardware. A graphics device is tied to a
- * specific canvas HTML element. It is valid to have more than one canvas element per page and
- * create a new graphics device against each.
- *
- * @augments EventHandler
- */
-declare class GraphicsDevice extends EventHandler {
-    constructor(canvas: any);
-    /**
-     * The canvas DOM element that provides the underlying WebGL context used by the graphics device.
-     *
-     * @type {HTMLCanvasElement}
-     */
-    canvas: HTMLCanvasElement;
-    /**
-     * The graphics device type, DEVICETYPE_WEBGL or DEVICETYPE_WEBGPU.
-     *
-     * @type {string}
-     * @ignore
-     */
-    deviceType: string;
-    /**
-     * The scope namespace for shader attributes and variables.
-     *
-     * @type {ScopeSpace}
-     */
-    scope: ScopeSpace;
-    /**
-     * The maximum number of supported bones using uniform buffers.
-     *
-     * @type {number}
-     */
-    boneLimit: number;
-    /**
-     * The maximum supported texture anisotropy setting.
-     *
-     * @type {number}
-     */
-    maxAnisotropy: number;
-    /**
-     * The maximum supported dimension of a cube map.
-     *
-     * @type {number}
-     */
-    maxCubeMapSize: number;
-    /**
-     * The maximum supported dimension of a texture.
-     *
-     * @type {number}
-     */
-    maxTextureSize: number;
-    /**
-     * The maximum supported dimension of a 3D texture (any axis).
-     *
-     * @type {number}
-     */
-    maxVolumeSize: number;
-    /**
-     * The highest shader precision supported by this graphics device. Can be 'hiphp', 'mediump' or
-     * 'lowp'.
-     *
-     * @type {string}
-     */
-    precision: string;
-    /**
-     * Currently active render target.
-     *
-     * @type {RenderTarget}
-     * @ignore
-     */
-    renderTarget: RenderTarget;
-    /** @type {boolean} */
-    insideRenderPass: boolean;
-    /**
-     * True if hardware instancing is supported.
-     *
-     * @type {boolean}
-     */
-    supportsInstancing: boolean;
-    /**
-     * True if the device supports uniform buffers.
-     *
-     * @type {boolean}
-     * @ignore
-     */
-    supportsUniformBuffers: boolean;
-    /**
-     * True if 32-bit floating-point textures can be used as a frame buffer.
-     *
-     * @type {boolean}
-     */
-    textureFloatRenderable: boolean;
-    /**
-     * True if 16-bit floating-point textures can be used as a frame buffer.
-     *
-     * @type {boolean}
-     */
-    textureHalfFloatRenderable: boolean;
-    _width: number;
-    _height: number;
-    _maxPixelRatio: number;
-    /** @type {Shader[]} */
-    shaders: Shader[];
-    buffers: any[];
-    /** @type {Texture[]} */
-    textures: Texture[];
-    /** @type {RenderTarget[]} */
-    targets: RenderTarget[];
-    _vram: {
-        texShadow: number;
-        texAsset: number;
-        texLightmap: number;
-        tex: number;
-        vb: number;
-        ib: number;
-        ub: number;
-    };
-    _shaderStats: {
-        vsCompiled: number;
-        fsCompiled: number;
-        linked: number;
-        materialShaders: number;
-        compileTime: number;
-    };
-    _drawCallsPerFrame: number;
-    _shaderSwitchesPerFrame: number;
-    _primsPerFrame: number[];
-    _renderTargetCreationTime: number;
-    textureBias: ScopeId;
-    programLib: ProgramLibrary;
-    /**
-     * Fired when the canvas is resized.
-     *
-     * @event GraphicsDevice#resizecanvas
-     * @param {number} width - The new width of the canvas in pixels.
-     * @param {number} height - The new height of the canvas in pixels.
-     */
-    /**
-     * Destroy the graphics device.
-     */
-    destroy(): void;
-    postDestroy(): void;
-    toJSON(key: any): any;
-    initializeContextCaches(): void;
-    indexBuffer: IndexBuffer;
-    vertexBuffers: any[];
-    shader: any;
-    /**
-     * Retrieves the program library assigned to the specified graphics device.
-     *
-     * @returns {ProgramLibrary} The program library assigned to the device.
-     * @ignore
-     */
-    getProgramLibrary(): ProgramLibrary;
-    /**
-     * Assigns a program library to the specified device. By default, a graphics device is created
-     * with a program library that manages all of the programs that are used to render any
-     * graphical primitives. However, this function allows the user to replace the existing program
-     * library with a new one.
-     *
-     * @param {ProgramLibrary} programLib - The program library to assign to the device.
-     * @ignore
-     */
-    setProgramLibrary(programLib: ProgramLibrary): void;
-    /**
-     * Sets the specified render target on the device. If null is passed as a parameter, the back
-     * buffer becomes the current target for all rendering operations.
-     *
-     * @param {RenderTarget} renderTarget - The render target to activate.
-     * @example
-     * // Set a render target to receive all rendering output
-     * device.setRenderTarget(renderTarget);
-     *
-     * // Set the back buffer to receive all rendering output
-     * device.setRenderTarget(null);
-     */
-    setRenderTarget(renderTarget: RenderTarget): void;
-    /**
-     * Sets the current index buffer on the graphics device. On subsequent calls to
-     * {@link GraphicsDevice#draw}, the specified index buffer will be used to provide index data
-     * for any indexed primitives.
-     *
-     * @param {IndexBuffer} indexBuffer - The index buffer to assign to the device.
-     */
-    setIndexBuffer(indexBuffer: IndexBuffer): void;
-    /**
-     * Sets the current vertex buffer on the graphics device. On subsequent calls to
-     * {@link GraphicsDevice#draw}, the specified vertex buffer(s) will be used to provide vertex
-     * data for any primitives.
-     *
-     * @param {VertexBuffer} vertexBuffer - The vertex buffer to assign to the device.
-     */
-    setVertexBuffer(vertexBuffer: VertexBuffer): void;
-    /**
-     * Queries the currently set render target on the device.
-     *
-     * @returns {RenderTarget} The current render target.
-     * @example
-     * // Get the current render target
-     * var renderTarget = device.getRenderTarget();
-     */
-    getRenderTarget(): RenderTarget;
-    /**
-     * Initialize render target before it can be used.
-     *
-     * @param {RenderTarget} target - The render target to be initialized.
-     * @ignore
-     */
-    initRenderTarget(target: RenderTarget): void;
-    /**
-     * Reports whether a texture source is a canvas, image, video or ImageBitmap.
-     *
-     * @param {*} texture - Texture source data.
-     * @returns {boolean} True if the texture is a canvas, image, video or ImageBitmap and false
-     * otherwise.
-     * @ignore
-     */
-    _isBrowserInterface(texture: any): boolean;
-    /**
-     * Sets the width and height of the canvas, then fires the `resizecanvas` event. Note that the
-     * specified width and height values will be multiplied by the value of
-     * {@link GraphicsDevice#maxPixelRatio} to give the final resultant width and height for the
-     * canvas.
-     *
-     * @param {number} width - The new width of the canvas.
-     * @param {number} height - The new height of the canvas.
-     * @ignore
-     */
-    resizeCanvas(width: number, height: number): void;
-    /**
-     * Sets the width and height of the canvas, then fires the `resizecanvas` event. Note that the
-     * value of {@link GraphicsDevice#maxPixelRatio} is ignored.
-     *
-     * @param {number} width - The new width of the canvas.
-     * @param {number} height - The new height of the canvas.
-     * @ignore
-     */
-    setResolution(width: number, height: number): void;
-    updateClientRect(): void;
-    clientRect: DOMRect;
-    /**
-     * Width of the back buffer in pixels.
-     *
-     * @type {number}
-     */
-    get width(): number;
-    /**
-     * Height of the back buffer in pixels.
-     *
-     * @type {number}
-     */
-    get height(): number;
-    /**
-     * Fullscreen mode.
-     *
-     * @type {boolean}
-     */
-    set fullscreen(arg: boolean);
-    get fullscreen(): boolean;
-    /**
-     * Maximum pixel ratio.
-     *
-     * @type {number}
-     */
-    set maxPixelRatio(arg: number);
-    get maxPixelRatio(): number;
-    /**
-     * Queries the maximum number of bones that can be referenced by a shader. The shader
-     * generators (programlib) use this number to specify the matrix array size of the uniform
-     * 'matrix_pose[0]'. The value is calculated based on the number of available uniform vectors
-     * available after subtracting the number taken by a typical heavyweight shader. If a different
-     * number is required, it can be tuned via {@link GraphicsDevice#setBoneLimit}.
-     *
-     * @returns {number} The maximum number of bones that can be supported by the host hardware.
-     * @ignore
-     */
-    getBoneLimit(): number;
-    /**
-     * Specifies the maximum number of bones that the device can support on the current hardware.
-     * This function allows the default calculated value based on available vector uniforms to be
-     * overridden.
-     *
-     * @param {number} maxBones - The maximum number of bones supported by the host hardware.
-     * @ignore
-     */
-    setBoneLimit(maxBones: number): void;
 }
 
 
@@ -6765,6 +5969,809 @@ declare class Texture {
 }
 
 
+/**
+ * A shader is a program that is responsible for rendering graphical primitives on a device's
+ * graphics processor. The shader is generated from a shader definition. This shader definition
+ * specifies the code for processing vertices and fragments processed by the GPU. The language of
+ * the code is GLSL (or more specifically ESSL, the OpenGL ES Shading Language). The shader
+ * definition also describes how the PlayCanvas engine should map vertex buffer elements onto the
+ * attributes specified in the vertex shader code.
+ */
+declare class Shader {
+    /**
+     * Creates a new Shader instance.
+     *
+     * @param {GraphicsDevice} graphicsDevice - The graphics device used to manage this shader.
+     * @param {object} definition - The shader definition from which to build the shader.
+     * @param {string} [definition.name] - The name of the shader.
+     * @param {Object<string, string>} definition.attributes - Object detailing the mapping of
+     * vertex shader attribute names to semantics SEMANTIC_*. This enables the engine to match
+     * vertex buffer data as inputs to the shader.
+     * @param {string} definition.vshader - Vertex shader source (GLSL code).
+     * @param {string} [definition.fshader] - Fragment shader source (GLSL code). Optional when
+     * useTransformFeedback is specified.
+     * @param {boolean} [definition.useTransformFeedback] - Specifies that this shader outputs
+     * post-VS data to a buffer.
+     * @example
+     * // Create a shader that renders primitives with a solid red color
+     * var shaderDefinition = {
+     *     attributes: {
+     *         aPosition: pc.SEMANTIC_POSITION
+     *     },
+     *     vshader: [
+     *         "attribute vec3 aPosition;",
+     *         "",
+     *         "void main(void)",
+     *         "{",
+     *         "    gl_Position = vec4(aPosition, 1.0);",
+     *         "}"
+     *     ].join("\n"),
+     *     fshader: [
+     *         "precision " + graphicsDevice.precision + " float;",
+     *         "",
+     *         "void main(void)",
+     *         "{",
+     *         "    gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);",
+     *         "}"
+     *     ].join("\n")
+     * };
+     *
+     * var shader = new pc.Shader(graphicsDevice, shaderDefinition);
+     */
+    constructor(graphicsDevice: GraphicsDevice, definition: {
+        name?: string;
+        attributes: {
+            [x: string]: string;
+        };
+        vshader: string;
+        fshader?: string;
+        useTransformFeedback?: boolean;
+    });
+    /**
+     * Format of the uniform buffer for mesh bind grounp.
+     *
+     * @type {UniformBufferFormat}
+     */
+    meshUniformBufferFormat: any;
+    /**
+     * Format of the bind group for the mesh bind group.
+     *
+     * @type {BindGroupFormat}
+     */
+    meshBindGroupFormat: any;
+    id: number;
+    device: GraphicsDevice;
+    definition: {
+        name?: string;
+        attributes: {
+            [x: string]: string;
+        };
+        vshader: string;
+        fshader?: string;
+        useTransformFeedback?: boolean;
+    };
+    name: string;
+    impl: any;
+    /**
+     * Initialize a shader back to its default state.
+     *
+     * @private
+     */
+    private init;
+    ready: boolean;
+    failed: boolean;
+    /**
+     * Frees resources associated with this shader.
+     */
+    destroy(): void;
+    /**
+     * Called when the WebGL context was lost. It releases all context related resources.
+     *
+     * @ignore
+     */
+    loseContext(): void;
+    restoreContext(): void;
+}
+
+
+/**
+ * A render target is a rectangular rendering surface.
+ */
+declare class RenderTarget {
+    /**
+     * Creates a new RenderTarget instance. A color buffer or a depth buffer must be set.
+     *
+     * @param {object} options - Object for passing optional arguments.
+     * @param {boolean} [options.autoResolve] - If samples > 1, enables or disables automatic MSAA
+     * resolve after rendering to this RT (see {@link RenderTarget#resolve}). Defaults to true.
+     * @param {Texture} [options.colorBuffer] - The texture that this render target will treat as a
+     * rendering surface.
+     * @param {boolean} [options.depth] - If set to true, depth buffer will be created. Defaults to
+     * true. Ignored if depthBuffer is defined.
+     * @param {Texture} [options.depthBuffer] - The texture that this render target will treat as a
+     * depth/stencil surface (WebGL2 only). If set, the 'depth' and 'stencil' properties are
+     * ignored. Texture must have {@link PIXELFORMAT_DEPTH} or {@link PIXELFORMAT_DEPTHSTENCIL}
+     * format.
+     * @param {number} [options.face] - If the colorBuffer parameter is a cubemap, use this option
+     * to specify the face of the cubemap to render to. Can be:
+     *
+     * - {@link CUBEFACE_POSX}
+     * - {@link CUBEFACE_NEGX}
+     * - {@link CUBEFACE_POSY}
+     * - {@link CUBEFACE_NEGY}
+     * - {@link CUBEFACE_POSZ}
+     * - {@link CUBEFACE_NEGZ}
+     *
+     * Defaults to {@link CUBEFACE_POSX}.
+     * @param {boolean} [options.flipY] - When set to true the image will be flipped in Y. Default
+     * is false.
+     * @param {string} [options.name] - The name of the render target.
+     * @param {number} [options.samples] - Number of hardware anti-aliasing samples (WebGL2 only).
+     * Default is 1.
+     * @param {boolean} [options.stencil] - If set to true, depth buffer will include stencil.
+     * Defaults to false. Ignored if depthBuffer is defined or depth is false.
+     * @example
+     * // Create a 512x512x24-bit render target with a depth buffer
+     * var colorBuffer = new pc.Texture(graphicsDevice, {
+     *     width: 512,
+     *     height: 512,
+     *     format: pc.PIXELFORMAT_R8_G8_B8
+     * });
+     * var renderTarget = new pc.RenderTarget({
+     *     colorBuffer: colorBuffer,
+     *     depth: true
+     * });
+     *
+     * // Set the render target on a camera component
+     * camera.renderTarget = renderTarget;
+     *
+     * // Destroy render target at a later stage. Note that the color buffer needs
+     * // to be destroyed separately.
+     * renderTarget.colorBuffer.destroy();
+     * renderTarget.destroy();
+     * camera.renderTarget = null;
+     */
+    constructor(options: {
+        autoResolve?: boolean;
+        colorBuffer?: Texture;
+        depth?: boolean;
+        depthBuffer?: Texture;
+        face?: number;
+        flipY?: boolean;
+        name?: string;
+        samples?: number;
+        stencil?: boolean;
+    }, ...args: any[]);
+    id: number;
+    _colorBuffer: any;
+    _depthBuffer: Texture;
+    _face: number;
+    _depth: boolean;
+    _stencil: boolean;
+    _device: any;
+    _samples: number;
+    autoResolve: boolean;
+    name: any;
+    flipY: boolean;
+    impl: any;
+    /**
+     * Frees resources associated with this render target.
+     */
+    destroy(): void;
+    /**
+     * Free device resources associated with this render target.
+     *
+     * @ignore
+     */
+    destroyFrameBuffers(): void;
+    /**
+     * Free textures associated with this render target.
+     *
+     * @ignore
+     */
+    destroyTextureBuffers(): void;
+    /**
+     * Initialises the resources associated with this render target.
+     *
+     * @ignore
+     */
+    init(): void;
+    get initialized(): any;
+    /**
+     * Called when the device context was lost. It releases all context related resources.
+     *
+     * @ignore
+     */
+    loseContext(): void;
+    /**
+     * If samples > 1, resolves the anti-aliased render target (WebGL2 only). When you're rendering
+     * to an anti-aliased render target, pixels aren't written directly to the readable texture.
+     * Instead, they're first written to a MSAA buffer, where each sample for each pixel is stored
+     * independently. In order to read the results, you first need to 'resolve' the buffer - to
+     * average all samples and create a simple texture with one color per pixel. This function
+     * performs this averaging and updates the colorBuffer and the depthBuffer. If autoResolve is
+     * set to true, the resolve will happen after every rendering to this render target, otherwise
+     * you can do it manually, during the app update or inside a {@link Command}.
+     *
+     * @param {boolean} [color] - Resolve color buffer. Defaults to true.
+     * @param {boolean} [depth] - Resolve depth buffer. Defaults to true if the render target has a
+     * depth buffer.
+     */
+    resolve(color?: boolean, depth?: boolean): void;
+    /**
+     * Copies color and/or depth contents of source render target to this one. Formats, sizes and
+     * anti-aliasing samples must match. Depth buffer can only be copied on WebGL 2.0.
+     *
+     * @param {RenderTarget} source - Source render target to copy from.
+     * @param {boolean} [color] - If true will copy the color buffer. Defaults to false.
+     * @param {boolean} [depth] - If true will copy the depth buffer. Defaults to false.
+     * @returns {boolean} True if the copy was successful, false otherwise.
+     */
+    copy(source: RenderTarget, color?: boolean, depth?: boolean): boolean;
+    /**
+     * Number of antialiasing samples the render target uses.
+     *
+     * @type {number}
+     */
+    get samples(): number;
+    /**
+     * True if the render target contains the depth attachment.
+     *
+     * @type {boolean}
+     */
+    get depth(): boolean;
+    /**
+     * True if the render target contains the stencil attachment.
+     *
+     * @type {boolean}
+     */
+    get stencil(): boolean;
+    /**
+     * Color buffer set up on the render target.
+     *
+     * @type {Texture}
+     */
+    get colorBuffer(): Texture;
+    /**
+     * Depth buffer set up on the render target. Only available, if depthBuffer was set in
+     * constructor. Not available if depth property was used instead.
+     *
+     * @type {Texture}
+     */
+    get depthBuffer(): Texture;
+    /**
+     * If the render target is bound to a cubemap, this property specifies which face of the
+     * cubemap is rendered to. Can be:
+     *
+     * - {@link CUBEFACE_POSX}
+     * - {@link CUBEFACE_NEGX}
+     * - {@link CUBEFACE_POSY}
+     * - {@link CUBEFACE_NEGY}
+     * - {@link CUBEFACE_POSZ}
+     * - {@link CUBEFACE_NEGZ}
+     *
+     * @type {number}
+     */
+    get face(): number;
+    /**
+     * Width of the render target in pixels.
+     *
+     * @type {number}
+     */
+    get width(): number;
+    /**
+     * Height of the render target in pixels.
+     *
+     * @type {number}
+     */
+    get height(): number;
+}
+
+/**
+ * Callback used by {@link EventHandler } functions. Note the callback is limited to 8 arguments.
+ */
+export type HandleEventCallback = (arg1?: any, arg2?: any, arg3?: any, arg4?: any, arg5?: any, arg6?: any, arg7?: any, arg8?: any) => any;
+/**
+ * Callback used by {@link EventHandler} functions. Note the callback is limited to 8 arguments.
+ *
+ * @callback HandleEventCallback
+ * @param {*} [arg1] - First argument that is passed from caller.
+ * @param {*} [arg2] - Second argument that is passed from caller.
+ * @param {*} [arg3] - Third argument that is passed from caller.
+ * @param {*} [arg4] - Fourth argument that is passed from caller.
+ * @param {*} [arg5] - Fifth argument that is passed from caller.
+ * @param {*} [arg6] - Sixth argument that is passed from caller.
+ * @param {*} [arg7] - Seventh argument that is passed from caller.
+ * @param {*} [arg8] - Eighth argument that is passed from caller.
+ */
+/**
+ * Abstract base class that implements functionality for event handling.
+ */
+declare class EventHandler {
+    /**
+     * @type {object}
+     * @private
+     */
+    private _callbacks;
+    /**
+     * @type {object}
+     * @private
+     */
+    private _callbackActive;
+    /**
+     * Reinitialize the event handler.
+     *
+     * @private
+     */
+    private initEventHandler;
+    /**
+     * Registers a new event handler.
+     *
+     * @param {string} name - Name of the event to bind the callback to.
+     * @param {HandleEventCallback} callback - Function that is called when event is fired. Note
+     * the callback is limited to 8 arguments.
+     * @param {object} [scope] - Object to use as 'this' when the event is fired, defaults to
+     * current this.
+     * @param {boolean} [once=false] - If true, the callback will be unbound after being fired once.
+     * @private
+     */
+    private _addCallback;
+    /**
+     * Attach an event handler to an event.
+     *
+     * @param {string} name - Name of the event to bind the callback to.
+     * @param {HandleEventCallback} callback - Function that is called when event is fired. Note
+     * the callback is limited to 8 arguments.
+     * @param {object} [scope] - Object to use as 'this' when the event is fired, defaults to
+     * current this.
+     * @returns {EventHandler} Self for chaining.
+     * @example
+     * obj.on('test', function (a, b) {
+     *     console.log(a + b);
+     * });
+     * obj.fire('test', 1, 2); // prints 3 to the console
+     */
+    on(name: string, callback: HandleEventCallback, scope?: object): EventHandler;
+    /**
+     * Detach an event handler from an event. If callback is not provided then all callbacks are
+     * unbound from the event, if scope is not provided then all events with the callback will be
+     * unbound.
+     *
+     * @param {string} [name] - Name of the event to unbind.
+     * @param {HandleEventCallback} [callback] - Function to be unbound.
+     * @param {object} [scope] - Scope that was used as the this when the event is fired.
+     * @returns {EventHandler} Self for chaining.
+     * @example
+     * var handler = function () {
+     * };
+     * obj.on('test', handler);
+     *
+     * obj.off(); // Removes all events
+     * obj.off('test'); // Removes all events called 'test'
+     * obj.off('test', handler); // Removes all handler functions, called 'test'
+     * obj.off('test', handler, this); // Removes all handler functions, called 'test' with scope this
+     */
+    off(name?: string, callback?: HandleEventCallback, scope?: object): EventHandler;
+    /**
+     * Fire an event, all additional arguments are passed on to the event listener.
+     *
+     * @param {string} name - Name of event to fire.
+     * @param {*} [arg1] - First argument that is passed to the event handler.
+     * @param {*} [arg2] - Second argument that is passed to the event handler.
+     * @param {*} [arg3] - Third argument that is passed to the event handler.
+     * @param {*} [arg4] - Fourth argument that is passed to the event handler.
+     * @param {*} [arg5] - Fifth argument that is passed to the event handler.
+     * @param {*} [arg6] - Sixth argument that is passed to the event handler.
+     * @param {*} [arg7] - Seventh argument that is passed to the event handler.
+     * @param {*} [arg8] - Eighth argument that is passed to the event handler.
+     * @returns {EventHandler} Self for chaining.
+     * @example
+     * obj.fire('test', 'This is the message');
+     */
+    fire(name: string, arg1?: any, arg2?: any, arg3?: any, arg4?: any, arg5?: any, arg6?: any, arg7?: any, arg8?: any): EventHandler;
+    /**
+     * Attach an event handler to an event. This handler will be removed after being fired once.
+     *
+     * @param {string} name - Name of the event to bind the callback to.
+     * @param {HandleEventCallback} callback - Function that is called when event is fired. Note
+     * the callback is limited to 8 arguments.
+     * @param {object} [scope] - Object to use as 'this' when the event is fired, defaults to
+     * current this.
+     * @returns {EventHandler} Self for chaining.
+     * @example
+     * obj.once('test', function (a, b) {
+     *     console.log(a + b);
+     * });
+     * obj.fire('test', 1, 2); // prints 3 to the console
+     * obj.fire('test', 1, 2); // not going to get handled
+     */
+    once(name: string, callback: HandleEventCallback, scope?: object): EventHandler;
+    /**
+     * Test if there are any handlers bound to an event name.
+     *
+     * @param {string} name - The name of the event to test.
+     * @returns {boolean} True if the object has handlers bound to the specified event name.
+     * @example
+     * obj.on('test', function () { }); // bind an event to 'test'
+     * obj.hasEvent('test'); // returns true
+     * obj.hasEvent('hello'); // returns false
+     */
+    hasEvent(name: string): boolean;
+}
+
+/**
+ * The scope for variables.
+ */
+declare class ScopeSpace {
+    /**
+     * Create a new ScopeSpace instance.
+     *
+     * @param {string} name - The scope name.
+     */
+    constructor(name: string);
+    /**
+     * The scope name.
+     *
+     * @type {string}
+     */
+    name: string;
+    variables: Map<any, any>;
+    /**
+     * Get (or create, if it doesn't already exist) a variable in the scope.
+     *
+     * @param {string} name - The variable name.
+     * @returns {ScopeId} The variable instance.
+     */
+    resolve(name: string): ScopeId;
+    /**
+     * Clears value for any uniform with matching value (used to remove deleted textures).
+     *
+     * @param {*} value - The value to clear.
+     * @ignore
+     */
+    removeValue(value: any): void;
+}
+
+
+
+
+
+
+/** @typedef {import('./render-target.js').RenderTarget} RenderTarget */
+/** @typedef {import('./shader.js').Shader} Shader */
+/** @typedef {import('./texture.js').Texture} Texture */
+/** @typedef {import('./index-buffer.js').IndexBuffer} IndexBuffer */
+/** @typedef {import('./vertex-buffer.js').VertexBuffer} VertexBuffer */
+/**
+ * The graphics device manages the underlying graphics context. It is responsible for submitting
+ * render state changes and graphics primitives to the hardware. A graphics device is tied to a
+ * specific canvas HTML element. It is valid to have more than one canvas element per page and
+ * create a new graphics device against each.
+ *
+ * @augments EventHandler
+ */
+declare class GraphicsDevice extends EventHandler {
+    constructor(canvas: any);
+    /**
+     * The canvas DOM element that provides the underlying WebGL context used by the graphics device.
+     *
+     * @type {HTMLCanvasElement}
+     */
+    canvas: HTMLCanvasElement;
+    /**
+     * The graphics device type, DEVICETYPE_WEBGL or DEVICETYPE_WEBGPU.
+     *
+     * @type {string}
+     * @ignore
+     */
+    deviceType: string;
+    /**
+     * The scope namespace for shader attributes and variables.
+     *
+     * @type {ScopeSpace}
+     */
+    scope: ScopeSpace;
+    /**
+     * The maximum number of supported bones using uniform buffers.
+     *
+     * @type {number}
+     */
+    boneLimit: number;
+    /**
+     * The maximum supported texture anisotropy setting.
+     *
+     * @type {number}
+     */
+    maxAnisotropy: number;
+    /**
+     * The maximum supported dimension of a cube map.
+     *
+     * @type {number}
+     */
+    maxCubeMapSize: number;
+    /**
+     * The maximum supported dimension of a texture.
+     *
+     * @type {number}
+     */
+    maxTextureSize: number;
+    /**
+     * The maximum supported dimension of a 3D texture (any axis).
+     *
+     * @type {number}
+     */
+    maxVolumeSize: number;
+    /**
+     * The highest shader precision supported by this graphics device. Can be 'hiphp', 'mediump' or
+     * 'lowp'.
+     *
+     * @type {string}
+     */
+    precision: string;
+    /**
+     * Currently active render target.
+     *
+     * @type {RenderTarget}
+     * @ignore
+     */
+    renderTarget: RenderTarget;
+    /** @type {boolean} */
+    insideRenderPass: boolean;
+    /**
+     * True if hardware instancing is supported.
+     *
+     * @type {boolean}
+     */
+    supportsInstancing: boolean;
+    /**
+     * True if the device supports uniform buffers.
+     *
+     * @type {boolean}
+     * @ignore
+     */
+    supportsUniformBuffers: boolean;
+    /**
+     * True if 32-bit floating-point textures can be used as a frame buffer.
+     *
+     * @type {boolean}
+     */
+    textureFloatRenderable: boolean;
+    /**
+     * True if 16-bit floating-point textures can be used as a frame buffer.
+     *
+     * @type {boolean}
+     */
+    textureHalfFloatRenderable: boolean;
+    _width: number;
+    _height: number;
+    _maxPixelRatio: number;
+    /** @type {Shader[]} */
+    shaders: Shader[];
+    buffers: any[];
+    /** @type {Texture[]} */
+    textures: Texture[];
+    /** @type {RenderTarget[]} */
+    targets: RenderTarget[];
+    _vram: {
+        texShadow: number;
+        texAsset: number;
+        texLightmap: number;
+        tex: number;
+        vb: number;
+        ib: number;
+        ub: number;
+    };
+    _shaderStats: {
+        vsCompiled: number;
+        fsCompiled: number;
+        linked: number;
+        materialShaders: number;
+        compileTime: number;
+    };
+    _drawCallsPerFrame: number;
+    _shaderSwitchesPerFrame: number;
+    _primsPerFrame: number[];
+    _renderTargetCreationTime: number;
+    textureBias: ScopeId;
+    /**
+     * Fired when the canvas is resized.
+     *
+     * @event GraphicsDevice#resizecanvas
+     * @param {number} width - The new width of the canvas in pixels.
+     * @param {number} height - The new height of the canvas in pixels.
+     */
+    /**
+     * Destroy the graphics device.
+     */
+    destroy(): void;
+    onDestroyShader(shader: any): void;
+    postDestroy(): void;
+    toJSON(key: any): any;
+    initializeContextCaches(): void;
+    indexBuffer: IndexBuffer;
+    vertexBuffers: any[];
+    shader: any;
+    /**
+     * Sets the specified render target on the device. If null is passed as a parameter, the back
+     * buffer becomes the current target for all rendering operations.
+     *
+     * @param {RenderTarget} renderTarget - The render target to activate.
+     * @example
+     * // Set a render target to receive all rendering output
+     * device.setRenderTarget(renderTarget);
+     *
+     * // Set the back buffer to receive all rendering output
+     * device.setRenderTarget(null);
+     */
+    setRenderTarget(renderTarget: RenderTarget): void;
+    /**
+     * Sets the current index buffer on the graphics device. On subsequent calls to
+     * {@link GraphicsDevice#draw}, the specified index buffer will be used to provide index data
+     * for any indexed primitives.
+     *
+     * @param {IndexBuffer} indexBuffer - The index buffer to assign to the device.
+     */
+    setIndexBuffer(indexBuffer: IndexBuffer): void;
+    /**
+     * Sets the current vertex buffer on the graphics device. On subsequent calls to
+     * {@link GraphicsDevice#draw}, the specified vertex buffer(s) will be used to provide vertex
+     * data for any primitives.
+     *
+     * @param {VertexBuffer} vertexBuffer - The vertex buffer to assign to the device.
+     */
+    setVertexBuffer(vertexBuffer: VertexBuffer): void;
+    /**
+     * Queries the currently set render target on the device.
+     *
+     * @returns {RenderTarget} The current render target.
+     * @example
+     * // Get the current render target
+     * var renderTarget = device.getRenderTarget();
+     */
+    getRenderTarget(): RenderTarget;
+    /**
+     * Initialize render target before it can be used.
+     *
+     * @param {RenderTarget} target - The render target to be initialized.
+     * @ignore
+     */
+    initRenderTarget(target: RenderTarget): void;
+    /**
+     * Reports whether a texture source is a canvas, image, video or ImageBitmap.
+     *
+     * @param {*} texture - Texture source data.
+     * @returns {boolean} True if the texture is a canvas, image, video or ImageBitmap and false
+     * otherwise.
+     * @ignore
+     */
+    _isBrowserInterface(texture: any): boolean;
+    _isImageBrowserInterface(texture: any): boolean;
+    /**
+     * Sets the width and height of the canvas, then fires the `resizecanvas` event. Note that the
+     * specified width and height values will be multiplied by the value of
+     * {@link GraphicsDevice#maxPixelRatio} to give the final resultant width and height for the
+     * canvas.
+     *
+     * @param {number} width - The new width of the canvas.
+     * @param {number} height - The new height of the canvas.
+     * @ignore
+     */
+    resizeCanvas(width: number, height: number): void;
+    /**
+     * Sets the width and height of the canvas, then fires the `resizecanvas` event. Note that the
+     * value of {@link GraphicsDevice#maxPixelRatio} is ignored.
+     *
+     * @param {number} width - The new width of the canvas.
+     * @param {number} height - The new height of the canvas.
+     * @ignore
+     */
+    setResolution(width: number, height: number): void;
+    updateClientRect(): void;
+    clientRect: DOMRect;
+    /**
+     * Width of the back buffer in pixels.
+     *
+     * @type {number}
+     */
+    get width(): number;
+    /**
+     * Height of the back buffer in pixels.
+     *
+     * @type {number}
+     */
+    get height(): number;
+    /**
+     * Fullscreen mode.
+     *
+     * @type {boolean}
+     */
+    set fullscreen(arg: boolean);
+    get fullscreen(): boolean;
+    /**
+     * Maximum pixel ratio.
+     *
+     * @type {number}
+     */
+    set maxPixelRatio(arg: number);
+    get maxPixelRatio(): number;
+    /**
+     * Queries the maximum number of bones that can be referenced by a shader. The shader
+     * generators (programlib) use this number to specify the matrix array size of the uniform
+     * 'matrix_pose[0]'. The value is calculated based on the number of available uniform vectors
+     * available after subtracting the number taken by a typical heavyweight shader. If a different
+     * number is required, it can be tuned via {@link GraphicsDevice#setBoneLimit}.
+     *
+     * @returns {number} The maximum number of bones that can be supported by the host hardware.
+     * @ignore
+     */
+    getBoneLimit(): number;
+    /**
+     * Specifies the maximum number of bones that the device can support on the current hardware.
+     * This function allows the default calculated value based on available vector uniforms to be
+     * overridden.
+     *
+     * @param {number} maxBones - The maximum number of bones supported by the host hardware.
+     * @ignore
+     */
+    setBoneLimit(maxBones: number): void;
+}
+
+
+/**
+ * A class providing utility functions for shader creation.
+ *
+ * @ignore
+ */
+declare class ShaderUtils {
+    /**
+     * Creates a shader definition.
+     *
+     * @param {GraphicsDevice} device - The graphics device.
+     * @param {object} options - Object for passing optional arguments.
+     * @param {string} [options.name] - A name of the shader.
+     * @param {object} [options.attributes] - Attributes. Will be extracted from the vertexCode if
+     * not provided.
+     * @param {string} options.vertexCode - The vertex shader code.
+     * @param {string} [options.vertexDefines] - The vertex shader defines.
+     * @param {string} [options.vertexExtensions] - The vertex shader extensions code.
+     * @param {string} [options.fragmentCode] - The fragment shader code.
+     * @param {string} [options.fragmentDefines] - The fragment shader defines.
+     * @param {string} [options.fragmentExtensions] - The fragment shader extensions code.
+     * @param {string} [options.fragmentPreamble] - The preamble string for the fragment shader.
+     * @param {boolean} [options.useTransformFeedback] - Whether to use transform feedback. Defaults
+     * to false.
+     * @returns {object} Returns the created shader definition.
+     */
+    static createDefinition(device: GraphicsDevice, options: {
+        name?: string;
+        attributes?: object;
+        vertexCode: string;
+        vertexDefines?: string;
+        vertexExtensions?: string;
+        fragmentCode?: string;
+        fragmentDefines?: string;
+        fragmentExtensions?: string;
+        fragmentPreamble?: string;
+        useTransformFeedback?: boolean;
+    }): object;
+    static getShaderNameCode(name: any): string;
+    static gl1Extensions(device: any, options: any, isVertex: any): string;
+    static dummyFragmentCode(): string;
+    static versionCode(device: any): "" | "#version 450\n" | "#version 300 es\n";
+    static precisionCode(device: any, forcePrecision: any): string;
+    /**
+     * Extract the attributes specified in a vertex shader.
+     *
+     * @param {string} vsCode - The vertex shader code.
+     * @returns {Object<string, string>} The attribute name to semantic map.
+     * @ignore
+     */
+    static collectAttributes(vsCode: string): {
+        [x: string]: string;
+    };
+}
+
+
 
 
 
@@ -6808,6 +6815,57 @@ declare function drawTexture(device: GraphicsDevice, texture: Texture, target?: 
  * @description Object containing all default shader chunks used by shader generators.
  */
 declare const shaderChunks: object;
+
+/**
+ * A class responsible for creation and caching of required shaders.
+ * There is a two level cache. The first level generates the shader based on the provided options.
+ * The second level processes this generated shader using processing options - in most cases
+ * modifies it to support uniform buffers.
+ *
+ * @ignore
+ */
+declare class ProgramLibrary {
+    constructor(device: any, standardMaterial: any);
+    /**
+     * A cache of shaders processed using processing options.
+     *
+     * @type {Map<string, Shader>}
+     */
+    processedCache: Map<string, Shader>;
+    /**
+     * A cache of shader definitions before processing.
+     *
+     * @type {Map<string, object>}
+     */
+    definitionsCache: Map<string, object>;
+    _device: any;
+    _generators: {};
+    _isClearingCache: boolean;
+    _precached: boolean;
+    _programsCollection: any[];
+    _defaultStdMatOption: {};
+    _defaultStdMatOptionMin: {};
+    destroy(): void;
+    register(name: any, generator: any): void;
+    unregister(name: any): void;
+    isRegistered(name: any): boolean;
+    generateShaderDefinition(generator: any, name: any, key: any, options: any): any;
+    getCachedShader(key: any): Shader;
+    setCachedShader(key: any, shader: any): void;
+    getProgram(name: any, options: any, processingOptions: any): Shader;
+    storeNewProgram(name: any, options: any): void;
+    dumpPrograms(): void;
+    clearCache(): void;
+    /**
+     * Remove shader from the cache. This function does not destroy it, that is the responsibility
+     * of the caller.
+     *
+     * @param {Shader} shader - The shader to be removed.
+     */
+    removeFromCache(shader: Shader): void;
+    _getDefaultStdMatOptions(pass: any): {};
+    precompile(cache: any): void;
+}
 
 
 /** @typedef {import('./graphics-device.js').GraphicsDevice} GraphicsDevice */
@@ -7186,59 +7244,15 @@ declare class Listener {
  */
 declare class SoundManager extends EventHandler {
     /**
-     * Create a new SoundManager instance.
-     *
-     * @param {object} [options] - Options options object.
-     * @param {boolean} [options.forceWebAudioApi] - Always use the Web Audio API, even if check
-     * indicates that it is not available.
-     */
-    constructor(options?: {
-        forceWebAudioApi?: boolean;
-    });
-    /**
      * The underlying AudioContext, lazy loaded in the 'context' property.
      *
      * @type {AudioContext}
      * @private
      */
     private _context;
-    /**
-     * @type {boolean}
-     * @private
-     */
-    private _forceWebAudioApi;
-    /**
-     * The function callback attached to the Window events USER_INPUT_EVENTS
-     *
-     * @type {EventListenerOrEventListenerObject}
-     * @private
-     */
-    private _resumeContextCallback;
-    /**
-     * Set to to true when suspend() was called explitly (either manually or on visibility change),
-     * and reset to false after resume() is called.
-     * This value is not directly bound to AudioContext.state.
-     *
-     * @type {boolean}
-     * @private
-     */
-    private _selfSuspended;
-    /**
-     * If true, the AudioContext is in a special 'suspended' state where it needs to be resumed
-     * from a User event. In addition, some devices and browsers require that a blank sound be played.
-     *
-     * @type {boolean}
-     * @private
-     */
-    private _unlocked;
-    /**
-     * Set after the unlock flow is triggered, but hasn't completed yet.
-     * Used to avoid starting multiple 'unlock' flows at the same time.
-     *
-     * @type {boolean}
-     * @private
-     */
-    private _unlocking;
+    AudioContext: any;
+    _unlockHandlerFunc: any;
+    _userSuspended: boolean;
     listener: Listener;
     _volume: number;
     /**
@@ -7283,20 +7297,11 @@ declare class SoundManager extends EventHandler {
      * @private
      */
     private playSound3d;
-    /**
-     * Add the necessary Window EventListeners to comply with auto-play policies,
-     * and correctly unlock and resume the AudioContext.
-     * For more info, https://developers.google.com/web/updates/2018/11/web-audio-autoplay.
-     *
-     * @private
-     */
-    private _addContextUnlockListeners;
-    /**
-     * Remove all USER_INPUT_EVENTS unlock event listeners, if they're still attached.
-     *
-     * @private
-     */
-    private _removeUserInputListeners;
+    _resume(): void;
+    _suspend(): void;
+    _unlockHandler(): void;
+    _registerUnlockListeners(): void;
+    _removeUnlockListeners(): void;
 }
 
 
@@ -7483,7 +7488,7 @@ export type FilterAssetCallback = (asset: Asset) => boolean;
  * error occurs).
  */
 export type LoadAssetCallback = (err: string | null, asset?: Asset) => any;
-/** @typedef {import('../resources/loader.js').ResourceLoader} ResourceLoader */
+/** @typedef {import('../../framework/handlers/loader.js').ResourceLoader} ResourceLoader */
 /**
  * Callback used by {@link AssetRegistry#filter} to filter assets.
  *
@@ -7811,8 +7816,8 @@ declare class AssetRegistry extends EventHandler {
  * Callback used by {@link ResourceHandlerload } when a resource is loaded (or an error occurs).
  */
 export type ResourceHandlerCallback = (err: string | null, response?: any) => any;
-/** @typedef {import('../asset/asset.js').Asset} Asset */
-/** @typedef {import('../asset/asset-registry.js').AssetRegistry} AssetRegistry */
+/** @typedef {import('../../framework/asset/asset.js').Asset} Asset */
+/** @typedef {import('../../framework/asset/asset-registry.js').AssetRegistry} AssetRegistry */
 /**
  * Callback used by {@link ResourceHandler#load} when a resource is loaded (or an error occurs).
  *
@@ -10033,8 +10038,8 @@ declare class GraphNode extends EventHandler {
 
 
 
-/** @typedef {import('../graphics/graphics-device.js').GraphicsDevice} GraphicsDevice */
-/** @typedef {import('../math/mat4.js').Mat4} Mat4 */
+/** @typedef {import('../platform/graphics/graphics-device.js').GraphicsDevice} GraphicsDevice */
+/** @typedef {import('../core/math/mat4.js').Mat4} Mat4 */
 /**
  * A skin contains data about the bones in a hierarchy that drive a skinned mesh animation.
  * Specifically, the skin stores the bone name and inverse bind matrix and for each bone. Inverse
@@ -10131,6 +10136,8 @@ declare class MorphTarget {
     }, ...args: any[]);
     /**
      * A used flag. A morph target can be used / owned by the Morph class only one time.
+     *
+     * @type {boolean}
      */
     used: boolean;
     options: {
@@ -10348,6 +10355,15 @@ declare class MorphInstance {
  * @ignore
  */
 declare class Light {
+    /**
+     * Get conversion factor for luminance -> light specific light unit.
+     *
+     * @param {number} type - The type of light.
+     * @param {number} [outerAngle] - The outer angle of a spot light.
+     * @param {number} [innerAngle] - The inner angle of a spot light.
+     * @returns {number} The scaling factor to multiply with the luminance value.
+     */
+    static getLightUnitConversion(type: number, outerAngle?: number, innerAngle?: number): number;
     constructor(graphicsDevice: any);
     device: any;
     id: number;
@@ -10394,7 +10410,6 @@ declare class Light {
     _position: Vec3;
     _direction: Vec3;
     _innerConeAngleCos: number;
-    _outerConeAngleCos: number;
     _usePhysicalUnits: any;
     _shadowMap: any;
     _shadowRenderParams: any[];
@@ -10445,6 +10460,9 @@ declare class Light {
     get innerConeAngle(): number;
     set outerConeAngle(arg: number);
     get outerConeAngle(): number;
+    _updateOuterAngle(angle: any): void;
+    _outerConeAngleCos: number;
+    _outerConeAngleSin: number;
     set intensity(arg: number);
     get intensity(): number;
     set luminance(arg: number);
@@ -10487,6 +10505,7 @@ declare class Light {
 declare class LightComponentData {
 }
 
+/** @typedef {import('../../app-base.js').AppBase} AppBase */
 /**
  * A Light Component is used to dynamically light the scene.
  *
@@ -11488,8 +11507,8 @@ declare class BindGroup {
 
 
 
-/** @typedef {import('../../graphics/bind-group.js').BindGroup} BindGroup */
-/** @typedef {import('../../graphics/render-target.js').RenderTarget} RenderTarget */
+/** @typedef {import('../../platform/graphics/bind-group.js').BindGroup} BindGroup */
+/** @typedef {import('../../platform/graphics/render-target.js').RenderTarget} RenderTarget */
 /** @typedef {import('./layer-composition.js').LayerComposition} LayerComposition */
 /**
  * Class representing an entry in the final order of rendering of cameras and layers in the engine
@@ -11843,6 +11862,9 @@ declare class LayerComposition extends EventHandler {
 
 
 
+/** @typedef {import('../platform/graphics/texture.js').Texture} Texture */
+/** @typedef {import('../platform/graphics/graphics-device.js').GraphicsDevice} GraphicsDevice */
+/** @typedef {import('./scene.js').Scene} Scene */
 /**
  * A visual representation of the sky.
  *
@@ -11861,8 +11883,6 @@ declare class Sky {
      * @type {MeshInstance}
      */
     meshInstance: MeshInstance;
-    /** @type {Mat3} */
-    _rotationMat3: Mat3;
     skyLayer: Layer;
     destroy(): void;
 }
@@ -12342,7 +12362,7 @@ declare class GeometryData {
 }
 
 
-/** @typedef {import('../../graphics/texture.js').Texture} Texture */
+/** @typedef {import('../../platform/graphics/texture.js').Texture} Texture */
 /**
  * A BasicMaterial is for rendering unlit geometry, either using a constant color or a color map
  * modulated with a color.
@@ -12408,8 +12428,8 @@ declare class Immediate {
 
 
 /** @typedef {import('../framework/entity.js').Entity} Entity */
-/** @typedef {import('../graphics/graphics-device.js').GraphicsDevice} GraphicsDevice */
-/** @typedef {import('../graphics/texture.js').Texture} Texture */
+/** @typedef {import('../platform/graphics/graphics-device.js').GraphicsDevice} GraphicsDevice */
+/** @typedef {import('../platform/graphics/texture.js').Texture} Texture */
 /** @typedef {import('./composition/layer-composition.js').LayerComposition} LayerComposition */
 /** @typedef {import('./layer.js').Layer} Layer */
 /**
@@ -12583,8 +12603,8 @@ declare class Scene extends EventHandler {
     _skyboxLuminance: number;
     _skyboxMip: number;
     _skyboxRotation: Quat;
-    _skyboxRotationMat3: any;
-    _skyboxRotationMat4: any;
+    _skyboxRotationMat3: Mat3;
+    _skyboxRotationMat4: Mat4;
     _ambientBakeNumSamples: number;
     _ambientBakeSpherePart: number;
     _lightmapFilterRange: number;
@@ -13316,7 +13336,7 @@ declare class Material {
     clone(): this;
     _updateMeshInstanceKeys(): void;
     updateUniforms(device: any, scene: any): void;
-    getShaderVariant(device: any, scene: any, objDefs: any, staticLightList: any, pass: any, sortedLights: any, viewUniformFormat: any, viewBindGroupFormat: any): any;
+    getShaderVariant(device: any, scene: any, objDefs: any, staticLightList: any, pass: any, sortedLights: any, viewUniformFormat: any, viewBindGroupFormat: any): Shader;
     /**
      * Applies any changes made to the material's properties.
      */
@@ -13441,9 +13461,9 @@ declare class Model {
 
 
 
-/** @typedef {import('../math/vec2.js').Vec2} Vec2 */
-/** @typedef {import('../math/vec4.js').Vec4} Vec4 */
-/** @typedef {import('../graphics/texture.js').Texture} Texture */
+/** @typedef {import('../core/math/vec2.js').Vec2} Vec2 */
+/** @typedef {import('../core/math/vec4.js').Vec4} Vec4 */
+/** @typedef {import('../platform/graphics/texture.js').Texture} Texture */
 /**
  * A TextureAtlas contains a number of frames from a texture. Each frame defines a region in a
  * texture. The TextureAtlas is referenced by {@link Sprite}s.
@@ -14807,7 +14827,7 @@ declare class SoundSlot extends EventHandler {
 
 
 /** @typedef {import('../../entity.js').Entity} Entity */
-/** @typedef {import('../../../sound/instance.js').SoundInstance} SoundInstance */
+/** @typedef {import('../../../platform/sound/instance.js').SoundInstance} SoundInstance */
 /** @typedef {import('./system.js').SoundComponentSystem} SoundComponentSystem */
 /**
  * The Sound Component controls playback of {@link Sound}s.
@@ -15363,7 +15383,7 @@ declare class XrHitTestSource extends EventHandler {
  */
 export type XrHitTestStartCallback = (err: Error | null, hitTestSource: XrHitTestSource | null) => any;
 /** @typedef {import('./xr-manager.js').XrManager} XrManager */
-/** @typedef {import('../shape/ray.js').Ray} Ray */
+/** @typedef {import('../../core/shape/ray.js').Ray} Ray */
 /**
  * Callback used by {@link XrHitTest#start} and {@link XrHitTest#startForInputSource}.
  *
@@ -16460,12 +16480,43 @@ export type UpdateShaderCallback = (options: any) => any;
  * @property {number} clearCoatBumpiness The bumpiness of the clear coat layer. This value scales
  * the assigned main clear coat normal map. It should be normally between 0 (no bump mapping) and 1
  * (full bump mapping), but can be set to e.g. 2 to give even more pronounced bump effect.
+ * @property {boolean} useIridescence Enable thin-film iridescence.
+ * @property {Texture|null} iridescenceMap The per-pixel iridescence intensity. Only used when
+ * useIridescence is enabled.
+ * @property {number} iridescenceMapUv Iridescence map UV channel.
+ * @property {Vec2} iridescenceMapTiling Controls the 2D tiling of the iridescence map.
+ * @property {Vec2} iridescenceMapOffset Controls the 2D offset of the iridescence map. Each component is
+ * between 0 and 1.
+ * @property {number} iridescenceMapRotation Controls the 2D rotation (in degrees) of the iridescence
+ * map.
+ * @property {string} iridescenceMapChannel Color channels of the iridescence map to use. Can be "r",
+ * "g", "b" or "a".
+ * @property {Texture|null} iridescenceThicknessMap The per-pixel iridescence thickness. Defines a
+ * gradient weight between iridescenceThicknessMin and iridescenceThicknessMax. Only used when
+ * useIridescence is enabled.
+ * @property {number} iridescenceThicknessMapUv Iridescence thickness map UV channel.
+ * @property {Vec2} iridescenceThicknessMapTiling Controls the 2D tiling of the iridescence
+ * thickness map.
+ * @property {Vec2} iridescenceThicknessMapOffset Controls the 2D offset of the iridescence
+ * thickness map. Each component is between 0 and 1.
+ * @property {number} iridescenceThicknessMapRotation Controls the 2D rotation (in degrees)
+ * of the iridescence map.
+ * @property {string} iridescenceThicknessMapChannel Color channels of the iridescence thickness
+ * map to use. Can be "r", "g", "b" or "a".
+ * @property {number} iridescenceThicknessMin The minimum thickness for the iridescence layer.
+ * Only used when an iridescence thickness map is used. The unit is in nm.
+ * @property {number} iridescenceThicknessMax The maximum thickness for the iridescence layer.
+ * Used as the 'base' thickness when no iridescence thickness map is defined. The unit is in nm.
+ * @property {number} iridescenceRefractionIndex The index of refraction of the iridescent
+ * thin-film. Affects the color phase shift as described here:
+ * https://github.com/KhronosGroup/glTF/tree/main/extensions/2.0/Khronos/KHR_materials_iridescence
  * @property {boolean} useMetalness Use metalness properties instead of specular. When enabled,
  * diffuse colors also affect specular instead of the dedicated specular map. This can be used as
  * alternative to specular color to save space. With metaless == 0, the pixel is assumed to be
  * dielectric, and diffuse color is used as normal. With metaless == 1, the pixel is fully
  * metallic, and diffuse color is used as specular color instead.
- * @property {boolean} useMetalnessSpecularColor When metalness is enabled, use the specular map to apply color tint to specular reflections
+ * @property {boolean} useMetalnessSpecularColor When metalness is enabled, use the
+ * specular map to apply color tint to specular reflections.
  * at direct angles.
  * @property {number} metalness Defines how much the surface is metallic. From 0 (dielectric) to 1
  * (metal).
@@ -16504,12 +16555,16 @@ export type UpdateShaderCallback = (options: any) => any;
  * @property {Texture|null} refractionMap The map of the refraction visibility.
  * @property {number} refractionMapUv Refraction map UV channel.
  * @property {Vec2} refractionMapTiling Controls the 2D tiling of the refraction map.
- * @property {Vec2} refractionMapOffset Controls the 2D offset of the refraction map. Each component is
- * between 0 and 1.
+ * @property {Vec2} refractionMapOffset Controls the 2D offset of the refraction map. Each component
+ * is between 0 and 1.
  * @property {number} refractionMapRotation Controls the 2D rotation (in degrees) of the emissive
  * map.
  * @property {string} refractionMapChannel Color channels of the refraction map to use. Can be "r",
  * "g", "b", "a", "rgb" or any swizzled combination.
+ * @property {boolean} refractionVertexColor Use mesh vertex colors for refraction. If
+ * refraction map is set, it will be be multiplied by vertex colors.
+ * @property {boolean} refractionVertexColorChannel Vertex color channel to use for refraction.
+ * Can be "r", "g", "b" or "a".
  * @property {number} refractionIndex Defines the index of refraction, i.e. The amount of
  * distortion. The value is calculated as (outerIor / surfaceIor), where inputs are measured
  * indices of refraction, the one around the object and the one of its own surface. In most
@@ -16517,6 +16572,24 @@ export type UpdateShaderCallback = (options: any) => any;
  * (1.0 / surfaceIor).
  * @property {boolean} useDynamicRefraction Enables higher quality refractions using the grab pass
  * instead of pre-computed cube maps for refractions.
+ * @property {number} thickness The thickness of the medium, only used when useDynamicRefraction
+ * is enabled. The unit is in base units, and scales with the size of the object.
+ * @property {Texture|null} thicknessMap The per-pixel thickness of the medium, only used when
+ * useDynamicRefraction is enabled.
+ * @property {number} thicknessMapUv Thickness map UV channel.
+ * @property {Vec2} thicknessMapTiling Controls the 2D tiling of the thickness map.
+ * @property {Vec2} thicknessMapOffset Controls the 2D offset of the thickness map. Each component is
+ * between 0 and 1.
+ * @property {number} thicknessMapRotation Controls the 2D rotation (in degrees) of the thickness
+ * map.
+ * @property {string} thicknessMapChannel Color channels of the thickness map to use. Can be "r",
+ * "g", "b" or "a".
+ * @property {boolean} thicknessVertexColor Use mesh vertex colors for thickness. If
+ * thickness map is set, it will be be multiplied by vertex colors.
+ * @property {Color} attenuation The attenuation color for refractive materials, only used when
+ * useDynamicRefraction is enabled.
+ * @property {number} attenuationDistance The distance defining the absorption rate of light
+ * within the medium. Only used when useDynamicRefraction is enabled.
  * @property {Color} emissive The emissive color of the material. This color value is 3-component
  * (RGB), where each component is between 0 and 1.
  * @property {boolean} emissiveTint Multiply emissive map and/or emissive vertex color by the
@@ -16537,10 +16610,12 @@ export type UpdateShaderCallback = (options: any) => any;
  * @property {string} emissiveVertexColorChannel Vertex color channels to use for emission. Can be
  * "r", "g", "b", "a", "rgb" or any swizzled combination.
  * @property {boolean} useSheen Toggle sheen specular effect on/off.
- * @property {Color} sheen The specular color of the sheen (fabric) microfiber structure. This color value is 3-component
- * (RGB), where each component is between 0 and 1.
- * @property {boolean} sheenTint Multiply sheen map and/or sheen vertex color by the constant sheen value.
- * @property {Texture|null} sheenMap The sheen microstructure color map of the material (default is null).
+ * @property {Color} sheen The specular color of the sheen (fabric) microfiber structure.
+ * This color value is 3-component (RGB), where each component is between 0 and 1.
+ * @property {boolean} sheenTint Multiply sheen map and/or sheen vertex color by the constant
+ * sheen value.
+ * @property {Texture|null} sheenMap The sheen microstructure color map of the material
+ * (default is null).
  * @property {number} sheenMapUv Sheen map UV channel.
  * @property {Vec2} sheenMapTiling Controls the 2D tiling of the sheen map.
  * @property {Vec2} sheenMapOffset Controls the 2D offset of the sheen map. Each component is
@@ -16549,18 +16624,26 @@ export type UpdateShaderCallback = (options: any) => any;
  * map.
  * @property {string} sheenMapChannel Color channels of the sheen map to use. Can be "r",
  * "g", "b", "a", "rgb" or any swizzled combination.
- * @property {number} sheenGlossiness The glossiness of the sheen (fabric) microfiber structure. This color value is 3-component
- * (RGB), where each component is between 0 and 1.
- * @property {boolean} sheenGlossinessTint Multiply sheen glossiness map and/or sheen glossiness vertex value by the scalar sheen glossiness value.
- * @property {Texture|null} sheenGlossinessMap The sheen glossiness microstructure color map of the material (default is null).
- * @property {number} sheenGlossinessMapUv Sheen map UV channel.
- * @property {Vec2} sheenGlossinessMapTiling Controls the 2D tiling of the sheen glossiness map.
- * @property {Vec2} sheenGlossinessMapOffset Controls the 2D offset of the sheen glossiness map. Each component is
- * between 0 and 1.
- * @property {number} sheenGlossinessMapRotation Controls the 2D rotation (in degrees) of the sheen glossiness
- * map.
- * @property {string} sheenGlossinessMapChannel Color channels of the sheen glossiness map to use. Can be "r",
- * "g", "b", "a", "rgb" or any swizzled combination.
+ * @property {boolean} sheenVertexColor Use mesh vertex colors for sheen. If sheen map or
+ * sheen tint are set, they'll be multiplied by vertex colors.
+ * @property {number} sheenGloss The glossiness of the sheen (fabric) microfiber structure.
+ * This color value is 3-component (RGB), where each component is between 0 and 1.
+ * @property {boolean} sheenGlossTint Multiply sheen glossiness map and/or sheen glossiness vertex
+ * value by the scalar sheen glossiness value.
+ * @property {Texture|null} sheenGlossMap The sheen glossiness microstructure color map of the
+ * material (default is null).
+ * @property {number} sheenGlossMapUv Sheen map UV channel.
+ * @property {Vec2} sheenGlossMapTiling Controls the 2D tiling of the sheen glossiness map.
+ * @property {Vec2} sheenGlossMapOffset Controls the 2D offset of the sheen glossiness map.
+ * Each component is between 0 and 1.
+ * @property {number} sheenGlossMapRotation Controls the 2D rotation (in degrees) of the sheen
+ * glossiness map.
+ * @property {string} sheenGlossMapChannel Color channels of the sheen glossiness map to use.
+ * Can be "r", "g", "b", "a", "rgb" or any swizzled combination.
+ * @property {boolean} sheenGlossVertexColor Use mesh vertex colors for sheen glossiness.
+ * If sheen glossiness map or sheen glosiness tint are set, they'll be multiplied by vertex colors.
+ * @property {string} sheenGlossVertexColorChannel Vertex color channels to use for sheen glossiness.
+ * Can be "r", "g", "b" or "a".
  * @property {number} opacity The opacity of the material. This value can be between 0 and 1, where
  * 0 is fully transparent and 1 is fully opaque. If you want the material to be semi-transparent
  * you also need to set the {@link Material#blendType} to {@link BLEND_NORMAL},
@@ -17364,7 +17447,7 @@ declare class ElementComponentSystem extends ComponentSystem {
 }
 
 
-/** @typedef {import('../graphics/texture.js').Texture} Texture */
+/** @typedef {import('../../platform/graphics/texture.js').Texture} Texture */
 /**
  * Represents the resource of a font asset.
  */
@@ -19186,123 +19269,6 @@ declare class ScrollbarComponent extends Component {
     onRemove(): void;
 }
 
-declare class ScriptComponentData {
-    enabled: boolean;
-}
-
-/**
- * Helper class used to hold an array of items in a specific order. This array is safe to modify
- * while we loop through it. The class assumes that it holds objects that need to be sorted based
- * on one of their fields.
- *
- * @ignore
- */
-declare class SortedLoopArray {
-    /**
-     * Create a new SortedLoopArray instance.
-     *
-     * @param {object} args - Arguments.
-     * @param {string} args.sortBy - The name of the field that each element in the array is going
-     * to be sorted by.
-     * @example
-     * var array = new pc.SortedLoopArray({ sortBy: 'priority' });
-     * array.insert(item); // adds item to the right slot based on item.priority
-     * array.append(item); // adds item to the end of the array
-     * array.remove(item); // removes item from array
-     * for (array.loopIndex = 0; array.loopIndex < array.length; array.loopIndex++) {
-     *   // do things with array elements
-     *   // safe to remove and add elements into the array while looping
-     * }
-     */
-    constructor(args: {
-        sortBy: string;
-    });
-    /**
-     * The internal array that holds the actual array elements.
-     *
-     * @type {object[]}
-     */
-    items: object[];
-    /**
-     * The number of elements in the array.
-     *
-     * @type {number}
-     */
-    length: number;
-    /**
-     * The current index used to loop through the array. This gets modified if we add or remove
-     * elements from the array while looping. See the example to see how to loop through this
-     * array.
-     *
-     * @type {number}
-     */
-    loopIndex: number;
-    _sortBy: string;
-    _sortHandler: any;
-    /**
-     * Searches for the right spot to insert the specified item.
-     *
-     * @param {object} item - The item.
-     * @returns {number} The index where to insert the item.
-     * @private
-     */
-    private _binarySearch;
-    _doSort(a: any, b: any): number;
-    /**
-     * Inserts the specified item into the array at the right index based on the 'sortBy' field
-     * passed into the constructor. This also adjusts the loopIndex accordingly.
-     *
-     * @param {object} item - The item to insert.
-     */
-    insert(item: object): void;
-    /**
-     * Appends the specified item to the end of the array. Faster than insert() as it does not
-     * binary search for the right index. This also adjusts the loopIndex accordingly.
-     *
-     * @param {object} item - The item to append.
-     */
-    append(item: object): void;
-    /**
-     * Removes the specified item from the array.
-     *
-     * @param {object} item - The item to remove.
-     */
-    remove(item: object): void;
-    /**
-     * Sorts elements in the array based on the 'sortBy' field passed into the constructor. This
-     * also updates the loopIndex if we are currently looping.
-     *
-     * WARNING: Be careful if you are sorting while iterating because if after sorting the array
-     * element that you are currently processing is moved behind other elements then you might end
-     * up iterating over elements more than once!
-     */
-    sort(): void;
-}
-
-/**
- * Allows scripts to be attached to an Entity and executed.
- *
- * @augments ComponentSystem
- */
-declare class ScriptComponentSystem extends ComponentSystem {
-    id: string;
-    ComponentType: typeof ScriptComponent;
-    DataType: typeof ScriptComponentData;
-    _components: SortedLoopArray;
-    _enabledComponents: SortedLoopArray;
-    preloading: boolean;
-    initializeComponentData(component: any, data: any): void;
-    cloneComponent(entity: any, clone: any): Component;
-    _resetExecutionOrder(): void;
-    _callComponentMethod(components: any, name: any, dt: any): void;
-    _onInitialize(): void;
-    _onPostInitialize(): void;
-    _onUpdate(dt: any): void;
-    _onPostUpdate(dt: any): void;
-    _addComponentToEnabled(component: any): void;
-    _removeComponentFromEnabled(component: any): void;
-    _onBeforeRemove(entity: any, component: any): void;
-}
 
 /**
  * Container of Script Attribute definitions. Implements an interface to add/remove attributes and
@@ -19725,8 +19691,128 @@ declare class ScriptType extends EventHandler {
     private __initializeAttributes;
 }
 
+declare class ScriptComponentData {
+    enabled: boolean;
+}
+
+/**
+ * Helper class used to hold an array of items in a specific order. This array is safe to modify
+ * while we loop through it. The class assumes that it holds objects that need to be sorted based
+ * on one of their fields.
+ *
+ * @ignore
+ */
+declare class SortedLoopArray {
+    /**
+     * Create a new SortedLoopArray instance.
+     *
+     * @param {object} args - Arguments.
+     * @param {string} args.sortBy - The name of the field that each element in the array is going
+     * to be sorted by.
+     * @example
+     * var array = new pc.SortedLoopArray({ sortBy: 'priority' });
+     * array.insert(item); // adds item to the right slot based on item.priority
+     * array.append(item); // adds item to the end of the array
+     * array.remove(item); // removes item from array
+     * for (array.loopIndex = 0; array.loopIndex < array.length; array.loopIndex++) {
+     *   // do things with array elements
+     *   // safe to remove and add elements into the array while looping
+     * }
+     */
+    constructor(args: {
+        sortBy: string;
+    });
+    /**
+     * The internal array that holds the actual array elements.
+     *
+     * @type {object[]}
+     */
+    items: object[];
+    /**
+     * The number of elements in the array.
+     *
+     * @type {number}
+     */
+    length: number;
+    /**
+     * The current index used to loop through the array. This gets modified if we add or remove
+     * elements from the array while looping. See the example to see how to loop through this
+     * array.
+     *
+     * @type {number}
+     */
+    loopIndex: number;
+    _sortBy: string;
+    _sortHandler: any;
+    /**
+     * Searches for the right spot to insert the specified item.
+     *
+     * @param {object} item - The item.
+     * @returns {number} The index where to insert the item.
+     * @private
+     */
+    private _binarySearch;
+    _doSort(a: any, b: any): number;
+    /**
+     * Inserts the specified item into the array at the right index based on the 'sortBy' field
+     * passed into the constructor. This also adjusts the loopIndex accordingly.
+     *
+     * @param {object} item - The item to insert.
+     */
+    insert(item: object): void;
+    /**
+     * Appends the specified item to the end of the array. Faster than insert() as it does not
+     * binary search for the right index. This also adjusts the loopIndex accordingly.
+     *
+     * @param {object} item - The item to append.
+     */
+    append(item: object): void;
+    /**
+     * Removes the specified item from the array.
+     *
+     * @param {object} item - The item to remove.
+     */
+    remove(item: object): void;
+    /**
+     * Sorts elements in the array based on the 'sortBy' field passed into the constructor. This
+     * also updates the loopIndex if we are currently looping.
+     *
+     * WARNING: Be careful if you are sorting while iterating because if after sorting the array
+     * element that you are currently processing is moved behind other elements then you might end
+     * up iterating over elements more than once!
+     */
+    sort(): void;
+}
+
+/**
+ * Allows scripts to be attached to an Entity and executed.
+ *
+ * @augments ComponentSystem
+ */
+declare class ScriptComponentSystem extends ComponentSystem {
+    id: string;
+    ComponentType: typeof ScriptComponent;
+    DataType: typeof ScriptComponentData;
+    _components: SortedLoopArray;
+    _enabledComponents: SortedLoopArray;
+    preloading: boolean;
+    initializeComponentData(component: any, data: any): void;
+    cloneComponent(entity: any, clone: any): Component;
+    _resetExecutionOrder(): void;
+    _callComponentMethod(components: any, name: any, dt: any): void;
+    _onInitialize(): void;
+    _onPostInitialize(): void;
+    _onUpdate(dt: any): void;
+    _onPostUpdate(dt: any): void;
+    _addComponentToEnabled(component: any): void;
+    _removeComponentFromEnabled(component: any): void;
+    _onBeforeRemove(entity: any, component: any): void;
+}
+
+
 
 /** @typedef {import('./system.js').ScriptComponentSystem} ScriptComponentSystem */
+/** @typedef {import('../../script/script-type.js').ScriptType} ScriptType */
 /**
  * The ScriptComponent allows you to extend the functionality of an Entity by attaching your own
  * Script Types defined in JavaScript files to be executed with access to the Entity. For more
@@ -19735,13 +19821,6 @@ declare class ScriptType extends EventHandler {
  * @augments Component
  */
 declare class ScriptComponent extends Component {
-    static scriptMethods: {
-        initialize: string;
-        postInitialize: string;
-        update: string;
-        postUpdate: string;
-        swap: string;
-    };
     /**
      * Create a new ScriptComponent instance.
      *
@@ -20396,8 +20475,7 @@ declare class RigidBodyComponentSystem extends ComponentSystem {
         shadowMapUpdates: number;
         shadowMapTime: number;
         depthMapTime: number;
-        forwardTime: number;
-        /**
+        forwardTime: number; /**
          * The entity that was hit.
          *
          * @type {Entity}
@@ -20405,7 +20483,11 @@ declare class RigidBodyComponentSystem extends ComponentSystem {
         lightClustersTime: number;
         lightClusters: number;
         _timeToCountFrames: number;
-        _fpsAccum: number;
+        _fpsAccum: number; /**
+         * The point at which the ray hit the entity in world space.
+         *
+         * @type {Vec3}
+         */
     };
     ComponentType: typeof RigidBodyComponent;
     DataType: typeof RigidBodyComponentData;
@@ -21007,7 +21089,7 @@ declare class RenderComponentSystem extends ComponentSystem {
 
 
 /** @typedef {import('../../../scene/materials/material.js').Material} Material */
-/** @typedef {import('../../../shape/bounding-box.js').BoundingBox} BoundingBox */
+/** @typedef {import('../../../core/shape/bounding-box.js').BoundingBox} BoundingBox */
 /** @typedef {import('../../entity.js').Entity} Entity */
 /** @typedef {import('./system.js').RenderComponentSystem} RenderComponentSystem */
 /**
@@ -22231,7 +22313,7 @@ declare class ModelComponentSystem extends ComponentSystem {
 
 /** @typedef {import('../../../scene/composition/layer-composition.js').LayerComposition} LayerComposition */
 /** @typedef {import('../../../scene/materials/material.js').Material} Material */
-/** @typedef {import('../../../shape/bounding-box.js').BoundingBox} BoundingBox */
+/** @typedef {import('../../../core/shape/bounding-box.js').BoundingBox} BoundingBox */
 /** @typedef {import('../../entity.js').Entity} Entity */
 /** @typedef {import('./system.js').ModelComponentSystem} ModelComponentSystem */
 /**
@@ -22950,7 +23032,7 @@ declare class CollisionComponentSystem extends ComponentSystem {
 
 
 
-/** @typedef {import('../../../math/vec3.js').Vec3} Vec3 */
+/** @typedef {import('../../../core/math/vec3.js').Vec3} Vec3 */
 /** @typedef {import('../../../scene/model.js').Model} Model */
 /** @typedef {import('../../entity.js').Entity} Entity */
 /** @typedef {import('./system.js').CollisionComponentSystem} CollisionComponentSystem */
@@ -23695,7 +23777,7 @@ declare class AnimSnapshot {
 
 
 /** @typedef {import('./anim-track.js').AnimTrack} AnimTrack */
-/** @typedef {import('../../core/event-handler.js').EventHandler} EventHandler */
+/** @typedef {import('../../../core/event-handler.js').EventHandler} EventHandler */
 /**
  * AnimClip wraps the running state of an animation track. It contains and update the animation
  * 'cursor' and performs looping logic.
@@ -23724,7 +23806,6 @@ declare class AnimClip {
     _blendWeight: number;
     _blendOrder: number;
     _eventHandler: EventHandler;
-    _eventCursor: number;
     set name(arg: string);
     get name(): string;
     get track(): AnimTrack;
@@ -23739,8 +23820,10 @@ declare class AnimClip {
     get blendWeight(): number;
     set blendOrder(arg: number);
     get blendOrder(): number;
-    set eventCursor(arg: number);
-    get eventCursor(): number;
+    set eventCursor(arg: any);
+    get eventCursor(): any;
+    _eventCursor: any;
+    alignCursorToCurrentTime(): void;
     activeEventsForFrame(frameStartTime: any, frameEndTime: any): void;
     _update(deltaTime: any): void;
     play(): void;
@@ -23853,13 +23936,6 @@ declare class AnimBinder {
  * @ignore
  */
 declare class AnimEvaluator {
-    static _dot(a: any, b: any): number;
-    static _normalize(a: any): void;
-    static _set(a: any, b: any, type: any): void;
-    static _blendVec(a: any, b: any, t: any, additive: any): void;
-    static _blendQuat(a: any, b: any, t: any, additive: any): void;
-    static _blend(a: any, b: any, t: any, type: any, additive: any): void;
-    static _stableSort(a: any, lessFunc: any): void;
     /**
      * Create a new animation evaluator.
      *
@@ -23999,7 +24075,7 @@ declare class Skeleton {
 
 
 
-/** @typedef {import('../../../animation/animation.js').Animation} Animation */
+/** @typedef {import('../../../scene/animation/animation.js').Animation} Animation */
 /** @typedef {import('../../../scene/model.js').Model} Model */
 /** @typedef {import('../../entity.js').Entity} Entity */
 /** @typedef {import('./system.js').AnimationComponentSystem} AnimationComponentSystem */
@@ -24117,7 +24193,7 @@ declare class AnimationComponent extends Component {
     set currentTime(arg: number);
     get currentTime(): number;
     /**
-     * Get the duration in seconds of the current animation.
+     * Get the duration in seconds of the current animation. Returns 0 if no animation is playing.
      *
      * @type {number}
      */
@@ -24213,7 +24289,7 @@ declare class AnimComponentSystem extends ComponentSystem {
 
 
 /** @typedef {import('./component.js').AnimComponent} AnimComponent */
-/** @typedef {import('../../../asset/asset.js').Asset} Asset */
+/** @typedef {import('../../asset/asset.js').Asset} Asset */
 /**
  * The Anim Component Layer allows managers a single layer of the animation state graph.
  */
@@ -26245,9 +26321,9 @@ declare class XrLightEstimation extends EventHandler {
  * Callback used by {@link XrManagerendXr } and {@link XrManagerstartXr }.
  */
 export type XrErrorCallback = (err: Error | null) => any;
-/** @typedef {import('../framework/components/camera/component.js').CameraComponent} CameraComponent */
-/** @typedef {import('../framework/app-base.js').AppBase} AppBase */
-/** @typedef {import('../framework/entity.js').Entity} Entity */
+/** @typedef {import('../components/camera/component.js').CameraComponent} CameraComponent */
+/** @typedef {import('../app-base.js').AppBase} AppBase */
+/** @typedef {import('../entity.js').Entity} Entity */
 /**
  * Callback used by {@link XrManager#endXr} and {@link XrManager#startXr}.
  *
@@ -27057,9 +27133,9 @@ declare class DepthStencilAttachmentOps {
 
 
 
-/** @typedef {import('../graphics/render-pass.js').RenderPass} RenderPass */
-/** @typedef {import('../graphics/render-target.js').RenderTarget} RenderTarget */
-/** @typedef {import('../graphics/texture.js').Texture} Texture */
+/** @typedef {import('../platform/graphics/render-pass.js').RenderPass} RenderPass */
+/** @typedef {import('../platform/graphics/render-target.js').RenderTarget} RenderTarget */
+/** @typedef {import('../platform/graphics/texture.js').Texture} Texture */
 /**
  * A frame graph represents a single rendering frame as a sequence of render passes.
  *
@@ -27088,13 +27164,14 @@ declare class FrameGraph {
 
 
 
+/** @typedef {import('../math/mat4.js').Mat4} Mat4 */
+/** @typedef {import('./bounding-sphere.js').BoundingSphere} BoundingSphere */
 /**
  * A frustum is a shape that defines the viewing space of a camera. It can be used to determine
  * visibility of points and bounding spheres. Typically, you would not create a Frustum shape
  * directly, but instead query {@link CameraComponent#frustum}.
  */
 declare class Frustum {
-    static getPoints(camera: any, near: any, far: any): Vec3[];
     planes: any[][];
     /**
      * Updates the frustum shape based on the supplied 4x4 matrix.
@@ -27278,6 +27355,14 @@ declare class Camera {
     getProjectionMatrixSkybox(): Mat4;
     getExposure(): number;
     getScreenSize(sphere: any): number;
+    /**
+     * Returns an array of corners of the frustum of the camera in the local coordinate system of the camera.
+     *
+     * @param {number} [near] - Near distance for the frustum points. Defaults to the near clip distance of the camera.
+     * @param {number} [far] - Far distance for the frustum points. Defaults to the far clip distance of the camera.
+     * @returns {Vec3[]} - An array of corners, using a global storage space.
+     */
+    getFrustumCorners(near?: number, far?: number): Vec3[];
 }
 
 declare class ShadowMap {
@@ -27441,7 +27526,6 @@ declare class ForwardRenderer {
     _layerCompositionUpdateTime: number;
     _lightClustersTime: number;
     _lightClusters: number;
-    library: ProgramLibrary;
     lightTextureAtlas: LightTextureAtlas;
     _shadowRenderer: ShadowRenderer;
     _cookieRenderer: CookieRenderer;
@@ -27477,6 +27561,7 @@ declare class ForwardRenderer {
     ambientId: ScopeId;
     exposureId: ScopeId;
     skyboxIntensityId: ScopeId;
+    cubeMapRotationMatrixId: ScopeId;
     lightColorId: any[];
     lightDir: any[];
     lightDirId: any[];
@@ -27520,7 +27605,7 @@ declare class ForwardRenderer {
     /**
      * Set up the viewport and the scissor for camera rendering.
      *
-     * @param {Camera} camera - The camera containing the viewport infomation.
+     * @param {Camera} camera - The camera containing the viewport information.
      * @param {RenderTarget} [renderTarget] - The render target. NULL for the default one.
      */
     setupViewport(camera: Camera, renderTarget?: RenderTarget): void;
@@ -28180,18 +28265,18 @@ declare class GamePads {
 
 
 
-/** @typedef {import('../resources/handler.js').ResourceHandler} ResourceHandler */
-/** @typedef {import('../graphics/graphics-device.js').GraphicsDevice} GraphicsDevice */
-/** @typedef {import('../input/element-input.js').ElementInput} ElementInput */
-/** @typedef {import('../input/game-pads.js').GamePads} GamePads */
-/** @typedef {import('../input/keyboard.js').Keyboard} Keyboard */
-/** @typedef {import('../input/mouse.js').Mouse} Mouse */
-/** @typedef {import('../input/touch-device.js').TouchDevice} TouchDevice */
-/** @typedef {import('../sound/manager.js').SoundManager} SoundManager */
-/** @typedef {import('../scene/lightmapper/lightmapper.js').Lightmapper} Lightmapper */
+/** @typedef {import('../framework/handlers/handler.js').ResourceHandler} ResourceHandler */
+/** @typedef {import('../platform/graphics/graphics-device.js').GraphicsDevice} GraphicsDevice */
+/** @typedef {import('./input/element-input.js').ElementInput} ElementInput */
+/** @typedef {import('../platform/input/game-pads.js').GamePads} GamePads */
+/** @typedef {import('../platform/input/keyboard.js').Keyboard} Keyboard */
+/** @typedef {import('../platform/input/mouse.js').Mouse} Mouse */
+/** @typedef {import('../platform/input/touch-device.js').TouchDevice} TouchDevice */
+/** @typedef {import('../platform/sound/manager.js').SoundManager} SoundManager */
+/** @typedef {import('./lightmapper/lightmapper.js').Lightmapper} Lightmapper */
 /** @typedef {import('../scene/batching/batch-manager.js').BatchManager} BatchManager */
 /** @typedef {import('./components/system.js').ComponentSystem} ComponentSystem */
-/** @typedef {import('../xr/xr-manager.js').XrManager} XrManager */
+/** @typedef {import('./xr/xr-manager.js').XrManager} XrManager */
 declare class AppOptions {
     /**
      * Input handler for {@link ElementComponent}s.
@@ -28286,7 +28371,7 @@ declare class AppOptions {
 }
 
 
-/** @typedef {import('../graphics/graphics-device.js').GraphicsDevice} GraphicsDevice */
+/** @typedef {import('../platform/graphics/graphics-device.js').GraphicsDevice} GraphicsDevice */
 /**
  * Records performance-related statistics related to the application.
  *
@@ -28452,7 +28537,9 @@ declare class BundleRegistry {
 }
 
 
-/** @typedef {import('../framework/app-base.js').AppBase} AppBase */
+
+/** @typedef {import('../app-base.js').AppBase} AppBase */
+/** @typedef {import('./script-type.js').ScriptType} ScriptType */
 /**
  * Container for all {@link ScriptType}s that are available to this application. Note that
  * PlayCanvas scripts can access the Script Registry from inside the application with
@@ -29940,6 +30027,8 @@ declare class AppBase extends EventHandler {
     tick: MakeTickCallback;
     /** @private */
     private _initDefaultMaterial;
+    /** @private */
+    private _initProgramLibrary;
     /**
      * @type {SoundManager}
      * @ignore
@@ -30749,6 +30838,8 @@ declare class CameraComponent extends Component {
     _priority: number;
     _disablePostEffectsLayer: number;
     _postEffects: PostEffectQueue;
+    _sceneDepthMapRequested: boolean;
+    _sceneColorMapRequested: boolean;
     /**
      * Queries the camera component's underlying Camera instance.
      *
@@ -30795,6 +30886,7 @@ declare class CameraComponent extends Component {
      * @param {boolean} enabled - True to request the generation, false to disable it.
      */
     requestSceneColorMap(enabled: boolean): void;
+    set renderSceneColorMap(arg: boolean);
     get renderSceneColorMap(): boolean;
     /**
      * Request the scene to generate a texture containing the scene depth map. Note that this call
@@ -30803,6 +30895,7 @@ declare class CameraComponent extends Component {
      * @param {boolean} enabled - True to request the generation, false to disable it.
      */
     requestSceneDepthMap(enabled: boolean): void;
+    set renderSceneDepthMap(arg: boolean);
     get renderSceneDepthMap(): boolean;
     /**
      * Queries the camera's frustum shape.
@@ -32009,8 +32102,6 @@ declare class WebglIndexBuffer extends WebglBuffer {
 
 
 
-/** @typedef {import('./webgl-graphics-device.js').WebglGraphicsDevice} WebglGraphicsDevice */
-/** @typedef {import('../shader.js').Shader} Shader */
 /**
  * A WebGL implementation of the Shader.
  *
@@ -32018,6 +32109,7 @@ declare class WebglIndexBuffer extends WebglBuffer {
  */
 declare class WebglShader {
     constructor(shader: any);
+    compileDuration: number;
     /**
      * Free the WebGL resources associated with a shader.
      *
@@ -33038,13 +33130,6 @@ declare class WebglGraphicsDevice extends GraphicsDevice {
      */
     clearVertexArrayObjectCache(): void;
     /**
-     * Removes a shader from the cache.
-     *
-     * @param {Shader} shader - The shader to remove from the cache.
-     * @ignore
-     */
-    removeShaderFromCache(shader: Shader): void;
-    /**
      * Check if high precision floating-point textures are supported.
      *
      * @type {boolean}
@@ -33063,11 +33148,11 @@ declare class WebglGraphicsDevice extends GraphicsDevice {
 
 
 
-/** @typedef {import('../input/element-input.js').ElementInput} ElementInput */
-/** @typedef {import('../input/game-pads.js').GamePads} GamePads */
-/** @typedef {import('../input/keyboard.js').Keyboard} Keyboard */
-/** @typedef {import('../input/mouse.js').Mouse} Mouse */
-/** @typedef {import('../input/touch-device.js').TouchDevice} TouchDevice */
+/** @typedef {import('./input/element-input.js').ElementInput} ElementInput */
+/** @typedef {import('../platform/input/game-pads.js').GamePads} GamePads */
+/** @typedef {import('../platform/input/keyboard.js').Keyboard} Keyboard */
+/** @typedef {import('../platform/input/mouse.js').Mouse} Mouse */
+/** @typedef {import('../platform/input/touch-device.js').TouchDevice} TouchDevice */
 /**
  * An Application represents and manages your PlayCanvas application. If you are developing using
  * the PlayCanvas Editor, the Application is created for you. You can access your Application
@@ -33181,14 +33266,14 @@ declare const ELEMENTTYPE_UINT32: number;
 declare const ELEMENTTYPE_FLOAT32: number;
 declare namespace programlib {
     export { begin };
-    export { dummyFragmentCode };
+    export const dummyFragmentCode: typeof ShaderUtils.dummyFragmentCode;
     export { end };
     export { fogCode };
     export { gammaCode };
-    export { precisionCode };
+    export const precisionCode: typeof ShaderUtils.precisionCode;
     export { skinCode };
     export { tonemapCode };
-    export { versionCode };
+    export const versionCode: typeof ShaderUtils.versionCode;
 }
 declare namespace gfx {
     export { ADDRESS_CLAMP_TO_EDGE };
@@ -33532,6 +33617,12 @@ declare class Tracing {
      */
     private static _traceChannels;
     /**
+     * Enable call stack logging for trace calls. Defaults to false.
+     *
+     * @type {boolean}
+     */
+    static stack: boolean;
+    /**
      * Enable or disable a trace channel.
      *
      * @param {string} channel - Name of the trace channel. Can be:
@@ -33543,6 +33634,7 @@ declare class Tracing {
      * - {@link TRACEID_RENDER_TARGET_ALLOC}
      * - {@link TRACEID_TEXTURE_ALLOC}
      * - {@link TRACEID_SHADER_ALLOC}
+     * - {@link TRACEID_SHADER_COMPILE}
      * - {@link TRACEID_VRAM_TEXTURE}
      * - {@link TRACEID_VRAM_VB}
      * - {@link TRACEID_VRAM_IB}
@@ -33553,7 +33645,7 @@ declare class Tracing {
     /**
      * Test if the trace channel is enabled.
      *
-     * @param {string} channel - Name of the trace channnel.
+     * @param {string} channel - Name of the trace channel.
      * @returns {boolean} - True if the trace channel is enabled.
      */
     static get(channel: string): boolean;
@@ -33571,6 +33663,7 @@ declare namespace math {
     function lerpAngle(a: number, b: number, alpha: number): number;
     function powerOfTwo(x: number): boolean;
     function nextPowerOfTwo(val: number): number;
+    function nearestPowerOfTwo(val: number): number;
     function random(min: number, max: number): number;
     function smoothstep(min: number, max: number, x: number): number;
     function smootherstep(min: number, max: number, x: number): number;
@@ -33640,131 +33733,8 @@ declare class OrientedBox {
     intersectsBoundingSphere(sphere: BoundingSphere): boolean;
 }
 
-declare function shFromCubemap(device: any, source: any, dontFlipX: any): Float32Array;
-
-
-/**
- * This function reprojects textures between cubemap, equirectangular and octahedral formats. The
- * function can read and write textures with pixel data in RGBE, RGBM, linear and sRGB formats.
- * When specularPower is specified it will perform a phong-weighted convolution of the source (for
- * generating a gloss maps).
- *
- * @param {Texture} source - The source texture.
- * @param {Texture} target - The target texture.
- * @param {object} [options] - The options object.
- * @param {number} [options.specularPower] - Optional specular power. When specular power is
- * specified, the source is convolved by a phong-weighted kernel raised to the specified power.
- * Otherwise the function performs a standard resample.
- * @param {number} [options.numSamples] - Optional number of samples (default is 1024).
- * @param {number} [options.face] - Optional cubemap face to update (default is update all faces).
- * @param {string} [options.distribution] - Specify convolution distribution - 'none', 'lambert',
- * 'phong', 'ggx'. Default depends on specularPower.
- * @param {Vec4} [options.rect] - Optional viewport rectangle.
- * @param {number} [options.seamPixels] - Optional number of seam pixels to render
- */
-declare function reprojectTexture(source: Texture, target: Texture, options?: {
-    specularPower?: number;
-    numSamples?: number;
-    face?: number;
-    distribution?: string;
-    rect?: Vec4;
-    seamPixels?: number;
-}, ...args: any[]): void;
-
-declare const _default$3: "\n    vec4 dirLm = texture2D(texture_dirLightMap, vUv1);\n\n    if (bakeDir > 0.5) {\n        if (dAtten > 0.00001) {\n            dirLm.xyz = dirLm.xyz * 2.0 - vec3(1.0);\n            dAtten = saturate(dAtten);\n            gl_FragColor.rgb = normalize(dLightDirNormW.xyz*dAtten + dirLm.xyz*dirLm.w) * 0.5 + vec3(0.5);\n            gl_FragColor.a = dirLm.w + dAtten;\n            gl_FragColor.a = max(gl_FragColor.a, 1.0 / 255.0);\n        } else {\n            gl_FragColor = dirLm;\n        }\n    } else {\n        gl_FragColor.rgb = dirLm.xyz;\n        gl_FragColor.a = max(dirLm.w, dAtten > 0.00001? (1.0/255.0) : 0.0);\n    }\n";
-
-declare const _default$2: "\n    gl_FragColor.rgb = dDiffuseLight;\n    gl_FragColor.rgb = pow(gl_FragColor.rgb, vec3(0.5));\n    gl_FragColor.rgb /= 8.0;\n    gl_FragColor.a = clamp( max( max( gl_FragColor.r, gl_FragColor.g ), max( gl_FragColor.b, 1.0 / 255.0 ) ), 0.0,1.0 );\n    gl_FragColor.a = ceil(gl_FragColor.a * 255.0) / 255.0;\n    gl_FragColor.rgb /= gl_FragColor.a;\n";
-
-declare const _default$1: "\n#define SHADER_NAME Dilate\n\nvarying vec2 vUv0;\n\nuniform sampler2D source;\nuniform vec2 pixelOffset;\n\nvoid main(void) {\n    vec4 c = texture2D(source, vUv0);\n    c = c.a>0.0? c : texture2D(source, vUv0 - pixelOffset);\n    c = c.a>0.0? c : texture2D(source, vUv0 + vec2(0, -pixelOffset.y));\n    c = c.a>0.0? c : texture2D(source, vUv0 + vec2(pixelOffset.x, -pixelOffset.y));\n    c = c.a>0.0? c : texture2D(source, vUv0 + vec2(-pixelOffset.x, 0));\n    c = c.a>0.0? c : texture2D(source, vUv0 + vec2(pixelOffset.x, 0));\n    c = c.a>0.0? c : texture2D(source, vUv0 + vec2(-pixelOffset.x, pixelOffset.y));\n    c = c.a>0.0? c : texture2D(source, vUv0 + vec2(0, pixelOffset.y));\n    c = c.a>0.0? c : texture2D(source, vUv0 + pixelOffset);\n    gl_FragColor = c;\n}\n";
-
-declare const _default: "\n// bilateral filter, based on https://www.shadertoy.com/view/4dfGDH# and\n// http://people.csail.mit.edu/sparis/bf_course/course_notes.pdf\n\n// A bilateral filter is a non-linear, edge-preserving, and noise-reducing smoothing filter for images.\n// It replaces the intensity of each pixel with a weighted average of intensity values from nearby pixels.\n// This weight can be based on a Gaussian distribution. Crucially, the weights depend not only on\n// Euclidean distance of pixels, but also on the radiometric differences (e.g., range differences, such\n// as color intensity, depth distance, etc.). This preserves sharp edges.\n\n#define SHADER_NAME BilateralDeNoise\n\nfloat normpdf3(in vec3 v, in float sigma) {\n    return 0.39894 * exp(-0.5 * dot(v, v) / (sigma * sigma)) / sigma;\n}\n\nvec3 decodeRGBM(vec4 rgbm) {\n    vec3 color = (8.0 * rgbm.a) * rgbm.rgb;\n    return color * color;\n}\n\nfloat saturate(float x) {\n    return clamp(x, 0.0, 1.0);\n}\n\nvec4 encodeRGBM(vec3 color) { // modified RGBM\n    vec4 encoded;\n    encoded.rgb = pow(color.rgb, vec3(0.5));\n    encoded.rgb *= 1.0 / 8.0;\n\n    encoded.a = saturate( max( max( encoded.r, encoded.g ), max( encoded.b, 1.0 / 255.0 ) ) );\n    encoded.a = ceil(encoded.a * 255.0) / 255.0;\n\n    encoded.rgb /= encoded.a;\n    return encoded;\n}\n\n// filter size\n#define MSIZE 15\n\nvarying vec2 vUv0;\nuniform sampler2D source;\nuniform vec2 pixelOffset;\nuniform vec2 sigmas;\nuniform float bZnorm;\nuniform float kernel[MSIZE];\n\nvoid main(void) {\n    \n    vec4 pixelRgbm = texture2D(source, vUv0);\n\n    // lightmap specific optimization - skip pixels that were not baked\n    // this also allows dilate filter that work on the output of this to work correctly, as it depends on .a being zero\n    // to dilate, which the following blur filter would otherwise modify\n    if (pixelRgbm.a <= 0.0) {\n        gl_FragColor = pixelRgbm;\n        return ;\n    }\n\n    // range sigma - controls blurriness based on a pixel distance\n    float sigma = sigmas.x;\n\n    // domain sigma - controls blurriness based on a pixel similarity (to preserve edges)\n    float bSigma = sigmas.y;\n\n    vec3 pixelHdr = decodeRGBM(pixelRgbm);\n    vec3 accumulatedHdr = vec3(0.0);\n    float accumulatedFactor = 0.0;\n\n    // read out the texels\n    const int kSize = (MSIZE-1)/2;\n    for (int i = -kSize; i <= kSize; ++i) {\n        for (int j = -kSize; j <= kSize; ++j) {\n            \n            // sample the pixel with offset\n            vec2 coord = vUv0 + vec2(float(i), float(j)) * pixelOffset;\n            vec4 rgbm = texture2D(source, coord);\n\n            // lightmap - only use baked pixels\n            if (rgbm.a > 0.0) {\n                vec3 hdr = decodeRGBM(rgbm);\n\n                // bilateral factors\n                float factor = kernel[kSize + j] * kernel[kSize + i];\n                factor *= normpdf3(hdr - pixelHdr, bSigma) * bZnorm;\n\n                // accumulate\n                accumulatedHdr += factor * hdr;\n                accumulatedFactor += factor;\n            }\n        }\n    }\n\n    gl_FragColor = encodeRGBM(accumulatedHdr / accumulatedFactor);\n}\n";
-
-declare namespace shaderChunksLightmapper {
-    export { _default$3 as bakeDirLmEndPS };
-    export { _default$2 as bakeLmEndPS };
-    export { _default$1 as dilatePS };
-    export { _default as bilateralDeNoisePS };
-}
-
-/**
- * Helper functions to support prefiltering lighting data.
- *
- * @ignore
- */
-declare class EnvLighting {
-    /**
-     * Generate a skybox cubemap in the correct pixel format from the source texture.
-     *
-     * @param {Texture} source - The source texture. This is either a 2d texture in equirect format
-     * or a cubemap.
-     * @param {number} [size] - Size of the resulting texture. Otherwise use automatic sizing.
-     * @returns {Texture} The resulting cubemap.
-     */
-    static generateSkyboxCubemap(source: Texture, size?: number): Texture;
-    /**
-     * Create a texture in the format needed to precalculate lighting data.
-     *
-     * @param {Texture} source - The source texture. This is either a 2d texture in equirect format
-     * or a cubemap.
-     * @param {object} [options] - Specify generation options.
-     * @param {Texture} [options.target] - The target texture. If one is not provided then a
-     * new texture will be created and returned.
-     * @param {number} [options.size] - Size of the lighting source cubemap texture. Only used
-     * if target isn't specified. Defaults to 128.
-     * @returns {Texture} The resulting cubemap.
-     */
-    static generateLightingSource(source: Texture, options?: {
-        target?: Texture;
-        size?: number;
-    }): Texture;
-    /**
-     * Generate the environment lighting atlas containing prefiltered reflections and ambient.
-     *
-     * @param {Texture} source - The source lighting texture, generated by generateLightingSource.
-     * @param {object} [options] - Specify prefilter options.
-     * @param {Texture} [options.target] - The target texture. If one is not provided then a
-     * new texture will be created and returned.
-     * @param {number} [options.size] - Size of the target texture to create. Only used if
-     * target isn't specified. Defaults to 512.
-     * @param {number} [options.numReflectionSamples] - Number of samples to use when generating
-     * rough reflections. Defaults to 1024.
-     * @param {number} [options.numAmbientSamples] - Number of samples to use when generating ambient
-     * lighting. Defaults to 2048.
-     * @returns {Texture} The resulting atlas
-     */
-    static generateAtlas(source: Texture, options?: {
-        target?: Texture;
-        size?: number;
-        numReflectionSamples?: number;
-        numAmbientSamples?: number;
-    }): Texture;
-    /**
-     * Generate the environment lighting atlas from prefiltered cubemap data.
-     *
-     * @param {Texture[]} sources - Array of 6 prefiltered textures.
-     * @param {object} [options] - The options object
-     * @param {Texture} [options.target] - The target texture. If one is not provided then a
-     * new texture will be created and returned.
-     * @param {number} [options.size] - Size of the target texture to create. Only used if
-     * target isn't specified. Defaults to 512.
-     * @param {boolean} [options.legacyAmbient] - Enable generating legacy ambient lighting.
-     * Default is false.
-     * @param {number} [options.numSamples] - Number of samples to use when generating ambient
-     * lighting. Default is 2048.
-     * @returns {Texture} The resulting atlas texture.
-     */
-    static generatePrefilteredAtlas(sources: Texture[], options?: {
-        target?: Texture;
-        size?: number;
-        legacyAmbient?: boolean;
-        numSamples?: number;
-    }): Texture;
-}
-
-
 
 /** @typedef {import('./graphics-device.js').GraphicsDevice} GraphicsDevice */
-/** @typedef {import('./shader.js').Shader} Shader */
 /**
  * This object allows you to configure and use the transform feedback feature (WebGL2 only). How to
  * use:
@@ -33836,11 +33806,11 @@ declare class TransformFeedback {
      * Creates a transform feedback ready vertex shader from code.
      *
      * @param {GraphicsDevice} graphicsDevice - The graphics device used by the renderer.
-     * @param {string} vsCode - Vertex shader code. Should contain output variables starting with "out_".
+     * @param {string} vertexCode - Vertex shader code. Should contain output variables starting with "out_".
      * @param {string} name - Unique name for caching the shader.
      * @returns {Shader} A shader to use in the process() function.
      */
-    static createShader(graphicsDevice: GraphicsDevice, vsCode: string, name: string): Shader;
+    static createShader(graphicsDevice: GraphicsDevice, vertexCode: string, name: string): Shader;
     /**
      * Create a new TransformFeedback instance.
      *
@@ -33884,254 +33854,6 @@ declare class TransformFeedback {
      * @type {VertexBuffer}
      */
     get outputBuffer(): VertexBuffer;
-}
-
-declare class SkinBatchInstance extends SkinInstance {
-    constructor(device: any, nodes: any, rootNode: any);
-    device: any;
-    rootNode: any;
-    bones: any;
-}
-
-/**
- * Holds stencil test settings.
- *
- * @property {number} func Sets stencil test function. See {@link GraphicsDevice#setStencilFunc}.
- * @property {number} ref Sets stencil test reference value. See
- * {@link GraphicsDevice#setStencilFunc}.
- * @property {number} fail Sets operation to perform if stencil test is failed. See
- * {@link GraphicsDevice#setStencilOperation}.
- * @property {number} zfail Sets operation to perform if depth test is failed. See
- * {@link GraphicsDevice#setStencilOperation}.
- * @property {number} zpass Sets operation to perform if both stencil and depth test are passed.
- * See {@link GraphicsDevice#setStencilOperation}.
- * @property {number} readMask Sets stencil test reading mask. See
- * {@link GraphicsDevice#setStencilFunc}.
- * @property {number} writeMask Sets stencil test writing mask. See
- * {@link GraphicsDevice#setStencilOperation}.
- */
-declare class StencilParameters {
-    /**
-     * Create a new StencilParameters instance.
-     *
-     * @param {object} options - Options object to configure the stencil parameters.
-     */
-    constructor(options: object);
-    func: any;
-    ref: any;
-    readMask: any;
-    writeMask: any;
-    fail: any;
-    zfail: any;
-    zpass: any;
-    clone(): StencilParameters;
-}
-
-/**
- * Implementation of {@link AnimBinder} for animating a skeleton in the graph-node hierarchy.
- *
- * @implements {AnimBinder}
- * @ignore
- */
-declare class DefaultAnimBinder implements AnimBinder {
-    static createAnimTarget(func: any, type: any, valueCount: any, node: any, propertyPath: any, componentType: any): AnimTarget;
-    constructor(graph: any);
-    graph: any;
-    _mask: any;
-    nodes: {};
-    targetCache: {};
-    visitedFallbackGraphPaths: {};
-    nodeCounts: {};
-    activeNodes: any[];
-    handlers: {
-        localPosition: (node: any) => AnimTarget;
-        localRotation: (node: any) => AnimTarget;
-        localScale: (node: any) => AnimTarget;
-        weight: (node: any, weightName: any) => AnimTarget;
-        materialTexture: (node: any, textureName: any) => AnimTarget;
-    };
-    _isPathInMask: (path: any, checkMaskValue: any) => boolean;
-    _isPathActive(path: any): boolean;
-    findNode(path: any): any;
-    resolve(path: any): any;
-    unresolve(path: any): void;
-    update(deltaTime: any): void;
-    assignMask(mask: any): boolean;
-}
-
-/**
- * AnimTransitions represent connections in the controllers state graph between AnimStates. During
- * each frame, the controller tests to see if any of the AnimTransitions have the current AnimState
- * as their source (from) state. If so and the AnimTransitions parameter based conditions are met,
- * the controller will transition to the destination state.
- *
- * @ignore
- */
-declare class AnimTransition {
-    /**
-     * Create a new AnimTransition.
-     *
-     * @param {object} options - Options.
-     * @param {string} options.from - The state that this transition will exit from.
-     * @param {string} options.to - The state that this transition will transition to.
-     * @param {number} options.time - The duration of the transition in seconds. Defaults to 0.
-     * @param {number} options.priority - Used to sort all matching transitions in ascending order.
-     * The first transition in the list will be selected. Defaults to 0.
-     * @param {object[]} options.conditions - A list of conditions which must pass for this
-     * transition to be used. Defaults to [].
-     * @param {number} options.exitTime - If provided, this transition will only be active for the
-     * exact frame during which the source states progress passes the time specified. Given as a
-     * normalized value of the source states duration. Values less than 1 will be checked every
-     * animation loop. Defaults to null.
-     * @param {number} options.transitionOffset - If provided, the destination state will begin
-     * playing its animation at this time. Given in normalized time, based on the state's duration
-     * and must be between 0 and 1. Defaults to null.
-     * @param {string} options.interruptionSource - Defines whether another transition can
-     * interrupt this one and which of the current or previous states transitions can do so. One of
-     * pc.ANIM_INTERRUPTION_*. Defaults to pc.ANIM_INTERRUPTION_NONE.
-     */
-    constructor({ from, to, time, priority, conditions, exitTime, transitionOffset, interruptionSource }: {
-        from: string;
-        to: string;
-        time: number;
-        priority: number;
-        conditions: object[];
-        exitTime: number;
-        transitionOffset: number;
-        interruptionSource: string;
-    });
-    _from: string;
-    _to: string;
-    _time: number;
-    _priority: number;
-    _conditions: any[];
-    _exitTime: number;
-    _transitionOffset: number;
-    _interruptionSource: string;
-    get from(): string;
-    set to(arg: string);
-    get to(): string;
-    get time(): number;
-    get priority(): number;
-    get conditions(): any[];
-    get exitTime(): number;
-    get transitionOffset(): number;
-    get interruptionSource(): string;
-    get hasExitTime(): boolean;
-}
-
-
-
-/** @typedef {import('../../core/event-handler.js').EventHandler} EventHandler */
-/** @typedef {import('../evaluator/anim-evaluator.js').AnimEvaluator} AnimEvaluator */
-/**
- * The AnimController manages the animations for its entity, based on the provided state graph and
- * parameters. Its update method determines which state the controller should be in based on the
- * current time, parameters and available states / transitions. It also ensures the AnimEvaluator
- * is supplied with the correct animations, based on the currently active state.
- *
- * @ignore
- */
-declare class AnimController {
-    /**
-     * Create a new AnimController.
-     *
-     * @param {AnimEvaluator} animEvaluator - The animation evaluator used to blend all current
-     * playing animation keyframes and update the entities properties based on the current
-     * animation values.
-     * @param {object[]} states - The list of states used to form the controller state graph.
-     * @param {object[]} transitions - The list of transitions used to form the controller state
-     * graph.
-     * @param {object[]} parameters - The anim components parameters.
-     * @param {boolean} activate - Determines whether the anim controller should automatically play
-     * once all {@link AnimNodes} are assigned animations.
-     * @param {EventHandler} eventHandler - The event handler which should be notified with anim
-     * events.
-     * @param {Set} consumedTriggers - Used to set triggers back to their default state after they
-     * have been consumed by a transition.
-     */
-    constructor(animEvaluator: AnimEvaluator, states: object[], transitions: object[], parameters: object[], activate: boolean, eventHandler: EventHandler, consumedTriggers: Set<any>);
-    _animEvaluator: AnimEvaluator;
-    _states: {};
-    _stateNames: any[];
-    _eventHandler: EventHandler;
-    _consumedTriggers: Set<any>;
-    _transitions: AnimTransition[];
-    _findTransitionsFromStateCache: {};
-    _findTransitionsBetweenStatesCache: {};
-    _parameters: any[];
-    _previousStateName: any;
-    _activeStateName: string;
-    _playing: boolean;
-    _activate: boolean;
-    _currTransitionTime: number;
-    _totalTransitionTime: number;
-    _isTransitioning: boolean;
-    _transitionInterruptionSource: string;
-    _transitionPreviousStates: any[];
-    _timeInState: number;
-    _timeInStateBefore: number;
-    get animEvaluator(): AnimEvaluator;
-    set activeState(arg: any);
-    get activeState(): any;
-    get activeStateName(): string;
-    get activeStateAnimations(): any;
-    set previousState(arg: any);
-    get previousState(): any;
-    get previousStateName(): any;
-    get playable(): boolean;
-    set playing(arg: boolean);
-    get playing(): boolean;
-    get activeStateProgress(): number;
-    get activeStateDuration(): number;
-    set activeStateCurrentTime(arg: number);
-    get activeStateCurrentTime(): number;
-    get transitioning(): boolean;
-    get transitionProgress(): number;
-    get states(): any[];
-    assignMask(mask: any): any;
-    _findState(stateName: any): any;
-    _getActiveStateProgressForTime(time: any): number;
-    _findTransitionsFromState(stateName: any): any;
-    _findTransitionsBetweenStates(sourceStateName: any, destinationStateName: any): any;
-    _transitionHasConditionsMet(transition: any): boolean;
-    _findTransition(from: any, to: any): any;
-    updateStateFromTransition(transition: any): void;
-    _transitionToState(newStateName: any): void;
-    assignAnimation(pathString: any, animTrack: any, speed: any, loop: any): void;
-    removeNodeAnimations(nodeName: any): boolean;
-    play(stateName: any): void;
-    pause(): void;
-    reset(): void;
-    rebind(): void;
-    update(dt: any): void;
-    findParameter(name: any): any;
-}
-
-/**
- * An asset resource which represents an anim state graph. It can be loaded into an anim component using the {@link AnimComponent#loadStateGraph} method.
- *
- * ## Usage
- * Scripts can retrieve an AnimStateGraph instance from assets of type 'animstategraph'. An AnimStateGraph can then be loaded into an anim component as follows:
- * ```javascript
- * const animStateGraph = app.assets.get(ASSET_ID).resource;
- * const entity = new pc.Entity();
- * entity.addComponent('anim');
- * entity.anim.loadStateGraph(animStateGraph);
- * ```
- */
-declare class AnimStateGraph {
-    /**
-     * Create an AnimStateGraph instance from JSON data.
-     *
-     * @param {object} data - The JSON data to create the AnimStateGraph from.
-     * @hideconstructor
-     */
-    constructor(data: object);
-    _layers: any;
-    _parameters: {};
-    get parameters(): {};
-    get layers(): any;
 }
 
 
@@ -34248,6 +33970,617 @@ declare class SoundInstance3d extends SoundInstance {
      */
     set velocity(arg: Vec3);
     get velocity(): Vec3;
+}
+
+declare class SkinBatchInstance extends SkinInstance {
+    constructor(device: any, nodes: any, rootNode: any);
+    device: any;
+    rootNode: any;
+    bones: any;
+}
+
+/**
+ * Holds stencil test settings.
+ *
+ * @property {number} func Sets stencil test function. See {@link GraphicsDevice#setStencilFunc}.
+ * @property {number} ref Sets stencil test reference value. See
+ * {@link GraphicsDevice#setStencilFunc}.
+ * @property {number} fail Sets operation to perform if stencil test is failed. See
+ * {@link GraphicsDevice#setStencilOperation}.
+ * @property {number} zfail Sets operation to perform if depth test is failed. See
+ * {@link GraphicsDevice#setStencilOperation}.
+ * @property {number} zpass Sets operation to perform if both stencil and depth test are passed.
+ * See {@link GraphicsDevice#setStencilOperation}.
+ * @property {number} readMask Sets stencil test reading mask. See
+ * {@link GraphicsDevice#setStencilFunc}.
+ * @property {number} writeMask Sets stencil test writing mask. See
+ * {@link GraphicsDevice#setStencilOperation}.
+ */
+declare class StencilParameters {
+    /**
+     * Create a new StencilParameters instance.
+     *
+     * @param {object} options - Options object to configure the stencil parameters.
+     */
+    constructor(options: object);
+    func: any;
+    ref: any;
+    readMask: any;
+    writeMask: any;
+    fail: any;
+    zfail: any;
+    zpass: any;
+    clone(): StencilParameters;
+}
+
+/**
+ * Helper functions to support prefiltering lighting data.
+ *
+ * @ignore
+ */
+declare class EnvLighting {
+    /**
+     * Generate a skybox cubemap in the correct pixel format from the source texture.
+     *
+     * @param {Texture} source - The source texture. This is either a 2d texture in equirect format
+     * or a cubemap.
+     * @param {number} [size] - Size of the resulting texture. Otherwise use automatic sizing.
+     * @returns {Texture} The resulting cubemap.
+     */
+    static generateSkyboxCubemap(source: Texture, size?: number): Texture;
+    /**
+     * Create a texture in the format needed to precalculate lighting data.
+     *
+     * @param {Texture} source - The source texture. This is either a 2d texture in equirect format
+     * or a cubemap.
+     * @param {object} [options] - Specify generation options.
+     * @param {Texture} [options.target] - The target texture. If one is not provided then a
+     * new texture will be created and returned.
+     * @param {number} [options.size] - Size of the lighting source cubemap texture. Only used
+     * if target isn't specified. Defaults to 128.
+     * @returns {Texture} The resulting cubemap.
+     */
+    static generateLightingSource(source: Texture, options?: {
+        target?: Texture;
+        size?: number;
+    }): Texture;
+    /**
+     * Generate the environment lighting atlas containing prefiltered reflections and ambient.
+     *
+     * @param {Texture} source - The source lighting texture, generated by generateLightingSource.
+     * @param {object} [options] - Specify prefilter options.
+     * @param {Texture} [options.target] - The target texture. If one is not provided then a
+     * new texture will be created and returned.
+     * @param {number} [options.size] - Size of the target texture to create. Only used if
+     * target isn't specified. Defaults to 512.
+     * @param {number} [options.numReflectionSamples] - Number of samples to use when generating
+     * rough reflections. Defaults to 1024.
+     * @param {number} [options.numAmbientSamples] - Number of samples to use when generating ambient
+     * lighting. Defaults to 2048.
+     * @returns {Texture} The resulting atlas
+     */
+    static generateAtlas(source: Texture, options?: {
+        target?: Texture;
+        size?: number;
+        numReflectionSamples?: number;
+        numAmbientSamples?: number;
+    }): Texture;
+    /**
+     * Generate the environment lighting atlas from prefiltered cubemap data.
+     *
+     * @param {Texture[]} sources - Array of 6 prefiltered textures.
+     * @param {object} [options] - The options object
+     * @param {Texture} [options.target] - The target texture. If one is not provided then a
+     * new texture will be created and returned.
+     * @param {number} [options.size] - Size of the target texture to create. Only used if
+     * target isn't specified. Defaults to 512.
+     * @param {boolean} [options.legacyAmbient] - Enable generating legacy ambient lighting.
+     * Default is false.
+     * @param {number} [options.numSamples] - Number of samples to use when generating ambient
+     * lighting. Default is 2048.
+     * @returns {Texture} The resulting atlas texture.
+     */
+    static generatePrefilteredAtlas(sources: Texture[], options?: {
+        target?: Texture;
+        size?: number;
+        legacyAmbient?: boolean;
+        numSamples?: number;
+    }): Texture;
+}
+
+declare function shFromCubemap(device: any, source: any, dontFlipX: any): Float32Array;
+
+
+/**
+ * This function reprojects textures between cubemap, equirectangular and octahedral formats. The
+ * function can read and write textures with pixel data in RGBE, RGBM, linear and sRGB formats.
+ * When specularPower is specified it will perform a phong-weighted convolution of the source (for
+ * generating a gloss maps).
+ *
+ * @param {Texture} source - The source texture.
+ * @param {Texture} target - The target texture.
+ * @param {object} [options] - The options object.
+ * @param {number} [options.specularPower] - Optional specular power. When specular power is
+ * specified, the source is convolved by a phong-weighted kernel raised to the specified power.
+ * Otherwise the function performs a standard resample.
+ * @param {number} [options.numSamples] - Optional number of samples (default is 1024).
+ * @param {number} [options.face] - Optional cubemap face to update (default is update all faces).
+ * @param {string} [options.distribution] - Specify convolution distribution - 'none', 'lambert',
+ * 'phong', 'ggx'. Default depends on specularPower.
+ * @param {Vec4} [options.rect] - Optional viewport rectangle.
+ * @param {number} [options.seamPixels] - Optional number of seam pixels to render
+ */
+declare function reprojectTexture(source: Texture, target: Texture, options?: {
+    specularPower?: number;
+    numSamples?: number;
+    face?: number;
+    distribution?: string;
+    rect?: Vec4;
+    seamPixels?: number;
+}, ...args: any[]): void;
+
+declare const _default$3: "\n    vec4 dirLm = texture2D(texture_dirLightMap, vUv1);\n\n    if (bakeDir > 0.5) {\n        if (dAtten > 0.00001) {\n            dirLm.xyz = dirLm.xyz * 2.0 - vec3(1.0);\n            dAtten = saturate(dAtten);\n            gl_FragColor.rgb = normalize(dLightDirNormW.xyz*dAtten + dirLm.xyz*dirLm.w) * 0.5 + vec3(0.5);\n            gl_FragColor.a = dirLm.w + dAtten;\n            gl_FragColor.a = max(gl_FragColor.a, 1.0 / 255.0);\n        } else {\n            gl_FragColor = dirLm;\n        }\n    } else {\n        gl_FragColor.rgb = dirLm.xyz;\n        gl_FragColor.a = max(dirLm.w, dAtten > 0.00001? (1.0/255.0) : 0.0);\n    }\n";
+
+declare const _default$2: "\n    gl_FragColor.rgb = dDiffuseLight;\n    gl_FragColor.rgb = pow(gl_FragColor.rgb, vec3(0.5));\n    gl_FragColor.rgb /= 8.0;\n    gl_FragColor.a = clamp( max( max( gl_FragColor.r, gl_FragColor.g ), max( gl_FragColor.b, 1.0 / 255.0 ) ), 0.0,1.0 );\n    gl_FragColor.a = ceil(gl_FragColor.a * 255.0) / 255.0;\n    gl_FragColor.rgb /= gl_FragColor.a;\n";
+
+declare const _default$1: "\n\nvarying vec2 vUv0;\n\nuniform sampler2D source;\nuniform vec2 pixelOffset;\n\nvoid main(void) {\n    vec4 c = texture2D(source, vUv0);\n    c = c.a>0.0? c : texture2D(source, vUv0 - pixelOffset);\n    c = c.a>0.0? c : texture2D(source, vUv0 + vec2(0, -pixelOffset.y));\n    c = c.a>0.0? c : texture2D(source, vUv0 + vec2(pixelOffset.x, -pixelOffset.y));\n    c = c.a>0.0? c : texture2D(source, vUv0 + vec2(-pixelOffset.x, 0));\n    c = c.a>0.0? c : texture2D(source, vUv0 + vec2(pixelOffset.x, 0));\n    c = c.a>0.0? c : texture2D(source, vUv0 + vec2(-pixelOffset.x, pixelOffset.y));\n    c = c.a>0.0? c : texture2D(source, vUv0 + vec2(0, pixelOffset.y));\n    c = c.a>0.0? c : texture2D(source, vUv0 + pixelOffset);\n    gl_FragColor = c;\n}\n";
+
+declare const _default: "\n// bilateral filter, based on https://www.shadertoy.com/view/4dfGDH# and\n// http://people.csail.mit.edu/sparis/bf_course/course_notes.pdf\n\n// A bilateral filter is a non-linear, edge-preserving, and noise-reducing smoothing filter for images.\n// It replaces the intensity of each pixel with a weighted average of intensity values from nearby pixels.\n// This weight can be based on a Gaussian distribution. Crucially, the weights depend not only on\n// Euclidean distance of pixels, but also on the radiometric differences (e.g., range differences, such\n// as color intensity, depth distance, etc.). This preserves sharp edges.\n\nfloat normpdf3(in vec3 v, in float sigma) {\n    return 0.39894 * exp(-0.5 * dot(v, v) / (sigma * sigma)) / sigma;\n}\n\nvec3 decodeRGBM(vec4 rgbm) {\n    vec3 color = (8.0 * rgbm.a) * rgbm.rgb;\n    return color * color;\n}\n\nfloat saturate(float x) {\n    return clamp(x, 0.0, 1.0);\n}\n\nvec4 encodeRGBM(vec3 color) { // modified RGBM\n    vec4 encoded;\n    encoded.rgb = pow(color.rgb, vec3(0.5));\n    encoded.rgb *= 1.0 / 8.0;\n\n    encoded.a = saturate( max( max( encoded.r, encoded.g ), max( encoded.b, 1.0 / 255.0 ) ) );\n    encoded.a = ceil(encoded.a * 255.0) / 255.0;\n\n    encoded.rgb /= encoded.a;\n    return encoded;\n}\n\n// filter size\n#define MSIZE 15\n\nvarying vec2 vUv0;\nuniform sampler2D source;\nuniform vec2 pixelOffset;\nuniform vec2 sigmas;\nuniform float bZnorm;\nuniform float kernel[MSIZE];\n\nvoid main(void) {\n    \n    vec4 pixelRgbm = texture2D(source, vUv0);\n\n    // lightmap specific optimization - skip pixels that were not baked\n    // this also allows dilate filter that work on the output of this to work correctly, as it depends on .a being zero\n    // to dilate, which the following blur filter would otherwise modify\n    if (pixelRgbm.a <= 0.0) {\n        gl_FragColor = pixelRgbm;\n        return ;\n    }\n\n    // range sigma - controls blurriness based on a pixel distance\n    float sigma = sigmas.x;\n\n    // domain sigma - controls blurriness based on a pixel similarity (to preserve edges)\n    float bSigma = sigmas.y;\n\n    vec3 pixelHdr = decodeRGBM(pixelRgbm);\n    vec3 accumulatedHdr = vec3(0.0);\n    float accumulatedFactor = 0.0;\n\n    // read out the texels\n    const int kSize = (MSIZE-1)/2;\n    for (int i = -kSize; i <= kSize; ++i) {\n        for (int j = -kSize; j <= kSize; ++j) {\n            \n            // sample the pixel with offset\n            vec2 coord = vUv0 + vec2(float(i), float(j)) * pixelOffset;\n            vec4 rgbm = texture2D(source, coord);\n\n            // lightmap - only use baked pixels\n            if (rgbm.a > 0.0) {\n                vec3 hdr = decodeRGBM(rgbm);\n\n                // bilateral factors\n                float factor = kernel[kSize + j] * kernel[kSize + i];\n                factor *= normpdf3(hdr - pixelHdr, bSigma) * bZnorm;\n\n                // accumulate\n                accumulatedHdr += factor * hdr;\n                accumulatedFactor += factor;\n            }\n        }\n    }\n\n    gl_FragColor = encodeRGBM(accumulatedHdr / accumulatedFactor);\n}\n";
+
+declare namespace shaderChunksLightmapper {
+    export { _default$3 as bakeDirLmEndPS };
+    export { _default$2 as bakeLmEndPS };
+    export { _default$1 as dilatePS };
+    export { _default as bilateralDeNoisePS };
+}
+
+declare namespace script {
+    const legacy: boolean;
+}
+
+/**
+ * Used to manage layout calculations for {@link LayoutGroupComponent}s.
+ *
+ * @ignore
+ */
+declare class LayoutCalculator {
+    calculateLayout(elements: any, options: any): any;
+}
+
+declare class ScriptLegacyComponent extends Component {
+    constructor(system: any, entity: any);
+    send(name: any, functionName: any, ...args: any[]): any;
+    onSetScripts(name: any, oldValue: any, newValue: any): void;
+    _updateScriptAttributes(oldValue: any, newValue: any): boolean;
+    _loadFromCache(urls: any): boolean;
+    _loadScripts(urls: any): void;
+}
+
+declare class ScriptLegacyComponentData {
+    scripts: any[];
+    enabled: boolean;
+    instances: {};
+    _instances: {};
+    runInTools: boolean;
+    attributes: {};
+    initialized: boolean;
+    postInitialized: boolean;
+    areScriptsLoaded: boolean;
+}
+
+declare class ScriptLegacyComponentSystem extends ComponentSystem {
+    constructor(app: any);
+    id: string;
+    ComponentType: typeof ScriptLegacyComponent;
+    DataType: typeof ScriptLegacyComponentData;
+    schema: string[];
+    preloading: boolean;
+    instancesWithUpdate: any[];
+    instancesWithFixedUpdate: any[];
+    instancesWithPostUpdate: any[];
+    instancesWithToolsUpdate: any[];
+    initializeComponentData(component: any, data: any, properties: any): void;
+    cloneComponent(entity: any, clone: any): Component;
+    onBeforeRemove(entity: any, component: any): void;
+    onInitialize(root: any): void;
+    onPostInitialize(root: any): void;
+    _callInstancesMethod(script: any, method: any): void;
+    _initializeScriptComponent(script: any): void;
+    _enableScriptComponent(script: any): void;
+    _disableScriptComponent(script: any): void;
+    _destroyScriptComponent(script: any): void;
+    _postInitializeScriptComponent(script: any): void;
+    _updateInstances(method: any, updateList: any, dt: any): void;
+    onUpdate(dt: any): void;
+    onFixedUpdate(dt: any): void;
+    onPostUpdate(dt: any): void;
+    onToolsUpdate(dt: any): void;
+    broadcast(name: any, functionName: any, ...args: any[]): void;
+    _preRegisterInstance(entity: any, url: any, name: any, instance: any): void;
+    _registerInstances(entity: any): void;
+    _cloneAttributes(attributes: any): {};
+    _createAccessors(entity: any, instance: any): void;
+    _createAccessor(attribute: any, instance: any): void;
+    _updateAccessors(entity: any, instance: any): void;
+    _convertAttributeValue(attribute: any): void;
+}
+
+
+
+/** @typedef {import('./app-base.js').AppBase} AppBase */
+/** @typedef {import('./entity.js').Entity} Entity */
+/**
+ * Create a Template resource from raw database data.
+ */
+declare class Template {
+    /**
+     * Create a new Template instance.
+     *
+     * @param {AppBase} app - The application.
+     * @param {object} data - Asset data from the database.
+     */
+    constructor(app: AppBase, data: object);
+    _app: AppBase;
+    _data: any;
+    _templateRoot: Entity;
+    /**
+     * Create an instance of this template.
+     *
+     * @returns {Entity} The root entity of the created instance.
+     */
+    instantiate(): Entity;
+    _parseTemplate(): void;
+}
+
+/**
+ * Implementation of {@link AnimBinder} for animating a skeleton in the graph-node hierarchy.
+ *
+ * @implements {AnimBinder}
+ * @ignore
+ */
+declare class DefaultAnimBinder implements AnimBinder {
+    static createAnimTarget(func: any, type: any, valueCount: any, node: any, propertyPath: any, componentType: any): AnimTarget;
+    constructor(graph: any);
+    graph: any;
+    _mask: any;
+    nodes: {};
+    targetCache: {};
+    visitedFallbackGraphPaths: {};
+    nodeCounts: {};
+    activeNodes: any[];
+    handlers: {
+        localPosition: (node: any) => AnimTarget;
+        localRotation: (node: any) => AnimTarget;
+        localScale: (node: any) => AnimTarget;
+        weight: (node: any, weightName: any) => AnimTarget;
+        materialTexture: (node: any, textureName: any) => AnimTarget;
+    };
+    _isPathInMask: (path: any, checkMaskValue: any) => boolean;
+    _isPathActive(path: any): boolean;
+    findNode(path: any): any;
+    resolve(path: any): any;
+    unresolve(path: any): void;
+    update(deltaTime: any): void;
+    assignMask(mask: any): boolean;
+}
+
+/**
+ * AnimTransitions represent connections in the controllers state graph between AnimStates. During
+ * each frame, the controller tests to see if any of the AnimTransitions have the current AnimState
+ * as their source (from) state. If so and the AnimTransitions parameter based conditions are met,
+ * the controller will transition to the destination state.
+ *
+ * @ignore
+ */
+declare class AnimTransition {
+    /**
+     * Create a new AnimTransition.
+     *
+     * @param {object} options - Options.
+     * @param {string} options.from - The state that this transition will exit from.
+     * @param {string} options.to - The state that this transition will transition to.
+     * @param {number} options.time - The duration of the transition in seconds. Defaults to 0.
+     * @param {number} options.priority - Used to sort all matching transitions in ascending order.
+     * The first transition in the list will be selected. Defaults to 0.
+     * @param {object[]} options.conditions - A list of conditions which must pass for this
+     * transition to be used. Defaults to [].
+     * @param {number} options.exitTime - If provided, this transition will only be active for the
+     * exact frame during which the source states progress passes the time specified. Given as a
+     * normalized value of the source states duration. Values less than 1 will be checked every
+     * animation loop. Defaults to null.
+     * @param {number} options.transitionOffset - If provided, the destination state will begin
+     * playing its animation at this time. Given in normalized time, based on the state's duration
+     * and must be between 0 and 1. Defaults to null.
+     * @param {string} options.interruptionSource - Defines whether another transition can
+     * interrupt this one and which of the current or previous states transitions can do so. One of
+     * pc.ANIM_INTERRUPTION_*. Defaults to pc.ANIM_INTERRUPTION_NONE.
+     */
+    constructor({ from, to, time, priority, conditions, exitTime, transitionOffset, interruptionSource }: {
+        from: string;
+        to: string;
+        time: number;
+        priority: number;
+        conditions: object[];
+        exitTime: number;
+        transitionOffset: number;
+        interruptionSource: string;
+    });
+    _from: string;
+    _to: string;
+    _time: number;
+    _priority: number;
+    _conditions: any[];
+    _exitTime: number;
+    _transitionOffset: number;
+    _interruptionSource: string;
+    get from(): string;
+    set to(arg: string);
+    get to(): string;
+    get time(): number;
+    get priority(): number;
+    get conditions(): any[];
+    get exitTime(): number;
+    get transitionOffset(): number;
+    get interruptionSource(): string;
+    get hasExitTime(): boolean;
+}
+
+
+
+/** @typedef {import('../../../core/event-handler.js').EventHandler} EventHandler */
+/** @typedef {import('../evaluator/anim-evaluator.js').AnimEvaluator} AnimEvaluator */
+/**
+ * The AnimController manages the animations for its entity, based on the provided state graph and
+ * parameters. Its update method determines which state the controller should be in based on the
+ * current time, parameters and available states / transitions. It also ensures the AnimEvaluator
+ * is supplied with the correct animations, based on the currently active state.
+ *
+ * @ignore
+ */
+declare class AnimController {
+    /**
+     * Create a new AnimController.
+     *
+     * @param {AnimEvaluator} animEvaluator - The animation evaluator used to blend all current
+     * playing animation keyframes and update the entities properties based on the current
+     * animation values.
+     * @param {object[]} states - The list of states used to form the controller state graph.
+     * @param {object[]} transitions - The list of transitions used to form the controller state
+     * graph.
+     * @param {object[]} parameters - The anim components parameters.
+     * @param {boolean} activate - Determines whether the anim controller should automatically play
+     * once all {@link AnimNodes} are assigned animations.
+     * @param {EventHandler} eventHandler - The event handler which should be notified with anim
+     * events.
+     * @param {Set} consumedTriggers - Used to set triggers back to their default state after they
+     * have been consumed by a transition.
+     */
+    constructor(animEvaluator: AnimEvaluator, states: object[], transitions: object[], parameters: object[], activate: boolean, eventHandler: EventHandler, consumedTriggers: Set<any>);
+    _animEvaluator: AnimEvaluator;
+    _states: {};
+    _stateNames: any[];
+    _eventHandler: EventHandler;
+    _consumedTriggers: Set<any>;
+    _transitions: AnimTransition[];
+    _findTransitionsFromStateCache: {};
+    _findTransitionsBetweenStatesCache: {};
+    _parameters: any[];
+    _previousStateName: any;
+    _activeStateName: string;
+    _playing: boolean;
+    _activate: boolean;
+    _currTransitionTime: number;
+    _totalTransitionTime: number;
+    _isTransitioning: boolean;
+    _transitionInterruptionSource: string;
+    _transitionPreviousStates: any[];
+    _timeInState: number;
+    _timeInStateBefore: number;
+    get animEvaluator(): AnimEvaluator;
+    set activeState(arg: any);
+    get activeState(): any;
+    get activeStateName(): string;
+    get activeStateAnimations(): any;
+    set previousState(arg: any);
+    get previousState(): any;
+    get previousStateName(): any;
+    get playable(): boolean;
+    set playing(arg: boolean);
+    get playing(): boolean;
+    get activeStateProgress(): number;
+    get activeStateDuration(): number;
+    set activeStateCurrentTime(arg: number);
+    get activeStateCurrentTime(): number;
+    get transitioning(): boolean;
+    get transitionProgress(): number;
+    get states(): any[];
+    assignMask(mask: any): any;
+    _findState(stateName: any): any;
+    _getActiveStateProgressForTime(time: any): number;
+    _findTransitionsFromState(stateName: any): any;
+    _findTransitionsBetweenStates(sourceStateName: any, destinationStateName: any): any;
+    _transitionHasConditionsMet(transition: any): boolean;
+    _findTransition(from: any, to: any): any;
+    updateStateFromTransition(transition: any): void;
+    _transitionToState(newStateName: any): void;
+    assignAnimation(pathString: any, animTrack: any, speed: any, loop: any): void;
+    removeNodeAnimations(nodeName: any): boolean;
+    play(stateName: any): void;
+    pause(): void;
+    reset(): void;
+    rebind(): void;
+    update(dt: any): void;
+    findParameter(name: any): any;
+}
+
+/**
+ * An asset resource which represents an anim state graph. It can be loaded into an anim component using the {@link AnimComponent#loadStateGraph} method.
+ *
+ * ## Usage
+ * Scripts can retrieve an AnimStateGraph instance from assets of type 'animstategraph'. An AnimStateGraph can then be loaded into an anim component as follows:
+ * ```javascript
+ * const animStateGraph = app.assets.get(ASSET_ID).resource;
+ * const entity = new pc.Entity();
+ * entity.addComponent('anim');
+ * entity.anim.loadStateGraph(animStateGraph);
+ * ```
+ */
+declare class AnimStateGraph {
+    /**
+     * Create an AnimStateGraph instance from JSON data.
+     *
+     * @param {object} data - The JSON data to create the AnimStateGraph from.
+     * @hideconstructor
+     */
+    constructor(data: object);
+    _layers: any;
+    _parameters: {};
+    get parameters(): {};
+    get layers(): any;
+}
+
+/**
+ * Used to load a group of assets and fires a callback when all assets are loaded.
+ *
+ * @augments EventHandler
+ * @example
+ *  const assets = [
+ *      new Asset('model', 'container', { url: `http://example.com/asset.glb` }),
+ *      new Asset('styling', 'css', { url: `http://example.com/asset.css` })
+ *  ];
+ *  const assetListLoader = new AssetListLoader(assets, app.assets);
+ *  assetListLoader.load((err, failed) => {
+ *      if (err) {
+ *          console.error(`${failed.length} assets failed to load`);
+ *      } else {
+ *          console.log(`${assets.length} assets loaded`);
+ *     }
+ *  });
+ */
+declare class AssetListLoader extends EventHandler {
+    /**
+     * Create a new AssetListLoader using a list of assets to load and the asset registry used to load and manage them.
+     *
+     * @param {Asset[]|number[]} assetList - An array of {@link Asset} objects to load or an array of Asset IDs to load.
+     * @param {AssetRegistry} assetRegistry - The application's asset registry.
+     * @example
+     * const assetListLoader = new pc.AssetListLoader([
+     *     new pc.Asset("texture1", "texture", { url: 'http://example.com/my/assets/here/texture1.png') }),
+     *     new pc.Asset("texture2", "texture", { url: 'http://example.com/my/assets/here/texture2.png') })
+     * ], pc.app.assets);
+     */
+    constructor(assetList: Asset[] | number[], assetRegistry: AssetRegistry);
+    _assets: Set<any>;
+    _loadingAssets: Set<any>;
+    _waitingAssets: Set<any>;
+    _registry: AssetRegistry;
+    _loading: boolean;
+    _loaded: boolean;
+    _failed: any[];
+    /**
+     * Removes all references to this asset list loader.
+     */
+    destroy(): void;
+    _assetHasDependencies(asset: any): any;
+    /**
+     * Start loading asset list, call done() when all assets have loaded or failed to load.
+     *
+     * @param {Function} done - Callback called when all assets in the list are loaded. Passed (err, failed) where err is the undefined if no errors are encountered and failed contains a list of assets that failed to load.
+     * @param {object} [scope] - Scope to use when calling callback.
+     */
+    load(done: Function, scope?: object): void;
+    _callback: Function;
+    _scope: any;
+    /**
+     * Sets a callback which will be called when all assets in the list have been loaded.
+     *
+     * @param {Function} done - Callback called when all assets in the list are loaded.
+     * @param {object} [scope] - Scope to use when calling callback.
+     */
+    ready(done: Function, scope?: object): void;
+    _loadingComplete(): void;
+    _onLoad(asset: any): void;
+    _onError(err: any, asset: any): void;
+    _onAddAsset(asset: any): void;
+    _waitForAsset(assetId: any): void;
+}
+
+
+
+/** @typedef {import('./asset.js').Asset} Asset */
+/** @typedef {import('./asset-registry.js').AssetRegistry} AssetRegistry */
+/**
+ * An object that manages the case where an object holds a reference to an asset and needs to be
+ * notified when changes occur in the asset. e.g. notifications include load, add and remove
+ * events.
+ */
+declare class AssetReference {
+    /**
+     * Create a new AssetReference instance.
+     *
+     * @param {string} propertyName - The name of the property that the asset is stored under,
+     * passed into callbacks to enable updating.
+     * @param {Asset|object} parent - The parent object that contains the asset reference, passed
+     * into callbacks to enable updating. Currently an asset, but could be component or other.
+     * @param {AssetRegistry} registry - The asset registry that stores all assets.
+     * @param {object} callbacks - A set of functions called when the asset state changes: load,
+     * add, remove.
+     * @param {object} [callbacks.load] - The function called when the asset loads
+     * load(propertyName, parent, asset).
+     * @param {object} [callbacks.add] - The function called when the asset is added to the
+     * registry add(propertyName, parent, asset).
+     * @param {object} [callbacks.remove] - The function called when the asset is remove from the
+     * registry remove(propertyName, parent, asset).
+     * @param {object} [callbacks.unload] - The function called when the asset is unloaded
+     * unload(propertyName, parent, asset).
+     * @param {object} [scope] - The scope to call the callbacks in.
+     * @example
+     * var reference = new pc.AssetReference('textureAsset', this, this.app.assets, {
+     *     load: this.onTextureAssetLoad,
+     *     add: this.onTextureAssetAdd,
+     *     remove: this.onTextureAssetRemove
+     * }, this);
+     * reference.id = this.textureAsset.id;
+     */
+    constructor(propertyName: string, parent: Asset | object, registry: AssetRegistry, callbacks: {
+        load?: object;
+        add?: object;
+        remove?: object;
+        unload?: object;
+    }, scope?: object);
+    propertyName: string;
+    parent: any;
+    _scope: any;
+    _registry: AssetRegistry;
+    /**
+     * Get or set the asset id which this references. One of either id or url must be set to
+     * initialize an asset reference.
+     *
+     * @type {number}
+     */
+    set id(arg: any);
+    get id(): any;
+    /**
+     * Get or set the asset url which this references. One of either id or url must be called to
+     * initialize an asset reference.
+     *
+     * @type {string}
+     */
+    set url(arg: any);
+    get url(): any;
+    asset: any;
+    _onAssetLoad: any;
+    _onAssetAdd: any;
+    _onAssetRemove: any;
+    _onAssetUnload: any;
+    _id: any;
+    _url: any;
+    _bind(): void;
+    _unbind(): void;
+    _onLoad(asset: any): void;
+    _onAdd(asset: any): void;
+    _onRemove(asset: any): void;
+    _onUnload(asset: any): void;
 }
 
 /**
@@ -34411,7 +34744,7 @@ declare class BinaryHandler {
 
 
 
-/** @typedef {import('../framework/app-base.js').AppBase} AppBase */
+/** @typedef {import('../../framework/app-base.js').AppBase} AppBase */
 /** @typedef {import('./handler.js').ResourceHandler} ResourceHandler */
 /**
  * Loads Bundle Assets.
@@ -34445,7 +34778,7 @@ declare class BundleHandler implements ResourceHandler {
 
 
 /** @typedef {import('./handler.js').ResourceHandler} ResourceHandler */
-/** @typedef {import('../framework/app-base.js').AppBase} AppBase */
+/** @typedef {import('../../framework/app-base.js').AppBase} AppBase */
 /**
  * Resource handler used for loading cubemap {@link Texture} resources.
  *
@@ -34645,7 +34978,7 @@ declare class MaterialHandler implements ResourceHandler {
  * Callback used by {@link ModelHandleraddParser } to decide on which parser to use.
  */
 export type AddParserCallback = (url: string, data: object) => boolean;
-/** @typedef {import('../framework/app-base.js').AppBase} AppBase */
+/** @typedef {import('../../framework/app-base.js').AppBase} AppBase */
 /** @typedef {import('./handler.js').ResourceHandler} ResourceHandler */
 /**
  * Callback used by {@link ModelHandler#addParser} to decide on which parser to use.
@@ -34759,7 +35092,7 @@ declare class RenderHandler implements ResourceHandler {
 
 
 
-/** @typedef {import('../framework/app-base.js').AppBase} AppBase */
+/** @typedef {import('../../framework/app-base.js').AppBase} AppBase */
 /** @typedef {import('./handler.js').ResourceHandler} ResourceHandler */
 /**
  * Resource handler for loading JavaScript files dynamically.  Two types of JavaScript files can be
@@ -34769,8 +35102,6 @@ declare class RenderHandler implements ResourceHandler {
  * @implements {ResourceHandler}
  */
 declare class ScriptHandler implements ResourceHandler {
-    static _types: any[];
-    static _push(Type: any): void;
     /**
      * Create a new ScriptHandler instance.
      *
@@ -34795,7 +35126,7 @@ declare class ScriptHandler implements ResourceHandler {
 
 
 
-/** @typedef {import('../framework/app-base.js').AppBase} AppBase */
+/** @typedef {import('../../framework/app-base.js').AppBase} AppBase */
 /** @typedef {import('./handler.js').ResourceHandler} ResourceHandler */
 /**
  * Resource handler used for loading {@link Scene} resources.
@@ -34876,33 +35207,6 @@ declare class SpriteHandler implements ResourceHandler {
     _onAssetChange(asset: any, attribute: any, value: any, oldValue: any): void;
 }
 
-
-
-/** @typedef {import('../framework/app-base.js').AppBase} AppBase */
-/** @typedef {import('../framework/entity.js').Entity} Entity */
-/**
- * Create a Template resource from raw database data.
- */
-declare class Template {
-    /**
-     * Create a new Template instance.
-     *
-     * @param {AppBase} app - The application.
-     * @param {object} data - Asset data from the database.
-     */
-    constructor(app: AppBase, data: object);
-    _app: AppBase;
-    _data: any;
-    _templateRoot: Entity;
-    /**
-     * Create an instance of this template.
-     *
-     * @returns {Entity} The root entity of the created instance.
-     */
-    instantiate(): Entity;
-    _parseTemplate(): void;
-}
-
 declare class TemplateHandler {
     constructor(app: any);
     /**
@@ -34958,221 +35262,6 @@ declare class TextureAtlasHandler implements ResourceHandler {
     open(url: any, data: any): TextureAtlas;
     patch(asset: any, assets: any): void;
     _onAssetChange(asset: any, attribute: any, value: any): void;
-}
-
-/**
- * Used to load a group of assets and fires a callback when all assets are loaded.
- *
- * @augments EventHandler
- * @example
- *  const assets = [
- *      new Asset('model', 'container', { url: `http://example.com/asset.glb` }),
- *      new Asset('styling', 'css', { url: `http://example.com/asset.css` })
- *  ];
- *  const assetListLoader = new AssetListLoader(assets, app.assets);
- *  assetListLoader.load((err, failed) => {
- *      if (err) {
- *          console.error(`${failed.length} assets failed to load`);
- *      } else {
- *          console.log(`${assets.length} assets loaded`);
- *     }
- *  });
- */
-declare class AssetListLoader extends EventHandler {
-    /**
-     * Create a new AssetListLoader using a list of assets to load and the asset registry used to load and manage them.
-     *
-     * @param {Asset[]|number[]} assetList - An array of {@link Asset} objects to load or an array of Asset IDs to load.
-     * @param {AssetRegistry} assetRegistry - The application's asset registry.
-     * @example
-     * const assetListLoader = new pc.AssetListLoader([
-     *     new pc.Asset("texture1", "texture", { url: 'http://example.com/my/assets/here/texture1.png') }),
-     *     new pc.Asset("texture2", "texture", { url: 'http://example.com/my/assets/here/texture2.png') })
-     * ], pc.app.assets);
-     */
-    constructor(assetList: Asset[] | number[], assetRegistry: AssetRegistry);
-    _assets: Set<any>;
-    _loadingAssets: Set<any>;
-    _waitingAssets: Set<any>;
-    _registry: AssetRegistry;
-    _loading: boolean;
-    _loaded: boolean;
-    _failed: any[];
-    /**
-     * Removes all references to this asset list loader.
-     */
-    destroy(): void;
-    _assetHasDependencies(asset: any): any;
-    /**
-     * Start loading asset list, call done() when all assets have loaded or failed to load.
-     *
-     * @param {Function} done - Callback called when all assets in the list are loaded. Passed (err, failed) where err is the undefined if no errors are encountered and failed contains a list of assets that failed to load.
-     * @param {object} [scope] - Scope to use when calling callback.
-     */
-    load(done: Function, scope?: object): void;
-    _callback: Function;
-    _scope: any;
-    /**
-     * Sets a callback which will be called when all assets in the list have been loaded.
-     *
-     * @param {Function} done - Callback called when all assets in the list are loaded.
-     * @param {object} [scope] - Scope to use when calling callback.
-     */
-    ready(done: Function, scope?: object): void;
-    _loadingComplete(): void;
-    _onLoad(asset: any): void;
-    _onError(err: any, asset: any): void;
-    _onAddAsset(asset: any): void;
-    _waitForAsset(assetId: any): void;
-}
-
-
-
-/** @typedef {import('./asset.js').Asset} Asset */
-/** @typedef {import('./asset-registry.js').AssetRegistry} AssetRegistry */
-/**
- * An object that manages the case where an object holds a reference to an asset and needs to be
- * notified when changes occur in the asset. e.g. notifications include load, add and remove
- * events.
- */
-declare class AssetReference {
-    /**
-     * Create a new AssetReference instance.
-     *
-     * @param {string} propertyName - The name of the property that the asset is stored under,
-     * passed into callbacks to enable updating.
-     * @param {Asset|object} parent - The parent object that contains the asset reference, passed
-     * into callbacks to enable updating. Currently an asset, but could be component or other.
-     * @param {AssetRegistry} registry - The asset registry that stores all assets.
-     * @param {object} callbacks - A set of functions called when the asset state changes: load,
-     * add, remove.
-     * @param {object} [callbacks.load] - The function called when the asset loads
-     * load(propertyName, parent, asset).
-     * @param {object} [callbacks.add] - The function called when the asset is added to the
-     * registry add(propertyName, parent, asset).
-     * @param {object} [callbacks.remove] - The function called when the asset is remove from the
-     * registry remove(propertyName, parent, asset).
-     * @param {object} [callbacks.unload] - The function called when the asset is unloaded
-     * unload(propertyName, parent, asset).
-     * @param {object} [scope] - The scope to call the callbacks in.
-     * @example
-     * var reference = new pc.AssetReference('textureAsset', this, this.app.assets, {
-     *     load: this.onTextureAssetLoad,
-     *     add: this.onTextureAssetAdd,
-     *     remove: this.onTextureAssetRemove
-     * }, this);
-     * reference.id = this.textureAsset.id;
-     */
-    constructor(propertyName: string, parent: Asset | object, registry: AssetRegistry, callbacks: {
-        load?: object;
-        add?: object;
-        remove?: object;
-        unload?: object;
-    }, scope?: object);
-    propertyName: string;
-    parent: any;
-    _scope: any;
-    _registry: AssetRegistry;
-    /**
-     * Get or set the asset id which this references. One of either id or url must be set to
-     * initialize an asset reference.
-     *
-     * @type {number}
-     */
-    set id(arg: any);
-    get id(): any;
-    /**
-     * Get or set the asset url which this references. One of either id or url must be called to
-     * initialize an asset reference.
-     *
-     * @type {string}
-     */
-    set url(arg: any);
-    get url(): any;
-    asset: any;
-    _onAssetLoad: any;
-    _onAssetAdd: any;
-    _onAssetRemove: any;
-    _onAssetUnload: any;
-    _id: any;
-    _url: any;
-    _bind(): void;
-    _unbind(): void;
-    _onLoad(asset: any): void;
-    _onAdd(asset: any): void;
-    _onRemove(asset: any): void;
-    _onUnload(asset: any): void;
-}
-
-declare namespace script {
-    const legacy: boolean;
-}
-
-/**
- * Used to manage layout calculations for {@link LayoutGroupComponent}s.
- *
- * @ignore
- */
-declare class LayoutCalculator {
-    calculateLayout(elements: any, options: any): any;
-}
-
-declare class ScriptLegacyComponent extends Component {
-    constructor(system: any, entity: any);
-    send(name: any, functionName: any, ...args: any[]): any;
-    onSetScripts(name: any, oldValue: any, newValue: any): void;
-    _updateScriptAttributes(oldValue: any, newValue: any): boolean;
-    _loadFromCache(urls: any): boolean;
-    _loadScripts(urls: any): void;
-}
-
-declare class ScriptLegacyComponentData {
-    scripts: any[];
-    enabled: boolean;
-    instances: {};
-    _instances: {};
-    runInTools: boolean;
-    attributes: {};
-    initialized: boolean;
-    postInitialized: boolean;
-    areScriptsLoaded: boolean;
-}
-
-declare class ScriptLegacyComponentSystem extends ComponentSystem {
-    constructor(app: any);
-    id: string;
-    ComponentType: typeof ScriptLegacyComponent;
-    DataType: typeof ScriptLegacyComponentData;
-    schema: string[];
-    preloading: boolean;
-    instancesWithUpdate: any[];
-    instancesWithFixedUpdate: any[];
-    instancesWithPostUpdate: any[];
-    instancesWithToolsUpdate: any[];
-    initializeComponentData(component: any, data: any, properties: any): void;
-    cloneComponent(entity: any, clone: any): Component;
-    onBeforeRemove(entity: any, component: any): void;
-    onInitialize(root: any): void;
-    onPostInitialize(root: any): void;
-    _callInstancesMethod(script: any, method: any): void;
-    _initializeScriptComponent(script: any): void;
-    _enableScriptComponent(script: any): void;
-    _disableScriptComponent(script: any): void;
-    _destroyScriptComponent(script: any): void;
-    _postInitializeScriptComponent(script: any): void;
-    _updateInstances(method: any, updateList: any, dt: any): void;
-    onUpdate(dt: any): void;
-    onFixedUpdate(dt: any): void;
-    onPostUpdate(dt: any): void;
-    onToolsUpdate(dt: any): void;
-    broadcast(name: any, functionName: any, ...args: any[]): void;
-    _preRegisterInstance(entity: any, url: any, name: any, instance: any): void;
-    _registerInstances(entity: any): void;
-    _cloneAttributes(attributes: any): {};
-    _createAccessors(entity: any, instance: any): void;
-    _createAccessor(attribute: any, instance: any): void;
-    _updateAccessors(entity: any, instance: any): void;
-    _convertAttributeValue(attribute: any): void;
 }
 
 declare const apps: {};
@@ -35348,23 +35437,23 @@ declare const http: Http;
  */
 declare class Http {
     static ContentType: {
+        AAC: string;
+        BASIS: string;
+        BIN: string;
+        DDS: string;
         FORM_URLENCODED: string;
         GIF: string;
+        GLB: string;
         JPEG: string;
-        DDS: string;
         JSON: string;
-        PNG: string;
-        TEXT: string;
-        XML: string;
-        WAV: string;
-        OGG: string;
         MP3: string;
         MP4: string;
-        AAC: string;
-        BIN: string;
-        BASIS: string;
-        GLB: string;
+        OGG: string;
         OPUS: string;
+        PNG: string;
+        TEXT: string;
+        WAV: string;
+        XML: string;
     };
     static ResponseType: {
         TEXT: string;
@@ -35650,34 +35739,37 @@ declare class Http {
     }, callback: HttpResponseCallback): XMLHttpRequest;
     _guessResponseType(url: any): string;
     _isBinaryContentType(contentType: any): boolean;
+    _isBinaryResponseType(responseType: any): boolean;
     _onReadyStateChange(method: any, url: any, options: any, xhr: any): void;
     _onSuccess(method: any, url: any, options: any, xhr: any): void;
     _onError(method: any, url: any, options: any, xhr: any): void;
 }
 
+
+/** @typedef {import('../../platform/graphics/graphics-device.js').GraphicsDevice} GraphicsDevice */
 /**
  * Create a shader from named shader chunks.
  *
  * @param {GraphicsDevice} device - The graphics device.
  * @param {string} vsName - The vertex shader chunk name.
- * @param {string} psName - The fragment shader chunk name.
+ * @param {string} fsName - The fragment shader chunk name.
  * @param {boolean} [useTransformFeedback] - Whether to use transform feedback. Defaults to false.
  * @returns {Shader} The newly created shader.
  */
-declare function createShader(device: GraphicsDevice, vsName: string, psName: string, useTransformFeedback?: boolean): Shader;
+declare function createShader(device: GraphicsDevice, vsName: string, fsName: string, useTransformFeedback?: boolean): Shader;
 /**
  * Create a shader from the supplied source code.
  *
  * @param {GraphicsDevice} device - The graphics device.
  * @param {string} vsCode - The vertex shader code.
- * @param {string} psCode - The fragment shader code.
- * @param {string} uName - Unique name for the shader.
+ * @param {string} fsCode - The fragment shader code.
+ * @param {string} uniqueName - Unique name for the shader.
  * @param {boolean} [useTransformFeedback] - Whether to use transform feedback. Defaults to false.
- * @param {string} [psPreamble] - An optional 'preamble' string for the fragment shader. Defaults
+ * @param {string} [fragmentPreamble] - An optional 'preamble' string for the fragment shader. Defaults
  * to ''.
  * @returns {Shader} The newly created shader.
  */
-declare function createShaderFromCode(device: GraphicsDevice, vsCode: string, psCode: string, uName: string, useTransformFeedback?: boolean, psPreamble?: string): Shader;
+declare function createShaderFromCode(device: GraphicsDevice, vsCode: string, fsCode: string, uniqueName: string, useTransformFeedback?: boolean, fragmentPreamble?: string): Shader;
 
 
 /**
@@ -35759,9 +35851,9 @@ declare class GlbParser {
 
 
 
-/** @typedef {import('../framework/entity.js').Entity} Entity */
-/** @typedef {import('../scene/mesh-instance').MeshInstance} MeshInstance */
-/** @typedef {import('../framework/app-base.js').AppBase} AppBase */
+/** @typedef {import('../../framework/entity.js').Entity} Entity */
+/** @typedef {import('../../scene/mesh-instance').MeshInstance} MeshInstance */
+/** @typedef {import('../../framework/app-base.js').AppBase} AppBase */
 /** @typedef {import('./handler.js').ResourceHandler} ResourceHandler */
 /** @typedef {import('./handler.js').ResourceHandlerCallback} ResourceHandlerCallback */
 /**
@@ -35982,7 +36074,7 @@ declare class CssHandler {
 }
 
 
-/** @typedef {import('../../texture.js').TextureParser} TextureParser */
+/** @typedef {import('../../handlers/texture.js').TextureParser} TextureParser */
 /**
  * Parser for browser-supported image formats.
  *
@@ -36002,7 +36094,7 @@ declare class ImgParser implements TextureParser {
 }
 
 
-/** @typedef {import('../../texture.js').TextureParser} TextureParser */
+/** @typedef {import('../../handlers/texture.js').TextureParser} TextureParser */
 /**
  * Legacy texture parser for dds files.
  *
@@ -36054,7 +36146,7 @@ declare class Ktx2Parser implements TextureParser {
 }
 
 
-/** @typedef {import('../../texture.js').TextureParser} TextureParser */
+/** @typedef {import('../../handlers/texture.js').TextureParser} TextureParser */
 /**
  * Parser for basis files.
  *
@@ -36070,7 +36162,7 @@ declare class BasisParser implements TextureParser {
 }
 
 
-/** @typedef {import('../../texture.js').TextureParser} TextureParser */
+/** @typedef {import('../../handlers/texture.js').TextureParser} TextureParser */
 /**
  * Texture parser for hdr files.
  *
@@ -36247,5 +36339,5 @@ declare function registerScript(script: typeof ScriptType, name?: string, app?: 
 
 declare const reservedAttributes: {};
 
-export { ABSOLUTE_URL, ACTION_GAMEPAD, ACTION_KEYBOARD, ACTION_MOUSE, ADDRESS_CLAMP_TO_EDGE, ADDRESS_MIRRORED_REPEAT, ADDRESS_REPEAT, ANIM_BLEND_1D, ANIM_BLEND_2D_CARTESIAN, ANIM_BLEND_2D_DIRECTIONAL, ANIM_BLEND_DIRECT, ANIM_CONTROL_STATES, ANIM_EQUAL_TO, ANIM_GREATER_THAN, ANIM_GREATER_THAN_EQUAL_TO, ANIM_INTERRUPTION_NEXT, ANIM_INTERRUPTION_NEXT_PREV, ANIM_INTERRUPTION_NONE, ANIM_INTERRUPTION_PREV, ANIM_INTERRUPTION_PREV_NEXT, ANIM_LAYER_ADDITIVE, ANIM_LAYER_OVERWRITE, ANIM_LESS_THAN, ANIM_LESS_THAN_EQUAL_TO, ANIM_NOT_EQUAL_TO, ANIM_PARAMETER_BOOLEAN, ANIM_PARAMETER_FLOAT, ANIM_PARAMETER_INTEGER, ANIM_PARAMETER_TRIGGER, ANIM_STATE_ANY, ANIM_STATE_END, ANIM_STATE_START, ASPECT_AUTO, ASPECT_MANUAL, ASSET_ANIMATION, ASSET_AUDIO, ASSET_CONTAINER, ASSET_CSS, ASSET_CUBEMAP, ASSET_HTML, ASSET_IMAGE, ASSET_JSON, ASSET_MATERIAL, ASSET_MODEL, ASSET_SCRIPT, ASSET_SHADER, ASSET_TEXT, ASSET_TEXTURE, AXIS_KEY, AXIS_MOUSE_X, AXIS_MOUSE_Y, AXIS_PAD_L_X, AXIS_PAD_L_Y, AXIS_PAD_R_X, AXIS_PAD_R_Y, AnimBinder, AnimClip, AnimClipHandler, AnimComponent, AnimComponentLayer, AnimComponentSystem, AnimController, AnimCurve, AnimData, AnimEvaluator, AnimEvents, AnimSnapshot, AnimStateGraph, AnimStateGraphHandler, AnimTarget, AnimTrack, Animation, AnimationComponent, AnimationComponentSystem, AnimationHandler, AppBase, AppOptions, Application, Asset, AssetListLoader, AssetReference, AssetRegistry, AudioHandler, AudioListenerComponent, AudioListenerComponentSystem, AudioSourceComponent, AudioSourceComponentSystem, BAKE_COLOR, BAKE_COLORDIR, BINDGROUP_MESH, BINDGROUP_VIEW, BLENDEQUATION_ADD, BLENDEQUATION_MAX, BLENDEQUATION_MIN, BLENDEQUATION_REVERSE_SUBTRACT, BLENDEQUATION_SUBTRACT, BLENDMODE_CONSTANT_ALPHA, BLENDMODE_CONSTANT_COLOR, BLENDMODE_DST_ALPHA, BLENDMODE_DST_COLOR, BLENDMODE_ONE, BLENDMODE_ONE_MINUS_CONSTANT_ALPHA, BLENDMODE_ONE_MINUS_CONSTANT_COLOR, BLENDMODE_ONE_MINUS_DST_ALPHA, BLENDMODE_ONE_MINUS_DST_COLOR, BLENDMODE_ONE_MINUS_SRC_ALPHA, BLENDMODE_ONE_MINUS_SRC_COLOR, BLENDMODE_SRC_ALPHA, BLENDMODE_SRC_ALPHA_SATURATE, BLENDMODE_SRC_COLOR, BLENDMODE_ZERO, BLEND_ADDITIVE, BLEND_ADDITIVEALPHA, BLEND_MAX, BLEND_MIN, BLEND_MULTIPLICATIVE, BLEND_MULTIPLICATIVE2X, BLEND_NONE, BLEND_NORMAL, BLEND_PREMULTIPLIED, BLEND_SCREEN, BLEND_SUBTRACTIVE, BLUR_BOX, BLUR_GAUSSIAN, BODYFLAG_KINEMATIC_OBJECT, BODYFLAG_NORESPONSE_OBJECT, BODYFLAG_STATIC_OBJECT, BODYGROUP_DEFAULT, BODYGROUP_DYNAMIC, BODYGROUP_ENGINE_1, BODYGROUP_ENGINE_2, BODYGROUP_ENGINE_3, BODYGROUP_KINEMATIC, BODYGROUP_NONE, BODYGROUP_STATIC, BODYGROUP_TRIGGER, BODYGROUP_USER_1, BODYGROUP_USER_2, BODYGROUP_USER_3, BODYGROUP_USER_4, BODYGROUP_USER_5, BODYGROUP_USER_6, BODYGROUP_USER_7, BODYGROUP_USER_8, BODYMASK_ALL, BODYMASK_NONE, BODYMASK_NOT_STATIC, BODYMASK_NOT_STATIC_KINEMATIC, BODYMASK_STATIC, BODYSTATE_ACTIVE_TAG, BODYSTATE_DISABLE_DEACTIVATION, BODYSTATE_DISABLE_SIMULATION, BODYSTATE_ISLAND_SLEEPING, BODYSTATE_WANTS_DEACTIVATION, BODYTYPE_DYNAMIC, BODYTYPE_KINEMATIC, BODYTYPE_STATIC, BUFFER_DYNAMIC, BUFFER_GPUDYNAMIC, BUFFER_STATIC, BUFFER_STREAM, BUTTON_TRANSITION_MODE_SPRITE_CHANGE, BUTTON_TRANSITION_MODE_TINT, BasicMaterial, Batch, BatchGroup, BatchManager, BinaryHandler, BoundingBox, BoundingSphere, Bundle, BundleHandler, BundleRegistry, ButtonComponent, ButtonComponentSystem, CHUNKAPI_1_51, CHUNKAPI_1_55, CHUNKAPI_1_56, CHUNKAPI_1_57, CLEARFLAG_COLOR, CLEARFLAG_DEPTH, CLEARFLAG_STENCIL, COMPUPDATED_BLEND, COMPUPDATED_CAMERAS, COMPUPDATED_INSTANCES, COMPUPDATED_LIGHTS, CUBEFACE_NEGX, CUBEFACE_NEGY, CUBEFACE_NEGZ, CUBEFACE_POSX, CUBEFACE_POSY, CUBEFACE_POSZ, CUBEPROJ_BOX, CUBEPROJ_NONE, CULLFACE_BACK, CULLFACE_FRONT, CULLFACE_FRONTANDBACK, CULLFACE_NONE, CURVE_CARDINAL, CURVE_CATMULL, CURVE_LINEAR, CURVE_SMOOTHSTEP, CURVE_SPLINE, CURVE_STEP, Camera, CameraComponent, CameraComponentSystem, CanvasFont, CollisionComponent, CollisionComponentSystem, Color, Command, Component, ComponentSystem, ComponentSystemRegistry, ContactPoint, ContactResult, ContainerHandler, ContainerResource, ContextCreationError, Controller, CssHandler, CubemapHandler, Curve, CurveSet, DETAILMODE_ADD, DETAILMODE_MAX, DETAILMODE_MIN, DETAILMODE_MUL, DETAILMODE_OVERLAY, DETAILMODE_SCREEN, DEVICETYPE_WEBGL, DEVICETYPE_WEBGPU, DISTANCE_EXPONENTIAL, DISTANCE_INVERSE, DISTANCE_LINEAR, DefaultAnimBinder, ELEMENTTYPE_FLOAT32, ELEMENTTYPE_GROUP, ELEMENTTYPE_IMAGE, ELEMENTTYPE_INT16, ELEMENTTYPE_INT32, ELEMENTTYPE_INT8, ELEMENTTYPE_TEXT, ELEMENTTYPE_UINT16, ELEMENTTYPE_UINT32, ELEMENTTYPE_UINT8, EMITTERSHAPE_BOX, EMITTERSHAPE_SPHERE, EVENT_KEYDOWN, EVENT_KEYUP, EVENT_MOUSEDOWN, EVENT_MOUSEMOVE, EVENT_MOUSEUP, EVENT_MOUSEWHEEL, EVENT_SELECT, EVENT_SELECTEND, EVENT_SELECTSTART, EVENT_TOUCHCANCEL, EVENT_TOUCHEND, EVENT_TOUCHMOVE, EVENT_TOUCHSTART, ElementComponent, ElementComponentSystem, ElementDragHelper, ElementInput, ElementInputEvent, ElementMouseEvent, ElementSelectEvent, ElementTouchEvent, Entity, EntityReference, EnvLighting, EventHandler, FILLMODE_FILL_WINDOW, FILLMODE_KEEP_ASPECT, FILLMODE_NONE, FILTER_LINEAR, FILTER_LINEAR_MIPMAP_LINEAR, FILTER_LINEAR_MIPMAP_NEAREST, FILTER_NEAREST, FILTER_NEAREST_MIPMAP_LINEAR, FILTER_NEAREST_MIPMAP_NEAREST, FITMODE_CONTAIN, FITMODE_COVER, FITMODE_STRETCH, FITTING_BOTH, FITTING_NONE, FITTING_SHRINK, FITTING_STRETCH, FOG_EXP, FOG_EXP2, FOG_LINEAR, FOG_NONE, FONT_BITMAP, FONT_MSDF, FRESNEL_NONE, FRESNEL_SCHLICK, FUNC_ALWAYS, FUNC_EQUAL, FUNC_GREATER, FUNC_GREATEREQUAL, FUNC_LESS, FUNC_LESSEQUAL, FUNC_NEVER, FUNC_NOTEQUAL, FolderHandler, Font, FontHandler, ForwardRenderer, Frustum, GAMMA_NONE, GAMMA_SRGB, GAMMA_SRGBFAST, GAMMA_SRGBHDR, GamePads, GraphNode, GraphicsDevice, HierarchyHandler, HtmlHandler, Http, I18n, INDEXFORMAT_UINT16, INDEXFORMAT_UINT32, INDEXFORMAT_UINT8, INTERPOLATION_CUBIC, INTERPOLATION_LINEAR, INTERPOLATION_STEP, ImageElement, IndexBuffer, IndexedList, JointComponent, JointComponentSystem, JsonHandler, JsonStandardMaterialParser, KEY_0, KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7, KEY_8, KEY_9, KEY_A, KEY_ADD, KEY_ALT, KEY_B, KEY_BACKSPACE, KEY_BACK_SLASH, KEY_C, KEY_CAPS_LOCK, KEY_CLOSE_BRACKET, KEY_COMMA, KEY_CONTEXT_MENU, KEY_CONTROL, KEY_D, KEY_DECIMAL, KEY_DELETE, KEY_DIVIDE, KEY_DOWN, KEY_E, KEY_END, KEY_ENTER, KEY_EQUAL, KEY_ESCAPE, KEY_F, KEY_F1, KEY_F10, KEY_F11, KEY_F12, KEY_F2, KEY_F3, KEY_F4, KEY_F5, KEY_F6, KEY_F7, KEY_F8, KEY_F9, KEY_G, KEY_H, KEY_HOME, KEY_I, KEY_INSERT, KEY_J, KEY_K, KEY_L, KEY_LEFT, KEY_M, KEY_META, KEY_MULTIPLY, KEY_N, KEY_NUMPAD_0, KEY_NUMPAD_1, KEY_NUMPAD_2, KEY_NUMPAD_3, KEY_NUMPAD_4, KEY_NUMPAD_5, KEY_NUMPAD_6, KEY_NUMPAD_7, KEY_NUMPAD_8, KEY_NUMPAD_9, KEY_O, KEY_OPEN_BRACKET, KEY_P, KEY_PAGE_DOWN, KEY_PAGE_UP, KEY_PAUSE, KEY_PERIOD, KEY_PRINT_SCREEN, KEY_Q, KEY_R, KEY_RETURN, KEY_RIGHT, KEY_S, KEY_SEMICOLON, KEY_SEPARATOR, KEY_SHIFT, KEY_SLASH, KEY_SPACE, KEY_SUBTRACT, KEY_T, KEY_TAB, KEY_U, KEY_UP, KEY_V, KEY_W, KEY_WINDOWS, KEY_X, KEY_Y, KEY_Z, Key, Keyboard, KeyboardEvent, LAYERID_DEPTH, LAYERID_IMMEDIATE, LAYERID_SKYBOX, LAYERID_UI, LAYERID_WORLD, LAYER_FX, LAYER_GIZMO, LAYER_HUD, LAYER_WORLD, LIGHTFALLOFF_INVERSESQUARED, LIGHTFALLOFF_LINEAR, LIGHTSHAPE_DISK, LIGHTSHAPE_PUNCTUAL, LIGHTSHAPE_RECT, LIGHTSHAPE_SPHERE, LIGHTTYPE_COUNT, LIGHTTYPE_DIRECTIONAL, LIGHTTYPE_OMNI, LIGHTTYPE_POINT, LIGHTTYPE_SPOT, LINEBATCH_GIZMO, LINEBATCH_OVERLAY, LINEBATCH_WORLD, Layer, LayerComposition, LayoutCalculator, LayoutChildComponent, LayoutChildComponentSystem, LayoutGroupComponent, LayoutGroupComponentSystem, Light, LightComponent, LightComponentSystem, LightingParams, Lightmapper, LocalizedAsset, MASK_AFFECT_DYNAMIC, MASK_AFFECT_LIGHTMAPPED, MASK_BAKE, MOTION_FREE, MOTION_LIMITED, MOTION_LOCKED, MOUSEBUTTON_LEFT, MOUSEBUTTON_MIDDLE, MOUSEBUTTON_NONE, MOUSEBUTTON_RIGHT, Mat3, Mat4, Material, MaterialHandler, Mesh, MeshInstance, Model, ModelComponent, ModelComponentSystem, ModelHandler, Morph, MorphInstance, MorphTarget, Mouse, MouseEvent$1 as MouseEvent, Node$1 as Node, ORIENTATION_HORIZONTAL, ORIENTATION_VERTICAL, OrientedBox, PAD_1, PAD_2, PAD_3, PAD_4, PAD_DOWN, PAD_FACE_1, PAD_FACE_2, PAD_FACE_3, PAD_FACE_4, PAD_LEFT, PAD_L_SHOULDER_1, PAD_L_SHOULDER_2, PAD_L_STICK_BUTTON, PAD_L_STICK_X, PAD_L_STICK_Y, PAD_RIGHT, PAD_R_SHOULDER_1, PAD_R_SHOULDER_2, PAD_R_STICK_BUTTON, PAD_R_STICK_X, PAD_R_STICK_Y, PAD_SELECT, PAD_START, PAD_UP, PAD_VENDOR, PARTICLEMODE_CPU, PARTICLEMODE_GPU, PARTICLEORIENTATION_EMITTER, PARTICLEORIENTATION_SCREEN, PARTICLEORIENTATION_WORLD, PARTICLESORT_DISTANCE, PARTICLESORT_NEWER_FIRST, PARTICLESORT_NONE, PARTICLESORT_OLDER_FIRST, PIXELFORMAT_111110F, PIXELFORMAT_A8, PIXELFORMAT_ASTC_4x4, PIXELFORMAT_ATC_RGB, PIXELFORMAT_ATC_RGBA, PIXELFORMAT_DEPTH, PIXELFORMAT_DEPTHSTENCIL, PIXELFORMAT_DXT1, PIXELFORMAT_DXT3, PIXELFORMAT_DXT5, PIXELFORMAT_ETC1, PIXELFORMAT_ETC2_RGB, PIXELFORMAT_ETC2_RGBA, PIXELFORMAT_L8, PIXELFORMAT_L8_A8, PIXELFORMAT_PVRTC_2BPP_RGBA_1, PIXELFORMAT_PVRTC_2BPP_RGB_1, PIXELFORMAT_PVRTC_4BPP_RGBA_1, PIXELFORMAT_PVRTC_4BPP_RGB_1, PIXELFORMAT_R32F, PIXELFORMAT_R4_G4_B4_A4, PIXELFORMAT_R5_G5_B5_A1, PIXELFORMAT_R5_G6_B5, PIXELFORMAT_R8_G8_B8, PIXELFORMAT_R8_G8_B8_A8, PIXELFORMAT_RGB16F, PIXELFORMAT_RGB32F, PIXELFORMAT_RGBA16F, PIXELFORMAT_RGBA32F, PIXELFORMAT_SRGB, PIXELFORMAT_SRGBA, PRIMITIVE_LINELOOP, PRIMITIVE_LINES, PRIMITIVE_LINESTRIP, PRIMITIVE_POINTS, PRIMITIVE_TRIANGLES, PRIMITIVE_TRIFAN, PRIMITIVE_TRISTRIP, PROJECTION_ORTHOGRAPHIC, PROJECTION_PERSPECTIVE, ParticleEmitter, ParticleSystemComponent, ParticleSystemComponentSystem, PhongMaterial, Picker, Plane, PostEffect$1 as PostEffect, PostEffectQueue, ProgramLibrary, Quat, RENDERSTYLE_POINTS, RENDERSTYLE_SOLID, RENDERSTYLE_WIREFRAME, RESOLUTION_AUTO, RESOLUTION_FIXED, RIGIDBODY_ACTIVE_TAG, RIGIDBODY_CF_KINEMATIC_OBJECT, RIGIDBODY_CF_NORESPONSE_OBJECT, RIGIDBODY_CF_STATIC_OBJECT, RIGIDBODY_DISABLE_DEACTIVATION, RIGIDBODY_DISABLE_SIMULATION, RIGIDBODY_ISLAND_SLEEPING, RIGIDBODY_TYPE_DYNAMIC, RIGIDBODY_TYPE_KINEMATIC, RIGIDBODY_TYPE_STATIC, RIGIDBODY_WANTS_DEACTIVATION, Ray, RaycastResult, ReadStream, RenderComponent, RenderComponentSystem, RenderHandler, RenderTarget, ResourceHandler, ResourceLoader, RigidBodyComponent, RigidBodyComponentSystem, SAMPLETYPE_DEPTH, SAMPLETYPE_FLOAT, SAMPLETYPE_UNFILTERABLE_FLOAT, SCALEMODE_BLEND, SCALEMODE_NONE, SCROLLBAR_VISIBILITY_SHOW_ALWAYS, SCROLLBAR_VISIBILITY_SHOW_WHEN_REQUIRED, SCROLL_MODE_BOUNCE, SCROLL_MODE_CLAMP, SCROLL_MODE_INFINITE, SEMANTIC_ATTR, SEMANTIC_ATTR0, SEMANTIC_ATTR1, SEMANTIC_ATTR10, SEMANTIC_ATTR11, SEMANTIC_ATTR12, SEMANTIC_ATTR13, SEMANTIC_ATTR14, SEMANTIC_ATTR15, SEMANTIC_ATTR2, SEMANTIC_ATTR3, SEMANTIC_ATTR4, SEMANTIC_ATTR5, SEMANTIC_ATTR6, SEMANTIC_ATTR7, SEMANTIC_ATTR8, SEMANTIC_ATTR9, SEMANTIC_BLENDINDICES, SEMANTIC_BLENDWEIGHT, SEMANTIC_COLOR, SEMANTIC_NORMAL, SEMANTIC_POSITION, SEMANTIC_TANGENT, SEMANTIC_TEXCOORD, SEMANTIC_TEXCOORD0, SEMANTIC_TEXCOORD1, SEMANTIC_TEXCOORD2, SEMANTIC_TEXCOORD3, SEMANTIC_TEXCOORD4, SEMANTIC_TEXCOORD5, SEMANTIC_TEXCOORD6, SEMANTIC_TEXCOORD7, SHADERDEF_DIRLM, SHADERDEF_INSTANCING, SHADERDEF_LM, SHADERDEF_LMAMBIENT, SHADERDEF_MORPH_NORMAL, SHADERDEF_MORPH_POSITION, SHADERDEF_MORPH_TEXTURE_BASED, SHADERDEF_NOSHADOW, SHADERDEF_SCREENSPACE, SHADERDEF_SKIN, SHADERDEF_TANGENTS, SHADERDEF_UV0, SHADERDEF_UV1, SHADERDEF_VCOLOR, SHADERSTAGE_COMPUTE, SHADERSTAGE_FRAGMENT, SHADERSTAGE_VERTEX, SHADERTAG_MATERIAL, SHADERTYPE_DEPTH, SHADERTYPE_FORWARD, SHADERTYPE_PICK, SHADERTYPE_SHADOW, SHADER_DEPTH, SHADER_FORWARD, SHADER_FORWARDHDR, SHADER_PICK, SHADER_SHADOW, SHADOWUPDATE_NONE, SHADOWUPDATE_REALTIME, SHADOWUPDATE_THISFRAME, SHADOW_COUNT, SHADOW_DEPTH, SHADOW_PCF1, SHADOW_PCF3, SHADOW_PCF5, SHADOW_VSM16, SHADOW_VSM32, SHADOW_VSM8, SORTKEY_DEPTH, SORTKEY_FORWARD, SORTMODE_BACK2FRONT, SORTMODE_CUSTOM, SORTMODE_FRONT2BACK, SORTMODE_MANUAL, SORTMODE_MATERIALMESH, SORTMODE_NONE, SPECOCC_AO, SPECOCC_GLOSSDEPENDENT, SPECOCC_NONE, SPECULAR_BLINN, SPECULAR_PHONG, SPRITETYPE_ANIMATED, SPRITETYPE_SIMPLE, SPRITE_RENDERMODE_SIMPLE, SPRITE_RENDERMODE_SLICED, SPRITE_RENDERMODE_TILED, STENCILOP_DECREMENT, STENCILOP_DECREMENTWRAP, STENCILOP_INCREMENT, STENCILOP_INCREMENTWRAP, STENCILOP_INVERT, STENCILOP_KEEP, STENCILOP_REPLACE, STENCILOP_ZERO, Scene, SceneHandler, SceneRegistry, SceneRegistryItem, SceneSettingsHandler, ScopeId, ScopeSpace, ScreenComponent, ScreenComponentSystem, ScriptAttributes, ScriptComponent, ScriptComponentSystem, ScriptHandler, ScriptLegacyComponent, ScriptLegacyComponentSystem, ScriptRegistry, ScriptType, ScrollViewComponent, ScrollViewComponentSystem, ScrollbarComponent, ScrollbarComponentSystem, Shader, ShaderHandler, SingleContactResult, Skeleton, Skin, SkinBatchInstance, SkinInstance, SortedLoopArray, Sound, SoundComponent, SoundComponentSystem, SoundInstance, SoundInstance3d, SoundManager, SoundSlot, Sprite, SpriteAnimationClip, SpriteComponent, SpriteComponentSystem, SpriteHandler, StandardMaterial as StandardMaterial, StencilParameters, TEXHINT_ASSET, TEXHINT_LIGHTMAP, TEXHINT_NONE, TEXHINT_SHADOWMAP, TEXTUREDIMENSION_1D, TEXTUREDIMENSION_2D, TEXTUREDIMENSION_2D_ARRAY, TEXTUREDIMENSION_3D, TEXTUREDIMENSION_CUBE, TEXTUREDIMENSION_CUBE_ARRAY, TEXTURELOCK_READ, TEXTURELOCK_WRITE, TEXTUREPROJECTION_CUBE, TEXTUREPROJECTION_EQUIRECT, TEXTUREPROJECTION_NONE, TEXTUREPROJECTION_OCTAHEDRAL, TEXTURETYPE_DEFAULT, TEXTURETYPE_RGBE, TEXTURETYPE_RGBM, TEXTURETYPE_RGBP, TEXTURETYPE_SWIZZLEGGGR, TONEMAP_ACES, TONEMAP_ACES2, TONEMAP_FILMIC, TONEMAP_HEJL, TONEMAP_LINEAR, TRACEID_RENDER_ACTION, TRACEID_RENDER_FRAME, TRACEID_RENDER_PASS, TRACEID_RENDER_PASS_DETAIL, TRACEID_RENDER_TARGET_ALLOC, TRACEID_SHADER_ALLOC, TRACEID_TEXTURE_ALLOC, TRACEID_VRAM_IB, TRACEID_VRAM_TEXTURE, TRACEID_VRAM_VB, TYPE_FLOAT32, TYPE_INT16, TYPE_INT32, TYPE_INT8, TYPE_UINT16, TYPE_UINT32, TYPE_UINT8, Tags, Template, TemplateHandler, TextElement, TextHandler, Texture, TextureAtlas, TextureAtlasHandler, TextureHandler, TextureParser, Timer, Touch$1 as Touch, TouchDevice, TouchEvent$1 as TouchEvent, Tracing, TransformFeedback, UNIFORMTYPE_BOOL, UNIFORMTYPE_BVEC2, UNIFORMTYPE_BVEC3, UNIFORMTYPE_BVEC4, UNIFORMTYPE_FLOAT, UNIFORMTYPE_FLOATARRAY, UNIFORMTYPE_INT, UNIFORMTYPE_IVEC2, UNIFORMTYPE_IVEC3, UNIFORMTYPE_IVEC4, UNIFORMTYPE_MAT2, UNIFORMTYPE_MAT3, UNIFORMTYPE_MAT4, UNIFORMTYPE_TEXTURE2D, UNIFORMTYPE_TEXTURE2D_SHADOW, UNIFORMTYPE_TEXTURE3D, UNIFORMTYPE_TEXTURECUBE, UNIFORMTYPE_TEXTURECUBE_SHADOW, UNIFORMTYPE_VEC2, UNIFORMTYPE_VEC2ARRAY, UNIFORMTYPE_VEC3, UNIFORMTYPE_VEC3ARRAY, UNIFORMTYPE_VEC4, UNIFORMTYPE_VEC4ARRAY, UNIFORM_BUFFER_DEFAULT_SLOT_NAME, URI, UnsupportedBrowserError, VIEW_CENTER, VIEW_LEFT, VIEW_RIGHT, Vec2, Vec3, Vec4, VertexBuffer, VertexFormat, VertexIterator, WasmModule, WebglGraphicsDevice, WorldClusters, XRDEPTHSENSINGFORMAT_F32, XRDEPTHSENSINGFORMAT_L8A8, XRDEPTHSENSINGUSAGE_CPU, XRDEPTHSENSINGUSAGE_GPU, XRHAND_LEFT, XRHAND_NONE, XRHAND_RIGHT, XRSPACE_BOUNDEDFLOOR, XRSPACE_LOCAL, XRSPACE_LOCALFLOOR, XRSPACE_UNBOUNDED, XRSPACE_VIEWER, XRTARGETRAY_GAZE, XRTARGETRAY_POINTER, XRTARGETRAY_SCREEN, XRTRACKABLE_MESH, XRTRACKABLE_PLANE, XRTRACKABLE_POINT, XRTYPE_AR, XRTYPE_INLINE, XRTYPE_VR, XrDepthSensing, XrDomOverlay, XrHitTest, XrHitTestSource, XrImageTracking, XrInput, XrInputSource, XrLightEstimation, XrManager, XrPlane, XrPlaneDetection, XrTrackedImage, ZoneComponent, ZoneComponentSystem, anim, app, apps, asset, audio, basisInitialize, basisSetDownloadConfig, basisTranscode, bindGroupNames, calculateNormals, calculateTangents, common, config, createBox, createCapsule, createCone, createCylinder, createMesh, createPlane, createScript, createShader, createShaderFromCode, createSphere, createStyle, createTorus, createURI, data, drawFullscreenQuad, drawQuadWithShader, drawTexture, events, extend, fw, getTouchTargetCoords, gfx, guid, http, inherits, input, isDefined, log, makeArray, math, now, path, platform, posteffect, prefilterCubemap, programlib, registerScript, reprojectTexture, revision, scene, script, semanticToLocation, shFromCubemap, shaderChunks, shaderChunksLightmapper, shadowTypeToString, shape, string, time, type, typedArrayIndexFormats, typedArrayIndexFormatsByteSize, typedArrayToType, typedArrayTypes, typedArrayTypesByteSize, uniformTypeToName, version };
+export { ABSOLUTE_URL, ACTION_GAMEPAD, ACTION_KEYBOARD, ACTION_MOUSE, ADDRESS_CLAMP_TO_EDGE, ADDRESS_MIRRORED_REPEAT, ADDRESS_REPEAT, ANIM_BLEND_1D, ANIM_BLEND_2D_CARTESIAN, ANIM_BLEND_2D_DIRECTIONAL, ANIM_BLEND_DIRECT, ANIM_CONTROL_STATES, ANIM_EQUAL_TO, ANIM_GREATER_THAN, ANIM_GREATER_THAN_EQUAL_TO, ANIM_INTERRUPTION_NEXT, ANIM_INTERRUPTION_NEXT_PREV, ANIM_INTERRUPTION_NONE, ANIM_INTERRUPTION_PREV, ANIM_INTERRUPTION_PREV_NEXT, ANIM_LAYER_ADDITIVE, ANIM_LAYER_OVERWRITE, ANIM_LESS_THAN, ANIM_LESS_THAN_EQUAL_TO, ANIM_NOT_EQUAL_TO, ANIM_PARAMETER_BOOLEAN, ANIM_PARAMETER_FLOAT, ANIM_PARAMETER_INTEGER, ANIM_PARAMETER_TRIGGER, ANIM_STATE_ANY, ANIM_STATE_END, ANIM_STATE_START, ASPECT_AUTO, ASPECT_MANUAL, ASSET_ANIMATION, ASSET_AUDIO, ASSET_CONTAINER, ASSET_CSS, ASSET_CUBEMAP, ASSET_HTML, ASSET_IMAGE, ASSET_JSON, ASSET_MATERIAL, ASSET_MODEL, ASSET_SCRIPT, ASSET_SHADER, ASSET_TEXT, ASSET_TEXTURE, AXIS_KEY, AXIS_MOUSE_X, AXIS_MOUSE_Y, AXIS_PAD_L_X, AXIS_PAD_L_Y, AXIS_PAD_R_X, AXIS_PAD_R_Y, AnimBinder, AnimClip, AnimClipHandler, AnimComponent, AnimComponentLayer, AnimComponentSystem, AnimController, AnimCurve, AnimData, AnimEvaluator, AnimEvents, AnimSnapshot, AnimStateGraph, AnimStateGraphHandler, AnimTarget, AnimTrack, Animation, AnimationComponent, AnimationComponentSystem, AnimationHandler, AppBase, AppOptions, Application, Asset, AssetListLoader, AssetReference, AssetRegistry, AudioHandler, AudioListenerComponent, AudioListenerComponentSystem, AudioSourceComponent, AudioSourceComponentSystem, BAKE_COLOR, BAKE_COLORDIR, BINDGROUP_MESH, BINDGROUP_VIEW, BLENDEQUATION_ADD, BLENDEQUATION_MAX, BLENDEQUATION_MIN, BLENDEQUATION_REVERSE_SUBTRACT, BLENDEQUATION_SUBTRACT, BLENDMODE_CONSTANT_ALPHA, BLENDMODE_CONSTANT_COLOR, BLENDMODE_DST_ALPHA, BLENDMODE_DST_COLOR, BLENDMODE_ONE, BLENDMODE_ONE_MINUS_CONSTANT_ALPHA, BLENDMODE_ONE_MINUS_CONSTANT_COLOR, BLENDMODE_ONE_MINUS_DST_ALPHA, BLENDMODE_ONE_MINUS_DST_COLOR, BLENDMODE_ONE_MINUS_SRC_ALPHA, BLENDMODE_ONE_MINUS_SRC_COLOR, BLENDMODE_SRC_ALPHA, BLENDMODE_SRC_ALPHA_SATURATE, BLENDMODE_SRC_COLOR, BLENDMODE_ZERO, BLEND_ADDITIVE, BLEND_ADDITIVEALPHA, BLEND_MAX, BLEND_MIN, BLEND_MULTIPLICATIVE, BLEND_MULTIPLICATIVE2X, BLEND_NONE, BLEND_NORMAL, BLEND_PREMULTIPLIED, BLEND_SCREEN, BLEND_SUBTRACTIVE, BLUR_BOX, BLUR_GAUSSIAN, BODYFLAG_KINEMATIC_OBJECT, BODYFLAG_NORESPONSE_OBJECT, BODYFLAG_STATIC_OBJECT, BODYGROUP_DEFAULT, BODYGROUP_DYNAMIC, BODYGROUP_ENGINE_1, BODYGROUP_ENGINE_2, BODYGROUP_ENGINE_3, BODYGROUP_KINEMATIC, BODYGROUP_NONE, BODYGROUP_STATIC, BODYGROUP_TRIGGER, BODYGROUP_USER_1, BODYGROUP_USER_2, BODYGROUP_USER_3, BODYGROUP_USER_4, BODYGROUP_USER_5, BODYGROUP_USER_6, BODYGROUP_USER_7, BODYGROUP_USER_8, BODYMASK_ALL, BODYMASK_NONE, BODYMASK_NOT_STATIC, BODYMASK_NOT_STATIC_KINEMATIC, BODYMASK_STATIC, BODYSTATE_ACTIVE_TAG, BODYSTATE_DISABLE_DEACTIVATION, BODYSTATE_DISABLE_SIMULATION, BODYSTATE_ISLAND_SLEEPING, BODYSTATE_WANTS_DEACTIVATION, BODYTYPE_DYNAMIC, BODYTYPE_KINEMATIC, BODYTYPE_STATIC, BUFFER_DYNAMIC, BUFFER_GPUDYNAMIC, BUFFER_STATIC, BUFFER_STREAM, BUTTON_TRANSITION_MODE_SPRITE_CHANGE, BUTTON_TRANSITION_MODE_TINT, BasicMaterial, Batch, BatchGroup, BatchManager, BinaryHandler, BoundingBox, BoundingSphere, Bundle, BundleHandler, BundleRegistry, ButtonComponent, ButtonComponentSystem, CHUNKAPI_1_51, CHUNKAPI_1_55, CHUNKAPI_1_56, CHUNKAPI_1_57, CHUNKAPI_1_58, CLEARFLAG_COLOR, CLEARFLAG_DEPTH, CLEARFLAG_STENCIL, COMPUPDATED_BLEND, COMPUPDATED_CAMERAS, COMPUPDATED_INSTANCES, COMPUPDATED_LIGHTS, CUBEFACE_NEGX, CUBEFACE_NEGY, CUBEFACE_NEGZ, CUBEFACE_POSX, CUBEFACE_POSY, CUBEFACE_POSZ, CUBEPROJ_BOX, CUBEPROJ_NONE, CULLFACE_BACK, CULLFACE_FRONT, CULLFACE_FRONTANDBACK, CULLFACE_NONE, CURVE_CARDINAL, CURVE_CATMULL, CURVE_LINEAR, CURVE_SMOOTHSTEP, CURVE_SPLINE, CURVE_STEP, Camera, CameraComponent, CameraComponentSystem, CanvasFont, CollisionComponent, CollisionComponentSystem, Color, Command, Component, ComponentSystem, ComponentSystemRegistry, ContactPoint, ContactResult, ContainerHandler, ContainerResource, ContextCreationError, Controller, CssHandler, CubemapHandler, Curve, CurveSet, DETAILMODE_ADD, DETAILMODE_MAX, DETAILMODE_MIN, DETAILMODE_MUL, DETAILMODE_OVERLAY, DETAILMODE_SCREEN, DEVICETYPE_WEBGL, DEVICETYPE_WEBGPU, DISTANCE_EXPONENTIAL, DISTANCE_INVERSE, DISTANCE_LINEAR, DefaultAnimBinder, ELEMENTTYPE_FLOAT32, ELEMENTTYPE_GROUP, ELEMENTTYPE_IMAGE, ELEMENTTYPE_INT16, ELEMENTTYPE_INT32, ELEMENTTYPE_INT8, ELEMENTTYPE_TEXT, ELEMENTTYPE_UINT16, ELEMENTTYPE_UINT32, ELEMENTTYPE_UINT8, EMITTERSHAPE_BOX, EMITTERSHAPE_SPHERE, EVENT_KEYDOWN, EVENT_KEYUP, EVENT_MOUSEDOWN, EVENT_MOUSEMOVE, EVENT_MOUSEUP, EVENT_MOUSEWHEEL, EVENT_SELECT, EVENT_SELECTEND, EVENT_SELECTSTART, EVENT_TOUCHCANCEL, EVENT_TOUCHEND, EVENT_TOUCHMOVE, EVENT_TOUCHSTART, ElementComponent, ElementComponentSystem, ElementDragHelper, ElementInput, ElementInputEvent, ElementMouseEvent, ElementSelectEvent, ElementTouchEvent, Entity, EntityReference, EnvLighting, EventHandler, FILLMODE_FILL_WINDOW, FILLMODE_KEEP_ASPECT, FILLMODE_NONE, FILTER_LINEAR, FILTER_LINEAR_MIPMAP_LINEAR, FILTER_LINEAR_MIPMAP_NEAREST, FILTER_NEAREST, FILTER_NEAREST_MIPMAP_LINEAR, FILTER_NEAREST_MIPMAP_NEAREST, FITMODE_CONTAIN, FITMODE_COVER, FITMODE_STRETCH, FITTING_BOTH, FITTING_NONE, FITTING_SHRINK, FITTING_STRETCH, FOG_EXP, FOG_EXP2, FOG_LINEAR, FOG_NONE, FONT_BITMAP, FONT_MSDF, FRESNEL_NONE, FRESNEL_SCHLICK, FUNC_ALWAYS, FUNC_EQUAL, FUNC_GREATER, FUNC_GREATEREQUAL, FUNC_LESS, FUNC_LESSEQUAL, FUNC_NEVER, FUNC_NOTEQUAL, FolderHandler, Font, FontHandler, ForwardRenderer, Frustum, GAMMA_NONE, GAMMA_SRGB, GAMMA_SRGBFAST, GAMMA_SRGBHDR, GamePads, GraphNode, GraphicsDevice, HierarchyHandler, HtmlHandler, Http, I18n, INDEXFORMAT_UINT16, INDEXFORMAT_UINT32, INDEXFORMAT_UINT8, INTERPOLATION_CUBIC, INTERPOLATION_LINEAR, INTERPOLATION_STEP, ImageElement, IndexBuffer, IndexedList, JointComponent, JointComponentSystem, JsonHandler, JsonStandardMaterialParser, KEY_0, KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7, KEY_8, KEY_9, KEY_A, KEY_ADD, KEY_ALT, KEY_B, KEY_BACKSPACE, KEY_BACK_SLASH, KEY_C, KEY_CAPS_LOCK, KEY_CLOSE_BRACKET, KEY_COMMA, KEY_CONTEXT_MENU, KEY_CONTROL, KEY_D, KEY_DECIMAL, KEY_DELETE, KEY_DIVIDE, KEY_DOWN, KEY_E, KEY_END, KEY_ENTER, KEY_EQUAL, KEY_ESCAPE, KEY_F, KEY_F1, KEY_F10, KEY_F11, KEY_F12, KEY_F2, KEY_F3, KEY_F4, KEY_F5, KEY_F6, KEY_F7, KEY_F8, KEY_F9, KEY_G, KEY_H, KEY_HOME, KEY_I, KEY_INSERT, KEY_J, KEY_K, KEY_L, KEY_LEFT, KEY_M, KEY_META, KEY_MULTIPLY, KEY_N, KEY_NUMPAD_0, KEY_NUMPAD_1, KEY_NUMPAD_2, KEY_NUMPAD_3, KEY_NUMPAD_4, KEY_NUMPAD_5, KEY_NUMPAD_6, KEY_NUMPAD_7, KEY_NUMPAD_8, KEY_NUMPAD_9, KEY_O, KEY_OPEN_BRACKET, KEY_P, KEY_PAGE_DOWN, KEY_PAGE_UP, KEY_PAUSE, KEY_PERIOD, KEY_PRINT_SCREEN, KEY_Q, KEY_R, KEY_RETURN, KEY_RIGHT, KEY_S, KEY_SEMICOLON, KEY_SEPARATOR, KEY_SHIFT, KEY_SLASH, KEY_SPACE, KEY_SUBTRACT, KEY_T, KEY_TAB, KEY_U, KEY_UP, KEY_V, KEY_W, KEY_WINDOWS, KEY_X, KEY_Y, KEY_Z, Key, Keyboard, KeyboardEvent, LAYERID_DEPTH, LAYERID_IMMEDIATE, LAYERID_SKYBOX, LAYERID_UI, LAYERID_WORLD, LAYER_FX, LAYER_GIZMO, LAYER_HUD, LAYER_WORLD, LIGHTFALLOFF_INVERSESQUARED, LIGHTFALLOFF_LINEAR, LIGHTSHAPE_DISK, LIGHTSHAPE_PUNCTUAL, LIGHTSHAPE_RECT, LIGHTSHAPE_SPHERE, LIGHTTYPE_COUNT, LIGHTTYPE_DIRECTIONAL, LIGHTTYPE_OMNI, LIGHTTYPE_POINT, LIGHTTYPE_SPOT, LINEBATCH_GIZMO, LINEBATCH_OVERLAY, LINEBATCH_WORLD, Layer, LayerComposition, LayoutCalculator, LayoutChildComponent, LayoutChildComponentSystem, LayoutGroupComponent, LayoutGroupComponentSystem, Light, LightComponent, LightComponentSystem, LightingParams, Lightmapper, LocalizedAsset, MASK_AFFECT_DYNAMIC, MASK_AFFECT_LIGHTMAPPED, MASK_BAKE, MOTION_FREE, MOTION_LIMITED, MOTION_LOCKED, MOUSEBUTTON_LEFT, MOUSEBUTTON_MIDDLE, MOUSEBUTTON_NONE, MOUSEBUTTON_RIGHT, Mat3, Mat4, Material, MaterialHandler, Mesh, MeshInstance, Model, ModelComponent, ModelComponentSystem, ModelHandler, Morph, MorphInstance, MorphTarget, Mouse, MouseEvent$1 as MouseEvent, Node$1 as Node, ORIENTATION_HORIZONTAL, ORIENTATION_VERTICAL, OrientedBox, PAD_1, PAD_2, PAD_3, PAD_4, PAD_DOWN, PAD_FACE_1, PAD_FACE_2, PAD_FACE_3, PAD_FACE_4, PAD_LEFT, PAD_L_SHOULDER_1, PAD_L_SHOULDER_2, PAD_L_STICK_BUTTON, PAD_L_STICK_X, PAD_L_STICK_Y, PAD_RIGHT, PAD_R_SHOULDER_1, PAD_R_SHOULDER_2, PAD_R_STICK_BUTTON, PAD_R_STICK_X, PAD_R_STICK_Y, PAD_SELECT, PAD_START, PAD_UP, PAD_VENDOR, PARTICLEMODE_CPU, PARTICLEMODE_GPU, PARTICLEORIENTATION_EMITTER, PARTICLEORIENTATION_SCREEN, PARTICLEORIENTATION_WORLD, PARTICLESORT_DISTANCE, PARTICLESORT_NEWER_FIRST, PARTICLESORT_NONE, PARTICLESORT_OLDER_FIRST, PIXELFORMAT_111110F, PIXELFORMAT_A8, PIXELFORMAT_ASTC_4x4, PIXELFORMAT_ATC_RGB, PIXELFORMAT_ATC_RGBA, PIXELFORMAT_DEPTH, PIXELFORMAT_DEPTHSTENCIL, PIXELFORMAT_DXT1, PIXELFORMAT_DXT3, PIXELFORMAT_DXT5, PIXELFORMAT_ETC1, PIXELFORMAT_ETC2_RGB, PIXELFORMAT_ETC2_RGBA, PIXELFORMAT_L8, PIXELFORMAT_L8_A8, PIXELFORMAT_PVRTC_2BPP_RGBA_1, PIXELFORMAT_PVRTC_2BPP_RGB_1, PIXELFORMAT_PVRTC_4BPP_RGBA_1, PIXELFORMAT_PVRTC_4BPP_RGB_1, PIXELFORMAT_R32F, PIXELFORMAT_R4_G4_B4_A4, PIXELFORMAT_R5_G5_B5_A1, PIXELFORMAT_R5_G6_B5, PIXELFORMAT_R8_G8_B8, PIXELFORMAT_R8_G8_B8_A8, PIXELFORMAT_RGB16F, PIXELFORMAT_RGB32F, PIXELFORMAT_RGBA16F, PIXELFORMAT_RGBA32F, PIXELFORMAT_SRGB, PIXELFORMAT_SRGBA, PRIMITIVE_LINELOOP, PRIMITIVE_LINES, PRIMITIVE_LINESTRIP, PRIMITIVE_POINTS, PRIMITIVE_TRIANGLES, PRIMITIVE_TRIFAN, PRIMITIVE_TRISTRIP, PROJECTION_ORTHOGRAPHIC, PROJECTION_PERSPECTIVE, ParticleEmitter, ParticleSystemComponent, ParticleSystemComponentSystem, PhongMaterial, Picker, Plane, PostEffect$1 as PostEffect, PostEffectQueue, ProgramLibrary, Quat, RENDERSTYLE_POINTS, RENDERSTYLE_SOLID, RENDERSTYLE_WIREFRAME, RESOLUTION_AUTO, RESOLUTION_FIXED, RIGIDBODY_ACTIVE_TAG, RIGIDBODY_CF_KINEMATIC_OBJECT, RIGIDBODY_CF_NORESPONSE_OBJECT, RIGIDBODY_CF_STATIC_OBJECT, RIGIDBODY_DISABLE_DEACTIVATION, RIGIDBODY_DISABLE_SIMULATION, RIGIDBODY_ISLAND_SLEEPING, RIGIDBODY_TYPE_DYNAMIC, RIGIDBODY_TYPE_KINEMATIC, RIGIDBODY_TYPE_STATIC, RIGIDBODY_WANTS_DEACTIVATION, Ray, RaycastResult, ReadStream, RenderComponent, RenderComponentSystem, RenderHandler, RenderTarget, ResourceHandler, ResourceLoader, RigidBodyComponent, RigidBodyComponentSystem, SAMPLETYPE_DEPTH, SAMPLETYPE_FLOAT, SAMPLETYPE_UNFILTERABLE_FLOAT, SCALEMODE_BLEND, SCALEMODE_NONE, SCROLLBAR_VISIBILITY_SHOW_ALWAYS, SCROLLBAR_VISIBILITY_SHOW_WHEN_REQUIRED, SCROLL_MODE_BOUNCE, SCROLL_MODE_CLAMP, SCROLL_MODE_INFINITE, SEMANTIC_ATTR, SEMANTIC_ATTR0, SEMANTIC_ATTR1, SEMANTIC_ATTR10, SEMANTIC_ATTR11, SEMANTIC_ATTR12, SEMANTIC_ATTR13, SEMANTIC_ATTR14, SEMANTIC_ATTR15, SEMANTIC_ATTR2, SEMANTIC_ATTR3, SEMANTIC_ATTR4, SEMANTIC_ATTR5, SEMANTIC_ATTR6, SEMANTIC_ATTR7, SEMANTIC_ATTR8, SEMANTIC_ATTR9, SEMANTIC_BLENDINDICES, SEMANTIC_BLENDWEIGHT, SEMANTIC_COLOR, SEMANTIC_NORMAL, SEMANTIC_POSITION, SEMANTIC_TANGENT, SEMANTIC_TEXCOORD, SEMANTIC_TEXCOORD0, SEMANTIC_TEXCOORD1, SEMANTIC_TEXCOORD2, SEMANTIC_TEXCOORD3, SEMANTIC_TEXCOORD4, SEMANTIC_TEXCOORD5, SEMANTIC_TEXCOORD6, SEMANTIC_TEXCOORD7, SHADERDEF_DIRLM, SHADERDEF_INSTANCING, SHADERDEF_LM, SHADERDEF_LMAMBIENT, SHADERDEF_MORPH_NORMAL, SHADERDEF_MORPH_POSITION, SHADERDEF_MORPH_TEXTURE_BASED, SHADERDEF_NOSHADOW, SHADERDEF_SCREENSPACE, SHADERDEF_SKIN, SHADERDEF_TANGENTS, SHADERDEF_UV0, SHADERDEF_UV1, SHADERDEF_VCOLOR, SHADERSTAGE_COMPUTE, SHADERSTAGE_FRAGMENT, SHADERSTAGE_VERTEX, SHADERTAG_MATERIAL, SHADERTYPE_DEPTH, SHADERTYPE_FORWARD, SHADERTYPE_PICK, SHADERTYPE_SHADOW, SHADER_DEPTH, SHADER_FORWARD, SHADER_FORWARDHDR, SHADER_PICK, SHADER_SHADOW, SHADOWUPDATE_NONE, SHADOWUPDATE_REALTIME, SHADOWUPDATE_THISFRAME, SHADOW_COUNT, SHADOW_DEPTH, SHADOW_PCF1, SHADOW_PCF3, SHADOW_PCF5, SHADOW_VSM16, SHADOW_VSM32, SHADOW_VSM8, SORTKEY_DEPTH, SORTKEY_FORWARD, SORTMODE_BACK2FRONT, SORTMODE_CUSTOM, SORTMODE_FRONT2BACK, SORTMODE_MANUAL, SORTMODE_MATERIALMESH, SORTMODE_NONE, SPECOCC_AO, SPECOCC_GLOSSDEPENDENT, SPECOCC_NONE, SPECULAR_BLINN, SPECULAR_PHONG, SPRITETYPE_ANIMATED, SPRITETYPE_SIMPLE, SPRITE_RENDERMODE_SIMPLE, SPRITE_RENDERMODE_SLICED, SPRITE_RENDERMODE_TILED, STENCILOP_DECREMENT, STENCILOP_DECREMENTWRAP, STENCILOP_INCREMENT, STENCILOP_INCREMENTWRAP, STENCILOP_INVERT, STENCILOP_KEEP, STENCILOP_REPLACE, STENCILOP_ZERO, Scene, SceneHandler, SceneRegistry, SceneRegistryItem, SceneSettingsHandler, ScopeId, ScopeSpace, ScreenComponent, ScreenComponentSystem, ScriptAttributes, ScriptComponent, ScriptComponentSystem, ScriptHandler, ScriptLegacyComponent, ScriptLegacyComponentSystem, ScriptRegistry, ScriptType, ScrollViewComponent, ScrollViewComponentSystem, ScrollbarComponent, ScrollbarComponentSystem, Shader, ShaderHandler, SingleContactResult, Skeleton, Skin, SkinBatchInstance, SkinInstance, SortedLoopArray, Sound, SoundComponent, SoundComponentSystem, SoundInstance, SoundInstance3d, SoundManager, SoundSlot, Sprite, SpriteAnimationClip, SpriteComponent, SpriteComponentSystem, SpriteHandler, StandardMaterial, StencilParameters, TEXHINT_ASSET, TEXHINT_LIGHTMAP, TEXHINT_NONE, TEXHINT_SHADOWMAP, TEXTUREDIMENSION_1D, TEXTUREDIMENSION_2D, TEXTUREDIMENSION_2D_ARRAY, TEXTUREDIMENSION_3D, TEXTUREDIMENSION_CUBE, TEXTUREDIMENSION_CUBE_ARRAY, TEXTURELOCK_READ, TEXTURELOCK_WRITE, TEXTUREPROJECTION_CUBE, TEXTUREPROJECTION_EQUIRECT, TEXTUREPROJECTION_NONE, TEXTUREPROJECTION_OCTAHEDRAL, TEXTURETYPE_DEFAULT, TEXTURETYPE_RGBE, TEXTURETYPE_RGBM, TEXTURETYPE_RGBP, TEXTURETYPE_SWIZZLEGGGR, TONEMAP_ACES, TONEMAP_ACES2, TONEMAP_FILMIC, TONEMAP_HEJL, TONEMAP_LINEAR, TRACEID_RENDER_ACTION, TRACEID_RENDER_FRAME, TRACEID_RENDER_PASS, TRACEID_RENDER_PASS_DETAIL, TRACEID_RENDER_TARGET_ALLOC, TRACEID_SHADER_ALLOC, TRACEID_SHADER_COMPILE, TRACEID_TEXTURE_ALLOC, TRACEID_VRAM_IB, TRACEID_VRAM_TEXTURE, TRACEID_VRAM_VB, TYPE_FLOAT32, TYPE_INT16, TYPE_INT32, TYPE_INT8, TYPE_UINT16, TYPE_UINT32, TYPE_UINT8, Tags, Template, TemplateHandler, TextElement, TextHandler, Texture, TextureAtlas, TextureAtlasHandler, TextureHandler, TextureParser, Timer, Touch$1 as Touch, TouchDevice, TouchEvent$1 as TouchEvent, Tracing, TransformFeedback, UNIFORMTYPE_BOOL, UNIFORMTYPE_BVEC2, UNIFORMTYPE_BVEC3, UNIFORMTYPE_BVEC4, UNIFORMTYPE_FLOAT, UNIFORMTYPE_FLOATARRAY, UNIFORMTYPE_INT, UNIFORMTYPE_IVEC2, UNIFORMTYPE_IVEC3, UNIFORMTYPE_IVEC4, UNIFORMTYPE_MAT2, UNIFORMTYPE_MAT3, UNIFORMTYPE_MAT4, UNIFORMTYPE_TEXTURE2D, UNIFORMTYPE_TEXTURE2D_SHADOW, UNIFORMTYPE_TEXTURE3D, UNIFORMTYPE_TEXTURECUBE, UNIFORMTYPE_TEXTURECUBE_SHADOW, UNIFORMTYPE_VEC2, UNIFORMTYPE_VEC2ARRAY, UNIFORMTYPE_VEC3, UNIFORMTYPE_VEC3ARRAY, UNIFORMTYPE_VEC4, UNIFORMTYPE_VEC4ARRAY, UNIFORM_BUFFER_DEFAULT_SLOT_NAME, URI, UnsupportedBrowserError, VIEW_CENTER, VIEW_LEFT, VIEW_RIGHT, Vec2, Vec3, Vec4, VertexBuffer, VertexFormat, VertexIterator, WasmModule, WebglGraphicsDevice, WorldClusters, XRDEPTHSENSINGFORMAT_F32, XRDEPTHSENSINGFORMAT_L8A8, XRDEPTHSENSINGUSAGE_CPU, XRDEPTHSENSINGUSAGE_GPU, XRHAND_LEFT, XRHAND_NONE, XRHAND_RIGHT, XRSPACE_BOUNDEDFLOOR, XRSPACE_LOCAL, XRSPACE_LOCALFLOOR, XRSPACE_UNBOUNDED, XRSPACE_VIEWER, XRTARGETRAY_GAZE, XRTARGETRAY_POINTER, XRTARGETRAY_SCREEN, XRTRACKABLE_MESH, XRTRACKABLE_PLANE, XRTRACKABLE_POINT, XRTYPE_AR, XRTYPE_INLINE, XRTYPE_VR, XrDepthSensing, XrDomOverlay, XrHitTest, XrHitTestSource, XrImageTracking, XrInput, XrInputSource, XrLightEstimation, XrManager, XrPlane, XrPlaneDetection, XrTrackedImage, ZoneComponent, ZoneComponentSystem, anim, app, apps, asset, audio, basisInitialize, basisSetDownloadConfig, basisTranscode, bindGroupNames, calculateNormals, calculateTangents, common, config, createBox, createCapsule, createCone, createCylinder, createMesh, createPlane, createScript, createShader, createShaderFromCode, createSphere, createStyle, createTorus, createURI, data, drawFullscreenQuad, drawQuadWithShader, drawTexture, events, extend, fw, getTouchTargetCoords, gfx, guid, http, inherits, input, isDefined, log, makeArray, math, now, path, platform, posteffect, prefilterCubemap, programlib, registerScript, reprojectTexture, revision, scene, script, semanticToLocation, shFromCubemap, shaderChunks, shaderChunksLightmapper, shadowTypeToString, shape, string, time, type, typedArrayIndexFormats, typedArrayIndexFormatsByteSize, typedArrayToType, typedArrayTypes, typedArrayTypesByteSize, uniformTypeToName, version };
 export as namespace pc;

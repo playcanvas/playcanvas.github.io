@@ -1,6 +1,6 @@
-import { PIXELFORMAT_R8_G8_B8_A8, PIXELFORMAT_R8_G8_B8, FILTER_NEAREST, FILTER_LINEAR_MIPMAP_LINEAR, FILTER_LINEAR, ADDRESS_CLAMP_TO_EDGE, PIXELFORMAT_DEPTHSTENCIL } from '../graphics/constants.js';
-import { RenderTarget } from '../graphics/render-target.js';
-import { Texture } from '../graphics/texture.js';
+import { PIXELFORMAT_R8_G8_B8_A8, PIXELFORMAT_R8_G8_B8, FILTER_NEAREST, FILTER_LINEAR_MIPMAP_LINEAR, FILTER_LINEAR, ADDRESS_CLAMP_TO_EDGE, PIXELFORMAT_DEPTHSTENCIL } from '../platform/graphics/constants.js';
+import { RenderTarget } from '../platform/graphics/render-target.js';
+import { Texture } from '../platform/graphics/texture.js';
 import { LAYERID_DEPTH, SHADER_DEPTH, LAYERID_WORLD } from '../scene/constants.js';
 import { Layer } from '../scene/layer.js';
 

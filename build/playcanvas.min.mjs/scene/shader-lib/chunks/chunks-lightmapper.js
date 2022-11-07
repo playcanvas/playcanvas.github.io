@@ -1,0 +1,1 @@
+import r from"./lightmapper/frag/bakeDirLmEnd.js";import a from"./lightmapper/frag/bakeLmEnd.js";import e from"./lightmapper/frag/dilate.js";import i from"./lightmapper/frag/bilateralDeNoise.js";const m={bakeDirLmEndPS:r,bakeLmEndPS:a,dilatePS:e,bilateralDeNoisePS:i};export{m as shaderChunksLightmapper};

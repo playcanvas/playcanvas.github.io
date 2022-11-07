@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.57.0 revision f1998a31e (PROFILER)
+ * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import '../core/tracing.js';
@@ -12,13 +12,10 @@ class ShaderPass {
       case SHADER_FORWARD:
       case SHADER_FORWARDHDR:
         return SHADERTYPE_FORWARD;
-
       case SHADER_DEPTH:
         return SHADERTYPE_DEPTH;
-
       case SHADER_PICK:
         return SHADERTYPE_PICK;
-
       default:
         return shaderPass >= SHADER_SHADOW && shaderPass < SHADER_SHADOW + SHADOW_COUNT * LIGHTTYPE_COUNT ? SHADERTYPE_SHADOW : SHADERTYPE_FORWARD;
     }
@@ -57,10 +54,8 @@ class ShaderPass {
     } else if (ShaderPass.isShadow(pass)) {
       return '#define SHADOW_PASS\n';
     }
-
     return '';
   }
-
 }
 
 export { ShaderPass };
