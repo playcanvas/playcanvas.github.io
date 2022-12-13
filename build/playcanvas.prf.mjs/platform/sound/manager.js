@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
+ * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import '../../core/tracing.js';
@@ -12,7 +12,7 @@ import { Listener } from './listener.js';
 
 const CONTEXT_STATE_RUNNING = 'running';
 
-const USER_INPUT_EVENTS = ['click', 'touchstart'];
+const USER_INPUT_EVENTS = ['click', 'touchstart', 'mousedown'];
 
 class SoundManager extends EventHandler {
   constructor() {

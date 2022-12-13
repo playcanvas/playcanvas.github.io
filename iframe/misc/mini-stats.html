@@ -226,14 +226,15 @@
             // add vertex buffer
             var vertexCount = 500;
             var data = new Float32Array(vertexCount * 16);
-            vertexBuffer = new pc.VertexBuffer(app.graphicsDevice, pc.VertexFormat.defaultInstancingFormat, vertexCount, pc.BUFFER_STATIC, data);
+            vertexBuffer = new pc.VertexBuffer(app.graphicsDevice, pc.VertexFormat.getDefaultInstancingFormat(app.graphicsDevice),
+            vertexCount, pc.BUFFER_STATIC, data);
             vertexBuffers.push(vertexBuffer);
 
             // allocate texture
             var _texture = new pc.Texture(app.graphicsDevice, {
               width: 64,
               height: 64,
-              format: pc.PIXELFORMAT_R8_G8_B8,
+              format: pc.PIXELFORMAT_RGB8,
               mipmaps: false });
 
             textures.push(_texture);

@@ -1,8 +1,8 @@
 import { path } from '../../core/path.js';
-import { http } from '../../platform/net/http.js';
 import { Vec2 } from '../../core/math/vec2.js';
 import { Vec4 } from '../../core/math/vec4.js';
 import { TEXTURETYPE_RGBM, TEXTURETYPE_DEFAULT, ADDRESS_REPEAT, ADDRESS_CLAMP_TO_EDGE, ADDRESS_MIRRORED_REPEAT, FILTER_NEAREST, FILTER_LINEAR, FILTER_NEAREST_MIPMAP_NEAREST, FILTER_LINEAR_MIPMAP_NEAREST, FILTER_NEAREST_MIPMAP_LINEAR, FILTER_LINEAR_MIPMAP_LINEAR } from '../../platform/graphics/constants.js';
+import { http } from '../../platform/net/http.js';
 import { TextureAtlas } from '../../scene/texture-atlas.js';
 
 const JSON_ADDRESS_MODE = {

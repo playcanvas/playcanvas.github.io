@@ -1,9 +1,9 @@
 import '../../core/tracing.js';
 import { Color } from '../../core/math/color.js';
-import { SHADERDEF_SKIN, SHADERDEF_SCREENSPACE, SHADERDEF_INSTANCING, SHADERDEF_MORPH_POSITION, SHADERDEF_MORPH_NORMAL, SHADERDEF_MORPH_TEXTURE_BASED } from '../constants.js';
-import { basic } from '../shader-lib/programs/basic.js';
 import { ShaderProcessorOptions } from '../../platform/graphics/shader-processor-options.js';
+import { SHADERDEF_SKIN, SHADERDEF_SCREENSPACE, SHADERDEF_INSTANCING, SHADERDEF_MORPH_POSITION, SHADERDEF_MORPH_NORMAL, SHADERDEF_MORPH_TEXTURE_BASED } from '../constants.js';
 import { getProgramLibrary } from '../shader-lib/get-program-library.js';
+import { basic } from '../shader-lib/programs/basic.js';
 import { Material } from './material.js';
 
 class BasicMaterial extends Material {

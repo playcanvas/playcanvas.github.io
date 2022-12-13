@@ -1,5 +1,5 @@
 import { Color } from '../../core/math/color.js';
-import { PIXELFORMAT_R8_G8_B8_A8, FILTER_NEAREST, ADDRESS_CLAMP_TO_EDGE, CLEARFLAG_DEPTH } from '../../platform/graphics/constants.js';
+import { PIXELFORMAT_RGBA8, FILTER_NEAREST, ADDRESS_CLAMP_TO_EDGE, CLEARFLAG_DEPTH } from '../../platform/graphics/constants.js';
 import { GraphicsDevice } from '../../platform/graphics/graphics-device.js';
 import { RenderTarget } from '../../platform/graphics/render-target.js';
 import { Texture } from '../../platform/graphics/texture.js';
@@ -92,7 +92,7 @@ class Picker {
   }
   allocateRenderTarget() {
     const colorBuffer = new Texture(this.device, {
-      format: PIXELFORMAT_R8_G8_B8_A8,
+      format: PIXELFORMAT_RGBA8,
       width: this.width,
       height: this.height,
       mipmaps: false,

@@ -1,9 +1,9 @@
-import { platform } from '../../core/platform.js';
 import { EventHandler } from '../../core/event-handler.js';
+import { platform } from '../../core/platform.js';
+import { Vec3 } from '../../core/math/vec3.js';
 import { XRHAND_LEFT } from './constants.js';
 import { XrFinger } from './xr-finger.js';
 import { XrJoint } from './xr-joint.js';
-import { Vec3 } from '../../core/math/vec3.js';
 
 let fingerJointIds = [];
 const vecA = new Vec3();

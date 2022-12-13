@@ -1,4 +1,12 @@
-import { TEXTUREDIMENSION_2D, SAMPLETYPE_FLOAT } from './constants.js';
+import '../../core/tracing.js';
+import { TEXTUREDIMENSION_2D, SAMPLETYPE_FLOAT, TEXTUREDIMENSION_CUBE, TEXTUREDIMENSION_3D } from './constants.js';
+
+let id = 0;
+const textureDimensionInfo = {
+  [TEXTUREDIMENSION_2D]: 'texture2D',
+  [TEXTUREDIMENSION_CUBE]: 'textureCube',
+  [TEXTUREDIMENSION_3D]: 'texture3D'
+};
 
 class BindBufferFormat {
   constructor(name, visibility) {
@@ -24,6 +32,8 @@ class BindTextureFormat {
 
 class BindGroupFormat {
   constructor(graphicsDevice, bufferFormats, textureFormats) {
+    this.id = id++;
+
     this.device = graphicsDevice;
 
     this.bufferFormats = bufferFormats;
@@ -58,8 +68,9 @@ class BindGroupFormat {
     let code = '';
     let bindIndex = this.bufferFormats.length;
     this.textureFormats.forEach(format => {
+      const textureType = textureDimensionInfo[format.textureDimension];
 
-      code += `layout(set = ${bindGroup}, binding = ${bindIndex++}) uniform texture2D ${format.name};\n` + `layout(set = ${bindGroup}, binding = ${bindIndex++}) uniform sampler ${format.name}_sampler;\n`;
+      code += `layout(set = ${bindGroup}, binding = ${bindIndex++}) uniform ${textureType} ${format.name};\n` + `layout(set = ${bindGroup}, binding = ${bindIndex++}) uniform sampler ${format.name}_sampler;\n`;
     });
     return code;
   }

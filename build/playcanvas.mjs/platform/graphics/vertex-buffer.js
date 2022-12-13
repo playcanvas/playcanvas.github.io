@@ -12,8 +12,6 @@ class VertexBuffer {
     this.id = id++;
     this.impl = graphicsDevice.createVertexBufferImpl(this, format);
 
-    this.instancing = false;
-
     this.numBytes = format.verticesByteSize ? format.verticesByteSize : format.size * numVertices;
     this.adjustVramSizeTracking(graphicsDevice._vram, this.numBytes);
 

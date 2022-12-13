@@ -1,11 +1,11 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
+ * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
-import { ADDRESS_CLAMP_TO_EDGE, PIXELFORMAT_R8_G8_B8, PIXELFORMAT_R8_G8_B8_A8, TEXTURETYPE_RGBM, TEXTURETYPE_DEFAULT } from '../../platform/graphics/constants.js';
-import { Asset } from '../asset/asset.js';
+import { ADDRESS_CLAMP_TO_EDGE, PIXELFORMAT_RGB8, PIXELFORMAT_RGBA8, TEXTURETYPE_RGBM, TEXTURETYPE_DEFAULT } from '../../platform/graphics/constants.js';
 import { Texture } from '../../platform/graphics/texture.js';
+import { Asset } from '../asset/asset.js';
 
 class CubemapHandler {
 
@@ -121,7 +121,7 @@ class CubemapHandler {
           type: getType() || faceTextures[0].type,
           width: faceTextures[0].width,
           height: faceTextures[0].height,
-          format: format === PIXELFORMAT_R8_G8_B8 ? PIXELFORMAT_R8_G8_B8_A8 : format,
+          format: format === PIXELFORMAT_RGB8 ? PIXELFORMAT_RGBA8 : format,
           levels: faceLevels,
           minFilter: assetData.hasOwnProperty('minFilter') ? assetData.minFilter : faceTextures[0].minFilter,
           magFilter: assetData.hasOwnProperty('magFilter') ? assetData.magFilter : faceTextures[0].magFilter,

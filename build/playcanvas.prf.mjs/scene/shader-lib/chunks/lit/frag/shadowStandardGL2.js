@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
+ * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 var shadowStandardGL2PS = `
@@ -58,7 +58,6 @@ float _getShadowPCF5x5(sampler2DShadow shadowMap, vec3 shadowParams) {
 
     sum *= 1.0f / 144.0;
 
-    sum = gammaCorrectInput(sum); // gives softer gradient
     sum = saturate(sum);
 
     return sum;

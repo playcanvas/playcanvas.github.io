@@ -4,7 +4,7 @@ const KEYWORD = /[ \t]*#(ifn?def|if|endif|else|elif|define|undef|extension)/g;
 
 const DEFINE = /define[ \t]+([^\n]+)\r?(?:\n|$)/g;
 
-const EXTENSION = /extension[ \t]+([\w-]+)[ \t]*:[ \t]*enable/g;
+const EXTENSION = /extension[ \t]+([\w-]+)[ \t]*:[ \t]*(enable|require)/g;
 
 const UNDEF = /undef[ \t]+([^\n]+)\r?(?:\n|$)/g;
 

@@ -1,6 +1,7 @@
 import { Entity } from '../entity.js';
 import { CompressUtils } from '../../scene/compress/compress-utils.js';
 import { Decompress } from '../../scene/compress/decompress.js';
+import '../../core/tracing.js';
 
 class SceneParser {
   constructor(app, isTemplate) {
@@ -89,7 +90,9 @@ class SceneParser {
     len = entityData.children.length;
     const children = entity._children;
     for (let i = 0; i < len; i++) {
-      children[i] = this._openComponentData(children[i], entities);
+      if (children[i]) {
+        children[i] = this._openComponentData(children[i], entities);
+      }
     }
     return entity;
   }

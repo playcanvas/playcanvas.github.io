@@ -1,6 +1,6 @@
 import '../../core/tracing.js';
 import { math } from '../../core/math/math.js';
-import { PIXELFORMAT_R8_G8_B8_A8, TEXTURETYPE_DEFAULT, TEXTUREPROJECTION_NONE, FILTER_LINEAR_MIPMAP_LINEAR, FILTER_LINEAR, ADDRESS_REPEAT, FUNC_LESS, TEXTURETYPE_RGBM, TEXTURETYPE_SWIZZLEGGGR, TEXTUREPROJECTION_CUBE, PIXELFORMAT_DXT1, PIXELFORMAT_DXT3, PIXELFORMAT_DXT5, PIXELFORMAT_ETC1, PIXELFORMAT_RGB16F, PIXELFORMAT_RGB32F, PIXELFORMAT_RGBA16F, PIXELFORMAT_RGBA32F, TEXTURETYPE_RGBP, TEXTURETYPE_RGBE, PIXELFORMAT_A8, PIXELFORMAT_L8, PIXELFORMAT_L8_A8, PIXELFORMAT_R5_G6_B5, PIXELFORMAT_R5_G5_B5_A1, PIXELFORMAT_R4_G4_B4_A4, PIXELFORMAT_R8_G8_B8, PIXELFORMAT_R32F, PIXELFORMAT_DEPTH, PIXELFORMAT_DEPTHSTENCIL, PIXELFORMAT_111110F, PIXELFORMAT_SRGB, PIXELFORMAT_SRGBA, PIXELFORMAT_ETC2_RGB, PIXELFORMAT_PVRTC_2BPP_RGB_1, PIXELFORMAT_PVRTC_2BPP_RGBA_1, PIXELFORMAT_PVRTC_4BPP_RGB_1, PIXELFORMAT_PVRTC_4BPP_RGBA_1, PIXELFORMAT_ATC_RGB, PIXELFORMAT_ETC2_RGBA, PIXELFORMAT_ASTC_4x4, PIXELFORMAT_ATC_RGBA, TEXTURELOCK_WRITE } from './constants.js';
+import { PIXELFORMAT_RGBA8, TEXTURETYPE_DEFAULT, TEXTUREPROJECTION_NONE, FILTER_LINEAR_MIPMAP_LINEAR, FILTER_LINEAR, ADDRESS_REPEAT, FUNC_LESS, TEXTURETYPE_RGBM, TEXTURETYPE_SWIZZLEGGGR, TEXTUREPROJECTION_CUBE, isCompressedPixelFormat, PIXELFORMAT_RGB16F, PIXELFORMAT_RGB32F, PIXELFORMAT_RGBA16F, PIXELFORMAT_RGBA32F, TEXTURETYPE_RGBP, TEXTURETYPE_RGBE, PIXELFORMAT_A8, PIXELFORMAT_L8, PIXELFORMAT_LA8, PIXELFORMAT_RGB565, PIXELFORMAT_RGBA5551, PIXELFORMAT_RGBA4, PIXELFORMAT_RGB8, PIXELFORMAT_R32F, PIXELFORMAT_DEPTH, PIXELFORMAT_DEPTHSTENCIL, PIXELFORMAT_111110F, PIXELFORMAT_SRGB, PIXELFORMAT_SRGBA, PIXELFORMAT_ETC1, PIXELFORMAT_ETC2_RGB, PIXELFORMAT_PVRTC_2BPP_RGB_1, PIXELFORMAT_PVRTC_2BPP_RGBA_1, PIXELFORMAT_PVRTC_4BPP_RGB_1, PIXELFORMAT_PVRTC_4BPP_RGBA_1, PIXELFORMAT_DXT1, PIXELFORMAT_ATC_RGB, PIXELFORMAT_ETC2_RGBA, PIXELFORMAT_DXT3, PIXELFORMAT_DXT5, PIXELFORMAT_ASTC_4x4, PIXELFORMAT_ATC_RGBA, TEXTURELOCK_WRITE } from './constants.js';
 
 let _pixelSizeTable = null;
 let _blockSizeTable = null;
@@ -15,7 +15,7 @@ class Texture {
     this._width = 4;
     this._height = 4;
     this._depth = 1;
-    this._format = PIXELFORMAT_R8_G8_B8_A8;
+    this._format = PIXELFORMAT_RGBA8;
     this.type = TEXTURETYPE_DEFAULT;
     this.projection = TEXTUREPROJECTION_NONE;
     this._cubemap = false;
@@ -75,7 +75,7 @@ class Texture {
         this._addressW = options.addressW !== undefined ? options.addressW : this._addressW;
       }
     }
-    this._compressed = this._format === PIXELFORMAT_DXT1 || this._format === PIXELFORMAT_DXT3 || this._format === PIXELFORMAT_DXT5 || this._format >= PIXELFORMAT_ETC1;
+    this._compressed = isCompressedPixelFormat(this._format);
 
     this._invalid = false;
     this._lockedLevel = -1;
@@ -286,12 +286,12 @@ class Texture {
       _pixelSizeTable = [];
       _pixelSizeTable[PIXELFORMAT_A8] = 1;
       _pixelSizeTable[PIXELFORMAT_L8] = 1;
-      _pixelSizeTable[PIXELFORMAT_L8_A8] = 2;
-      _pixelSizeTable[PIXELFORMAT_R5_G6_B5] = 2;
-      _pixelSizeTable[PIXELFORMAT_R5_G5_B5_A1] = 2;
-      _pixelSizeTable[PIXELFORMAT_R4_G4_B4_A4] = 2;
-      _pixelSizeTable[PIXELFORMAT_R8_G8_B8] = 4;
-      _pixelSizeTable[PIXELFORMAT_R8_G8_B8_A8] = 4;
+      _pixelSizeTable[PIXELFORMAT_LA8] = 2;
+      _pixelSizeTable[PIXELFORMAT_RGB565] = 2;
+      _pixelSizeTable[PIXELFORMAT_RGBA5551] = 2;
+      _pixelSizeTable[PIXELFORMAT_RGBA4] = 2;
+      _pixelSizeTable[PIXELFORMAT_RGB8] = 4;
+      _pixelSizeTable[PIXELFORMAT_RGBA8] = 4;
       _pixelSizeTable[PIXELFORMAT_RGB16F] = 8;
       _pixelSizeTable[PIXELFORMAT_RGBA16F] = 8;
       _pixelSizeTable[PIXELFORMAT_RGB32F] = 16;
@@ -369,18 +369,18 @@ class Texture {
         case PIXELFORMAT_L8:
           this._levels[options.level] = new Uint8Array(this._width * this._height * this._depth);
           break;
-        case PIXELFORMAT_L8_A8:
+        case PIXELFORMAT_LA8:
           this._levels[options.level] = new Uint8Array(this._width * this._height * this._depth * 2);
           break;
-        case PIXELFORMAT_R5_G6_B5:
-        case PIXELFORMAT_R5_G5_B5_A1:
-        case PIXELFORMAT_R4_G4_B4_A4:
+        case PIXELFORMAT_RGB565:
+        case PIXELFORMAT_RGBA5551:
+        case PIXELFORMAT_RGBA4:
           this._levels[options.level] = new Uint16Array(this._width * this._height * this._depth);
           break;
-        case PIXELFORMAT_R8_G8_B8:
+        case PIXELFORMAT_RGB8:
           this._levels[options.level] = new Uint8Array(this._width * this._height * this._depth * 3);
           break;
-        case PIXELFORMAT_R8_G8_B8_A8:
+        case PIXELFORMAT_RGBA8:
           this._levels[options.level] = new Uint8Array(this._width * this._height * this._depth * 4);
           break;
         case PIXELFORMAT_DXT1:
@@ -481,8 +481,10 @@ class Texture {
   }
 
   upload() {
+    var _this$impl$uploadImme, _this$impl;
     this._needsUpload = true;
     this._needsMipmapsUpload = this._mipmaps;
+    (_this$impl$uploadImme = (_this$impl = this.impl).uploadImmediate) == null ? void 0 : _this$impl$uploadImme.call(_this$impl, this.device, this);
   }
 
   getDds() {

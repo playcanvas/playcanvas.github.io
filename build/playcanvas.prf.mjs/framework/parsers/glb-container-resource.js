@@ -1,16 +1,16 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
+ * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
-import { Asset } from '../asset/asset.js';
-import { Entity } from '../entity.js';
+import '../../core/tracing.js';
 import { MeshInstance } from '../../scene/mesh-instance.js';
+import { Model } from '../../scene/model.js';
 import { MorphInstance } from '../../scene/morph-instance.js';
 import { SkinInstance } from '../../scene/skin-instance.js';
 import { SkinInstanceCache } from '../../scene/skin-instance-cache.js';
-import { Model } from '../../scene/model.js';
-import '../../core/tracing.js';
+import { Entity } from '../entity.js';
+import { Asset } from '../asset/asset.js';
 
 class GlbContainerResource {
   constructor(data, asset, assets, defaultMaterial) {

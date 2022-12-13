@@ -1,13 +1,13 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
+ * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
+import '../core/tracing.js';
 import { PIXELFORMAT_RGBA32F, PIXELFORMAT_RGBA16F, BLENDMODE_ONE, BLENDEQUATION_ADD } from '../platform/graphics/constants.js';
-import { createShaderFromCode } from './shader-lib/utils.js';
 import { drawQuadWithShader } from '../platform/graphics/simple-post-effect.js';
 import { RenderTarget } from '../platform/graphics/render-target.js';
-import '../core/tracing.js';
+import { createShaderFromCode } from './shader-lib/utils.js';
 import { Morph } from './morph.js';
 
 const textureMorphVertexShader = `

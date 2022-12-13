@@ -3,6 +3,7 @@ import { version, revision } from '../../core/core.js';
 import { Shader } from '../../platform/graphics/shader.js';
 import { SHADER_FORWARD, SHADER_SHADOW, SHADER_DEPTH, SHADER_PICK } from '../constants.js';
 import { ShaderPass } from '../shader-pass.js';
+import { StandardMaterialOptions } from '../materials/standard-material-options.js';
 
 class ProgramLibrary {
 
@@ -15,8 +16,8 @@ class ProgramLibrary {
     this._precached = false;
 
     this._programsCollection = [];
-    this._defaultStdMatOption = {};
-    this._defaultStdMatOptionMin = {};
+    this._defaultStdMatOption = new StandardMaterialOptions();
+    this._defaultStdMatOptionMin = new StandardMaterialOptions();
     standardMaterial.shaderOptBuilder.updateRef(this._defaultStdMatOption, {}, standardMaterial, null, [], SHADER_FORWARD, null);
     standardMaterial.shaderOptBuilder.updateMinRef(this._defaultStdMatOptionMin, {}, standardMaterial, null, [], SHADER_SHADOW, null);
     device.on('destroy:shader', shader => {
@@ -43,17 +44,18 @@ class ProgramLibrary {
   generateShaderDefinition(generator, name, key, options) {
     let def = this.definitionsCache.get(key);
     if (!def) {
+      var _options$litOptions, _options$litOptions2;
       let lights;
-      if (options.lights) {
-        lights = options.lights;
-        options.lights = lights.map(function (l) {
+      if ((_options$litOptions = options.litOptions) != null && _options$litOptions.lights) {
+        lights = options.litOptions.lights;
+        options.litOptions.lights = lights.map(function (l) {
           const lcopy = l.clone ? l.clone() : l;
           lcopy.key = l.key;
           return lcopy;
         });
       }
       this.storeNewProgram(name, options);
-      if (options.lights) options.lights = lights;
+      if ((_options$litOptions2 = options.litOptions) != null && _options$litOptions2.lights) options.litOptions.lights = lights;
       if (this._precached) ;
       const device = this._device;
       def = generator.createShaderDefinition(device, options);
@@ -101,6 +103,9 @@ class ProgramLibrary {
       const defaultMat = this._getDefaultStdMatOptions(options.pass);
       for (const p in options) {
         if (options.hasOwnProperty(p) && defaultMat[p] !== options[p] || p === "pass") opt[p] = options[p];
+      }
+      for (const p in options.litOptions) {
+        opt[p] = options.litOptions[p];
       }
     } else {
       opt = options;

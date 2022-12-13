@@ -114,126 +114,142 @@
 
     function example(canvas, files) {
 
-      // Create the app and start the update loop
-      var app = new pc.Application(canvas, {
-        graphicsDeviceOptions: {
-          alpha: true } });
-
-
-
       var assets = {
         'normal': new pc.Asset('normal', 'texture', { url: '/../../static/assets/textures/normal-map.png' }),
         "roughness": new pc.Asset("roughness", "texture", { url: "/../../static/assets/textures/pc-gray.png" }),
-        'helipad.dds': new pc.Asset('helipad.dds', 'cubemap', { url: '/../../static/assets/cubemaps/helipad.dds' }, { type: pc.TEXTURETYPE_RGBM }) };
+        'helipad': new pc.Asset('helipad-env-atlas', 'texture', { url: '/../../static/assets/cubemaps/helipad-env-atlas.png' }, { type: pc.TEXTURETYPE_RGBP }) };
 
 
-      var assetListLoader = new pc.AssetListLoader(Object.values(assets), app.assets);
-      assetListLoader.load(function () {
+      pc.createGraphicsDevice(canvas).then(function (device) {
+
+        var createOptions = new pc.AppOptions();
+        createOptions.graphicsDevice = device;
+        createOptions.mouse = new pc.Mouse(document.body);
+        createOptions.touch = new pc.TouchDevice(document.body);
+
+        createOptions.componentSystems = [
+        // @ts-ignore
+        pc.RenderComponentSystem,
+        // @ts-ignore
+        pc.CameraComponentSystem];
+
+        createOptions.resourceHandlers = [
+        // @ts-ignore
+        pc.TextureHandler];
+
+
+        var app = new pc.AppBase(canvas);
+        app.init(createOptions);
+
         // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
         app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
         app.setCanvasResolution(pc.RESOLUTION_AUTO);
 
-        // setup skydome
-        app.scene.skyboxMip = 0;
-        app.scene.exposure = 2;
-        app.scene.setSkybox(assets['helipad.dds'].resources);
+        var assetListLoader = new pc.AssetListLoader(Object.values(assets), app.assets);
+        assetListLoader.load(function () {
 
-        app.scene.toneMapping = pc.TONEMAP_ACES;
+          app.start();
 
-        // Depth layer is where the framebuffer is copied to a texture to be used in the following layers.
-        // Move the depth layer to take place after World and Skydome layers, to capture both of them.
-        var depthLayer = app.scene.layers.getLayerById(pc.LAYERID_DEPTH);
-        app.scene.layers.remove(depthLayer);
-        app.scene.layers.insertOpaque(depthLayer, 2);
+          // setup skydome
+          app.scene.skyboxMip = 0;
+          app.scene.exposure = 2;
+          app.scene.envAtlas = assets.helipad.resource;
 
-        // helper function to create a primitive with shape type, position, scale, color
-        function createPrimitive(primitiveType, position, scale, color) {
-          // create material of specified color
-          var material = new pc.StandardMaterial();
-          material.diffuse = color;
-          material.shininess = 60;
-          material.metalness = 0.4;
-          material.useMetalness = true;
-          material.update();
+          app.scene.toneMapping = pc.TONEMAP_ACES;
 
-          // create primitive
-          var primitive = new pc.Entity();
-          primitive.addComponent('render', {
-            type: primitiveType,
-            material: material });
+          // Depth layer is where the framebuffer is copied to a texture to be used in the following layers.
+          // Move the depth layer to take place after World and Skydome layers, to capture both of them.
+          var depthLayer = app.scene.layers.getLayerById(pc.LAYERID_DEPTH);
+          app.scene.layers.remove(depthLayer);
+          app.scene.layers.insertOpaque(depthLayer, 2);
+
+          // helper function to create a primitive with shape type, position, scale, color
+          function createPrimitive(primitiveType, position, scale, color) {
+            // create material of specified color
+            var material = new pc.StandardMaterial();
+            material.diffuse = color;
+            material.shininess = 60;
+            material.metalness = 0.4;
+            material.useMetalness = true;
+            material.update();
+
+            // create primitive
+            var primitive = new pc.Entity();
+            primitive.addComponent('render', {
+              type: primitiveType,
+              material: material });
 
 
-          // set position and scale and add it to scene
-          primitive.setLocalPosition(position);
-          primitive.setLocalScale(scale);
-          app.root.addChild(primitive);
+            // set position and scale and add it to scene
+            primitive.setLocalPosition(position);
+            primitive.setLocalScale(scale);
+            app.root.addChild(primitive);
 
-          return primitive;
-        }
+            return primitive;
+          }
 
-        // create few primitives, keep their references to rotate them later
-        var primitives = [];
-        var count = 7;
-        var shapes = ["box", "cone", "cylinder", "sphere", "capsule"];
-        for (var i = 0; i < count; i++) {
-          var shapeName = shapes[Math.floor(Math.random() * shapes.length)];
-          var color = new pc.Color(Math.random(), Math.random(), Math.random());
-          var angle = 2 * Math.PI * i / count;
-          var pos = new pc.Vec3(12 * Math.sin(angle), 0, 12 * Math.cos(angle));
-          primitives.push(createPrimitive(shapeName, pos, new pc.Vec3(4, 8, 4), color));
-        }
+          // create few primitives, keep their references to rotate them later
+          var primitives = [];
+          var count = 7;
+          var shapes = ["box", "cone", "cylinder", "sphere", "capsule"];
+          for (var i = 0; i < count; i++) {
+            var shapeName = shapes[Math.floor(Math.random() * shapes.length)];
+            var color = new pc.Color(Math.random(), Math.random(), Math.random());
+            var angle = 2 * Math.PI * i / count;
+            var pos = new pc.Vec3(12 * Math.sin(angle), 0, 12 * Math.cos(angle));
+            primitives.push(createPrimitive(shapeName, pos, new pc.Vec3(4, 8, 4), color));
+          }
 
-        // Create the camera, which renders entities
-        var camera = new pc.Entity("SceneCamera");
-        camera.addComponent("camera", {
-          clearColor: new pc.Color(0.2, 0.2, 0.2) });
+          // Create the camera, which renders entities
+          var camera = new pc.Entity("SceneCamera");
+          camera.addComponent("camera", {
+            clearColor: new pc.Color(0.2, 0.2, 0.2) });
 
-        app.root.addChild(camera);
-        camera.setLocalPosition(0, 10, 20);
-        camera.lookAt(pc.Vec3.ZERO);
+          app.root.addChild(camera);
+          camera.setLocalPosition(0, 10, 20);
+          camera.lookAt(pc.Vec3.ZERO);
 
-        // enable the camera to render the scene's color map.
-        camera.camera.requestSceneColorMap(true);
+          // enable the camera to render the scene's color map.
+          camera.camera.requestSceneColorMap(true);
 
-        // create a primitive which uses refraction shader to distort the view behind it
-        var glass = createPrimitive("box", new pc.Vec3(1, 3, 0), new pc.Vec3(10, 10, 10), new pc.Color(1, 1, 1));
-        glass.render.castShadows = false;
-        glass.render.receiveShadows = false;
+          // create a primitive which uses refraction shader to distort the view behind it
+          var glass = createPrimitive("box", new pc.Vec3(1, 3, 0), new pc.Vec3(10, 10, 10), new pc.Color(1, 1, 1));
+          glass.render.castShadows = false;
+          glass.render.receiveShadows = false;
 
-        var shader = pc.createShaderFromCode(app.graphicsDevice, files['shader.vert'], files['shader.frag'], 'myShader');
+          var shader = pc.createShaderFromCode(app.graphicsDevice, files['shader.vert'], files['shader.frag'], 'myShader');
 
-        // reflection material using the shader
-        var refractionMaterial = new pc.Material();
-        refractionMaterial.shader = shader;
-        glass.render.material = refractionMaterial;
+          // reflection material using the shader
+          var refractionMaterial = new pc.Material();
+          refractionMaterial.shader = shader;
+          glass.render.material = refractionMaterial;
 
-        // set an offset map on the material
-        refractionMaterial.setParameter('uOffsetMap', assets.normal.resource);
+          // set an offset map on the material
+          refractionMaterial.setParameter('uOffsetMap', assets.normal.resource);
 
-        // set roughness map
-        refractionMaterial.setParameter('uRoughnessMap', assets.roughness.resource);
+          // set roughness map
+          refractionMaterial.setParameter('uRoughnessMap', assets.roughness.resource);
 
-        // transparency
-        refractionMaterial.blendType = pc.BLEND_NORMAL;
-        refractionMaterial.update();
+          // transparency
+          refractionMaterial.blendType = pc.BLEND_NORMAL;
+          refractionMaterial.update();
 
-        app.start();
+          // update things each frame
+          var time = 0;
+          app.on("update", function (dt) {
+            time += dt;
 
-        // update things each frame
-        var time = 0;
-        app.on("update", function (dt) {
-          time += dt;
+            // rotate the primitives
+            primitives.forEach(function (prim) {
+              prim.rotate(0.3, 0.2, 0.1);
+            });
 
-          // rotate the primitives
-          primitives.forEach(function (prim) {
-            prim.rotate(0.3, 0.2, 0.1);
+            glass.rotate(-0.1, 0.1, -0.15);
+
+            // orbit the camera
+            camera.setLocalPosition(20 * Math.sin(time * 0.2), 7, 20 * Math.cos(time * 0.2));
+            camera.lookAt(new pc.Vec3(0, 2, 0));
           });
-
-          glass.rotate(-0.1, 0.1, -0.15);
-
-          // orbit the camera
-          camera.setLocalPosition(20 * Math.sin(time * 0.2), 7, 20 * Math.cos(time * 0.2));
-          camera.lookAt(new pc.Vec3(0, 2, 0));
         });
       });
     } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'Graphics');_defineProperty(Example, "NAME", 'Grab Pass');_defineProperty(Example, "FILES", { 'shader.vert': /* glsl */"\n            attribute vec3 vertex_position;\n            attribute vec2 vertex_texCoord0;\n\n            uniform mat4 matrix_model;\n            uniform mat4 matrix_viewProjection;\n\n            varying vec2 texCoord;\n\n            void main(void)\n            {\n                // project the position\n                vec4 pos = matrix_model * vec4(vertex_position, 1.0);\n                gl_Position = matrix_viewProjection * pos;\n\n                texCoord = vertex_texCoord0;\n            }\n        ", 'shader.frag': /* glsl */"\n            // use the special uSceneColorMap texture, which is a built-in texture containing\n            // a copy of the color buffer at the point of capture, inside the Depth layer.\n            uniform sampler2D uSceneColorMap;\n\n            // normal map providing offsets\n            uniform sampler2D uOffsetMap;\n\n            // roughness map\n            uniform sampler2D uRoughnessMap;\n\n            // engine built-in constant storing render target size in .xy and inverse size in .zw\n            uniform vec4 uScreenSize;\n\n            varying vec2 texCoord;\n\n            void main(void)\n            {\n                float roughness = 1.0 - texture2D(uRoughnessMap, texCoord).r;\n\n                // sample offset texture - used to add distortion to the sampled background\n                vec2 offset = texture2D(uOffsetMap, texCoord).rg;\n                offset = 2.0 * offset - 1.0;\n\n                // offset strength\n                offset *= (0.2 + roughness) * 0.015;\n\n                // get normalized uv coordinates for canvas\n                vec2 grabUv = gl_FragCoord.xy * uScreenSize.zw;\n\n                // roughness dictates which mipmap level gets used, in 0..4 range\n                float mipmap = roughness * 5.0;\n\n                // get background pixel color with distorted offset\n                vec3 grabColor = texture2DLodEXT(uSceneColorMap, grabUv + offset, mipmap).rgb;\n\n                // brighten the refracted texture a little bit\n                // brighten even more the rough parts of the glass\n                gl_FragColor = vec4(grabColor * 1.1, 1.0) + roughness * 0.09;\n            }\n        " });

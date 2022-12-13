@@ -1,15 +1,15 @@
 import '../../core/tracing.js';
 import { Color } from '../../core/math/color.js';
-import { Vec2 } from '../../core/math/vec2.js';
 import { math } from '../../core/math/math.js';
-import { _matTex2D, standard } from '../shader-lib/programs/standard.js';
-import { EnvLighting } from '../graphics/env-lighting.js';
+import { Vec2 } from '../../core/math/vec2.js';
+import { ShaderProcessorOptions } from '../../platform/graphics/shader-processor-options.js';
 import { CUBEPROJ_BOX, SPECULAR_PHONG, SHADER_DEPTH, SHADER_PICK, DETAILMODE_MUL, SPECOCC_AO, SPECULAR_BLINN, FRESNEL_SCHLICK, CUBEPROJ_NONE } from '../constants.js';
 import { ShaderPass } from '../shader-pass.js';
+import { EnvLighting } from '../graphics/env-lighting.js';
+import { getProgramLibrary } from '../shader-lib/get-program-library.js';
+import { _matTex2D, standard } from '../shader-lib/programs/standard.js';
 import { Material } from './material.js';
 import { StandardMaterialOptionsBuilder } from './standard-material-options-builder.js';
-import { ShaderProcessorOptions } from '../../platform/graphics/shader-processor-options.js';
-import { getProgramLibrary } from '../shader-lib/get-program-library.js';
 import { standardMaterialTextureParameters, standardMaterialCubemapParameters } from './standard-material-parameters.js';
 
 const _props = {};
@@ -133,7 +133,7 @@ class StandardMaterial extends Material {
         this._setParameter('material_sheen', getUniform('sheen'));
       }
       if (!this.sheenGlossMap || this.sheenGlossTint) {
-        this._setParameter('material_sheenGloss', this.sheenGloss);
+        this._setParameter('material_sheenGlossiness', this.sheenGlossiness);
       }
       if (this.refractionIndex !== 1.0 / 1.5) {
         const oneOverRefractionIndex = 1.0 / this.refractionIndex;
@@ -448,7 +448,7 @@ function _defineMaterialProps() {
   _defineColor('attenuation', new Color(1, 1, 1));
   _defineFloat('emissiveIntensity', 1);
   _defineFloat('specularityFactor', 1);
-  _defineFloat('sheenGloss', 0);
+  _defineFloat('sheenGlossiness', 0.0);
   _defineFloat('shininess', 25, (material, device, scene) => {
     return material.shadingModel === SPECULAR_PHONG ?
     Math.pow(2, material.shininess * 0.01 * 11) : material.shininess * 0.01;

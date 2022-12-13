@@ -1,5 +1,5 @@
-import { platform } from '../../core/platform.js';
 import { EventHandler } from '../../core/event-handler.js';
+import { platform } from '../../core/platform.js';
 import { XrTrackedImage } from './xr-tracked-image.js';
 
 class XrImageTracking extends EventHandler {

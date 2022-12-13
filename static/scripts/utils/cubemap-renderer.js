@@ -46,9 +46,10 @@ CubemapRenderer.prototype.initialize = function () {
 
     // Create cubemap render target with specified resolution and mipmap generation
     this.cubeMap = new pc.Texture(this.app.graphicsDevice, {
+        name: this.entity.name + ':CubemapRenderer-' + resolution,
         width: resolution,
         height: resolution,
-        format: pc.PIXELFORMAT_R8_G8_B8_A8,
+        format: pc.PIXELFORMAT_RGBA8,
         cubemap: true,
         mipmaps: this.mipmaps,
         minFilter: pc.FILTER_LINEAR_MIPMAP_LINEAR,

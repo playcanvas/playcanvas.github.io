@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-preview revision 1fec26519
+ * PlayCanvas Engine v1.59.0-preview revision 797466563
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 (function (global, factory) {
@@ -173,7 +173,9 @@
 	    _this.on('set_enabled', _this.onSetEnabled, _assertThisInitialized(_this));
 	    return _this;
 	  }
-	  Component._buildAccessors = function _buildAccessors(obj, schema) {
+
+	  Component._buildAccessors =
+	  function _buildAccessors(obj, schema) {
 	    schema.forEach(function (descriptor) {
 	      var name = typeof descriptor === 'object' ? descriptor.name : descriptor;
 	      Object.defineProperty(obj, name, {
@@ -190,12 +192,18 @@
 	      });
 	    });
 	    obj._accessorsBuilt = true;
-	  };
+	  }
+
+	  ;
 	  var _proto = Component.prototype;
-	  _proto.buildAccessors = function buildAccessors(schema) {
+	  _proto.buildAccessors =
+	  function buildAccessors(schema) {
 	    Component._buildAccessors(this, schema);
-	  };
-	  _proto.onSetEnabled = function onSetEnabled(name, oldValue, newValue) {
+	  }
+
+	  ;
+	  _proto.onSetEnabled =
+	  function onSetEnabled(name, oldValue, newValue) {
 	    if (oldValue !== newValue) {
 	      if (this.entity.enabled) {
 	        if (newValue) {
@@ -205,10 +213,19 @@
 	        }
 	      }
 	    }
-	  };
-	  _proto.onEnable = function onEnable() {};
-	  _proto.onDisable = function onDisable() {};
-	  _proto.onPostStateChange = function onPostStateChange() {}
+	  }
+
+	  ;
+	  _proto.onEnable =
+	  function onEnable() {}
+
+	  ;
+	  _proto.onDisable =
+	  function onDisable() {}
+
+	  ;
+	  _proto.onPostStateChange =
+	  function onPostStateChange() {}
 
 	  ;
 	  _createClass(Component, [{

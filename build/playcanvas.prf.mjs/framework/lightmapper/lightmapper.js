@@ -1,23 +1,23 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
+ * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
-import { now } from '../../core/time.js';
 import '../../core/tracing.js';
-import { math } from '../../core/math/math.js';
+import { now } from '../../core/time.js';
 import { Color } from '../../core/math/color.js';
+import { math } from '../../core/math/math.js';
 import { Vec3 } from '../../core/math/vec3.js';
 import { BoundingBox } from '../../core/shape/bounding-box.js';
-import { PIXELFORMAT_R8_G8_B8_A8, TEXTURETYPE_RGBM, CHUNKAPI_1_55, CULLFACE_NONE, TEXHINT_LIGHTMAP, FILTER_NEAREST, ADDRESS_CLAMP_TO_EDGE, FILTER_LINEAR, TEXTURETYPE_DEFAULT } from '../../platform/graphics/constants.js';
-import { shaderChunks } from '../../scene/shader-lib/chunks/chunks.js';
-import { shaderChunksLightmapper } from '../../scene/shader-lib/chunks/chunks-lightmapper.js';
-import { drawQuadWithShader } from '../../platform/graphics/simple-post-effect.js';
+import { PIXELFORMAT_RGBA8, TEXTURETYPE_RGBM, CHUNKAPI_1_55, CULLFACE_NONE, TEXHINT_LIGHTMAP, TEXTURETYPE_DEFAULT, FILTER_NEAREST, ADDRESS_CLAMP_TO_EDGE, FILTER_LINEAR } from '../../platform/graphics/constants.js';
 import { RenderTarget } from '../../platform/graphics/render-target.js';
+import { drawQuadWithShader } from '../../platform/graphics/simple-post-effect.js';
 import { Texture } from '../../platform/graphics/texture.js';
 import { MeshInstance } from '../../scene/mesh-instance.js';
 import { LightingParams } from '../../scene/lighting/lighting-params.js';
 import { WorldClusters } from '../../scene/lighting/world-clusters.js';
+import { shaderChunks } from '../../scene/shader-lib/chunks/chunks.js';
+import { shaderChunksLightmapper } from '../../scene/shader-lib/chunks/chunks-lightmapper.js';
 import { PROJECTION_ORTHOGRAPHIC, MASK_AFFECT_LIGHTMAPPED, BAKE_COLORDIR, MASK_BAKE, LIGHTTYPE_DIRECTIONAL, SHADOWUPDATE_REALTIME, SHADOWUPDATE_THISFRAME, FOG_NONE, LIGHTTYPE_SPOT, PROJECTION_PERSPECTIVE, LIGHTTYPE_OMNI, SHADER_FORWARDHDR, SHADERDEF_LM, SHADERDEF_DIRLM, SHADERDEF_LMAMBIENT } from '../../scene/constants.js';
 import { Camera } from '../../scene/camera.js';
 import { GraphNode } from '../../scene/graph-node.js';
@@ -40,7 +40,7 @@ class Lightmapper {
     this.scene = scene;
     this.renderer = renderer;
     this.assets = assets;
-    this.shadowMapCache = renderer._shadowRenderer.shadowMapCache;
+    this.shadowMapCache = renderer.shadowMapCache;
     this._tempSet = new Set();
     this._initCalled = false;
 
@@ -84,7 +84,7 @@ class Lightmapper {
       this.blackTex = new Texture(this.device, {
         width: 4,
         height: 4,
-        format: PIXELFORMAT_R8_G8_B8_A8,
+        format: PIXELFORMAT_RGBA8,
         type: TEXTURETYPE_RGBM,
         name: 'lightmapBlack'
       });
@@ -165,6 +165,7 @@ class Lightmapper {
         material.ambient = new Color(0, 0, 0);
         material.ambientTint = true;
       }
+      material.chunks.basePS = shaderChunks.basePS + (scene.lightmapPixelFormat === PIXELFORMAT_RGBA8 ? '\n#define LIGHTMAP_RGBM\n' : '');
       material.chunks.endPS = bakeLmEndChunk;
       material.lightMap = this.blackTex;
     } else {
@@ -190,20 +191,20 @@ class Lightmapper {
     if (!this.ambientAOMaterial) {
       this.ambientAOMaterial = this.createMaterialForPass(device, scene, 0, true);
       this.ambientAOMaterial.onUpdateShader = function (options) {
-        options.lightMapWithoutAmbient = true;
-        options.separateAmbient = true;
+        options.litOptions.lightMapWithoutAmbient = true;
+        options.litOptions.separateAmbient = true;
         return options;
       };
     }
   }
-  createTexture(size, type, name) {
+  createTexture(size, name) {
     return new Texture(this.device, {
       profilerHint: TEXHINT_LIGHTMAP,
       width: size,
       height: size,
-      format: PIXELFORMAT_R8_G8_B8_A8,
+      format: this.scene.lightmapPixelFormat,
       mipmaps: false,
-      type: type,
+      type: this.scene.lightmapPixelFormat === PIXELFORMAT_RGBA8 ? TEXTURETYPE_RGBM : TEXTURETYPE_DEFAULT,
       minFilter: FILTER_NEAREST,
       magFilter: FILTER_NEAREST,
       addressU: ADDRESS_CLAMP_TO_EDGE,
@@ -439,7 +440,7 @@ class Lightmapper {
       const size = this.calculateLightmapSize(bakeNode.node);
 
       for (let pass = 0; pass < passCount; pass++) {
-        const tex = this.createTexture(size, TEXTURETYPE_DEFAULT, 'lightmapper_lightmap_' + i);
+        const tex = this.createTexture(size, 'lightmapper_lightmap_' + i);
         LightmapCache.incRef(tex);
         bakeNode.renderTargets[pass] = new RenderTarget({
           colorBuffer: tex,
@@ -448,7 +449,7 @@ class Lightmapper {
       }
 
       if (!this.renderTargets.has(size)) {
-        const tex = this.createTexture(size, TEXTURETYPE_DEFAULT, 'lightmapper_temp_lightmap_' + size);
+        const tex = this.createTexture(size, 'lightmapper_temp_lightmap_' + size);
         LightmapCache.incRef(tex);
         this.renderTargets.set(size, new RenderTarget({
           colorBuffer: tex,
@@ -618,11 +619,12 @@ class Lightmapper {
         light.shadowMap = this.shadowMapCache.get(this.device, light);
       }
       if (light.type === LIGHTTYPE_DIRECTIONAL) {
-        this.renderer._shadowRenderer.cullDirectional(light, casters, this.camera);
+        this.renderer._shadowRendererDirectional.cull(light, casters, this.camera);
+        this.renderer._shadowRendererDirectional.render(light, this.camera);
       } else {
-        this.renderer._shadowRenderer.cullLocal(light, casters);
+        this.renderer._shadowRendererLocal.cull(light, casters);
+        this.renderer.renderShadowsLocal(lightArray[light.type], this.camera);
       }
-      this.renderer.renderShadows(lightArray[light.type], this.camera);
     }
     return true;
   }

@@ -4,6 +4,7 @@ import { Mat4 } from '../core/math/mat4.js';
 import { Vec2 } from '../core/math/vec2.js';
 import { Vec3 } from '../core/math/vec3.js';
 import { Vec4 } from '../core/math/vec4.js';
+import { DEVICETYPE_WEBGPU } from '../platform/graphics/constants.js';
 import { LIGHTTYPE_DIRECTIONAL, MASK_AFFECT_DYNAMIC, LIGHTFALLOFF_LINEAR, SHADOW_PCF3, BLUR_GAUSSIAN, LIGHTSHAPE_PUNCTUAL, SHADOWUPDATE_REALTIME, LIGHTTYPE_OMNI, SHADOW_PCF5, SHADOW_VSM32, SHADOW_VSM16, SHADOW_VSM8, MASK_BAKE, SHADOWUPDATE_NONE, SHADOWUPDATE_THISFRAME, LIGHTTYPE_SPOT } from './constants.js';
 import { ShadowRenderer } from './renderer/shadow-renderer.js';
 
@@ -125,6 +126,7 @@ class Light {
     this.shadowIntensity = 1.0;
     this._normalOffsetBias = 0.0;
     this.shadowUpdateMode = SHADOWUPDATE_REALTIME;
+    this.shadowUpdateOverrides = null;
     this._isVsm = false;
     this._isPcf = true;
 
@@ -187,6 +189,7 @@ class Light {
     this.updateKey();
     const stype = this._shadowType;
     this._shadowType = null;
+    this.shadowUpdateOverrides = null;
     this.shadowType = stype;
   }
 
@@ -220,7 +223,8 @@ class Light {
     const device = this.device;
     if (this._type === LIGHTTYPE_OMNI) value = SHADOW_PCF3;
 
-    if (value === SHADOW_PCF5 && !device.webgl2) {
+    const supportsPCF5 = device.webgl2 || device.deviceType === DEVICETYPE_WEBGPU;
+    if (value === SHADOW_PCF5 && !supportsPCF5) {
       value = SHADOW_PCF3;
     }
 
@@ -435,6 +439,13 @@ class Light {
     if (this.shadowUpdateMode === SHADOWUPDATE_NONE) {
       this.shadowUpdateMode = SHADOWUPDATE_THISFRAME;
     }
+    if (this.shadowUpdateOverrides) {
+      for (let i = 0; i < this.shadowUpdateOverrides.length; i++) {
+        if (this.shadowUpdateOverrides[i] === SHADOWUPDATE_NONE) {
+          this.shadowUpdateOverrides[i] = SHADOWUPDATE_THISFRAME;
+        }
+      }
+    }
   }
 
   getRenderData(camera, face) {
@@ -469,6 +480,9 @@ class Light {
     clone.vsmBias = this.vsmBias;
     clone.shadowUpdateMode = this.shadowUpdateMode;
     clone.mask = this.mask;
+    if (this.shadowUpdateOverrides) {
+      clone.shadowUpdateOverrides = this.shadowUpdateOverrides.slice();
+    }
 
     clone.innerConeAngle = this._innerConeAngle;
     clone.outerConeAngle = this._outerConeAngle;
@@ -600,11 +614,6 @@ class Light {
       this._color.set(arguments[0], arguments[1], arguments[2]);
     }
     this._updateFinalColor();
-  }
-  updateShadow() {
-    if (this.shadowUpdateMode !== SHADOWUPDATE_REALTIME) {
-      this.shadowUpdateMode = SHADOWUPDATE_THISFRAME;
-    }
   }
   layersDirty() {
     var _this$_scene;

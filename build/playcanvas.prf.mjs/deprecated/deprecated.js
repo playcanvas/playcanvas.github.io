@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
+ * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import { version, revision } from '../core/core.js';
@@ -17,7 +17,7 @@ import { BoundingBox } from '../core/shape/bounding-box.js';
 import { BoundingSphere } from '../core/shape/bounding-sphere.js';
 import { Frustum } from '../core/shape/frustum.js';
 import { Plane } from '../core/shape/plane.js';
-import { TYPE_INT8, TYPE_UINT8, TYPE_INT16, TYPE_UINT16, TYPE_INT32, TYPE_UINT32, TYPE_FLOAT32, ADDRESS_CLAMP_TO_EDGE, ADDRESS_MIRRORED_REPEAT, ADDRESS_REPEAT, BLENDMODE_ZERO, BLENDMODE_ONE, BLENDMODE_SRC_COLOR, BLENDMODE_ONE_MINUS_SRC_COLOR, BLENDMODE_DST_COLOR, BLENDMODE_ONE_MINUS_DST_COLOR, BLENDMODE_SRC_ALPHA, BLENDMODE_SRC_ALPHA_SATURATE, BLENDMODE_ONE_MINUS_SRC_ALPHA, BLENDMODE_DST_ALPHA, BLENDMODE_ONE_MINUS_DST_ALPHA, BUFFER_STATIC, BUFFER_DYNAMIC, BUFFER_STREAM, CULLFACE_NONE, CULLFACE_BACK, CULLFACE_FRONT, CULLFACE_FRONTANDBACK, FILTER_NEAREST, FILTER_LINEAR, FILTER_NEAREST_MIPMAP_NEAREST, FILTER_NEAREST_MIPMAP_LINEAR, FILTER_LINEAR_MIPMAP_NEAREST, FILTER_LINEAR_MIPMAP_LINEAR, INDEXFORMAT_UINT8, INDEXFORMAT_UINT16, INDEXFORMAT_UINT32, PIXELFORMAT_R5_G6_B5, PIXELFORMAT_R8_G8_B8, PIXELFORMAT_R8_G8_B8_A8, PRIMITIVE_POINTS, PRIMITIVE_LINES, PRIMITIVE_LINELOOP, PRIMITIVE_LINESTRIP, PRIMITIVE_TRIANGLES, PRIMITIVE_TRISTRIP, PRIMITIVE_TRIFAN, SEMANTIC_POSITION, SEMANTIC_NORMAL, SEMANTIC_COLOR, SEMANTIC_TEXCOORD, SEMANTIC_TEXCOORD0, SEMANTIC_TEXCOORD1, SEMANTIC_ATTR0, SEMANTIC_ATTR1, SEMANTIC_ATTR2, SEMANTIC_ATTR3, TEXTURELOCK_READ, TEXTURELOCK_WRITE, TEXTURETYPE_RGBM, TEXTURETYPE_DEFAULT, TEXTURETYPE_SWIZZLEGGGR } from '../platform/graphics/constants.js';
+import { TYPE_INT8, TYPE_UINT8, TYPE_INT16, TYPE_UINT16, TYPE_INT32, TYPE_UINT32, TYPE_FLOAT32, PIXELFORMAT_LA8, PIXELFORMAT_RGB565, PIXELFORMAT_RGBA5551, PIXELFORMAT_RGBA4, PIXELFORMAT_RGB8, PIXELFORMAT_RGBA8, ADDRESS_CLAMP_TO_EDGE, ADDRESS_MIRRORED_REPEAT, ADDRESS_REPEAT, BLENDMODE_ZERO, BLENDMODE_ONE, BLENDMODE_SRC_COLOR, BLENDMODE_ONE_MINUS_SRC_COLOR, BLENDMODE_DST_COLOR, BLENDMODE_ONE_MINUS_DST_COLOR, BLENDMODE_SRC_ALPHA, BLENDMODE_SRC_ALPHA_SATURATE, BLENDMODE_ONE_MINUS_SRC_ALPHA, BLENDMODE_DST_ALPHA, BLENDMODE_ONE_MINUS_DST_ALPHA, BUFFER_STATIC, BUFFER_DYNAMIC, BUFFER_STREAM, CULLFACE_NONE, CULLFACE_BACK, CULLFACE_FRONT, CULLFACE_FRONTANDBACK, FILTER_NEAREST, FILTER_LINEAR, FILTER_NEAREST_MIPMAP_NEAREST, FILTER_NEAREST_MIPMAP_LINEAR, FILTER_LINEAR_MIPMAP_NEAREST, FILTER_LINEAR_MIPMAP_LINEAR, INDEXFORMAT_UINT8, INDEXFORMAT_UINT16, INDEXFORMAT_UINT32, PRIMITIVE_POINTS, PRIMITIVE_LINES, PRIMITIVE_LINELOOP, PRIMITIVE_LINESTRIP, PRIMITIVE_TRIANGLES, PRIMITIVE_TRISTRIP, PRIMITIVE_TRIFAN, SEMANTIC_POSITION, SEMANTIC_NORMAL, SEMANTIC_COLOR, SEMANTIC_TEXCOORD, SEMANTIC_TEXCOORD0, SEMANTIC_TEXCOORD1, SEMANTIC_ATTR0, SEMANTIC_ATTR1, SEMANTIC_ATTR2, SEMANTIC_ATTR3, TEXTURELOCK_READ, TEXTURELOCK_WRITE, TEXTURETYPE_RGBM, TEXTURETYPE_DEFAULT, TEXTURETYPE_SWIZZLEGGGR } from '../platform/graphics/constants.js';
 import { begin, end, fogCode, gammaCode, skinCode, tonemapCode } from '../scene/shader-lib/programs/common.js';
 import { drawQuadWithShader } from '../platform/graphics/simple-post-effect.js';
 import { shaderChunks } from '../scene/shader-lib/chunks/chunks.js';
@@ -35,6 +35,8 @@ import { Texture } from '../platform/graphics/texture.js';
 import { VertexBuffer } from '../platform/graphics/vertex-buffer.js';
 import { VertexFormat } from '../platform/graphics/vertex-format.js';
 import { VertexIterator } from '../platform/graphics/vertex-iterator.js';
+import { ShaderUtils } from '../platform/graphics/shader-utils.js';
+import { GraphicsDeviceAccess } from '../platform/graphics/graphics-device-access.js';
 import { LAYERID_WORLD, LAYERID_IMMEDIATE, LINEBATCH_OVERLAY, PROJECTION_ORTHOGRAPHIC, PROJECTION_PERSPECTIVE } from '../scene/constants.js';
 import { calculateTangents, createMesh, createTorus, createCylinder, createCapsule, createCone, createSphere, createPlane, createBox } from '../scene/procedural.js';
 import { partitionSkin } from '../scene/skin-partition.js';
@@ -54,6 +56,8 @@ import { SkinInstance } from '../scene/skin-instance.js';
 import { StandardMaterial } from '../scene/materials/standard-material.js';
 import { Batch } from '../scene/batching/batch.js';
 import { getDefaultMaterial } from '../scene/materials/default-material.js';
+import { StandardMaterialOptions } from '../scene/materials/standard-material-options.js';
+import { LitOptions } from '../scene/materials/lit-options.js';
 import { Animation, Key, Node } from '../scene/animation/animation.js';
 import { Skeleton } from '../scene/animation/skeleton.js';
 import { Channel } from '../platform/audio/channel.js';
@@ -72,13 +76,9 @@ import { Mouse } from '../platform/input/mouse.js';
 import { MouseEvent } from '../platform/input/mouse-event.js';
 import { TouchDevice } from '../platform/input/touch-device.js';
 import { getTouchTargetCoords, Touch, TouchEvent } from '../platform/input/touch-event.js';
-import { FILLMODE_NONE, FILLMODE_FILL_WINDOW, FILLMODE_KEEP_ASPECT, RESOLUTION_AUTO, RESOLUTION_FIXED } from '../framework/constants.js';
-import { Application } from '../framework/application.js';
+import { AppBase } from '../framework/app-base.js';
 import { getApplication } from '../framework/globals.js';
 import { CameraComponent } from '../framework/components/camera/component.js';
-import { Component } from '../framework/components/component.js';
-import { ComponentSystem } from '../framework/components/system.js';
-import { Entity } from '../framework/entity.js';
 import { LightComponent } from '../framework/components/light/component.js';
 import { ModelComponent } from '../framework/components/model/component.js';
 import { RenderComponent } from '../framework/components/render/component.js';
@@ -86,7 +86,6 @@ import { BODYTYPE_STATIC, BODYTYPE_DYNAMIC, BODYTYPE_KINEMATIC, BODYFLAG_STATIC_
 import { RigidBodyComponent } from '../framework/components/rigid-body/component.js';
 import { RigidBodyComponentSystem } from '../framework/components/rigid-body/system.js';
 import { basisInitialize } from '../framework/handlers/basis.js';
-import { ShaderUtils } from '../platform/graphics/shader-utils.js';
 
 const log = {
   write: function (text) {
@@ -226,6 +225,12 @@ const ELEMENTTYPE_UINT16 = TYPE_UINT16;
 const ELEMENTTYPE_INT32 = TYPE_INT32;
 const ELEMENTTYPE_UINT32 = TYPE_UINT32;
 const ELEMENTTYPE_FLOAT32 = TYPE_FLOAT32;
+const PIXELFORMAT_L8_A8 = PIXELFORMAT_LA8;
+const PIXELFORMAT_R5_G6_B5 = PIXELFORMAT_RGB565;
+const PIXELFORMAT_R5_G5_B5_A1 = PIXELFORMAT_RGBA5551;
+const PIXELFORMAT_R4_G4_B4_A4 = PIXELFORMAT_RGBA4;
+const PIXELFORMAT_R8_G8_B8 = PIXELFORMAT_RGB8;
+const PIXELFORMAT_R8_G8_B8_A8 = PIXELFORMAT_RGBA8;
 function UnsupportedBrowserError(message) {
   this.name = 'UnsupportedBrowserError';
   this.message = message || '';
@@ -285,9 +290,9 @@ const gfx = {
   INDEXFORMAT_UINT8: INDEXFORMAT_UINT8,
   INDEXFORMAT_UINT16: INDEXFORMAT_UINT16,
   INDEXFORMAT_UINT32: INDEXFORMAT_UINT32,
-  PIXELFORMAT_R5_G6_B5: PIXELFORMAT_R5_G6_B5,
-  PIXELFORMAT_R8_G8_B8: PIXELFORMAT_R8_G8_B8,
-  PIXELFORMAT_R8_G8_B8_A8: PIXELFORMAT_R8_G8_B8_A8,
+  PIXELFORMAT_RGB565: PIXELFORMAT_RGB565,
+  PIXELFORMAT_RGB8: PIXELFORMAT_RGB8,
+  PIXELFORMAT_RGBA8: PIXELFORMAT_RGBA8,
   PRIMITIVE_POINTS: PRIMITIVE_POINTS,
   PRIMITIVE_LINES: PRIMITIVE_LINES,
   PRIMITIVE_LINELOOP: PRIMITIVE_LINELOOP,
@@ -361,6 +366,11 @@ Object.defineProperties(RenderTarget.prototype, {
       return this.impl._glFrameBuffer;
     },
     set: function (rgbm) {}
+  }
+});
+Object.defineProperty(VertexFormat, 'defaultInstancingFormat', {
+  get: function () {
+    return VertexFormat.getDefaultInstancingFormat(GraphicsDeviceAccess.get());
   }
 });
 VertexFormat.prototype.update = function () {};
@@ -582,6 +592,24 @@ _defineAlias('metalnessVertexColor', 'metalnessMapVertexColor');
 _defineAlias('glossVertexColor', 'glossMapVertexColor');
 _defineAlias('opacityVertexColor', 'opacityMapVertexColor');
 _defineAlias('lightVertexColor', 'lightMapVertexColor');
+function _defineOption(name, newName) {
+  if (name !== 'chunks' && name !== '_pass') {
+    Object.defineProperty(StandardMaterialOptions.prototype, name, {
+      get: function () {
+        return this.litOptions[newName || name];
+      },
+      set: function (value) {
+        this.litOptions[newName || name] = value;
+      }
+    });
+  }
+}
+_defineOption('refraction', 'useRefraction');
+const tempOptions = new LitOptions();
+const litOptionProperties = Object.getOwnPropertyNames(tempOptions);
+for (const litOption in litOptionProperties) {
+  _defineOption(litOptionProperties[litOption]);
+}
 
 const anim = {
   Animation: Animation,
@@ -709,25 +737,10 @@ const RIGIDBODY_ISLAND_SLEEPING = BODYSTATE_ISLAND_SLEEPING;
 const RIGIDBODY_WANTS_DEACTIVATION = BODYSTATE_WANTS_DEACTIVATION;
 const RIGIDBODY_DISABLE_DEACTIVATION = BODYSTATE_DISABLE_DEACTIVATION;
 const RIGIDBODY_DISABLE_SIMULATION = BODYSTATE_DISABLE_SIMULATION;
-const fw = {
-  Application: Application,
-  Component: Component,
-  ComponentSystem: ComponentSystem,
-  Entity: Entity,
-  FillMode: {
-    NONE: FILLMODE_NONE,
-    FILL_WINDOW: FILLMODE_FILL_WINDOW,
-    KEEP_ASPECT: FILLMODE_KEEP_ASPECT
-  },
-  ResolutionMode: {
-    AUTO: RESOLUTION_AUTO,
-    FIXED: RESOLUTION_FIXED
-  }
-};
-Application.prototype.isFullscreen = function () {
+AppBase.prototype.isFullscreen = function () {
   return !!document.fullscreenElement;
 };
-Application.prototype.enableFullscreen = function (element, success, error) {
+AppBase.prototype.enableFullscreen = function (element, success, error) {
   element = element || this.graphicsDevice.canvas;
 
   const s = function s() {
@@ -751,7 +764,7 @@ Application.prototype.enableFullscreen = function (element, success, error) {
     error();
   }
 };
-Application.prototype.disableFullscreen = function (success) {
+AppBase.prototype.disableFullscreen = function (success) {
   const s = function s() {
     success();
     document.removeEventListener('fullscreenchange', s);
@@ -761,37 +774,37 @@ Application.prototype.disableFullscreen = function (success) {
   }
   document.exitFullscreen();
 };
-Application.prototype.getSceneUrl = function (name) {
+AppBase.prototype.getSceneUrl = function (name) {
   const entry = this.scenes.find(name);
   if (entry) {
     return entry.url;
   }
   return null;
 };
-Application.prototype.loadScene = function (url, callback) {
+AppBase.prototype.loadScene = function (url, callback) {
   this.scenes.loadScene(url, callback);
 };
-Application.prototype.loadSceneHierarchy = function (url, callback) {
+AppBase.prototype.loadSceneHierarchy = function (url, callback) {
   this.scenes.loadSceneHierarchy(url, callback);
 };
-Application.prototype.loadSceneSettings = function (url, callback) {
+AppBase.prototype.loadSceneSettings = function (url, callback) {
   this.scenes.loadSceneSettings(url, callback);
 };
-Application.prototype.renderMeshInstance = function (meshInstance, options) {
+AppBase.prototype.renderMeshInstance = function (meshInstance, options) {
   const layer = options != null && options.layer ? options.layer : this.scene.defaultDrawLayer;
   this.scene.immediate.drawMesh(null, null, null, meshInstance, layer);
 };
-Application.prototype.renderMesh = function (mesh, material, matrix, options) {
+AppBase.prototype.renderMesh = function (mesh, material, matrix, options) {
   const layer = options != null && options.layer ? options.layer : this.scene.defaultDrawLayer;
   this.scene.immediate.drawMesh(material, matrix, mesh, null, layer);
 };
-Application.prototype._addLines = function (positions, colors, options) {
+AppBase.prototype._addLines = function (positions, colors, options) {
   const layer = options && options.layer ? options.layer : this.scene.layers.getLayerById(LAYERID_IMMEDIATE);
   const depthTest = options && options.depthTest !== undefined ? options.depthTest : true;
   const batch = this.scene.immediate.getBatch(layer, depthTest);
   batch.addLines(positions, colors);
 };
-Application.prototype.renderLine = function (start, end, color) {
+AppBase.prototype.renderLine = function (start, end, color) {
   let endColor = color;
   let options;
   const arg3 = arguments[3];
@@ -832,7 +845,7 @@ Application.prototype.renderLine = function (start, end, color) {
   }
   this._addLines([start, end], [color, endColor], options);
 };
-Application.prototype.renderLines = function (position, color, options) {
+AppBase.prototype.renderLines = function (position, color, options) {
   if (!options) {
     options = {
       layer: this.scene.layers.getLayerById(LAYERID_IMMEDIATE),
@@ -864,7 +877,7 @@ Application.prototype.renderLines = function (position, color, options) {
   }
   this._addLines(position, color, options);
 };
-Application.prototype.enableVr = function () {};
+AppBase.prototype.enableVr = function () {};
 Object.defineProperty(CameraComponent.prototype, 'node', {
   get: function () {
     return this.entity;
@@ -921,4 +934,4 @@ function basisSetDownloadConfig(glueUrl, wasmUrl, fallbackUrl) {
 }
 function prefilterCubemap(options) {}
 
-export { ContextCreationError, ELEMENTTYPE_FLOAT32, ELEMENTTYPE_INT16, ELEMENTTYPE_INT32, ELEMENTTYPE_INT8, ELEMENTTYPE_UINT16, ELEMENTTYPE_UINT32, ELEMENTTYPE_UINT8, PhongMaterial, RIGIDBODY_ACTIVE_TAG, RIGIDBODY_CF_KINEMATIC_OBJECT, RIGIDBODY_CF_NORESPONSE_OBJECT, RIGIDBODY_CF_STATIC_OBJECT, RIGIDBODY_DISABLE_DEACTIVATION, RIGIDBODY_DISABLE_SIMULATION, RIGIDBODY_ISLAND_SLEEPING, RIGIDBODY_TYPE_DYNAMIC, RIGIDBODY_TYPE_KINEMATIC, RIGIDBODY_TYPE_STATIC, RIGIDBODY_WANTS_DEACTIVATION, UnsupportedBrowserError, anim, asset, audio, basisSetDownloadConfig, fw, gfx, inherits, input, log, makeArray, posteffect, prefilterCubemap, programlib, scene, shape, time };
+export { ContextCreationError, ELEMENTTYPE_FLOAT32, ELEMENTTYPE_INT16, ELEMENTTYPE_INT32, ELEMENTTYPE_INT8, ELEMENTTYPE_UINT16, ELEMENTTYPE_UINT32, ELEMENTTYPE_UINT8, PIXELFORMAT_L8_A8, PIXELFORMAT_R4_G4_B4_A4, PIXELFORMAT_R5_G5_B5_A1, PIXELFORMAT_R5_G6_B5, PIXELFORMAT_R8_G8_B8, PIXELFORMAT_R8_G8_B8_A8, PhongMaterial, RIGIDBODY_ACTIVE_TAG, RIGIDBODY_CF_KINEMATIC_OBJECT, RIGIDBODY_CF_NORESPONSE_OBJECT, RIGIDBODY_CF_STATIC_OBJECT, RIGIDBODY_DISABLE_DEACTIVATION, RIGIDBODY_DISABLE_SIMULATION, RIGIDBODY_ISLAND_SLEEPING, RIGIDBODY_TYPE_DYNAMIC, RIGIDBODY_TYPE_KINEMATIC, RIGIDBODY_TYPE_STATIC, RIGIDBODY_WANTS_DEACTIVATION, UnsupportedBrowserError, anim, asset, audio, basisSetDownloadConfig, gfx, inherits, input, log, makeArray, posteffect, prefilterCubemap, programlib, scene, shape, time };

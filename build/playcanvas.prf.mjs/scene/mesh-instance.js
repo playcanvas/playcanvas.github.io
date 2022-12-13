@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
+ * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import '../core/tracing.js';
@@ -400,7 +400,7 @@ class MeshInstance {
       this.instancingData = new InstancingData(vertexBuffer.numVertices);
       this.instancingData.vertexBuffer = vertexBuffer;
 
-      vertexBuffer.instancing = true;
+      vertexBuffer.format.instancing = true;
 
       this.cull = false;
     } else {

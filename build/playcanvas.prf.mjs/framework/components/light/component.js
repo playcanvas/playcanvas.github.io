@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
+ * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import { math } from '../../../core/math/math.js';
@@ -67,9 +67,6 @@ class LightComponent extends Component {
 
     if (this.enabled && this.entity.enabled) this.onEnable();
   }
-  updateShadow() {
-    this.light.updateShadow();
-  }
   onCookieAssetSet() {
     let forceLoad = false;
     if (this._cookieAsset.type === 'cubemap' && !this._cookieAsset.loadFaces) {
@@ -130,6 +127,13 @@ class LightComponent extends Component {
     this.light.destroy();
 
     this.cookieAsset = null;
+  }
+
+  set shadowUpdateOverrides(values) {
+    this.light.shadowUpdateOverrides = values;
+  }
+  get shadowUpdateOverrides() {
+    return this.light.shadowUpdateOverrides;
   }
 }
 function _defineProperty(name, defaultValue, setFunc, skipEqualsCheck) {

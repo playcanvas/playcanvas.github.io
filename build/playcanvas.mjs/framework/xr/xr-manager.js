@@ -1,17 +1,18 @@
-import { platform } from '../../core/platform.js';
+import '../../core/tracing.js';
 import { EventHandler } from '../../core/event-handler.js';
+import { platform } from '../../core/platform.js';
 import { Mat3 } from '../../core/math/mat3.js';
 import { Mat4 } from '../../core/math/mat4.js';
 import { Quat } from '../../core/math/quat.js';
 import { Vec3 } from '../../core/math/vec3.js';
 import { Vec4 } from '../../core/math/vec4.js';
 import { XRTYPE_INLINE, XRTYPE_VR, XRTYPE_AR, XRDEPTHSENSINGUSAGE_CPU, XRDEPTHSENSINGFORMAT_L8A8 } from './constants.js';
+import { XrDepthSensing } from './xr-depth-sensing.js';
+import { XrDomOverlay } from './xr-dom-overlay.js';
 import { XrHitTest } from './xr-hit-test.js';
+import { XrImageTracking } from './xr-image-tracking.js';
 import { XrInput } from './xr-input.js';
 import { XrLightEstimation } from './xr-light-estimation.js';
-import { XrImageTracking } from './xr-image-tracking.js';
-import { XrDomOverlay } from './xr-dom-overlay.js';
-import { XrDepthSensing } from './xr-depth-sensing.js';
 import { XrPlaneDetection } from './xr-plane-detection.js';
 
 class XrManager extends EventHandler {
@@ -217,10 +218,13 @@ class XrManager extends EventHandler {
     session.addEventListener('visibilitychange', onVisibilityChange);
     this._camera.on('set_nearClip', onClipPlanesChange);
     this._camera.on('set_farClip', onClipPlanesChange);
+
+    const framebufferScaleFactor = this.app.graphicsDevice.maxPixelRatio / window.devicePixelRatio;
     this._baseLayer = new XRWebGLLayer(session, this.app.graphicsDevice.gl, {
       alpha: true,
       depth: true,
-      stencil: true
+      stencil: true,
+      framebufferScaleFactor: framebufferScaleFactor
     });
     session.updateRenderState({
       baseLayer: this._baseLayer,

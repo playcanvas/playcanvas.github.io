@@ -1,13 +1,13 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
+ * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import '../../../core/tracing.js';
+import { math } from '../../../core/math/math.js';
 import { AnimTrack } from '../../anim/evaluator/anim-track.js';
 import { AnimTransition } from '../../anim/controller/anim-transition.js';
 import { ANIM_LAYER_OVERWRITE } from '../../anim/controller/constants.js';
-import { math } from '../../../core/math/math.js';
 
 class AnimComponentLayer {
   constructor(name, controller, component, weight = 1, blendType = ANIM_LAYER_OVERWRITE, normalizedWeight = true) {

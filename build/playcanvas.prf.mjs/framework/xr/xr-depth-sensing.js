@@ -1,13 +1,13 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
+ * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
-import { platform } from '../../core/platform.js';
 import { EventHandler } from '../../core/event-handler.js';
+import { platform } from '../../core/platform.js';
 import { Mat4 } from '../../core/math/mat4.js';
+import { PIXELFORMAT_LA8, ADDRESS_CLAMP_TO_EDGE, FILTER_LINEAR } from '../../platform/graphics/constants.js';
 import { Texture } from '../../platform/graphics/texture.js';
-import { PIXELFORMAT_L8_A8, ADDRESS_CLAMP_TO_EDGE, FILTER_LINEAR } from '../../platform/graphics/constants.js';
 import { XRDEPTHSENSINGUSAGE_CPU, XRDEPTHSENSINGUSAGE_GPU } from './constants.js';
 
 class XrDepthSensing extends EventHandler {
@@ -28,7 +28,7 @@ class XrDepthSensing extends EventHandler {
     this._manager = manager;
 
     this._texture = new Texture(this._manager.app.graphicsDevice, {
-      format: PIXELFORMAT_L8_A8,
+      format: PIXELFORMAT_LA8,
       mipmaps: false,
       addressU: ADDRESS_CLAMP_TO_EDGE,
       addressV: ADDRESS_CLAMP_TO_EDGE,

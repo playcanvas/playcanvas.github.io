@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
+ * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import { extends as _extends } from '../../../_virtual/_rollupPluginBabelHelpers.js';
@@ -96,6 +96,9 @@ class AnimClip {
     if (Number.isFinite(clippedFrameDuration)) {
       this.activeEventsForFrame(0, clippedFrameDuration);
     }
+  }
+  progressForTime(time) {
+    return time * this._speed / this._track.duration;
   }
   _update(deltaTime) {
     if (this._playing) {

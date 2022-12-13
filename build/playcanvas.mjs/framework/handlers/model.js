@@ -1,9 +1,9 @@
 import { path } from '../../core/path.js';
 import '../../core/tracing.js';
 import { Http, http } from '../../platform/net/http.js';
+import { getDefaultMaterial } from '../../scene/materials/default-material.js';
 import { GlbModelParser } from '../parsers/glb-model.js';
 import { JsonModelParser } from '../parsers/json-model.js';
-import { getDefaultMaterial } from '../../scene/materials/default-material.js';
 
 class ModelHandler {
 

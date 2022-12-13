@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
+ * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import '../../core/tracing.js';
@@ -16,8 +16,6 @@ class VertexBuffer {
     this.usage = usage;
     this.id = id++;
     this.impl = graphicsDevice.createVertexBufferImpl(this, format);
-
-    this.instancing = false;
 
     this.numBytes = format.verticesByteSize ? format.verticesByteSize : format.size * numVertices;
     this.adjustVramSizeTracking(graphicsDevice._vram, this.numBytes);

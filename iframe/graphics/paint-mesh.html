@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="../../build/playcanvas-observer.js"></script>
+    <script src="../../build/urlSearchParamsPolyfill.js"></script>
+    <script src="../../build/promisePolyfill.js"></script>
+    <script src="../../build/fetchPolyfill.js"></script>
+    <script src="../../build/regeneratorRuntimePolyfill.js"></script>
+    <script src="../../build/arrayFromPolyfill.js"></script>
+    <script src="../../build/objectValuesPolyfill.js"></script>
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        body {
+            margin: 0;
+            overflow-y: hidden;
+        }
+        #application-canvas {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div id="appInner">
+            <!--A link without href, which makes it invisible. Setting href in an example would trigger a download when clicked.-->
+            <div style="width:100%; position:absolute; top:10px">
+                <div style="text-align: center;">
+                    <a id="ar-link" rel="ar" download="asset.usdz">
+                        <img id="button" width="200" src="/arkit.png">
+                    </a>    
+                </div>
+            </div>
+            <canvas id='application-canvas'></canvas>
+        </div>
+    </div>
+    <script>
+        // polyfill slice on UInt8Array
+        if (!Uint8Array.prototype.slice) {
+            Object.defineProperty(Uint8Array.prototype, 'slice', {
+                value: function (begin, end) {
+                    return new Uint8Array(Array.prototype.slice.call(this, begin, end));
+                }
+            });
+        }
+        var event = new CustomEvent("exampleLoading");
+        window.top.dispatchEvent(event);
+
+        // include the example class which contains the example function to execute and any assets to load
+        "use strict";function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}function _defineProperties(target, props) {for (var i = 0; i < props.length; i++) {var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);}}function _createClass(Constructor, protoProps, staticProps) {if (protoProps) _defineProperties(Constructor.prototype, protoProps);if (staticProps) _defineProperties(Constructor, staticProps);Object.defineProperty(Constructor, "prototype", { writable: false });return Constructor;}function _defineProperty(obj, key, value) {if (key in obj) {Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true });} else {obj[key] = value;}return obj;}var Example = /*#__PURE__*/function () {function Example() {_classCallCheck(this, Example);}_createClass(Example, [{ key: "example", value:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    function example(canvas, files) {
+
+      // Create the app and start the update loop
+      var app = new pc.Application(canvas);
+
+      // load the textures
+      var assets = {
+        'helipad': new pc.Asset('helipad.dds', 'cubemap', { url: '/../../static/assets/cubemaps/helipad.dds' }, { type: pc.TEXTURETYPE_RGBM }),
+        'color': new pc.Asset('color', 'texture', { url: '/../../static/assets/textures/seaside-rocks01-color.jpg' }),
+        'decal': new pc.Asset('color', 'texture', { url: '/../../static/assets/textures/heart.png' }) };
+
+
+      var assetListLoader = new pc.AssetListLoader(Object.values(assets), app.assets);
+      assetListLoader.load(function () {
+
+        app.start();
+
+        // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
+        app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
+        app.setCanvasResolution(pc.RESOLUTION_AUTO);
+
+        app.scene.setSkybox(assets.helipad.resources);
+        app.scene.toneMapping = pc.TONEMAP_ACES;
+        app.scene.skyboxIntensity = 1;
+        app.scene.skyboxMip = 2;
+
+        // helper function to create high polygon version of a sphere and sets up an entity to allow it to be added to the scene
+        var createHighQualitySphere = function createHighQualitySphere(material, layer) {
+
+          // Create Entity and add it to the scene
+          var entity = new pc.Entity("HighResSphere");
+          app.root.addChild(entity);
+
+          // create hight resolution sphere
+          var mesh = pc.createSphere(app.graphicsDevice, { latitudeBands: 200, longitudeBands: 200 });
+
+          // Add a render component with the mesh
+          entity.addComponent('render', {
+            type: 'asset',
+            layers: layer,
+            meshInstances: [new pc.MeshInstance(mesh, material)] });
+
+
+          return entity;
+        };
+
+        // We render decals to a texture, so create a render target for it. Note that the texture needs
+        // to be of renderable format here, and so it cannot be compressed.
+        var texture = assets.color.resource;
+        var renderTarget = new pc.RenderTarget({
+          colorBuffer: texture,
+          depth: false });
+
+
+        // create a layer for rendering to decals
+        var decalLayer = new pc.Layer({ name: "decalLayer" });
+        app.scene.layers.insert(decalLayer, 0);
+
+        // Create a camera, which renders decals using a decalLayer, and renders before the main camera
+        // Note that this camera does not need its position set, as it's only used to trigger
+        // the rendering, but the camera matrix is not used for the rendering (our custom shader
+        // does not need it).
+        var decalCamera = new pc.Entity('DecalCamera');
+        decalCamera.addComponent("camera", {
+          clearColorBuffer: false,
+          layers: [decalLayer.id],
+          renderTarget: renderTarget,
+          priority: -1 });
+
+        app.root.addChild(decalCamera);
+
+        // Create main camera, which renders entities in world layer - this is where we show mesh with decals
+        var camera = new pc.Entity('MainCamera');
+        camera.addComponent("camera", {
+          clearColor: new pc.Color(0.1, 0.1, 0.1, 1) });
+
+        camera.translate(20, 10, 40);
+        camera.lookAt(new pc.Vec3(0, -7, 0));
+        app.root.addChild(camera);
+
+        // material used on the sphere
+        var material = new pc.StandardMaterial();
+        material.diffuseMap = texture;
+        material.shininess = 60;
+        material.metalness = 0.4;
+        material.useMetalness = true;
+        material.update();
+
+        // sphere with the texture
+        var worldLayer = app.scene.layers.getLayerByName("World");
+        var meshEntity = createHighQualitySphere(material, [worldLayer.id]);
+        meshEntity.setLocalScale(15, 15, 15);
+
+        // Create the shader definition and shader from the vertex and fragment shaders
+        var shaderDefinition = {
+          attributes: {
+            aPosition: pc.SEMANTIC_POSITION,
+            aUv0: pc.SEMANTIC_TEXCOORD0 },
+
+          vshader: files['shader.vert'],
+          fshader: files['shader.frag'] };
+
+        var shader = new pc.Shader(app.graphicsDevice, shaderDefinition);
+
+        // Create a decal material with the new shader
+        var decalMaterial = new pc.Material();
+        decalMaterial.cull = pc.CULLFACE_NONE;
+        decalMaterial.shader = shader;
+        decalMaterial.blendType = pc.BLEND_NORMAL;
+        decalMaterial.setParameter('uDecalMap', assets.decal.resource);
+
+        // To render into uv space of the mesh, we need to render the mesh using our custom shader into
+        // the texture. In order to do this, we creates a new entity, containing the same mesh instances,
+        // but using our custom shader. We make it a child of the original entity, to use its transform.
+        var meshInstances = meshEntity.render.meshInstances.map(function (srcMeshInstance) {
+          return new pc.MeshInstance(srcMeshInstance.mesh, decalMaterial);
+        });
+        var cloneEntity = new pc.Entity('cloneEntity');
+        cloneEntity.addComponent('render', {
+          meshInstances: meshInstances,
+          layers: [decalLayer.id],
+          castShadows: false,
+          receiveShadows: false });
+
+        meshEntity.addChild(cloneEntity);
+
+        // Create an entity with a directional light component
+        var light = new pc.Entity();
+        light.addComponent("light", {
+          type: "directional",
+          intensity: 3 });
+
+        app.root.addChild(light);
+        light.setLocalEulerAngles(45, 90, 0);
+
+        // update things each frame
+        var time = 0;
+        var decalTime = 0;
+        var decalFrequency = 0.5;
+        app.on("update", function (dt) {
+          time += dt * 0.7;
+
+          // a decal projection box is an orthographic projection from some position. We calculate position
+          // here to be in an orbit around the sphere. Draw a line showing the projection point and direction.
+          var decalProjectionPos = new pc.Vec3(8 * Math.cos(time), 8 * Math.cos(time * 0.3), 8 * Math.sin(time));
+          app.drawLine(decalProjectionPos, pc.Vec3.ZERO, pc.Color.WHITE);
+
+          // render recal every half a second
+          decalTime += dt;
+          if (decalTime > decalFrequency) {
+            decalTime -= decalFrequency;
+
+            // enable decal camera, which renders the decal
+            decalCamera.enabled = true;
+
+            // construct a view matrix, looking from the decal position to the center of the sphere
+            var viewMatrix = new pc.Mat4().setLookAt(decalProjectionPos, pc.Vec3.ZERO, pc.Vec3.UP);
+            viewMatrix.invert();
+
+            // ortographics projection matrix - this defines the size of the decal, but also its depth range (0..5)
+            var projMatrix = new pc.Mat4().setOrtho(-1, 1, -1, 1, 0, 5);
+
+            // final matrix is a combination of view and projection matrix. Make it available to the shader.
+            var viewProj = new pc.Mat4();
+            viewProj.mul2(projMatrix, viewMatrix);
+            decalMaterial.setParameter('matrix_decal_viewProj', viewProj.data);
+          } else {
+            // otherwise the decal camera is disabled
+            decalCamera.enabled = false;
+          }
+
+          // draw the texture we render decals to for demonstration purposes
+          // @ts-ignore engine-tsd
+          app.drawTexture(0, -0.6, 1.4, 0.6, texture);
+
+        });
+      });
+    } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'Graphics');_defineProperty(Example, "NAME", 'Paint Mesh');_defineProperty(Example, "FILES", { 'shader.vert': /* glsl */"\n            // Attributes per vertex: position and uv\n            attribute vec4 aPosition;\n            attribute vec2 aUv0;\n        \n            // model matrix of the mesh\n            uniform mat4 matrix_model;\n\n            // decal view-projection matrix (orthographic)\n            uniform mat4 matrix_decal_viewProj;\n\n            // decal projected position to fragment program\n            varying vec4 decalPos;\n\n            void main(void)\n            {\n                // We render in texture space, so a position of this fragment is its uv-coordinates.\n                // Changes the range of uv coordinates from 0..1 to projection space -1 to 1.\n                gl_Position = vec4(aUv0.x * 2.0 - 1.0, aUv0.y * 2.0 - 1.0, 0, 1.0);\n\n                // transform the vertex position to world space and then to decal space, and pass it\n                // to the fragment shader to sample the decal texture\n                vec4 worldPos = matrix_model * aPosition;\n                decalPos = matrix_decal_viewProj * worldPos;\n            }", 'shader.frag': /* glsl */"\n            precision lowp float;\n            varying vec4 decalPos;\n            uniform sampler2D uDecalMap;\n\n            void main(void)\n            {\n                // decal space position from -1..1 range, to texture space range 0..1\n                vec4 p = decalPos * 0.5 + 0.5;\n \n                // if the position is outside out 0..1 projection box, ignore the pixel\n                if (p.x < 0.0 || p.x > 1.0 || p.y < 0.0 || p.y > 1.0 || p.z < 0.0 || p.z > 1.0)\n                    discard;\n\n                gl_FragColor = texture2D(uDecalMap, p.xy);\n            }" });
+        var example = new Example();
+
+        var useTypeScript = window.top.localStorage.getItem('useTypeScript') === 'true';
+        window.exampleFunction = window.top.localStorage.getItem(window.top.location.hash.replace('#', ''));
+        if (!window.exampleFunction) {
+            window.exampleFunction = example.example
+        } else {
+            if (useTypeScript) {
+                window.exampleFunction = window.top.Babel.transform(exampleFunction, {
+                    retainLines: true,
+                    filename: 'transformedScript.tsx',
+                    presets: ["react", "typescript", "env"]
+                }).code;
+            }
+            window.exampleFunction = new Function('canvas', 'data', exampleFunction);
+        }
+        window.loadFunction = example.load;
+        window.files = window.top.editedFiles || example.constructor.FILES;
+
+        // get url parameters
+        var queryString = window.location.search;
+        var urlParams = new URLSearchParams(queryString);
+    </script>
+    <script>
+        function loadScript(url, onload) {
+            const script = document.createElement('script');
+            script.setAttribute('src', url);
+            script.onload = onload;
+            document.head.appendChild(script);
+        }
+
+        function loadEngine(callback) {
+            const enginePath = urlParams && urlParams.get('use_local_engine') || "/build/playcanvas.js";
+
+            loadScript(enginePath, () => {
+                window.top.pc = window.pc;
+                loadScript('../../build/playcanvas-extras.js', () => {
+                    callback();
+                });
+            });
+        }
+
+        function setupApplication(app) {
+            const canvas = app.graphicsDevice.canvas;
+            // handle resizing
+            var canvasContainerElement = canvas.parentElement;
+            canvas.setAttribute('width', window.innerWidth + 'px');
+            canvas.setAttribute('height', window.innerHeight + 'px');
+            var resizeTimeout = null;
+            app.setCanvasResolution(pc.RESOLUTION_AUTO);
+            if (window.ResizeObserver) {
+                new ResizeObserver(function() {
+                    canvas.width = canvasContainerElement.clientWidth;
+                    canvas.height = canvasContainerElement.clientHeight;
+                }).observe(canvasContainerElement);
+            }
+
+            if (true) {
+                // set up miniStats
+                var miniStats = new pcx.MiniStats(app);
+                if (urlParams.get('miniStats') === 'false') {
+                    miniStats.enabled = false;
+                }
+                app.on('update', function () {
+                    if (window.top._showMiniStats !== undefined) miniStats.enabled = window.top._showMiniStats;
+                });
+            }
+        }
+
+        function loadResource(app, resource, callback) {
+            if (!resource.type) {
+                fetch(resource.url)
+                    .then(function(response) { return response.text() })
+                    .then(function(data) {
+                        var module = {
+                            exports: {}
+                        };
+                        window[resource.name] = (Function('module', 'exports', data).call(module, module, module.exports), module).exports;
+                        callback({});
+                    });
+                return;
+            }
+        }
+
+        function loadResources(app, callback) {
+            var assets = [];
+            var assetManifest = {};
+
+            // stub out react
+            window.React = { createElement: function(type, props) { if (type === 'div') assets.push(props); } };
+            // call the stubbed load function to add all assets to the assets list
+            window.loadFunction();
+
+            var count = assets.length;
+            function onLoadedResource(key, asset) {
+                count--;
+                if (key) {
+                    assetManifest[key] = asset;
+                }
+                if (count <= 0) {
+                    callback(assetManifest);
+                }
+            }
+
+            assets.forEach(function (resource) {
+                loadResource(app, resource, function(asset) {
+                    onLoadedResource(resource.name, asset);
+                });
+            });
+        }
+
+        function callExample(canvas, assetManifest, files, data) {
+            function escapeRegExp(string) {
+                return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            }
+            function replaceAll(str, find, replace) {
+                return str.replace(new RegExp(escapeRegExp(find), 'g'), replace);
+            }
+            var argsString = window.exampleFunction.toString().match(/function\s.*?\(([^)]*)\)/)[1];
+            argsString = replaceAll(argsString, ' ', '');
+            argsString = replaceAll(argsString, '\n', '');
+            var argNames = argsString.split(',');
+            var args = argNames.map(function(arg) {
+                if (arg === 'canvas') {
+                    return canvas;
+                } else if (arg === 'assetManifest') {
+                    return assetManifest;
+                } else if (arg === 'files') {
+                    return files;
+                } else if (arg === 'data') {
+                    return data;
+                } else if (arg === 'pcx') {
+                    return pcx;
+                }
+            });
+            window.exampleFunction.apply(this, args);
+            if (pc.app && pc.app.graphicsDevice.canvas) {
+                setupApplication(pc.app);
+            }
+            var event = new CustomEvent("exampleLoad");
+            window.top.dispatchEvent(event);
+        }
+    </script>
+    <script>
+        // create the example observer 
+        var data = new observer.Observer({});
+        window.top.observerData = data;
+
+        // load the engine, create the application, load the resources if necessary, then call the example
+        loadEngine(function() {
+            var canvas = document.getElementById('application-canvas');
+
+            if (!window.loadFunction) {
+                callExample(canvas, {}, window.files, data);
+            } else {
+                loadResources(undefined, function(assetManifest) {
+                    callExample(canvas, assetManifest, window.files, data);
+                });
+            }
+        });
+    </script>
+</body>
+</html>

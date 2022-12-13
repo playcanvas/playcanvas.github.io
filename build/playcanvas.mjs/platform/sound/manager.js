@@ -7,7 +7,7 @@ import { Listener } from './listener.js';
 
 const CONTEXT_STATE_RUNNING = 'running';
 
-const USER_INPUT_EVENTS = ['click', 'touchstart'];
+const USER_INPUT_EVENTS = ['click', 'touchstart', 'mousedown'];
 
 class SoundManager extends EventHandler {
   constructor() {

@@ -1,8 +1,8 @@
+import '../core/tracing.js';
 import { PIXELFORMAT_RGBA32F, PIXELFORMAT_RGBA16F, BLENDMODE_ONE, BLENDEQUATION_ADD } from '../platform/graphics/constants.js';
-import { createShaderFromCode } from './shader-lib/utils.js';
 import { drawQuadWithShader } from '../platform/graphics/simple-post-effect.js';
 import { RenderTarget } from '../platform/graphics/render-target.js';
-import '../core/tracing.js';
+import { createShaderFromCode } from './shader-lib/utils.js';
 import { Morph } from './morph.js';
 
 const textureMorphVertexShader = `

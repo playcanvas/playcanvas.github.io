@@ -1,10 +1,10 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
+ * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import { path } from '../../core/path.js';
-import { PIXELFORMAT_R8_G8_B8, TEXTURETYPE_RGBM, TEXTURETYPE_SWIZZLEGGGR, ADDRESS_REPEAT, ADDRESS_CLAMP_TO_EDGE, ADDRESS_MIRRORED_REPEAT, FILTER_NEAREST, FILTER_LINEAR, FILTER_NEAREST_MIPMAP_NEAREST, FILTER_LINEAR_MIPMAP_NEAREST, FILTER_NEAREST_MIPMAP_LINEAR, FILTER_LINEAR_MIPMAP_LINEAR, TEXTURETYPE_DEFAULT, TEXTURETYPE_RGBE, TEXTURETYPE_RGBP, PIXELFORMAT_R8_G8_B8_A8, PIXELFORMAT_RGBA32F } from '../../platform/graphics/constants.js';
+import { PIXELFORMAT_RGB8, TEXTURETYPE_RGBM, TEXTURETYPE_SWIZZLEGGGR, ADDRESS_REPEAT, ADDRESS_CLAMP_TO_EDGE, ADDRESS_MIRRORED_REPEAT, FILTER_NEAREST, FILTER_LINEAR, FILTER_NEAREST_MIPMAP_NEAREST, FILTER_LINEAR_MIPMAP_NEAREST, FILTER_NEAREST_MIPMAP_LINEAR, FILTER_LINEAR_MIPMAP_LINEAR, TEXTURETYPE_DEFAULT, TEXTURETYPE_RGBE, TEXTURETYPE_RGBP, PIXELFORMAT_RGBA8, PIXELFORMAT_RGBA32F } from '../../platform/graphics/constants.js';
 import { Texture } from '../../platform/graphics/texture.js';
 import { BasisParser } from '../parsers/texture/basis.js';
 import { ImgParser } from '../parsers/texture/img.js';
@@ -49,7 +49,7 @@ const _completePartialMipmapChain = function _completePartialMipmapChain(texture
   const isHtmlElement = function isHtmlElement(object) {
     return object instanceof HTMLCanvasElement || object instanceof HTMLImageElement || object instanceof HTMLVideoElement;
   };
-  if (!(texture._format === PIXELFORMAT_R8_G8_B8_A8 || texture._format === PIXELFORMAT_RGBA32F) || texture._volume || texture._compressed || texture._levels.length === 1 || texture._levels.length === requiredMipLevels || isHtmlElement(texture._cubemap ? texture._levels[0][0] : texture._levels[0])) {
+  if (!(texture._format === PIXELFORMAT_RGBA8 || texture._format === PIXELFORMAT_RGBA32F) || texture._volume || texture._compressed || texture._levels.length === 1 || texture._levels.length === requiredMipLevels || isHtmlElement(texture._cubemap ? texture._levels[0][0] : texture._levels[0])) {
     return;
   }
   const downsample = function downsample(width, height, data) {
@@ -150,7 +150,7 @@ class TextureHandler {
       texture = new Texture(this._device, {
         width: 4,
         height: 4,
-        format: PIXELFORMAT_R8_G8_B8
+        format: PIXELFORMAT_RGB8
       });
     } else {
       _completePartialMipmapChain(texture);

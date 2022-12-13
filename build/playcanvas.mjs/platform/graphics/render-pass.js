@@ -22,7 +22,7 @@ class DepthStencilAttachmentOps {
 
 class RenderPass {
 
-  constructor(graphicsDevice, execute) {
+  constructor(graphicsDevice, execute, after = null) {
     this.name = void 0;
     this.renderTarget = void 0;
     this.samples = 0;
@@ -33,6 +33,8 @@ class RenderPass {
     this.device = graphicsDevice;
 
     this.execute = execute;
+
+    this.after = after;
   }
 
   init(renderTarget) {
@@ -70,6 +72,7 @@ class RenderPass {
   }
 
   render() {
+    var _this$after;
     const device = this.device;
     const realPass = this.renderTarget !== undefined;
     if (realPass) {
@@ -79,6 +82,7 @@ class RenderPass {
     if (realPass) {
       device.endPass(this);
     }
+    (_this$after = this.after) == null ? void 0 : _this$after.call(this);
   }
 }
 

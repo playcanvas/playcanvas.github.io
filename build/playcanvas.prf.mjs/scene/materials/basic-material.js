@@ -1,14 +1,14 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
+ * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import '../../core/tracing.js';
 import { Color } from '../../core/math/color.js';
-import { SHADERDEF_SKIN, SHADERDEF_SCREENSPACE, SHADERDEF_INSTANCING, SHADERDEF_MORPH_POSITION, SHADERDEF_MORPH_NORMAL, SHADERDEF_MORPH_TEXTURE_BASED } from '../constants.js';
-import { basic } from '../shader-lib/programs/basic.js';
 import { ShaderProcessorOptions } from '../../platform/graphics/shader-processor-options.js';
+import { SHADERDEF_SKIN, SHADERDEF_SCREENSPACE, SHADERDEF_INSTANCING, SHADERDEF_MORPH_POSITION, SHADERDEF_MORPH_NORMAL, SHADERDEF_MORPH_TEXTURE_BASED } from '../constants.js';
 import { getProgramLibrary } from '../shader-lib/get-program-library.js';
+import { basic } from '../shader-lib/programs/basic.js';
 import { Material } from './material.js';
 
 class BasicMaterial extends Material {

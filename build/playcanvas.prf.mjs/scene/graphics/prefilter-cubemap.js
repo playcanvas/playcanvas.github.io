@@ -1,11 +1,11 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
+ * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import '../../core/tracing.js';
 import { Vec3 } from '../../core/math/vec3.js';
-import { PIXELFORMAT_R8_G8_B8_A8, TEXTURETYPE_DEFAULT, TEXTURETYPE_RGBM } from '../../platform/graphics/constants.js';
+import { PIXELFORMAT_RGBA8, TEXTURETYPE_DEFAULT, TEXTURETYPE_RGBM } from '../../platform/graphics/constants.js';
 import { createShaderFromCode } from '../shader-lib/utils.js';
 import { drawQuadWithShader } from '../../platform/graphics/simple-post-effect.js';
 import { shaderChunks } from '../shader-lib/chunks/chunks.js';
@@ -37,7 +37,7 @@ function texelCoordSolidAngle(u, v, size) {
   return solidAngle;
 }
 function shFromCubemap(device, source, dontFlipX) {
-  if (source.format !== PIXELFORMAT_R8_G8_B8_A8) {
+  if (source.format !== PIXELFORMAT_RGBA8) {
     return null;
   }
   if (!source._levels[0] || !source._levels[0][0]) {

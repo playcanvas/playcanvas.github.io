@@ -1,9 +1,9 @@
+import '../../core/tracing.js';
 import { EventHandler } from '../../core/event-handler.js';
 import { platform } from '../../core/platform.js';
 import '../../core/time.js';
-import { ScopeSpace } from './scope-space.js';
 import { PRIMITIVE_TRIFAN, PRIMITIVE_POINTS } from './constants.js';
-import '../../core/tracing.js';
+import { ScopeSpace } from './scope-space.js';
 
 const EVENT_RESIZE = 'resizecanvas';
 
@@ -30,7 +30,8 @@ class GraphicsDevice extends EventHandler {
 
     this._width = 0;
     this._height = 0;
-    this._maxPixelRatio = 1;
+
+    this._maxPixelRatio = platform.browser ? Math.min(1, window.devicePixelRatio) : 1;
 
     this.shaders = [];
     this.buffers = [];

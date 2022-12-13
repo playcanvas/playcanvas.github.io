@@ -1,7 +1,7 @@
-import { Asset } from '../../asset/asset.js';
-import { Texture } from '../../../platform/graphics/texture.js';
-import { basisTranscode } from '../../handlers/basis.js';
 import { ADDRESS_CLAMP_TO_EDGE, ADDRESS_REPEAT } from '../../../platform/graphics/constants.js';
+import { Texture } from '../../../platform/graphics/texture.js';
+import { Asset } from '../../asset/asset.js';
+import { basisTranscode } from '../../handlers/basis.js';
 
 class BasisParser {
   constructor(registry, device) {

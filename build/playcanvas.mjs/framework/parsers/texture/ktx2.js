@@ -1,9 +1,9 @@
 import '../../../core/tracing.js';
-import { Asset } from '../../asset/asset.js';
-import { Texture } from '../../../platform/graphics/texture.js';
-import { basisTranscode } from '../../handlers/basis.js';
 import { ReadStream } from '../../../core/read-stream.js';
 import { ADDRESS_CLAMP_TO_EDGE, ADDRESS_REPEAT } from '../../../platform/graphics/constants.js';
+import { Texture } from '../../../platform/graphics/texture.js';
+import { Asset } from '../../asset/asset.js';
+import { basisTranscode } from '../../handlers/basis.js';
 
 const KHRConstants = {
   KHR_DF_MODEL_ETC1S: 163,

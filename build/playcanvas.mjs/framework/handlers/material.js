@@ -1,5 +1,5 @@
 import { http } from '../../platform/net/http.js';
-import { PIXELFORMAT_R8_G8_B8_A8 } from '../../platform/graphics/constants.js';
+import { PIXELFORMAT_RGBA8 } from '../../platform/graphics/constants.js';
 import { Texture } from '../../platform/graphics/texture.js';
 import { SPECULAR_PHONG } from '../../scene/constants.js';
 import { standardMaterialTextureParameters, standardMaterialCubemapParameters } from '../../scene/materials/standard-material-parameters.js';
@@ -85,7 +85,7 @@ class MaterialHandler {
       this._placeholderTextures[key] = new Texture(this._device, {
         width: 2,
         height: 2,
-        format: PIXELFORMAT_R8_G8_B8_A8,
+        format: PIXELFORMAT_RGBA8,
         name: 'material_placeholder'
       });
 

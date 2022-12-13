@@ -1,12 +1,12 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
+ * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import { Vec4 } from '../../core/math/vec4.js';
 import { Texture } from '../../platform/graphics/texture.js';
 import { reprojectTexture } from './reproject-texture.js';
-import { PIXELFORMAT_R8_G8_B8_A8, TEXTURETYPE_DEFAULT, ADDRESS_CLAMP_TO_EDGE, TEXTUREPROJECTION_EQUIRECT, TEXTURETYPE_RGBM, PIXELFORMAT_RGBA16F, PIXELFORMAT_RGBA32F } from '../../platform/graphics/constants.js';
+import { PIXELFORMAT_RGBA8, TEXTURETYPE_DEFAULT, ADDRESS_CLAMP_TO_EDGE, TEXTUREPROJECTION_EQUIRECT, TEXTURETYPE_RGBM, PIXELFORMAT_RGBA16F, PIXELFORMAT_RGBA32F } from '../../platform/graphics/constants.js';
 
 const fixCubemapSeams = true;
 const RGBA8_TYPE = TEXTURETYPE_RGBM;
@@ -22,11 +22,11 @@ const supportsFloat32 = device => {
 };
 
 const lightingSourcePixelFormat = device => {
-  return supportsFloat16(device) ? PIXELFORMAT_RGBA16F : supportsFloat32(device) ? PIXELFORMAT_RGBA32F : PIXELFORMAT_R8_G8_B8_A8;
+  return supportsFloat16(device) ? PIXELFORMAT_RGBA16F : supportsFloat32(device) ? PIXELFORMAT_RGBA32F : PIXELFORMAT_RGBA8;
 };
 
 const lightingPixelFormat = device => {
-  return PIXELFORMAT_R8_G8_B8_A8;
+  return PIXELFORMAT_RGBA8;
 };
 const createCubemap = (device, size, format, mipmaps) => {
   return new Texture(device, {
@@ -35,7 +35,7 @@ const createCubemap = (device, size, format, mipmaps) => {
     width: size,
     height: size,
     format: format,
-    type: format === PIXELFORMAT_R8_G8_B8_A8 ? RGBA8_TYPE : TEXTURETYPE_DEFAULT,
+    type: format === PIXELFORMAT_RGBA8 ? RGBA8_TYPE : TEXTURETYPE_DEFAULT,
     addressU: ADDRESS_CLAMP_TO_EDGE,
     addressV: ADDRESS_CLAMP_TO_EDGE,
     fixCubemapSeams: fixCubemapSeams,
@@ -46,7 +46,7 @@ const createCubemap = (device, size, format, mipmaps) => {
 class EnvLighting {
   static generateSkyboxCubemap(source, size) {
     const device = source.device;
-    const result = createCubemap(device, size || (source.cubemap ? source.width : source.width / 4), PIXELFORMAT_R8_G8_B8_A8, false);
+    const result = createCubemap(device, size || (source.cubemap ? source.width : source.width / 4), PIXELFORMAT_RGBA8, false);
     reprojectTexture(source, result, {
       numSamples: 1024
     });
@@ -62,7 +62,7 @@ class EnvLighting {
       width: (options == null ? void 0 : options.size) || 128,
       height: (options == null ? void 0 : options.size) || 128,
       format: format,
-      type: format === PIXELFORMAT_R8_G8_B8_A8 ? RGBA8_TYPE : TEXTURETYPE_DEFAULT,
+      type: format === PIXELFORMAT_RGBA8 ? RGBA8_TYPE : TEXTURETYPE_DEFAULT,
       addressU: ADDRESS_CLAMP_TO_EDGE,
       addressV: ADDRESS_CLAMP_TO_EDGE,
       fixCubemapSeams: false,

@@ -1,8 +1,11 @@
-import { UNIFORM_BUFFER_DEFAULT_SLOT_NAME } from './constants.js';
 import '../../core/tracing.js';
+import { UNIFORM_BUFFER_DEFAULT_SLOT_NAME } from './constants.js';
+
+let id = 0;
 
 class BindGroup {
   constructor(graphicsDevice, format, defaultUniformBuffer) {
+    this.id = id++;
     this.device = graphicsDevice;
     this.format = format;
     this.dirty = true;

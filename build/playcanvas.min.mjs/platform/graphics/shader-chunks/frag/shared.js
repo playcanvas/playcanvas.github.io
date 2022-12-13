@@ -1,0 +1,1 @@
+var e="\n\n// convert clip space position into texture coordinates to sample scene grab textures\nvec2 getGrabScreenPos(vec4 clipPos) {\n    vec2 uv = (clipPos.xy / clipPos.w) * 0.5 + 0.5;\n\n    #ifdef WEBGPU\n        uv.y = 1.0 - uv.y;\n    #endif\n\n    return uv;\n}\n";export{e as default};

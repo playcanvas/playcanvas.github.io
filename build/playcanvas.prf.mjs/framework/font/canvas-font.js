@@ -1,12 +1,12 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
+ * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import { string } from '../../core/string.js';
 import { EventHandler } from '../../core/event-handler.js';
 import { Color } from '../../core/math/color.js';
-import { PIXELFORMAT_R8_G8_B8_A8, FILTER_LINEAR_MIPMAP_LINEAR, FILTER_LINEAR, ADDRESS_CLAMP_TO_EDGE } from '../../platform/graphics/constants.js';
+import { PIXELFORMAT_RGBA8, FILTER_LINEAR_MIPMAP_LINEAR, FILTER_LINEAR, ADDRESS_CLAMP_TO_EDGE } from '../../platform/graphics/constants.js';
 import { Texture } from '../../platform/graphics/texture.js';
 
 const MAX_TEXTURE_SIZE = 4096;
@@ -32,7 +32,7 @@ class CanvasFont extends EventHandler {
     canvas.width = w;
     const texture = new Texture(this.app.graphicsDevice, {
       name: 'font',
-      format: PIXELFORMAT_R8_G8_B8_A8,
+      format: PIXELFORMAT_RGBA8,
       minFilter: FILTER_LINEAR_MIPMAP_LINEAR,
       magFilter: FILTER_LINEAR,
       addressU: ADDRESS_CLAMP_TO_EDGE,
@@ -192,7 +192,7 @@ class CanvasFont extends EventHandler {
             canvas.width = w;
             ctx = this._getAndClearContext(canvas, transparent);
             const texture = new Texture(this.app.graphicsDevice, {
-              format: PIXELFORMAT_R8_G8_B8_A8,
+              format: PIXELFORMAT_RGBA8,
               mipmaps: true,
               name: 'font-atlas'
             });

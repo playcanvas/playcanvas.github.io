@@ -2,8 +2,8 @@ import { platform } from '../../core/platform.js';
 import { Vec3 } from '../../core/math/vec3.js';
 import { Vec4 } from '../../core/math/vec4.js';
 import { Ray } from '../../core/shape/ray.js';
-import { getApplication } from '../globals.js';
 import { Mouse } from '../../platform/input/mouse.js';
+import { getApplication } from '../globals.js';
 
 let targetX, targetY;
 const vecA = new Vec3();
@@ -361,7 +361,7 @@ class ElementInput {
         if (hovered === element) {
           if (!this._clickedEntities[element.entity.getGuid()]) {
             this._fireEvent('click', new ElementTouchEvent(event, element, camera, x, y, touch));
-            this._clickedEntities[element.entity.getGuid()] = true;
+            this._clickedEntities[element.entity.getGuid()] = Date.now();
           }
         }
       }
@@ -421,14 +421,20 @@ class ElementInput {
     }
     if (eventType === 'mouseup' && this._pressedElement) {
       if (this._pressedElement === this._hoveredElement) {
-        this._pressedElement = null;
+        const guid = this._hoveredElement.entity.getGuid();
+        let fireClick = !this._clickedEntities;
+        if (this._clickedEntities) {
+          const lastTouchUp = this._clickedEntities[guid] || 0;
+          const dt = Date.now() - lastTouchUp;
+          fireClick = dt > 300;
 
-        if (!this._clickedEntities || !this._clickedEntities[this._hoveredElement.entity.getGuid()]) {
+          delete this._clickedEntities[guid];
+        }
+        if (fireClick) {
           this._fireEvent('click', new ElementMouseEvent(event, this._hoveredElement, camera, targetX, targetY, this._lastX, this._lastY));
         }
-      } else {
-        this._pressedElement = null;
       }
+      this._pressedElement = null;
     }
   }
   _onXrStart() {
@@ -612,75 +618,6 @@ class ElementInput {
     }
     return result;
   }
-
-  _buildHitCorners(element, screenOrWorldCorners, scaleX, scaleY, scaleZ) {
-    let hitCorners = screenOrWorldCorners;
-    const button = element.entity && element.entity.button;
-    if (button) {
-      const hitPadding = element.entity.button.hitPadding || ZERO_VEC4;
-      _paddingTop.copy(element.entity.up);
-      _paddingBottom.copy(_paddingTop).mulScalar(-1);
-      _paddingRight.copy(element.entity.right);
-      _paddingLeft.copy(_paddingRight).mulScalar(-1);
-      _paddingTop.mulScalar(hitPadding.w * scaleY);
-      _paddingBottom.mulScalar(hitPadding.y * scaleY);
-      _paddingRight.mulScalar(hitPadding.z * scaleX);
-      _paddingLeft.mulScalar(hitPadding.x * scaleX);
-      _cornerBottomLeft.copy(hitCorners[0]).add(_paddingBottom).add(_paddingLeft);
-      _cornerBottomRight.copy(hitCorners[1]).add(_paddingBottom).add(_paddingRight);
-      _cornerTopRight.copy(hitCorners[2]).add(_paddingTop).add(_paddingRight);
-      _cornerTopLeft.copy(hitCorners[3]).add(_paddingTop).add(_paddingLeft);
-      hitCorners = [_cornerBottomLeft, _cornerBottomRight, _cornerTopRight, _cornerTopLeft];
-    }
-
-    if (scaleX < 0) {
-      const left = hitCorners[2].x;
-      const right = hitCorners[0].x;
-      hitCorners[0].x = left;
-      hitCorners[1].x = right;
-      hitCorners[2].x = right;
-      hitCorners[3].x = left;
-    }
-    if (scaleY < 0) {
-      const bottom = hitCorners[2].y;
-      const top = hitCorners[0].y;
-      hitCorners[0].y = bottom;
-      hitCorners[1].y = bottom;
-      hitCorners[2].y = top;
-      hitCorners[3].y = top;
-    }
-    if (scaleZ < 0) {
-      const x = hitCorners[2].x;
-      const y = hitCorners[2].y;
-      const z = hitCorners[2].z;
-      hitCorners[2].x = hitCorners[0].x;
-      hitCorners[2].y = hitCorners[0].y;
-      hitCorners[2].z = hitCorners[0].z;
-      hitCorners[0].x = x;
-      hitCorners[0].y = y;
-      hitCorners[0].z = z;
-    }
-    return hitCorners;
-  }
-  _calculateScaleToScreen(element) {
-    let current = element.entity;
-    const screenScale = element.screen.screen.scale;
-    _accumulatedScale.set(screenScale, screenScale, screenScale);
-    while (current && !current.screen) {
-      _accumulatedScale.mul(current.getLocalScale());
-      current = current.parent;
-    }
-    return _accumulatedScale;
-  }
-  _calculateScaleToWorld(element) {
-    let current = element.entity;
-    _accumulatedScale.set(1, 1, 1);
-    while (current) {
-      _accumulatedScale.mul(current.getLocalScale());
-      current = current.parent;
-    }
-    return _accumulatedScale;
-  }
   _calculateRayScreen(x, y, camera, ray) {
     const sw = this.app.graphicsDevice.width;
     const sh = this.app.graphicsDevice.height;
@@ -737,12 +674,83 @@ class ElementInput {
     }
     let scale;
     if (screen) {
-      scale = this._calculateScaleToScreen(element);
+      scale = ElementInput.calculateScaleToScreen(element);
     } else {
-      scale = this._calculateScaleToWorld(element);
+      scale = ElementInput.calculateScaleToWorld(element);
     }
-    const corners = this._buildHitCorners(element, screen ? element.screenCorners : element.worldCorners, scale.x, scale.y, scale.z);
+    const corners = ElementInput.buildHitCorners(element, screen ? element.screenCorners : element.worldCorners, scale);
     return intersectLineQuad(ray.origin, ray.end, corners);
+  }
+
+  static buildHitCorners(element, screenOrWorldCorners, scale) {
+    let hitCorners = screenOrWorldCorners;
+    const button = element.entity && element.entity.button;
+    if (button) {
+      const hitPadding = element.entity.button.hitPadding || ZERO_VEC4;
+      _paddingTop.copy(element.entity.up);
+      _paddingBottom.copy(_paddingTop).mulScalar(-1);
+      _paddingRight.copy(element.entity.right);
+      _paddingLeft.copy(_paddingRight).mulScalar(-1);
+      _paddingTop.mulScalar(hitPadding.w * scale.y);
+      _paddingBottom.mulScalar(hitPadding.y * scale.y);
+      _paddingRight.mulScalar(hitPadding.z * scale.x);
+      _paddingLeft.mulScalar(hitPadding.x * scale.x);
+      _cornerBottomLeft.copy(hitCorners[0]).add(_paddingBottom).add(_paddingLeft);
+      _cornerBottomRight.copy(hitCorners[1]).add(_paddingBottom).add(_paddingRight);
+      _cornerTopRight.copy(hitCorners[2]).add(_paddingTop).add(_paddingRight);
+      _cornerTopLeft.copy(hitCorners[3]).add(_paddingTop).add(_paddingLeft);
+      hitCorners = [_cornerBottomLeft, _cornerBottomRight, _cornerTopRight, _cornerTopLeft];
+    }
+
+    if (scale.x < 0) {
+      const left = hitCorners[2].x;
+      const right = hitCorners[0].x;
+      hitCorners[0].x = left;
+      hitCorners[1].x = right;
+      hitCorners[2].x = right;
+      hitCorners[3].x = left;
+    }
+    if (scale.y < 0) {
+      const bottom = hitCorners[2].y;
+      const top = hitCorners[0].y;
+      hitCorners[0].y = bottom;
+      hitCorners[1].y = bottom;
+      hitCorners[2].y = top;
+      hitCorners[3].y = top;
+    }
+    if (scale.z < 0) {
+      const x = hitCorners[2].x;
+      const y = hitCorners[2].y;
+      const z = hitCorners[2].z;
+      hitCorners[2].x = hitCorners[0].x;
+      hitCorners[2].y = hitCorners[0].y;
+      hitCorners[2].z = hitCorners[0].z;
+      hitCorners[0].x = x;
+      hitCorners[0].y = y;
+      hitCorners[0].z = z;
+    }
+    return hitCorners;
+  }
+
+  static calculateScaleToScreen(element) {
+    let current = element.entity;
+    const screenScale = element.screen.screen.scale;
+    _accumulatedScale.set(screenScale, screenScale, screenScale);
+    while (current && !current.screen) {
+      _accumulatedScale.mul(current.getLocalScale());
+      current = current.parent;
+    }
+    return _accumulatedScale;
+  }
+
+  static calculateScaleToWorld(element) {
+    let current = element.entity;
+    _accumulatedScale.set(1, 1, 1);
+    while (current) {
+      _accumulatedScale.mul(current.getLocalScale());
+      current = current.parent;
+    }
+    return _accumulatedScale;
   }
 }
 

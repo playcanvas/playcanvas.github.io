@@ -1,13 +1,16 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
+ * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
-import { UNIFORM_BUFFER_DEFAULT_SLOT_NAME } from './constants.js';
 import '../../core/tracing.js';
+import { UNIFORM_BUFFER_DEFAULT_SLOT_NAME } from './constants.js';
+
+let id = 0;
 
 class BindGroup {
   constructor(graphicsDevice, format, defaultUniformBuffer) {
+    this.id = id++;
     this.device = graphicsDevice;
     this.format = format;
     this.dirty = true;

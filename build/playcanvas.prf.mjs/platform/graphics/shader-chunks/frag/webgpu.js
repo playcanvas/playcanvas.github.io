@@ -1,9 +1,12 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
+ * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 var webgpuPS = `
+
+// texelFetch support and others
+#extension GL_EXT_samplerless_texture_functions : require
 
 layout(location = 0) out highp vec4 pc_fragColor;
 #define gl_FragColor pc_fragColor
@@ -11,9 +14,9 @@ layout(location = 0) out highp vec4 pc_fragColor;
 #define texture2D(res, uv) texture(sampler2D(res, res ## _sampler), uv)
 #define texture2DBias(res, uv, bias) texture(sampler2D(res, res ## _sampler), uv, bias)
 #define texture2DLodEXT(res, uv, lod) textureLod(sampler2D(res, res ## _sampler), uv, lod)
+#define textureCube(res, uv) texture(samplerCube(res, res ## _sampler), uv)
 
 // TODO: implement other texture sampling macros
-// #define textureCube texture
 // #define texture2DProj textureProj
 // #define texture2DProjLodEXT textureProjLod
 // #define textureCubeLodEXT textureLod
@@ -21,6 +24,7 @@ layout(location = 0) out highp vec4 pc_fragColor;
 // #define texture2DProjGradEXT textureProjGrad
 // #define textureCubeGradEXT textureGrad
 #define GL2
+#define WEBGPU
 #define SUPPORTS_TEXLOD
 `;
 

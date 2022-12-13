@@ -1,19 +1,19 @@
 import { platform } from '../core/platform.js';
 import { now } from '../core/time.js';
 import { path } from '../core/path.js';
-import { EventHandler } from '../core/event-handler.js';
 import '../core/tracing.js';
-import { math } from '../core/math/math.js';
+import { EventHandler } from '../core/event-handler.js';
 import { Color } from '../core/math/color.js';
-import { Vec3 } from '../core/math/vec3.js';
 import { Mat4 } from '../core/math/mat4.js';
+import { math } from '../core/math/math.js';
 import { Quat } from '../core/math/quat.js';
-import { http } from '../platform/net/http.js';
+import { Vec3 } from '../core/math/vec3.js';
 import { PRIMITIVE_TRIANGLES, PRIMITIVE_TRISTRIP, PRIMITIVE_TRIFAN } from '../platform/graphics/constants.js';
 import { GraphicsDeviceAccess } from '../platform/graphics/graphics-device-access.js';
+import { http } from '../platform/net/http.js';
+import { LAYERID_WORLD, LAYERID_SKYBOX, SORTMODE_NONE, LAYERID_UI, SORTMODE_MANUAL, LAYERID_IMMEDIATE, LAYERID_DEPTH, SPECULAR_BLINN } from '../scene/constants.js';
 import { setProgramLibrary } from '../scene/shader-lib/get-program-library.js';
 import { ProgramLibrary } from '../scene/shader-lib/program-library.js';
-import { LAYERID_WORLD, LAYERID_SKYBOX, SORTMODE_NONE, LAYERID_UI, SORTMODE_MANUAL, LAYERID_IMMEDIATE, LAYERID_DEPTH, SPECULAR_BLINN } from '../scene/constants.js';
 import { ForwardRenderer } from '../scene/renderer/forward-renderer.js';
 import { FrameGraph } from '../scene/frame-graph.js';
 import { AreaLightLuts } from '../scene/area-light-luts.js';
@@ -24,19 +24,19 @@ import { Material } from '../scene/materials/material.js';
 import { LightsBuffer } from '../scene/lighting/lights-buffer.js';
 import { StandardMaterial } from '../scene/materials/standard-material.js';
 import { setDefaultMaterial } from '../scene/materials/default-material.js';
-import { BundleHandler } from './handlers/bundle.js';
-import { ResourceLoader } from './handlers/loader.js';
 import { Asset } from './asset/asset.js';
 import { AssetRegistry } from './asset/asset-registry.js';
 import { BundleRegistry } from './bundle/bundle-registry.js';
-import { ScriptRegistry } from './script/script-registry.js';
-import { I18n } from './i18n/i18n.js';
 import { ComponentSystemRegistry } from './components/registry.js';
-import { script } from './script.js';
-import { ApplicationStats } from './stats.js';
+import { SceneGrab } from '../scene/graphics/scene-grab.js';
+import { BundleHandler } from './handlers/bundle.js';
+import { ResourceLoader } from './handlers/loader.js';
+import { I18n } from './i18n/i18n.js';
+import { ScriptRegistry } from './script/script-registry.js';
 import { Entity } from './entity.js';
 import { SceneRegistry } from './scene-registry.js';
-import { SceneGrab } from './graphics/scene-grab.js';
+import { script } from './script.js';
+import { ApplicationStats } from './stats.js';
 import { FILLMODE_KEEP_ASPECT, RESOLUTION_FIXED, RESOLUTION_AUTO, FILLMODE_FILL_WINDOW } from './constants.js';
 import { setApplication, getApplication } from './globals.js';
 
@@ -128,7 +128,7 @@ class AppBase extends EventHandler {
       name: "World",
       id: LAYERID_WORLD
     });
-    this.sceneGrab = new SceneGrab(this);
+    this.sceneGrab = new SceneGrab(this.graphicsDevice, this.scene);
     this.defaultLayerDepth = this.sceneGrab.layer;
     this.defaultLayerSkybox = new Layer({
       enabled: true,

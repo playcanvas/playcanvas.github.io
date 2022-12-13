@@ -1,21 +1,21 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
+ * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import '../../core/tracing.js';
-import { TEXTUREPROJECTION_OCTAHEDRAL, TEXTUREPROJECTION_CUBE, FILTER_NEAREST } from '../../platform/graphics/constants.js';
-import { Vec3 } from '../../core/math/vec3.js';
 import { random } from '../../core/math/random.js';
-import { createShaderFromCode } from '../shader-lib/utils.js';
+import { Vec3 } from '../../core/math/vec3.js';
+import { TEXTUREPROJECTION_OCTAHEDRAL, TEXTUREPROJECTION_CUBE, FILTER_NEAREST } from '../../platform/graphics/constants.js';
+import { DeviceCache } from '../../platform/graphics/device-cache.js';
+import { GraphicsDevice } from '../../platform/graphics/graphics-device.js';
+import { RenderTarget } from '../../platform/graphics/render-target.js';
 import { drawQuadWithShader } from '../../platform/graphics/simple-post-effect.js';
+import { Texture } from '../../platform/graphics/texture.js';
 import { ChunkUtils } from '../shader-lib/chunk-utils.js';
 import { shaderChunks } from '../shader-lib/chunks/chunks.js';
-import { RenderTarget } from '../../platform/graphics/render-target.js';
-import { GraphicsDevice } from '../../platform/graphics/graphics-device.js';
 import { getProgramLibrary } from '../shader-lib/get-program-library.js';
-import { Texture } from '../../platform/graphics/texture.js';
-import { DeviceCache } from '../../platform/graphics/device-cache.js';
+import { createShaderFromCode } from '../shader-lib/utils.js';
 
 const getProjectionName = projection => {
   switch (projection) {
@@ -61,11 +61,11 @@ const packSamples = samples => {
   const data = new Uint8Array(w * h * 4);
 
   let off = 0;
-  for (let i = 0; i < numSamples; ++i) {
-    packFloat32ToRGBA8(samples[i * 4 + 0] * 0.5 + 0.5, data, off + 0);
-    packFloat32ToRGBA8(samples[i * 4 + 1] * 0.5 + 0.5, data, off + 4);
-    packFloat32ToRGBA8(samples[i * 4 + 2] * 0.5 + 0.5, data, off + 8);
-    packFloat32ToRGBA8(samples[i * 4 + 3] / 8, data, off + 12);
+  for (let i = 0; i < numSamples; i += 4) {
+    packFloat32ToRGBA8(samples[i + 0] * 0.5 + 0.5, data, off + 0);
+    packFloat32ToRGBA8(samples[i + 1] * 0.5 + 0.5, data, off + 4);
+    packFloat32ToRGBA8(samples[i + 2] * 0.5 + 0.5, data, off + 8);
+    packFloat32ToRGBA8(samples[i + 3] / 8, data, off + 12);
     off += 16;
   }
   return {

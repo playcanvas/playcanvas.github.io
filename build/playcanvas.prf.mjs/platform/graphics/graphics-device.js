@@ -1,14 +1,14 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
+ * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
+import '../../core/tracing.js';
 import { EventHandler } from '../../core/event-handler.js';
 import { platform } from '../../core/platform.js';
 import { now } from '../../core/time.js';
-import { ScopeSpace } from './scope-space.js';
 import { PRIMITIVE_TRIFAN, PRIMITIVE_POINTS } from './constants.js';
-import '../../core/tracing.js';
+import { ScopeSpace } from './scope-space.js';
 
 const EVENT_RESIZE = 'resizecanvas';
 
@@ -35,7 +35,8 @@ class GraphicsDevice extends EventHandler {
 
     this._width = 0;
     this._height = 0;
-    this._maxPixelRatio = 1;
+
+    this._maxPixelRatio = platform.browser ? Math.min(1, window.devicePixelRatio) : 1;
 
     this.shaders = [];
     this.buffers = [];

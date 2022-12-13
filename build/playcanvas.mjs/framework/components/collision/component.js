@@ -1,14 +1,22 @@
+import { Quat } from '../../../core/math/quat.js';
+import { Vec3 } from '../../../core/math/vec3.js';
 import { Asset } from '../../asset/asset.js';
 import { Component } from '../component.js';
+
+const _vec3 = new Vec3();
+const _quat = new Quat();
 
 class CollisionComponent extends Component {
   constructor(system, entity) {
     super(system, entity);
 
     this._compoundParent = null;
+    this._hasOffset = false;
     this.entity.on('insert', this._onInsert, this);
     this.on('set_type', this.onSetType, this);
     this.on('set_halfExtents', this.onSetHalfExtents, this);
+    this.on('set_linearOffset', this.onSetOffset, this);
+    this.on('set_angularOffset', this.onSetOffset, this);
     this.on('set_radius', this.onSetRadius, this);
     this.on('set_height', this.onSetHeight, this);
     this.on('set_axis', this.onSetAxis, this);
@@ -27,6 +35,13 @@ class CollisionComponent extends Component {
   onSetHalfExtents(name, oldValue, newValue) {
     const t = this.data.type;
     if (this.data.initialized && t === 'box') {
+      this.system.recreatePhysicalShapes(this);
+    }
+  }
+
+  onSetOffset(name, oldValue, newValue) {
+    this._hasOffset = !this.data.linearOffset.equals(Vec3.ZERO) || !this.data.angularOffset.equals(Quat.IDENTITY);
+    if (this.data.initialized) {
       this.system.recreatePhysicalShapes(this);
     }
   }
@@ -177,6 +192,25 @@ class CollisionComponent extends Component {
         if (bodyComponent) bodyComponent.activate();
       }
     }
+  }
+
+  getShapePosition() {
+    const pos = this.entity.getPosition();
+    if (this._hasOffset) {
+      const rot = this.entity.getRotation();
+      const lo = this.data.linearOffset;
+      _quat.copy(rot).transformVector(lo, _vec3);
+      return _vec3.add(pos);
+    }
+    return pos;
+  }
+
+  getShapeRotation() {
+    const rot = this.entity.getRotation();
+    if (this._hasOffset) {
+      return _quat.copy(rot).mul(this.data.angularOffset);
+    }
+    return rot;
   }
 
   onEnable() {

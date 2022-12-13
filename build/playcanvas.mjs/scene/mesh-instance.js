@@ -395,7 +395,7 @@ class MeshInstance {
       this.instancingData = new InstancingData(vertexBuffer.numVertices);
       this.instancingData.vertexBuffer = vertexBuffer;
 
-      vertexBuffer.instancing = true;
+      vertexBuffer.format.instancing = true;
 
       this.cull = false;
     } else {

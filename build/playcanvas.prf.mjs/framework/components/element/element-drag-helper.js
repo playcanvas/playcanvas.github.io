@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
+ * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import { platform } from '../../../core/platform.js';
@@ -48,25 +48,23 @@ class ElementDragHelper extends EventHandler {
     this._element[onOrOff]('mousedown', this._onMouseDownOrTouchStart, this);
     this._element[onOrOff]('touchstart', this._onMouseDownOrTouchStart, this);
   }
+
   _toggleDragListeners(onOrOff) {
     const isOn = onOrOff === 'on';
 
     if (this._hasDragListeners && isOn) {
       return;
     }
-    if (!this._handleMouseUpOrTouchEnd) {
-      this._handleMouseUpOrTouchEnd = this._onMouseUpOrTouchEnd.bind(this);
-    }
 
     if (this._app.mouse) {
       this._element[onOrOff]('mousemove', this._onMove, this);
-      this._element[onOrOff]('mouseup', this._handleMouseUpOrTouchEnd, false);
+      this._element[onOrOff]('mouseup', this._onMouseUpOrTouchEnd, this);
     }
 
     if (platform.touch) {
       this._element[onOrOff]('touchmove', this._onMove, this);
-      this._element[onOrOff]('touchend', this._handleMouseUpOrTouchEnd, this);
-      this._element[onOrOff]('touchcancel', this._handleMouseUpOrTouchEnd, this);
+      this._element[onOrOff]('touchend', this._onMouseUpOrTouchEnd, this);
+      this._element[onOrOff]('touchcancel', this._onMouseUpOrTouchEnd, this);
     }
     this._hasDragListeners = isOn;
   }

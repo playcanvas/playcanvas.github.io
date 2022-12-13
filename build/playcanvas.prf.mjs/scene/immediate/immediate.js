@@ -1,16 +1,16 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
+ * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import { PRIMITIVE_TRISTRIP } from '../../platform/graphics/constants.js';
-import { shaderChunks } from '../shader-lib/chunks/chunks.js';
-import { createShaderFromCode } from '../shader-lib/utils.js';
 import { BLEND_NORMAL } from '../constants.js';
-import { BasicMaterial } from '../materials/basic-material.js';
 import { GraphNode } from '../graph-node.js';
 import { Mesh } from '../mesh.js';
 import { MeshInstance } from '../mesh-instance.js';
+import { BasicMaterial } from '../materials/basic-material.js';
+import { createShaderFromCode } from '../shader-lib/utils.js';
+import { shaderChunks } from '../shader-lib/chunks/chunks.js';
 import { ImmediateBatches } from './immediate-batches.js';
 
 const tempPoints = [];

@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
+ * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import '../../core/tracing.js';
@@ -11,13 +11,16 @@ import { ScriptAttributes } from './script-attributes.js';
 import { ScriptType } from './script-type.js';
 import { ScriptTypes } from './script-types.js';
 
-const reservedScriptNames = new Set(['system', 'entity', 'create', 'destroy', 'swap', 'move', 'scripts', '_scripts', '_scriptsIndex', '_scriptsData', 'enabled', '_oldState', 'onEnable', 'onDisable', 'onPostStateChange', '_onSetEnabled', '_checkState', '_onBeforeRemove', '_onInitializeAttributes', '_onInitialize', '_onPostInitialize', '_onUpdate', '_onPostUpdate', '_callbacks', 'has', 'get', 'on', 'off', 'fire', 'once', 'hasEvent']);
+const reservedScriptNames = new Set(['system', 'entity', 'create', 'destroy', 'swap', 'move', 'data', 'scripts', '_scripts', '_scriptsIndex', '_scriptsData', 'enabled', '_oldState', 'onEnable', 'onDisable', 'onPostStateChange', '_onSetEnabled', '_checkState', '_onBeforeRemove', '_onInitializeAttributes', '_onInitialize', '_onPostInitialize', '_onUpdate', '_onPostUpdate', '_callbacks', 'has', 'get', 'on', 'off', 'fire', 'once', 'hasEvent']);
+function getReservedScriptNames() {
+  return reservedScriptNames;
+}
 
 function createScript(name, app) {
   if (script.legacy) {
     return null;
   }
-  if (reservedScriptNames.has(name)) throw new Error(`script name: '${name}' is reserved, please change script name`);
+  if (reservedScriptNames.has(name)) throw new Error(`Script name '${name}' is reserved, please rename the script`);
   const scriptType = function scriptType(args) {
     EventHandler.prototype.initEventHandler.call(this);
     ScriptType.prototype.initScriptType.call(this, args);
@@ -51,4 +54,4 @@ function registerScript(script, name, app) {
   ScriptTypes.push(script, script.legacy);
 }
 
-export { createScript, registerScript };
+export { createScript, getReservedScriptNames, registerScript };

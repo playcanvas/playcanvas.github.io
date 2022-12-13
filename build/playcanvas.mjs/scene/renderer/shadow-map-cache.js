@@ -3,20 +3,20 @@ import { ShadowMap } from './shadow-map.js';
 
 class ShadowMapCache {
   constructor() {
-    this.shadowMapCache = new Map();
+    this.cache = new Map();
   }
   destroy() {
     this.clear();
-    this.shadowMapCache = null;
+    this.cache = null;
   }
 
   clear() {
-    this.shadowMapCache.forEach(shadowMaps => {
+    this.cache.forEach(shadowMaps => {
       shadowMaps.forEach(shadowMap => {
         shadowMap.destroy();
       });
     });
-    this.shadowMapCache.clear();
+    this.cache.clear();
   }
 
   getKey(light) {
@@ -28,7 +28,7 @@ class ShadowMapCache {
 
   get(device, light) {
     const key = this.getKey(light);
-    const shadowMaps = this.shadowMapCache.get(key);
+    const shadowMaps = this.cache.get(key);
     if (shadowMaps && shadowMaps.length) {
       return shadowMaps.pop();
     }
@@ -40,11 +40,11 @@ class ShadowMapCache {
 
   add(light, shadowMap) {
     const key = this.getKey(light);
-    const shadowMaps = this.shadowMapCache.get(key);
+    const shadowMaps = this.cache.get(key);
     if (shadowMaps) {
       shadowMaps.push(shadowMap);
     } else {
-      this.shadowMapCache.set(key, [shadowMap]);
+      this.cache.set(key, [shadowMap]);
     }
   }
 }

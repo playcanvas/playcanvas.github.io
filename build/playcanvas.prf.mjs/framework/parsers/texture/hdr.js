@@ -1,12 +1,12 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
+ * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
-import { ReadStream } from '../../../core/read-stream.js';
 import '../../../core/tracing.js';
+import { ReadStream } from '../../../core/read-stream.js';
+import { TEXHINT_ASSET, ADDRESS_REPEAT, ADDRESS_CLAMP_TO_EDGE, FILTER_NEAREST, PIXELFORMAT_RGBA8, TEXTURETYPE_RGBE } from '../../../platform/graphics/constants.js';
 import { Texture } from '../../../platform/graphics/texture.js';
-import { TEXHINT_ASSET, ADDRESS_REPEAT, ADDRESS_CLAMP_TO_EDGE, FILTER_NEAREST, PIXELFORMAT_R8_G8_B8_A8, TEXTURETYPE_RGBE } from '../../../platform/graphics/constants.js';
 import { Asset } from '../../asset/asset.js';
 
 class HdrParser {
@@ -31,7 +31,7 @@ class HdrParser {
       width: textureData.width,
       height: textureData.height,
       levels: textureData.levels,
-      format: PIXELFORMAT_R8_G8_B8_A8,
+      format: PIXELFORMAT_RGBA8,
       type: TEXTURETYPE_RGBE,
       mipmaps: false
     });

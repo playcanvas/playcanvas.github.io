@@ -1,8 +1,8 @@
 import '../../../core/tracing.js';
+import { math } from '../../../core/math/math.js';
 import { AnimTrack } from '../../anim/evaluator/anim-track.js';
 import { AnimTransition } from '../../anim/controller/anim-transition.js';
 import { ANIM_LAYER_OVERWRITE } from '../../anim/controller/constants.js';
-import { math } from '../../../core/math/math.js';
 
 class AnimComponentLayer {
   constructor(name, controller, component, weight = 1, blendType = ANIM_LAYER_OVERWRITE, normalizedWeight = true) {

@@ -14,6 +14,8 @@ class VertexFormat {
     this.vertexCount = vertexCount;
     this.interleaved = vertexCount === undefined;
 
+    this.instancing = false;
+
     this.size = description.reduce((total, desc) => {
       return total + Math.ceil(desc.components * typedArrayTypesByteSize[desc.type] / 4) * 4;
     }, 0);
@@ -21,8 +23,8 @@ class VertexFormat {
       elementSize;
     for (let i = 0, len = description.length; i < len; i++) {
       const elementDesc = description[i];
-
       elementSize = elementDesc.components * typedArrayTypesByteSize[elementDesc.type];
+
       if (vertexCount) {
         offset = math.roundUp(offset, elementSize);
 
@@ -62,9 +64,9 @@ class VertexFormat {
     return this._elements;
   }
 
-  static get defaultInstancingFormat() {
+  static getDefaultInstancingFormat(graphicsDevice) {
     if (!VertexFormat._defaultInstancingFormat) {
-      VertexFormat._defaultInstancingFormat = new VertexFormat(null, [{
+      VertexFormat._defaultInstancingFormat = new VertexFormat(graphicsDevice, [{
         semantic: SEMANTIC_ATTR12,
         components: 4,
         type: TYPE_FLOAT32

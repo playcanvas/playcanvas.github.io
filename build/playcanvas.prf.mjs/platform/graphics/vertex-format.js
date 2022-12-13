@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
+ * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import '../../core/tracing.js';
@@ -19,6 +19,8 @@ class VertexFormat {
     this.vertexCount = vertexCount;
     this.interleaved = vertexCount === undefined;
 
+    this.instancing = false;
+
     this.size = description.reduce((total, desc) => {
       return total + Math.ceil(desc.components * typedArrayTypesByteSize[desc.type] / 4) * 4;
     }, 0);
@@ -26,8 +28,8 @@ class VertexFormat {
       elementSize;
     for (let i = 0, len = description.length; i < len; i++) {
       const elementDesc = description[i];
-
       elementSize = elementDesc.components * typedArrayTypesByteSize[elementDesc.type];
+
       if (vertexCount) {
         offset = math.roundUp(offset, elementSize);
 
@@ -67,9 +69,9 @@ class VertexFormat {
     return this._elements;
   }
 
-  static get defaultInstancingFormat() {
+  static getDefaultInstancingFormat(graphicsDevice) {
     if (!VertexFormat._defaultInstancingFormat) {
-      VertexFormat._defaultInstancingFormat = new VertexFormat(null, [{
+      VertexFormat._defaultInstancingFormat = new VertexFormat(graphicsDevice, [{
         semantic: SEMANTIC_ATTR12,
         components: 4,
         type: TYPE_FLOAT32

@@ -1,12 +1,12 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
+ * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import { Color } from '../../../core/math/color.js';
 import { Vec2 } from '../../../core/math/vec2.js';
 import { Vec4 } from '../../../core/math/vec4.js';
-import { PIXELFORMAT_R8_G8_B8_A8 } from '../../../platform/graphics/constants.js';
+import { PIXELFORMAT_RGBA8 } from '../../../platform/graphics/constants.js';
 import { Texture } from '../../../platform/graphics/texture.js';
 import { BLEND_PREMULTIPLIED, SPRITE_RENDERMODE_SLICED, SPRITE_RENDERMODE_TILED } from '../../../scene/constants.js';
 import { StandardMaterial } from '../../../scene/materials/standard-material.js';
@@ -31,7 +31,7 @@ class ElementComponentSystem extends ComponentSystem {
     this._defaultTexture = new Texture(app.graphicsDevice, {
       width: 1,
       height: 1,
-      format: PIXELFORMAT_R8_G8_B8_A8,
+      format: PIXELFORMAT_RGBA8,
       name: 'element-system'
     });
     const pixels = this._defaultTexture.lock();

@@ -1,45 +1,17 @@
 import '../../core/tracing.js';
-import { math } from '../../core/math/math.js';
+import '../../core/time.js';
+import { Color } from '../../core/math/color.js';
+import { Mat4 } from '../../core/math/mat4.js';
 import { Vec3 } from '../../core/math/vec3.js';
 import { Vec4 } from '../../core/math/vec4.js';
-import { Mat4 } from '../../core/math/mat4.js';
-import { Color } from '../../core/math/color.js';
-import { BoundingBox } from '../../core/shape/bounding-box.js';
-import { SHADOW_VSM8, SHADOW_VSM32, SHADOW_PCF5, SHADOW_PCF3, LIGHTTYPE_SPOT, LIGHTTYPE_OMNI, LIGHTTYPE_DIRECTIONAL, SORTKEY_DEPTH, SHADOWUPDATE_NONE, SHADOWUPDATE_THISFRAME, BLUR_GAUSSIAN, SHADER_SHADOW } from '../constants.js';
-import { LightCamera } from './light-camera.js';
 import { FUNC_LESSEQUAL } from '../../platform/graphics/constants.js';
 import { drawQuadWithShader } from '../../platform/graphics/simple-post-effect.js';
+import { SHADOW_VSM8, SHADOW_VSM32, SHADOW_PCF5, SHADOW_PCF3, LIGHTTYPE_OMNI, LIGHTTYPE_DIRECTIONAL, SORTKEY_DEPTH, SHADOWUPDATE_NONE, SHADOWUPDATE_THISFRAME, BLUR_GAUSSIAN, SHADER_SHADOW } from '../constants.js';
+import { ShaderPass } from '../shader-pass.js';
 import { shaderChunks } from '../shader-lib/chunks/chunks.js';
 import { createShaderFromCode } from '../shader-lib/utils.js';
-import { ShadowMap } from './shadow-map.js';
-import { ShadowMapCache } from './shadow-map-cache.js';
-import { ShaderPass } from '../shader-pass.js';
+import { LightCamera } from './light-camera.js';
 
-const aabbPoints = [new Vec3(), new Vec3(), new Vec3(), new Vec3(), new Vec3(), new Vec3(), new Vec3(), new Vec3()];
-
-const _depthRange = {
-  min: 0,
-  max: 0
-};
-function getDepthRange(cameraViewMatrix, aabbMin, aabbMax) {
-  aabbPoints[0].x = aabbPoints[1].x = aabbPoints[2].x = aabbPoints[3].x = aabbMin.x;
-  aabbPoints[1].y = aabbPoints[3].y = aabbPoints[7].y = aabbPoints[5].y = aabbMin.y;
-  aabbPoints[2].z = aabbPoints[3].z = aabbPoints[6].z = aabbPoints[7].z = aabbMin.z;
-  aabbPoints[4].x = aabbPoints[5].x = aabbPoints[6].x = aabbPoints[7].x = aabbMax.x;
-  aabbPoints[0].y = aabbPoints[2].y = aabbPoints[4].y = aabbPoints[6].y = aabbMax.y;
-  aabbPoints[0].z = aabbPoints[1].z = aabbPoints[4].z = aabbPoints[5].z = aabbMax.z;
-  let minz = 9999999999;
-  let maxz = -9999999999;
-  for (let i = 0; i < 8; ++i) {
-    cameraViewMatrix.transformPoint(aabbPoints[i], aabbPoints[i]);
-    const z = aabbPoints[i].z;
-    if (z < minz) minz = z;
-    if (z > maxz) maxz = z;
-  }
-  _depthRange.min = minz;
-  _depthRange.max = maxz;
-  return _depthRange;
-}
 function gauss(x, sigma) {
   return Math.exp(-(x * x) / (2.0 * sigma * sigma));
 }
@@ -61,7 +33,6 @@ function gaussWeights(kernelSize) {
   }
   return values;
 }
-const visibleSceneAabb = new BoundingBox();
 const shadowCamView = new Mat4();
 const shadowCamViewProj = new Mat4();
 const pixelOffset = new Float32Array(2);
@@ -72,7 +43,6 @@ const opChanId = {
   b: 3,
   a: 4
 };
-const center = new Vec3();
 const viewportMatrix = new Mat4();
 function getDepthKey(meshInstance) {
   const material = meshInstance.material;
@@ -88,10 +58,10 @@ function getDepthKey(meshInstance) {
 }
 
 class ShadowRenderer {
-  constructor(forwardRenderer, lightTextureAtlas) {
-    this.device = forwardRenderer.device;
+  constructor(renderer, lightTextureAtlas) {
+    this.device = renderer.device;
 
-    this.forwardRenderer = forwardRenderer;
+    this.renderer = renderer;
 
     this.lightTextureAtlas = lightTextureAtlas;
     const scope = this.device.scope;
@@ -110,12 +80,6 @@ class ShadowRenderer {
     this.blurVsmWeights = {};
 
     this.shadowMapLightRadiusId = scope.resolve('light_radius');
-
-    this.shadowMapCache = new ShadowMapCache();
-  }
-  destroy() {
-    this.shadowMapCache.destroy();
-    this.shadowMapCache = null;
   }
 
   static createShadowCamera(device, shadowType, type, face) {
@@ -151,144 +115,10 @@ class ShadowRenderer {
     }
     visible.length = count;
 
-    visible.sort(this.forwardRenderer.depthSortCompare);
-  }
-
-  cullLocal(light, drawCalls) {
-    const isClustered = this.forwardRenderer.scene.clusteredLightingEnabled;
-
-    light.visibleThisFrame = true;
-
-    if (!isClustered) {
-      if (!light._shadowMap) {
-        light._shadowMap = ShadowMap.create(this.device, light);
-      }
-    }
-    const type = light._type;
-    const faceCount = type === LIGHTTYPE_SPOT ? 1 : 6;
-    for (let face = 0; face < faceCount; face++) {
-      const lightRenderData = light.getRenderData(null, face);
-      const shadowCam = lightRenderData.shadowCamera;
-      shadowCam.nearClip = light.attenuationEnd / 1000;
-      shadowCam.farClip = light.attenuationEnd;
-      const shadowCamNode = shadowCam._node;
-      const lightNode = light._node;
-      shadowCamNode.setPosition(lightNode.getPosition());
-      if (type === LIGHTTYPE_SPOT) {
-        shadowCam.fov = light._outerConeAngle * 2;
-
-        shadowCamNode.setRotation(lightNode.getRotation());
-        shadowCamNode.rotateLocal(-90, 0, 0);
-      } else if (type === LIGHTTYPE_OMNI) {
-        if (isClustered) {
-          const tileSize = this.lightTextureAtlas.shadowAtlasResolution * light.atlasViewport.z / 3;
-          const texelSize = 2 / tileSize;
-          const filterSize = texelSize * this.lightTextureAtlas.shadowEdgePixels;
-          shadowCam.fov = Math.atan(1 + filterSize) * math.RAD_TO_DEG * 2;
-        } else {
-          shadowCam.fov = 90;
-        }
-      }
-
-      this.forwardRenderer.updateCameraFrustum(shadowCam);
-      this.cullShadowCasters(drawCalls, lightRenderData.visibleCasters, shadowCam);
-    }
-  }
-
-  generateSplitDistances(light, nearDist, farDist) {
-    light._shadowCascadeDistances.fill(farDist);
-    for (let i = 1; i < light.numCascades; i++) {
-      const fraction = i / light.numCascades;
-      const linearDist = nearDist + (farDist - nearDist) * fraction;
-      const logDist = nearDist * (farDist / nearDist) ** fraction;
-      const dist = math.lerp(linearDist, logDist, light.cascadeDistribution);
-      light._shadowCascadeDistances[i - 1] = dist;
-    }
-  }
-
-  cullDirectional(light, drawCalls, camera) {
-    light.visibleThisFrame = true;
-    if (!light._shadowMap) {
-      light._shadowMap = ShadowMap.create(this.device, light);
-    }
-
-    const nearDist = camera._nearClip;
-    this.generateSplitDistances(light, nearDist, light.shadowDistance);
-    for (let cascade = 0; cascade < light.numCascades; cascade++) {
-      const lightRenderData = light.getRenderData(camera, cascade);
-      const shadowCam = lightRenderData.shadowCamera;
-
-      shadowCam.renderTarget = light._shadowMap.renderTargets[0];
-
-      lightRenderData.shadowViewport.copy(light.cascades[cascade]);
-      lightRenderData.shadowScissor.copy(light.cascades[cascade]);
-      const shadowCamNode = shadowCam._node;
-      const lightNode = light._node;
-      shadowCamNode.setPosition(lightNode.getPosition());
-
-      shadowCamNode.setRotation(lightNode.getRotation());
-      shadowCamNode.rotateLocal(-90, 0, 0);
-
-      const frustumNearDist = cascade === 0 ? nearDist : light._shadowCascadeDistances[cascade - 1];
-      const frustumFarDist = light._shadowCascadeDistances[cascade];
-      const frustumPoints = camera.getFrustumCorners(frustumNearDist, frustumFarDist);
-      center.set(0, 0, 0);
-      const cameraWorldMat = camera.node.getWorldTransform();
-      for (let i = 0; i < 8; i++) {
-        cameraWorldMat.transformPoint(frustumPoints[i], frustumPoints[i]);
-        center.add(frustumPoints[i]);
-      }
-      center.mulScalar(1 / 8);
-
-      let radius = 0;
-      for (let i = 0; i < 8; i++) {
-        const dist = frustumPoints[i].sub(center).length();
-        if (dist > radius) radius = dist;
-      }
-
-      const right = shadowCamNode.right;
-      const up = shadowCamNode.up;
-      const lightDir = shadowCamNode.forward;
-
-      const sizeRatio = 0.25 * light._shadowResolution / radius;
-      const x = Math.ceil(center.dot(up) * sizeRatio) / sizeRatio;
-      const y = Math.ceil(center.dot(right) * sizeRatio) / sizeRatio;
-      const scaledUp = up.mulScalar(x);
-      const scaledRight = right.mulScalar(y);
-      const dot = center.dot(lightDir);
-      const scaledDir = lightDir.mulScalar(dot);
-      center.add2(scaledUp, scaledRight).add(scaledDir);
-
-      shadowCamNode.setPosition(center);
-      shadowCamNode.translateLocal(0, 0, 1000000);
-      shadowCam.nearClip = 0;
-      shadowCam.farClip = 2000000;
-      shadowCam.orthoHeight = radius;
-
-      this.forwardRenderer.updateCameraFrustum(shadowCam);
-      this.cullShadowCasters(drawCalls, lightRenderData.visibleCasters, shadowCam);
-
-      let emptyAabb = true;
-      const visibleCasters = lightRenderData.visibleCasters;
-      for (let i = 0; i < visibleCasters.length; i++) {
-        const meshInstance = visibleCasters[i];
-        if (emptyAabb) {
-          emptyAabb = false;
-          visibleSceneAabb.copy(meshInstance.aabb);
-        } else {
-          visibleSceneAabb.add(meshInstance.aabb);
-        }
-      }
-
-      shadowCamView.copy(shadowCamNode.getWorldTransform()).invert();
-      const depthRange = getDepthRange(shadowCamView, visibleSceneAabb.getMin(), visibleSceneAabb.getMax());
-
-      shadowCamNode.translateLocal(0, 0, depthRange.max + 0.1);
-      shadowCam.farClip = depthRange.max - depthRange.min + 0.2;
-    }
+    visible.sort(this.renderer.sortCompareDepth);
   }
   setupRenderState(device, light) {
-    const isClustered = this.forwardRenderer.scene.clusteredLightingEnabled;
+    const isClustered = this.renderer.scene.clusteredLightingEnabled;
 
     if (device.webgl2) {
       if (light._type === LIGHTTYPE_OMNI && !isClustered) {
@@ -334,7 +164,7 @@ class ShadowRenderer {
     const shadowCamNode = shadowCam._node;
 
     if (light._type !== LIGHTTYPE_DIRECTIONAL) {
-      this.forwardRenderer.dispatchViewPos(shadowCamNode.getPosition());
+      this.renderer.dispatchViewPos(shadowCamNode.getPosition());
       this.shadowMapLightRadiusId.setValue(light.attenuationEnd);
     }
 
@@ -353,8 +183,8 @@ class ShadowRenderer {
 
   submitCasters(visibleCasters, light) {
     const device = this.device;
-    const forwardRenderer = this.forwardRenderer;
-    const scene = forwardRenderer.scene;
+    const renderer = this.renderer;
+    const scene = renderer.scene;
     const passFlags = 1 << SHADER_SHADOW;
 
     const shadowPass = ShaderPass.getShadow(light._type, light._shadowType);
@@ -366,14 +196,14 @@ class ShadowRenderer {
       meshInstance.ensureMaterial(device);
       const material = meshInstance.material;
 
-      forwardRenderer.setBaseConstants(device, material);
-      forwardRenderer.setSkinning(device, meshInstance, material);
+      renderer.setBaseConstants(device, material);
+      renderer.setSkinning(device, meshInstance);
       if (material.dirty) {
         material.updateUniforms(device, scene);
         material.dirty = false;
       }
       if (material.chunks) {
-        forwardRenderer.setCullMode(true, false, meshInstance);
+        renderer.setCullMode(true, false, meshInstance);
 
         material.setParameters(device);
 
@@ -388,49 +218,91 @@ class ShadowRenderer {
       }
       if (!shadowShader.failed && !device.setShader(shadowShader)) ;
 
-      forwardRenderer.setVertexBuffers(device, mesh);
-      forwardRenderer.setMorphing(device, meshInstance.morphInstance);
+      renderer.setVertexBuffers(device, mesh);
+      renderer.setMorphing(device, meshInstance.morphInstance);
       const style = meshInstance.renderStyle;
       device.setIndexBuffer(mesh.indexBuffer[style]);
 
-      forwardRenderer.drawInstance(device, meshInstance, mesh, style);
-      forwardRenderer._shadowDrawCalls++;
+      renderer.drawInstance(device, meshInstance, mesh, style);
+      renderer._shadowDrawCalls++;
     }
   }
+  needsShadowRendering(light) {
+    const needs = light.enabled && light.castShadows && light.shadowUpdateMode !== SHADOWUPDATE_NONE && light.visibleThisFrame;
+    if (light.shadowUpdateMode === SHADOWUPDATE_THISFRAME) {
+      light.shadowUpdateMode = SHADOWUPDATE_NONE;
+    }
+    this.renderer._shadowMapUpdates += light.numShadowFaces;
+    return needs;
+  }
+  getLightRenderData(light, camera, face) {
+    return light.getRenderData(light._type === LIGHTTYPE_DIRECTIONAL ? camera : null, face);
+  }
+  setupRenderPass(renderPass, shadowCamera, clearRenderTarget) {
+    const rt = shadowCamera.renderTarget;
+    renderPass.init(rt);
+
+    if (clearRenderTarget) {
+      const clearColor = shadowCamera.clearColorBuffer;
+      renderPass.colorOps.clear = clearColor;
+      if (clearColor) renderPass.colorOps.clearValue.copy(shadowCamera.clearColor);
+
+      renderPass.depthStencilOps.storeDepth = !clearColor;
+      renderPass.setClearDepth(1.0);
+    }
+
+    renderPass.requiresCubemaps = false;
+  }
+
+  prepareFace(light, camera, face) {
+    const type = light._type;
+    const shadowType = light._shadowType;
+    const isClustered = this.renderer.scene.clusteredLightingEnabled;
+    const lightRenderData = this.getLightRenderData(light, camera, face);
+    const shadowCam = lightRenderData.shadowCamera;
+
+    ShadowRenderer.setShadowCameraSettings(shadowCam, this.device, shadowType, type, isClustered);
+
+    const renderTargetIndex = type === LIGHTTYPE_DIRECTIONAL ? 0 : face;
+    shadowCam.renderTarget = light._shadowMap.renderTargets[renderTargetIndex];
+    return shadowCam;
+  }
+  renderFace(light, camera, face, clear) {
+    const device = this.device;
+    this.setupRenderState(device, light);
+    const lightRenderData = this.getLightRenderData(light, camera, face);
+    const shadowCam = lightRenderData.shadowCamera;
+    this.dispatchUniforms(light, shadowCam, lightRenderData, face);
+    const rt = shadowCam.renderTarget;
+    this.renderer.setCameraUniforms(shadowCam, rt, null);
+
+    if (clear) {
+      this.renderer.clearView(shadowCam, rt, true, false);
+    } else {
+      this.renderer.setupViewport(shadowCam, rt);
+    }
+
+    this.submitCasters(lightRenderData.visibleCasters, light);
+    this.restoreRenderState(device);
+  }
   render(light, camera) {
-    if (light.enabled && light.castShadows && light.shadowUpdateMode !== SHADOWUPDATE_NONE && light.visibleThisFrame) {
-      const device = this.device;
-      if (light.shadowUpdateMode === SHADOWUPDATE_THISFRAME) {
-        light.shadowUpdateMode = SHADOWUPDATE_NONE;
-      }
-      const type = light._type;
-      const shadowType = light._shadowType;
+    if (this.needsShadowRendering(light)) {
       const faceCount = light.numShadowFaces;
-      const forwardRenderer = this.forwardRenderer;
-      forwardRenderer._shadowMapUpdates += faceCount;
-      const isClustered = forwardRenderer.scene.clusteredLightingEnabled;
-      this.setupRenderState(device, light);
+
       for (let face = 0; face < faceCount; face++) {
-        const lightRenderData = light.getRenderData(type === LIGHTTYPE_DIRECTIONAL ? camera : null, face);
-        const shadowCam = lightRenderData.shadowCamera;
-
-        ShadowRenderer.setShadowCameraSettings(shadowCam, device, shadowType, type, isClustered);
-
-        const renderTargetIndex = type === LIGHTTYPE_DIRECTIONAL ? 0 : face;
-        shadowCam.renderTarget = light._shadowMap.renderTargets[renderTargetIndex];
-        this.dispatchUniforms(light, shadowCam, lightRenderData, face);
-        forwardRenderer.setCamera(shadowCam, shadowCam.renderTarget, true);
-
-        this.submitCasters(lightRenderData.visibleCasters, light);
+        this.prepareFace(light, camera, face);
+        this.renderFace(light, camera, face, true);
       }
 
-      if (light._isVsm && light._vsmBlurSize > 1) {
-        const _isClustered = this.forwardRenderer.scene.clusteredLightingEnabled;
-        if (!_isClustered || type === LIGHTTYPE_DIRECTIONAL) {
-          this.applyVsmBlur(light, camera);
-        }
+      this.renderVms(light, camera);
+    }
+  }
+  renderVms(light, camera) {
+    if (light._isVsm && light._vsmBlurSize > 1) {
+      const isClustered = this.renderer.scene.clusteredLightingEnabled;
+      if (!isClustered || light._type === LIGHTTYPE_DIRECTIONAL) {
+        this.applyVsmBlur(light, camera);
       }
-      this.restoreRenderState(device);
     }
   }
   getVsmBlurShader(isVsm8, blurMode, filterSize) {
@@ -460,7 +332,7 @@ class ShadowRenderer {
     const shadowCam = lightRenderData.shadowCamera;
     const origShadowMap = shadowCam.renderTarget;
 
-    const tempShadowMap = this.shadowMapCache.get(device, light);
+    const tempShadowMap = this.renderer.shadowMapCache.get(device, light);
     const tempRt = tempShadowMap.renderTargets[0];
     const isVsm8 = light._shadowType === SHADOW_VSM8;
     const blurMode = light.vsmBlurMode;
@@ -482,7 +354,7 @@ class ShadowRenderer {
     this.pixelOffsetId.setValue(pixelOffset);
     drawQuadWithShader(device, origShadowMap, blurShader, null, blurScissorRect);
 
-    this.shadowMapCache.add(light, tempShadowMap);
+    this.renderer.shadowMapCache.add(light, tempShadowMap);
   }
 }
 

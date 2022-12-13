@@ -1,7 +1,7 @@
 import { path } from '../../../core/path.js';
-import { http } from '../../../platform/net/http.js';
-import { PIXELFORMAT_R8_G8_B8, PIXELFORMAT_R8_G8_B8_A8 } from '../../../platform/graphics/constants.js';
+import { PIXELFORMAT_RGB8, PIXELFORMAT_RGBA8 } from '../../../platform/graphics/constants.js';
 import { Texture } from '../../../platform/graphics/texture.js';
+import { http } from '../../../platform/net/http.js';
 import { ABSOLUTE_URL } from '../../asset/constants.js';
 
 class ImgParser {
@@ -43,7 +43,7 @@ class ImgParser {
   }
   open(url, data, device) {
     const ext = path.getExtension(url).toLowerCase();
-    const format = ext === '.jpg' || ext === '.jpeg' ? PIXELFORMAT_R8_G8_B8 : PIXELFORMAT_R8_G8_B8_A8;
+    const format = ext === '.jpg' || ext === '.jpeg' ? PIXELFORMAT_RGB8 : PIXELFORMAT_RGBA8;
     const texture = new Texture(device, {
       name: url,
       width: data.width,

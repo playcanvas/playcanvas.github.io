@@ -7,6 +7,7 @@ import { math } from '../core/math/math.js';
 import { Mat3 } from '../core/math/mat3.js';
 import { Mat4 } from '../core/math/mat4.js';
 import { GraphicsDeviceAccess } from '../platform/graphics/graphics-device-access.js';
+import { ADDRESS_REPEAT, ADDRESS_CLAMP_TO_EDGE, FILTER_LINEAR, PIXELFORMAT_RGBA8 } from '../platform/graphics/constants.js';
 import { BAKE_COLORDIR, FOG_NONE, GAMMA_SRGB, LAYERID_IMMEDIATE } from './constants.js';
 import { Sky } from './sky.js';
 import { LightingParams } from './lighting/lighting-params.js';
@@ -31,6 +32,7 @@ class Scene extends EventHandler {
     this.lightmapMaxResolution = 2048;
     this.lightmapMode = BAKE_COLORDIR;
     this.lightmapFilterEnabled = false;
+    this.lightmapHDR = false;
     this.root = null;
     this.sky = null;
     this.physicalUnits = false;
@@ -127,6 +129,14 @@ class Scene extends EventHandler {
   set envAtlas(value) {
     if (value !== this._envAtlas) {
       this._envAtlas = value;
+
+      if (value) {
+        value.addressU = ADDRESS_REPEAT;
+        value.addressV = ADDRESS_CLAMP_TO_EDGE;
+        value.minFilter = FILTER_LINEAR;
+        value.magFilter = FILTER_LINEAR;
+        value.mipmaps = false;
+      }
       this.updateShaders = true;
     }
   }
@@ -320,7 +330,7 @@ class Scene extends EventHandler {
     this._skyboxLuminance = render.skyboxLuminance === undefined ? 20000 : render.skyboxLuminance;
     this._skyboxMip = render.skyboxMip === undefined ? 0 : render.skyboxMip;
     if (render.skyboxRotation) {
-      this._skyboxRotation.setFromEulerAngles(render.skyboxRotation[0], render.skyboxRotation[1], render.skyboxRotation[2]);
+      this.skyboxRotation = new Quat().setFromEulerAngles(render.skyboxRotation[0], render.skyboxRotation[1], render.skyboxRotation[2]);
     }
     this.clusteredLightingEnabled = render.clusteredLightingEnabled;
     this.lighting.applySettings(render);
@@ -366,6 +376,10 @@ class Scene extends EventHandler {
       this.skybox = cubemaps[0] || null;
       this.prefilteredCubemaps = cubemaps.slice(1);
     }
+  }
+
+  get lightmapPixelFormat() {
+    return this.lightmapHDR && this.device.getHdrFormat(false, true, false, true) || PIXELFORMAT_RGBA8;
   }
 }
 

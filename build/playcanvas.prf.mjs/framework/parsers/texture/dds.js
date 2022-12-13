@@ -1,12 +1,12 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
+ * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import '../../../core/tracing.js';
-import { Asset } from '../../asset/asset.js';
+import { PIXELFORMAT_RGB8, TEXHINT_ASSET, ADDRESS_CLAMP_TO_EDGE, ADDRESS_REPEAT, PIXELFORMAT_DXT1, PIXELFORMAT_DXT5, PIXELFORMAT_RGBA16F, PIXELFORMAT_RGBA32F, PIXELFORMAT_ETC1, PIXELFORMAT_PVRTC_2BPP_RGB_1, PIXELFORMAT_PVRTC_2BPP_RGBA_1, PIXELFORMAT_PVRTC_4BPP_RGB_1, PIXELFORMAT_PVRTC_4BPP_RGBA_1, PIXELFORMAT_RGBA8 } from '../../../platform/graphics/constants.js';
 import { Texture } from '../../../platform/graphics/texture.js';
-import { PIXELFORMAT_R8_G8_B8, TEXHINT_ASSET, ADDRESS_CLAMP_TO_EDGE, ADDRESS_REPEAT, PIXELFORMAT_DXT1, PIXELFORMAT_DXT5, PIXELFORMAT_RGBA16F, PIXELFORMAT_RGBA32F, PIXELFORMAT_ETC1, PIXELFORMAT_PVRTC_2BPP_RGB_1, PIXELFORMAT_PVRTC_2BPP_RGBA_1, PIXELFORMAT_PVRTC_4BPP_RGB_1, PIXELFORMAT_PVRTC_4BPP_RGBA_1, PIXELFORMAT_R8_G8_B8_A8 } from '../../../platform/graphics/constants.js';
+import { Asset } from '../../asset/asset.js';
 
 class DdsParser {
   constructor(registry) {
@@ -70,14 +70,14 @@ class DdsParser {
       }
     } else {
       if (bpp === 32) {
-        format = PIXELFORMAT_R8_G8_B8_A8;
+        format = PIXELFORMAT_RGBA8;
       }
     }
     if (!format) {
       texture = new Texture(device, {
         width: 4,
         height: 4,
-        format: PIXELFORMAT_R8_G8_B8,
+        format: PIXELFORMAT_RGB8,
         name: 'dds-legacy-empty'
       });
       return texture;

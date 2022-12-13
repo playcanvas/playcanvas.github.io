@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
+ * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import { EventHandler } from '../../core/event-handler.js';
@@ -21,6 +21,7 @@ class Component extends EventHandler {
     });
     this.on('set_enabled', this.onSetEnabled, this);
   }
+
   static _buildAccessors(obj, schema) {
     schema.forEach(function (descriptor) {
       const name = typeof descriptor === 'object' ? descriptor.name : descriptor;
@@ -39,9 +40,11 @@ class Component extends EventHandler {
     });
     obj._accessorsBuilt = true;
   }
+
   buildAccessors(schema) {
     Component._buildAccessors(this, schema);
   }
+
   onSetEnabled(name, oldValue, newValue) {
     if (oldValue !== newValue) {
       if (this.entity.enabled) {
@@ -53,8 +56,11 @@ class Component extends EventHandler {
       }
     }
   }
+
   onEnable() {}
+
   onDisable() {}
+
   onPostStateChange() {}
 
   get data() {

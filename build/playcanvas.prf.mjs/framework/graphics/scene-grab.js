@@ -1,9 +1,9 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
+ * PlayCanvas Engine v1.59.0-dev revision 84ad26f31 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
-import { PIXELFORMAT_R8_G8_B8_A8, PIXELFORMAT_R8_G8_B8, FILTER_NEAREST, FILTER_LINEAR_MIPMAP_LINEAR, FILTER_LINEAR, ADDRESS_CLAMP_TO_EDGE, PIXELFORMAT_DEPTHSTENCIL } from '../../platform/graphics/constants.js';
+import { PIXELFORMAT_RGBA8, PIXELFORMAT_RGB8, FILTER_NEAREST, FILTER_LINEAR_MIPMAP_LINEAR, FILTER_LINEAR, ADDRESS_CLAMP_TO_EDGE, PIXELFORMAT_DEPTHSTENCIL } from '../../platform/graphics/constants.js';
 import { RenderTarget } from '../../platform/graphics/render-target.js';
 import { Texture } from '../../platform/graphics/texture.js';
 import { LAYERID_DEPTH, SHADER_DEPTH, LAYERID_WORLD } from '../../scene/constants.js';
@@ -20,7 +20,7 @@ class SceneGrab {
 
     this.layer = null;
 
-    this.colorFormat = this.device.defaultFramebufferAlpha ? PIXELFORMAT_R8_G8_B8_A8 : PIXELFORMAT_R8_G8_B8;
+    this.colorFormat = this.device.defaultFramebufferAlpha ? PIXELFORMAT_RGBA8 : PIXELFORMAT_RGB8;
 
     if (this.device.webgl2) {
       this.initWebGl2();
@@ -164,7 +164,7 @@ class SceneGrab {
           var _camera$renderTarget3;
           if (self.resizeCondition(this.depthRenderTarget, (_camera$renderTarget3 = camera.renderTarget) == null ? void 0 : _camera$renderTarget3.depthBuffer, device)) {
             this.depthRenderTarget.destroyTextureBuffers();
-            this.depthRenderTarget = self.allocateRenderTarget(this.depthRenderTarget, camera.renderTarget, device, PIXELFORMAT_R8_G8_B8_A8, false, false, true);
+            this.depthRenderTarget = self.allocateRenderTarget(this.depthRenderTarget, camera.renderTarget, device, PIXELFORMAT_RGBA8, false, false, true);
           }
 
           const visibleObjects = this.instances.visibleOpaque[cameraPass];

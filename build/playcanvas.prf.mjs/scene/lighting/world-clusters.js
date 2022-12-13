@@ -1,13 +1,13 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
+ * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import { Vec3 } from '../../core/math/vec3.js';
 import { math } from '../../core/math/math.js';
 import { BoundingBox } from '../../core/shape/bounding-box.js';
-import { PIXELFORMAT_R8_G8_B8_A8 } from '../../platform/graphics/constants.js';
-import { MASK_AFFECT_DYNAMIC, MASK_AFFECT_LIGHTMAPPED, LIGHTTYPE_DIRECTIONAL } from '../constants.js';
+import { PIXELFORMAT_RGBA8 } from '../../platform/graphics/constants.js';
+import { MASK_AFFECT_DYNAMIC, MASK_AFFECT_LIGHTMAPPED, LIGHTTYPE_SPOT, LIGHTTYPE_DIRECTIONAL } from '../constants.js';
 import { LightsBuffer } from './lights-buffer.js';
 import '../../core/tracing.js';
 
@@ -89,6 +89,7 @@ class WorldClusters {
     }
   }
   registerUniforms(device) {
+    this._clusterMaxCellsId = device.scope.resolve('clusterMaxCells');
     this._clusterWorldTextureId = device.scope.resolve('clusterWorldTexture');
     this._clusterPixelsPerCellId = device.scope.resolve('clusterPixelsPerCell');
     this._clusterTextureSizeId = device.scope.resolve('clusterTextureSize');
@@ -146,7 +147,7 @@ class WorldClusters {
       this._clusterTextureSizeData[1] = 1.0 / width;
       this._clusterTextureSizeData[2] = 1.0 / height;
       this.releaseClusterTexture();
-      this.clusterTexture = LightsBuffer.createTexture(this.device, width, height, PIXELFORMAT_R8_G8_B8_A8, 'ClusterTexture');
+      this.clusterTexture = LightsBuffer.createTexture(this.device, width, height, PIXELFORMAT_RGBA8, 'ClusterTexture');
     }
   }
   uploadTextures() {
@@ -159,6 +160,7 @@ class WorldClusters {
 
     this._clusterWorldTextureId.setValue(this.clusterTexture);
 
+    this._clusterMaxCellsId.setValue(this._pixelsPerCellCount);
     const boundsDelta = this.boundsDelta;
     this._clusterCellsCountByBoundsSizeData[0] = this._cells.x / boundsDelta.x;
     this._clusterCellsCountByBoundsSizeData[1] = this._cells.y / boundsDelta.y;
@@ -205,7 +207,8 @@ class WorldClusters {
     let lightIndex = 1;
     lights.forEach(light => {
       const runtimeLight = !!(light.mask & (MASK_AFFECT_DYNAMIC | MASK_AFFECT_LIGHTMAPPED));
-      if (light.enabled && light.type !== LIGHTTYPE_DIRECTIONAL && light.visibleThisFrame && light.intensity > 0 && runtimeLight) {
+      const zeroAngleSpotlight = light.type === LIGHTTYPE_SPOT && light._outerConeAngle === 0;
+      if (light.enabled && light.type !== LIGHTTYPE_DIRECTIONAL && light.visibleThisFrame && light.intensity > 0 && runtimeLight && !zeroAngleSpotlight) {
         if (lightIndex < maxLights) {
           let clusteredLight;
           if (lightIndex < usedLights.length) {

@@ -1,9 +1,9 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
+ * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
-import { PIXELFORMAT_RGBA32F, PIXELFORMAT_RGBA16F, PIXELFORMAT_DEPTH, PIXELFORMAT_R8_G8_B8_A8, FILTER_NEAREST, FILTER_LINEAR, TEXHINT_SHADOWMAP, ADDRESS_CLAMP_TO_EDGE, FUNC_LESS } from '../../platform/graphics/constants.js';
+import { PIXELFORMAT_RGBA32F, PIXELFORMAT_RGBA16F, PIXELFORMAT_DEPTH, PIXELFORMAT_RGBA8, FILTER_NEAREST, FILTER_LINEAR, TEXHINT_SHADOWMAP, ADDRESS_CLAMP_TO_EDGE, FUNC_LESS } from '../../platform/graphics/constants.js';
 import { RenderTarget } from '../../platform/graphics/render-target.js';
 import { Texture } from '../../platform/graphics/texture.js';
 import { SHADOW_VSM32, SHADOW_VSM16, SHADOW_PCF5, SHADOW_PCF3, LIGHTTYPE_OMNI } from '../constants.js';
@@ -37,7 +37,7 @@ class ShadowMap {
     } else if (shadowType === SHADOW_PCF3 && device.webgl2) {
       return PIXELFORMAT_DEPTH;
     }
-    return PIXELFORMAT_R8_G8_B8_A8;
+    return PIXELFORMAT_RGBA8;
   }
   static getShadowFiltering(device, shadowType) {
     if (shadowType === SHADOW_PCF3 && !device.webgl2) {
@@ -103,7 +103,7 @@ class ShadowMap {
   static createCubemap(device, size) {
     const cubemap = new Texture(device, {
       profilerHint: TEXHINT_SHADOWMAP,
-      format: PIXELFORMAT_R8_G8_B8_A8,
+      format: PIXELFORMAT_RGBA8,
       width: size,
       height: size,
       cubemap: true,

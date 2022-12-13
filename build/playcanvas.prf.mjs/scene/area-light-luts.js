@@ -1,12 +1,12 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
+ * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import { FloatPacking } from '../core/math/float-packing.js';
 import { Texture } from '../platform/graphics/texture.js';
 import { DeviceCache } from '../platform/graphics/device-cache.js';
-import { ADDRESS_CLAMP_TO_EDGE, TEXTURETYPE_DEFAULT, FILTER_LINEAR, FILTER_NEAREST, PIXELFORMAT_R8_G8_B8_A8, PIXELFORMAT_RGBA32F, PIXELFORMAT_RGBA16F } from '../platform/graphics/constants.js';
+import { ADDRESS_CLAMP_TO_EDGE, TEXTURETYPE_DEFAULT, FILTER_LINEAR, FILTER_NEAREST, PIXELFORMAT_RGBA32F, PIXELFORMAT_RGBA16F } from '../platform/graphics/constants.js';
 
 class AreaLightCacheEntry {
   constructor(texture0, texture1) {
@@ -50,7 +50,7 @@ class AreaLightLuts {
   }
 
   static createPlaceholder(device) {
-    const texture = AreaLightLuts.createTexture(device, PIXELFORMAT_R8_G8_B8_A8, 2, 'placeholder');
+    const texture = AreaLightLuts.createTexture(device, device.areaLightLutFormat, 2, 'placeholder');
     const pixels = texture.lock();
     pixels.fill(0);
     texture.unlock();
@@ -62,7 +62,6 @@ class AreaLightLuts {
       const texture = AreaLightLuts.createTexture(device, format, 64);
       texture.lock().set(data);
       texture.unlock();
-      texture.upload();
       return texture;
     }
     function offsetScale(data, offset, scale) {

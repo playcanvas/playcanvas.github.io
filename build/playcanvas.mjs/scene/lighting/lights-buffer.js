@@ -1,5 +1,5 @@
 import { Vec3 } from '../../core/math/vec3.js';
-import { ADDRESS_CLAMP_TO_EDGE, TEXTURETYPE_DEFAULT, FILTER_NEAREST, PIXELFORMAT_R8_G8_B8_A8, PIXELFORMAT_RGBA32F } from '../../platform/graphics/constants.js';
+import { ADDRESS_CLAMP_TO_EDGE, TEXTURETYPE_DEFAULT, FILTER_NEAREST, PIXELFORMAT_RGBA8, PIXELFORMAT_RGBA32F } from '../../platform/graphics/constants.js';
 import { FloatPacking } from '../../core/math/float-packing.js';
 import { MASK_AFFECT_DYNAMIC, MASK_AFFECT_LIGHTMAPPED, LIGHTTYPE_SPOT, LIGHTSHAPE_PUNCTUAL } from '../constants.js';
 import { Texture } from '../../platform/graphics/texture.js';
@@ -88,14 +88,16 @@ class LightsBuffer {
 
   static buildShaderDefines(object, prefix) {
     let str = '';
+    const floatOffset = LightsBuffer.useTexelFetch ? '' : '.5';
     Object.keys(object).forEach(key => {
-      str += `\n#define ${prefix}${key} ${object[key]}.5`;
+      str += `\n#define ${prefix}${key} ${object[key]}${floatOffset}`;
     });
     return str;
   }
 
   static init(device) {
     LightsBuffer.lightTextureFormat = device.extTextureFloat && device.maxTextures > 8 ? LightsBuffer.FORMAT_FLOAT : LightsBuffer.FORMAT_8BIT;
+    LightsBuffer.useTexelFetch = device.supportsTextureFetch;
     LightsBuffer.initShaderDefines();
   }
   static createTexture(device, width, height, format, name) {
@@ -133,7 +135,7 @@ class LightsBuffer {
     }
 
     this.lights8 = new Uint8ClampedArray(4 * pixelsPerLight8 * this.maxLights);
-    this.lightsTexture8 = LightsBuffer.createTexture(this.device, pixelsPerLight8, this.maxLights, PIXELFORMAT_R8_G8_B8_A8, 'LightsTexture8');
+    this.lightsTexture8 = LightsBuffer.createTexture(this.device, pixelsPerLight8, this.maxLights, PIXELFORMAT_RGBA8, 'LightsTexture8');
     this._lightsTexture8Id = this.device.scope.resolve('lightsTexture8');
 
     if (pixelsPerLightFloat) {
@@ -386,6 +388,7 @@ class LightsBuffer {
 LightsBuffer.FORMAT_FLOAT = 0;
 LightsBuffer.FORMAT_8BIT = 1;
 LightsBuffer.lightTextureFormat = LightsBuffer.FORMAT_8BIT;
+LightsBuffer.useTexelFetch = false;
 LightsBuffer.shaderDefines = '';
 
 export { LightsBuffer };

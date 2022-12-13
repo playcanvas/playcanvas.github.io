@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
+ * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import '../../core/tracing.js';
@@ -10,6 +10,7 @@ import gles3PS from './shader-chunks/frag/gles3.js';
 import gles3VS from './shader-chunks/vert/gles3.js';
 import webgpuPS from './shader-chunks/frag/webgpu.js';
 import webgpuVS from './shader-chunks/vert/webgpu.js';
+import sharedFS from './shader-chunks/frag/shared.js';
 
 const _attrib2Semantic = {
   vertex_position: SEMANTIC_POSITION,
@@ -40,7 +41,7 @@ class ShaderUtils {
     const vertCode = ShaderUtils.versionCode(device) + vertDefines + ShaderUtils.getShaderNameCode(name) + options.vertexCode;
 
     const fragDefines = options.fragmentDefines || getDefines(webgpuPS, gles3PS, gles2PS);
-    const fragCode = (options.fragmentPreamble || '') + ShaderUtils.versionCode(device) + ShaderUtils.precisionCode(device) + '\n' + fragDefines + ShaderUtils.getShaderNameCode(name) + (options.fragmentCode || ShaderUtils.dummyFragmentCode());
+    const fragCode = (options.fragmentPreamble || '') + ShaderUtils.versionCode(device) + ShaderUtils.precisionCode(device) + '\n' + fragDefines + sharedFS + ShaderUtils.getShaderNameCode(name) + (options.fragmentCode || ShaderUtils.dummyFragmentCode());
 
     const attribs = (_options$attributes = options.attributes) != null ? _options$attributes : ShaderUtils.collectAttributes(options.vertexCode);
     return {
@@ -83,23 +84,26 @@ class ShaderUtils {
   }
   static precisionCode(device, forcePrecision) {
     let code = '';
+    if (forcePrecision && forcePrecision !== 'highp' && forcePrecision !== 'mediump' && forcePrecision !== 'lowp') {
+      forcePrecision = null;
+    }
+    if (forcePrecision) {
+      if (forcePrecision === 'highp' && device.maxPrecision !== 'highp') {
+        forcePrecision = 'mediump';
+      }
+      if (forcePrecision === 'mediump' && device.maxPrecision === 'lowp') {
+        forcePrecision = 'lowp';
+      }
+    }
+    const precision = forcePrecision ? forcePrecision : device.precision;
     if (device.deviceType === DEVICETYPE_WEBGL) {
-      if (forcePrecision && forcePrecision !== 'highp' && forcePrecision !== 'mediump' && forcePrecision !== 'lowp') {
-        forcePrecision = null;
-      }
-      if (forcePrecision) {
-        if (forcePrecision === 'highp' && device.maxPrecision !== 'highp') {
-          forcePrecision = 'mediump';
-        }
-        if (forcePrecision === 'mediump' && device.maxPrecision === 'lowp') {
-          forcePrecision = 'lowp';
-        }
-      }
-      const precision = forcePrecision ? forcePrecision : device.precision;
       code = `precision ${precision} float;\n`;
       if (device.webgl2) {
         code += `precision ${precision} sampler2DShadow;\n`;
       }
+    } else {
+
+      code = `precision ${precision} float;\nprecision ${precision} int;\n`;
     }
     return code;
   }

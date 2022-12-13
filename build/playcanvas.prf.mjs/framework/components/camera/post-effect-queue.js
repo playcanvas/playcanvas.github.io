@@ -1,9 +1,9 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
+ * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
-import { FILTER_NEAREST, ADDRESS_CLAMP_TO_EDGE, PIXELFORMAT_R8_G8_B8_A8 } from '../../../platform/graphics/constants.js';
+import { FILTER_NEAREST, ADDRESS_CLAMP_TO_EDGE, PIXELFORMAT_RGBA8 } from '../../../platform/graphics/constants.js';
 import { RenderTarget } from '../../../platform/graphics/render-target.js';
 import { Texture } from '../../../platform/graphics/texture.js';
 import { LAYERID_DEPTH } from '../../../scene/constants.js';
@@ -52,7 +52,7 @@ class PostEffectQueue {
 
   _createOffscreenTarget(useDepth, hdr) {
     const device = this.app.graphicsDevice;
-    const format = hdr ? device.getHdrFormat() : PIXELFORMAT_R8_G8_B8_A8;
+    const format = hdr && device.getHdrFormat(false, true, false, false) || PIXELFORMAT_RGBA8;
     const name = this.camera.entity.name + '-posteffect-' + this.effects.length;
     const colorBuffer = this._allocateColorBuffer(format, name);
     return new RenderTarget({

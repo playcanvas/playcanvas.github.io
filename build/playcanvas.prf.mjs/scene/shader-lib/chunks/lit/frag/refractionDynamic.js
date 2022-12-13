@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
+ * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 var refractionDynamicPS = `
@@ -31,9 +31,9 @@ void addRefraction() {
 
     // Project to texture space so we can sample it
     vec4 projectionPoint = matrix_viewProjection * pointOfRefraction;
-    vec2 uv = projectionPoint.xy / projectionPoint.ww;
-    uv += vec2(1.0);
-    uv *= vec2(0.5);
+
+    // use built-in getGrabScreenPos function to convert screen position to grab texture uv coords
+    vec2 uv = getGrabScreenPos(projectionPoint);
 
     #ifdef SUPPORTS_TEXLOD
         // Use IOR and roughness to select mip

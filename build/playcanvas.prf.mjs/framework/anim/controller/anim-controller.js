@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
+ * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import { extends as _extends } from '../../../_virtual/_rollupPluginBabelHelpers.js';
@@ -126,7 +126,7 @@ class AnimController {
     if (this.activeStateName === ANIM_STATE_START || this.activeStateName === ANIM_STATE_END || this.activeStateName === ANIM_STATE_ANY) return 1.0;
     const activeClip = this._animEvaluator.findClip(this.activeStateAnimations[0].name);
     if (activeClip) {
-      return time / activeClip.track.duration;
+      return activeClip.progressForTime(time);
     }
     return null;
   }
@@ -409,7 +409,7 @@ class AnimController {
     let animation;
     let clip;
     this._timeInStateBefore = this._timeInState;
-    this._timeInState += dt;
+    this._timeInState += dt * this.activeState.speed;
 
     const transition = this._findTransition(this._activeStateName);
     if (transition) this.updateStateFromTransition(transition);

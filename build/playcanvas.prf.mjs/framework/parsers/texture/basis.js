@@ -1,12 +1,12 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
+ * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
-import { Asset } from '../../asset/asset.js';
-import { Texture } from '../../../platform/graphics/texture.js';
-import { basisTranscode } from '../../handlers/basis.js';
 import { TEXHINT_ASSET, ADDRESS_CLAMP_TO_EDGE, ADDRESS_REPEAT } from '../../../platform/graphics/constants.js';
+import { Texture } from '../../../platform/graphics/texture.js';
+import { Asset } from '../../asset/asset.js';
+import { basisTranscode } from '../../handlers/basis.js';
 
 class BasisParser {
   constructor(registry, device) {

@@ -1,5 +1,5 @@
 import '../../core/tracing.js';
-import { PIXELFORMAT_R5_G6_B5, PIXELFORMAT_R4_G4_B4_A4 } from '../../platform/graphics/constants.js';
+import { PIXELFORMAT_RGB565, PIXELFORMAT_RGBA4 } from '../../platform/graphics/constants.js';
 import { BasisWorker } from './basis-worker.js';
 import { http } from '../../platform/net/http.js';
 
@@ -133,7 +133,7 @@ class BasisQueue {
         callback[i](err);
       }
     } else {
-      if (data.format === PIXELFORMAT_R5_G6_B5 || data.format === PIXELFORMAT_R4_G4_B4_A4) {
+      if (data.format === PIXELFORMAT_RGB565 || data.format === PIXELFORMAT_RGBA4) {
         data.levels = data.levels.map(function (v) {
           return new Uint16Array(v);
         });

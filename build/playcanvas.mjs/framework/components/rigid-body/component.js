@@ -1,13 +1,16 @@
-import '../../../core/tracing.js';
 import { Quat } from '../../../core/math/quat.js';
 import { Vec3 } from '../../../core/math/vec3.js';
 import { BODYGROUP_STATIC, BODYMASK_NOT_STATIC, BODYTYPE_STATIC, BODYTYPE_DYNAMIC, BODYTYPE_KINEMATIC, BODYGROUP_KINEMATIC, BODYMASK_ALL, BODYGROUP_DYNAMIC, BODYFLAG_KINEMATIC_OBJECT, BODYSTATE_DISABLE_DEACTIVATION, BODYSTATE_ACTIVE_TAG, BODYSTATE_DISABLE_SIMULATION } from './constants.js';
 import { Component } from '../component.js';
 
-let ammoTransform;
-let ammoVec1, ammoVec2, ammoQuat, ammoOrigin;
+let _ammoTransform;
+let _ammoVec1, _ammoVec2, _ammoQuat;
+const _quat1 = new Quat();
+const _quat2 = new Quat();
+const _vec3 = new Vec3();
 
 class RigidBodyComponent extends Component {
+
   constructor(system, entity) {
     super(system, entity);
     this._angularDamping = 0;
@@ -29,11 +32,10 @@ class RigidBodyComponent extends Component {
 
   static onLibraryLoaded() {
     if (typeof Ammo !== 'undefined') {
-      ammoTransform = new Ammo.btTransform();
-      ammoVec1 = new Ammo.btVector3();
-      ammoVec2 = new Ammo.btVector3();
-      ammoQuat = new Ammo.btQuaternion();
-      ammoOrigin = new Ammo.btVector3(0, 0, 0);
+      _ammoTransform = new Ammo.btTransform();
+      _ammoVec1 = new Ammo.btVector3();
+      _ammoVec2 = new Ammo.btVector3();
+      _ammoQuat = new Ammo.btQuaternion();
     }
   }
 
@@ -53,8 +55,8 @@ class RigidBodyComponent extends Component {
     if (!this._angularFactor.equals(factor)) {
       this._angularFactor.copy(factor);
       if (this._body && this._type === BODYTYPE_DYNAMIC) {
-        ammoVec1.setValue(factor.x, factor.y, factor.z);
-        this._body.setAngularFactor(ammoVec1);
+        _ammoVec1.setValue(factor.x, factor.y, factor.z);
+        this._body.setAngularFactor(_ammoVec1);
       }
     }
   }
@@ -65,8 +67,8 @@ class RigidBodyComponent extends Component {
   set angularVelocity(velocity) {
     if (this._body && this._type === BODYTYPE_DYNAMIC) {
       this._body.activate();
-      ammoVec1.setValue(velocity.x, velocity.y, velocity.z);
-      this._body.setAngularVelocity(ammoVec1);
+      _ammoVec1.setValue(velocity.x, velocity.y, velocity.z);
+      this._body.setAngularVelocity(_ammoVec1);
       this._angularVelocity.copy(velocity);
     }
   }
@@ -131,8 +133,8 @@ class RigidBodyComponent extends Component {
     if (!this._linearFactor.equals(factor)) {
       this._linearFactor.copy(factor);
       if (this._body && this._type === BODYTYPE_DYNAMIC) {
-        ammoVec1.setValue(factor.x, factor.y, factor.z);
-        this._body.setLinearFactor(ammoVec1);
+        _ammoVec1.setValue(factor.x, factor.y, factor.z);
+        this._body.setLinearFactor(_ammoVec1);
       }
     }
   }
@@ -143,8 +145,8 @@ class RigidBodyComponent extends Component {
   set linearVelocity(velocity) {
     if (this._body && this._type === BODYTYPE_DYNAMIC) {
       this._body.activate();
-      ammoVec1.setValue(velocity.x, velocity.y, velocity.z);
-      this._body.setLinearVelocity(ammoVec1);
+      _ammoVec1.setValue(velocity.x, velocity.y, velocity.z);
+      this._body.setLinearVelocity(_ammoVec1);
       this._linearVelocity.copy(velocity);
     }
   }
@@ -179,8 +181,8 @@ class RigidBodyComponent extends Component {
           this.disableSimulation();
         }
 
-        this._body.getCollisionShape().calculateLocalInertia(mass, ammoVec1);
-        this._body.setMassProps(mass, ammoVec1);
+        this._body.getCollisionShape().calculateLocalInertia(mass, _ammoVec1);
+        this._body.setMassProps(mass, _ammoVec1);
         this._body.updateInertiaTensor();
         if (enabled) {
           this.enableSimulation();
@@ -258,19 +260,19 @@ class RigidBodyComponent extends Component {
     if (shape) {
       if (this._body) this.system.onRemove(entity, this);
       const mass = this._type === BODYTYPE_DYNAMIC ? this._mass : 0;
-      this._getEntityTransform(ammoTransform);
-      const body = this.system.createBody(mass, shape, ammoTransform);
+      this._getEntityTransform(_ammoTransform);
+      const body = this.system.createBody(mass, shape, _ammoTransform);
       body.setRestitution(this._restitution);
       body.setFriction(this._friction);
       body.setRollingFriction(this._rollingFriction);
       body.setDamping(this._linearDamping, this._angularDamping);
       if (this._type === BODYTYPE_DYNAMIC) {
         const linearFactor = this._linearFactor;
-        ammoVec1.setValue(linearFactor.x, linearFactor.y, linearFactor.z);
-        body.setLinearFactor(ammoVec1);
+        _ammoVec1.setValue(linearFactor.x, linearFactor.y, linearFactor.z);
+        body.setLinearFactor(_ammoVec1);
         const angularFactor = this._angularFactor;
-        ammoVec1.setValue(angularFactor.x, angularFactor.y, angularFactor.z);
-        body.setAngularFactor(ammoVec1);
+        _ammoVec1.setValue(angularFactor.x, angularFactor.y, angularFactor.z);
+        body.setAngularFactor(_ammoVec1);
       } else if (this._type === BODYTYPE_KINEMATIC) {
         body.setCollisionFlags(body.getCollisionFlags() | BODYFLAG_KINEMATIC_OBJECT);
         body.setActivationState(BODYSTATE_DISABLE_DEACTIVATION);
@@ -292,6 +294,7 @@ class RigidBodyComponent extends Component {
       this._body.activate();
     }
   }
+
   enableSimulation() {
     const entity = this.entity;
     if (entity.collision && entity.collision.enabled && !this._simulationEnabled) {
@@ -321,6 +324,7 @@ class RigidBodyComponent extends Component {
       }
     }
   }
+
   disableSimulation() {
     const body = this._body;
     if (body && this._simulationEnabled) {
@@ -344,141 +348,69 @@ class RigidBodyComponent extends Component {
     }
   }
 
-  applyForce() {
-    let x, y, z;
-    let px, py, pz;
-    switch (arguments.length) {
-      case 1:
-        x = arguments[0].x;
-        y = arguments[0].y;
-        z = arguments[0].z;
-        break;
-      case 2:
-        x = arguments[0].x;
-        y = arguments[0].y;
-        z = arguments[0].z;
-        px = arguments[1].x;
-        py = arguments[1].y;
-        pz = arguments[1].z;
-        break;
-      case 3:
-        x = arguments[0];
-        y = arguments[1];
-        z = arguments[2];
-        break;
-      case 6:
-        x = arguments[0];
-        y = arguments[1];
-        z = arguments[2];
-        px = arguments[3];
-        py = arguments[4];
-        pz = arguments[5];
-        break;
-    }
+  applyForce(x, y, z, px, py, pz) {
     const body = this._body;
     if (body) {
       body.activate();
-      ammoVec1.setValue(x, y, z);
-      if (px !== undefined) {
-        ammoVec2.setValue(px, py, pz);
-        body.applyForce(ammoVec1, ammoVec2);
+      if (x instanceof Vec3) {
+        _ammoVec1.setValue(x.x, x.y, x.z);
       } else {
-        body.applyForce(ammoVec1, ammoOrigin);
+        _ammoVec1.setValue(x, y, z);
       }
-    }
-  }
-
-  applyTorque() {
-    let x, y, z;
-    switch (arguments.length) {
-      case 1:
-        x = arguments[0].x;
-        y = arguments[0].y;
-        z = arguments[0].z;
-        break;
-      case 3:
-        x = arguments[0];
-        y = arguments[1];
-        z = arguments[2];
-        break;
-      default:
-        return;
-    }
-    const body = this._body;
-    if (body) {
-      body.activate();
-      ammoVec1.setValue(x, y, z);
-      body.applyTorque(ammoVec1);
-    }
-  }
-
-  applyImpulse() {
-    let x, y, z;
-    let px, py, pz;
-    switch (arguments.length) {
-      case 1:
-        x = arguments[0].x;
-        y = arguments[0].y;
-        z = arguments[0].z;
-        break;
-      case 2:
-        x = arguments[0].x;
-        y = arguments[0].y;
-        z = arguments[0].z;
-        px = arguments[1].x;
-        py = arguments[1].y;
-        pz = arguments[1].z;
-        break;
-      case 3:
-        x = arguments[0];
-        y = arguments[1];
-        z = arguments[2];
-        break;
-      case 6:
-        x = arguments[0];
-        y = arguments[1];
-        z = arguments[2];
-        px = arguments[3];
-        py = arguments[4];
-        pz = arguments[5];
-        break;
-      default:
-        return;
-    }
-    const body = this._body;
-    if (body) {
-      body.activate();
-      ammoVec1.setValue(x, y, z);
-      if (px !== undefined) {
-        ammoVec2.setValue(px, py, pz);
-        body.applyImpulse(ammoVec1, ammoVec2);
+      if (y instanceof Vec3) {
+        _ammoVec2.setValue(y.x, y.y, y.z);
+      } else if (px !== undefined) {
+        _ammoVec2.setValue(px, py, pz);
       } else {
-        body.applyImpulse(ammoVec1, ammoOrigin);
+        _ammoVec2.setValue(0, 0, 0);
       }
+      body.applyForce(_ammoVec1, _ammoVec2);
     }
   }
 
-  applyTorqueImpulse() {
-    let x, y, z;
-    switch (arguments.length) {
-      case 1:
-        x = arguments[0].x;
-        y = arguments[0].y;
-        z = arguments[0].z;
-        break;
-      case 3:
-        x = arguments[0];
-        y = arguments[1];
-        z = arguments[2];
-        break;
-      default:
-        return;
-    }
+  applyTorque(x, y, z) {
     const body = this._body;
     if (body) {
       body.activate();
-      ammoVec1.setValue(x, y, z);
-      body.applyTorqueImpulse(ammoVec1);
+      if (x instanceof Vec3) {
+        _ammoVec1.setValue(x.x, x.y, x.z);
+      } else {
+        _ammoVec1.setValue(x, y, z);
+      }
+      body.applyTorque(_ammoVec1);
+    }
+  }
+
+  applyImpulse(x, y, z, px, py, pz) {
+    const body = this._body;
+    if (body) {
+      body.activate();
+      if (x instanceof Vec3) {
+        _ammoVec1.setValue(x.x, x.y, x.z);
+      } else {
+        _ammoVec1.setValue(x, y, z);
+      }
+      if (y instanceof Vec3) {
+        _ammoVec2.setValue(y.x, y.y, y.z);
+      } else if (px !== undefined) {
+        _ammoVec2.setValue(px, py, pz);
+      } else {
+        _ammoVec2.setValue(0, 0, 0);
+      }
+      body.applyImpulse(_ammoVec1, _ammoVec2);
+    }
+  }
+
+  applyTorqueImpulse(x, y, z) {
+    const body = this._body;
+    if (body) {
+      body.activate();
+      if (x instanceof Vec3) {
+        _ammoVec1.setValue(x.x, x.y, x.z);
+      } else {
+        _ammoVec1.setValue(x, y, z);
+      }
+      body.applyTorqueImpulse(_ammoVec1);
     }
   }
 
@@ -496,23 +428,31 @@ class RigidBodyComponent extends Component {
 
   _getEntityTransform(transform) {
     const entity = this.entity;
-    const pos = entity.getPosition();
-    const rot = entity.getRotation();
-    ammoVec1.setValue(pos.x, pos.y, pos.z);
-    ammoQuat.setValue(rot.x, rot.y, rot.z, rot.w);
-    transform.setOrigin(ammoVec1);
-    transform.setRotation(ammoQuat);
+    const component = entity.collision;
+    if (component) {
+      const bodyPos = component.getShapePosition();
+      const bodyRot = component.getShapeRotation();
+      _ammoVec1.setValue(bodyPos.x, bodyPos.y, bodyPos.z);
+      _ammoQuat.setValue(bodyRot.x, bodyRot.y, bodyRot.z, bodyRot.w);
+    } else {
+      const pos = entity.getPosition();
+      const rot = entity.getRotation();
+      _ammoVec1.setValue(pos.x, pos.y, pos.z);
+      _ammoQuat.setValue(rot.x, rot.y, rot.z, rot.w);
+    }
+    transform.setOrigin(_ammoVec1);
+    transform.setRotation(_ammoQuat);
   }
 
   syncEntityToBody() {
     const body = this._body;
     if (body) {
-      this._getEntityTransform(ammoTransform);
-      body.setWorldTransform(ammoTransform);
+      this._getEntityTransform(_ammoTransform);
+      body.setWorldTransform(_ammoTransform);
       if (this._type === BODYTYPE_KINEMATIC) {
         const motionState = body.getMotionState();
         if (motionState) {
-          motionState.setWorldTransform(ammoTransform);
+          motionState.setWorldTransform(_ammoTransform);
         }
       }
       body.activate();
@@ -525,11 +465,24 @@ class RigidBodyComponent extends Component {
     if (body.isActive()) {
       const motionState = body.getMotionState();
       if (motionState) {
-        motionState.getWorldTransform(ammoTransform);
-        const p = ammoTransform.getOrigin();
-        const q = ammoTransform.getRotation();
-        this.entity.setPosition(p.x(), p.y(), p.z());
-        this.entity.setRotation(q.x(), q.y(), q.z(), q.w());
+        const entity = this.entity;
+        motionState.getWorldTransform(_ammoTransform);
+        const p = _ammoTransform.getOrigin();
+        const q = _ammoTransform.getRotation();
+        const component = entity.collision;
+        if (component && component._hasOffset) {
+          const lo = component.data.linearOffset;
+          const ao = component.data.angularOffset;
+
+          const invertedAo = _quat2.copy(ao).invert();
+          const entityRot = _quat1.set(q.x(), q.y(), q.z(), q.w()).mul(invertedAo);
+          entityRot.transformVector(lo, _vec3);
+          entity.setPosition(p.x() - _vec3.x, p.y() - _vec3.y, p.z() - _vec3.z);
+          entity.setRotation(entityRot);
+        } else {
+          entity.setPosition(p.x(), p.y(), p.z());
+          entity.setRotation(q.x(), q.y(), q.z(), q.w());
+        }
       }
     }
   }
@@ -537,37 +490,34 @@ class RigidBodyComponent extends Component {
   _updateKinematic() {
     const motionState = this._body.getMotionState();
     if (motionState) {
-      this._getEntityTransform(ammoTransform);
-      motionState.setWorldTransform(ammoTransform);
+      this._getEntityTransform(_ammoTransform);
+      motionState.setWorldTransform(_ammoTransform);
     }
   }
 
-  teleport() {
-    if (arguments.length < 3) {
-      if (arguments[0]) {
-        this.entity.setPosition(arguments[0]);
-      }
-      if (arguments[1]) {
-        if (arguments[1] instanceof Quat) {
-          this.entity.setRotation(arguments[1]);
-        } else {
-          this.entity.setEulerAngles(arguments[1]);
-        }
-      }
+  teleport(x, y, z, rx, ry, rz) {
+    if (x instanceof Vec3) {
+      this.entity.setPosition(x);
     } else {
-      if (arguments.length === 6) {
-        this.entity.setEulerAngles(arguments[3], arguments[4], arguments[5]);
-      }
-      this.entity.setPosition(arguments[0], arguments[1], arguments[2]);
+      this.entity.setPosition(x, y, z);
+    }
+    if (y instanceof Quat) {
+      this.entity.setRotation(y);
+    } else if (y instanceof Vec3) {
+      this.entity.setEulerAngles(y);
+    } else if (rx !== undefined) {
+      this.entity.setEulerAngles(rx, ry, rz);
     }
     this.syncEntityToBody();
   }
+
   onEnable() {
     if (!this._body) {
       this.createBody();
     }
     this.enableSimulation();
   }
+
   onDisable() {
     this.disableSimulation();
   }

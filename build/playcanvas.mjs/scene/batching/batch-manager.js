@@ -1,13 +1,13 @@
-import '../../core/time.js';
 import '../../core/tracing.js';
-import { Vec3 } from '../../core/math/vec3.js';
+import '../../core/time.js';
 import { Mat3 } from '../../core/math/mat3.js';
+import { Vec3 } from '../../core/math/vec3.js';
 import { BoundingBox } from '../../core/shape/bounding-box.js';
 import { PRIMITIVE_TRIFAN, SEMANTIC_BLENDINDICES, TYPE_FLOAT32, typedArrayTypes, typedArrayTypesByteSize, SEMANTIC_POSITION, SEMANTIC_NORMAL, SEMANTIC_TANGENT, typedArrayIndexFormats, PRIMITIVE_TRIANGLES } from '../../platform/graphics/constants.js';
-import { shaderChunks } from '../shader-lib/chunks/chunks.js';
 import { SPRITE_RENDERMODE_SIMPLE } from '../constants.js';
 import { Mesh } from '../mesh.js';
 import { MeshInstance } from '../mesh-instance.js';
+import { shaderChunks } from '../shader-lib/chunks/chunks.js';
 import { Batch } from './batch.js';
 import { BatchGroup } from './batch-group.js';
 import { SkinBatchInstance } from './skin-batch-instance.js';

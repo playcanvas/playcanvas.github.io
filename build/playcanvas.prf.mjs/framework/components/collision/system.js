@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
+ * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import '../../../core/tracing.js';
@@ -20,7 +20,7 @@ const mat4 = new Mat4();
 const vec3 = new Vec3();
 const quat = new Quat();
 const tempGraphNode = new GraphNode();
-const _schema = ['enabled', 'type', 'halfExtents', 'radius', 'axis', 'height', 'asset', 'renderAsset', 'shape', 'model', 'render'];
+const _schema = ['enabled', 'type', 'halfExtents', 'linearOffset', 'angularOffset', 'radius', 'axis', 'height', 'asset', 'renderAsset', 'shape', 'model', 'render'];
 
 class CollisionSystemImpl {
   constructor(system) {
@@ -142,6 +142,8 @@ class CollisionSystemImpl {
       enabled: src.data.enabled,
       type: src.data.type,
       halfExtents: [src.data.halfExtents.x, src.data.halfExtents.y, src.data.halfExtents.z],
+      linearOffset: [src.data.linearOffset.x, src.data.linearOffset.y, src.data.linearOffset.z],
+      angularOffset: [src.data.angularOffset.x, src.data.angularOffset.y, src.data.angularOffset.z, src.data.angularOffset.w],
       radius: src.data.radius,
       axis: src.data.axis,
       height: src.data.height,
@@ -448,7 +450,7 @@ class CollisionComponentSystem extends ComponentSystem {
     this.on('remove', this.onRemove, this);
   }
   initializeComponentData(component, _data, properties) {
-    properties = ['type', 'halfExtents', 'radius', 'axis', 'height', 'shape', 'model', 'asset', 'render', 'renderAsset', 'enabled'];
+    properties = ['type', 'halfExtents', 'radius', 'axis', 'height', 'shape', 'model', 'asset', 'render', 'renderAsset', 'enabled', 'linearOffset', 'angularOffset'];
 
     const data = {};
     for (let i = 0, len = properties.length; i < len; i++) {
@@ -476,8 +478,19 @@ class CollisionComponentSystem extends ComponentSystem {
       data.type = component.data.type;
     }
     component.data.type = data.type;
-    if (data.halfExtents && Array.isArray(data.halfExtents)) {
-      data.halfExtents = new Vec3(data.halfExtents[0], data.halfExtents[1], data.halfExtents[2]);
+    if (Array.isArray(data.halfExtents)) {
+      data.halfExtents = new Vec3(data.halfExtents);
+    }
+    if (Array.isArray(data.linearOffset)) {
+      data.linearOffset = new Vec3(data.linearOffset);
+    }
+    if (Array.isArray(data.angularOffset)) {
+      const values = data.angularOffset;
+      if (values.length === 3) {
+        data.angularOffset = new Quat().setFromEulerAngles(values[0], values[1], values[2]);
+      } else {
+        data.angularOffset = new Quat(data.angularOffset);
+      }
     }
     const impl = this._createImplementation(data.type);
     impl.beforeInitialize(component, data);
@@ -587,12 +600,23 @@ class CollisionComponentSystem extends ComponentSystem {
       pos = node.getPosition();
       rot = node.getRotation();
     }
+    const ammoQuat = new Ammo.btQuaternion();
     const transform = new Ammo.btTransform();
     transform.setIdentity();
     const origin = transform.getOrigin();
-    origin.setValue(pos.x, pos.y, pos.z);
-    const ammoQuat = new Ammo.btQuaternion();
-    ammoQuat.setValue(rot.x, rot.y, rot.z, rot.w);
+    const component = node.collision;
+    if (component && component._hasOffset) {
+      const lo = component.data.linearOffset;
+      const ao = component.data.angularOffset;
+      quat.copy(rot).transformVector(lo, vec3);
+      vec3.add(pos);
+      quat.copy(rot).mul(ao);
+      origin.setValue(vec3.x, vec3.y, vec3.z);
+      ammoQuat.setValue(quat.x, quat.y, quat.z, quat.w);
+    } else {
+      origin.setValue(pos.x, pos.y, pos.z);
+      ammoQuat.setValue(rot.x, rot.y, rot.z, rot.w);
+    }
     transform.setRotation(ammoQuat);
     Ammo.destroy(ammoQuat);
     Ammo.destroy(origin);

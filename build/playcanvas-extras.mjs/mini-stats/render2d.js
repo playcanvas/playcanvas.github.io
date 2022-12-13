@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-preview revision 1fec26519
+ * PlayCanvas Engine v1.59.0-preview revision 797466563
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import { VertexFormat, SEMANTIC_POSITION, TYPE_FLOAT32, SEMANTIC_TEXCOORD0, shaderChunks, VertexBuffer, BUFFER_STREAM, IndexBuffer, INDEXFORMAT_UINT16, BUFFER_STATIC, PRIMITIVE_TRIANGLES, CULLFACE_NONE, BLENDMODE_SRC_ALPHA, BLENDMODE_ONE_MINUS_SRC_ALPHA, BLENDMODE_ONE, BLENDEQUATION_ADD } from 'playcanvas';

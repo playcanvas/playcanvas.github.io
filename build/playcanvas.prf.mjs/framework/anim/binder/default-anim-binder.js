@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
+ * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import '../../../core/tracing.js';
@@ -75,6 +75,7 @@ class DefaultAnimBinder {
           weightName = Number(weightName);
         }
         const meshInstances = findMeshInstances(node);
+        let setters;
         if (meshInstances) {
           for (let i = 0; i < meshInstances.length; ++i) {
             if (meshInstances[i].node.name === node.name && meshInstances[i].morphInstance) {
@@ -82,9 +83,18 @@ class DefaultAnimBinder {
               const func = value => {
                 morphInstance.setWeight(weightName, value[0]);
               };
-              return DefaultAnimBinder.createAnimTarget(func, 'number', 1, node, `weight.${weightName}`);
+              if (!setters) setters = [];
+              setters.push(func);
             }
           }
+        }
+        if (setters) {
+          const callSetters = value => {
+            for (let i = 0; i < setters.length; ++i) {
+              setters[i](value);
+            }
+          };
+          return DefaultAnimBinder.createAnimTarget(callSetters, 'number', 1, node, `weight.${weightName}`);
         }
         return null;
       },

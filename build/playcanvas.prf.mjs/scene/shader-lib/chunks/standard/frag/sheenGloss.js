@@ -1,18 +1,18 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
+ * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 var sheenGlossPS = `
 #ifdef MAPFLOAT
-uniform float material_sheenGloss;
+uniform float material_sheenGlossiness;
 #endif
 
 void getSheenGlossiness() {
     float sheenGlossiness = 1.0;
 
     #ifdef MAPFLOAT
-    sheenGlossiness *= material_sheenGloss;
+    sheenGlossiness *= material_sheenGlossiness;
     #endif
 
     #ifdef MAPTEXTURE

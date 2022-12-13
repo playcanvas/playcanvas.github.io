@@ -62,9 +62,6 @@ class LightComponent extends Component {
 
     if (this.enabled && this.entity.enabled) this.onEnable();
   }
-  updateShadow() {
-    this.light.updateShadow();
-  }
   onCookieAssetSet() {
     let forceLoad = false;
     if (this._cookieAsset.type === 'cubemap' && !this._cookieAsset.loadFaces) {
@@ -125,6 +122,13 @@ class LightComponent extends Component {
     this.light.destroy();
 
     this.cookieAsset = null;
+  }
+
+  set shadowUpdateOverrides(values) {
+    this.light.shadowUpdateOverrides = values;
+  }
+  get shadowUpdateOverrides() {
+    return this.light.shadowUpdateOverrides;
   }
 }
 function _defineProperty(name, defaultValue, setFunc, skipEqualsCheck) {

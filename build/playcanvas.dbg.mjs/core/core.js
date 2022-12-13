@@ -1,10 +1,10 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (DEBUG PROFILER)
+ * PlayCanvas Engine v1.59.0-preview revision 797466563 (DEBUG PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
-const version = '1.58.0-preview';
-const revision = '1fec26519';
+const version = '1.59.0-preview';
+const revision = '797466563';
 const config = {};
 const common = {};
 const apps = {};

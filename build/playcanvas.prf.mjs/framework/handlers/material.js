@@ -1,10 +1,10 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
+ * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import { http } from '../../platform/net/http.js';
-import { PIXELFORMAT_R8_G8_B8_A8 } from '../../platform/graphics/constants.js';
+import { PIXELFORMAT_RGBA8 } from '../../platform/graphics/constants.js';
 import { Texture } from '../../platform/graphics/texture.js';
 import { SPECULAR_PHONG } from '../../scene/constants.js';
 import { standardMaterialTextureParameters, standardMaterialCubemapParameters } from '../../scene/materials/standard-material-parameters.js';
@@ -90,7 +90,7 @@ class MaterialHandler {
       this._placeholderTextures[key] = new Texture(this._device, {
         width: 2,
         height: 2,
-        format: PIXELFORMAT_R8_G8_B8_A8,
+        format: PIXELFORMAT_RGBA8,
         name: 'material_placeholder'
       });
 

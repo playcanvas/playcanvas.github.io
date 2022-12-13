@@ -1,10 +1,10 @@
 import { Vec4 } from '../../core/math/vec4.js';
 import { Mat4 } from '../../core/math/mat4.js';
-import { PIXELFORMAT_R8_G8_B8_A8, FILTER_NEAREST, ADDRESS_CLAMP_TO_EDGE } from '../../platform/graphics/constants.js';
-import { Texture } from '../../platform/graphics/texture.js';
-import { createShaderFromCode } from '../shader-lib/utils.js';
+import { PIXELFORMAT_RGBA8, FILTER_NEAREST, ADDRESS_CLAMP_TO_EDGE } from '../../platform/graphics/constants.js';
 import { drawQuadWithShader } from '../../platform/graphics/simple-post-effect.js';
+import { Texture } from '../../platform/graphics/texture.js';
 import { LIGHTTYPE_OMNI } from '../constants.js';
+import { createShaderFromCode } from '../shader-lib/utils.js';
 import { LightCamera } from './light-camera.js';
 
 const textureBlitVertexShader = `
@@ -59,7 +59,7 @@ class CookieRenderer {
       name: 'CookieAtlas',
       width: resolution,
       height: resolution,
-      format: PIXELFORMAT_R8_G8_B8_A8,
+      format: PIXELFORMAT_RGBA8,
       cubemap: false,
       mipmaps: false,
       minFilter: FILTER_NEAREST,

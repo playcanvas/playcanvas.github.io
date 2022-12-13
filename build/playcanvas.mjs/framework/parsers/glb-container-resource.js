@@ -1,11 +1,11 @@
-import { Asset } from '../asset/asset.js';
-import { Entity } from '../entity.js';
+import '../../core/tracing.js';
 import { MeshInstance } from '../../scene/mesh-instance.js';
+import { Model } from '../../scene/model.js';
 import { MorphInstance } from '../../scene/morph-instance.js';
 import { SkinInstance } from '../../scene/skin-instance.js';
 import { SkinInstanceCache } from '../../scene/skin-instance-cache.js';
-import { Model } from '../../scene/model.js';
-import '../../core/tracing.js';
+import { Entity } from '../entity.js';
+import { Asset } from '../asset/asset.js';
 
 class GlbContainerResource {
   constructor(data, asset, assets, defaultMaterial) {

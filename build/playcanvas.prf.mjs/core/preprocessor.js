@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
+ * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import './tracing.js';
@@ -9,7 +9,7 @@ const KEYWORD = /[ \t]*#(ifn?def|if|endif|else|elif|define|undef|extension)/g;
 
 const DEFINE = /define[ \t]+([^\n]+)\r?(?:\n|$)/g;
 
-const EXTENSION = /extension[ \t]+([\w-]+)[ \t]*:[ \t]*enable/g;
+const EXTENSION = /extension[ \t]+([\w-]+)[ \t]*:[ \t]*(enable|require)/g;
 
 const UNDEF = /undef[ \t]+([^\n]+)\r?(?:\n|$)/g;
 

@@ -1,14 +1,14 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
+ * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
-import { platform } from '../../core/platform.js';
 import { EventHandler } from '../../core/event-handler.js';
+import { platform } from '../../core/platform.js';
+import { Vec3 } from '../../core/math/vec3.js';
 import { XRHAND_LEFT } from './constants.js';
 import { XrFinger } from './xr-finger.js';
 import { XrJoint } from './xr-joint.js';
-import { Vec3 } from '../../core/math/vec3.js';
 
 let fingerJointIds = [];
 const vecA = new Vec3();

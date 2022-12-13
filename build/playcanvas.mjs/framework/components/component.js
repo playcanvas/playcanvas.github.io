@@ -16,6 +16,7 @@ class Component extends EventHandler {
     });
     this.on('set_enabled', this.onSetEnabled, this);
   }
+
   static _buildAccessors(obj, schema) {
     schema.forEach(function (descriptor) {
       const name = typeof descriptor === 'object' ? descriptor.name : descriptor;
@@ -34,9 +35,11 @@ class Component extends EventHandler {
     });
     obj._accessorsBuilt = true;
   }
+
   buildAccessors(schema) {
     Component._buildAccessors(this, schema);
   }
+
   onSetEnabled(name, oldValue, newValue) {
     if (oldValue !== newValue) {
       if (this.entity.enabled) {
@@ -48,8 +51,11 @@ class Component extends EventHandler {
       }
     }
   }
+
   onEnable() {}
+
   onDisable() {}
+
   onPostStateChange() {}
 
   get data() {

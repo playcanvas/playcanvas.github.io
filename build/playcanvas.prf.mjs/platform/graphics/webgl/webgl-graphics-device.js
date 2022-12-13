@@ -1,13 +1,13 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-preview revision 1fec26519 (PROFILER)
+ * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import { setupVertexArrayObject } from '../../../polyfill/OESVertexArrayObject.js';
 import '../../../core/tracing.js';
 import { platform } from '../../../core/platform.js';
 import { Color } from '../../../core/math/color.js';
-import { DEVICETYPE_WEBGL, CLEARFLAG_COLOR, CLEARFLAG_DEPTH, UNIFORMTYPE_BOOL, UNIFORMTYPE_INT, UNIFORMTYPE_FLOAT, UNIFORMTYPE_VEC2, UNIFORMTYPE_VEC3, UNIFORMTYPE_VEC4, UNIFORMTYPE_IVEC2, UNIFORMTYPE_IVEC3, UNIFORMTYPE_IVEC4, UNIFORMTYPE_BVEC2, UNIFORMTYPE_BVEC3, UNIFORMTYPE_BVEC4, UNIFORMTYPE_MAT2, UNIFORMTYPE_MAT3, UNIFORMTYPE_MAT4, UNIFORMTYPE_TEXTURE2D, UNIFORMTYPE_TEXTURECUBE, UNIFORMTYPE_TEXTURE2D_SHADOW, UNIFORMTYPE_TEXTURECUBE_SHADOW, UNIFORMTYPE_TEXTURE3D, UNIFORMTYPE_FLOATARRAY, UNIFORMTYPE_VEC2ARRAY, UNIFORMTYPE_VEC3ARRAY, UNIFORMTYPE_VEC4ARRAY, PIXELFORMAT_R8_G8_B8_A8, PIXELFORMAT_RGBA16F, PIXELFORMAT_RGBA32F, BLENDMODE_ONE, BLENDMODE_ZERO, BLENDEQUATION_ADD, CULLFACE_BACK, FUNC_LESSEQUAL, FUNC_ALWAYS, STENCILOP_KEEP, ADDRESS_CLAMP_TO_EDGE, semanticToLocation, CLEARFLAG_STENCIL, CULLFACE_NONE, FILTER_NEAREST_MIPMAP_NEAREST, FILTER_NEAREST_MIPMAP_LINEAR, FILTER_NEAREST, FILTER_LINEAR_MIPMAP_NEAREST, FILTER_LINEAR_MIPMAP_LINEAR, FILTER_LINEAR } from '../constants.js';
+import { DEVICETYPE_WEBGL, PIXELFORMAT_RGBA8, PIXELFORMAT_RGB8, CLEARFLAG_COLOR, CLEARFLAG_DEPTH, UNIFORMTYPE_BOOL, UNIFORMTYPE_INT, UNIFORMTYPE_FLOAT, UNIFORMTYPE_VEC2, UNIFORMTYPE_VEC3, UNIFORMTYPE_VEC4, UNIFORMTYPE_IVEC2, UNIFORMTYPE_IVEC3, UNIFORMTYPE_IVEC4, UNIFORMTYPE_BVEC2, UNIFORMTYPE_BVEC3, UNIFORMTYPE_BVEC4, UNIFORMTYPE_MAT2, UNIFORMTYPE_MAT3, UNIFORMTYPE_MAT4, UNIFORMTYPE_TEXTURE2D, UNIFORMTYPE_TEXTURECUBE, UNIFORMTYPE_TEXTURE2D_SHADOW, UNIFORMTYPE_TEXTURECUBE_SHADOW, UNIFORMTYPE_TEXTURE3D, UNIFORMTYPE_FLOATARRAY, UNIFORMTYPE_VEC2ARRAY, UNIFORMTYPE_VEC3ARRAY, UNIFORMTYPE_VEC4ARRAY, PIXELFORMAT_RGBA16F, PIXELFORMAT_RGBA32F, BLENDMODE_ONE, BLENDMODE_ZERO, BLENDEQUATION_ADD, CULLFACE_BACK, FUNC_LESSEQUAL, FUNC_ALWAYS, STENCILOP_KEEP, ADDRESS_CLAMP_TO_EDGE, semanticToLocation, CLEARFLAG_STENCIL, CULLFACE_NONE, FILTER_NEAREST_MIPMAP_NEAREST, FILTER_NEAREST_MIPMAP_LINEAR, FILTER_NEAREST, FILTER_LINEAR_MIPMAP_NEAREST, FILTER_LINEAR_MIPMAP_LINEAR, FILTER_LINEAR } from '../constants.js';
 import { GraphicsDevice } from '../graphics-device.js';
 import { drawQuadWithShader } from '../simple-post-effect.js';
 import { RenderTarget } from '../render-target.js';
@@ -130,7 +130,7 @@ function testTextureFloatHighPrecision(device) {
     depth: false
   });
   drawQuadWithShader(device, targ1, shader1);
-  textureOptions.format = PIXELFORMAT_R8_G8_B8_A8;
+  textureOptions.format = PIXELFORMAT_RGBA8;
   const tex2 = new Texture(device, textureOptions);
   const targ2 = new RenderTarget({
     colorBuffer: tex2,
@@ -167,7 +167,7 @@ function testImageBitmap(device) {
     const texture = new Texture(device, {
       width: 1,
       height: 1,
-      format: PIXELFORMAT_R8_G8_B8_A8,
+      format: PIXELFORMAT_RGBA8,
       mipmaps: false,
       levels: [image]
     });
@@ -194,8 +194,6 @@ class WebglGraphicsDevice extends GraphicsDevice {
     this.webgl2 = void 0;
     this.deviceType = DEVICETYPE_WEBGL;
     this.defaultFramebuffer = null;
-
-    this.defaultFramebufferAlpha = options.alpha;
     this.updateClientRect();
 
     this.contextLost = false;
@@ -232,12 +230,15 @@ class WebglGraphicsDevice extends GraphicsDevice {
         break;
       }
     }
+    this.gl = gl;
     if (!gl) {
       throw new Error("WebGL not supported");
     }
+
+    const alphaBits = gl.getParameter(gl.ALPHA_BITS);
+    this.framebufferFormat = alphaBits ? PIXELFORMAT_RGBA8 : PIXELFORMAT_RGB8;
     const isChrome = platform.browser && !!window.chrome;
     const isMac = platform.browser && navigator.appVersion.indexOf("Mac") !== -1;
-    this.gl = gl;
 
     this._tempEnableSafariTextureUnitWorkaround = platform.browser && !!window.safari;
 
@@ -454,7 +455,7 @@ class WebglGraphicsDevice extends GraphicsDevice {
     this._textureFloatHighPrecision = undefined;
     this._textureHalfFloatUpdatable = undefined;
 
-    this.areaLightLutFormat = PIXELFORMAT_R8_G8_B8_A8;
+    this.areaLightLutFormat = PIXELFORMAT_RGBA8;
     if (this.extTextureHalfFloat && this.textureHalfFloatUpdatable && this.extTextureHalfFloatLinear) {
       this.areaLightLutFormat = PIXELFORMAT_RGBA16F;
     } else if (this.extTextureFloat && this.extTextureFloatLinear) {
@@ -623,6 +624,8 @@ class WebglGraphicsDevice extends GraphicsDevice {
     this.maxSamples = this.webgl2 && !this.forceDisableMultisampling ? gl.getParameter(gl.MAX_SAMPLES) : 1;
 
     this.supportsAreaLights = this.webgl2 || !platform.android;
+
+    this.supportsTextureFetch = this.webgl2;
 
     if (this.maxTextures <= 8) {
       this.supportsAreaLights = false;
@@ -1113,7 +1116,7 @@ class WebglGraphicsDevice extends GraphicsDevice {
           const loc = semanticToLocation[e.name];
           gl.vertexAttribPointer(loc, e.numComponents, this.glType[e.dataType], e.normalize, e.stride, e.offset);
           gl.enableVertexAttribArray(loc);
-          if (vertexBuffer.instancing) {
+          if (vertexBuffer.format.instancing) {
             gl.vertexAttribDivisor(loc, 1);
           }
         }
@@ -1579,13 +1582,17 @@ class WebglGraphicsDevice extends GraphicsDevice {
     return true;
   }
 
-  getHdrFormat() {
-    if (this.textureHalfFloatRenderable) {
+  getHdrFormat(preferLargest, renderable, updatable, filterable) {
+    const f16Valid = this.extTextureHalfFloat && (!renderable || this.textureHalfFloatRenderable) && (!updatable || this.textureHalfFloatUpdatable) && (!filterable || this.extTextureHalfFloatLinear);
+    const f32Valid = this.extTextureFloat && (!renderable || this.textureFloatRenderable) && (!filterable || this.extTextureFloatLinear);
+    if (f16Valid && f32Valid) {
+      return preferLargest ? PIXELFORMAT_RGBA32F : PIXELFORMAT_RGBA16F;
+    } else if (f16Valid) {
       return PIXELFORMAT_RGBA16F;
-    } else if (this.textureFloatRenderable) {
+    } else if (f32Valid) {
       return PIXELFORMAT_RGBA32F;
     }
-    return PIXELFORMAT_R8_G8_B8_A8;
+    return null;
   }
 
   clearShaderCache() {

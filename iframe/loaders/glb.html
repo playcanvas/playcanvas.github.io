@@ -56,63 +56,89 @@
       // The example demonstrates loading of glb file, which contains meshes,
       // lights and cameras, and switches between the cameras every 2 seconds.
 
-      // Create the app and start the update loop
-      var app = new pc.Application(canvas, {});
-
-      // the array will store loaded cameras
-      var camerasComponents = null;
-
       var assets = {
         'scene': new pc.Asset('scene', 'container', { url: '/../../static/assets/models/geometry-camera-light.glb' }) };
 
 
-      var assetListLoader = new pc.AssetListLoader(Object.values(assets), app.assets);
-      assetListLoader.load(function () {
+      pc.createGraphicsDevice(canvas).then(function (device) {
 
-        app.start();
+        var createOptions = new pc.AppOptions();
+        createOptions.graphicsDevice = device;
 
-        // glb lights use physical units
-        app.scene.physicalUnits = true;
+        createOptions.componentSystems = [
+        // @ts-ignore
+        pc.RenderComponentSystem,
+        // @ts-ignore
+        pc.CameraComponentSystem,
+        // @ts-ignore
+        pc.LightComponentSystem];
 
-        // create an instance using render component
-        var entity = assets.scene.resource.instantiateRenderEntity();
-        app.root.addChild(entity);
+        createOptions.resourceHandlers = [
+        // @ts-ignore
+        pc.TextureHandler,
+        // @ts-ignore
+        pc.ContainerHandler];
 
-        // find all cameras - by default they are disabled
-        camerasComponents = entity.findComponents("camera");
-        camerasComponents.forEach(function (component) {
 
-          // set the aspect ratio to automatic to work with any window size
-          component.aspectRatioMode = pc.ASPECT_AUTO;
+        var app = new pc.AppBase(canvas);
+        app.init(createOptions);
 
-          // set up exposure for physical units
-          component.aperture = 4;
-          component.shutter = 1 / 100;
-          component.sensitivity = 500;
-        });
+        // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
+        app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
+        app.setCanvasResolution(pc.RESOLUTION_AUTO);
 
-        // enable all lights from the glb
-        var lightComponents = entity.findComponents("light");
-        lightComponents.forEach(function (component) {
-          component.enabled = true;
-        });
+        var assetListLoader = new pc.AssetListLoader(Object.values(assets), app.assets);
+        assetListLoader.load(function () {
 
-        var time = 0;
-        var activeCamera = 0;
-        app.on("update", function (dt) {
-          time -= dt;
+          app.start();
 
-          // change the camera every few seconds
-          if (time <= 0) {
-            time = 2;
+          // the array will store loaded cameras
+          var camerasComponents = null;
 
-            // disable current camera
-            camerasComponents[activeCamera].enabled = false;
+          // glb lights use physical units
+          app.scene.physicalUnits = true;
 
-            // activate next camera
-            activeCamera = (activeCamera + 1) % camerasComponents.length;
-            camerasComponents[activeCamera].enabled = true;
-          }
+          // create an instance using render component
+          var entity = assets.scene.resource.instantiateRenderEntity({});
+
+          app.root.addChild(entity);
+
+          // find all cameras - by default they are disabled
+          camerasComponents = entity.findComponents("camera");
+          camerasComponents.forEach(function (component) {
+
+            // set the aspect ratio to automatic to work with any window size
+            component.aspectRatioMode = pc.ASPECT_AUTO;
+
+            // set up exposure for physical units
+            component.aperture = 4;
+            component.shutter = 1 / 100;
+            component.sensitivity = 500;
+          });
+
+          // enable all lights from the glb
+          var lightComponents = entity.findComponents("light");
+          lightComponents.forEach(function (component) {
+            component.enabled = true;
+          });
+
+          var time = 0;
+          var activeCamera = 0;
+          app.on("update", function (dt) {
+            time -= dt;
+
+            // change the camera every few seconds
+            if (time <= 0) {
+              time = 2;
+
+              // disable current camera
+              camerasComponents[activeCamera].enabled = false;
+
+              // activate next camera
+              activeCamera = (activeCamera + 1) % camerasComponents.length;
+              camerasComponents[activeCamera].enabled = true;
+            }
+          });
         });
       });
     } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'Loaders');_defineProperty(Example, "NAME", 'GLB');
