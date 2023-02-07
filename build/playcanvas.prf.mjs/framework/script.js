@@ -1,44 +1,38 @@
 /**
  * @license
- * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
- * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
+ * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import { events } from '../core/events.js';
 import { getApplication } from './globals.js';
 import { ScriptTypes } from './script/script-types.js';
 
 let _legacy = false;
-
 let _createdLoadingScreen = false;
-
 const script = {
-  app: null,
-  create: function (name, callback) {
-    if (!_legacy) return;
-
-    const ScriptType = callback(script.app);
-
-    ScriptType._pcScriptName = name;
-
-    ScriptTypes.push(ScriptType, _legacy);
-    this.fire("created", name, callback);
-  },
-  attribute: function (name, type, defaultValue, options) {
-  },
-  createLoadingScreen: function (callback) {
-    if (_createdLoadingScreen) return;
-    _createdLoadingScreen = true;
-    const app = getApplication();
-    callback(app);
-  }
+	app: null,
+	create: function (name, callback) {
+		if (!_legacy) return;
+		const ScriptType = callback(script.app);
+		ScriptType._pcScriptName = name;
+		ScriptTypes.push(ScriptType, _legacy);
+		this.fire("created", name, callback);
+	},
+	attribute: function (name, type, defaultValue, options) {},
+	createLoadingScreen: function (callback) {
+		if (_createdLoadingScreen) return;
+		_createdLoadingScreen = true;
+		const app = getApplication();
+		callback(app);
+	}
 };
 Object.defineProperty(script, 'legacy', {
-  get: function () {
-    return _legacy;
-  },
-  set: function (value) {
-    _legacy = value;
-  }
+	get: function () {
+		return _legacy;
+	},
+	set: function (value) {
+		_legacy = value;
+	}
 });
 events.attach(script);
 

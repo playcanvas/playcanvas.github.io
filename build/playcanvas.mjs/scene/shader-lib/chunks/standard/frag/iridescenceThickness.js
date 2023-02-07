@@ -7,14 +7,14 @@ uniform float material_iridescenceThicknessMin;
 
 void getIridescenceThickness() {
 
-    #ifdef MAPTEXTURE
-    float blend = texture2DBias($SAMPLER, $UV, textureBias).$CH;
-    float iridescenceThickness = mix(material_iridescenceThicknessMin, material_iridescenceThicknessMax, blend);
-    #else
-    float iridescenceThickness = material_iridescenceThicknessMax;
-    #endif
+		#ifdef MAPTEXTURE
+		float blend = texture2DBias($SAMPLER, $UV, textureBias).$CH;
+		float iridescenceThickness = mix(material_iridescenceThicknessMin, material_iridescenceThicknessMax, blend);
+		#else
+		float iridescenceThickness = material_iridescenceThicknessMax;
+		#endif
 
-    dIridescenceThickness = iridescenceThickness; 
+		dIridescenceThickness = iridescenceThickness; 
 }
 `;
 

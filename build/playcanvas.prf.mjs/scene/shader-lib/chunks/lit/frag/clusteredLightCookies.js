@@ -1,24 +1,24 @@
 /**
  * @license
- * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
- * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
+ * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 var clusteredLightCookiesPS = `
-vec3 _getCookieClustered(sampler2D tex, vec2 uv, float intensity, bool isRgb, vec4 cookieChannel) {
-    vec4 pixel = mix(vec4(1.0), texture2D(tex, uv), intensity);
-    return isRgb == true ? pixel.rgb : vec3(dot(pixel, cookieChannel));
+vec3 _getCookieClustered(TEXTURE_ACCEPT(tex), vec2 uv, float intensity, bool isRgb, vec4 cookieChannel) {
+		vec4 pixel = mix(vec4(1.0), texture2DLodEXT(tex, uv, 0.0), intensity);
+		return isRgb == true ? pixel.rgb : vec3(dot(pixel, cookieChannel));
 }
 
 // getCookie2D for clustered lighting including channel selector
-vec3 getCookie2DClustered(sampler2D tex, mat4 transform, vec3 worldPosition, float intensity, bool isRgb, vec4 cookieChannel) {
-    vec4 projPos = transform * vec4(worldPosition, 1.0);
-    return _getCookieClustered(tex, projPos.xy / projPos.w, intensity, isRgb, cookieChannel);
+vec3 getCookie2DClustered(TEXTURE_ACCEPT(tex), mat4 transform, vec3 worldPosition, float intensity, bool isRgb, vec4 cookieChannel) {
+		vec4 projPos = transform * vec4(worldPosition, 1.0);
+		return _getCookieClustered(TEXTURE_PASS(tex), projPos.xy / projPos.w, intensity, isRgb, cookieChannel);
 }
 
 // getCookie for clustered omni light with the cookie texture being stored in the cookie atlas
-vec3 getCookieCubeClustered(sampler2D tex, vec3 dir, float intensity, bool isRgb, vec4 cookieChannel, float shadowTextureResolution, float shadowEdgePixels, vec3 omniAtlasViewport) {
-    vec2 uv = getCubemapAtlasCoordinates(omniAtlasViewport, shadowEdgePixels, shadowTextureResolution, dir);
-    return _getCookieClustered(tex, uv, intensity, isRgb, cookieChannel);
+vec3 getCookieCubeClustered(TEXTURE_ACCEPT(tex), vec3 dir, float intensity, bool isRgb, vec4 cookieChannel, float shadowTextureResolution, float shadowEdgePixels, vec3 omniAtlasViewport) {
+		vec2 uv = getCubemapAtlasCoordinates(omniAtlasViewport, shadowEdgePixels, shadowTextureResolution, dir);
+		return _getCookieClustered(TEXTURE_PASS(tex), uv, intensity, isRgb, cookieChannel);
 }
 `;
 

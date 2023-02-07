@@ -1,38 +1,38 @@
 /**
  * @license
- * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
- * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
+ * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import { BINDGROUP_VIEW } from './constants.js';
 
 class ShaderProcessorOptions {
-
-  constructor(viewUniformFormat, viewBindGroupFormat) {
-    this.uniformFormats = [];
-    this.bindGroupFormats = [];
-    this.uniformFormats[BINDGROUP_VIEW] = viewUniformFormat;
-    this.bindGroupFormats[BINDGROUP_VIEW] = viewBindGroupFormat;
-  }
-
-  hasUniform(name) {
-    for (let i = 0; i < this.uniformFormats.length; i++) {
-      const uniformFormat = this.uniformFormats[i];
-      if (uniformFormat.get(name)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  hasTexture(name) {
-    for (let i = 0; i < this.bindGroupFormats.length; i++) {
-      const groupFormat = this.bindGroupFormats[i];
-      if (groupFormat.getTexture(name)) {
-        return true;
-      }
-    }
-    return false;
-  }
+	constructor(viewUniformFormat, viewBindGroupFormat) {
+		this.uniformFormats = [];
+		this.bindGroupFormats = [];
+		this.uniformFormats[BINDGROUP_VIEW] = viewUniformFormat;
+		this.bindGroupFormats[BINDGROUP_VIEW] = viewBindGroupFormat;
+	}
+	hasUniform(name) {
+		for (let i = 0; i < this.uniformFormats.length; i++) {
+			const uniformFormat = this.uniformFormats[i];
+			if (uniformFormat != null && uniformFormat.get(name)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	hasTexture(name) {
+		for (let i = 0; i < this.bindGroupFormats.length; i++) {
+			const groupFormat = this.bindGroupFormats[i];
+			if (groupFormat != null && groupFormat.getTexture(name)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	generateKey() {
+		return JSON.stringify(this);
+	}
 }
 
 export { ShaderProcessorOptions };

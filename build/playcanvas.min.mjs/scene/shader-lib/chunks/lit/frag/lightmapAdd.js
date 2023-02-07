@@ -1,1 +1,1 @@
-var a="\nvoid addLightMap() {\n    dDiffuseLight += dLightmap;\n}\n";export{a as default};
+var t="\nvoid addLightMap() {\n\t\tdDiffuseLight += dLightmap;\n}\n";export{t as default};

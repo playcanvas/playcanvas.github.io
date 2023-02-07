@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <script src="../../build/playcanvas-observer.js"></script>
+    <script src="../../build/regeneratorRuntimePolyfill.js"></script>
     <script src="../../build/urlSearchParamsPolyfill.js"></script>
     <script src="../../build/promisePolyfill.js"></script>
     <script src="../../build/fetchPolyfill.js"></script>
-    <script src="../../build/regeneratorRuntimePolyfill.js"></script>
     <script src="../../build/arrayFromPolyfill.js"></script>
     <script src="../../build/objectValuesPolyfill.js"></script>
+    <script src="../../build/playcanvas-observer.js"></script>
     <link rel="stylesheet" href="/styles.css">
     <style>
         body {
@@ -82,94 +82,111 @@
 
 
 
-
     function example(canvas, files) {
-
-      var time = 0;
-
-      // Create the application and start the update loop
-      var app = new pc.Application(canvas, {});
 
       var assets = {
         'statue': new pc.Asset('statue', 'container', { url: '/../../static/assets/models/statue.glb' }) };
 
 
-      var assetListLoader = new pc.AssetListLoader(Object.values(assets), app.assets);
-      assetListLoader.load(function () {
+      pc.createGraphicsDevice(canvas).then(function (device) {
+
+        var createOptions = new pc.AppOptions();
+        createOptions.graphicsDevice = device;
+        createOptions.mouse = new pc.Mouse(document.body);
+        createOptions.touch = new pc.TouchDevice(document.body);
+        createOptions.keyboard = new pc.Keyboard(document.body);
+
+        createOptions.componentSystems = [
+        // @ts-ignore
+        pc.RenderComponentSystem,
+        // @ts-ignore
+        pc.CameraComponentSystem,
+        // @ts-ignore
+        pc.LightComponentSystem];
+
+        createOptions.resourceHandlers = [
+        // @ts-ignore
+        pc.TextureHandler,
+        // @ts-ignore
+        pc.ContainerHandler];
+
+
+        var app = new pc.AppBase(canvas);
+        app.init(createOptions);
 
         // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
         app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
         app.setCanvasResolution(pc.RESOLUTION_AUTO);
 
-        app.scene.ambientLight = new pc.Color(0.2, 0.2, 0.2);
+        var assetListLoader = new pc.AssetListLoader(Object.values(assets), app.assets);
+        assetListLoader.load(function () {
 
-        // Create an Entity with a camera component
-        var camera = new pc.Entity();
-        camera.addComponent("camera", {
-          clearColor: new pc.Color(0.4, 0.45, 0.5) });
+          app.start();
 
-        camera.translate(0, 7, 25);
+          app.scene.ambientLight = new pc.Color(0.2, 0.2, 0.2);
 
-        // Create an Entity with a omni light component and a sphere model component.
-        var light = new pc.Entity();
-        light.addComponent("light", {
-          type: "omni",
-          color: new pc.Color(1, 1, 1),
-          radius: 10 });
+          // Create an Entity with a camera component
+          var camera = new pc.Entity();
+          camera.addComponent("camera", {
+            clearColor: new pc.Color(0.4, 0.45, 0.5) });
 
-        light.translate(0, 1, 0);
+          camera.translate(0, 7, 25);
 
-        // Add entities into scene hierarchy
-        app.root.addChild(camera);
-        app.root.addChild(light);
+          // Create an Entity with a omni light component and a sphere model component.
+          var light = new pc.Entity();
+          light.addComponent("light", {
+            type: "omni",
+            color: new pc.Color(1, 1, 1),
+            radius: 10 });
 
-        // Create the shader definition and shader from the vertex and fragment shaders
-        var shaderDefinition = {
-          attributes: {
+          light.translate(0, 1, 0);
+
+          // Add entities into scene hierarchy
+          app.root.addChild(camera);
+          app.root.addChild(light);
+
+          // Create the shader from the vertex and fragment shaders
+          var shader = pc.createShaderFromCode(app.graphicsDevice, files['shader.vert'], files['shader.frag'], 'myShader', {
             aPosition: pc.SEMANTIC_POSITION,
-            aUv0: pc.SEMANTIC_TEXCOORD0 },
+            aUv0: pc.SEMANTIC_TEXCOORD0 });
 
-          vshader: files['shader.vert'],
-          fshader: files['shader.frag'] };
 
-        var shader = new pc.Shader(app.graphicsDevice, shaderDefinition);
+          // Create a new material with the new shader
+          var material = new pc.Material();
+          material.shader = shader;
 
-        // Create a new material with the new shader
-        var material = new pc.Material();
-        material.shader = shader;
+          // create a hierarchy of entities with render components, representing the statue model
+          var entity = assets.statue.resource.instantiateRenderEntity();
+          app.root.addChild(entity);
 
-        // create a hierarchy of entities with render components, representing the statue model
-        var entity = assets.statue.resource.instantiateRenderEntity();
-        app.root.addChild(entity);
-
-        // Set the new material on all meshes in the model, and use original texture from the model on the new material
-        var originalTexture = null;
-        var renders = entity.findComponents("render");
-        renders.forEach(function (render) {
-          var meshInstances = render.meshInstances;
-          for (var i = 0; i < meshInstances.length; i++) {
-            var meshInstance = meshInstances[i];
-            if (!originalTexture) {
-              var originalMaterial = meshInstance.material;
-              originalTexture = originalMaterial.diffuseMap;
+          // Set the new material on all meshes in the model, and use original texture from the model on the new material
+          var originalTexture = null;
+          var renders = entity.findComponents("render");
+          renders.forEach(function (render) {
+            var meshInstances = render.meshInstances;
+            for (var i = 0; i < meshInstances.length; i++) {
+              var meshInstance = meshInstances[i];
+              if (!originalTexture) {
+                var originalMaterial = meshInstance.material;
+                originalTexture = originalMaterial.diffuseMap;
+              }
+              meshInstance.material = material;
             }
-            meshInstance.material = material;
-          }
-        });
+          });
 
-        // material is set up, update it
-        material.setParameter('uDiffuseMap', originalTexture);
-        material.update();
-
-        app.on("update", function (dt) {
-          time += dt;
-
-          // set time parameter for the shader
-          material.setParameter('uTime', time);
+          // material is set up, update it
+          material.setParameter('uDiffuseMap', originalTexture);
           material.update();
-        });
 
-        app.start();
+          var time = 0;
+          app.on("update", function (dt) {
+            time += dt;
+
+            // set time parameter for the shader
+            material.setParameter('uTime', time);
+            material.update();
+          });
+        });
       });
     } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'Graphics');_defineProperty(Example, "NAME", 'Shader Wobble');_defineProperty(Example, "FILES", { 'shader.vert': /* glsl */"\nattribute vec3 aPosition;\nattribute vec2 aUv0;\n\nuniform mat4 matrix_model;\nuniform mat4 matrix_viewProjection;\nuniform float uTime;\n\nvarying vec2 vUv0;\n\nvoid main(void)\n{\n    vec4 pos = matrix_model * vec4(aPosition, 1.0);\n    pos.x += sin(uTime + pos.y * 4.0) * 0.1;\n    pos.y += cos(uTime + pos.x * 4.0) * 0.1;\n    vUv0 = aUv0;\n    gl_Position = matrix_viewProjection * pos;\n}", 'shader.frag': /* glsl */"\nprecision mediump float;\n\nuniform sampler2D uDiffuseMap;\n\nvarying vec2 vUv0;\n\nvoid main(void)\n{\n    gl_FragColor = texture2D(uDiffuseMap, vUv0);\n}" });
         var example = new Example();

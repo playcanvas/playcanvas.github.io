@@ -1,6 +1,6 @@
 var TBNfastPS = `
 void getTBN() {
-    dTBN = mat3(dTangentW, dBinormalW, dVertexNormalW);
+		dTBN = mat3(dTangentW, dBinormalW, dVertexNormalW);
 }
 `;
 

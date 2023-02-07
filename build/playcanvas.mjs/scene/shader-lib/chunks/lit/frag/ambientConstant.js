@@ -1,6 +1,6 @@
 var ambientConstantPS = `
 void addAmbient() {
-    dDiffuseLight += light_globalAmbient;
+		dDiffuseLight += light_globalAmbient;
 }
 `;
 

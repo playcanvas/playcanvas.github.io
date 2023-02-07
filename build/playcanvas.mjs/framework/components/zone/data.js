@@ -1,7 +1,7 @@
 class ZoneComponentData {
-  constructor() {
-    this.enabled = true;
-  }
+	constructor() {
+		this.enabled = true;
+	}
 }
 
 export { ZoneComponentData };

@@ -2,11 +2,11 @@ import { GraphicsDeviceAccess } from '../platform/graphics/graphics-device-acces
 
 let currentApplication;
 function getApplication() {
-  return currentApplication;
+	return currentApplication;
 }
 function setApplication(app) {
-  currentApplication = app;
-  GraphicsDeviceAccess.set(app == null ? void 0 : app.graphicsDevice);
+	currentApplication = app;
+	GraphicsDeviceAccess.set(app == null ? void 0 : app.graphicsDevice);
 }
 
 export { getApplication, setApplication };

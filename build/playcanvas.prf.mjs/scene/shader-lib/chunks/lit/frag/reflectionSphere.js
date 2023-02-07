@@ -1,7 +1,7 @@
 /**
  * @license
- * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
- * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
+ * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 var reflectionSpherePS = `
 #ifndef VIEWMATRIX
@@ -12,16 +12,16 @@ uniform sampler2D texture_sphereMap;
 uniform float material_reflectivity;
 
 vec3 calcReflection(vec3 tReflDirW, float tGlossiness) {
-    vec3 reflDirV = (mat3(matrix_view) * tReflDirW).xyz;
+		vec3 reflDirV = (mat3(matrix_view) * tReflDirW).xyz;
 
-    float m = 2.0 * sqrt( dot(reflDirV.xy, reflDirV.xy) + (reflDirV.z+1.0)*(reflDirV.z+1.0) );
-    vec2 sphereMapUv = reflDirV.xy / m + 0.5;
+		float m = 2.0 * sqrt( dot(reflDirV.xy, reflDirV.xy) + (reflDirV.z+1.0)*(reflDirV.z+1.0) );
+		vec2 sphereMapUv = reflDirV.xy / m + 0.5;
 
-    return $DECODE(texture2D(texture_sphereMap, sphereMapUv));
+		return $DECODE(texture2D(texture_sphereMap, sphereMapUv));
 }
 
 void addReflection() {   
-    dReflection += vec4(calcReflection(dReflDirW, dGlossiness), material_reflectivity);
+		dReflection += vec4(calcReflection(dReflDirW, dGlossiness), material_reflectivity);
 }
 `;
 

@@ -1,7 +1,7 @@
 /**
  * @license
- * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
- * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
+ * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 var webgpuPS = `
 
@@ -15,14 +15,23 @@ layout(location = 0) out highp vec4 pc_fragColor;
 #define texture2DBias(res, uv, bias) texture(sampler2D(res, res ## _sampler), uv, bias)
 #define texture2DLodEXT(res, uv, lod) textureLod(sampler2D(res, res ## _sampler), uv, lod)
 #define textureCube(res, uv) texture(samplerCube(res, res ## _sampler), uv)
+#define textureCubeLodEXT(res, uv, lod) textureLod(samplerCube(res, res ## _sampler), uv, lod)
+#define textureShadow(res, uv) texture(sampler2DShadow(res, res ## _sampler), uv)
 
 // TODO: implement other texture sampling macros
 // #define texture2DProj textureProj
 // #define texture2DProjLodEXT textureProjLod
-// #define textureCubeLodEXT textureLod
 // #define texture2DGradEXT textureGrad
 // #define texture2DProjGradEXT textureProjGrad
 // #define textureCubeGradEXT textureGrad
+
+// pass / accept shadow map as a function parameter, passes both the texture as well as sampler
+// as the combined sampler can be only created at a point of use
+#define SHADOWMAP_PASS(name) name, name ## _sampler
+#define SHADOWMAP_ACCEPT(name) texture2D name, sampler name ## _sampler
+#define TEXTURE_PASS(name) name, name ## _sampler
+#define TEXTURE_ACCEPT(name) texture2D name, sampler name ## _sampler
+
 #define GL2
 #define WEBGPU
 #define SUPPORTS_TEXLOD

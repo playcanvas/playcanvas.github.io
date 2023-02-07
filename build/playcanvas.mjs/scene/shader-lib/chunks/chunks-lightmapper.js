@@ -4,10 +4,10 @@ import dilatePS from './lightmapper/frag/dilate.js';
 import bilateralDeNoisePS from './lightmapper/frag/bilateralDeNoise.js';
 
 const shaderChunksLightmapper = {
-  bakeDirLmEndPS,
-  bakeLmEndPS,
-  dilatePS,
-  bilateralDeNoisePS
+	bakeDirLmEndPS,
+	bakeLmEndPS,
+	dilatePS,
+	bilateralDeNoisePS
 };
 
 export { shaderChunksLightmapper };

@@ -1,16 +1,12 @@
 /**
  * @license
- * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
- * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
+ * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 const SCROLL_MODE_CLAMP = 0;
-
 const SCROLL_MODE_BOUNCE = 1;
-
 const SCROLL_MODE_INFINITE = 2;
-
 const SCROLLBAR_VISIBILITY_SHOW_ALWAYS = 0;
-
 const SCROLLBAR_VISIBILITY_SHOW_WHEN_REQUIRED = 1;
 
 export { SCROLLBAR_VISIBILITY_SHOW_ALWAYS, SCROLLBAR_VISIBILITY_SHOW_WHEN_REQUIRED, SCROLL_MODE_BOUNCE, SCROLL_MODE_CLAMP, SCROLL_MODE_INFINITE };

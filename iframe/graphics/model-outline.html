@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <script src="../../build/playcanvas-observer.js"></script>
+    <script src="../../build/regeneratorRuntimePolyfill.js"></script>
     <script src="../../build/urlSearchParamsPolyfill.js"></script>
     <script src="../../build/promisePolyfill.js"></script>
     <script src="../../build/fetchPolyfill.js"></script>
-    <script src="../../build/regeneratorRuntimePolyfill.js"></script>
     <script src="../../build/arrayFromPolyfill.js"></script>
     <script src="../../build/objectValuesPolyfill.js"></script>
+    <script src="../../build/playcanvas-observer.js"></script>
     <link rel="stylesheet" href="/styles.css">
     <style>
         body {
@@ -51,158 +51,169 @@
 
 
 
-
     function example(canvas) {
-      var app = new pc.Application(canvas, {});
 
       var assets = {
         'outline': new pc.Asset('outline', 'script', { url: '/../../static/scripts/posteffects/posteffect-outline.js' }) };
 
 
-      var assetListLoader = new pc.AssetListLoader(Object.values(assets), app.assets);
-      assetListLoader.load(function () {
-        app.start();
+      pc.createGraphicsDevice(canvas).then(function (device) {
+
+        var createOptions = new pc.AppOptions();
+        createOptions.graphicsDevice = device;
+        createOptions.mouse = new pc.Mouse(document.body);
+        createOptions.touch = new pc.TouchDevice(document.body);
+        createOptions.keyboard = new pc.Keyboard(document.body);
+
+        createOptions.componentSystems = [
+        // @ts-ignore
+        pc.RenderComponentSystem,
+        // @ts-ignore
+        pc.CameraComponentSystem,
+        // @ts-ignore
+        pc.LightComponentSystem,
+        // @ts-ignore
+        pc.ScriptComponentSystem];
+
+        createOptions.resourceHandlers = [
+        // @ts-ignore
+        pc.ScriptHandler];
+
+
+        var app = new pc.AppBase(canvas);
+        app.init(createOptions);
 
         // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
         app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
         app.setCanvasResolution(pc.RESOLUTION_AUTO);
 
-        app.scene.ambientLight = new pc.Color(0.2, 0.2, 0.2);
+        var assetListLoader = new pc.AssetListLoader(Object.values(assets), app.assets);
+        assetListLoader.load(function () {
 
-        // adjust default clustered lighting parameters to handle many lights
-        var lighting = app.scene.lighting;
-        lighting.shadowAtlasResolution = 4096;
+          app.start();
 
-        // helper function to create a primitive with shape type, position, scale, color and layer
-        function createPrimitive(primitiveType, position, scale, color, layer) {
-          // create material of specified color
-          var material = new pc.StandardMaterial();
-          material.diffuse = color;
-          material.update();
+          app.scene.ambientLight = new pc.Color(0.2, 0.2, 0.2);
 
-          // create primitive
-          var primitive = new pc.Entity();
-          primitive.addComponent('render', {
-            type: primitiveType,
-            layers: layer,
-            material: material });
+          // helper function to create a primitive with shape type, position, scale, color and layer
+          function createPrimitive(primitiveType, position, scale, color, layer) {
+            // create material of specified color
+            var material = new pc.StandardMaterial();
+            material.diffuse = color;
+            material.update();
 
-
-          // set position and scale and add it to scene
-          primitive.setLocalPosition(position);
-          primitive.setLocalScale(scale);
-          app.root.addChild(primitive);
-
-          return primitive;
-        }
-
-        // create texture and render target for rendering into, including depth buffer
-        var texture = new pc.Texture(app.graphicsDevice, {
-          width: app.graphicsDevice.width,
-          height: app.graphicsDevice.height,
-          format: pc.PIXELFORMAT_RGBA8,
-          mipmaps: false,
-          minFilter: pc.FILTER_LINEAR,
-          magFilter: pc.FILTER_LINEAR });
-
-        var renderTarget = new pc.RenderTarget({
-          colorBuffer: texture,
-          depth: true });
+            // create primitive
+            var primitive = new pc.Entity();
+            primitive.addComponent('render', {
+              type: primitiveType,
+              layers: layer,
+              material: material });
 
 
-        // create a layer for rendering to texture, and add it to the beginning of layers to render into it first
-        var outlineLayer = new pc.Layer({ name: "OutlineLayer" });
-        app.scene.layers.insert(outlineLayer, 0);
+            // set position and scale and add it to scene
+            primitive.setLocalPosition(position);
+            primitive.setLocalScale(scale);
+            app.root.addChild(primitive);
 
-        // set up layer to render to the render target
-        outlineLayer.renderTarget = renderTarget;
+            return primitive;
+          }
 
-        // get world layer
-        var worldLayer = app.scene.layers.getLayerByName("World");
+          // create texture and render target for rendering into, including depth buffer
+          function createRenderTarget() {
+            var texture = new pc.Texture(app.graphicsDevice, {
+              name: 'OutlineObjects',
+              width: app.graphicsDevice.width,
+              height: app.graphicsDevice.height,
+              format: pc.PIXELFORMAT_RGBA8,
+              mipmaps: false,
+              minFilter: pc.FILTER_LINEAR,
+              magFilter: pc.FILTER_LINEAR });
 
-        // create ground plane and 3 primitives, visible in both layers
-        createPrimitive("plane", new pc.Vec3(0, 0, 0), new pc.Vec3(20, 20, 20), new pc.Color(0.3, 0.5, 0.3), [worldLayer.id]);
-        createPrimitive("sphere", new pc.Vec3(-2, 1, 0), new pc.Vec3(2, 2, 2), new pc.Color(1, 0, 0), [worldLayer.id]);
-        createPrimitive("box", new pc.Vec3(2, 1, 0), new pc.Vec3(2, 2, 2), new pc.Color(1, 1, 0), [worldLayer.id, outlineLayer.id]);
-        createPrimitive("cone", new pc.Vec3(0, 1, -2), new pc.Vec3(2, 2, 2), new pc.Color(0, 1, 1), [worldLayer.id]);
+            return new pc.RenderTarget({
+              colorBuffer: texture,
+              depth: true });
 
-        // Create main camera, which renders entities in world layer
-        var camera = new pc.Entity();
-        camera.addComponent("camera", {
-          clearColor: new pc.Color(0.2, 0.2, 0.4),
-          layers: [worldLayer.id] });
+          }
 
-        camera.translate(0, 20, 25);
-        camera.lookAt(pc.Vec3.ZERO);
+          var renderTarget = createRenderTarget();
 
-        // Create outline camera, which renders entities in outline layer
-        var outlineCamera = new pc.Entity();
-        outlineCamera.addComponent("camera", {
-          clearColor: new pc.Color(0.0, 0.0, 0.0, 0.0),
-          layers: [outlineLayer.id] });
-
-        app.root.addChild(outlineCamera);
-
-        // @ts-ignore engine-tsd
-        var outline = new OutlineEffect(app.graphicsDevice, 3);
-        outline.color = new pc.Color(0, 0.5, 1, 1);
-        outline.texture = texture;
-        camera.camera.postEffects.addEffect(outline);
-
-        app.root.addChild(camera);
-
-        // Create an Entity with a omni light component and add it to both layers
-        var light = new pc.Entity();
-        light.addComponent("light", {
-          type: "omni",
-          color: new pc.Color(1, 1, 1),
-          range: 200,
-          castShadows: true,
-          layers: [worldLayer.id] });
-
-        light.translate(0, 2, 5);
-        app.root.addChild(light);
-
-        // handle canvas resize
-        window.addEventListener("resize", function () {
-          app.resizeCanvas(canvas.width, canvas.height);
-
-          camera.camera.postEffects.removeEffect(outline);
-
-          app.scene.layers.remove(outlineLayer);
-
-          texture.destroy();
-          texture = new pc.Texture(app.graphicsDevice, {
-            width: app.graphicsDevice.width,
-            height: app.graphicsDevice.height,
-            format: pc.PIXELFORMAT_RGBA8,
-            mipmaps: true,
-            minFilter: pc.FILTER_LINEAR,
-            magFilter: pc.FILTER_LINEAR });
-
-          renderTarget.destroy();
-          renderTarget = new pc.RenderTarget({
-            colorBuffer: texture,
-            depth: true });
-
-          outlineLayer.renderTarget = renderTarget;
-
+          // create a layer for rendering to texture, and add it to the beginning of layers to render into it first
+          var outlineLayer = new pc.Layer({ name: "OutlineLayer" });
           app.scene.layers.insert(outlineLayer, 0);
 
-          outline.texture = texture;
-          camera.camera.postEffects.addEffect(outline);
-        });
+          // get world layer
+          var worldLayer = app.scene.layers.getLayerByName("World");
 
-        // update things each frame
-        var time = 0;
-        // let switchTime = 0;
-        app.on("update", function (dt) {
-          // rotate cameras around the objects
-          time += dt;
-          camera.setLocalPosition(12 * Math.sin(time), 5, 12 * Math.cos(time));
+          // create ground plane and 3 primitives, visible in both layers
+          createPrimitive("plane", new pc.Vec3(0, 0, 0), new pc.Vec3(20, 20, 20), new pc.Color(0.3, 0.5, 0.3), [worldLayer.id]);
+          createPrimitive("sphere", new pc.Vec3(-2, 1, 0), new pc.Vec3(2, 2, 2), new pc.Color(1, 0, 0), [worldLayer.id]);
+          createPrimitive("box", new pc.Vec3(2, 1, 0), new pc.Vec3(2, 2, 2), new pc.Color(1, 1, 0), [worldLayer.id, outlineLayer.id]);
+          createPrimitive("cone", new pc.Vec3(0, 1, -2), new pc.Vec3(2, 2, 2), new pc.Color(0, 1, 1), [worldLayer.id]);
+
+          // Create main camera, which renders entities in world layer
+          var camera = new pc.Entity();
+          camera.addComponent("camera", {
+            clearColor: new pc.Color(0.2, 0.2, 0.4),
+            layers: [worldLayer.id] });
+
+          camera.translate(0, 20, 25);
           camera.lookAt(pc.Vec3.ZERO);
-          outlineCamera.setLocalPosition(12 * Math.sin(time), 5, 12 * Math.cos(time));
-          outlineCamera.lookAt(pc.Vec3.ZERO);
+
+          // Create outline camera, which renders entities in outline layer into the render target
+          var outlineCamera = new pc.Entity();
+          outlineCamera.addComponent("camera", {
+            clearColor: new pc.Color(0.0, 0.0, 0.0, 0.0),
+            layers: [outlineLayer.id],
+            renderTarget: renderTarget });
+
+          app.root.addChild(outlineCamera);
+
+          // @ts-ignore engine-tsd
+          var outline = new OutlineEffect(app.graphicsDevice, 3);
+          outline.color = new pc.Color(0, 0.5, 1, 1);
+          outline.texture = renderTarget.colorBuffer;
+          camera.camera.postEffects.addEffect(outline);
+
+          app.root.addChild(camera);
+
+          // Create an Entity with a omni light component and add it to both layers
+          var light = new pc.Entity();
+          light.addComponent("light", {
+            type: "omni",
+            color: new pc.Color(1, 1, 1),
+            range: 20,
+            castShadows: true,
+            shadowBias: 0.05,
+            normalOffsetBias: 0.03,
+            layers: [worldLayer.id] });
+
+          light.translate(0, 2, 5);
+          app.root.addChild(light);
+
+          // handle canvas resize
+          window.addEventListener("resize", function () {
+            app.resizeCanvas(canvas.width, canvas.height);
+
+            // re-create the render target for the outline camera
+            renderTarget.colorBuffer.destroy();
+            renderTarget.destroy();
+            renderTarget = createRenderTarget();
+            outlineCamera.camera.renderTarget = renderTarget;
+            outline.texture = renderTarget.colorBuffer;
+          });
+
+          // update things each frame
+          var time = 0;
+          app.on("update", function (dt) {
+            time += dt;
+
+            // rotate the camera around the objects
+            camera.setLocalPosition(12 * Math.sin(time), 5, 12 * Math.cos(time));
+            camera.lookAt(pc.Vec3.ZERO);
+
+            // outline camera needs to match the main camera
+            outlineCamera.setLocalPosition(camera.getLocalPosition());
+            outlineCamera.setLocalRotation(camera.getLocalRotation());
+          });
         });
       });
     } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'Graphics');_defineProperty(Example, "NAME", 'Model Outline');

@@ -1,29 +1,29 @@
 /**
  * @license
- * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
- * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
+ * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 var uv0VS = `
 #ifdef NINESLICED
 vec2 getUv0() {
-    vec2 uv = vertex_position.xz;
+		vec2 uv = vertex_position.xz;
 
-    // offset inner vertices inside
-    // (original vertices must be in [-1;1] range)
-    vec2 positiveUnitOffset = clamp(vertex_position.xz, vec2(0.0), vec2(1.0));
-    vec2 negativeUnitOffset = clamp(-vertex_position.xz, vec2(0.0), vec2(1.0));
-    uv += (-positiveUnitOffset * innerOffset.xy + negativeUnitOffset * innerOffset.zw) * vertex_texCoord0.xy;
+		// offset inner vertices inside
+		// (original vertices must be in [-1;1] range)
+		vec2 positiveUnitOffset = clamp(vertex_position.xz, vec2(0.0), vec2(1.0));
+		vec2 negativeUnitOffset = clamp(-vertex_position.xz, vec2(0.0), vec2(1.0));
+		uv += (-positiveUnitOffset * innerOffset.xy + negativeUnitOffset * innerOffset.zw) * vertex_texCoord0.xy;
 
-    uv = uv * -0.5 + 0.5;
-    uv = uv * atlasRect.zw + atlasRect.xy;
+		uv = uv * -0.5 + 0.5;
+		uv = uv * atlasRect.zw + atlasRect.xy;
 
-    vMask = vertex_texCoord0.xy;
+		vMask = vertex_texCoord0.xy;
 
-    return uv;
+		return uv;
 }
 #else
 vec2 getUv0() {
-    return vertex_texCoord0;
+		return vertex_texCoord0;
 }
 #endif
 `;

@@ -1,7 +1,7 @@
 /**
  * @license
- * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
- * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
+ * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import { platform } from '../core/platform.js';
 import { WebglGraphicsDevice } from '../platform/graphics/webgl/webgl-graphics-device.js';
@@ -62,42 +62,42 @@ import { TextureHandler } from './handlers/texture.js';
 import { XrManager } from './xr/xr-manager.js';
 
 class Application extends AppBase {
-  constructor(canvas, options = {}) {
-    super(canvas);
-    const appOptions = new AppOptions();
-    appOptions.graphicsDevice = this.createDevice(canvas, options);
-    this.addComponentSystems(appOptions);
-    this.addResourceHandles(appOptions);
-    appOptions.elementInput = options.elementInput;
-    appOptions.keyboard = options.keyboard;
-    appOptions.mouse = options.mouse;
-    appOptions.touch = options.touch;
-    appOptions.gamepads = options.gamepads;
-    appOptions.scriptPrefix = options.scriptPrefix;
-    appOptions.assetPrefix = options.assetPrefix;
-    appOptions.scriptsOrder = options.scriptsOrder;
-    appOptions.soundManager = new SoundManager();
-    appOptions.lightmapper = Lightmapper;
-    appOptions.batchManager = BatchManager;
-    appOptions.xr = XrManager;
-    this.init(appOptions);
-  }
-  createDevice(canvas, options) {
-    if (!options.graphicsDeviceOptions) {
-      options.graphicsDeviceOptions = {};
-    }
-    if (platform.browser && !!navigator.xr) {
-      options.graphicsDeviceOptions.xrCompatible = true;
-    }
-    options.graphicsDeviceOptions.alpha = options.graphicsDeviceOptions.alpha || false;
-    return new WebglGraphicsDevice(canvas, options.graphicsDeviceOptions);
-  }
-  addComponentSystems(appOptions) {
-    appOptions.componentSystems = [RigidBodyComponentSystem, CollisionComponentSystem, JointComponentSystem, AnimationComponentSystem, AnimComponentSystem, ModelComponentSystem, RenderComponentSystem, CameraComponentSystem, LightComponentSystem, script.legacy ? ScriptLegacyComponentSystem : ScriptComponentSystem, AudioSourceComponentSystem, SoundComponentSystem, AudioListenerComponentSystem, ParticleSystemComponentSystem, ScreenComponentSystem, ElementComponentSystem, ButtonComponentSystem, ScrollViewComponentSystem, ScrollbarComponentSystem, SpriteComponentSystem, LayoutGroupComponentSystem, LayoutChildComponentSystem, ZoneComponentSystem];
-  }
-  addResourceHandles(appOptions) {
-    appOptions.resourceHandlers = [RenderHandler, AnimationHandler, AnimClipHandler, AnimStateGraphHandler, ModelHandler, MaterialHandler, TextureHandler, TextHandler, JsonHandler, AudioHandler, ScriptHandler, SceneHandler, CubemapHandler, HtmlHandler, CssHandler, ShaderHandler, HierarchyHandler, FolderHandler, FontHandler, BinaryHandler, TextureAtlasHandler, SpriteHandler, TemplateHandler, ContainerHandler];
-  }
+	constructor(canvas, options = {}) {
+		super(canvas);
+		const appOptions = new AppOptions();
+		appOptions.graphicsDevice = this.createDevice(canvas, options);
+		this.addComponentSystems(appOptions);
+		this.addResourceHandles(appOptions);
+		appOptions.elementInput = options.elementInput;
+		appOptions.keyboard = options.keyboard;
+		appOptions.mouse = options.mouse;
+		appOptions.touch = options.touch;
+		appOptions.gamepads = options.gamepads;
+		appOptions.scriptPrefix = options.scriptPrefix;
+		appOptions.assetPrefix = options.assetPrefix;
+		appOptions.scriptsOrder = options.scriptsOrder;
+		appOptions.soundManager = new SoundManager();
+		appOptions.lightmapper = Lightmapper;
+		appOptions.batchManager = BatchManager;
+		appOptions.xr = XrManager;
+		this.init(appOptions);
+	}
+	createDevice(canvas, options) {
+		if (!options.graphicsDeviceOptions) {
+			options.graphicsDeviceOptions = {};
+		}
+		if (platform.browser && !!navigator.xr) {
+			options.graphicsDeviceOptions.xrCompatible = true;
+		}
+		options.graphicsDeviceOptions.alpha = options.graphicsDeviceOptions.alpha || false;
+		return new WebglGraphicsDevice(canvas, options.graphicsDeviceOptions);
+	}
+	addComponentSystems(appOptions) {
+		appOptions.componentSystems = [RigidBodyComponentSystem, CollisionComponentSystem, JointComponentSystem, AnimationComponentSystem, AnimComponentSystem, ModelComponentSystem, RenderComponentSystem, CameraComponentSystem, LightComponentSystem, script.legacy ? ScriptLegacyComponentSystem : ScriptComponentSystem, AudioSourceComponentSystem, SoundComponentSystem, AudioListenerComponentSystem, ParticleSystemComponentSystem, ScreenComponentSystem, ElementComponentSystem, ButtonComponentSystem, ScrollViewComponentSystem, ScrollbarComponentSystem, SpriteComponentSystem, LayoutGroupComponentSystem, LayoutChildComponentSystem, ZoneComponentSystem];
+	}
+	addResourceHandles(appOptions) {
+		appOptions.resourceHandlers = [RenderHandler, AnimationHandler, AnimClipHandler, AnimStateGraphHandler, ModelHandler, MaterialHandler, TextureHandler, TextHandler, JsonHandler, AudioHandler, ScriptHandler, SceneHandler, CubemapHandler, HtmlHandler, CssHandler, ShaderHandler, HierarchyHandler, FolderHandler, FontHandler, BinaryHandler, TextureAtlasHandler, SpriteHandler, TemplateHandler, ContainerHandler];
+	}
 }
 
 export { Application };

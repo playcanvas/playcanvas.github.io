@@ -1,6 +1,6 @@
 var startVS = `
 void main(void) {
-    gl_Position = getPosition();
+		gl_Position = getPosition();
 `;
 
 export { startVS as default };

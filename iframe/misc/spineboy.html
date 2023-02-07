@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <script src="../../build/playcanvas-observer.js"></script>
+    <script src="../../build/regeneratorRuntimePolyfill.js"></script>
     <script src="../../build/urlSearchParamsPolyfill.js"></script>
     <script src="../../build/promisePolyfill.js"></script>
     <script src="../../build/fetchPolyfill.js"></script>
-    <script src="../../build/regeneratorRuntimePolyfill.js"></script>
     <script src="../../build/arrayFromPolyfill.js"></script>
     <script src="../../build/objectValuesPolyfill.js"></script>
+    <script src="../../build/playcanvas-observer.js"></script>
     <link rel="stylesheet" href="/styles.css">
     <style>
         body {
@@ -53,8 +53,6 @@
 
     function example(canvas) {
 
-      var app = new pc.Application(canvas, {});
-
       var assets = {
         'skeleton': new pc.Asset('skeleton', 'json', { url: '/../../static/assets/spine/spineboy-pro.json' }),
         'atlas': new pc.Asset('atlas', 'text', { url: '/../../static/assets/spine/spineboy-pro.atlas' }),
@@ -62,43 +60,74 @@
         'spinescript': new pc.Asset('spinescript', 'script', { url: '/../../static/scripts/spine/playcanvas-spine.3.8.js' }) };
 
 
-      var assetListLoader = new pc.AssetListLoader(Object.values(assets), app.assets);
-      assetListLoader.load(function () {
-        app.start();
+      pc.createGraphicsDevice(canvas).then(function (device) {
 
-        // create camera entity
-        var camera = new pc.Entity('camera');
-        camera.addComponent('camera', {
-          clearColor: new pc.Color(0.5, 0.6, 0.9) });
+        var createOptions = new pc.AppOptions();
+        createOptions.graphicsDevice = device;
 
-        app.root.addChild(camera);
-        camera.translateLocal(0, 7, 20);
+        createOptions.componentSystems = [
+        // @ts-ignore
+        pc.CameraComponentSystem,
+        // @ts-ignore
+        pc.ScriptComponentSystem];
 
-        var createSpineInstance = function createSpineInstance(position, scale, timeScale) {
+        createOptions.resourceHandlers = [
+        // @ts-ignore
+        pc.TextureHandler,
+        // @ts-ignore
+        pc.ScriptHandler,
+        // @ts-ignore
+        pc.JsonHandler,
+        // @ts-ignore
+        pc.TextHandler];
 
-          var spineEntity = new pc.Entity();
-          spineEntity.addComponent("spine", {
-            atlasAsset: assets.atlas.id,
-            skeletonAsset: assets.skeleton.id,
-            textureAssets: [assets.texture.id] });
 
-          spineEntity.setLocalPosition(position);
-          spineEntity.setLocalScale(scale);
-          app.root.addChild(spineEntity);
+        var app = new pc.AppBase(canvas);
+        app.init(createOptions);
 
-          // play spine animation
-          // @ts-ignore
-          spineEntity.spine.state.setAnimation(0, "portal", true);
+        // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
+        app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
+        app.setCanvasResolution(pc.RESOLUTION_AUTO);
 
-          // @ts-ignore
-          spineEntity.spine.state.timeScale = timeScale;
-        };
+        var assetListLoader = new pc.AssetListLoader(Object.values(assets), app.assets);
+        assetListLoader.load(function () {
 
-        // create spine entity 1
-        createSpineInstance(new pc.Vec3(2, 2, 0), new pc.Vec3(1, 1, 1), 1);
+          app.start();
 
-        // create spine entity 2
-        createSpineInstance(new pc.Vec3(2, 10, 0), new pc.Vec3(-0.5, 0.5, 0.5), 0.5);
+          // create camera entity
+          var camera = new pc.Entity('camera');
+          camera.addComponent('camera', {
+            clearColor: new pc.Color(0.5, 0.6, 0.9) });
+
+          app.root.addChild(camera);
+          camera.translateLocal(0, 7, 20);
+
+          var createSpineInstance = function createSpineInstance(position, scale, timeScale) {
+
+            var spineEntity = new pc.Entity();
+            spineEntity.addComponent("spine", {
+              atlasAsset: assets.atlas.id,
+              skeletonAsset: assets.skeleton.id,
+              textureAssets: [assets.texture.id] });
+
+            spineEntity.setLocalPosition(position);
+            spineEntity.setLocalScale(scale);
+            app.root.addChild(spineEntity);
+
+            // play spine animation
+            // @ts-ignore
+            spineEntity.spine.state.setAnimation(0, "portal", true);
+
+            // @ts-ignore
+            spineEntity.spine.state.timeScale = timeScale;
+          };
+
+          // create spine entity 1
+          createSpineInstance(new pc.Vec3(2, 2, 0), new pc.Vec3(1, 1, 1), 1);
+
+          // create spine entity 2
+          createSpineInstance(new pc.Vec3(2, 10, 0), new pc.Vec3(-0.5, 0.5, 0.5), 0.5);
+        });
       });
     } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'Misc');_defineProperty(Example, "NAME", 'Spineboy');
         var example = new Example();

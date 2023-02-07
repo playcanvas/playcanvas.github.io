@@ -1,24 +1,19 @@
 /**
  * @license
- * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
- * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
+ * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 const BODYTYPE_STATIC = 'static';
-
 const BODYTYPE_DYNAMIC = 'dynamic';
-
 const BODYTYPE_KINEMATIC = 'kinematic';
-
 const BODYFLAG_STATIC_OBJECT = 1;
 const BODYFLAG_KINEMATIC_OBJECT = 2;
 const BODYFLAG_NORESPONSE_OBJECT = 4;
-
 const BODYSTATE_ACTIVE_TAG = 1;
 const BODYSTATE_ISLAND_SLEEPING = 2;
 const BODYSTATE_WANTS_DEACTIVATION = 3;
 const BODYSTATE_DISABLE_DEACTIVATION = 4;
 const BODYSTATE_DISABLE_SIMULATION = 5;
-
 const BODYGROUP_NONE = 0;
 const BODYGROUP_DEFAULT = 1;
 const BODYGROUP_DYNAMIC = 1;
@@ -36,7 +31,6 @@ const BODYGROUP_USER_5 = 2048;
 const BODYGROUP_USER_6 = 4096;
 const BODYGROUP_USER_7 = 8192;
 const BODYGROUP_USER_8 = 16384;
-
 const BODYMASK_NONE = 0;
 const BODYMASK_ALL = 65535;
 const BODYMASK_STATIC = 2;

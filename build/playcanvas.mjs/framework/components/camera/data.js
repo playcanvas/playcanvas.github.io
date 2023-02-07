@@ -1,7 +1,7 @@
 class CameraComponentData {
-  constructor() {
-    this.enabled = true;
-  }
+	constructor() {
+		this.enabled = true;
+	}
 }
 
 export { CameraComponentData };

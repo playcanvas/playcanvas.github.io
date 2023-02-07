@@ -1,0 +1,1 @@
+import{WebgpuBuffer as e}from"./webgpu-buffer.js";class r extends e{constructor(e){super()}destroy(e){super.destroy(e)}unlock(e){const r=e.device;super.unlock(r,void 0,GPUBufferUsage.UNIFORM,e.storage)}}export{r as WebgpuUniformBuffer};

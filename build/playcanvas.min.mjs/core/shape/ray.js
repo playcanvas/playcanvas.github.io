@@ -1,1 +1,1 @@
-import"../tracing.js";import{Vec3 as i}from"../math/vec3.js";class t{constructor(t=new i,r=new i(0,0,-1)){this.origin=t,this.direction=r}set(i,t){return this.origin.copy(i),this.direction.copy(t),this}}export{t as Ray};
+import{Vec3 as i}from"../math/vec3.js";class t{constructor(t,o){this.origin=new i,this.direction=i.FORWARD.clone(),t&&this.origin.copy(t),o&&this.direction.copy(o)}set(i,t){return this.origin.copy(i),this.direction.copy(t),this}copy(i){return this.set(i.origin,i.direction)}clone(){return new this.constructor(this.origin,this.direction)}}export{t as Ray};

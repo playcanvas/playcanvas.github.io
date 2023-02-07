@@ -1,1 +1,1 @@
-var e="\n    vDepth = getLinearDepth(localPos);\n";export{e as default};
+var t="\n\t\tvDepth = getLinearDepth(localPos);\n";export{t as default};

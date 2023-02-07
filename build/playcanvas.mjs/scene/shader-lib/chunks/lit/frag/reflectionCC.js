@@ -1,7 +1,7 @@
 var reflectionCCPS = `
 #ifdef LIT_CLEARCOAT
 void addReflectionCC() {
-    ccReflection += calcReflection(ccReflDirW, ccGlossiness);
+		ccReflection += calcReflection(ccReflDirW, ccGlossiness);
 }
 #endif
 `;

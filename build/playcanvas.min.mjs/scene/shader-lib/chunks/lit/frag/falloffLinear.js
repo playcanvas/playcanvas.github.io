@@ -1,1 +1,1 @@
-var a="\nfloat getFalloffLinear(float lightRadius) {\n    float d = length(dLightDirW);\n    return max(((lightRadius - d) / lightRadius), 0.0);\n}\n";export{a as default};
+var t="\nfloat getFalloffLinear(float lightRadius) {\n\t\tfloat d = length(dLightDirW);\n\t\treturn max(((lightRadius - d) / lightRadius), 0.0);\n}\n";export{t as default};

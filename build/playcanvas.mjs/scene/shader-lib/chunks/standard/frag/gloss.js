@@ -1,24 +1,28 @@
 var glossPS = `
 #ifdef MAPFLOAT
-uniform float material_shininess;
+uniform float material_gloss;
 #endif
 
 void getGlossiness() {
-    dGlossiness = 1.0;
+		dGlossiness = 1.0;
 
-    #ifdef MAPFLOAT
-    dGlossiness *= material_shininess;
-    #endif
+		#ifdef MAPFLOAT
+		dGlossiness *= material_gloss;
+		#endif
 
-    #ifdef MAPTEXTURE
-    dGlossiness *= texture2DBias($SAMPLER, $UV, textureBias).$CH;
-    #endif
+		#ifdef MAPTEXTURE
+		dGlossiness *= texture2DBias($SAMPLER, $UV, textureBias).$CH;
+		#endif
 
-    #ifdef MAPVERTEX
-    dGlossiness *= saturate(vVertexColor.$VC);
-    #endif
+		#ifdef MAPVERTEX
+		dGlossiness *= saturate(vVertexColor.$VC);
+		#endif
 
-    dGlossiness += 0.0000001;
+		#ifdef MAPINVERT
+		dGlossiness = 1.0 - dGlossiness;
+		#endif
+
+		dGlossiness += 0.0000001;
 }
 `;
 

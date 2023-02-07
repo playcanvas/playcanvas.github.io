@@ -1,1 +1,1 @@
-var l="\n    vec3 light = negNormal.x*lightCube[0] + posNormal.x*lightCube[1] +\n                        negNormal.y*lightCube[2] + posNormal.y*lightCube[3] +\n                        negNormal.z*lightCube[4] + posNormal.z*lightCube[5];\n\n    rgb *= light;\n";export{l as default};
+var t="\n\t\tvec3 light = negNormal.x*lightCube[0] + posNormal.x*lightCube[1] +\n\t\t\t\t\t\t\t\t\t\t\t\tnegNormal.y*lightCube[2] + posNormal.y*lightCube[3] +\n\t\t\t\t\t\t\t\t\t\t\t\tnegNormal.z*lightCube[4] + posNormal.z*lightCube[5];\n\n\t\trgb *= light;\n";export{t as default};

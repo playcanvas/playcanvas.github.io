@@ -1,7 +1,7 @@
 class SpriteComponentData {
-  constructor() {
-    this.enabled = true;
-  }
+	constructor() {
+		this.enabled = true;
+	}
 }
 
 export { SpriteComponentData };

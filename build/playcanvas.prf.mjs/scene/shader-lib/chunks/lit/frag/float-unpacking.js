@@ -1,39 +1,39 @@
 /**
  * @license
- * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
- * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
+ * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 var floatUnpackingPS = `
 // float unpacking functionality, complimentary to float-packing.js
 float bytes2float2(vec2 data) {
-    return dot(data, vec2(1.0, 1.0 / 255.0));
+		return dot(data, vec2(1.0, 1.0 / 255.0));
 }
 
 float bytes2float3(vec3 data) {
-    return dot(data, vec3(1.0, 1.0 / 255.0, 1.0 / 65025.0));
+		return dot(data, vec3(1.0, 1.0 / 255.0, 1.0 / 65025.0));
 }
 
 float bytes2float4(vec4 data) {
-    return dot(data, vec4(1.0, 1.0 / 255.0, 1.0 / 65025.0, 1.0 / 16581375.0));
+		return dot(data, vec4(1.0, 1.0 / 255.0, 1.0 / 65025.0, 1.0 / 16581375.0));
 }
 
 float bytes2floatRange2(vec2 data, float min, float max) {
-    return mix(min, max, bytes2float2(data));
+		return mix(min, max, bytes2float2(data));
 }
 
 float bytes2floatRange3(vec3 data, float min, float max) {
-    return mix(min, max, bytes2float3(data));
+		return mix(min, max, bytes2float3(data));
 }
 
 float bytes2floatRange4(vec4 data, float min, float max) {
-    return mix(min, max, bytes2float4(data));
+		return mix(min, max, bytes2float4(data));
 }
 
 float mantissaExponent2Float(vec4 pack)
 {
-    float value = bytes2floatRange3(pack.xyz, -1.0, 1.0);
-    float exponent = floor(pack.w * 255.0 - 127.0);
-    return value * exp2(exponent);
+		float value = bytes2floatRange3(pack.xyz, -1.0, 1.0);
+		float exponent = floor(pack.w * 255.0 - 127.0);
+		return value * exp2(exponent);
 }
 `;
 

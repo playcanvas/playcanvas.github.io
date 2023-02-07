@@ -1,1 +1,1 @@
-var o="\n    vec3 origParticlePos = particlePos;\n    particlePos -= matrix_model[3].xyz;\n    particlePos = mod(particlePos, wrapBounds) - wrapBounds * 0.5;\n    particlePos += matrix_model[3].xyz;\n    particlePosMoved = particlePos - origParticlePos;\n";export{o as default};
+var t="\n\t\tvec3 origParticlePos = particlePos;\n\t\tparticlePos -= matrix_model[3].xyz;\n\t\tparticlePos = mod(particlePos, wrapBounds) - wrapBounds * 0.5;\n\t\tparticlePos += matrix_model[3].xyz;\n\t\tparticlePosMoved = particlePos - origParticlePos;\n";export{t as default};

@@ -1,5 +1,5 @@
 function hasAudioContext() {
-  return !!(typeof AudioContext !== 'undefined' || typeof webkitAudioContext !== 'undefined');
+	return !!(typeof AudioContext !== 'undefined' || typeof webkitAudioContext !== 'undefined');
 }
 
 export { hasAudioContext };

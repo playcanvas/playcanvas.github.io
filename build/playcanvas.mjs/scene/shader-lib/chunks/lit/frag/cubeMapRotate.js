@@ -5,9 +5,9 @@ uniform mat3 cubeMapRotationMatrix;
 
 vec3 cubeMapRotate(vec3 refDir) {
 #ifdef CUBEMAP_ROTATION
-    return refDir * cubeMapRotationMatrix;
+		return refDir * cubeMapRotationMatrix;
 #else
-    return refDir;
+		return refDir;
 #endif
 }
 `;

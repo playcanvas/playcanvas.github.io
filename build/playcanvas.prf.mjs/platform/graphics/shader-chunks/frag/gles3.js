@@ -1,7 +1,7 @@
 /**
  * @license
- * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
- * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
+ * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 var gles3PS = `
 #define varying in
@@ -23,6 +23,13 @@ out highp vec4 pc_fragColor;
 // to compile the shader. Using textureLod would be even better, but WebGl does not translate it to
 // lod instruction for DirectX correctly and uses SampleCmp instead of SampleCmpLevelZero or similar.
 #define textureShadow(res, uv) textureGrad(res, uv, vec2(1, 1), vec2(1, 1))
+
+// pass / accept shadow map or texture as a function parameter, on webgl this is simply passsed as is
+// but this is needed for WebGPU
+#define SHADOWMAP_PASS(name) name
+#define SHADOWMAP_ACCEPT(name) sampler2DShadow name
+#define TEXTURE_PASS(name) name
+#define TEXTURE_ACCEPT(name) sampler2D name
 
 #define GL2
 #define SUPPORTS_TEXLOD

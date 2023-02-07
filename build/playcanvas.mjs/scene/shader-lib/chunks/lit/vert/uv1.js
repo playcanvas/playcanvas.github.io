@@ -1,6 +1,6 @@
 var uv1VS = `
 vec2 getUv1() {
-    return vertex_texCoord1;
+		return vertex_texCoord1;
 }
 `;
 

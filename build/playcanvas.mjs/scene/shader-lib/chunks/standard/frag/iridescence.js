@@ -4,17 +4,17 @@ uniform float material_iridescence;
 #endif
 
 void getIridescence() {
-    float iridescence = 1.0;
+		float iridescence = 1.0;
 
-    #ifdef MAPFLOAT
-    iridescence *= material_iridescence;
-    #endif
+		#ifdef MAPFLOAT
+		iridescence *= material_iridescence;
+		#endif
 
-    #ifdef MAPTEXTURE
-    iridescence *= texture2DBias($SAMPLER, $UV, textureBias).$CH;
-    #endif
+		#ifdef MAPTEXTURE
+		iridescence *= texture2DBias($SAMPLER, $UV, textureBias).$CH;
+		#endif
 
-    dIridescence = iridescence; 
+		dIridescence = iridescence; 
 }
 `;
 

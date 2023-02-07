@@ -1,23 +1,23 @@
 /**
  * @license
- * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
- * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
+ * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 var gamma1_0PS = `
 float gammaCorrectInput(float color) {
-    return color;
+		return color;
 }
 
 vec3 gammaCorrectInput(vec3 color) {
-    return color;
+		return color;
 }
 
 vec4 gammaCorrectInput(vec4 color) {
-    return color;
+		return color;
 }
 
 vec3 gammaCorrectOutput(vec3 color) {
-    return color;
+		return color;
 }
 `;
 

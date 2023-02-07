@@ -1,7 +1,7 @@
 var aoSpecOccConstSimplePS = `
 void occludeSpecular() {
-    dSpecularLight *= dAo;
-    dReflection *= dAo;
+		dSpecularLight *= dAo;
+		dReflection *= dAo;
 }
 `;
 

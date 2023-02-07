@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <script src="../../build/playcanvas-observer.js"></script>
+    <script src="../../build/regeneratorRuntimePolyfill.js"></script>
     <script src="../../build/urlSearchParamsPolyfill.js"></script>
     <script src="../../build/promisePolyfill.js"></script>
     <script src="../../build/fetchPolyfill.js"></script>
-    <script src="../../build/regeneratorRuntimePolyfill.js"></script>
     <script src="../../build/arrayFromPolyfill.js"></script>
     <script src="../../build/objectValuesPolyfill.js"></script>
+    <script src="../../build/playcanvas-observer.js"></script>
     <link rel="stylesheet" href="/styles.css">
     <style>
         body {
@@ -259,6 +259,9 @@
           var textureOcta = createReprojectionTexture(pc.TEXTUREPROJECTION_OCTAHEDRAL, 64);
           var textureOcta2 = createReprojectionTexture(pc.TEXTUREPROJECTION_OCTAHEDRAL, 32);
 
+          // create one envAtlas texture
+          var textureAtlas = createReprojectionTexture(pc.TEXTUREPROJECTION_OCTAHEDRAL, 512);
+
           // update things each frame
           var time = 0;
           app.on("update", function (dt) {
@@ -309,6 +312,13 @@
 
             // @ts-ignore engine-tsd
             app.drawTexture(0.6, -0.7, 0.6, 0.3, textureEqui2);
+
+            // cube -> envAtlas
+            pc.EnvLighting.generateAtlas(srcCube, {
+              target: textureAtlas });
+
+            // @ts-ignore engine-tsd
+            app.drawTexture(0, -0.7, 0.5, 0.4, textureAtlas);
           });
         });
       });

@@ -1,7 +1,7 @@
 /**
  * @license
- * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
- * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
+ * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 var tonemappingFilmicPS = `
 const float A =  0.15;
@@ -15,15 +15,15 @@ const float W =  11.2;
 uniform float exposure;
 
 vec3 uncharted2Tonemap(vec3 x) {
-   return ((x*(A*x+C*B)+D*E)/(x*(A*x+B)+D*F))-E/F;
+	 return ((x*(A*x+C*B)+D*E)/(x*(A*x+B)+D*F))-E/F;
 }
 
 vec3 toneMap(vec3 color) {
-    color = uncharted2Tonemap(color * exposure);
-    vec3 whiteScale = 1.0 / uncharted2Tonemap(vec3(W,W,W));
-    color = color * whiteScale;
+		color = uncharted2Tonemap(color * exposure);
+		vec3 whiteScale = 1.0 / uncharted2Tonemap(vec3(W,W,W));
+		color = color * whiteScale;
 
-    return color;
+		return color;
 }
 `;
 

@@ -1,23 +1,23 @@
 /**
  * @license
- * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
- * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
+ * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 var lightSpecularPhongPS = `
 float calcLightSpecular(float tGlossiness, vec3 tReflDirW, vec3 h) {
-    float specPow = tGlossiness;
+		float specPow = tGlossiness;
 
-    // Hack: On Mac OS X, calling pow with zero for the exponent generates hideous artifacts so bias up a little
-    return pow(max(dot(tReflDirW, -dLightDirNormW), 0.0), specPow + 0.0001);
+		// Hack: On Mac OS X, calling pow with zero for the exponent generates hideous artifacts so bias up a little
+		return pow(max(dot(tReflDirW, -dLightDirNormW), 0.0), specPow + 0.0001);
 }
 
 float getLightSpecular(vec3 h) {
-    return calcLightSpecular(dGlossiness, dReflDirW, h);
+		return calcLightSpecular(dGlossiness, dReflDirW, h);
 }
 
 #ifdef LIT_CLEARCOAT
 float getLightSpecularCC(vec3 h) {
-    return calcLightSpecular(ccGlossiness, ccReflDirW,h );
+		return calcLightSpecular(ccGlossiness, ccReflDirW,h );
 }
 #endif
 `;

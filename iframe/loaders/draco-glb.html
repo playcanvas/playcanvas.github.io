@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <script src="../../build/playcanvas-observer.js"></script>
+    <script src="../../build/regeneratorRuntimePolyfill.js"></script>
     <script src="../../build/urlSearchParamsPolyfill.js"></script>
     <script src="../../build/promisePolyfill.js"></script>
     <script src="../../build/fetchPolyfill.js"></script>
-    <script src="../../build/regeneratorRuntimePolyfill.js"></script>
     <script src="../../build/arrayFromPolyfill.js"></script>
     <script src="../../build/objectValuesPolyfill.js"></script>
+    <script src="../../build/playcanvas-observer.js"></script>
     <link rel="stylesheet" href="/styles.css">
     <style>
         body {
@@ -51,10 +51,7 @@
 
 
 
-    function example(canvas, assets) {
-
-      // Create the app and start the update loop
-      var app = new pc.Application(canvas, {});
+    function example(canvas) {
 
       pc.WasmModule.setConfig('DracoDecoderModule', {
         glueUrl: '/../../static/lib/draco/draco.wasm.js',
@@ -65,41 +62,74 @@
       pc.WasmModule.getInstance('DracoDecoderModule', demo);
 
       function demo() {
-        app.scene.ambientLight = new pc.Color(0.2, 0.2, 0.2);
 
-        // Load a glb file as a container
-        var url = "/../../static/assets/models/heart_draco.glb";
-        app.assets.loadFromUrl(url, "container", function (err, asset) {
-          app.start();
+        pc.createGraphicsDevice(canvas).then(function (device) {
 
-          // create an instance using render component
-          var entity = asset.resource.instantiateRenderEntity({
-            castShadows: true });
+          var createOptions = new pc.AppOptions();
+          createOptions.graphicsDevice = device;
 
-          app.root.addChild(entity);
-          entity.setLocalScale(20, 20, 20);
+          createOptions.componentSystems = [
+          // @ts-ignore
+          pc.RenderComponentSystem,
+          // @ts-ignore
+          pc.CameraComponentSystem,
+          // @ts-ignore
+          pc.LightComponentSystem];
 
-          // Create an Entity with a camera component
-          var camera = new pc.Entity();
-          camera.addComponent("camera", {
-            clearColor: new pc.Color(0.2, 0.2, 0.2) });
+          createOptions.resourceHandlers = [
+          // @ts-ignore
+          pc.TextureHandler,
+          // @ts-ignore
+          pc.ContainerHandler];
 
-          camera.translate(0, 0.5, 4);
-          app.root.addChild(camera);
 
-          // Create an entity with a omni light component
-          var light = new pc.Entity();
-          light.addComponent("light", {
-            type: "omni",
-            intensity: 3 });
+          var app = new pc.AppBase(canvas);
+          app.init(createOptions);
 
-          light.setLocalPosition(1, 1, 5);
-          app.root.addChild(light);
+          // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
+          app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
+          app.setCanvasResolution(pc.RESOLUTION_AUTO);
 
-          app.on("update", function (dt) {
-            if (entity) {
-              entity.rotate(4 * dt, -20 * dt, 0);
-            }
+          var assets = {
+            heart: new pc.Asset('heart', 'container', { url: '/../../static/assets/models/heart_draco.glb' }) };
+
+
+          var assetListLoader = new pc.AssetListLoader(Object.values(assets), app.assets);
+          assetListLoader.load(function () {
+
+            app.start();
+
+            app.scene.ambientLight = new pc.Color(0.2, 0.2, 0.2);
+
+            // create an instance using render component
+            var entity = assets.heart.resource.instantiateRenderEntity({
+              receiveShadows: false });
+
+            app.root.addChild(entity);
+            entity.setLocalScale(20, 20, 20);
+
+            // Create an Entity with a camera component
+            var camera = new pc.Entity();
+            camera.addComponent("camera", {
+              clearColor: new pc.Color(0.2, 0.2, 0.2) });
+
+            camera.translate(0, 0.5, 4);
+            app.root.addChild(camera);
+
+            // Create an entity with a omni light component
+            var light = new pc.Entity();
+            light.addComponent("light", {
+              type: "omni",
+              intensity: 3 });
+
+            light.setLocalPosition(1, 1, 5);
+            app.root.addChild(light);
+
+            app.on("update", function (dt) {
+              if (entity) {
+                entity.rotate(4 * dt, -20 * dt, 0);
+              }
+            });
           });
         });
       }

@@ -1,6 +1,6 @@
 var lightmapAddPS = `
 void addLightMap() {
-    dDiffuseLight += dLightmap;
+		dDiffuseLight += dLightmap;
 }
 `;
 

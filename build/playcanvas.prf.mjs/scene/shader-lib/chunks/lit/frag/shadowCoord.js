@@ -1,48 +1,48 @@
 /**
  * @license
- * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
- * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
+ * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 var shadowCoordPS = `
 void _getShadowCoordOrtho(mat4 shadowMatrix, vec3 shadowParams, vec3 wPos) {
-    dShadowCoord = (shadowMatrix * vec4(wPos, 1.0)).xyz;
-    dShadowCoord.z = saturate(dShadowCoord.z) - 0.0001;
+		dShadowCoord = (shadowMatrix * vec4(wPos, 1.0)).xyz;
+		dShadowCoord.z = saturate(dShadowCoord.z) - 0.0001;
 
-    #ifdef SHADOWBIAS
-    dShadowCoord.z += getShadowBias(shadowParams.x, shadowParams.z);
-    #endif
+		#ifdef SHADOWBIAS
+		dShadowCoord.z += getShadowBias(shadowParams.x, shadowParams.z);
+		#endif
 }
 
 void _getShadowCoordPersp(mat4 shadowMatrix, vec4 shadowParams, vec3 wPos) {
-    vec4 projPos = shadowMatrix * vec4(wPos, 1.0);
-    projPos.xy /= projPos.w;
-    dShadowCoord.xy = projPos.xy;
-    dShadowCoord.z = length(dLightDirW) * shadowParams.w;
+		vec4 projPos = shadowMatrix * vec4(wPos, 1.0);
+		projPos.xy /= projPos.w;
+		dShadowCoord.xy = projPos.xy;
+		dShadowCoord.z = length(dLightDirW) * shadowParams.w;
 
-    #ifdef SHADOWBIAS
-    dShadowCoord.z += getShadowBias(shadowParams.x, shadowParams.z);
-    #endif
+		#ifdef SHADOWBIAS
+		dShadowCoord.z += getShadowBias(shadowParams.x, shadowParams.z);
+		#endif
 }
 
 void getShadowCoordOrtho(mat4 shadowMatrix, vec3 shadowParams) {
-    _getShadowCoordOrtho(shadowMatrix, shadowParams, vPositionW);
+		_getShadowCoordOrtho(shadowMatrix, shadowParams, vPositionW);
 }
 
 void getShadowCoordPersp(mat4 shadowMatrix, vec4 shadowParams) {
-    _getShadowCoordPersp(shadowMatrix, shadowParams, vPositionW);
+		_getShadowCoordPersp(shadowMatrix, shadowParams, vPositionW);
 }
 
 void getShadowCoordPerspNormalOffset(mat4 shadowMatrix, vec4 shadowParams) {
-    float distScale = abs(dot(vPositionW - dLightPosW, dLightDirNormW)); // fov?
-    vec3 wPos = vPositionW + dVertexNormalW * shadowParams.y * clamp(1.0 - dot(dVertexNormalW, -dLightDirNormW), 0.0, 1.0) * distScale;
+		float distScale = abs(dot(vPositionW - dLightPosW, dLightDirNormW)); // fov?
+		vec3 wPos = vPositionW + dVertexNormalW * shadowParams.y * clamp(1.0 - dot(dVertexNormalW, -dLightDirNormW), 0.0, 1.0) * distScale;
 
-    _getShadowCoordPersp(shadowMatrix, shadowParams, wPos);
+		_getShadowCoordPersp(shadowMatrix, shadowParams, wPos);
 }
 
 void getShadowCoordOrthoNormalOffset(mat4 shadowMatrix, vec3 shadowParams) {
-    vec3 wPos = vPositionW + dVertexNormalW * shadowParams.y * clamp(1.0 - dot(dVertexNormalW, -dLightDirNormW), 0.0, 1.0); //0.08
+		vec3 wPos = vPositionW + dVertexNormalW * shadowParams.y * clamp(1.0 - dot(dVertexNormalW, -dLightDirNormW), 0.0, 1.0); //0.08
 
-    _getShadowCoordOrtho(shadowMatrix, shadowParams, wPos);
+		_getShadowCoordOrtho(shadowMatrix, shadowParams, wPos);
 }
 `;
 

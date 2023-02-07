@@ -1,1 +1,1 @@
-var o="\nvoid writeOutput() {\n    if (gl_FragCoord.y<1.0) {\n        gl_FragColor = vec4(outPos, (outAngle + 1000.0) * visMode);\n    } else {\n        gl_FragColor = vec4(outVel, outLife);\n    }\n}\n";export{o as default};
+var t="\nvoid writeOutput() {\n\t\tif (gl_FragCoord.y<1.0) {\n\t\t\t\tgl_FragColor = vec4(outPos, (outAngle + 1000.0) * visMode);\n\t\t} else {\n\t\t\t\tgl_FragColor = vec4(outVel, outLife);\n\t\t}\n}\n";export{t as default};

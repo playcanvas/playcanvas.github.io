@@ -1,45 +1,39 @@
 /**
  * @license
- * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
- * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
+ * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 class Key {
-  constructor(time, position, rotation, scale) {
-    this.time = time;
-    this.position = position;
-    this.rotation = rotation;
-    this.scale = scale;
-  }
+	constructor(time, position, rotation, scale) {
+		this.time = time;
+		this.position = position;
+		this.rotation = rotation;
+		this.scale = scale;
+	}
 }
-
 class Node {
-  constructor() {
-    this._name = '';
-    this._keys = [];
-  }
+	constructor() {
+		this._name = '';
+		this._keys = [];
+	}
 }
-
 class Animation {
-
-  constructor() {
-    this.name = '';
-    this.duration = 0;
-    this._nodes = [];
-    this._nodeDict = {};
-  }
-
-  getNode(name) {
-    return this._nodeDict[name];
-  }
-
-  addNode(node) {
-    this._nodes.push(node);
-    this._nodeDict[node._name] = node;
-  }
-
-  get nodes() {
-    return this._nodes;
-  }
+	constructor() {
+		this.name = '';
+		this.duration = 0;
+		this._nodes = [];
+		this._nodeDict = {};
+	}
+	getNode(name) {
+		return this._nodeDict[name];
+	}
+	addNode(node) {
+		this._nodes.push(node);
+		this._nodeDict[node._name] = node;
+	}
+	get nodes() {
+		return this._nodes;
+	}
 }
 
 export { Animation, Key, Node };

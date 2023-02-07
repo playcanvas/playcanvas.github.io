@@ -1,1 +1,1 @@
-var a="\nvoid getTBN() {\n    dTBN = mat3(dTangentW, dBinormalW, dVertexNormalW);\n}\n";export{a as default};
+var t="\nvoid getTBN() {\n\t\tdTBN = mat3(dTangentW, dBinormalW, dVertexNormalW);\n}\n";export{t as default};

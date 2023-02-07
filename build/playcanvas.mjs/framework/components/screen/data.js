@@ -1,7 +1,7 @@
 class ScreenComponentData {
-  constructor() {
-    this.enabled = true;
-  }
+	constructor() {
+		this.enabled = true;
+	}
 }
 
 export { ScreenComponentData };

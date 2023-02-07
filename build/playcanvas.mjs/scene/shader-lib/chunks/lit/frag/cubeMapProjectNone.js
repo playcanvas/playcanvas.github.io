@@ -1,6 +1,6 @@
 var cubeMapProjectNonePS = `
 vec3 cubeMapProject(vec3 dir) {
-    return cubeMapRotate(dir);
+		return cubeMapRotate(dir);
 }
 `;
 

@@ -1,38 +1,58 @@
 /**
  * @license
- * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
- * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
+ * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import { Shader } from '../../platform/graphics/shader.js';
 import { ShaderUtils } from '../../platform/graphics/shader-utils.js';
 import { shaderChunks } from './chunks/chunks.js';
 import { getProgramLibrary } from './get-program-library.js';
+import '../../core/tracing.js';
 
 function createShader(device, vsName, fsName, useTransformFeedback = false) {
-  return new Shader(device, ShaderUtils.createDefinition(device, {
-    name: `${vsName}_${fsName}`,
-    vertexCode: shaderChunks[vsName],
-    fragmentCode: shaderChunks[fsName],
-    useTransformFeedback: useTransformFeedback
-  }));
+	return new Shader(device, ShaderUtils.createDefinition(device, {
+		name: `${vsName}_${fsName}`,
+		vertexCode: shaderChunks[vsName],
+		fragmentCode: shaderChunks[fsName],
+		useTransformFeedback: useTransformFeedback
+	}));
 }
-
-function createShaderFromCode(device, vsCode, fsCode, uniqueName, useTransformFeedback = false, fragmentPreamble = '') {
-  const programLibrary = getProgramLibrary(device);
-  let shader = programLibrary.getCachedShader(uniqueName);
-  if (!shader) {
-    shader = new Shader(device, ShaderUtils.createDefinition(device, {
-      name: uniqueName,
-      vertexCode: vsCode,
-      fragmentCode: fsCode,
-      fragmentPreamble: fragmentPreamble,
-      useTransformFeedback: useTransformFeedback
-    }));
-    programLibrary.setCachedShader(uniqueName, shader);
-  }
-  return shader;
+function createShaderFromCode(device, vsCode, fsCode, uniqueName, attributes, useTransformFeedback = false) {
+	const programLibrary = getProgramLibrary(device);
+	let shader = programLibrary.getCachedShader(uniqueName);
+	if (!shader) {
+		shader = new Shader(device, ShaderUtils.createDefinition(device, {
+			name: uniqueName,
+			vertexCode: vsCode,
+			fragmentCode: fsCode,
+			attributes: attributes,
+			useTransformFeedback: useTransformFeedback
+		}));
+		programLibrary.setCachedShader(uniqueName, shader);
+	}
+	return shader;
+}
+function processShader(shader, processingOptions) {
+	var _shaderDefinition$nam;
+	const shaderDefinition = shader.definition;
+	const name = (_shaderDefinition$nam = shaderDefinition.name) != null ? _shaderDefinition$nam : 'shader';
+	const key = `${name}-id-${shader.id}`;
+	const materialGenerator = {
+		generateKey: function (options) {
+			return key;
+		},
+		createShaderDefinition: function (device, options) {
+			return shaderDefinition;
+		}
+	};
+	const libraryModuleName = 'shader';
+	const library = getProgramLibrary(shader.device);
+	library.register(libraryModuleName, materialGenerator);
+	const variant = library.getProgram(libraryModuleName, {}, processingOptions);
+	library.unregister(libraryModuleName);
+	return variant;
 }
 shaderChunks.createShader = createShader;
 shaderChunks.createShaderFromCode = createShaderFromCode;
 
-export { createShader, createShaderFromCode };
+export { createShader, createShaderFromCode, processShader };

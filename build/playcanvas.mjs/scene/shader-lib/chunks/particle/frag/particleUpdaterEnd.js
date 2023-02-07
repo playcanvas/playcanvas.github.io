@@ -1,5 +1,5 @@
 var particleUpdaterEndPS = `
-    writeOutput();
+		writeOutput();
 }
 `;
 

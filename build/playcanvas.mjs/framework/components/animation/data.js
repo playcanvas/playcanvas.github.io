@@ -1,7 +1,7 @@
 class AnimationComponentData {
-  constructor() {
-    this.enabled = true;
-  }
+	constructor() {
+		this.enabled = true;
+	}
 }
 
 export { AnimationComponentData };

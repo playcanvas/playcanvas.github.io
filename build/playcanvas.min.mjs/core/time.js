@@ -1,1 +1,1 @@
-const n="undefined"!=typeof window&&window.performance&&window.performance.now&&window.performance.timing?performance.now.bind(performance):Date.now;class i{constructor(){this._isRunning=!1,this._a=0,this._b=0}start(){this._isRunning=!0,this._a=n()}stop(){this._isRunning=!1,this._b=n()}getMilliseconds(){return this._b-this._a}}export{i as Timer,n as now};
+const n="undefined"!=typeof window&&window.performance&&window.performance.now&&window.performance.timing?performance.now.bind(performance):Date.now;export{n as now};

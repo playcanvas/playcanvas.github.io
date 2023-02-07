@@ -1,27 +1,27 @@
 /**
  * @license
- * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
- * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
+ * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 var fixCubemapSeamsNonePS = `
 vec3 fixSeams(vec3 vec, float mipmapIndex) {
-    return vec;
+		return vec;
 }
 
 vec3 fixSeams(vec3 vec) {
-    return vec;
+		return vec;
 }
 
 vec3 fixSeamsStatic(vec3 vec, float invRecMipSize) {
-    return vec;
+		return vec;
 }
 
 vec3 calcSeam(vec3 vec) {
-    return vec3(0);
+		return vec3(0);
 }
 
 vec3 applySeam(vec3 vec, vec3 seam, float scale) {
-    return vec;
+		return vec;
 }
 `;
 

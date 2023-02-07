@@ -1,1 +1,1 @@
-var c="\nuniform float material_occludeSpecularIntensity;\n\nvoid occludeSpecular() {\n    float specOcc = mix(1.0, dAo, material_occludeSpecularIntensity);\n    dSpecularLight *= specOcc;\n    dReflection *= specOcc;\n}\n";export{c as default};
+var c="\nuniform float material_occludeSpecularIntensity;\n\nvoid occludeSpecular() {\n\t\tfloat specOcc = mix(1.0, dAo, material_occludeSpecularIntensity);\n\t\tdSpecularLight *= specOcc;\n\t\tdReflection *= specOcc;\n}\n";export{c as default};

@@ -1,31 +1,31 @@
 /**
  * @license
- * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
- * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
+ * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import { FUNC_ALWAYS, STENCILOP_KEEP } from '../platform/graphics/constants.js';
 
 class StencilParameters {
-  constructor(options) {
-    this.func = options.func === undefined ? FUNC_ALWAYS : options.func;
-    this.ref = options.ref || 0;
-    this.readMask = options.readMask === undefined ? 0xFF : options.readMask;
-    this.writeMask = options.writeMask === undefined ? 0xFF : options.writeMask;
-    this.fail = options.fail || STENCILOP_KEEP;
-    this.zfail = options.zfail || STENCILOP_KEEP;
-    this.zpass = options.zpass || STENCILOP_KEEP;
-  }
-  clone() {
-    return new StencilParameters({
-      func: this.func,
-      ref: this.ref,
-      readMask: this.readMask,
-      writeMask: this.writeMask,
-      fail: this.fail,
-      zfail: this.zfail,
-      zpass: this.zpass
-    });
-  }
+	constructor(options) {
+		this.func = options.func === undefined ? FUNC_ALWAYS : options.func;
+		this.ref = options.ref || 0;
+		this.readMask = options.readMask === undefined ? 0xFF : options.readMask;
+		this.writeMask = options.writeMask === undefined ? 0xFF : options.writeMask;
+		this.fail = options.fail || STENCILOP_KEEP;
+		this.zfail = options.zfail || STENCILOP_KEEP;
+		this.zpass = options.zpass || STENCILOP_KEEP;
+	}
+	clone() {
+		return new StencilParameters({
+			func: this.func,
+			ref: this.ref,
+			readMask: this.readMask,
+			writeMask: this.writeMask,
+			fail: this.fail,
+			zfail: this.zfail,
+			zpass: this.zpass
+		});
+	}
 }
 
 export { StencilParameters };

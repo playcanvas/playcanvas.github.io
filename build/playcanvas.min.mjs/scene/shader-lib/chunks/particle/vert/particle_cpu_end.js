@@ -1,1 +1,1 @@
-var a="\n    localPos *= particle_vertexData2.y * emitterScale;\n    localPos += particlePos;\n\n    gl_Position = matrix_viewProjection * vec4(localPos, 1.0);\n";export{a as default};
+var t="\n\t\tlocalPos *= particle_vertexData2.y * emitterScale;\n\t\tlocalPos += particlePos;\n\n\t\tgl_Position = matrix_viewProjection * vec4(localPos, 1.0);\n";export{t as default};

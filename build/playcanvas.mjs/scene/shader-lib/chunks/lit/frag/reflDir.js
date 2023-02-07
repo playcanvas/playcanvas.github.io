@@ -1,6 +1,6 @@
 var reflDirPS = `
 void getReflDir() {
-    dReflDirW = normalize(-reflect(dViewDirW, dNormalW));
+		dReflDirW = normalize(-reflect(dViewDirW, dNormalW));
 }
 `;
 

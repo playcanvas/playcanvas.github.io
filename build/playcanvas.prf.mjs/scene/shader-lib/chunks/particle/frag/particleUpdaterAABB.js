@@ -1,33 +1,33 @@
 /**
  * @license
- * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
- * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
+ * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 var particleUpdaterAABBPS = `
 uniform mat3 spawnBounds;
 uniform vec3 spawnPosInnerRatio;
 
 vec3 calcSpawnPosition(vec3 inBounds, float rndFactor) {
-    vec3 pos = inBounds - vec3(0.5);
+		vec3 pos = inBounds - vec3(0.5);
 
-    vec3 posAbs = abs(pos);
-    vec3 maxPos = vec3(max(posAbs.x, max(posAbs.y, posAbs.z)));
+		vec3 posAbs = abs(pos);
+		vec3 maxPos = vec3(max(posAbs.x, max(posAbs.y, posAbs.z)));
 
-    vec3 edge = maxPos + (vec3(0.5) - maxPos) * spawnPosInnerRatio;
+		vec3 edge = maxPos + (vec3(0.5) - maxPos) * spawnPosInnerRatio;
 
-    pos.x = edge.x * (maxPos.x == posAbs.x ? sign(pos.x) : 2.0 * pos.x);
-    pos.y = edge.y * (maxPos.y == posAbs.y ? sign(pos.y) : 2.0 * pos.y);
-    pos.z = edge.z * (maxPos.z == posAbs.z ? sign(pos.z) : 2.0 * pos.z);
+		pos.x = edge.x * (maxPos.x == posAbs.x ? sign(pos.x) : 2.0 * pos.x);
+		pos.y = edge.y * (maxPos.y == posAbs.y ? sign(pos.y) : 2.0 * pos.y);
+		pos.z = edge.z * (maxPos.z == posAbs.z ? sign(pos.z) : 2.0 * pos.z);
 
 #ifndef LOCAL_SPACE
-    return emitterPos + spawnBounds * pos;
+		return emitterPos + spawnBounds * pos;
 #else
-    return spawnBounds * pos;
+		return spawnBounds * pos;
 #endif
 }
 
 void addInitialVelocity(inout vec3 localVelocity, vec3 inBounds) {
-    localVelocity -= vec3(0, 0, initialVelocity);
+		localVelocity -= vec3(0, 0, initialVelocity);
 }
 `;
 

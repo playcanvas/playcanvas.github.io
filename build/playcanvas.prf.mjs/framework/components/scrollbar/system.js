@@ -1,7 +1,7 @@
 /**
  * @license
- * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
- * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
+ * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import { Component } from '../component.js';
 import { ComponentSystem } from '../system.js';
@@ -9,37 +9,36 @@ import { ScrollbarComponent } from './component.js';
 import { ScrollbarComponentData } from './data.js';
 
 const _schema = [{
-  name: 'enabled',
-  type: 'boolean'
+	name: 'enabled',
+	type: 'boolean'
 }, {
-  name: 'orientation',
-  type: 'number'
+	name: 'orientation',
+	type: 'number'
 }, {
-  name: 'value',
-  type: 'number'
+	name: 'value',
+	type: 'number'
 }, {
-  name: 'handleSize',
-  type: 'number'
+	name: 'handleSize',
+	type: 'number'
 }, {
-  name: 'handleEntity',
-  type: 'entity'
+	name: 'handleEntity',
+	type: 'entity'
 }];
-
 class ScrollbarComponentSystem extends ComponentSystem {
-  constructor(app) {
-    super(app);
-    this.id = 'scrollbar';
-    this.ComponentType = ScrollbarComponent;
-    this.DataType = ScrollbarComponentData;
-    this.schema = _schema;
-    this.on('beforeremove', this._onRemoveComponent, this);
-  }
-  initializeComponentData(component, data, properties) {
-    super.initializeComponentData(component, data, _schema);
-  }
-  _onRemoveComponent(entity, component) {
-    component.onRemove();
-  }
+	constructor(app) {
+		super(app);
+		this.id = 'scrollbar';
+		this.ComponentType = ScrollbarComponent;
+		this.DataType = ScrollbarComponentData;
+		this.schema = _schema;
+		this.on('beforeremove', this._onRemoveComponent, this);
+	}
+	initializeComponentData(component, data, properties) {
+		super.initializeComponentData(component, data, _schema);
+	}
+	_onRemoveComponent(entity, component) {
+		component.onRemove();
+	}
 }
 Component._buildAccessors(ScrollbarComponent.prototype, _schema);
 

@@ -1,26 +1,26 @@
 /**
  * @license
- * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
- * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
+ * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import { LAYERID_WORLD } from '../constants.js';
 
 class BatchGroup {
-  constructor(id, name, dynamic, maxAabbSize, layers = [LAYERID_WORLD]) {
-    this.dynamic = dynamic;
-    this.maxAabbSize = maxAabbSize;
-    this.id = id;
-    this.name = name;
-    this.layers = layers;
-    this._ui = false;
-    this._sprite = false;
-    this._obj = {
-      model: [],
-      element: [],
-      sprite: [],
-      render: []
-    };
-  }
+	constructor(id, name, dynamic, maxAabbSize, layers = [LAYERID_WORLD]) {
+		this.dynamic = dynamic;
+		this.maxAabbSize = maxAabbSize;
+		this.id = id;
+		this.name = name;
+		this.layers = layers;
+		this._ui = false;
+		this._sprite = false;
+		this._obj = {
+			model: [],
+			element: [],
+			sprite: [],
+			render: []
+		};
+	}
 }
 BatchGroup.MODEL = 'model';
 BatchGroup.ELEMENT = 'element';

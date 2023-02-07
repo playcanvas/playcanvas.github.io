@@ -1,28 +1,28 @@
 /**
  * @license
- * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
- * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
+ * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 var refractionCubePS = `
 uniform float material_refractionIndex;
 
 vec3 refract2(vec3 viewVec, vec3 Normal, float IOR) {
-    float vn = dot(viewVec, Normal);
-    float k = 1.0 - IOR * IOR * (1.0 - vn * vn);
-    vec3 refrVec = IOR * viewVec - (IOR * vn + sqrt(k)) * Normal;
-    return refrVec;
+		float vn = dot(viewVec, Normal);
+		float k = 1.0 - IOR * IOR * (1.0 - vn * vn);
+		vec3 refrVec = IOR * viewVec - (IOR * vn + sqrt(k)) * Normal;
+		return refrVec;
 }
 
 void addRefraction() {
-    // use same reflection code with refraction vector
-    vec3 tmpDir = dReflDirW;
-    vec4 tmpRefl = dReflection;
-    dReflDirW = refract2(-dViewDirW, dNormalW, material_refractionIndex);
-    dReflection = vec4(0);
-    addReflection();
-    dDiffuseLight = mix(dDiffuseLight, dReflection.rgb * dAlbedo, dTransmission);
-    dReflection = tmpRefl;
-    dReflDirW = tmpDir;
+		// use same reflection code with refraction vector
+		vec3 tmpDir = dReflDirW;
+		vec4 tmpRefl = dReflection;
+		dReflDirW = refract2(-dViewDirW, dNormalW, material_refractionIndex);
+		dReflection = vec4(0);
+		addReflection();
+		dDiffuseLight = mix(dDiffuseLight, dReflection.rgb * dAlbedo, dTransmission);
+		dReflection = tmpRefl;
+		dReflDirW = tmpDir;
 }
 `;
 

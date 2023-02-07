@@ -1,33 +1,33 @@
 /**
  * @license
- * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
- * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
+ * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 var combinePS = `
 vec3 combineColor() {
-    vec3 ret = vec3(0);
+		vec3 ret = vec3(0);
 #ifdef LIT_OLD_AMBIENT
-    ret += (dDiffuseLight - light_globalAmbient) * dAlbedo + material_ambient * light_globalAmbient;
+		ret += (dDiffuseLight - light_globalAmbient) * dAlbedo + material_ambient * light_globalAmbient;
 #else
-    ret += dAlbedo * dDiffuseLight;
+		ret += dAlbedo * dDiffuseLight;
 #endif
 #ifdef LIT_SPECULAR
-    ret += dSpecularLight;
+		ret += dSpecularLight;
 #endif
 #ifdef LIT_REFLECTIONS
-    ret += dReflection.rgb * dReflection.a;
+		ret += dReflection.rgb * dReflection.a;
 #endif
 
 #ifdef LIT_SHEEN
-    float sheenScaling = 1.0 - max(max(sSpecularity.r, sSpecularity.g), sSpecularity.b) * 0.157;
-    ret = ret * sheenScaling + (sSpecularLight + sReflection.rgb) * sSpecularity;
+		float sheenScaling = 1.0 - max(max(sSpecularity.r, sSpecularity.g), sSpecularity.b) * 0.157;
+		ret = ret * sheenScaling + (sSpecularLight + sReflection.rgb) * sSpecularity;
 #endif
 #ifdef LIT_CLEARCOAT
-    float clearCoatScaling = 1.0 - ccFresnel * ccSpecularity;
-    ret = ret * clearCoatScaling + (ccSpecularLight + ccReflection.rgb) * ccSpecularity;
+		float clearCoatScaling = 1.0 - ccFresnel * ccSpecularity;
+		ret = ret * clearCoatScaling + (ccSpecularLight + ccReflection.rgb) * ccSpecularity;
 #endif
 
-    return ret;
+		return ret;
 }
 `;
 

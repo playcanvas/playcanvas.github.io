@@ -1,29 +1,29 @@
 /**
  * @license
- * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
- * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
+ * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 const decodeTable = {
-  'linear': 'decodeLinear',
-  'srgb': 'decodeGamma',
-  'rgbm': 'decodeRGBM',
-  'rgbe': 'decodeRGBE',
-  'rgbp': 'decodeRGBP'
+	'linear': 'decodeLinear',
+	'srgb': 'decodeGamma',
+	'rgbm': 'decodeRGBM',
+	'rgbe': 'decodeRGBE',
+	'rgbp': 'decodeRGBP'
 };
 const encodeTable = {
-  'linear': 'encodeLinear',
-  'srgb': 'encodeGamma',
-  'rgbm': 'encodeRGBM',
-  'rgbe': 'encodeRGBE',
-  'rgbp': 'encodeRGBP'
+	'linear': 'encodeLinear',
+	'srgb': 'encodeGamma',
+	'rgbm': 'encodeRGBM',
+	'rgbe': 'encodeRGBE',
+	'rgbp': 'encodeRGBP'
 };
 class ChunkUtils {
-  static decodeFunc(encoding) {
-    return decodeTable[encoding] || 'decodeGamma';
-  }
-  static encodeFunc(encoding) {
-    return encodeTable[encoding] || 'encodeGamma';
-  }
+	static decodeFunc(encoding) {
+		return decodeTable[encoding] || 'decodeGamma';
+	}
+	static encodeFunc(encoding) {
+		return encodeTable[encoding] || 'encodeGamma';
+	}
 }
 
 export { ChunkUtils };

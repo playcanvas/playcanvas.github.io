@@ -1,6 +1,6 @@
 var viewDirPS = `
 void getViewDir() {
-    dViewDirW = normalize(view_position - vPositionW);
+		dViewDirW = normalize(view_position - vPositionW);
 }
 `;
 

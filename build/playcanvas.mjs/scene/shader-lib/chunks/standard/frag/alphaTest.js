@@ -2,7 +2,7 @@ var alphaTestPS = `
 uniform float alpha_ref;
 
 void alphaTest(float a) {
-    if (a < alpha_ref) discard;
+		if (a < alpha_ref) discard;
 }
 `;
 

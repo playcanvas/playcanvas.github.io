@@ -1,30 +1,34 @@
 /**
  * @license
- * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
- * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
+ * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 var sheenGlossPS = `
 #ifdef MAPFLOAT
-uniform float material_sheenGlossiness;
+uniform float material_sheenGloss;
 #endif
 
 void getSheenGlossiness() {
-    float sheenGlossiness = 1.0;
+		float sheenGlossiness = 1.0;
 
-    #ifdef MAPFLOAT
-    sheenGlossiness *= material_sheenGlossiness;
-    #endif
+		#ifdef MAPFLOAT
+		sheenGlossiness *= material_sheenGloss;
+		#endif
 
-    #ifdef MAPTEXTURE
-    sheenGlossiness *= texture2DBias($SAMPLER, $UV, textureBias).$CH;
-    #endif
+		#ifdef MAPTEXTURE
+		sheenGlossiness *= texture2DBias($SAMPLER, $UV, textureBias).$CH;
+		#endif
 
-    #ifdef MAPVERTEX
-    sheenGlossiness *= saturate(vVertexColor.$VC);
-    #endif
+		#ifdef MAPVERTEX
+		sheenGlossiness *= saturate(vVertexColor.$VC);
+		#endif
 
-    sheenGlossiness += 0.0000001;
-    sGlossiness = sheenGlossiness;
+		#ifdef MAPINVERT
+		sheenGlossiness = 1.0 - sheenGlossiness;
+		#endif
+
+		sheenGlossiness += 0.0000001;
+		sGlossiness = sheenGlossiness;
 }
 `;
 

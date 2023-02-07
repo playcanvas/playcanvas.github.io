@@ -1,7 +1,7 @@
 class ScrollViewComponentData {
-  constructor() {
-    this.enabled = true;
-  }
+	constructor() {
+		this.enabled = true;
+	}
 }
 
 export { ScrollViewComponentData };

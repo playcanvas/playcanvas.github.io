@@ -4,6 +4,42 @@
   (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.observer = {}));
 })(this, (function (exports) { 'use strict';
 
+  function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) {
+    try {
+      var info = gen[key](arg);
+      var value = info.value;
+    } catch (error) {
+      reject(error);
+      return;
+    }
+
+    if (info.done) {
+      resolve(value);
+    } else {
+      Promise.resolve(value).then(_next, _throw);
+    }
+  }
+
+  function _asyncToGenerator(fn) {
+    return function () {
+      var self = this,
+          args = arguments;
+      return new Promise(function (resolve, reject) {
+        var gen = fn.apply(self, args);
+
+        function _next(value) {
+          asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value);
+        }
+
+        function _throw(err) {
+          asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err);
+        }
+
+        _next(undefined);
+      });
+    };
+  }
+
   function _defineProperties(target, props) {
     for (var i = 0; i < props.length; i++) {
       var descriptor = props[i];
@@ -17,6 +53,9 @@
   function _createClass(Constructor, protoProps, staticProps) {
     if (protoProps) _defineProperties(Constructor.prototype, protoProps);
     if (staticProps) _defineProperties(Constructor, staticProps);
+    Object.defineProperty(Constructor, "prototype", {
+      writable: false
+    });
     return Constructor;
   }
 
@@ -1285,6 +1324,7 @@
       var _this;
 
       _this = _Events.call(this) || this;
+      _this._executing = 0;
       _this._actions = [];
       _this._currentActionIndex = -1;
       _this._canUndo = false;
@@ -1297,17 +1337,17 @@
     _proto.add = function add(action) {
       if (!action.name) {
         console.error('Trying to add history action without name');
-        return;
+        return false;
       }
 
       if (!action.undo) {
         console.error('Trying to add history action without undo method', action.name);
-        return;
+        return false;
       }
 
       if (!action.redo) {
         console.error('Trying to add history action without redo method', action.name);
-        return;
+        return false;
       }
 
       if (this._currentActionIndex !== this._actions.length - 1) {
@@ -1325,49 +1365,163 @@
       this.emit('add', action.name);
       this.canUndo = true;
       this.canRedo = false;
+      return true;
     };
 
-    _proto.undo = function undo() {
-      if (!this.canUndo) return;
-      var name = this.currentAction.name;
+    _proto.addAndExecute = function () {
+      var _addAndExecute = _asyncToGenerator(regeneratorRuntime.mark(function _callee(action) {
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                if (!this.add(action)) {
+                  _context.next = 8;
+                  break;
+                }
 
-      try {
-        this.currentAction.undo();
-      } catch (ex) {
-        console.info('%c(pcui.History#undo)', 'color: #f00');
-        console.log(ex.stack);
-        return;
+                _context.prev = 1;
+                this.executing++;
+                _context.next = 5;
+                return action.redo();
+
+              case 5:
+                _context.prev = 5;
+                this.executing--;
+                return _context.finish(5);
+
+              case 8:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this, [[1,, 5, 8]]);
+      }));
+
+      function addAndExecute(_x) {
+        return _addAndExecute.apply(this, arguments);
       }
 
-      this._currentActionIndex--;
-      this.emit('undo', name);
+      return addAndExecute;
+    }();
 
-      if (this._currentActionIndex < 0) {
-        this.canUndo = false;
+    _proto.undo = function () {
+      var _undo = _asyncToGenerator(regeneratorRuntime.mark(function _callee2() {
+        var name, undo;
+        return regeneratorRuntime.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                if (this.canUndo) {
+                  _context2.next = 2;
+                  break;
+                }
+
+                return _context2.abrupt("return");
+
+              case 2:
+                name = this.currentAction.name;
+                undo = this.currentAction.undo;
+                this._currentActionIndex--;
+                this.emit('undo', name);
+
+                if (this._currentActionIndex < 0) {
+                  this.canUndo = false;
+                }
+
+                this.canRedo = true;
+                _context2.prev = 8;
+                this.executing++;
+                _context2.next = 12;
+                return undo();
+
+              case 12:
+                _context2.next = 18;
+                break;
+
+              case 14:
+                _context2.prev = 14;
+                _context2.t0 = _context2["catch"](8);
+                console.info('%c(pcui.History#undo)', 'color: #f00');
+                console.log(_context2.t0.stack);
+
+              case 18:
+                _context2.prev = 18;
+                this.executing--;
+                return _context2.finish(18);
+
+              case 21:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this, [[8, 14, 18, 21]]);
+      }));
+
+      function undo() {
+        return _undo.apply(this, arguments);
       }
 
-      this.canRedo = true;
-    };
+      return undo;
+    }();
 
-    _proto.redo = function redo() {
-      if (!this.canRedo) return;
-      this._currentActionIndex++;
+    _proto.redo = function () {
+      var _redo = _asyncToGenerator(regeneratorRuntime.mark(function _callee3() {
+        var redo;
+        return regeneratorRuntime.wrap(function _callee3$(_context3) {
+          while (1) {
+            switch (_context3.prev = _context3.next) {
+              case 0:
+                if (this.canRedo) {
+                  _context3.next = 2;
+                  break;
+                }
 
-      try {
-        this.currentAction.redo();
-      } catch (ex) {
-        console.info('%c(pcui.History#redo)', 'color: #f00');
-        console.log(ex.stack);
-        return;
+                return _context3.abrupt("return");
+
+              case 2:
+                this._currentActionIndex++;
+                redo = this.currentAction.redo;
+                this.emit('redo', this.currentAction.name);
+                this.canUndo = true;
+
+                if (this._currentActionIndex === this._actions.length - 1) {
+                  this.canRedo = false;
+                }
+
+                _context3.prev = 7;
+                this.executing++;
+                _context3.next = 11;
+                return redo();
+
+              case 11:
+                _context3.next = 17;
+                break;
+
+              case 13:
+                _context3.prev = 13;
+                _context3.t0 = _context3["catch"](7);
+                console.info('%c(pcui.History#redo)', 'color: #f00');
+                console.log(_context3.t0.stack);
+
+              case 17:
+                _context3.prev = 17;
+                this.executing--;
+                return _context3.finish(17);
+
+              case 20:
+              case "end":
+                return _context3.stop();
+            }
+          }
+        }, _callee3, this, [[7, 13, 17, 20]]);
+      }));
+
+      function redo() {
+        return _redo.apply(this, arguments);
       }
 
-      this.emit('redo', this.currentAction.name);
-      this.canUndo = true;
-
-      if (this._currentActionIndex === this._actions.length - 1) {
-        this.canRedo = false;
-      }
-    };
+      return redo;
+    }();
 
     _proto.clear = function clear() {
       if (!this._actions.length) return;
@@ -1390,22 +1544,45 @@
     }, {
       key: "canUndo",
       get: function get() {
-        return this._canUndo;
+        return this._canUndo && !this.executing;
       },
       set: function set(value) {
         if (this._canUndo === value) return;
         this._canUndo = value;
-        this.emit('canUndo', value);
+
+        if (!this.executing) {
+          this.emit('canUndo', value);
+        }
       }
     }, {
       key: "canRedo",
       get: function get() {
-        return this._canRedo;
+        return this._canRedo && !this.executing;
       },
       set: function set(value) {
         if (this._canRedo === value) return;
         this._canRedo = value;
-        this.emit('canRedo', value);
+
+        if (!this.executing) {
+          this.emit('canRedo', value);
+        }
+      }
+    }, {
+      key: "executing",
+      get: function get() {
+        return this._executing;
+      },
+      set: function set(value) {
+        if (this._executing === value) return;
+        this._executing = value;
+
+        if (this._executing) {
+          this.emit('canUndo', false);
+          this.emit('canRedo', false);
+        } else {
+          this.emit('canUndo', this._canUndo);
+          this.emit('canRedo', this._canRedo);
+        }
       }
     }]);
 

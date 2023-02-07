@@ -1,10 +1,17 @@
 /**
  * @license
- * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
- * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
+ * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 var gles2PS = `
 #define texture2DBias texture2D
+
+// pass / accept shadow map or texture as a function parameter, on webgl this is simply passsed as is
+// but this is needed for WebGPU
+#define SHADOWMAP_PASS(name) name
+#define SHADOWMAP_ACCEPT(name) sampler2D name
+#define TEXTURE_PASS(name) name
+#define TEXTURE_ACCEPT(name) sampler2D name
 
 #ifndef SUPPORTS_TEXLOD
 

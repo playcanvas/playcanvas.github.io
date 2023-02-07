@@ -1,7 +1,7 @@
 class ModelComponentData {
-  constructor() {
-    this.enabled = true;
-  }
+	constructor() {
+		this.enabled = true;
+	}
 }
 
 export { ModelComponentData };

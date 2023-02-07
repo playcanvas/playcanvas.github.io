@@ -1,0 +1,1 @@
+import"../../../core/tracing.js";import{INDEXFORMAT_UINT16 as t}from"../constants.js";import{WebgpuBuffer as r}from"./webgpu-buffer.js";class o extends r{constructor(r){super(),this.format=null,this.format=r.format===t?"uint16":"uint32"}unlock(t){const r=t.device;super.unlock(r,t.usage,GPUBufferUsage.INDEX,t.storage)}}export{o as WebgpuIndexBuffer};

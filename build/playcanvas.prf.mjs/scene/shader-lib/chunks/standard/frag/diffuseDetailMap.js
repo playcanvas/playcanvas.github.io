@@ -1,15 +1,15 @@
 /**
  * @license
- * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
- * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
+ * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 var diffuseDetailMapPS = `
 vec3 addAlbedoDetail(vec3 albedo) {
 #ifdef MAPTEXTURE
-    vec3 albedoDetail = $DECODE(texture2DBias($SAMPLER, $UV, textureBias)).$CH;
-    return detailMode_$DETAILMODE(albedo, albedoDetail);
+		vec3 albedoDetail = $DECODE(texture2DBias($SAMPLER, $UV, textureBias)).$CH;
+		return detailMode_$DETAILMODE(albedo, albedoDetail);
 #else
-    return albedo;
+		return albedo;
 #endif
 }
 `;

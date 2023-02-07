@@ -1,15 +1,15 @@
 /**
  * @license
- * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
- * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
+ * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 var particleOutputFloatPS = `
 void writeOutput() {
-    if (gl_FragCoord.y<1.0) {
-        gl_FragColor = vec4(outPos, (outAngle + 1000.0) * visMode);
-    } else {
-        gl_FragColor = vec4(outVel, outLife);
-    }
+		if (gl_FragCoord.y<1.0) {
+				gl_FragColor = vec4(outPos, (outAngle + 1000.0) * visMode);
+		} else {
+				gl_FragColor = vec4(outVel, outLife);
+		}
 }
 `;
 

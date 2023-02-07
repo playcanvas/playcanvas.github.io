@@ -1,15 +1,15 @@
 var aoPS = `
 
 void getAO() {
-    dAo = 1.0;
+		dAo = 1.0;
 
-    #ifdef MAPTEXTURE
-    dAo *= texture2DBias($SAMPLER, $UV, textureBias).$CH;
-    #endif
+		#ifdef MAPTEXTURE
+		dAo *= texture2DBias($SAMPLER, $UV, textureBias).$CH;
+		#endif
 
-    #ifdef MAPVERTEX
-    dAo *= saturate(vVertexColor.$VC);
-    #endif
+		#ifdef MAPVERTEX
+		dAo *= saturate(vVertexColor.$VC);
+		#endif
 }
 `;
 

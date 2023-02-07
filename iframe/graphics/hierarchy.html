@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <script src="../../build/playcanvas-observer.js"></script>
+    <script src="../../build/regeneratorRuntimePolyfill.js"></script>
     <script src="../../build/urlSearchParamsPolyfill.js"></script>
     <script src="../../build/promisePolyfill.js"></script>
     <script src="../../build/fetchPolyfill.js"></script>
-    <script src="../../build/regeneratorRuntimePolyfill.js"></script>
     <script src="../../build/arrayFromPolyfill.js"></script>
     <script src="../../build/objectValuesPolyfill.js"></script>
+    <script src="../../build/playcanvas-observer.js"></script>
     <link rel="stylesheet" href="/styles.css">
     <style>
         body {
@@ -53,108 +53,120 @@
 
     function example(canvas) {
 
-      // Create the app and start the update loop
-      var app = new pc.Application(canvas, {});
-      app.start();
+      pc.createGraphicsDevice(canvas).then(function (device) {
 
-      // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
-      app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
-      app.setCanvasResolution(pc.RESOLUTION_AUTO);
+        var createOptions = new pc.AppOptions();
+        createOptions.graphicsDevice = device;
 
-      window.addEventListener("resize", function () {
-        app.resizeCanvas(canvas.width, canvas.height);
-      });
-
-      app.scene.ambientLight = new pc.Color(0.2, 0.2, 0.2);
-
-      // helper function to create a primitive with shape type, position, scale
-      function createPrimitive(primitiveType, position, scale) {
-        // create material of random color
-        var material = new pc.StandardMaterial();
-        material.diffuse = new pc.Color(Math.random(), Math.random(), Math.random());
-        material.update();
-
-        // create primitive with a render component
-        var primitive = new pc.Entity();
-        primitive.addComponent('render', {
-          type: primitiveType,
-          material: material });
+        createOptions.componentSystems = [
+        // @ts-ignore
+        pc.RenderComponentSystem,
+        // @ts-ignore
+        pc.CameraComponentSystem,
+        // @ts-ignore
+        pc.LightComponentSystem];
 
 
-        // set position and scale
-        primitive.setLocalPosition(position);
-        primitive.setLocalScale(scale);
+        var app = new pc.AppBase(canvas);
+        app.init(createOptions);
 
-        return primitive;
-      }
+        // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
+        app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
+        app.setCanvasResolution(pc.RESOLUTION_AUTO);
 
-      // list of all created entities
-      var entities = [];
+        app.start();
 
-      // helper recursive function to create a next layer of entities for a specified parent
-      function createChildren(parent, gridSize, scale, scaleDelta, spacing, levels) {
-        if (levels >= 0) {
-          var offset = spacing * (gridSize - 1) * 0.5;
-          for (var x = 0; x < gridSize; x++) {
-            for (var y = 0; y < gridSize; y++) {
-              var shape = Math.random() < 0.5 ? "box" : "sphere";
-              var position = new pc.Vec3(x * spacing - offset, spacing, y * spacing - offset);
-              var entity = createPrimitive(shape, position, new pc.Vec3(scale, scale, scale));
+        app.scene.ambientLight = new pc.Color(0.2, 0.2, 0.2);
 
-              parent.addChild(entity);
-              entities.push(entity);
+        // helper function to create a primitive with shape type, position, scale
+        function createPrimitive(primitiveType, position, scale) {
+          // create material of random color
+          var material = new pc.StandardMaterial();
+          material.diffuse = new pc.Color(Math.random(), Math.random(), Math.random());
+          material.update();
 
-              createChildren(entity, gridSize, scale - scaleDelta, scaleDelta, spacing * 0.7, levels - 1);
+          // create primitive with a render component
+          var primitive = new pc.Entity();
+          primitive.addComponent('render', {
+            type: primitiveType,
+            material: material });
+
+
+          // set position and scale
+          primitive.setLocalPosition(position);
+          primitive.setLocalScale(scale);
+
+          return primitive;
+        }
+
+        // list of all created entities
+        var entities = [];
+
+        // helper recursive function to create a next layer of entities for a specified parent
+        function createChildren(parent, gridSize, scale, scaleDelta, spacing, levels) {
+          if (levels >= 0) {
+            var offset = spacing * (gridSize - 1) * 0.5;
+            for (var x = 0; x < gridSize; x++) {
+              for (var y = 0; y < gridSize; y++) {
+                var shape = Math.random() < 0.5 ? "box" : "sphere";
+                var position = new pc.Vec3(x * spacing - offset, spacing, y * spacing - offset);
+                var entity = createPrimitive(shape, position, new pc.Vec3(scale, scale, scale));
+
+                parent.addChild(entity);
+                entities.push(entity);
+
+                createChildren(entity, gridSize, scale - scaleDelta, scaleDelta, spacing * 0.7, levels - 1);
+              }
             }
           }
         }
-      }
 
-      // dummy root entity
-      var root = new pc.Entity();
-      app.root.addChild(root);
+        // dummy root entity
+        var root = new pc.Entity();
+        app.root.addChild(root);
 
-      // generate hierarchy of children entities
-      var levels = 5;
-      var gridSize = 2;
-      var scale = 1.7;
-      var scaleDelta = 0.25;
-      var spacing = 7;
-      createChildren(root, gridSize, scale, scaleDelta, spacing, levels);
-      console.log("number of created entities: " + entities.length);
+        // generate hierarchy of children entities
+        var levels = 5;
+        var gridSize = 2;
+        var scale = 1.7;
+        var scaleDelta = 0.25;
+        var spacing = 7;
+        createChildren(root, gridSize, scale, scaleDelta, spacing, levels);
+        console.log("number of created entities: " + entities.length);
 
-      // Create main camera
-      var camera = new pc.Entity();
-      camera.addComponent("camera", {
-        clearColor: new pc.Color(0.1, 0.1, 0.1) });
+        // Create main camera
+        var camera = new pc.Entity();
+        camera.addComponent("camera", {
+          clearColor: new pc.Color(0.1, 0.1, 0.1) });
 
-      camera.setLocalPosition(90 * Math.sin(0), 40, 90 * Math.cos(0));
-      camera.lookAt(new pc.Vec3(0, 5, 0));
-      app.root.addChild(camera);
+        camera.setLocalPosition(90 * Math.sin(0), 40, 90 * Math.cos(0));
+        camera.lookAt(new pc.Vec3(0, 5, 0));
+        app.root.addChild(camera);
 
-      // Create an Entity with a omni light component
-      var light = new pc.Entity();
-      light.addComponent("light", {
-        type: "omni",
-        color: new pc.Color(1, 1, 1),
-        range: 150 });
+        // Create an Entity with a omni light component
+        var light = new pc.Entity();
+        light.addComponent("light", {
+          type: "omni",
+          color: new pc.Color(1, 1, 1),
+          range: 150 });
 
-      light.translate(40, 60, 50);
-      app.root.addChild(light);
+        light.translate(40, 60, 50);
+        app.root.addChild(light);
 
-      // update each frame
-      var time = 0;
-      app.on("update", function (dt) {
-        time += dt;
+        // update each frame
+        var time = 0;
+        app.on("update", function (dt) {
+          time += dt;
 
-        // rotation quaternion changing with time
-        var rot = new pc.Quat();
-        rot.setFromEulerAngles(time * 5, time * 13, time * 6);
+          // rotation quaternion changing with time
+          var rot = new pc.Quat();
+          rot.setFromEulerAngles(time * 5, time * 13, time * 6);
 
-        // apply it to all entities
-        for (var e = 0; e < entities.length; e++) {
-          entities[e].setLocalRotation(rot);
-        }
+          // apply it to all entities
+          for (var e = 0; e < entities.length; e++) {
+            entities[e].setLocalRotation(rot);
+          }
+        });
       });
     } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'Graphics');_defineProperty(Example, "NAME", 'Hierarchy');
         var example = new Example();

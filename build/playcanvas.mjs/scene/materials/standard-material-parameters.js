@@ -1,176 +1,149 @@
 import { extends as _extends } from '../../_virtual/_rollupPluginBabelHelpers.js';
 
-function _textureParameter(name, channel = true) {
-  const tex = {};
-  tex[`${name}Map`] = 'texture';
-  if (channel) tex[`${name}MapChannel`] = 'string';
-  tex[`${name}MapUv`] = 'number';
-  tex[`${name}MapTiling`] = 'vec2';
-  tex[`${name}MapOffset`] = 'vec2';
-  tex[`${name}MapRotation`] = 'number';
-  return tex;
+function _textureParameter(name, channel = true, vertexColor = true) {
+	const result = {};
+	result[`${name}Map`] = 'texture';
+	result[`${name}MapTiling`] = 'vec2';
+	result[`${name}MapOffset`] = 'vec2';
+	result[`${name}MapRotation`] = 'number';
+	result[`${name}MapUv`] = 'number';
+	if (channel) {
+		result[`${name}MapChannel`] = 'string';
+		if (vertexColor) {
+			result[`${name}VertexColor`] = 'boolean';
+			result[`${name}VertexColorChannel`] = 'string';
+		}
+	}
+	return result;
 }
 const standardMaterialParameterTypes = _extends({
-  name: 'string',
-  chunks: 'chunks',
-  mappingFormat: 'string',
-  _engine: 'boolean',
-
-  ambient: 'rgb',
-  ambientTint: 'boolean',
-  aoVertexColor: 'boolean',
-  aoVertexColorChannel: 'string'
+	name: 'string',
+	chunks: 'chunks',
+	mappingFormat: 'string',
+	_engine: 'boolean',
+	ambient: 'rgb',
+	ambientTint: 'boolean'
 }, _textureParameter('ao'), {
-  diffuse: 'rgb',
-  diffuseTint: 'boolean',
-  diffuseVertexColor: 'boolean',
-  diffuseVertexColorChannel: 'string'
-}, _textureParameter('diffuse'), _textureParameter('diffuseDetail'), {
-  diffuseDetailMode: 'string',
-  specular: 'rgb',
-  specularTint: 'boolean',
-  specularVertexColor: 'boolean',
-  specularVertexColorChannel: 'string'
+	diffuse: 'rgb',
+	diffuseTint: 'boolean'
+}, _textureParameter('diffuse'), _textureParameter('diffuseDetail', true, false), {
+	diffuseDetailMode: 'string',
+	specular: 'rgb',
+	specularTint: 'boolean'
 }, _textureParameter('specular'), {
-  occludeSpecular: 'enum:occludeSpecular',
-  specularityFactor: 'number',
-  specularityFactorTint: 'boolean',
-  specularityFactorVertexColor: 'boolean',
-  specularityFactorVertexColorChannel: 'string'
+	occludeSpecular: 'enum:occludeSpecular',
+	specularityFactor: 'number',
+	specularityFactorTint: 'boolean'
 }, _textureParameter('specularityFactor'), {
-  useMetalness: 'boolean',
-  metalness: 'number',
-  enableGGXSpecular: 'boolean',
-  anisotropy: 'number',
-  metalnessTint: 'boolean',
-  metalnessVertexColor: 'boolean',
-  metalnessVertexColorChannel: 'string'
+	useMetalness: 'boolean',
+	metalness: 'number',
+	enableGGXSpecular: 'boolean',
+	anisotropy: 'number',
+	metalnessTint: 'boolean'
 }, _textureParameter('metalness'), {
-  useMetalnessSpecularColor: 'boolean',
-  conserveEnergy: 'boolean',
-  shininess: 'number',
-  glossVertexColor: 'boolean',
-  glossVertexColorChannel: 'string'
+	useMetalnessSpecularColor: 'boolean',
+	conserveEnergy: 'boolean',
+	shininess: 'number',
+	gloss: 'number',
+	glossInvert: 'boolean'
 }, _textureParameter('gloss'), {
-  clearCoat: 'number',
-  clearCoatVertexColor: 'boolean',
-  clearCoatVertexColorChannel: 'string'
+	clearCoat: 'number'
 }, _textureParameter('clearCoat'), {
-  clearCoatGlossiness: 'number',
-  clearCoatGlossVertexColor: 'boolean',
-  clearCoatGlossVertexColorChannel: 'string'
+	clearCoatGloss: 'number',
+	clearCoatGlossInvert: 'boolean'
 }, _textureParameter('clearCoatGloss'), {
-  clearCoatBumpiness: 'number'
+	clearCoatBumpiness: 'number'
 }, _textureParameter('clearCoatNormal', false), {
-  useSheen: 'boolean',
-  sheen: 'rgb'
+	useSheen: 'boolean',
+	sheen: 'rgb',
+	sheenTint: 'boolean'
 }, _textureParameter('sheen'), {
-  sheenTint: 'boolean',
-  sheenVertexColor: 'boolean',
-  sheenVertexColorChannel: 'string',
-  sheenGloss: 'number'
+	sheenGloss: 'number',
+	sheenGlossTint: 'boolean',
+	sheenGlossInvert: 'boolean'
 }, _textureParameter('sheenGloss'), {
-  sheenGlossTint: 'boolean',
-  sheenGlossVertexColor: 'boolean',
-  sheenGlossVertexColorChannel: 'string',
-  fresnelModel: 'number',
-  emissive: 'rgb',
-  emissiveTint: 'boolean',
-  emissiveVertexColor: 'boolean',
-  emissiveVertexColorChannel: 'string'
+	fresnelModel: 'number',
+	emissive: 'rgb',
+	emissiveTint: 'boolean'
 }, _textureParameter('emissive'), {
-  emissiveIntensity: 'number'
+	emissiveIntensity: 'number'
 }, _textureParameter('normal', false), {
-  bumpiness: 'number'
+	bumpiness: 'number'
 }, _textureParameter('normalDetail', false), {
-  normalDetailMapBumpiness: 'number'
-}, _textureParameter('height'), {
-  heightMapFactor: 'number',
-  alphaToCoverage: 'boolean',
-  alphaTest: 'number',
-  alphaFade: 'number',
-  opacity: 'number',
-  opacityVertexColor: 'boolean',
-  opacityVertexColorChannel: 'string'
+	normalDetailMapBumpiness: 'number'
+}, _textureParameter('height', true, false), {
+	heightMapFactor: 'number',
+	alphaToCoverage: 'boolean',
+	alphaTest: 'number',
+	alphaFade: 'number',
+	opacity: 'number'
 }, _textureParameter('opacity'), {
-  opacityFadesSpecular: 'boolean',
-  reflectivity: 'number',
-  refraction: 'number'
+	opacityFadesSpecular: 'boolean',
+	reflectivity: 'number',
+	refraction: 'number',
+	refractionTint: 'boolean'
 }, _textureParameter('refraction'), {
-  refractionTint: 'boolean',
-  refractionVertexColor: 'boolean',
-  refractionVertexColorChannel: 'string',
-  refractionIndex: 'number',
-  thickness: 'number'
+	refractionIndex: 'number',
+	thickness: 'number',
+	thicknessTint: 'boolean'
 }, _textureParameter('thickness'), {
-  thicknessTint: 'boolean',
-  thicknessVertexColor: 'boolean',
-  thicknessVertexColorChannel: 'string',
-  attenuation: 'rgb',
-  attenuationDistance: 'number',
-  useDynamicRefraction: 'boolean',
-  sphereMap: 'texture',
-  cubeMap: 'cubemap',
-  cubeMapProjection: 'number',
-  cubeMapProjectionBox: 'boundingbox',
-  useIridescence: 'boolean',
-  iridescence: 'number'
+	attenuation: 'rgb',
+	attenuationDistance: 'number',
+	useDynamicRefraction: 'boolean',
+	sphereMap: 'texture',
+	cubeMap: 'cubemap',
+	cubeMapProjection: 'number',
+	cubeMapProjectionBox: 'boundingbox',
+	useIridescence: 'boolean',
+	iridescence: 'number',
+	iridescenceTint: 'boolean'
 }, _textureParameter('iridescence'), {
-  iridescenceTint: 'boolean',
-  iridescenceVertexColor: 'boolean',
-  iridescenceVertexColorChannel: 'string',
-  iridescenceThicknessMin: 'number',
-  iridescenceThicknessMax: 'number'
-}, _textureParameter('iridescenceThickness'), {
-  iridescenceThicknessTint: 'boolean',
-  iridescenceThicknessVertexColor: 'boolean',
-  iridescenceThicknessVertexColorChannel: 'string',
-  iridescenceRefractionIndex: 'number',
-  lightVertexColor: 'boolean',
-  lightVertexColorChannel: 'string'
-}, _textureParameter('light'), {
-  depthTest: 'boolean',
-  depthFunc: 'enum:depthFunc',
-  depthWrite: 'boolean',
-  depthBias: 'number',
-  slopeDepthBias: 'number',
-  cull: 'enum:cull',
-  blendType: 'enum:blendType',
-  shadingModel: 'enum:shadingModel',
-  useFog: 'boolean',
-  useLighting: 'boolean',
-  useSkybox: 'boolean',
-  useGammaTonemap: 'boolean',
-  envAtlas: 'texture'
-
+	iridescenceThicknessTint: 'boolean',
+	iridescenceThicknessMin: 'number',
+	iridescenceThicknessMax: 'number',
+	iridescenceRefractionIndex: 'number'
+}, _textureParameter('iridescenceThickness'), _textureParameter('light'), {
+	depthTest: 'boolean',
+	depthFunc: 'enum:depthFunc',
+	depthWrite: 'boolean',
+	depthBias: 'number',
+	slopeDepthBias: 'number',
+	cull: 'enum:cull',
+	blendType: 'enum:blendType',
+	shadingModel: 'enum:shadingModel',
+	useFog: 'boolean',
+	useLighting: 'boolean',
+	useSkybox: 'boolean',
+	useGammaTonemap: 'boolean',
+	envAtlas: 'texture',
+	twoSidedLighting: 'boolean'
 });
-
 const standardMaterialTextureParameters = [];
 for (const key in standardMaterialParameterTypes) {
-  const type = standardMaterialParameterTypes[key];
-  if (type === 'texture') {
-    standardMaterialTextureParameters.push(key);
-  }
+	const type = standardMaterialParameterTypes[key];
+	if (type === 'texture') {
+		standardMaterialTextureParameters.push(key);
+	}
 }
 const standardMaterialCubemapParameters = [];
 for (const key in standardMaterialParameterTypes) {
-  const type = standardMaterialParameterTypes[key];
-  if (type === 'cubemap') {
-    standardMaterialCubemapParameters.push(key);
-  }
+	const type = standardMaterialParameterTypes[key];
+	if (type === 'cubemap') {
+		standardMaterialCubemapParameters.push(key);
+	}
 }
 const standardMaterialRemovedParameters = {
-  aoMapVertexColor: 'boolean',
-  diffuseMapTint: 'boolean',
-  diffuseMapVertexColor: 'boolean',
-  emissiveMapTint: 'boolean',
-  emissiveMapVertexColor: 'boolean',
-  glossMapVertexColor: 'boolean',
-  metalnessMapVertexColor: 'boolean',
-  opacityMapVertexColor: 'boolean',
-  specularAntialias: 'boolean',
-  specularMapTint: 'boolean',
-  specularMapVertexColor: 'boolean'
+	aoMapVertexColor: 'boolean',
+	diffuseMapTint: 'boolean',
+	diffuseMapVertexColor: 'boolean',
+	emissiveMapTint: 'boolean',
+	emissiveMapVertexColor: 'boolean',
+	glossMapVertexColor: 'boolean',
+	metalnessMapVertexColor: 'boolean',
+	opacityMapVertexColor: 'boolean',
+	specularAntialias: 'boolean',
+	specularMapTint: 'boolean',
+	specularMapVertexColor: 'boolean'
 };
 
 export { standardMaterialCubemapParameters, standardMaterialParameterTypes, standardMaterialRemovedParameters, standardMaterialTextureParameters };

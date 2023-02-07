@@ -1,1 +1,1 @@
-var n="\n\nvoid getAO() {\n    dAo = 1.0;\n\n    #ifdef MAPTEXTURE\n    dAo *= texture2DBias($SAMPLER, $UV, textureBias).$CH;\n    #endif\n\n    #ifdef MAPVERTEX\n    dAo *= saturate(vVertexColor.$VC);\n    #endif\n}\n";export{n as default};
+var t="\n\nvoid getAO() {\n\t\tdAo = 1.0;\n\n\t\t#ifdef MAPTEXTURE\n\t\tdAo *= texture2DBias($SAMPLER, $UV, textureBias).$CH;\n\t\t#endif\n\n\t\t#ifdef MAPVERTEX\n\t\tdAo *= saturate(vVertexColor.$VC);\n\t\t#endif\n}\n";export{t as default};

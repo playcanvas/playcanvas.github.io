@@ -1,7 +1,7 @@
 class JointComponentData {
-  constructor() {
-    this.enabled = true;
-  }
+	constructor() {
+		this.enabled = true;
+	}
 }
 
 export { JointComponentData };

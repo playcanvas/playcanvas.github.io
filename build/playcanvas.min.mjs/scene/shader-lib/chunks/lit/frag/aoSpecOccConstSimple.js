@@ -1,1 +1,1 @@
-var d="\nvoid occludeSpecular() {\n    dSpecularLight *= dAo;\n    dReflection *= dAo;\n}\n";export{d as default};
+var t="\nvoid occludeSpecular() {\n\t\tdSpecularLight *= dAo;\n\t\tdReflection *= dAo;\n}\n";export{t as default};

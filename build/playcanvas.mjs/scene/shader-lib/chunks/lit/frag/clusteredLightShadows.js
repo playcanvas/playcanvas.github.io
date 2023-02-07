@@ -3,94 +3,94 @@ var clusteredLightShadowsPS = `
 
 #ifdef GL2
 
-    #if defined(CLUSTER_SHADOW_TYPE_PCF1)
+		#if defined(CLUSTER_SHADOW_TYPE_PCF1)
 
-    float getShadowOmniClusteredPCF1(sampler2DShadow shadowMap, vec4 shadowParams, vec3 omniAtlasViewport, float shadowEdgePixels, vec3 dir) {
+		float getShadowOmniClusteredPCF1(sampler2DShadow shadowMap, vec4 shadowParams, vec3 omniAtlasViewport, float shadowEdgePixels, vec3 dir) {
 
-        float shadowTextureResolution = shadowParams.x;
-        vec2 uv = getCubemapAtlasCoordinates(omniAtlasViewport, shadowEdgePixels, shadowTextureResolution, dir);
+				float shadowTextureResolution = shadowParams.x;
+				vec2 uv = getCubemapAtlasCoordinates(omniAtlasViewport, shadowEdgePixels, shadowTextureResolution, dir);
 
-        float shadowZ = length(dir) * shadowParams.w + shadowParams.z;
-        return textureShadow(shadowMap, vec3(uv, shadowZ));
-    }
+				float shadowZ = length(dir) * shadowParams.w + shadowParams.z;
+				return textureShadow(shadowMap, vec3(uv, shadowZ));
+		}
 
-    #endif
+		#endif
 
-    #if defined(CLUSTER_SHADOW_TYPE_PCF3)
+		#if defined(CLUSTER_SHADOW_TYPE_PCF3)
 
-    float getShadowOmniClusteredPCF3(sampler2DShadow shadowMap, vec4 shadowParams, vec3 omniAtlasViewport, float shadowEdgePixels, vec3 dir) {
+		float getShadowOmniClusteredPCF3(sampler2DShadow shadowMap, vec4 shadowParams, vec3 omniAtlasViewport, float shadowEdgePixels, vec3 dir) {
 
-        float shadowTextureResolution = shadowParams.x;
-        vec2 uv = getCubemapAtlasCoordinates(omniAtlasViewport, shadowEdgePixels, shadowTextureResolution, dir);
+				float shadowTextureResolution = shadowParams.x;
+				vec2 uv = getCubemapAtlasCoordinates(omniAtlasViewport, shadowEdgePixels, shadowTextureResolution, dir);
 
-        float shadowZ = length(dir) * shadowParams.w + shadowParams.z;
-        dShadowCoord = vec3(uv, shadowZ);
-        return getShadowPCF3x3(shadowMap, shadowParams.xyz);
-    }
+				float shadowZ = length(dir) * shadowParams.w + shadowParams.z;
+				dShadowCoord = vec3(uv, shadowZ);
+				return getShadowPCF3x3(shadowMap, shadowParams.xyz);
+		}
 
-    #endif
+		#endif
 
-    #if defined(CLUSTER_SHADOW_TYPE_PCF5)
+		#if defined(CLUSTER_SHADOW_TYPE_PCF5)
 
-    float getShadowOmniClusteredPCF5(sampler2DShadow shadowMap, vec4 shadowParams, vec3 omniAtlasViewport, float shadowEdgePixels, vec3 dir) {
+		float getShadowOmniClusteredPCF5(sampler2DShadow shadowMap, vec4 shadowParams, vec3 omniAtlasViewport, float shadowEdgePixels, vec3 dir) {
 
-        float shadowTextureResolution = shadowParams.x;
-        vec2 uv = getCubemapAtlasCoordinates(omniAtlasViewport, shadowEdgePixels, shadowTextureResolution, dir);
+				float shadowTextureResolution = shadowParams.x;
+				vec2 uv = getCubemapAtlasCoordinates(omniAtlasViewport, shadowEdgePixels, shadowTextureResolution, dir);
 
-        float shadowZ = length(dir) * shadowParams.w + shadowParams.z;
-        dShadowCoord = vec3(uv, shadowZ);
-        return getShadowPCF5x5(shadowMap, shadowParams.xyz);
-    }
+				float shadowZ = length(dir) * shadowParams.w + shadowParams.z;
+				dShadowCoord = vec3(uv, shadowZ);
+				return getShadowPCF5x5(shadowMap, shadowParams.xyz);
+		}
 
-    #endif
+		#endif
 
 #else
 
-    #if defined(CLUSTER_SHADOW_TYPE_PCF1)
+		#if defined(CLUSTER_SHADOW_TYPE_PCF1)
 
-    float getShadowOmniClusteredPCF1(sampler2D shadowMap, vec4 shadowParams, vec3 omniAtlasViewport, float shadowEdgePixels, vec3 dir) {
+		float getShadowOmniClusteredPCF1(sampler2D shadowMap, vec4 shadowParams, vec3 omniAtlasViewport, float shadowEdgePixels, vec3 dir) {
 
-        float shadowTextureResolution = shadowParams.x;
-        vec2 uv = getCubemapAtlasCoordinates(omniAtlasViewport, shadowEdgePixels, shadowTextureResolution, dir);
+				float shadowTextureResolution = shadowParams.x;
+				vec2 uv = getCubemapAtlasCoordinates(omniAtlasViewport, shadowEdgePixels, shadowTextureResolution, dir);
 
-        // no filter shadow sampling
-        float depth = unpackFloat(textureShadow(shadowMap, uv));
-        float shadowZ = length(dir) * shadowParams.w + shadowParams.z;
-        return depth > shadowZ ? 1.0 : 0.0;
-    }
+				// no filter shadow sampling
+				float depth = unpackFloat(textureShadow(shadowMap, uv));
+				float shadowZ = length(dir) * shadowParams.w + shadowParams.z;
+				return depth > shadowZ ? 1.0 : 0.0;
+		}
 
-    #endif
+		#endif
 
-    #if defined(CLUSTER_SHADOW_TYPE_PCF3)
+		#if defined(CLUSTER_SHADOW_TYPE_PCF3)
 
-    float getShadowOmniClusteredPCF3(sampler2D shadowMap, vec4 shadowParams, vec3 omniAtlasViewport, float shadowEdgePixels, vec3 dir) {
+		float getShadowOmniClusteredPCF3(sampler2D shadowMap, vec4 shadowParams, vec3 omniAtlasViewport, float shadowEdgePixels, vec3 dir) {
 
-        float shadowTextureResolution = shadowParams.x;
-        vec2 uv = getCubemapAtlasCoordinates(omniAtlasViewport, shadowEdgePixels, shadowTextureResolution, dir);
+				float shadowTextureResolution = shadowParams.x;
+				vec2 uv = getCubemapAtlasCoordinates(omniAtlasViewport, shadowEdgePixels, shadowTextureResolution, dir);
 
-        // pcf3
-        float shadowZ = length(dir) * shadowParams.w + shadowParams.z;
-        dShadowCoord = vec3(uv, shadowZ);
-        return getShadowPCF3x3(shadowMap, shadowParams.xyz);
-    }
+				// pcf3
+				float shadowZ = length(dir) * shadowParams.w + shadowParams.z;
+				dShadowCoord = vec3(uv, shadowZ);
+				return getShadowPCF3x3(shadowMap, shadowParams.xyz);
+		}
 
-    #endif
+		#endif
 
-    #if defined(CLUSTER_SHADOW_TYPE_PCF5)
+		#if defined(CLUSTER_SHADOW_TYPE_PCF5)
 
-    // we don't have PCF5 implementation for webgl1, use PCF3
-    float getShadowOmniClusteredPCF5(sampler2D shadowMap, vec4 shadowParams, vec3 omniAtlasViewport, float shadowEdgePixels, vec3 dir) {
+		// we don't have PCF5 implementation for webgl1, use PCF3
+		float getShadowOmniClusteredPCF5(sampler2D shadowMap, vec4 shadowParams, vec3 omniAtlasViewport, float shadowEdgePixels, vec3 dir) {
 
-        float shadowTextureResolution = shadowParams.x;
-        vec2 uv = getCubemapAtlasCoordinates(omniAtlasViewport, shadowEdgePixels, shadowTextureResolution, dir);
+				float shadowTextureResolution = shadowParams.x;
+				vec2 uv = getCubemapAtlasCoordinates(omniAtlasViewport, shadowEdgePixels, shadowTextureResolution, dir);
 
-        // pcf3
-        float shadowZ = length(dir) * shadowParams.w + shadowParams.z;
-        dShadowCoord = vec3(uv, shadowZ);
-        return getShadowPCF3x3(shadowMap, shadowParams.xyz);
-    }
+				// pcf3
+				float shadowZ = length(dir) * shadowParams.w + shadowParams.z;
+				dShadowCoord = vec3(uv, shadowZ);
+				return getShadowPCF3x3(shadowMap, shadowParams.xyz);
+		}
 
-    #endif
+		#endif
 
 #endif
 
@@ -99,59 +99,59 @@ var clusteredLightShadowsPS = `
 
 #ifdef GL2
 
-    #if defined(CLUSTER_SHADOW_TYPE_PCF1)
+		#if defined(CLUSTER_SHADOW_TYPE_PCF1)
 
-    float getShadowSpotClusteredPCF1(sampler2DShadow shadowMap, vec4 shadowParams) {
-        return textureShadow(shadowMap, dShadowCoord);
-    }
+		float getShadowSpotClusteredPCF1(sampler2DShadow shadowMap, vec4 shadowParams) {
+				return textureShadow(shadowMap, dShadowCoord);
+		}
 
-    #endif
+		#endif
 
-    #if defined(CLUSTER_SHADOW_TYPE_PCF3)
+		#if defined(CLUSTER_SHADOW_TYPE_PCF3)
 
-    float getShadowSpotClusteredPCF3(sampler2DShadow shadowMap, vec4 shadowParams) {
-        return getShadowSpotPCF3x3(shadowMap, shadowParams);
-    }
+		float getShadowSpotClusteredPCF3(sampler2DShadow shadowMap, vec4 shadowParams) {
+				return getShadowSpotPCF3x3(shadowMap, shadowParams);
+		}
 
-    #endif
+		#endif
 
-    #if defined(CLUSTER_SHADOW_TYPE_PCF5)
+		#if defined(CLUSTER_SHADOW_TYPE_PCF5)
 
-    float getShadowSpotClusteredPCF5(sampler2DShadow shadowMap, vec4 shadowParams) {
-        return getShadowPCF5x5(shadowMap, shadowParams.xyz);
-    }
-    #endif
+		float getShadowSpotClusteredPCF5(sampler2DShadow shadowMap, vec4 shadowParams) {
+				return getShadowPCF5x5(shadowMap, shadowParams.xyz);
+		}
+		#endif
 
 #else
 
-    #if defined(CLUSTER_SHADOW_TYPE_PCF1)
+		#if defined(CLUSTER_SHADOW_TYPE_PCF1)
 
-    float getShadowSpotClusteredPCF1(sampler2D shadowMap, vec4 shadowParams) {
+		float getShadowSpotClusteredPCF1(sampler2D shadowMap, vec4 shadowParams) {
 
-        float depth = unpackFloat(textureShadow(shadowMap, dShadowCoord.xy));
+				float depth = unpackFloat(textureShadow(shadowMap, dShadowCoord.xy));
 
-        return depth > dShadowCoord.z ? 1.0 : 0.0;
+				return depth > dShadowCoord.z ? 1.0 : 0.0;
 
-    }
+		}
 
-    #endif
+		#endif
 
-    #if defined(CLUSTER_SHADOW_TYPE_PCF3)
+		#if defined(CLUSTER_SHADOW_TYPE_PCF3)
 
-    float getShadowSpotClusteredPCF3(sampler2D shadowMap, vec4 shadowParams) {
-        return getShadowSpotPCF3x3(shadowMap, shadowParams);
-    }
+		float getShadowSpotClusteredPCF3(sampler2D shadowMap, vec4 shadowParams) {
+				return getShadowSpotPCF3x3(shadowMap, shadowParams);
+		}
 
-    #endif
+		#endif
 
-    #if defined(CLUSTER_SHADOW_TYPE_PCF5)
+		#if defined(CLUSTER_SHADOW_TYPE_PCF5)
 
-    // we don't have PCF5 implementation for webgl1, use PCF3
-    float getShadowSpotClusteredPCF5(sampler2D shadowMap, vec4 shadowParams) {
-        return getShadowSpotPCF3x3(shadowMap, shadowParams);
-    }
+		// we don't have PCF5 implementation for webgl1, use PCF3
+		float getShadowSpotClusteredPCF5(sampler2D shadowMap, vec4 shadowParams) {
+				return getShadowSpotPCF3x3(shadowMap, shadowParams);
+		}
 
-    #endif
+		#endif
 
 #endif
 `;

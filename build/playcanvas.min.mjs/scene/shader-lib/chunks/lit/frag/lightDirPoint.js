@@ -1,1 +1,1 @@
-var i="\nvoid getLightDirPoint(vec3 lightPosW) {\n    dLightDirW = vPositionW - lightPosW;\n    dLightDirNormW = normalize(dLightDirW);\n    dLightPosW = lightPosW;\n}\n";export{i as default};
+var t="\nvoid getLightDirPoint(vec3 lightPosW) {\n\t\tdLightDirW = vPositionW - lightPosW;\n\t\tdLightDirNormW = normalize(dLightDirW);\n\t\tdLightPosW = lightPosW;\n}\n";export{t as default};

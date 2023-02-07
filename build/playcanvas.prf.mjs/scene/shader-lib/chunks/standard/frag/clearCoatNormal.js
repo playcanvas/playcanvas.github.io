@@ -1,7 +1,7 @@
 /**
  * @license
- * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
- * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
+ * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 var clearCoatNormalPS = `
 #ifdef MAPTEXTURE
@@ -10,11 +10,11 @@ uniform float material_clearCoatBumpiness;
 
 void getClearCoatNormal() {
 #ifdef MAPTEXTURE
-    vec3 normalMap = unpackNormal(texture2DBias($SAMPLER, $UV, textureBias));
-    normalMap = mix(vec3(0.0, 0.0, 1.0), normalMap, material_clearCoatBumpiness);
-    ccNormalW = normalize(dTBN * normalMap);
+		vec3 normalMap = unpackNormal(texture2DBias($SAMPLER, $UV, textureBias));
+		normalMap = mix(vec3(0.0, 0.0, 1.0), normalMap, material_clearCoatBumpiness);
+		ccNormalW = normalize(dTBN * normalMap);
 #else
-    ccNormalW = dVertexNormalW;
+		ccNormalW = dVertexNormalW;
 #endif
 }
 `;

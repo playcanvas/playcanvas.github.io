@@ -1,25 +1,25 @@
 /**
  * @license
- * PlayCanvas Engine v1.59.0-preview revision 797466563 (PROFILER)
- * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
+ * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 var bakeDirLmEndPS = `
-    vec4 dirLm = texture2D(texture_dirLightMap, vUv1);
+		vec4 dirLm = texture2D(texture_dirLightMap, vUv1);
 
-    if (bakeDir > 0.5) {
-        if (dAtten > 0.00001) {
-            dirLm.xyz = dirLm.xyz * 2.0 - vec3(1.0);
-            dAtten = saturate(dAtten);
-            gl_FragColor.rgb = normalize(dLightDirNormW.xyz*dAtten + dirLm.xyz*dirLm.w) * 0.5 + vec3(0.5);
-            gl_FragColor.a = dirLm.w + dAtten;
-            gl_FragColor.a = max(gl_FragColor.a, 1.0 / 255.0);
-        } else {
-            gl_FragColor = dirLm;
-        }
-    } else {
-        gl_FragColor.rgb = dirLm.xyz;
-        gl_FragColor.a = max(dirLm.w, dAtten > 0.00001? (1.0/255.0) : 0.0);
-    }
+		if (bakeDir > 0.5) {
+				if (dAtten > 0.00001) {
+						dirLm.xyz = dirLm.xyz * 2.0 - vec3(1.0);
+						dAtten = saturate(dAtten);
+						gl_FragColor.rgb = normalize(dLightDirNormW.xyz*dAtten + dirLm.xyz*dirLm.w) * 0.5 + vec3(0.5);
+						gl_FragColor.a = dirLm.w + dAtten;
+						gl_FragColor.a = max(gl_FragColor.a, 1.0 / 255.0);
+				} else {
+						gl_FragColor = dirLm;
+				}
+		} else {
+				gl_FragColor.rgb = dirLm.xyz;
+				gl_FragColor.a = max(dirLm.w, dAtten > 0.00001? (1.0/255.0) : 0.0);
+		}
 `;
 
 export { bakeDirLmEndPS as default };
