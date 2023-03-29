@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-dev revision e102f2b2a (PROFILER)
+ * PlayCanvas Engine v1.57.0 revision 18b016876 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 var clusteredLightPS = `
@@ -528,14 +528,14 @@ void evaluateLight(ClusterLightData light) {
 
                 #ifdef LIT_CLEARCOAT
                     #ifdef LIT_SPECULAR_FRESNEL
-                        ccSpecularLight += getLightSpecularCC(halfDir) * dAtten * light.color * dAtten3 * getFresnel(dot(dViewDirW, halfDir), vec3(ccSpecularity));
+                        ccSpecularLight += getLightSpecularCC(halfDir) * dAtten * light.color * dAtten3 * getFresnelCC(dot(dViewDirW, halfDir), ccGlossiness);
                     #else
-                        ccSpecularLight += getLightSpecularCC(halfDir) * dAtten * light.color * dAtten3 * vec3(ccSpecularity);
+                        ccSpecularLight += getLightSpecularCC(halfDir) * dAtten * light.color * dAtten3;
                     #endif
                 #endif
 
                 #ifdef LIT_SHEEN
-                    sSpecularLight += getLightSpecularSheen(halfDir) * dAtten * light.color * dAtten3 * sSpecularity;
+                    sSpecularLight += getLightSpecularSheen(halfDir) * dAtten * light.color * dAtten3;
                 #endif
 
             #endif

@@ -36,6 +36,9 @@ function getDepthRange(cameraViewMatrix, aabbMin, aabbMax) {
 }
 class ShadowRendererDirectional {
 	constructor(renderer, shadowRenderer) {
+		this.renderer = void 0;
+		this.shadowRenderer = void 0;
+		this.device = void 0;
 		this.renderer = renderer;
 		this.shadowRenderer = shadowRenderer;
 		this.device = renderer.device;
@@ -46,7 +49,7 @@ class ShadowRendererDirectional {
 			light._shadowMap = ShadowMap.create(this.device, light);
 		}
 		const nearDist = camera._nearClip;
-		this.generateSplitDistances(light, nearDist, light.shadowDistance);
+		this.generateSplitDistances(light, nearDist, Math.min(camera._farClip, light.shadowDistance));
 		const shadowUpdateOverrides = light.shadowUpdateOverrides;
 		for (let cascade = 0; cascade < light.numCascades; cascade++) {
 			if ((shadowUpdateOverrides == null ? void 0 : shadowUpdateOverrides[cascade]) === SHADOWUPDATE_NONE) {

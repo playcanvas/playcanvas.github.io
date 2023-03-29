@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.62.0 revision 818511d2b (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import { extends as _extends } from '../../../_virtual/_rollupPluginBabelHelpers.js';
@@ -14,6 +14,7 @@ import { AnimComponentBinder } from './component-binder.js';
 import { AnimComponentLayer } from './component-layer.js';
 import { AnimStateGraph } from '../../anim/state-graph/anim-state-graph.js';
 import { Entity } from '../../entity.js';
+import { AnimTrack } from '../../anim/evaluator/anim-track.js';
 
 class AnimComponent extends Component {
 	constructor(system, entity) {
@@ -231,11 +232,17 @@ class AnimComponent extends Component {
 			};
 		}
 		this._layers = [];
+		let containsBlendTree = false;
 		for (let i = 0; i < stateGraph.layers.length; i++) {
 			const layer = stateGraph.layers[i];
 			this._addLayer.bind(this)(_extends({}, layer));
+			if (layer.states.some(state => state.blendTree)) {
+				containsBlendTree = true;
+			}
 		}
-		this.setupAnimationAssets();
+		if (!containsBlendTree) {
+			this.setupAnimationAssets();
+		}
 	}
 	setupAnimationAssets() {
 		for (let i = 0; i < this._layers.length; i++) {
@@ -263,7 +270,7 @@ class AnimComponent extends Component {
 				if (ANIM_CONTROL_STATES.indexOf(stateName) !== -1) continue;
 				const animationAsset = this._animationAssets[layer.name + ':' + stateName];
 				if (!animationAsset || !animationAsset.asset) {
-					this.removeNodeAnimations(stateName, layer.name);
+					this.findAnimationLayer(layer.name).assignAnimation(stateName, AnimTrack.EMPTY);
 					continue;
 				}
 				const assetId = animationAsset.asset;

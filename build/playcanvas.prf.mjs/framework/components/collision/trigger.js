@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.62.0 revision 818511d2b (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import { BODYFLAG_NORESPONSE_OBJECT, BODYGROUP_TRIGGER, BODYMASK_NOT_STATIC, BODYSTATE_ACTIVE_TAG, BODYSTATE_DISABLE_SIMULATION } from '../rigid-body/constants.js';

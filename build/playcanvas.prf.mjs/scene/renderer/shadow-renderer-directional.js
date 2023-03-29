@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.62.0 revision 818511d2b (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import '../../core/tracing.js';
@@ -41,6 +41,9 @@ function getDepthRange(cameraViewMatrix, aabbMin, aabbMax) {
 }
 class ShadowRendererDirectional {
 	constructor(renderer, shadowRenderer) {
+		this.renderer = void 0;
+		this.shadowRenderer = void 0;
+		this.device = void 0;
 		this.renderer = renderer;
 		this.shadowRenderer = shadowRenderer;
 		this.device = renderer.device;
@@ -51,7 +54,7 @@ class ShadowRendererDirectional {
 			light._shadowMap = ShadowMap.create(this.device, light);
 		}
 		const nearDist = camera._nearClip;
-		this.generateSplitDistances(light, nearDist, light.shadowDistance);
+		this.generateSplitDistances(light, nearDist, Math.min(camera._farClip, light.shadowDistance));
 		const shadowUpdateOverrides = light.shadowUpdateOverrides;
 		for (let cascade = 0; cascade < light.numCascades; cascade++) {
 			if ((shadowUpdateOverrides == null ? void 0 : shadowUpdateOverrides[cascade]) === SHADOWUPDATE_NONE) {

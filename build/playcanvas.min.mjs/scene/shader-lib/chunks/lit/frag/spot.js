@@ -1,1 +1,1 @@
-var t="\nfloat getSpotEffect(vec3 lightSpotDirW, float lightInnerConeAngle, float lightOuterConeAngle) {\n\t\tfloat cosAngle = dot(dLightDirNormW, lightSpotDirW);\n\t\treturn smoothstep(lightOuterConeAngle, lightInnerConeAngle, cosAngle);\n}\n";export{t as default};
+var t="\nfloat getSpotEffect(vec3 lightSpotDir, float lightInnerConeAngle, float lightOuterConeAngle, vec3 lightDirNorm) {\n\t\tfloat cosAngle = dot(lightDirNorm, lightSpotDir);\n\t\treturn smoothstep(lightOuterConeAngle, lightInnerConeAngle, cosAngle);\n}\n";export{t as default};

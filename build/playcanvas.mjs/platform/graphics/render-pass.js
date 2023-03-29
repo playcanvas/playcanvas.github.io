@@ -1,3 +1,4 @@
+import '../../core/tracing.js';
 import { Color } from '../../core/math/color.js';
 
 class ColorAttachmentOps {
@@ -28,6 +29,7 @@ class RenderPass {
 		this.depthStencilOps = void 0;
 		this.requiresCubemaps = true;
 		this.fullSizeClearRect = true;
+		this.execute = void 0;
 		this.before = void 0;
 		this.after = void 0;
 		this.device = graphicsDevice;
@@ -60,18 +62,19 @@ class RenderPass {
 		this.depthStencilOps.clearStencil = true;
 	}
 	render() {
-		var _this$before, _this$after;
+		var _this$before, _this$execute, _this$after;
 		const device = this.device;
 		const realPass = this.renderTarget !== undefined;
 		(_this$before = this.before) == null ? void 0 : _this$before.call(this);
 		if (realPass) {
 			device.startPass(this);
 		}
-		this.execute();
+		(_this$execute = this.execute) == null ? void 0 : _this$execute.call(this);
 		if (realPass) {
 			device.endPass(this);
 		}
 		(_this$after = this.after) == null ? void 0 : _this$after.call(this);
+		device.renderPassIndex++;
 	}
 }
 

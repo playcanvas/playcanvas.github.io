@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.62.0 revision 818511d2b (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import '../core/tracing.js';
@@ -284,6 +284,7 @@ class Scene extends EventHandler {
 		batch.addLinesArrays(positions, colors);
 	}
 	applySettings(settings) {
+		var _render$skyboxIntensi, _render$skyboxLuminan, _render$skyboxMip;
 		const physics = settings.physics;
 		const render = settings.render;
 		this._gravity.set(physics.gravity[0], physics.gravity[1], physics.gravity[2]);
@@ -300,9 +301,9 @@ class Scene extends EventHandler {
 		this.lightmapMaxResolution = render.lightmapMaxResolution;
 		this.lightmapMode = render.lightmapMode;
 		this.exposure = render.exposure;
-		this._skyboxIntensity = render.skyboxIntensity === undefined ? 1 : render.skyboxIntensity;
-		this._skyboxLuminance = render.skyboxLuminance === undefined ? 20000 : render.skyboxLuminance;
-		this._skyboxMip = render.skyboxMip === undefined ? 0 : render.skyboxMip;
+		this._skyboxIntensity = (_render$skyboxIntensi = render.skyboxIntensity) != null ? _render$skyboxIntensi : 1;
+		this._skyboxLuminance = (_render$skyboxLuminan = render.skyboxLuminance) != null ? _render$skyboxLuminan : 20000;
+		this._skyboxMip = (_render$skyboxMip = render.skyboxMip) != null ? _render$skyboxMip : 0;
 		if (render.skyboxRotation) {
 			this.skyboxRotation = new Quat().setFromEulerAngles(render.skyboxRotation[0], render.skyboxRotation[1], render.skyboxRotation[2]);
 		}

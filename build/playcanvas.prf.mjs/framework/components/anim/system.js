@@ -1,8 +1,9 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.62.0 revision 818511d2b (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
+import { AnimTrack } from '../../anim/evaluator/anim-track.js';
 import { Component } from '../component.js';
 import { ComponentSystem } from '../system.js';
 import { AnimComponent } from './component.js';
@@ -34,7 +35,16 @@ class AnimComponentSystem extends ComponentSystem {
 			data.layers.forEach((layer, i) => {
 				layer._controller.states.forEach(stateKey => {
 					layer._controller._states[stateKey]._animationList.forEach(node => {
-						component.layers[i].assignAnimation(node.name, node.animTrack);
+						if (!node.animTrack || node.animTrack === AnimTrack.EMPTY) {
+							const animationAsset = this.app.assets.get(layer._component._animationAssets[layer.name + ':' + node.name].asset);
+							if (animationAsset && !animationAsset.loaded) {
+								animationAsset.once('load', () => {
+									component.layers[i].assignAnimation(node.name, animationAsset.resource);
+								});
+							}
+						} else {
+							component.layers[i].assignAnimation(node.name, node.animTrack);
+						}
 					});
 				});
 			});

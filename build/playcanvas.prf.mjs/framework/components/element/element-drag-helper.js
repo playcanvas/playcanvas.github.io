@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.62.0 revision 818511d2b (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import { platform } from '../../../core/platform.js';
@@ -16,6 +16,8 @@ const _inputScreenPosition = new Vec2();
 const _inputWorldPosition = new Vec3();
 const _ray = new Ray();
 const _plane = new Plane();
+const _normal = new Vec3();
+const _point = new Vec3();
 const _entityRotation = new Quat();
 const OPPOSITE_AXIS = {
 	x: 'y',
@@ -93,16 +95,12 @@ class ElementDragHelper extends EventHandler {
 			this._determineInputPosition(event);
 			this._chooseRayOriginAndDirection();
 		}
-		_plane.point.copy(this._element.entity.getPosition());
-		_plane.normal.copy(this._element.entity.forward).mulScalar(-1);
-		const denominator = _plane.normal.dot(_ray.direction);
-		if (Math.abs(denominator) > 0) {
-			const rayOriginToPlaneOrigin = _plane.point.sub(_ray.origin);
-			const collisionDistance = rayOriginToPlaneOrigin.dot(_plane.normal) / denominator;
-			const position = _ray.origin.add(_ray.direction.mulScalar(collisionDistance));
-			_entityRotation.copy(this._element.entity.getRotation()).invert().transformVector(position, position);
-			position.mul(this._dragScale);
-			return position;
+		_normal.copy(this._element.entity.forward).mulScalar(-1);
+		_plane.setFromPointNormal(this._element.entity.getPosition(), _normal);
+		if (_plane.intersectsRay(_ray, _point)) {
+			_entityRotation.copy(this._element.entity.getRotation()).invert().transformVector(_point, _point);
+			_point.mul(this._dragScale);
+			return _point;
 		}
 		return null;
 	}

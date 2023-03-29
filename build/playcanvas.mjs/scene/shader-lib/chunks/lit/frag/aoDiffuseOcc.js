@@ -1,6 +1,6 @@
 var aoDiffuseOccPS = `
-void occludeDiffuse() {
-		dDiffuseLight *= dAo;
+void occludeDiffuse(float ao) {
+		dDiffuseLight *= ao;
 }
 `;
 

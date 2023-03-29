@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.62.0 revision 818511d2b (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import '../../../core/tracing.js';
@@ -177,6 +177,28 @@ class SoundComponent extends Component {
 	}
 	slot(name) {
 		return this._slots[name];
+	}
+	_getSlotProperty(name, property) {
+		if (!this.enabled || !this.entity.enabled) {
+			return undefined;
+		}
+		const slot = this._slots[name];
+		if (!slot) {
+			return undefined;
+		}
+		return slot[property];
+	}
+	isPlaying(name) {
+		return this._getSlotProperty(name, 'isPlaying') || false;
+	}
+	isLoaded(name) {
+		return this._getSlotProperty(name, 'isLoaded') || false;
+	}
+	isPaused(name) {
+		return this._getSlotProperty(name, 'isPaused') || false;
+	}
+	isStopped(name) {
+		return this._getSlotProperty(name, 'isStopped') || false;
 	}
 	play(name) {
 		if (!this.enabled || !this.entity.enabled) {

@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.62.0 revision 818511d2b (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import { math } from './math.js';
@@ -382,6 +382,29 @@ class Mat4 {
 		m[13] = y + height * 0.5;
 		m[14] = 0.5;
 		m[15] = 1;
+		return this;
+	}
+	setReflection(normal, distance) {
+		const a = normal.x;
+		const b = normal.y;
+		const c = normal.z;
+		const data = this.data;
+		data[0] = 1.0 - 2 * a * a;
+		data[1] = -2 * a * b;
+		data[2] = -2 * a * c;
+		data[3] = 0;
+		data[4] = -2 * a * b;
+		data[5] = 1.0 - 2 * b * b;
+		data[6] = -2 * b * c;
+		data[7] = 0;
+		data[8] = -2 * a * c;
+		data[9] = -2 * b * c;
+		data[10] = 1.0 - 2 * c * c;
+		data[11] = 0;
+		data[12] = -2 * a * distance;
+		data[13] = -2 * b * distance;
+		data[14] = -2 * c * distance;
+		data[15] = 1;
 		return this;
 	}
 	invert() {

@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.62.0 revision 818511d2b (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import '../../core/tracing.js';
@@ -12,7 +12,7 @@ import { math } from '../../core/math/math.js';
 import { Vec2 } from '../../core/math/vec2.js';
 import { Vec3 } from '../../core/math/vec3.js';
 import { BoundingBox } from '../../core/shape/bounding-box.js';
-import { CULLFACE_NONE, CULLFACE_BACK, INDEXFORMAT_UINT32, INDEXFORMAT_UINT16, BUFFER_STATIC, PRIMITIVE_TRIANGLES, PRIMITIVE_TRIFAN, PRIMITIVE_TRISTRIP, PRIMITIVE_LINESTRIP, PRIMITIVE_LINELOOP, PRIMITIVE_LINES, PRIMITIVE_POINTS, SEMANTIC_NORMAL, INDEXFORMAT_UINT8, TYPE_FLOAT32, FILTER_LINEAR_MIPMAP_LINEAR, FILTER_NEAREST_MIPMAP_LINEAR, FILTER_LINEAR_MIPMAP_NEAREST, FILTER_NEAREST_MIPMAP_NEAREST, FILTER_LINEAR, FILTER_NEAREST, ADDRESS_REPEAT, ADDRESS_MIRRORED_REPEAT, ADDRESS_CLAMP_TO_EDGE, TYPE_UINT32, TYPE_INT32, TYPE_UINT16, TYPE_INT16, TYPE_UINT8, TYPE_INT8, SEMANTIC_POSITION, SEMANTIC_TANGENT, SEMANTIC_COLOR, SEMANTIC_BLENDINDICES, SEMANTIC_BLENDWEIGHT, SEMANTIC_TEXCOORD0, SEMANTIC_TEXCOORD1, SEMANTIC_TEXCOORD2, SEMANTIC_TEXCOORD3, SEMANTIC_TEXCOORD4, SEMANTIC_TEXCOORD5, SEMANTIC_TEXCOORD6, SEMANTIC_TEXCOORD7, typedArrayTypesByteSize, typedArrayTypes } from '../../platform/graphics/constants.js';
+import { CULLFACE_NONE, CULLFACE_BACK, INDEXFORMAT_UINT32, INDEXFORMAT_UINT16, INDEXFORMAT_UINT8, BUFFER_STATIC, PRIMITIVE_TRIANGLES, PRIMITIVE_TRIFAN, PRIMITIVE_TRISTRIP, PRIMITIVE_LINESTRIP, PRIMITIVE_LINELOOP, PRIMITIVE_LINES, PRIMITIVE_POINTS, SEMANTIC_NORMAL, TYPE_FLOAT32, FILTER_LINEAR_MIPMAP_LINEAR, FILTER_NEAREST_MIPMAP_LINEAR, FILTER_LINEAR_MIPMAP_NEAREST, FILTER_NEAREST_MIPMAP_NEAREST, FILTER_LINEAR, FILTER_NEAREST, ADDRESS_REPEAT, ADDRESS_MIRRORED_REPEAT, ADDRESS_CLAMP_TO_EDGE, TYPE_UINT32, TYPE_INT32, TYPE_UINT16, TYPE_INT16, TYPE_UINT8, TYPE_INT8, SEMANTIC_POSITION, SEMANTIC_TANGENT, SEMANTIC_COLOR, SEMANTIC_BLENDINDICES, SEMANTIC_BLENDWEIGHT, SEMANTIC_TEXCOORD0, SEMANTIC_TEXCOORD1, SEMANTIC_TEXCOORD2, SEMANTIC_TEXCOORD3, SEMANTIC_TEXCOORD4, SEMANTIC_TEXCOORD5, SEMANTIC_TEXCOORD6, SEMANTIC_TEXCOORD7, typedArrayTypesByteSize, typedArrayTypes } from '../../platform/graphics/constants.js';
 import { IndexBuffer } from '../../platform/graphics/index-buffer.js';
 import { Texture } from '../../platform/graphics/texture.js';
 import { VertexBuffer } from '../../platform/graphics/vertex-buffer.js';
@@ -35,6 +35,7 @@ import { AnimData } from '../anim/evaluator/anim-data.js';
 import { AnimTrack } from '../anim/evaluator/anim-track.js';
 import { Asset } from '../asset/asset.js';
 import { GlbContainerResource } from './glb-container-resource.js';
+import { ABSOLUTE_URL } from '../asset/constants.js';
 
 let dracoDecoderInstance = null;
 const getGlobalDracoDecoderModule = () => {
@@ -194,7 +195,6 @@ const getAccessorData = function getAccessorData(gltfAccessor, bufferViews, flat
 	if (!dataType) {
 		return null;
 	}
-	const bufferView = bufferViews[gltfAccessor.bufferView];
 	let result;
 	if (gltfAccessor.sparse) {
 		const sparse = gltfAccessor.sparse;
@@ -227,20 +227,27 @@ const getAccessorData = function getAccessorData(gltfAccessor, bufferViews, flat
 				result[targetIndex * numComponents + j] = values[i * numComponents + j];
 			}
 		}
-	} else if (flatten && bufferView.hasOwnProperty('byteStride')) {
-		const bytesPerElement = numComponents * dataType.BYTES_PER_ELEMENT;
-		const storage = new ArrayBuffer(gltfAccessor.count * bytesPerElement);
-		const tmpArray = new Uint8Array(storage);
-		let dstOffset = 0;
-		for (let i = 0; i < gltfAccessor.count; ++i) {
-			let srcOffset = (gltfAccessor.byteOffset || 0) + i * bufferView.byteStride;
-			for (let b = 0; b < bytesPerElement; ++b) {
-				tmpArray[dstOffset++] = bufferView[srcOffset++];
-			}
-		}
-		result = new dataType(storage);
 	} else {
-		result = new dataType(bufferView.buffer, bufferView.byteOffset + (gltfAccessor.byteOffset || 0), gltfAccessor.count * numComponents);
+		if (gltfAccessor.hasOwnProperty("bufferView")) {
+			const bufferView = bufferViews[gltfAccessor.bufferView];
+			if (flatten && bufferView.hasOwnProperty('byteStride')) {
+				const bytesPerElement = numComponents * dataType.BYTES_PER_ELEMENT;
+				const storage = new ArrayBuffer(gltfAccessor.count * bytesPerElement);
+				const tmpArray = new Uint8Array(storage);
+				let dstOffset = 0;
+				for (let i = 0; i < gltfAccessor.count; ++i) {
+					let srcOffset = (gltfAccessor.byteOffset || 0) + i * bufferView.byteStride;
+					for (let b = 0; b < bytesPerElement; ++b) {
+						tmpArray[dstOffset++] = bufferView[srcOffset++];
+					}
+				}
+				result = new dataType(storage);
+			} else {
+				result = new dataType(bufferView.buffer, bufferView.byteOffset + (gltfAccessor.byteOffset || 0), gltfAccessor.count * numComponents);
+			}
+		} else {
+			result = new dataType(gltfAccessor.count * numComponents);
+		}
 	}
 	return result;
 };
@@ -498,7 +505,7 @@ const createVertexBuffer = function createVertexBuffer(device, attributes, indic
 			const bufferView = bufferViews[accessor.bufferView];
 			const semantic = gltfToEngineSemanticMap[attrib];
 			const size = getNumComponents(accessor.type) * getComponentSizeInBytes(accessor.componentType);
-			const stride = bufferView.hasOwnProperty('byteStride') ? bufferView.byteStride : size;
+			const stride = bufferView && bufferView.hasOwnProperty('byteStride') ? bufferView.byteStride : size;
 			sourceDesc[semantic] = {
 				buffer: accessorData.buffer,
 				size: size,
@@ -705,6 +712,10 @@ const createMesh = function createMesh(device, gltfMesh, accessors, bufferViews,
 					indexFormat = INDEXFORMAT_UINT16;
 					indices = new Uint16Array(indices);
 				}
+				if (indexFormat === INDEXFORMAT_UINT8 && device.isWebGPU) {
+					indexFormat = INDEXFORMAT_UINT16;
+					indices = new Uint16Array(indices);
+				}
 				const indexBuffer = new IndexBuffer(device, indexFormat, indices.length, BUFFER_STATIC, indices);
 				mesh.indexBuffer[0] = indexBuffer;
 				mesh.primitive[0].count = indices.length;
@@ -750,7 +761,9 @@ const createMesh = function createMesh(device, gltfMesh, accessors, bufferViews,
 					options.preserveData = assetOptions.morphPreserveData;
 					targets.push(new MorphTarget(options));
 				});
-				mesh.morph = new Morph(targets, device);
+				mesh.morph = new Morph(targets, device, {
+					preferHighPrecision: assetOptions.morphPreferHighPrecision
+				});
 			}
 		}
 		meshes.push(mesh);
@@ -1163,35 +1176,37 @@ const createAnimation = function createAnimation(gltfAnimation, animationIndex, 
 		}
 		return path;
 	};
-	const retrieveWeightName = (gltfNode, weightIndex) => {
-		if (meshes && meshes[gltfNode.mesh]) {
-			const mesh = meshes[gltfNode.mesh];
-			if (mesh.hasOwnProperty('extras') && mesh.extras.hasOwnProperty('targetNames') && mesh.extras.targetNames[weightIndex]) {
-				return `name.${mesh.extras.targetNames[weightIndex]}`;
-			}
-		}
-		return weightIndex;
-	};
 	const createMorphTargetCurves = (curve, gltfNode, entityPath) => {
 		const out = outputMap[curve.output];
 		if (!out) {
 			return;
 		}
+		let targetNames;
+		if (meshes && meshes[gltfNode.mesh]) {
+			const mesh = meshes[gltfNode.mesh];
+			if (mesh.hasOwnProperty('extras') && mesh.extras.hasOwnProperty('targetNames')) {
+				targetNames = mesh.extras.targetNames;
+			}
+		}
 		const outData = out.data;
 		const morphTargetCount = outData.length / inputMap[curve.input].data.length;
 		const keyframeCount = outData.length / morphTargetCount;
+		const singleBufferSize = keyframeCount * 4;
+		const buffer = new ArrayBuffer(singleBufferSize * morphTargetCount);
 		for (let j = 0; j < morphTargetCount; j++) {
-			const morphTargetOutput = new Float32Array(keyframeCount);
+			var _targetNames;
+			const morphTargetOutput = new Float32Array(buffer, singleBufferSize * j, keyframeCount);
 			for (let k = 0; k < keyframeCount; k++) {
 				morphTargetOutput[k] = outData[k * morphTargetCount + j];
 			}
 			const output = new AnimData(1, morphTargetOutput);
+			const weightName = (_targetNames = targetNames) != null && _targetNames[j] ? `name.${targetNames[j]}` : j;
 			outputMap[-outputCounter] = output;
 			const morphCurve = {
 				paths: [{
 					entityPath: entityPath,
 					component: 'graph',
-					propertyPath: [`weight.${retrieveWeightName(gltfNode, j)}`]
+					propertyPath: [`weight.${weightName}`]
 				}],
 				input: curve.input,
 				output: -outputCounter,
@@ -1679,7 +1694,7 @@ const loadImageAsync = function loadImageAsync(gltfImage, index, bufferViews, ur
 				if (isDataURI(gltfImage.uri)) {
 					loadTexture(gltfImage.uri, null, getDataURIMimeType(gltfImage.uri), null);
 				} else {
-					loadTexture(path.join(urlBase, gltfImage.uri), null, null, {
+					loadTexture(ABSOLUTE_URL.test(gltfImage.uri) ? gltfImage.uri : path.join(urlBase, gltfImage.uri), null, null, {
 						crossOrigin: 'anonymous'
 					});
 				}
@@ -1798,7 +1813,7 @@ const loadBuffersAsync = function loadBuffersAsync(gltf, binaryChunk, urlBase, o
 						}
 						onLoad(i, binaryArray);
 					} else {
-						http.get(path.join(urlBase, gltfBuffer.uri), {
+						http.get(ABSOLUTE_URL.test(gltfBuffer.uri) ? gltfBuffer.uri : path.join(urlBase, gltfBuffer.uri), {
 							cache: true,
 							responseType: 'arraybuffer',
 							retry: false
@@ -1833,8 +1848,8 @@ const parseGltf = function parseGltf(gltfChunk, callback) {
 		callback(`Invalid gltf version. Expected version 2.0 or above but found version '${gltf.asset.version}'.`);
 		return;
 	}
-	const extensionsRequired = (gltf == null ? void 0 : gltf.extensionsRequired) || [];
-	if (!dracoDecoderInstance && !getGlobalDracoDecoderModule() && extensionsRequired.indexOf('KHR_draco_mesh_compression') !== -1) {
+	const extensionsUsed = (gltf == null ? void 0 : gltf.extensionsUsed) || [];
+	if (!dracoDecoderInstance && !getGlobalDracoDecoderModule() && extensionsUsed.indexOf('KHR_draco_mesh_compression') !== -1) {
 		WasmModule.getInstance('DracoDecoderModule', instance => {
 			dracoDecoderInstance = instance;
 			callback(null, gltf);
@@ -1984,26 +1999,25 @@ class GlbParser {
 			});
 		});
 	}
-	static parse(filename, data, device, options) {
-		let result = null;
+	static parse(filename, data, device, options, callback) {
 		options = options || {};
 		parseChunk(filename, data, function (err, chunks) {
 			if (err) {
-				console.error(err);
+				callback(err);
 			} else {
 				parseGltf(chunks.gltfChunk, function (err, gltf) {
 					if (err) {
-						console.error(err);
+						callback(err);
 					} else {
 						parseBufferViewsAsync(gltf, [chunks.binaryChunk], options, function (err, bufferViews) {
 							if (err) {
-								console.error(err);
+								callback(err);
 							} else {
-								createResources(device, gltf, bufferViews, [], options, function (err, result_) {
+								createResources(device, gltf, bufferViews, [], options, function (err, result) {
 									if (err) {
-										console.error(err);
+										callback(err);
 									} else {
-										result = result_;
+										callback(null, result);
 									}
 								});
 							}
@@ -2012,7 +2026,6 @@ class GlbParser {
 				});
 			}
 		});
-		return result;
 	}
 	constructor(device, assets, maxRetries) {
 		this._device = device;

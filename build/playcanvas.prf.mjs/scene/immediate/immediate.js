@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.62.0 revision 818511d2b (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import { PRIMITIVE_TRISTRIP } from '../../platform/graphics/constants.js';
@@ -32,7 +32,6 @@ class Immediate {
 	createMaterial(depthTest) {
 		const material = new BasicMaterial();
 		material.vertexColors = true;
-		material.blend = true;
 		material.blendType = BLEND_NORMAL;
 		material.depthTest = depthTest;
 		material.update();
@@ -60,43 +59,49 @@ class Immediate {
 		const material = depthTest ? this.materialDepth : this.materialNoDepth;
 		return batches.getBatch(material, layer);
 	}
-	static getTextureVS() {
-		return `
-						attribute vec2 vertex_position;
-						uniform mat4 matrix_model;
-						varying vec2 uv0;
-						void main(void) {
-								gl_Position = matrix_model * vec4(vertex_position, 0, 1);
-								uv0 = vertex_position.xy + 0.5;
-						}
-				`;
+	getShader(id, fragment) {
+		if (!this[id]) {
+			const vertex = `
+								attribute vec2 vertex_position;
+								uniform mat4 matrix_model;
+								varying vec2 uv0;
+								void main(void) {
+										gl_Position = matrix_model * vec4(vertex_position, 0, 1);
+										uv0 = vertex_position.xy + 0.5;
+								}
+						`;
+			this[id] = createShaderFromCode(this.device, vertex, fragment, `DebugShader:${id}`);
+		}
+		return this[id];
 	}
 	getTextureShader() {
-		if (!this.textureShader) {
-			const fshader = `
-								varying vec2 uv0;
-								uniform sampler2D colorMap;
-								void main (void) {
-										gl_FragColor = vec4(texture2D(colorMap, uv0).xyz, 1);
-								}
-						`;
-			this.textureShader = createShaderFromCode(this.device, Immediate.getTextureVS(), fshader, 'DebugTextureShader');
-		}
-		return this.textureShader;
+		return this.getShader('textureShader', `
+						varying vec2 uv0;
+						uniform sampler2D colorMap;
+						void main (void) {
+								gl_FragColor = vec4(texture2D(colorMap, uv0).xyz, 1);
+						}
+				`);
+	}
+	getUnfilterableTextureShader() {
+		return this.getShader('textureShaderUnfilterable', `
+						varying vec2 uv0;
+						uniform highp sampler2D colorMap;
+						void main (void) {
+								ivec2 uv = ivec2(uv0 * textureSize(colorMap, 0));
+								gl_FragColor = vec4(texelFetch(colorMap, uv, 0).xyz, 1);
+						}
+				`);
 	}
 	getDepthTextureShader() {
-		if (!this.depthTextureShader) {
-			const fshader = `
-								${shaderChunks.screenDepthPS}
-								varying vec2 uv0;
-								void main() {
-										float depth = getLinearScreenDepth(uv0) * camera_params.x;
-										gl_FragColor = vec4(vec3(depth), 1.0);
-								}
-						`;
-			this.depthTextureShader = createShaderFromCode(this.device, Immediate.getTextureVS(), fshader, 'DebugDepthTextureShader');
-		}
-		return this.depthTextureShader;
+		return this.getShader('depthTextureShader', `
+						${shaderChunks.screenDepthPS}
+						varying vec2 uv0;
+						void main() {
+								float depth = getLinearScreenDepth(uv0) * camera_params.x;
+								gl_FragColor = vec4(vec3(depth), 1.0);
+						}
+				`);
 	}
 	getQuadMesh() {
 		if (!this.quadMesh) {

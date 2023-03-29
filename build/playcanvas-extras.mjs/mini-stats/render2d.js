@@ -1,9 +1,9 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c
+ * PlayCanvas Engine v1.62.0 revision 818511d2b
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
-import { VertexFormat, SEMANTIC_POSITION, TYPE_FLOAT32, SEMANTIC_TEXCOORD0, shaderChunks, VertexBuffer, BUFFER_STREAM, IndexBuffer, INDEXFORMAT_UINT16, BUFFER_STATIC, PRIMITIVE_TRIANGLES, CULLFACE_NONE, BLENDMODE_SRC_ALPHA, BLENDMODE_ONE_MINUS_SRC_ALPHA, BLENDMODE_ONE, BLENDEQUATION_ADD } from 'playcanvas';
+import { VertexFormat, SEMANTIC_POSITION, TYPE_FLOAT32, SEMANTIC_TEXCOORD0, shaderChunks, VertexBuffer, BUFFER_STREAM, IndexBuffer, INDEXFORMAT_UINT16, BUFFER_STATIC, BlendState, BLENDEQUATION_ADD, BLENDMODE_SRC_ALPHA, BLENDMODE_ONE_MINUS_SRC_ALPHA, BLENDMODE_ONE, PRIMITIVE_TRIANGLES, CULLFACE_NONE, DepthState } from 'playcanvas';
 
 class Render2d {
 	constructor(device, colors, maxQuads = 512) {
@@ -50,6 +50,7 @@ class Render2d {
 		this.clr = new Float32Array(4);
 		this.screenTextureSizeId = device.scope.resolve('screenAndTextureSize');
 		this.screenTextureSize = new Float32Array(4);
+		this.blendState = new BlendState(true, BLENDEQUATION_ADD, BLENDMODE_SRC_ALPHA, BLENDMODE_ONE_MINUS_SRC_ALPHA, BLENDEQUATION_ADD, BLENDMODE_ONE, BLENDMODE_ONE);
 	}
 	quad(texture, x, y, w, h, u, v, uw, uh, enabled) {
 		const quad = this.quads++;
@@ -87,12 +88,9 @@ class Render2d {
 		const buffer = this.buffer;
 		buffer.setData(this.data.buffer);
 		device.updateBegin();
-		device.setDepthTest(false);
-		device.setDepthWrite(false);
 		device.setCullMode(CULLFACE_NONE);
-		device.setBlending(true);
-		device.setBlendFunctionSeparate(BLENDMODE_SRC_ALPHA, BLENDMODE_ONE_MINUS_SRC_ALPHA, BLENDMODE_ONE, BLENDMODE_ONE);
-		device.setBlendEquationSeparate(BLENDEQUATION_ADD, BLENDEQUATION_ADD);
+		device.setBlendState(this.blendState);
+		device.setDepthState(DepthState.NODEPTH);
 		device.setVertexBuffer(buffer, 0);
 		device.setIndexBuffer(this.indexBuffer);
 		device.setShader(this.shader);

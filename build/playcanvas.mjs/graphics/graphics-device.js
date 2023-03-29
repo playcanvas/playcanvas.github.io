@@ -2,6 +2,7 @@ import { EventHandler } from '../core/event-handler.js';
 import { platform } from '../core/platform.js';
 import '../core/time.js';
 import { ScopeSpace } from './scope-space.js';
+import { ProgramLibrary } from './program-library.js';
 import { PRIMITIVE_TRIFAN, PRIMITIVE_POINTS } from './constants.js';
 import '../core/tracing.js';
 
@@ -59,6 +60,7 @@ class GraphicsDevice extends EventHandler {
     this.scope = new ScopeSpace("Device");
     this.textureBias = this.scope.resolve("textureBias");
     this.textureBias.setValue(0.0);
+    this.programLib = new ProgramLibrary(this);
   }
 
   destroy() {
@@ -79,6 +81,14 @@ class GraphicsDevice extends EventHandler {
     this.vertexBuffers = [];
     this.shader = null;
     this.renderTarget = null;
+  }
+
+  getProgramLibrary() {
+    return this.programLib;
+  }
+
+  setProgramLibrary(programLib) {
+    this.programLib = programLib;
   }
 
   setRenderTarget(renderTarget) {

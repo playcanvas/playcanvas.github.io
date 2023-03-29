@@ -113,88 +113,115 @@
 
 
 
-    function example(canvas, files) {
-      // Create the application with input and start the update loop
-      var app = new pc.Application(canvas, {
-        mouse: new pc.Mouse(document.body),
-        touch: new pc.TouchDevice(document.body),
-        elementInput: new pc.ElementInput(canvas) });
 
+    function example(canvas, deviceType, files) {
 
       var assets = {
         "playcanvas": new pc.Asset("playcanvas", "texture", { url: "/../../static/assets/textures/playcanvas.png" }) };
 
 
-      var assetListLoader = new pc.AssetListLoader(Object.values(assets), app.assets);
-      assetListLoader.load(function () {
-        app.start();
+      var gfxOptions = {
+        deviceTypes: [deviceType],
+        glslangUrl: '/../../static/lib/glslang/glslang.js',
+        twgslUrl: '/../../static/lib/twgsl/twgsl.js' };
+
+
+      pc.createGraphicsDevice(canvas, gfxOptions).then(function (device) {
+
+        var createOptions = new pc.AppOptions();
+        createOptions.graphicsDevice = device;
+        createOptions.mouse = new pc.Mouse(document.body);
+        createOptions.touch = new pc.TouchDevice(document.body);
+        createOptions.elementInput = new pc.ElementInput(canvas);
+
+        createOptions.componentSystems = [
+        // @ts-ignore
+        pc.RenderComponentSystem,
+        // @ts-ignore
+        pc.CameraComponentSystem,
+        // @ts-ignore
+        pc.ScreenComponentSystem,
+        // @ts-ignore
+        pc.ButtonComponentSystem,
+        // @ts-ignore
+        pc.ElementComponentSystem];
+
+        createOptions.resourceHandlers = [
+        // @ts-ignore
+        pc.TextureHandler,
+        // @ts-ignore
+        pc.FontHandler];
+
+
+        var app = new pc.AppBase(canvas);
+        app.init(createOptions);
 
         // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
         app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
         app.setCanvasResolution(pc.RESOLUTION_AUTO);
 
-        window.addEventListener("resize", function () {
-          app.resizeCanvas(canvas.width, canvas.height);
-        });
+        var assetListLoader = new pc.AssetListLoader(Object.values(assets), app.assets);
+        assetListLoader.load(function () {
 
-        // Create a camera
-        var camera = new pc.Entity();
-        camera.addComponent("camera", {
-          clearColor: new pc.Color(30 / 255, 30 / 255, 30 / 255) });
+          app.start();
 
-        app.root.addChild(camera);
+          window.addEventListener("resize", function () {
+            app.resizeCanvas(canvas.width, canvas.height);
+          });
 
-        // Create a 2D screen
-        var screen = new pc.Entity();
-        screen.addComponent("screen", {
-          referenceResolution: new pc.Vec2(1280, 720),
-          scaleBlend: 0.5,
-          scaleMode: pc.SCALEMODE_BLEND,
-          screenSpace: true });
+          // Create a camera
+          var camera = new pc.Entity();
+          camera.addComponent("camera", {
+            clearColor: new pc.Color(30 / 255, 30 / 255, 30 / 255) });
 
-        app.root.addChild(screen);
+          app.root.addChild(camera);
 
-        // Dynamically set the precision depending on device
-        var fragmentShader = "precision " + app.graphicsDevice.precision + " float;\n" + files['shader.frag'];
+          // Create a 2D screen
+          var screen = new pc.Entity();
+          screen.addComponent("screen", {
+            referenceResolution: new pc.Vec2(1280, 720),
+            scaleBlend: 0.5,
+            scaleMode: pc.SCALEMODE_BLEND,
+            screenSpace: true });
 
-        // Create the shader from the vertex and fragment shaders
-        var shader = new pc.Shader(app.graphicsDevice, {
-          attributes: {
+          app.root.addChild(screen);
+
+          // Create the shader from the vertex and fragment shader
+          var shader = pc.createShaderFromCode(app.graphicsDevice, files['shader.vert'], files['shader.frag'], 'myUIShader', {
             vertex_position: pc.SEMANTIC_POSITION,
-            vertex_texCoord0: pc.SEMANTIC_TEXCOORD0 },
+            vertex_texCoord0: pc.SEMANTIC_TEXCOORD0 });
 
-          vshader: files['shader.vert'],
-          fshader: fragmentShader });
 
-        // Create a new material with the new shader and additive alpha blending
-        var material = new pc.Material();
-        material.shader = shader;
-        material.blendType = pc.BLEND_ADDITIVEALPHA;
-        material.depthWrite = true;
-        material.setParameter("uDiffuseMap", assets.playcanvas.resource);
-        material.update();
+          // Create a new material with the new shader and additive alpha blending
+          var material = new pc.Material();
+          material.shader = shader;
+          material.blendType = pc.BLEND_ADDITIVEALPHA;
+          material.depthWrite = true;
+          material.setParameter("uDiffuseMap", assets.playcanvas.resource);
+          material.update();
 
-        // Create the UI image element with the custom material
-        var entity = new pc.Entity();
-        entity.addComponent("element", {
-          pivot: new pc.Vec2(0.5, 0.5),
-          anchor: new pc.Vec4(0.5, 0.5, 0.5, 0.5),
-          width: 350,
-          height: 350,
-          type: pc.ELEMENTTYPE_IMAGE });
+          // Create the UI image element with the custom material
+          var entity = new pc.Entity();
+          entity.addComponent("element", {
+            pivot: new pc.Vec2(0.5, 0.5),
+            anchor: new pc.Vec4(0.5, 0.5, 0.5, 0.5),
+            width: 350,
+            height: 350,
+            type: pc.ELEMENTTYPE_IMAGE });
 
-        entity.element.material = material;
-        screen.addChild(entity);
+          entity.element.material = material;
+          screen.addChild(entity);
 
-        // update the material's 'amount' parameter to animate the inverse effect
-        var time = 0;
-        app.on('update', function (dt) {
-          time += dt;
-          // animate the amount as a sine wave varying from 0 to 1
-          material.setParameter("amount", (Math.sin(time * 4) + 1) * 0.5);
+          // update the material's 'amount' parameter to animate the inverse effect
+          var time = 0;
+          app.on('update', function (dt) {
+            time += dt;
+            // animate the amount as a sine wave varying from 0 to 1
+            material.setParameter("amount", (Math.sin(time * 4) + 1) * 0.5);
+          });
         });
       });
-    } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'User Interface');_defineProperty(Example, "NAME", 'Custom Shader');_defineProperty(Example, "FILES", { 'shader.vert': /* glsl */"\n/**\n * Simple Screen-Space Vertex Shader with one UV coordinate.\n * This shader is useful for simple UI shaders.\n * \n * Usage: the following attributes must be configured when creating a new pc.Shader:\n *   vertex_position: pc.SEMANTIC_POSITION\n *   vertex_texCoord0: pc.SEMANTIC_TEXCOORD0\n */\n\n// Default PlayCanvas uniforms\nuniform mat4 matrix_viewProjection;\nuniform mat4 matrix_model;\n\n// Additional inputs\nattribute vec3 vertex_position;\nattribute vec2 vertex_texCoord0;\n\n// Additional shader outputs\nvarying vec2 vUv0;\n\nvoid main(void) {\n    // UV is simply passed along as varying\n    vUv0 = vertex_texCoord0;\n\n    // Position for screen-space\n    gl_Position = matrix_model * vec4(vertex_position, 1.0);\n    gl_Position.zw = vec2(0.0, 1.0);\n}", 'shader.frag': /* glsl */"\n/**\n * Simple Color-Inverse Fragment Shader with intensity control.\n * \n * Usage: the following parameters must be set:\n *   uDiffuseMap: image texture.\n *   amount: float that controls the amount of the inverse-color effect. 0 means none (normal color), while 1 means full inverse.\n *\n * Additionally, the Vertex shader that is paired with this Fragment shader must specify:\n *   varying vec2 vUv0: for the UV.\n */\n\n// The following line is for setting the shader precision for floats. It is commented out because, ideally, it must be configured\n// on a per-device basis before loading the Shader. Please check the accompanying TypeScript code and look for 'app.graphicsDevice.precision'.\n\n// precision mediump float;\n\n// Additional varying from vertex shader\nvarying vec2 vUv0;\n\n// Custom Parameters (must be set from code via material.setParameter())\nuniform sampler2D uDiffuseMap;\nuniform float amount;\n\nvoid main(void)\n{\n    vec4 color = texture2D(uDiffuseMap, vUv0);\n    vec3 roloc = 1.0 - color.rgb;\n    gl_FragColor = vec4(mix(color.rgb, roloc, amount), color.a);\n}" });
+    } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'User Interface');_defineProperty(Example, "NAME", 'Custom Shader');_defineProperty(Example, "WEBGPU_ENABLED", true);_defineProperty(Example, "FILES", { 'shader.vert': /* glsl */"\n/**\n * Simple Screen-Space Vertex Shader with one UV coordinate.\n * This shader is useful for simple UI shaders.\n * \n * Usage: the following attributes must be configured when creating a new pc.Shader:\n *   vertex_position: pc.SEMANTIC_POSITION\n *   vertex_texCoord0: pc.SEMANTIC_TEXCOORD0\n */\n\n// Default PlayCanvas uniforms\nuniform mat4 matrix_viewProjection;\nuniform mat4 matrix_model;\n\n// Additional inputs\nattribute vec3 vertex_position;\nattribute vec2 vertex_texCoord0;\n\n// Additional shader outputs\nvarying vec2 vUv0;\n\nvoid main(void) {\n    // UV is simply passed along as varying\n    vUv0 = vertex_texCoord0;\n\n    // Position for screen-space\n    gl_Position = matrix_model * vec4(vertex_position, 1.0);\n    gl_Position.zw = vec2(0.0, 1.0);\n}", 'shader.frag': /* glsl */"\n/**\n * Simple Color-Inverse Fragment Shader with intensity control.\n * \n * Usage: the following parameters must be set:\n *   uDiffuseMap: image texture.\n *   amount: float that controls the amount of the inverse-color effect. 0 means none (normal color), while 1 means full inverse.\n *\n * Additionally, the Vertex shader that is paired with this Fragment shader must specify:\n *   varying vec2 vUv0: for the UV.\n */\n\n// The following line is for setting the shader precision for floats. It is commented out because, ideally, it must be configured\n// on a per-device basis before loading the Shader. Please check the accompanying TypeScript code and look for 'app.graphicsDevice.precision'.\n\n// precision mediump float;\n\n// Additional varying from vertex shader\nvarying vec2 vUv0;\n\n// Custom Parameters (must be set from code via material.setParameter())\nuniform sampler2D uDiffuseMap;\nuniform float amount;\n\nvoid main(void)\n{\n    vec4 color = texture2D(uDiffuseMap, vUv0);\n    vec3 roloc = 1.0 - color.rgb;\n    gl_FragColor = vec4(mix(color.rgb, roloc, amount), color.a);\n}" });
         var example = new Example();
 
         var useTypeScript = window.top.localStorage.getItem('useTypeScript') === 'true';
@@ -209,7 +236,7 @@
                     presets: ["react", "typescript", "env"]
                 }).code;
             }
-            window.exampleFunction = new Function('canvas', 'data', exampleFunction);
+            window.exampleFunction = new Function('canvas', 'deviceType', 'data', exampleFunction);
         }
         window.loadFunction = example.load;
         window.files = window.top.editedFiles || example.constructor.FILES;
@@ -252,7 +279,7 @@
                 }).observe(canvasContainerElement);
             }
 
-            if (true) {
+            if (true && app.graphicsDevice.deviceType !== 'webgpu') {
                 // set up miniStats
                 var miniStats = new pcx.MiniStats(app);
                 if (urlParams.get('miniStats') === 'false') {
@@ -328,14 +355,28 @@
                     return data;
                 } else if (arg === 'pcx') {
                     return pcx;
+                } else if (arg === 'deviceType') {
+                    if (true) {
+                        return window.top.preferredGraphicsDevice || 'webgpu';
+                    } else if (['webgl1', 'webgl2'].includes(window.top.preferredGraphicsDevice)) {
+                        return window.top.preferredGraphicsDevice;
+                    } else {
+                        return 'webgl2';
+                    }
                 }
             });
+
             window.exampleFunction.apply(this, args);
-            if (pc.app && pc.app.graphicsDevice.canvas) {
-                setupApplication(pc.app);
+
+            const pollHandler = setInterval(appCreationPoll, 50);
+            function appCreationPoll() {
+                if (pc.app && pc.app.graphicsDevice.canvas) {
+                    clearInterval(pollHandler);
+                    setupApplication(pc.app);
+                    var event = new CustomEvent("exampleLoad");
+                    window.top.dispatchEvent(event);
+                }
             }
-            var event = new CustomEvent("exampleLoad");
-            window.top.dispatchEvent(event);
         }
     </script>
     <script>

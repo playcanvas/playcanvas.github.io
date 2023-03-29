@@ -48,5 +48,6 @@ class AnimTrack {
 		}
 	}
 }
+AnimTrack.EMPTY = Object.freeze(new AnimTrack('empty', Number.MAX_VALUE, [], [], []));
 
 export { AnimTrack };

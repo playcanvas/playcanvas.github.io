@@ -134,6 +134,7 @@
 
 
 
+
     function controls(data) {
       return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/
       React.createElement(Panel, { headerText: "Controls" }, /*#__PURE__*/
@@ -144,7 +145,7 @@
 
     } }, { key: "example", value:
 
-    function example(canvas, files, data) {
+    function example(canvas, deviceType, files, data) {
 
       var assets = {
         'script': new pc.Asset('script', 'script', { url: '/../../static/scripts/camera/orbit-camera.js' }),
@@ -153,7 +154,16 @@
         'texture': new pc.Asset('color', 'texture', { url: '/../../static/assets/textures/clouds.jpg' }) };
 
 
-      pc.createGraphicsDevice(canvas).then(function (device) {
+      var gfxOptions = {
+        deviceTypes: [deviceType],
+        glslangUrl: '/../../static/lib/glslang/glslang.js',
+        twgslUrl: '/../../static/lib/twgsl/twgsl.js',
+
+        // WebGPU does not currently support antialiased depth resolve, disable it till we implement a shader resolve solution
+        antialias: false };
+
+
+      pc.createGraphicsDevice(canvas, gfxOptions).then(function (device) {
 
         var createOptions = new pc.AppOptions();
         createOptions.graphicsDevice = device;
@@ -314,7 +324,7 @@
           });
         });
       });
-    } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'Graphics');_defineProperty(Example, "NAME", 'Ground Fog');_defineProperty(Example, "FILES", { 'shader.vert': /* glsl */"\n            attribute vec3 vertex_position;\n            attribute vec2 vertex_texCoord0;\n\n            uniform mat4 matrix_model;\n            uniform mat4 matrix_viewProjection;\n            uniform float uTime;\n            uniform sampler2D uTexture;\n\n            varying vec2 texCoord0;\n            varying vec2 texCoord1;\n            varying vec2 texCoord2;\n            varying vec4 screenPos;\n            varying float depth;\n\n            void main(void)\n            {\n                // 3 scrolling texture coordinates with different direction and speed\n                texCoord0 = vertex_texCoord0 * 2.0 + vec2(uTime * 0.003, uTime * 0.01);\n                texCoord1 = vertex_texCoord0 * 1.5 + vec2(uTime * -0.02, uTime * 0.02);\n                texCoord2 = vertex_texCoord0 * 1.0 + vec2(uTime * 0.01, uTime * -0.003);\n\n                // sample the fog texture to have elevation for this vertex\n                vec2 offsetTexCoord = vertex_texCoord0 + vec2(uTime * 0.001, uTime * -0.0003);\n                float offset = texture2D(uTexture, offsetTexCoord).r;\n\n                // vertex in the world space\n                vec4 pos = matrix_model * vec4(vertex_position, 1.0);\n\n                // move it up based on the offset\n                pos.y += offset * 25.0;\n\n                // position in projected (screen) space\n                vec4 projPos = matrix_viewProjection * pos;\n                gl_Position = projPos;\n\n                // the linear depth of the vertex (in camera space)\n                depth = getLinearDepth(pos.xyz);\n\n                // screen fragment position, used to sample the depth texture\n                screenPos = projPos;\n            }\n        ", 'shader.frag': /* glsl */"\n            uniform sampler2D uTexture;\n            uniform float uSoftening;\n\n            varying vec2 texCoord0;\n            varying vec2 texCoord1;\n            varying vec2 texCoord2;\n            varying vec4 screenPos;\n            varying float depth;\n            \n            void main(void)\n            {\n                // sample the texture 3 times and compute average intensity of the fog\n                vec4 diffusTexture0 = texture2D (uTexture, texCoord0);\n                vec4 diffusTexture1 = texture2D (uTexture, texCoord1);\n                vec4 diffusTexture2 = texture2D (uTexture, texCoord2);\n                float alpha = 0.5 * (diffusTexture0.r + diffusTexture1.r + diffusTexture2.r);\n\n                // use built-in getGrabScreenPos function to convert screen position to grab texture uv coords\n                vec2 screenCoord = getGrabScreenPos(screenPos);\n\n                // read the depth from the depth buffer\n                float sceneDepth = getLinearScreenDepth(screenCoord) * camera_params.x;\n\n                // depth of the current fragment (on the fog plane)\n                float fragmentDepth = depth * camera_params.x;\n\n                // difference between these two depths is used to adjust the alpha, to fade out\n                // the fog near the geometry\n                float depthDiff = clamp(abs(fragmentDepth - sceneDepth) * uSoftening, 0.0, 1.0);\n                alpha *= smoothstep(0.0, 1.0, depthDiff);\n\n                // final color\n                vec3 fogColor = vec3(1.0, 1.0, 1.0);\n                gl_FragColor = vec4(fogColor, alpha);\n            }\n        " });
+    } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'Graphics');_defineProperty(Example, "NAME", 'Ground Fog');_defineProperty(Example, "WEBGPU_ENABLED", true);_defineProperty(Example, "FILES", { 'shader.vert': /* glsl */"\n            attribute vec3 vertex_position;\n            attribute vec2 vertex_texCoord0;\n\n            uniform mat4 matrix_model;\n            uniform mat4 matrix_viewProjection;\n            uniform float uTime;\n            uniform sampler2D uTexture;\n\n            varying vec2 texCoord0;\n            varying vec2 texCoord1;\n            varying vec2 texCoord2;\n            varying vec4 screenPos;\n            varying float depth;\n\n            void main(void)\n            {\n                // 3 scrolling texture coordinates with different direction and speed\n                texCoord0 = vertex_texCoord0 * 2.0 + vec2(uTime * 0.003, uTime * 0.01);\n                texCoord1 = vertex_texCoord0 * 1.5 + vec2(uTime * -0.02, uTime * 0.02);\n                texCoord2 = vertex_texCoord0 * 1.0 + vec2(uTime * 0.01, uTime * -0.003);\n\n                // sample the fog texture to have elevation for this vertex\n                vec2 offsetTexCoord = vertex_texCoord0 + vec2(uTime * 0.001, uTime * -0.0003);\n                float offset = texture2D(uTexture, offsetTexCoord).r;\n\n                // vertex in the world space\n                vec4 pos = matrix_model * vec4(vertex_position, 1.0);\n\n                // move it up based on the offset\n                pos.y += offset * 25.0;\n\n                // position in projected (screen) space\n                vec4 projPos = matrix_viewProjection * pos;\n                gl_Position = projPos;\n\n                // the linear depth of the vertex (in camera space)\n                depth = getLinearDepth(pos.xyz);\n\n                // screen fragment position, used to sample the depth texture\n                screenPos = projPos;\n            }\n        ", 'shader.frag': /* glsl */"\n            uniform sampler2D uTexture;\n            uniform float uSoftening;\n\n            varying vec2 texCoord0;\n            varying vec2 texCoord1;\n            varying vec2 texCoord2;\n            varying vec4 screenPos;\n            varying float depth;\n            \n            void main(void)\n            {\n                // sample the texture 3 times and compute average intensity of the fog\n                vec4 diffusTexture0 = texture2D (uTexture, texCoord0);\n                vec4 diffusTexture1 = texture2D (uTexture, texCoord1);\n                vec4 diffusTexture2 = texture2D (uTexture, texCoord2);\n                float alpha = 0.5 * (diffusTexture0.r + diffusTexture1.r + diffusTexture2.r);\n\n                // use built-in getGrabScreenPos function to convert screen position to grab texture uv coords\n                vec2 screenCoord = getGrabScreenPos(screenPos);\n\n                // read the depth from the depth buffer\n                float sceneDepth = getLinearScreenDepth(screenCoord) * camera_params.x;\n\n                // depth of the current fragment (on the fog plane)\n                float fragmentDepth = depth * camera_params.x;\n\n                // difference between these two depths is used to adjust the alpha, to fade out\n                // the fog near the geometry\n                float depthDiff = clamp(abs(fragmentDepth - sceneDepth) * uSoftening, 0.0, 1.0);\n                alpha *= smoothstep(0.0, 1.0, depthDiff);\n\n                // final color\n                vec3 fogColor = vec3(1.0, 1.0, 1.0);\n                gl_FragColor = vec4(fogColor, alpha);\n            }\n        " });
         var example = new Example();
 
         var useTypeScript = window.top.localStorage.getItem('useTypeScript') === 'true';
@@ -329,7 +339,7 @@
                     presets: ["react", "typescript", "env"]
                 }).code;
             }
-            window.exampleFunction = new Function('canvas', 'data', exampleFunction);
+            window.exampleFunction = new Function('canvas', 'deviceType', 'data', exampleFunction);
         }
         window.loadFunction = example.load;
         window.files = window.top.editedFiles || example.constructor.FILES;
@@ -372,7 +382,7 @@
                 }).observe(canvasContainerElement);
             }
 
-            if (true) {
+            if (true && app.graphicsDevice.deviceType !== 'webgpu') {
                 // set up miniStats
                 var miniStats = new pcx.MiniStats(app);
                 if (urlParams.get('miniStats') === 'false') {
@@ -448,14 +458,28 @@
                     return data;
                 } else if (arg === 'pcx') {
                     return pcx;
+                } else if (arg === 'deviceType') {
+                    if (true) {
+                        return window.top.preferredGraphicsDevice || 'webgpu';
+                    } else if (['webgl1', 'webgl2'].includes(window.top.preferredGraphicsDevice)) {
+                        return window.top.preferredGraphicsDevice;
+                    } else {
+                        return 'webgl2';
+                    }
                 }
             });
+
             window.exampleFunction.apply(this, args);
-            if (pc.app && pc.app.graphicsDevice.canvas) {
-                setupApplication(pc.app);
+
+            const pollHandler = setInterval(appCreationPoll, 50);
+            function appCreationPoll() {
+                if (pc.app && pc.app.graphicsDevice.canvas) {
+                    clearInterval(pollHandler);
+                    setupApplication(pc.app);
+                    var event = new CustomEvent("exampleLoad");
+                    window.top.dispatchEvent(event);
+                }
             }
-            var event = new CustomEvent("exampleLoad");
-            window.top.dispatchEvent(event);
         }
     </script>
     <script>

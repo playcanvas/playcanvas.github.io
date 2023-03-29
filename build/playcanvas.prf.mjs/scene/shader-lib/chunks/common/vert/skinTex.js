@@ -1,26 +1,17 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.62.0 revision 818511d2b (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 var skinTexVS = `
 
 attribute vec4 vertex_boneWeights;
-
-#ifdef WEBGPU
-		attribute uvec4 vertex_boneIndices;
-		#define BoneIndexFormat uint
-		#define BoneIndexFormat4 uvec4
-#else
-		attribute vec4 vertex_boneIndices;
-		#define BoneIndexFormat float
-		#define BoneIndexFormat4 vec4
-#endif
+attribute vec4 vertex_boneIndices;
 
 uniform highp sampler2D texture_poseMap;
 uniform vec4 texture_poseMapSize;
 
-void getBoneMatrix(const in BoneIndexFormat index, out vec4 v1, out vec4 v2, out vec4 v3) {
+void getBoneMatrix(const in float index, out vec4 v1, out vec4 v2, out vec4 v3) {
 
 		float i = float(index);
 		float j = i * 3.0;
@@ -37,7 +28,7 @@ void getBoneMatrix(const in BoneIndexFormat index, out vec4 v1, out vec4 v2, out
 		v3 = texture2D(texture_poseMap, vec2(dx * (x + 2.5), y));
 }
 
-mat4 getSkinMatrix(const in BoneIndexFormat4 indices, const in vec4 weights) {
+mat4 getSkinMatrix(const in vec4 indices, const in vec4 weights) {
 		// get 4 bone matrices
 		vec4 a1, a2, a3;
 		getBoneMatrix(indices.x, a1, a2, a3);

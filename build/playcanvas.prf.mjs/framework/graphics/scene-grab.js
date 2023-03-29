@@ -1,9 +1,9 @@
 /**
  * @license
- * PlayCanvas Engine v1.59.0-dev revision 84ad26f31 (PROFILER)
+ * PlayCanvas Engine v1.59.0-dev revision f64bb6d28 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
-import { PIXELFORMAT_RGBA8, PIXELFORMAT_RGB8, FILTER_NEAREST, FILTER_LINEAR_MIPMAP_LINEAR, FILTER_LINEAR, ADDRESS_CLAMP_TO_EDGE, PIXELFORMAT_DEPTHSTENCIL } from '../../platform/graphics/constants.js';
+import { DEVICETYPE_WEBGPU, FILTER_NEAREST, FILTER_LINEAR_MIPMAP_LINEAR, FILTER_LINEAR, ADDRESS_CLAMP_TO_EDGE, PIXELFORMAT_DEPTHSTENCIL, PIXELFORMAT_RGBA8 } from '../../platform/graphics/constants.js';
 import { RenderTarget } from '../../platform/graphics/render-target.js';
 import { Texture } from '../../platform/graphics/texture.js';
 import { LAYERID_DEPTH, SHADER_DEPTH, LAYERID_WORLD } from '../../scene/constants.js';
@@ -20,12 +20,10 @@ class SceneGrab {
 
     this.layer = null;
 
-    this.colorFormat = this.device.defaultFramebufferAlpha ? PIXELFORMAT_RGBA8 : PIXELFORMAT_RGB8;
-
-    if (this.device.webgl2) {
-      this.initWebGl2();
+    if (this.device.webgl2 || this.device.deviceType === DEVICETYPE_WEBGPU) {
+      this.initMainPath();
     } else {
-      this.initWebGl1();
+      this.initFallbackPath();
     }
   }
   setupUniform(device, depth, buffer) {
@@ -45,10 +43,21 @@ class SceneGrab {
       addressV: ADDRESS_CLAMP_TO_EDGE
     });
   }
-  resizeCondition(target, source, device) {
-    const width = (source == null ? void 0 : source.width) || device.width;
-    const height = (source == null ? void 0 : source.height) || device.height;
-    return !target || width !== target.width || height !== target.height;
+
+  getSourceColorFormat(texture) {
+    var _texture$format;
+    return (_texture$format = texture == null ? void 0 : texture.format) != null ? _texture$format : this.device.framebufferFormat;
+  }
+  shouldReallocate(targetRT, sourceTexture, testFormat) {
+    if (testFormat) {
+      const targetFormat = targetRT == null ? void 0 : targetRT.colorBuffer.format;
+      const sourceFormat = this.getSourceColorFormat(sourceTexture);
+      if (targetFormat !== sourceFormat) return true;
+    }
+
+    const width = (sourceTexture == null ? void 0 : sourceTexture.width) || this.device.width;
+    const height = (sourceTexture == null ? void 0 : sourceTexture.height) || this.device.height;
+    return !targetRT || width !== targetRT.width || height !== targetRT.height;
   }
   allocateRenderTarget(renderTarget, sourceRenderTarget, device, format, isDepth, mipmaps, isDepthUniforms) {
     const names = isDepthUniforms ? _depthUniformNames : _colorUniformNames;
@@ -80,7 +89,8 @@ class SceneGrab {
       rt.destroy();
     }
   }
-  initWebGl2() {
+
+  initMainPath() {
     const app = this.application;
     const self = this;
 
@@ -101,23 +111,29 @@ class SceneGrab {
         const camera = this.cameras[cameraPass];
         if (camera.renderSceneColorMap) {
           var _camera$renderTarget;
-          if (self.resizeCondition(this.colorRenderTarget, (_camera$renderTarget = camera.renderTarget) == null ? void 0 : _camera$renderTarget.colorBuffer, device)) {
+          if (self.shouldReallocate(this.colorRenderTarget, (_camera$renderTarget = camera.renderTarget) == null ? void 0 : _camera$renderTarget.colorBuffer, true)) {
+            var _camera$renderTarget2;
             self.releaseRenderTarget(this.colorRenderTarget);
-            this.colorRenderTarget = self.allocateRenderTarget(this.colorRenderTarget, camera.renderTarget, device, this.colorFormat, false, true, false);
+            const format = self.getSourceColorFormat((_camera$renderTarget2 = camera.renderTarget) == null ? void 0 : _camera$renderTarget2.colorBuffer);
+            this.colorRenderTarget = self.allocateRenderTarget(this.colorRenderTarget, camera.renderTarget, device, format, false, true, false);
           }
 
-          device.copyRenderTarget(device.renderTarget, this.colorRenderTarget, true, false);
-
-          device.activeTexture(device.maxCombinedTextures - 1);
           const colorBuffer = this.colorRenderTarget.colorBuffer;
-          device.bindTexture(colorBuffer);
-          device.gl.generateMipmap(colorBuffer.impl._glTarget);
+          if (device.deviceType === DEVICETYPE_WEBGPU) {
+            device.copyRenderTarget(camera.renderTarget, this.colorRenderTarget, true, false);
+          } else {
+            device.copyRenderTarget(device.renderTarget, this.colorRenderTarget, true, false);
+
+            device.activeTexture(device.maxCombinedTextures - 1);
+            device.bindTexture(colorBuffer);
+            device.gl.generateMipmap(colorBuffer.impl._glTarget);
+          }
 
           self.setupUniform(device, false, colorBuffer);
         }
         if (camera.renderSceneDepthMap) {
-          var _camera$renderTarget2;
-          if (self.resizeCondition(this.depthRenderTarget, (_camera$renderTarget2 = camera.renderTarget) == null ? void 0 : _camera$renderTarget2.depthBuffer, device)) {
+          var _camera$renderTarget3;
+          if (self.shouldReallocate(this.depthRenderTarget, (_camera$renderTarget3 = camera.renderTarget) == null ? void 0 : _camera$renderTarget3.depthBuffer)) {
             self.releaseRenderTarget(this.depthRenderTarget);
             this.depthRenderTarget = self.allocateRenderTarget(this.depthRenderTarget, camera.renderTarget, device, PIXELFORMAT_DEPTHSTENCIL, true, false, true);
           }
@@ -130,7 +146,8 @@ class SceneGrab {
       onPostRenderOpaque: function (cameraPass) {}
     });
   }
-  initWebGl1() {
+
+  initFallbackPath() {
     const app = this.application;
     const self = this;
 
@@ -161,8 +178,8 @@ class SceneGrab {
 
         const camera = this.cameras[cameraPass];
         if (camera.renderSceneDepthMap) {
-          var _camera$renderTarget3;
-          if (self.resizeCondition(this.depthRenderTarget, (_camera$renderTarget3 = camera.renderTarget) == null ? void 0 : _camera$renderTarget3.depthBuffer, device)) {
+          var _camera$renderTarget4;
+          if (!this.depthRenderTarget.depthBuffer || self.shouldReallocate(this.depthRenderTarget, (_camera$renderTarget4 = camera.renderTarget) == null ? void 0 : _camera$renderTarget4.depthBuffer)) {
             this.depthRenderTarget.destroyTextureBuffers();
             this.depthRenderTarget = self.allocateRenderTarget(this.depthRenderTarget, camera.renderTarget, device, PIXELFORMAT_RGBA8, false, false, true);
           }
@@ -203,10 +220,12 @@ class SceneGrab {
 
         const camera = this.cameras[cameraPass];
         if (camera.renderSceneColorMap) {
-          var _camera$renderTarget4;
-          if (self.resizeCondition(this.colorRenderTarget, (_camera$renderTarget4 = camera.renderTarget) == null ? void 0 : _camera$renderTarget4.colorBuffer, device)) {
+          var _camera$renderTarget5;
+          if (self.shouldReallocate(this.colorRenderTarget, (_camera$renderTarget5 = camera.renderTarget) == null ? void 0 : _camera$renderTarget5.colorBuffer)) {
+            var _camera$renderTarget6;
             self.releaseRenderTarget(this.colorRenderTarget);
-            this.colorRenderTarget = self.allocateRenderTarget(this.colorRenderTarget, camera.renderTarget, device, this.colorFormat, false, false, false);
+            const format = self.getSourceColorFormat((_camera$renderTarget6 = camera.renderTarget) == null ? void 0 : _camera$renderTarget6.colorBuffer);
+            this.colorRenderTarget = self.allocateRenderTarget(this.colorRenderTarget, camera.renderTarget, device, format, false, false, false);
           }
 
           const colorBuffer = this.colorRenderTarget._colorBuffer;

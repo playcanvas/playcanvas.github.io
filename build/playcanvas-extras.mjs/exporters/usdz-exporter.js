@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c
+ * PlayCanvas Engine v1.62.0 revision 818511d2b
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import { CoreExporter } from './core-exporter.js';
@@ -277,7 +277,7 @@ class UsdzExporter extends CoreExporter {
 		addTexture('emissiveMap', material.emissive, 'color3f', 'emissiveColor', 'emissive', false, true);
 		addTexture('aoMap', null, 'float', 'occlusion', 'occlusion');
 		addTexture('metalnessMap', material.metalness, 'float', 'metallic', 'metallic');
-		addTexture('glossMap', material.shininess / 100, 'float', 'roughness', 'roughness');
+		addTexture('glossMap', material.gloss, 'float', 'roughness', 'roughness');
 		const materialObject = `
 						def Material "${materialName}"
 						{

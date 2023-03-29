@@ -15,6 +15,7 @@ class WebgpuBindGroup {
 	}
 	createDescriptor(device, bindGroup) {
 		const entries = [];
+		const format = bindGroup.format;
 		let index = 0;
 		bindGroup.uniformBuffers.forEach(ub => {
 			const buffer = ub.impl.buffer;
@@ -25,23 +26,25 @@ class WebgpuBindGroup {
 				}
 			});
 		});
-		bindGroup.textures.forEach(tex => {
+		bindGroup.textures.forEach((tex, textureIndex) => {
 			const wgpuTexture = tex.impl;
+			const textureFormat = format.textureFormats[textureIndex];
 			const view = wgpuTexture.getView(device);
 			entries.push({
 				binding: index++,
 				resource: view
 			});
-			const sampler = wgpuTexture.getSampler(device);
+			const sampler = wgpuTexture.getSampler(device, textureFormat.sampleType);
 			entries.push({
 				binding: index++,
 				resource: sampler
 			});
 		});
-		return {
+		const descr = {
 			layout: bindGroup.format.impl.bindGroupLayout,
 			entries: entries
 		};
+		return descr;
 	}
 }
 

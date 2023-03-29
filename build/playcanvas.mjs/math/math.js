@@ -65,9 +65,6 @@ const math = {
     val++;
     return val;
   },
-  nearestPowerOfTwo: function (val) {
-    return Math.pow(2, Math.round(Math.log(val) / Math.log(2)));
-  },
   random: function (min, max) {
     const diff = max - min;
     return Math.random() * diff + min;

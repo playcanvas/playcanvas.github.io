@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.62.0 revision 818511d2b (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import '../core/tracing.js';
@@ -38,6 +38,8 @@ class Command {
 }
 class MeshInstance {
 	constructor(mesh, material, node = null) {
+		this.visible = true;
+		this.castShadow = false;
 		this._material = void 0;
 		this._shader = [];
 		this._bindGroups = [];
@@ -61,10 +63,8 @@ class MeshInstance {
 		this._shaderDefs |= mesh.vertexBuffer.format.hasColor ? SHADERDEF_VCOLOR : 0;
 		this._shaderDefs |= mesh.vertexBuffer.format.hasTangents ? SHADERDEF_TANGENTS : 0;
 		this._lightHash = 0;
-		this.visible = true;
 		this.layer = LAYER_WORLD;
 		this._renderStyle = RENDERSTYLE_SOLID;
-		this.castShadow = false;
 		this._receiveShadow = true;
 		this._screenSpace = false;
 		this._noDepthDrawGl1 = false;
@@ -151,7 +151,8 @@ class MeshInstance {
 					localAabb.halfExtents.set(0, 0, 0);
 				}
 				if (this.mesh && this.mesh.morph) {
-					localAabb._expand(this.mesh.morph.aabb.getMin(), this.mesh.morph.aabb.getMax());
+					const morphAabb = this.mesh.morph.aabb;
+					localAabb._expand(morphAabb.getMin(), morphAabb.getMax());
 				}
 				toWorldSpace = true;
 				this._aabbVer = this.node._aabbVer;
@@ -189,8 +190,8 @@ class MeshInstance {
 			const shader = this._shader[pass];
 			const ubFormat = shader.meshUniformBufferFormat;
 			const uniformBuffer = new UniformBuffer(device, ubFormat);
-			const bingGroupFormat = shader.meshBindGroupFormat;
-			bindGroup = new BindGroup(device, bingGroupFormat, uniformBuffer);
+			const bindGroupFormat = shader.meshBindGroupFormat;
+			bindGroup = new BindGroup(device, bindGroupFormat, uniformBuffer);
 			this._bindGroups[pass] = bindGroup;
 		}
 		return bindGroup;
@@ -357,7 +358,7 @@ class MeshInstance {
 		}
 	}
 	updatePassShader(scene, pass, staticLightList, sortedLights, viewUniformFormat, viewBindGroupFormat) {
-		this._shader[pass] = this.material.getShaderVariant(this.mesh.device, scene, this._shaderDefs, staticLightList, pass, sortedLights, viewUniformFormat, viewBindGroupFormat);
+		this._shader[pass] = this.material.getShaderVariant(this.mesh.device, scene, this._shaderDefs, staticLightList, pass, sortedLights, viewUniformFormat, viewBindGroupFormat, this._mesh.vertexBuffer.format);
 	}
 	ensureMaterial(device) {
 		if (!this.material) {

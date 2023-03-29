@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.62.0 revision 818511d2b (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import '../../core/tracing.js';
@@ -26,6 +26,7 @@ class VertexFormat {
 		let offset = 0,
 			elementSize;
 		for (let i = 0, len = description.length; i < len; i++) {
+			var _elementDesc$normaliz;
 			const elementDesc = description[i];
 			elementSize = elementDesc.components * typedArrayTypesByteSize[elementDesc.type];
 			if (vertexCount) {
@@ -37,7 +38,7 @@ class VertexFormat {
 				stride: vertexCount ? elementSize : elementDesc.hasOwnProperty('stride') ? elementDesc.stride : this.size,
 				dataType: elementDesc.type,
 				numComponents: elementDesc.components,
-				normalize: elementDesc.normalize === undefined ? false : elementDesc.normalize,
+				normalize: (_elementDesc$normaliz = elementDesc.normalize) != null ? _elementDesc$normaliz : false,
 				size: elementSize
 			};
 			this._elements.push(element);
@@ -110,8 +111,8 @@ class VertexFormat {
 		}
 		stringElementsBatch.sort();
 		this.batchingHash = hashCode(stringElementsBatch.join());
-		this.renderingingHashString = stringElementsRender.join('_');
-		this.renderingingHash = hashCode(this.renderingingHashString);
+		this.renderingHashString = stringElementsRender.join('_');
+		this.renderingHash = hashCode(this.renderingHashString);
 	}
 }
 VertexFormat._defaultInstancingFormat = null;

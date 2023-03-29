@@ -7,7 +7,7 @@ import { BoundingSphere } from '../../core/shape/bounding-sphere.js';
 import { SORTKEY_FORWARD, SORTKEY_DEPTH, VIEW_CENTER, PROJECTION_ORTHOGRAPHIC, LIGHTTYPE_DIRECTIONAL, SHADOWUPDATE_NONE, SHADOWUPDATE_THISFRAME, LIGHTTYPE_SPOT, LIGHTTYPE_OMNI } from '../constants.js';
 import { LightTextureAtlas } from '../lighting/light-texture-atlas.js';
 import { Material } from '../materials/material.js';
-import { CLEARFLAG_COLOR, CLEARFLAG_DEPTH, CLEARFLAG_STENCIL, DEVICETYPE_WEBGPU, CULLFACE_NONE, CULLFACE_FRONTANDBACK, CULLFACE_FRONT, CULLFACE_BACK, UNIFORMTYPE_MAT4, UNIFORM_BUFFER_DEFAULT_SLOT_NAME, SHADERSTAGE_VERTEX, SHADERSTAGE_FRAGMENT, TEXTUREDIMENSION_2D, SAMPLETYPE_UNFILTERABLE_FLOAT, BINDGROUP_VIEW, BINDGROUP_MESH, SEMANTIC_ATTR } from '../../platform/graphics/constants.js';
+import { CLEARFLAG_COLOR, CLEARFLAG_DEPTH, CLEARFLAG_STENCIL, CULLFACE_FRONT, CULLFACE_BACK, CULLFACE_NONE, UNIFORMTYPE_MAT4, UNIFORM_BUFFER_DEFAULT_SLOT_NAME, SHADERSTAGE_VERTEX, SHADERSTAGE_FRAGMENT, TEXTUREDIMENSION_2D, SAMPLETYPE_UNFILTERABLE_FLOAT, BINDGROUP_VIEW, BINDGROUP_MESH, SEMANTIC_ATTR } from '../../platform/graphics/constants.js';
 import { UniformBuffer } from '../../platform/graphics/uniform-buffer.js';
 import { BindGroup } from '../../platform/graphics/bind-group.js';
 import { UniformBufferFormat, UniformFormat } from '../../platform/graphics/uniform-buffer-format.js';
@@ -24,9 +24,6 @@ const boneTextureSize = [0, 0, 0, 0];
 const viewProjMat = new Mat4();
 const viewInvMat = new Mat4();
 const viewMat = new Mat4();
-const worldMatX = new Vec3();
-const worldMatY = new Vec3();
-const worldMatZ = new Vec3();
 const viewMat3 = new Mat3();
 const tempSphere = new BoundingSphere();
 const _flipYMat = new Mat4().setScale(1, -1, 1);
@@ -86,6 +83,7 @@ class Renderer {
 		this.opacityMapId = scope.resolve('texture_opacityMap');
 		this.exposureId = scope.resolve('exposure');
 		this.twoSidedLightingNegScaleFactorId = scope.resolve('twoSidedLightingNegScaleFactor');
+		this.twoSidedLightingNegScaleFactorId.setValue(0);
 		this.morphWeightsA = scope.resolve('morph_weights_a');
 		this.morphWeightsB = scope.resolve('morph_weights_b');
 		this.morphPositionTex = scope.resolve('morphPositionTex');
@@ -157,18 +155,6 @@ class Renderer {
 		}
 		device.setScissor(x, y, w, h);
 	}
-	clear(renderAction, camera) {
-		const flags = (renderAction.clearColor ? CLEARFLAG_COLOR : 0) | (renderAction.clearDepth ? CLEARFLAG_DEPTH : 0) | (renderAction.clearStencil ? CLEARFLAG_STENCIL : 0);
-		if (flags) {
-			const device = this.device;
-			device.clear({
-				color: [camera._clearColor.r, camera._clearColor.g, camera._clearColor.b, camera._clearColor.a],
-				depth: camera._clearDepth,
-				stencil: camera._clearStencil,
-				flags: flags
-			});
-		}
-	}
 	setCameraUniforms(camera, target) {
 		const flipY = target == null ? void 0 : target.flipY;
 		let viewCount = 1;
@@ -204,7 +190,7 @@ class Renderer {
 				projMat = _tempProjMat0.mul2(_flipYMat, projMat);
 				projMatSkybox = _tempProjMat1.mul2(_flipYMat, projMatSkybox);
 			}
-			if (this.device.deviceType === DEVICETYPE_WEBGPU) {
+			if (this.device.isWebGPU) {
 				projMat = _tempProjMat2.mul2(_fixProjRangeMat, projMat);
 				projMatSkybox = _tempProjMat3.mul2(_fixProjRangeMat, projMatSkybox);
 			}
@@ -241,6 +227,18 @@ class Renderer {
 		this.exposureId.setValue(this.scene.physicalUnits ? camera.getExposure() : this.scene.exposure);
 		return viewCount;
 	}
+	clear(camera, clearColor, clearDepth, clearStencil) {
+		const flags = ((clearColor != null ? clearColor : camera._clearColorBuffer) ? CLEARFLAG_COLOR : 0) | ((clearDepth != null ? clearDepth : camera._clearDepthBuffer) ? CLEARFLAG_DEPTH : 0) | ((clearStencil != null ? clearStencil : camera._clearStencilBuffer) ? CLEARFLAG_STENCIL : 0);
+		if (flags) {
+			const device = this.device;
+			device.clear({
+				color: [camera._clearColor.r, camera._clearColor.g, camera._clearColor.b, camera._clearColor.a],
+				depth: camera._clearDepth,
+				stencil: camera._clearStencil,
+				flags: flags
+			});
+		}
+	}
 	setCamera(camera, target, clear, renderAction = null) {
 		this.setCameraUniforms(camera, target);
 		this.clearView(camera, target, clear, false);
@@ -269,17 +267,10 @@ class Renderer {
 		let mode = CULLFACE_NONE;
 		if (cullFaces) {
 			let flipFaces = 1;
-			if (material.cull > CULLFACE_NONE && material.cull < CULLFACE_FRONTANDBACK) {
+			if (material.cull === CULLFACE_FRONT || material.cull === CULLFACE_BACK) {
 				if (drawCall.flipFaces) flipFaces *= -1;
 				if (flip) flipFaces *= -1;
-				const wt = drawCall.node.worldTransform;
-				wt.getX(worldMatX);
-				wt.getY(worldMatY);
-				wt.getZ(worldMatZ);
-				worldMatX.cross(worldMatX, worldMatY);
-				if (worldMatX.dot(worldMatZ) < 0) {
-					flipFaces *= -1;
-				}
+				flipFaces *= drawCall.node.negativeScaleWorld;
 			}
 			if (flipFaces < 0) {
 				mode = material.cull === CULLFACE_FRONT ? CULLFACE_BACK : CULLFACE_FRONT;
@@ -289,12 +280,7 @@ class Renderer {
 		}
 		this.device.setCullMode(mode);
 		if (mode === CULLFACE_NONE && material.cull === CULLFACE_NONE) {
-			const wt2 = drawCall.node.worldTransform;
-			wt2.getX(worldMatX);
-			wt2.getY(worldMatY);
-			wt2.getZ(worldMatZ);
-			worldMatX.cross(worldMatX, worldMatY);
-			this.twoSidedLightingNegScaleFactorId.setValue(worldMatX.dot(worldMatZ) < 0 ? -1.0 : 1.0);
+			this.twoSidedLightingNegScaleFactorId.setValue(drawCall.node.negativeScaleWorld);
 		}
 	}
 	updateCameraFrustum(camera) {
@@ -324,6 +310,8 @@ class Renderer {
 		device.setCullMode(material.cull);
 		if (material.opacityMap) {
 			this.opacityMapId.setValue(material.opacityMap);
+		}
+		if (material.opacityMap || material.alphaTest > 0) {
 			this.alphaTestId.setValue(material.alphaTest);
 		}
 	}
@@ -418,7 +406,7 @@ class Renderer {
 	initViewBindGroupFormat() {
 		if (this.device.supportsUniformBuffers && !this.viewUniformFormat) {
 			this.viewUniformFormat = new UniformBufferFormat(this.device, [new UniformFormat("matrix_viewProjection", UNIFORMTYPE_MAT4)]);
-			this.viewBindGroupFormat = new BindGroupFormat(this.device, [new BindBufferFormat(UNIFORM_BUFFER_DEFAULT_SLOT_NAME, SHADERSTAGE_VERTEX | SHADERSTAGE_FRAGMENT)], [new BindTextureFormat('lightsTextureFloat', SHADERSTAGE_FRAGMENT, TEXTUREDIMENSION_2D, SAMPLETYPE_UNFILTERABLE_FLOAT)]);
+			this.viewBindGroupFormat = new BindGroupFormat(this.device, [new BindBufferFormat(UNIFORM_BUFFER_DEFAULT_SLOT_NAME, SHADERSTAGE_VERTEX | SHADERSTAGE_FRAGMENT)], [new BindTextureFormat('lightsTextureFloat', SHADERSTAGE_FRAGMENT, TEXTUREDIMENSION_2D, SAMPLETYPE_UNFILTERABLE_FLOAT), new BindTextureFormat('lightsTexture8', SHADERSTAGE_FRAGMENT, TEXTUREDIMENSION_2D, SAMPLETYPE_UNFILTERABLE_FLOAT)]);
 		}
 	}
 	setupViewUniformBuffers(viewBindGroups, viewUniformFormat, viewBindGroupFormat, viewCount) {

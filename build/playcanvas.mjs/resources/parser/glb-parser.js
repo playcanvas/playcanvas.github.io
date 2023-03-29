@@ -15,6 +15,7 @@ import { VertexFormat } from '../../graphics/vertex-format.js';
 import { SPECOCC_AO, BLEND_NONE, BLEND_NORMAL, PROJECTION_ORTHOGRAPHIC, PROJECTION_PERSPECTIVE, ASPECT_AUTO, LIGHTFALLOFF_INVERSESQUARED, ASPECT_MANUAL } from '../../scene/constants.js';
 import { calculateNormals } from '../../scene/procedural.js';
 import { GraphNode } from '../../scene/graph-node.js';
+import { Light, lightTypes } from '../../scene/light.js';
 import { Mesh } from '../../scene/mesh.js';
 import { Morph } from '../../scene/morph.js';
 import { MorphTarget } from '../../scene/morph-target.js';
@@ -1713,6 +1714,10 @@ const createLight = function createLight(gltfLight, node) {
   if (gltfLight.hasOwnProperty('spot')) {
     lightProps.innerConeAngle = gltfLight.spot.hasOwnProperty('innerConeAngle') ? gltfLight.spot.innerConeAngle * math.RAD_TO_DEG : 0;
     lightProps.outerConeAngle = gltfLight.spot.hasOwnProperty('outerConeAngle') ? gltfLight.spot.outerConeAngle * math.RAD_TO_DEG : Math.PI / 4;
+  }
+
+  if (gltfLight.hasOwnProperty("intensity")) {
+    lightProps.luminance = gltfLight.intensity * Light.getLightUnitConversion(lightTypes[lightProps.type], lightProps.outerConeAngle, lightProps.innerConeAngle);
   }
 
   const lightEntity = new Entity(node.name);

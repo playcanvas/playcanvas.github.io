@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.62.0 revision 818511d2b (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import '../../core/tracing.js';
@@ -32,8 +32,8 @@ class QuadRender {
 			if (ubFormat) {
 				this.uniformBuffer = new UniformBuffer(device, ubFormat);
 			}
-			const bingGroupFormat = this.shader.meshBindGroupFormat;
-			this.bindGroup = new BindGroup(device, bingGroupFormat, this.uniformBuffer);
+			const bindGroupFormat = this.shader.meshBindGroupFormat;
+			this.bindGroup = new BindGroup(device, bindGroupFormat, this.uniformBuffer);
 		}
 	}
 	destroy() {

@@ -51,202 +51,243 @@
 
 
 
-    function example(canvas) {
-
-      // Create the application with input and start the update loop
-      var app = new pc.Application(canvas, {
-        mouse: new pc.Mouse(document.body),
-        touch: new pc.TouchDevice(document.body),
-        elementInput: new pc.ElementInput(canvas) });
-
+    function example(canvas, deviceType) {
 
       var assets = {
         'font': new pc.Asset('font', 'font', { url: '/../../static/assets/fonts/courier.json' }) };
 
 
-      var assetListLoader = new pc.AssetListLoader(Object.values(assets), app.assets);
-      assetListLoader.load(function () {
-        app.start();
-
-        // Create a camera
-        var camera = new pc.Entity();
-        app.root.addChild(camera);
-
-        camera.addComponent("camera", {
-          clearColor: new pc.Color(30 / 255, 30 / 255, 30 / 255) });
+      var gfxOptions = {
+        deviceTypes: [deviceType],
+        glslangUrl: '/../../static/lib/glslang/glslang.js',
+        twgslUrl: '/../../static/lib/twgsl/twgsl.js' };
 
 
-        // Create a 2D screen
-        var screen = new pc.Entity();
-        app.root.addChild(screen);
+      pc.createGraphicsDevice(canvas, gfxOptions).then(function (device) {
 
-        screen.addComponent("screen", {
-          screenSpace: true,
-          referenceResolution: new pc.Vec2(1280, 720),
-          scaleMode: pc.SCALEMODE_BLEND,
-          scaleBlend: 0.5 });
+        var createOptions = new pc.AppOptions();
+        createOptions.graphicsDevice = device;
+        createOptions.mouse = new pc.Mouse(document.body);
+        createOptions.touch = new pc.TouchDevice(document.body);
+        createOptions.elementInput = new pc.ElementInput(canvas);
+
+        createOptions.componentSystems = [
+        // @ts-ignore
+        pc.RenderComponentSystem,
+        // @ts-ignore
+        pc.CameraComponentSystem,
+        // @ts-ignore
+        pc.ScreenComponentSystem,
+        // @ts-ignore
+        pc.ButtonComponentSystem,
+        // @ts-ignore
+        pc.ElementComponentSystem,
+        // @ts-ignore
+        pc.LayoutGroupComponentSystem,
+        // @ts-ignore
+        pc.ScrollViewComponentSystem,
+        // @ts-ignore
+        pc.ScrollbarComponentSystem];
+
+        createOptions.resourceHandlers = [
+        // @ts-ignore
+        pc.TextureHandler,
+        // @ts-ignore
+        pc.FontHandler];
 
 
-        function createScrollbar(horizontal) {
-          var handle = new pc.Entity('Handle');
-          var handleOptions = {
-            type: pc.ELEMENTTYPE_IMAGE,
-            color: new pc.Color(1, 1, 1),
-            opacity: 1,
-            margin: new pc.Vec4(0, 0, 0, 0),
-            rect: new pc.Vec4(0, 0, 1, 1),
-            mask: false,
-            useInput: true };
+        var app = new pc.AppBase(canvas);
+        app.init(createOptions);
 
-          if (horizontal) {
-            // @ts-ignore engine-tsd
-            handleOptions.anchor = new pc.Vec4(0, 0, 0, 1); // Split in Y
-            // @ts-ignore engine-tsd
-            handleOptions.pivot = new pc.Vec2(0, 0); // Bottom left
-          } else {
-            // @ts-ignore engine-tsd
-            handleOptions.anchor = new pc.Vec4(0, 1, 1, 1); // Split in X
-            // @ts-ignore engine-tsd
-            handleOptions.pivot = new pc.Vec2(1, 1); // Top right
+        // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
+        app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
+        app.setCanvasResolution(pc.RESOLUTION_AUTO);
+
+        var assetListLoader = new pc.AssetListLoader(Object.values(assets), app.assets);
+        assetListLoader.load(function () {
+
+          app.start();
+
+          // Create a camera
+          var camera = new pc.Entity();
+          app.root.addChild(camera);
+
+          camera.addComponent("camera", {
+            clearColor: new pc.Color(30 / 255, 30 / 255, 30 / 255) });
+
+
+          // Create a 2D screen
+          var screen = new pc.Entity();
+          app.root.addChild(screen);
+
+          screen.addComponent("screen", {
+            screenSpace: true,
+            referenceResolution: new pc.Vec2(1280, 720),
+            scaleMode: pc.SCALEMODE_BLEND,
+            scaleBlend: 0.5 });
+
+
+          function createScrollbar(horizontal) {
+            var handle = new pc.Entity('Handle');
+            var handleOptions = {
+              type: pc.ELEMENTTYPE_IMAGE,
+              color: new pc.Color(1, 1, 1),
+              opacity: 1,
+              margin: new pc.Vec4(0, 0, 0, 0),
+              rect: new pc.Vec4(0, 0, 1, 1),
+              mask: false,
+              useInput: true };
+
+            if (horizontal) {
+              // @ts-ignore engine-tsd
+              handleOptions.anchor = new pc.Vec4(0, 0, 0, 1); // Split in Y
+              // @ts-ignore engine-tsd
+              handleOptions.pivot = new pc.Vec2(0, 0); // Bottom left
+            } else {
+              // @ts-ignore engine-tsd
+              handleOptions.anchor = new pc.Vec4(0, 1, 1, 1); // Split in X
+              // @ts-ignore engine-tsd
+              handleOptions.pivot = new pc.Vec2(1, 1); // Top right
+            }
+            handle.addComponent('element', handleOptions);
+            handle.addComponent('button', {
+              active: true,
+              imageEntity: handle,
+              hitPadding: new pc.Vec4(0, 0, 0, 0),
+              transitionMode: pc.BUTTON_TRANSITION_MODE_TINT,
+              hoverTint: new pc.Color(1, 1, 1),
+              pressedTint: new pc.Color(1, 1, 1),
+              inactiveTint: new pc.Color(1, 1, 1),
+              fadeDuration: 0 });
+
+
+            var scrollbar = new pc.Entity(horizontal ? 'HorizontalScrollbar' : 'VerticalScrollbar');
+
+            scrollbar.addChild(handle);
+
+            var scrollbarOptions = {
+              type: pc.ELEMENTTYPE_IMAGE,
+              color: new pc.Color(0.5, 0.5, 0.5),
+              opacity: 1,
+              rect: new pc.Vec4(0, 0, 1, 1),
+              mask: false,
+              useInput: false };
+
+
+            var scrollbarSize = 20;
+
+            if (horizontal) {
+              // @ts-ignore engine-tsd
+              scrollbarOptions.anchor = new pc.Vec4(0, 0, 1, 0);
+              // @ts-ignore engine-tsd
+              scrollbarOptions.pivot = new pc.Vec2(0, 0);
+              // @ts-ignore engine-tsd
+              scrollbarOptions.margin = new pc.Vec4(0, 0, scrollbarSize, -scrollbarSize);
+            } else {
+              // @ts-ignore engine-tsd
+              scrollbarOptions.anchor = new pc.Vec4(1, 0, 1, 1);
+              // @ts-ignore engine-tsd
+              scrollbarOptions.pivot = new pc.Vec2(1, 1);
+              // @ts-ignore engine-tsd
+              scrollbarOptions.margin = new pc.Vec4(-scrollbarSize, scrollbarSize, 0, 0);
+            }
+            scrollbar.addComponent('element', scrollbarOptions);
+            scrollbar.addComponent('scrollbar', {
+              orientation: horizontal ? pc.ORIENTATION_HORIZONTAL : pc.ORIENTATION_VERTICAL,
+              value: 0,
+              handleSize: 0.5,
+              handleEntity: handle });
+
+
+            return scrollbar;
           }
-          handle.addComponent('element', handleOptions);
-          handle.addComponent('button', {
-            active: true,
-            imageEntity: handle,
-            hitPadding: new pc.Vec4(0, 0, 0, 0),
-            transitionMode: pc.BUTTON_TRANSITION_MODE_TINT,
-            hoverTint: new pc.Color(1, 1, 1),
-            pressedTint: new pc.Color(1, 1, 1),
-            inactiveTint: new pc.Color(1, 1, 1),
-            fadeDuration: 0 });
+
+          // Create some text content
+          var text = new pc.Entity("Text");
+          text.addComponent("element", {
+            alignment: new pc.Vec2(0, 0),
+            anchor: new pc.Vec4(0, 1, 0, 1),
+            autoHeight: true,
+            autoWidth: false,
+            fontAsset: assets.font.id,
+            fontSize: 32,
+            lineHeight: 36,
+            pivot: new pc.Vec2(0, 1),
+            text: "This is a scroll view control. You can scroll the content by dragging the vertical " +
+            "or horizontal scroll bars, by dragging the content itself, by using the mouse wheel, or " +
+            "by using a trackpad. Notice the elastic bounce if you drag the content beyond the " +
+            "limits of the scroll view.",
+            type: pc.ELEMENTTYPE_TEXT,
+            width: 600,
+            wrapLines: true });
 
 
-          var scrollbar = new pc.Entity(horizontal ? 'HorizontalScrollbar' : 'VerticalScrollbar');
+          // Group to hold the content inside the scroll view's viewport
+          var content = new pc.Entity('Content');
+          content.addChild(text);
 
-          scrollbar.addChild(handle);
+          content.addComponent('element', {
+            anchor: new pc.Vec4(0, 1, 0, 1),
+            height: 400,
+            pivot: new pc.Vec2(0, 1),
+            type: pc.ELEMENTTYPE_GROUP,
+            useInput: true,
+            width: 600 });
 
-          var scrollbarOptions = {
-            type: pc.ELEMENTTYPE_IMAGE,
-            color: new pc.Color(0.5, 0.5, 0.5),
+
+          // Scroll view viewport
+          var viewport = new pc.Entity('Viewport');
+          viewport.addChild(content);
+
+          viewport.addComponent('element', {
+            anchor: new pc.Vec4(0, 0, 1, 1),
+            color: new pc.Color(0.2, 0.2, 0.2),
+            margin: new pc.Vec4(0, 20, 20, 0),
+            mask: true,
             opacity: 1,
+            pivot: new pc.Vec2(0, 1),
             rect: new pc.Vec4(0, 0, 1, 1),
-            mask: false,
-            useInput: false };
+            type: pc.ELEMENTTYPE_IMAGE,
+            useInput: false });
 
 
-          var scrollbarSize = 20;
+          var horizontalScrollbar = createScrollbar(true);
+          var verticalScrollbar = createScrollbar(false);
 
-          if (horizontal) {
-            // @ts-ignore engine-tsd
-            scrollbarOptions.anchor = new pc.Vec4(0, 0, 1, 0);
-            // @ts-ignore engine-tsd
-            scrollbarOptions.pivot = new pc.Vec2(0, 0);
-            // @ts-ignore engine-tsd
-            scrollbarOptions.margin = new pc.Vec4(0, 0, scrollbarSize, -scrollbarSize);
-          } else {
-            // @ts-ignore engine-tsd
-            scrollbarOptions.anchor = new pc.Vec4(1, 0, 1, 1);
-            // @ts-ignore engine-tsd
-            scrollbarOptions.pivot = new pc.Vec2(1, 1);
-            // @ts-ignore engine-tsd
-            scrollbarOptions.margin = new pc.Vec4(-scrollbarSize, scrollbarSize, 0, 0);
-          }
-          scrollbar.addComponent('element', scrollbarOptions);
-          scrollbar.addComponent('scrollbar', {
-            orientation: horizontal ? pc.ORIENTATION_HORIZONTAL : pc.ORIENTATION_VERTICAL,
-            value: 0,
-            handleSize: 0.5,
-            handleEntity: handle });
+          // Create a scroll view
+          var scrollview = new pc.Entity('ScrollView');
+          scrollview.addChild(viewport);
+          scrollview.addChild(horizontalScrollbar);
+          scrollview.addChild(verticalScrollbar);
+
+          // You must add the scrollview entity to the hierarchy BEFORE adding the scrollview component
+          screen.addChild(scrollview);
+
+          scrollview.addComponent('element', {
+            anchor: new pc.Vec4(0.5, 0.5, 0.5, 0.5),
+            height: 200,
+            pivot: new pc.Vec2(0.5, 0.5),
+            type: pc.ELEMENTTYPE_GROUP,
+            useInput: false,
+            width: 400 });
 
 
-          return scrollbar;
-        }
+          scrollview.addComponent('scrollview', {
+            bounceAmount: 0.1,
+            contentEntity: content,
+            friction: 0.05,
+            useMouseWheel: true,
+            mouseWheelSensitivity: pc.Vec2.ONE,
+            horizontal: true,
+            horizontalScrollbarEntity: horizontalScrollbar,
+            horizontalScrollbarVisibility: pc.SCROLLBAR_VISIBILITY_SHOW_WHEN_REQUIRED,
+            scrollMode: pc.SCROLL_MODE_BOUNCE,
+            vertical: true,
+            verticalScrollbarEntity: verticalScrollbar,
+            verticalScrollbarVisibility: pc.SCROLLBAR_VISIBILITY_SHOW_WHEN_REQUIRED,
+            viewportEntity: viewport });
 
-        // Create some text content
-        var text = new pc.Entity("Text");
-        text.addComponent("element", {
-          alignment: new pc.Vec2(0, 0),
-          anchor: new pc.Vec4(0, 1, 0, 1),
-          autoHeight: true,
-          autoWidth: false,
-          fontAsset: assets.font.id,
-          fontSize: 32,
-          lineHeight: 36,
-          pivot: new pc.Vec2(0, 1),
-          text: "This is a scroll view control. You can scroll the content by dragging the vertical " +
-          "or horizontal scroll bars, by dragging the content itself, by using the mouse wheel, or " +
-          "by using a trackpad. Notice the elastic bounce if you drag the content beyond the " +
-          "limits of the scroll view.",
-          type: pc.ELEMENTTYPE_TEXT,
-          width: 600,
-          wrapLines: true });
-
-
-        // Group to hold the content inside the scroll view's viewport
-        var content = new pc.Entity('Content');
-        content.addChild(text);
-
-        content.addComponent('element', {
-          anchor: new pc.Vec4(0, 1, 0, 1),
-          height: 400,
-          pivot: new pc.Vec2(0, 1),
-          type: pc.ELEMENTTYPE_GROUP,
-          useInput: true,
-          width: 600 });
-
-
-        // Scroll view viewport
-        var viewport = new pc.Entity('Viewport');
-        viewport.addChild(content);
-
-        viewport.addComponent('element', {
-          anchor: new pc.Vec4(0, 0, 1, 1),
-          color: new pc.Color(0.2, 0.2, 0.2),
-          margin: new pc.Vec4(0, 20, 20, 0),
-          mask: true,
-          opacity: 1,
-          pivot: new pc.Vec2(0, 1),
-          rect: new pc.Vec4(0, 0, 1, 1),
-          type: pc.ELEMENTTYPE_IMAGE,
-          useInput: false });
-
-
-        var horizontalScrollbar = createScrollbar(true);
-        var verticalScrollbar = createScrollbar(false);
-
-        // Create a scroll view
-        var scrollview = new pc.Entity('ScrollView');
-        scrollview.addChild(viewport);
-        scrollview.addChild(horizontalScrollbar);
-        scrollview.addChild(verticalScrollbar);
-
-        // You must add the scrollview entity to the hierarchy BEFORE adding the scrollview component
-        screen.addChild(scrollview);
-
-        scrollview.addComponent('element', {
-          anchor: new pc.Vec4(0.5, 0.5, 0.5, 0.5),
-          height: 200,
-          pivot: new pc.Vec2(0.5, 0.5),
-          type: pc.ELEMENTTYPE_GROUP,
-          useInput: false,
-          width: 400 });
-
-
-        scrollview.addComponent('scrollview', {
-          bounceAmount: 0.1,
-          contentEntity: content,
-          friction: 0.05,
-          useMouseWheel: true,
-          mouseWheelSensitivity: pc.Vec2.ONE,
-          horizontal: true,
-          horizontalScrollbarEntity: horizontalScrollbar,
-          horizontalScrollbarVisibility: pc.SCROLLBAR_VISIBILITY_SHOW_WHEN_REQUIRED,
-          scrollMode: pc.SCROLL_MODE_BOUNCE,
-          vertical: true,
-          verticalScrollbarEntity: verticalScrollbar,
-          verticalScrollbarVisibility: pc.SCROLLBAR_VISIBILITY_SHOW_WHEN_REQUIRED,
-          viewportEntity: viewport });
-
+        });
       });
     } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'User Interface');_defineProperty(Example, "NAME", 'Scroll View');
         var example = new Example();
@@ -263,7 +304,7 @@
                     presets: ["react", "typescript", "env"]
                 }).code;
             }
-            window.exampleFunction = new Function('canvas', 'data', exampleFunction);
+            window.exampleFunction = new Function('canvas', 'deviceType', 'data', exampleFunction);
         }
         window.loadFunction = example.load;
         window.files = window.top.editedFiles || example.constructor.FILES;
@@ -306,7 +347,7 @@
                 }).observe(canvasContainerElement);
             }
 
-            if (true) {
+            if (true && app.graphicsDevice.deviceType !== 'webgpu') {
                 // set up miniStats
                 var miniStats = new pcx.MiniStats(app);
                 if (urlParams.get('miniStats') === 'false') {
@@ -382,14 +423,28 @@
                     return data;
                 } else if (arg === 'pcx') {
                     return pcx;
+                } else if (arg === 'deviceType') {
+                    if (false) {
+                        return window.top.preferredGraphicsDevice || 'webgpu';
+                    } else if (['webgl1', 'webgl2'].includes(window.top.preferredGraphicsDevice)) {
+                        return window.top.preferredGraphicsDevice;
+                    } else {
+                        return 'webgl2';
+                    }
                 }
             });
+
             window.exampleFunction.apply(this, args);
-            if (pc.app && pc.app.graphicsDevice.canvas) {
-                setupApplication(pc.app);
+
+            const pollHandler = setInterval(appCreationPoll, 50);
+            function appCreationPoll() {
+                if (pc.app && pc.app.graphicsDevice.canvas) {
+                    clearInterval(pollHandler);
+                    setupApplication(pc.app);
+                    var event = new CustomEvent("exampleLoad");
+                    window.top.dispatchEvent(event);
+                }
             }
-            var event = new CustomEvent("exampleLoad");
-            window.top.dispatchEvent(event);
         }
     </script>
     <script>

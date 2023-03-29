@@ -1,5 +1,5 @@
 import '../../core/tracing.js';
-import { uniformTypeToName, UNIFORM_BUFFER_DEFAULT_SLOT_NAME, SHADERSTAGE_VERTEX, SHADERSTAGE_FRAGMENT, BINDGROUP_MESH, semanticToLocation, TEXTUREDIMENSION_2D, TEXTUREDIMENSION_3D, TEXTUREDIMENSION_CUBE, TEXTUREDIMENSION_2D_ARRAY, SAMPLETYPE_FLOAT, SAMPLETYPE_UNFILTERABLE_FLOAT, SAMPLETYPE_DEPTH } from './constants.js';
+import { uniformTypeToName, UNIFORM_BUFFER_DEFAULT_SLOT_NAME, SHADERSTAGE_VERTEX, SHADERSTAGE_FRAGMENT, BINDGROUP_MESH, semanticToLocation, TYPE_FLOAT32, TEXTUREDIMENSION_2D, TEXTUREDIMENSION_3D, TEXTUREDIMENSION_CUBE, TEXTUREDIMENSION_2D_ARRAY, SAMPLETYPE_FLOAT, SAMPLETYPE_UNFILTERABLE_FLOAT, SAMPLETYPE_DEPTH, TYPE_INT8, TYPE_INT16, TYPE_INT32 } from './constants.js';
 import { UniformFormat, UniformBufferFormat } from './uniform-buffer-format.js';
 import { BindBufferFormat, BindTextureFormat, BindGroupFormat } from './bind-group-format.js';
 
@@ -37,7 +37,7 @@ class UniformLine {
 			}
 		} else {
 			this.name = words.shift();
-			this.arraySize = 1;
+			this.arraySize = 0;
 		}
 		this.isSampler = this.type.indexOf('sampler') !== -1;
 	}
@@ -47,7 +47,7 @@ class ShaderProcessor {
 		const varyingMap = new Map();
 		const vertexExtracted = ShaderProcessor.extract(shaderDefinition.vshader);
 		const fragmentExtracted = ShaderProcessor.extract(shaderDefinition.fshader);
-		const attributesBlock = ShaderProcessor.processAttributes(vertexExtracted.attributes, shaderDefinition.attributes);
+		const attributesBlock = ShaderProcessor.processAttributes(vertexExtracted.attributes, shaderDefinition.attributes, shaderDefinition.processingOptions);
 		const vertexVaryingsBlock = ShaderProcessor.processVaryings(vertexExtracted.varyings, varyingMap, true);
 		const fragmentVaryingsBlock = ShaderProcessor.processVaryings(fragmentExtracted.varyings, varyingMap, false);
 		const outBlock = ShaderProcessor.processOuts(fragmentExtracted.outs);
@@ -185,16 +185,43 @@ class ShaderProcessor {
 		});
 		return block;
 	}
-	static processAttributes(attributeLines, shaderDefinitionAttributes) {
+	static getTypeCount(type) {
+		const lastChar = type.substring(type.length - 1);
+		const num = parseInt(lastChar, 10);
+		return isNaN(num) ? 1 : num;
+	}
+	static processAttributes(attributeLines, shaderDefinitionAttributes, processingOptions) {
 		let block = '';
+		const usedLocations = {};
 		attributeLines.forEach(line => {
 			const words = ShaderProcessor.splitToWords(line);
-			const type = words[0];
-			const name = words[1];
+			let type = words[0];
+			let name = words[1];
 			if (shaderDefinitionAttributes.hasOwnProperty(name)) {
 				const semantic = shaderDefinitionAttributes[name];
 				const location = semanticToLocation[semantic];
+				usedLocations[location] = semantic;
+				let copyCode;
+				const element = processingOptions.getVertexElement(semantic);
+				if (element) {
+					const dataType = element.dataType;
+					if (dataType !== TYPE_FLOAT32) {
+						const attribNumElements = ShaderProcessor.getTypeCount(type);
+						const newName = `_private_${name}`;
+						copyCode = `vec${attribNumElements} ${name} = vec${attribNumElements}(${newName});\n`;
+						name = newName;
+						const isSignedType = dataType === TYPE_INT8 || dataType === TYPE_INT16 || dataType === TYPE_INT32;
+						if (attribNumElements === 1) {
+							type = isSignedType ? 'int' : 'uint';
+						} else {
+							type = isSignedType ? `ivec${attribNumElements}` : `uvec${attribNumElements}`;
+						}
+					}
+				}
 				block += `layout(location = ${location}) in ${type} ${name};\n`;
+				if (copyCode) {
+					block += copyCode;
+				}
 			}
 		});
 		return block;

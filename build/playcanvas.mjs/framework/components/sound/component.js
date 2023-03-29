@@ -173,6 +173,28 @@ class SoundComponent extends Component {
 	slot(name) {
 		return this._slots[name];
 	}
+	_getSlotProperty(name, property) {
+		if (!this.enabled || !this.entity.enabled) {
+			return undefined;
+		}
+		const slot = this._slots[name];
+		if (!slot) {
+			return undefined;
+		}
+		return slot[property];
+	}
+	isPlaying(name) {
+		return this._getSlotProperty(name, 'isPlaying') || false;
+	}
+	isLoaded(name) {
+		return this._getSlotProperty(name, 'isLoaded') || false;
+	}
+	isPaused(name) {
+		return this._getSlotProperty(name, 'isPaused') || false;
+	}
+	isStopped(name) {
+		return this._getSlotProperty(name, 'isStopped') || false;
+	}
 	play(name) {
 		if (!this.enabled || !this.entity.enabled) {
 			return null;

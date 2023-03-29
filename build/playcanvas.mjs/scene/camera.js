@@ -436,7 +436,7 @@ class Camera {
 		return points;
 	}
 	setXrProperties(properties) {
-		Object.assign(properties, this._xrProperties);
+		Object.assign(this._xrProperties, properties);
 		this._projMatDirty = true;
 	}
 }

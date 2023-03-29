@@ -1,13 +1,13 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.62.0 revision 818511d2b (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 var ambientSHPS = `
 uniform vec3 ambientSH[9];
 
-void addAmbient() {
-		vec3 n = cubeMapRotate(dNormalW);
+void addAmbient(vec3 worldNormal) {
+		vec3 n = cubeMapRotate(worldNormal);
 
 		vec3 color =
 				ambientSH[0] +

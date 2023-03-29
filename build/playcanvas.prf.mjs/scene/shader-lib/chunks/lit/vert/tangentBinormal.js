@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.62.0 revision 818511d2b (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 var tangentBinormalVS = `
@@ -10,10 +10,6 @@ vec3 getTangent() {
 
 vec3 getBinormal() {
 		return cross(vNormalW, vTangentW) * vertex_tangent.w;
-}
-
-vec3 getObjectSpaceUp() {
-		return normalize(dNormalMatrix * vec3(0, 1, 0));
 }
 `;
 

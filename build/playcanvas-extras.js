@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c
+ * PlayCanvas Engine v1.62.0 revision 818511d2b
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 (function (global, factory) {
@@ -423,6 +423,7 @@
 			this.clr = new Float32Array(4);
 			this.screenTextureSizeId = device.scope.resolve('screenAndTextureSize');
 			this.screenTextureSize = new Float32Array(4);
+			this.blendState = new playcanvas.BlendState(true, playcanvas.BLENDEQUATION_ADD, playcanvas.BLENDMODE_SRC_ALPHA, playcanvas.BLENDMODE_ONE_MINUS_SRC_ALPHA, playcanvas.BLENDEQUATION_ADD, playcanvas.BLENDMODE_ONE, playcanvas.BLENDMODE_ONE);
 		}
 		var _proto = Render2d.prototype;
 		_proto.quad = function quad(texture, x, y, w, h, u, v, uw, uh, enabled) {
@@ -461,12 +462,9 @@
 			var buffer = this.buffer;
 			buffer.setData(this.data.buffer);
 			device.updateBegin();
-			device.setDepthTest(false);
-			device.setDepthWrite(false);
 			device.setCullMode(playcanvas.CULLFACE_NONE);
-			device.setBlending(true);
-			device.setBlendFunctionSeparate(playcanvas.BLENDMODE_SRC_ALPHA, playcanvas.BLENDMODE_ONE_MINUS_SRC_ALPHA, playcanvas.BLENDMODE_ONE, playcanvas.BLENDMODE_ONE);
-			device.setBlendEquationSeparate(playcanvas.BLENDEQUATION_ADD, playcanvas.BLENDEQUATION_ADD);
+			device.setBlendState(this.blendState);
+			device.setDepthState(playcanvas.DepthState.NODEPTH);
 			device.setVertexBuffer(buffer, 0);
 			device.setIndexBuffer(this.indexBuffer);
 			device.setShader(this.shader);
@@ -1669,7 +1667,7 @@
 			addTexture('emissiveMap', material.emissive, 'color3f', 'emissiveColor', 'emissive', false, true);
 			addTexture('aoMap', null, 'float', 'occlusion', 'occlusion');
 			addTexture('metalnessMap', material.metalness, 'float', 'metallic', 'metallic');
-			addTexture('glossMap', material.shininess / 100, 'float', 'roughness', 'roughness');
+			addTexture('glossMap', material.gloss, 'float', 'roughness', 'roughness');
 			var materialObject = "\n            def Material \"" + materialName + "\"\n            {\n                def Shader \"PreviewSurface\"\n                {\n                    uniform token info:id = \"UsdPreviewSurface\"\n" + inputs.join('\n') + "\n                    int inputs:useSpecularWorkflow = 0\n                    token outputs:surface\n                }\n\n                token outputs:surface.connect = " + materialPropertyPath('/PreviewSurface.outputs:surface') + "\n\n                def Shader \"uvReader_st\"\n                {\n                    uniform token info:id = \"UsdPrimvarReader_float2\"\n                    token inputs:varname = \"st\"\n                    float2 inputs:fallback = (0.0, 0.0)\n                    float2 outputs:result\n                }\n\n                def Shader \"uvReader_st1\"\n                {\n                    uniform token info:id = \"UsdPrimvarReader_float2\"\n                    token inputs:varname = \"st1\"\n                    float2 inputs:fallback = (0.0, 0.0)\n                    float2 outputs:result\n                }\n\n                " + samplers.join('\n') + "\n            }\n        ";
 			this.materials.push(materialObject);
 			return materialPropertyPath('');

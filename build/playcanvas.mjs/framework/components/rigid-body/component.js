@@ -1,3 +1,4 @@
+import '../../../core/tracing.js';
 import { Quat } from '../../../core/math/quat.js';
 import { Vec3 } from '../../../core/math/vec3.js';
 import { BODYGROUP_STATIC, BODYMASK_NOT_STATIC, BODYTYPE_STATIC, BODYTYPE_DYNAMIC, BODYTYPE_KINEMATIC, BODYGROUP_KINEMATIC, BODYMASK_ALL, BODYGROUP_DYNAMIC, BODYFLAG_KINEMATIC_OBJECT, BODYSTATE_DISABLE_DEACTIVATION, BODYSTATE_ACTIVE_TAG, BODYSTATE_DISABLE_SIMULATION } from './constants.js';
@@ -423,10 +424,11 @@ class RigidBodyComponent extends Component {
 	}
 	_updateDynamic() {
 		const body = this._body;
-		if (body.isActive()) {
+		const entity = this.entity;
+		if (body.isActive() || entity._wasDirty) {
+			if (entity._wasDirty) ;
 			const motionState = body.getMotionState();
 			if (motionState) {
-				const entity = this.entity;
 				motionState.getWorldTransform(_ammoTransform);
 				const p = _ammoTransform.getOrigin();
 				const q = _ammoTransform.getRotation();
@@ -443,6 +445,7 @@ class RigidBodyComponent extends Component {
 					entity.setPosition(p.x(), p.y(), p.z());
 					entity.setRotation(q.x(), q.y(), q.z(), q.w());
 				}
+				entity._wasDirty = false;
 			}
 		}
 	}

@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (DEBUG PROFILER)
+ * PlayCanvas Engine v1.61.0-dev revision 4ea78c6d0 (DEBUG PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 // http://paulirish.com/2011/requestanimationframe-for-smart-animating/

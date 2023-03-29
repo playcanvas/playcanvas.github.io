@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.62.0 revision 818511d2b (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import { now } from '../../../core/time.js';
@@ -15,10 +15,11 @@ import { RigidBodyComponentData } from './data.js';
 
 let ammoRayStart, ammoRayEnd;
 class RaycastResult {
-	constructor(entity, point, normal) {
+	constructor(entity, point, normal, hitFraction) {
 		this.entity = entity;
 		this.point = point;
 		this.normal = normal;
+		this.hitFraction = hitFraction;
 	}
 }
 class SingleContactResult {
@@ -181,11 +182,21 @@ class RigidBodyComponentSystem extends ComponentSystem {
 		}
 		Ammo.destroy(body);
 	}
-	raycastFirst(start, end) {
+	raycastFirst(start, end, options = {}) {
+		if (options.filterTags || options.filterCallback) {
+			options.sort = true;
+			return this.raycastAll(start, end, options)[0] || null;
+		}
 		let result = null;
 		ammoRayStart.setValue(start.x, start.y, start.z);
 		ammoRayEnd.setValue(end.x, end.y, end.z);
 		const rayCallback = new Ammo.ClosestRayResultCallback(ammoRayStart, ammoRayEnd);
+		if (typeof options.filterCollisionGroup === 'number') {
+			rayCallback.set_m_collisionFilterGroup(options.filterCollisionGroup);
+		}
+		if (typeof options.filterCollisionMask === 'number') {
+			rayCallback.set_m_collisionFilterMask(options.filterCollisionMask);
+		}
 		this.dynamicsWorld.rayTest(ammoRayStart, ammoRayEnd, rayCallback);
 		if (rayCallback.hasHit()) {
 			const collisionObj = rayCallback.get_m_collisionObject();
@@ -193,7 +204,7 @@ class RigidBodyComponentSystem extends ComponentSystem {
 			if (body) {
 				const point = rayCallback.get_m_hitPointWorld();
 				const normal = rayCallback.get_m_hitNormalWorld();
-				result = new RaycastResult(body.entity, new Vec3(point.x(), point.y(), point.z()), new Vec3(normal.x(), normal.y(), normal.z()));
+				result = new RaycastResult(body.entity, new Vec3(point.x(), point.y(), point.z()), new Vec3(normal.x(), normal.y(), normal.z()), rayCallback.get_m_closestHitFraction());
 				if (arguments.length > 2) {
 					const callback = arguments[2];
 					callback(result);
@@ -203,25 +214,38 @@ class RigidBodyComponentSystem extends ComponentSystem {
 		Ammo.destroy(rayCallback);
 		return result;
 	}
-	raycastAll(start, end) {
+	raycastAll(start, end, options = {}) {
 		const results = [];
 		ammoRayStart.setValue(start.x, start.y, start.z);
 		ammoRayEnd.setValue(end.x, end.y, end.z);
 		const rayCallback = new Ammo.AllHitsRayResultCallback(ammoRayStart, ammoRayEnd);
+		if (typeof options.filterCollisionGroup === 'number') {
+			rayCallback.set_m_collisionFilterGroup(options.filterCollisionGroup);
+		}
+		if (typeof options.filterCollisionMask === 'number') {
+			rayCallback.set_m_collisionFilterMask(options.filterCollisionMask);
+		}
 		this.dynamicsWorld.rayTest(ammoRayStart, ammoRayEnd, rayCallback);
 		if (rayCallback.hasHit()) {
 			const collisionObjs = rayCallback.get_m_collisionObjects();
 			const points = rayCallback.get_m_hitPointWorld();
 			const normals = rayCallback.get_m_hitNormalWorld();
+			const hitFractions = rayCallback.get_m_hitFractions();
 			const numHits = collisionObjs.size();
 			for (let i = 0; i < numHits; i++) {
 				const body = Ammo.castObject(collisionObjs.at(i), Ammo.btRigidBody);
-				if (body) {
+				if (body && body.entity) {
+					if (options.filterTags && !body.entity.has(...options.filterTags) || options.filterCallback && !options.filterCallback(body.entity)) {
+						continue;
+					}
 					const point = points.at(i);
 					const normal = normals.at(i);
-					const result = new RaycastResult(body.entity, new Vec3(point.x(), point.y(), point.z()), new Vec3(normal.x(), normal.y(), normal.z()));
+					const result = new RaycastResult(body.entity, new Vec3(point.x(), point.y(), point.z()), new Vec3(normal.x(), normal.y(), normal.z()), hitFractions.at(i));
 					results.push(result);
 				}
+			}
+			if (options.sort) {
+				results.sort((a, b) => a.hitFraction - b.hitFraction);
 			}
 		}
 		Ammo.destroy(rayCallback);

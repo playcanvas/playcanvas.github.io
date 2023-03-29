@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.62.0 revision 818511d2b (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import { extends as _extends } from '../../../_virtual/_rollupPluginBabelHelpers.js';
@@ -82,8 +82,10 @@ class JsonStandardMaterialParser {
 		for (i = 0; i < RENAMED_PROPERTIES.length; i++) {
 			const _old = RENAMED_PROPERTIES[i][0];
 			const _new = RENAMED_PROPERTIES[i][1];
-			if (data[_old] !== undefined && !(data[_new] !== undefined)) {
-				data[_new] = data[_old];
+			if (data[_old] !== undefined) {
+				if (data[_new] === undefined) {
+					data[_new] = data[_old];
+				}
 				delete data[_old];
 			}
 		}

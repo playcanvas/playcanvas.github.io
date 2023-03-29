@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-dev revision e102f2b2a (PROFILER)
+ * PlayCanvas Engine v1.57.0 revision 18b016876 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import { SEMANTIC_POSITION, SEMANTIC_ATTR12, SEMANTIC_ATTR13, SEMANTIC_ATTR14, SEMANTIC_ATTR15, SEMANTIC_NORMAL, SEMANTIC_TANGENT, SEMANTIC_COLOR, SEMANTIC_ATTR8, SEMANTIC_ATTR9, SEMANTIC_ATTR10, SEMANTIC_ATTR11, SEMANTIC_BLENDWEIGHT, SEMANTIC_BLENDINDICES, PIXELFORMAT_R8_G8_B8_A8, SHADERTAG_MATERIAL, SEMANTIC_TEXCOORD0, SEMANTIC_TEXCOORD1 } from '../../constants.js';
@@ -968,11 +968,10 @@ class LitShader {
           code += "    addReflectionCC();\n";
 
           if (options.fresnelModel > 0) {
-            code += "    ccFresnel = getFresnelCC(dot(dViewDirW, ccNormalW));\n";
+            code += "    ccFresnel = getFresnelCC(dot(dViewDirW, ccNormalW), ccGlossiness);\n";
             code += "    ccReflection.rgb *= ccFresnel;\n";
           } else {
             code += "    ccFresnel = 0.0;\n";
-            code += "    ccReflection.rgb *= ccSpecularity;\n";
           }
         }
 
@@ -982,7 +981,6 @@ class LitShader {
 
         if (options.sheen) {
           code += "    addReflectionSheen();\n";
-          code += "    sReflection.rgb *= sSpecularity;\n";
         }
 
         code += "    addReflection();\n";
@@ -1156,12 +1154,12 @@ class LitShader {
           if (options.clearCoat) {
             code += "    ccSpecularLight += getLightSpecularCC(dHalfDirW) * dAtten * light" + i + "_color";
             code += usesCookieNow ? " * dAtten3" : "";
-            code += calcFresnel ? " * getFresnel(dot(dViewDirW, dHalfDirW), vec3(ccSpecularity))" : " * vec3(ccSpecularity)";
+            code += calcFresnel ? " * getFresnelCC(dot(dViewDirW, dHalfDirW), ccGlossiness)" : "";
             code += ";\n";
           }
 
           if (options.sheen) {
-            code += "    sSpecularLight += getLightSpecularSheen(dHalfDirW) * dAtten * light" + i + "_color * sSpecularity";
+            code += "    sSpecularLight += getLightSpecularSheen(dHalfDirW) * dAtten * light" + i + "_color";
             code += usesCookieNow ? " * dAtten3" : "";
             code += ";\n";
           }
@@ -1169,7 +1167,7 @@ class LitShader {
           if (options.useSpecular) {
             code += "    dSpecularLight += getLightSpecular(dHalfDirW) * dAtten * light" + i + "_color";
             code += usesCookieNow ? " * dAtten3" : "";
-            code += calcFresnel ? " * getFresnel(dot(dViewDirW, dHalfDirW), dSpecularity)" : " * dSpecularity";
+            code += calcFresnel ? " * getFresnel(dot(dViewDirW, dHalfDirW), dSpecularity)" : "";
             code += ";\n";
           }
         }
@@ -1291,7 +1289,7 @@ class LitShader {
     if (code.includes("ccSpecularLight")) structCode += "vec3 ccSpecularLight;\n";
     if (code.includes("ccSpecularityNoFres")) structCode += "float ccSpecularityNoFres;\n";
     if (code.includes("sSpecularLight")) structCode += "vec3 sSpecularLight;\n";
-    if (code.includes("sReflection")) structCode += "vec4 sReflection;\n";
+    if (code.includes("sReflection")) structCode += "vec3 sReflection;\n";
     const result = this._fsGetBeginCode() + this.varyings + this._fsGetBaseCode() + (options.detailModes ? chunks.detailModesPS : "") + structCode + this.frontendDecl + code;
     return result;
   }

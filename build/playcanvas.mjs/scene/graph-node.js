@@ -21,6 +21,9 @@ const invParentRot = new Quat();
 const matrix = new Mat4();
 const target = new Vec3();
 const up = new Vec3();
+const _worldMatX = new Vec3();
+const _worldMatY = new Vec3();
+const _worldMatZ = new Vec3();
 class GraphNode extends EventHandler {
 	constructor(name = 'Untitled') {
 		super();
@@ -37,10 +40,12 @@ class GraphNode extends EventHandler {
 		this._scale = null;
 		this.localTransform = new Mat4();
 		this._dirtyLocal = false;
+		this._wasDirty = false;
 		this._aabbVer = 0;
 		this._frozen = false;
 		this.worldTransform = new Mat4();
 		this._dirtyWorld = false;
+		this._negativeScaleWorld = 0;
 		this._normalMatrix = new Mat3();
 		this._dirtyNormal = true;
 		this._right = null;
@@ -317,6 +322,17 @@ class GraphNode extends EventHandler {
 		this._sync();
 		return this.worldTransform;
 	}
+	get negativeScaleWorld() {
+		if (this._negativeScaleWorld === 0) {
+			const wt = this.getWorldTransform();
+			wt.getX(_worldMatX);
+			wt.getY(_worldMatY);
+			wt.getZ(_worldMatZ);
+			_worldMatX.cross(_worldMatX, _worldMatY);
+			this._negativeScaleWorld = _worldMatX.dot(_worldMatZ) < 0 ? -1 : 1;
+		}
+		return this._negativeScaleWorld;
+	}
 	reparent(parent, index) {
 		const current = this._parent;
 		if (current) current.removeChild(this);
@@ -359,6 +375,7 @@ class GraphNode extends EventHandler {
 	_dirtifyLocal() {
 		if (!this._dirtyLocal) {
 			this._dirtyLocal = true;
+			this._wasDirty = true;
 			if (!this._dirtyWorld) this._dirtifyWorld();
 		}
 	}
@@ -382,6 +399,7 @@ class GraphNode extends EventHandler {
 			}
 		}
 		this._dirtyNormal = true;
+		this._negativeScaleWorld = 0;
 		this._aabbVer++;
 	}
 	setPosition(x, y, z) {

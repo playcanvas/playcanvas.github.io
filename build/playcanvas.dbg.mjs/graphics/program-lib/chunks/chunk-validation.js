@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-dev revision e102f2b2a (DEBUG PROFILER)
+ * PlayCanvas Engine v1.57.1 revision 256dd83c2 (DEBUG PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import { CHUNKAPI_1_57, CHUNKAPI_1_55, CHUNKAPI_1_56, CHUNKAPI_1_51 } from '../../constants.js';

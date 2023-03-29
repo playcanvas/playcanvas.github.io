@@ -4,7 +4,7 @@ import { Color } from '../../core/math/color.js';
 import { math } from '../../core/math/math.js';
 import { Vec3 } from '../../core/math/vec3.js';
 import { BoundingBox } from '../../core/shape/bounding-box.js';
-import { PIXELFORMAT_RGBA8, TEXTURETYPE_RGBM, CHUNKAPI_1_55, CULLFACE_NONE, TEXTURETYPE_DEFAULT, FILTER_NEAREST, ADDRESS_CLAMP_TO_EDGE, FILTER_LINEAR } from '../../platform/graphics/constants.js';
+import { PIXELFORMAT_RGBA8, TEXTURETYPE_RGBM, CHUNKAPI_1_62, CULLFACE_NONE, TEXTURETYPE_DEFAULT, FILTER_NEAREST, ADDRESS_CLAMP_TO_EDGE, FILTER_LINEAR } from '../../platform/graphics/constants.js';
 import { RenderTarget } from '../../platform/graphics/render-target.js';
 import { drawQuadWithShader } from '../../scene/graphics/quad-render-utils.js';
 import { Texture } from '../../platform/graphics/texture.js';
@@ -22,6 +22,8 @@ import { BakeLightAmbient } from './bake-light-ambient.js';
 import { BakeMeshNode } from './bake-mesh-node.js';
 import { LightmapCache } from '../../scene/graphics/lightmap-cache.js';
 import { LightmapFilters } from './lightmap-filters.js';
+import { BlendState } from '../../platform/graphics/blend-state.js';
+import { DepthState } from '../../platform/graphics/depth-state.js';
 
 const MAX_LIGHTMAP_SIZE = 2048;
 const PASS_COLOR = 0;
@@ -128,7 +130,7 @@ class Lightmapper {
 	createMaterialForPass(device, scene, pass, addAmbient) {
 		const material = new StandardMaterial();
 		material.name = `lmMaterial-pass:${pass}-ambient:${addAmbient}`;
-		material.chunks.APIVersion = CHUNKAPI_1_55;
+		material.chunks.APIVersion = CHUNKAPI_1_62;
 		material.chunks.transformVS = '#define UV1LAYOUT\n' + shaderChunks.transformVS;
 		if (pass === PASS_COLOR) {
 			let bakeLmEndChunk = shaderChunksLightmapper.bakeLmEndPS;
@@ -537,19 +539,20 @@ class Lightmapper {
 		lightArray[light.type][0] = light;
 		light.visibleThisFrame = true;
 	}
-	renderShadowMap(shadowMapRendered, casters, lightArray, bakeLight) {
+	renderShadowMap(shadowMapRendered, casters, bakeLight) {
 		const light = bakeLight.light;
+		const isClustered = this.scene.clusteredLightingEnabled;
 		if (!shadowMapRendered && light.castShadows) {
-			if (!light.shadowMap && !this.scene.clusteredLightingEnabled) {
+			if (!light.shadowMap && !isClustered) {
 				light.shadowMap = this.shadowMapCache.get(this.device, light);
 			}
 			if (light.type === LIGHTTYPE_DIRECTIONAL) {
 				this.renderer._shadowRendererDirectional.cull(light, casters, this.camera);
-				this.renderer.shadowRenderer.render(light, this.camera);
 			} else {
 				this.renderer._shadowRendererLocal.cull(light, casters);
-				this.renderer.renderShadowsLocal(lightArray[light.type], this.camera);
 			}
+			const insideRenderPass = false;
+			this.renderer.shadowRenderer.render(light, this.camera, insideRenderPass);
 		}
 		return true;
 	}
@@ -560,6 +563,8 @@ class Lightmapper {
 		if (filterLightmap) {
 			this.lightmapFilters.prepareDenoise(this.scene.lightmapFilterRange, this.scene.lightmapFilterSmoothness);
 		}
+		device.setBlendState(BlendState.DEFAULT);
+		device.setDepthState(DepthState.NODEPTH);
 		for (let node = 0; node < bakeNodes.length; node++) {
 			const bakeNode = bakeNodes[node];
 			for (let pass = 0; pass < passCount; pass++) {
@@ -638,7 +643,7 @@ class Lightmapper {
 					if (clusteredLightingEnabled) {
 						this.renderer.lightTextureAtlas.update(lightArray[LIGHTTYPE_SPOT], lightArray[LIGHTTYPE_OMNI], this.lightingParams);
 					}
-					shadowMapRendered = this.renderShadowMap(shadowMapRendered, casters, lightArray, bakeLight);
+					shadowMapRendered = this.renderShadowMap(shadowMapRendered, casters, bakeLight);
 					if (clusteredLightingEnabled) {
 						const clusterLights = lightArray[LIGHTTYPE_SPOT].concat(lightArray[LIGHTTYPE_OMNI]);
 						this.worldClusters.update(clusterLights, this.scene.gammaCorrection, this.lightingParams);
@@ -676,7 +681,7 @@ class Lightmapper {
 							this.constantBakeDir.setValue(bakeLight.light.bakeDir ? 1 : 0);
 						}
 						if (clusteredLightingEnabled) {
-							this.worldClusters.activate(this.renderer.lightTextureAtlas);
+							this.worldClusters.activate();
 						}
 						this.renderer._forwardTime = 0;
 						this.renderer._shadowMapTime = 0;

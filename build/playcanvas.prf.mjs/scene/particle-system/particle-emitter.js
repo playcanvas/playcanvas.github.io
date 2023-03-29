@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.62.0 revision 818511d2b (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import '../../core/tracing.js';
@@ -538,7 +538,6 @@ class ParticleEmitter {
 		this.material.name = this.node.name;
 		this.material.cull = CULLFACE_NONE;
 		this.material.alphaWrite = false;
-		this.material.blend = true;
 		this.material.blendType = this.blendType;
 		this.material.depthWrite = this.depthWrite;
 		this.material.emitter = this;

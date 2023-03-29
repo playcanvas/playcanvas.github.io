@@ -1,6 +1,6 @@
 var TBNfastPS = `
-void getTBN() {
-		dTBN = mat3(dTangentW, dBinormalW, dVertexNormalW);
+void getTBN(vec3 tangent, vec3 binormal, vec3 normal) {
+		dTBN = mat3(tangent, binormal, normal);
 }
 `;
 

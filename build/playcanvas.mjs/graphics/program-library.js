@@ -4,9 +4,6 @@ import { Shader } from './shader.js';
 import { SHADER_FORWARD, SHADER_SHADOW, SHADER_DEPTH, SHADER_PICK } from '../scene/constants.js';
 import { StandardMaterial } from '../scene/materials/standard-material.js';
 import { ShaderPass } from '../scene/shader-pass.js';
-import { DeviceCache } from './device-cache.js';
-
-const programLibraryDeviceCache = new DeviceCache();
 
 class ProgramLibrary {
   constructor(device) {
@@ -22,10 +19,6 @@ class ProgramLibrary {
     const m = new StandardMaterial();
     m.shaderOptBuilder.updateRef(this._defaultStdMatOption, {}, m, null, [], SHADER_FORWARD, null);
     m.shaderOptBuilder.updateMinRef(this._defaultStdMatOptionMin, {}, m, null, [], SHADER_SHADOW, null);
-  }
-
-  destroy() {
-    this.clearCache();
   }
 
   register(name, generator) {
@@ -129,7 +122,7 @@ class ProgramLibrary {
     }
 
     text += '\n];\n';
-    text += 'device.getProgramLibrary().precompile(shaders);\n';
+    text += 'device.programLib.precompile(shaders);\n';
     text += 'if (pc.version != \"' + version + '\" || pc.revision != \"' + revision + '\")\n';
     text += '\tconsole.warn(\"precompile-shaders.js: engine version mismatch, rebuild shaders lib with current engine\");';
     const element = document.createElement('a');
@@ -197,10 +190,4 @@ class ProgramLibrary {
 
 }
 
-function getProgramLibrary(device) {
-  return programLibraryDeviceCache.get(device, () => {
-    return new ProgramLibrary(device);
-  });
-}
-
-export { ProgramLibrary, getProgramLibrary };
+export { ProgramLibrary };

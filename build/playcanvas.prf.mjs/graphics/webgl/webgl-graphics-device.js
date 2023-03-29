@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.58.0-dev revision e102f2b2a (PROFILER)
+ * PlayCanvas Engine v1.57.0 revision 18b016876 (PROFILER)
  * Copyright 2011-2022 PlayCanvas Ltd. All rights reserved.
  */
 import { setupVertexArrayObject } from '../../polyfill/OESVertexArrayObject.js';
@@ -13,7 +13,6 @@ import { drawQuadWithShader } from '../simple-post-effect.js';
 import { shaderChunks } from '../program-lib/chunks/chunks.js';
 import { RenderTarget } from '../render-target.js';
 import { Texture } from '../texture.js';
-import { getProgramLibrary } from '../program-library.js';
 import { WebglVertexBuffer } from './webgl-vertex-buffer.js';
 import { WebglIndexBuffer } from './webgl-index-buffer.js';
 import { WebglShader } from './webgl-shader.js';
@@ -1680,7 +1679,7 @@ class WebglGraphicsDevice extends GraphicsDevice {
       delete this.vertexShaderCache[shaderSrc];
     }
 
-    getProgramLibrary(this).clearCache();
+    this.programLib.clearCache();
   }
 
   clearVertexArrayObjectCache() {
@@ -1694,7 +1693,7 @@ class WebglGraphicsDevice extends GraphicsDevice {
   }
 
   removeShaderFromCache(shader) {
-    getProgramLibrary(this).removeFromCache(shader);
+    this.programLib.removeFromCache(shader);
   }
 
   get width() {

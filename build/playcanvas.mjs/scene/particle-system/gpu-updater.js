@@ -3,6 +3,8 @@ import { Mat3 } from '../../core/math/mat3.js';
 import { Mat4 } from '../../core/math/mat4.js';
 import { Vec3 } from '../../core/math/vec3.js';
 import { CULLFACE_NONE } from '../../platform/graphics/constants.js';
+import { BlendState } from '../../platform/graphics/blend-state.js';
+import { DepthState } from '../../platform/graphics/depth-state.js';
 import { drawQuadWithShader } from '../graphics/quad-render-utils.js';
 import { EMITTERSHAPE_BOX } from '../constants.js';
 
@@ -74,11 +76,9 @@ class ParticleGPUUpdater {
 	}
 	update(device, spawnMatrix, extentsInnerRatioUniform, delta, isOnStop) {
 		const emitter = this._emitter;
-		device.setBlending(false);
-		device.setColorWrite(true, true, true, true);
+		device.setBlendState(BlendState.DEFAULT);
+		device.setDepthState(DepthState.NODEPTH);
 		device.setCullMode(CULLFACE_NONE);
-		device.setDepthTest(false);
-		device.setDepthWrite(false);
 		this.randomize();
 		this.constantGraphSampleSize.setValue(1.0 / emitter.precision);
 		this.constantGraphNumSamples.setValue(emitter.precision);
@@ -147,8 +147,6 @@ class ParticleGPUUpdater {
 		emitter.material.setParameter('particleTexIN', texOUT);
 		emitter.beenReset = false;
 		emitter.swapTex = !emitter.swapTex;
-		device.setDepthTest(true);
-		device.setDepthWrite(true);
 		emitter.prevWorldBoundsSize.copy(emitter.worldBoundsSize);
 		emitter.prevWorldBoundsCenter.copy(emitter.worldBounds.center);
 		if (emitter.pack8) this._setInputBounds();

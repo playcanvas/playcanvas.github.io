@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.62.0 revision 818511d2b (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import { path } from '../../core/path.js';
@@ -16,7 +16,7 @@ class AnimationHandler {
 		this.handlerType = "animation";
 		this.maxRetries = 0;
 	}
-	load(url, callback) {
+	load(url, callback, asset) {
 		if (typeof url === 'string') {
 			url = {
 				load: url,
@@ -34,31 +34,34 @@ class AnimationHandler {
 				options.responseType = Http.ResponseType.JSON;
 			}
 		}
-		http.get(url.load, options, function (err, response) {
+		http.get(url.load, options, (err, response) => {
 			if (err) {
 				callback(`Error loading animation resource: ${url.original} [${err}]`);
 			} else {
-				callback(null, response);
+				if (path.getExtension(url.original).toLowerCase() === '.glb') {
+					GlbParser.parse('filename.glb', response, null, null, (err, parseResult) => {
+						if (err) {
+							callback(err);
+						} else {
+							var _asset$data;
+							const animations = parseResult.animations;
+							if (asset != null && (_asset$data = asset.data) != null && _asset$data.events) {
+								for (let i = 0; i < animations.length; i++) {
+									animations[i].events = new AnimEvents(Object.values(asset.data.events));
+								}
+							}
+							parseResult.destroy();
+							callback(null, animations);
+						}
+					});
+				} else {
+					callback(null, this['_parseAnimationV' + response.animation.version](response));
+				}
 			}
 		});
 	}
 	open(url, data, asset) {
-		if (path.getExtension(url).toLowerCase() === '.glb') {
-			const glbResources = GlbParser.parse('filename.glb', data, null);
-			if (glbResources) {
-				var _asset$data;
-				const animations = glbResources.animations;
-				if (asset != null && (_asset$data = asset.data) != null && _asset$data.events) {
-					for (let i = 0; i < animations.length; i++) {
-						animations[i].events = new AnimEvents(Object.values(asset.data.events));
-					}
-				}
-				glbResources.destroy();
-				return animations;
-			}
-			return null;
-		}
-		return this['_parseAnimationV' + data.animation.version](data);
+		return data;
 	}
 	patch(asset, assets) {}
 	_parseAnimationV3(data) {

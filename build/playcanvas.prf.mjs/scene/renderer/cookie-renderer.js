@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.62.0 revision 818511d2b (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import { Vec4 } from '../../core/math/vec4.js';
@@ -11,6 +11,7 @@ import { Texture } from '../../platform/graphics/texture.js';
 import { LIGHTTYPE_OMNI } from '../constants.js';
 import { createShaderFromCode } from '../shader-lib/utils.js';
 import { LightCamera } from './light-camera.js';
+import { BlendState } from '../../platform/graphics/blend-state.js';
 
 const textureBlitVertexShader = `
 		attribute vec2 vertex_position;
@@ -92,6 +93,7 @@ class CookieRenderer {
 				this.initInvViewProjMatrices();
 			}
 			this.blitTextureId.setValue(light.cookie);
+			device.setBlendState(BlendState.DEFAULT);
 			for (let face = 0; face < faceCount; face++) {
 				_viewport.copy(light.atlasViewport);
 				if (faceCount > 1) {

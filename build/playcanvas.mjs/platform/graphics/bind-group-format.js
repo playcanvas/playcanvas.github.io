@@ -23,7 +23,7 @@ class BindTextureFormat {
 	}
 }
 class BindGroupFormat {
-	constructor(graphicsDevice, bufferFormats, textureFormats) {
+	constructor(graphicsDevice, bufferFormats = [], textureFormats = []) {
 		this.id = id++;
 		this.device = graphicsDevice;
 		this.bufferFormats = bufferFormats;

@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (DEBUG PROFILER)
+ * PlayCanvas Engine v1.62.0 revision 818511d2b (DEBUG PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import { CURVE_STEP, CURVE_LINEAR, CURVE_SMOOTHSTEP, CURVE_CATMULL, CURVE_CARDINAL, CURVE_SPLINE } from './constants.js';

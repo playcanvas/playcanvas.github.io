@@ -1,9 +1,10 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.62.0 revision 818511d2b (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import '../../../core/tracing.js';
+import { Vec2 } from '../../../core/math/vec2.js';
 import { DEVICETYPE_WEBGPU, PIXELFORMAT_RGBA32F, PIXELFORMAT_RGBA8, PIXELFORMAT_BGRA8, CULLFACE_BACK } from '../constants.js';
 import { GraphicsDevice } from '../graphics-device.js';
 import { RenderTarget } from '../render-target.js';
@@ -11,7 +12,6 @@ import { WebgpuBindGroup } from './webgpu-bind-group.js';
 import { WebgpuBindGroupFormat } from './webgpu-bind-group-format.js';
 import { WebgpuIndexBuffer } from './webgpu-index-buffer.js';
 import { WebgpuRenderPipeline } from './webgpu-render-pipeline.js';
-import { WebgpuRenderState } from './webgpu-render-state.js';
 import { WebgpuRenderTarget } from './webgpu-render-target.js';
 import { WebgpuShader } from './webgpu-shader.js';
 import { WebgpuTexture } from './webgpu-texture.js';
@@ -23,30 +23,27 @@ class WebgpuGraphicsDevice extends GraphicsDevice {
 	constructor(canvas, options = {}) {
 		super(canvas);
 		this.frameBuffer = void 0;
-		this.renderState = new WebgpuRenderState();
 		this.renderPipeline = new WebgpuRenderPipeline(this);
-		this.clearRenderer = new WebgpuClearRenderer();
+		this.clearRenderer = void 0;
 		this.pipeline = void 0;
 		this.bindGroupFormats = [];
 		this.commandEncoder = void 0;
-		this.deviceType = DEVICETYPE_WEBGPU;
-		this.writeRed = true;
-		this.writeGreen = true;
-		this.writeBlue = true;
-		this.writeAlpha = true;
-		this.initDeviceCaps();
+		this.isWebGPU = true;
+		this._deviceType = DEVICETYPE_WEBGPU;
+		this.samples = options.antialias ? 4 : 1;
 	}
 	destroy() {
 		super.destroy();
 	}
 	initDeviceCaps() {
+		const limits = this.gpuAdapter.limits;
 		this.precision = 'highp';
 		this.maxPrecision = 'highp';
 		this.maxSamples = 4;
 		this.maxTextures = 16;
-		this.maxTextureSize = 4096;
-		this.maxCubeMapSize = 4096;
-		this.maxVolumeSize = 2048;
+		this.maxTextureSize = limits.maxTextureDimension2D;
+		this.maxCubeMapSize = limits.maxTextureDimension2D;
+		this.maxVolumeSize = limits.maxTextureDimension3D;
 		this.maxPixelRatio = 1;
 		this.supportsInstancing = true;
 		this.supportsUniformBuffers = true;
@@ -63,7 +60,8 @@ class WebgpuGraphicsDevice extends GraphicsDevice {
 		this.boneLimit = 1024;
 		this.supportsImageBitmap = true;
 		this.extStandardDerivatives = true;
-		this.areaLightLutFormat = PIXELFORMAT_RGBA32F;
+		this.extBlendMinmax = true;
+		this.areaLightLutFormat = this.floatFilterable ? PIXELFORMAT_RGBA32F : PIXELFORMAT_RGBA8;
 		this.supportsTextureFetch = true;
 	}
 	async initWebGpu(glslangUrl, twgslUrl) {
@@ -90,7 +88,20 @@ class WebgpuGraphicsDevice extends GraphicsDevice {
 		const wasmPath = twgslUrl.replace('.js', '.wasm');
 		this.twgsl = await twgsl(wasmPath);
 		this.gpuAdapter = await window.navigator.gpu.requestAdapter();
-		this.wgpu = await this.gpuAdapter.requestDevice();
+		const requiredFeatures = [];
+		const requireFeature = feature => {
+			if (this.gpuAdapter.features.has(feature)) {
+				requiredFeatures.push(feature);
+				return true;
+			}
+			return false;
+		};
+		this.floatFilterable = requireFeature('float32-filterable');
+		this.wgpu = await this.gpuAdapter.requestDevice({
+			requiredFeatures,
+			requiredLimits: {}
+		});
+		this.initDeviceCaps();
 		this.setResolution(window.innerWidth, window.innerHeight);
 		this.gpuContext = this.canvas.getContext('webgpu');
 		const preferredCanvasFormat = navigator.gpu.getPreferredCanvasFormat();
@@ -100,21 +111,47 @@ class WebgpuGraphicsDevice extends GraphicsDevice {
 			colorSpace: 'srgb',
 			alphaMode: 'opaque',
 			format: preferredCanvasFormat,
-			usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC,
+			usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC | GPUTextureUsage.COPY_DST,
 			viewFormats: []
 		};
 		this.gpuContext.configure(this.canvasConfig);
 		this.createFramebuffer();
+		this.clearRenderer = new WebgpuClearRenderer(this);
 		this.postInit();
 		return this;
 	}
 	createFramebuffer() {
+		this.frameBufferDimensions = new Vec2();
 		this.frameBuffer = new RenderTarget({
 			name: 'WebgpuFramebuffer',
 			graphicsDevice: this,
 			depth: true,
-			samples: 4
+			samples: this.samples
 		});
+	}
+	resizeCanvas(width, height) {
+		this._width = width;
+		this._height = height;
+		if (this.canvas.width !== width || this.canvas.height !== height) {
+			this.canvas.width = width;
+			this.canvas.height = height;
+			this.fire(GraphicsDevice.EVENT_RESIZE, width, height);
+		}
+	}
+	frameStart() {
+		super.frameStart();
+		const outColorBuffer = this.gpuContext.getCurrentTexture();
+		if (this.frameBufferDimensions.x !== outColorBuffer.width || this.frameBufferDimensions.y !== outColorBuffer.height) {
+			this.frameBufferDimensions.set(outColorBuffer.width, outColorBuffer.height);
+			this.frameBuffer.destroy();
+			this.frameBuffer = null;
+			this.createFramebuffer();
+		}
+		const rt = this.frameBuffer;
+		const wrt = rt.impl;
+		wrt.colorFormat = outColorBuffer.format;
+		this.initRenderTarget(rt);
+		wrt.assignColorTexture(outColorBuffer);
 	}
 	createUniformBufferImpl(uniformBuffer) {
 		return new WebgpuUniformBuffer(uniformBuffer);
@@ -157,16 +194,18 @@ class WebgpuGraphicsDevice extends GraphicsDevice {
 		return elementCount;
 	}
 	draw(primitive, numInstances = 1, keepBuffers) {
-		if (this.shader.ready) {
+		if (this.shader.ready && !this.shader.failed) {
 			const passEncoder = this.passEncoder;
 			const vb0 = this.vertexBuffers[0];
-			const vbSlot = this.submitVertexBuffer(vb0, 0);
 			const vb1 = this.vertexBuffers[1];
-			if (vb1) {
-				this.submitVertexBuffer(vb1, vbSlot);
-			}
 			this.vertexBuffers.length = 0;
-			const pipeline = this.renderPipeline.get(primitive, vb0.format, vb1 == null ? void 0 : vb1.format, this.shader, this.renderTarget, this.bindGroupFormats, this.renderState);
+			if (vb0) {
+				const vbSlot = this.submitVertexBuffer(vb0, 0);
+				if (vb1) {
+					this.submitVertexBuffer(vb1, vbSlot);
+				}
+			}
+			const pipeline = this.renderPipeline.get(primitive, vb0 == null ? void 0 : vb0.format, vb1 == null ? void 0 : vb1.format, this.shader, this.renderTarget, this.bindGroupFormats, this.blendState, this.depthState);
 			if (this.pipeline !== pipeline) {
 				this.pipeline = pipeline;
 				passEncoder.setPipeline(pipeline);
@@ -175,9 +214,9 @@ class WebgpuGraphicsDevice extends GraphicsDevice {
 			if (ib) {
 				this.indexBuffer = null;
 				passEncoder.setIndexBuffer(ib.impl.buffer, ib.impl.format);
-				passEncoder.drawIndexed(ib.numIndices, numInstances, 0, 0, 0);
+				passEncoder.drawIndexed(primitive.count, numInstances, 0, 0, 0);
 			} else {
-				passEncoder.draw(vb0.numVertices, numInstances, 0, 0);
+				passEncoder.draw(primitive.count, numInstances, 0, 0);
 			}
 		}
 	}
@@ -186,30 +225,21 @@ class WebgpuGraphicsDevice extends GraphicsDevice {
 		this._shaderSwitchesPerFrame++;
 		return true;
 	}
-	setBlending(blending) {
-		this.renderState.setBlending(blending);
+	setBlendState(blendState) {
+		this.blendState.copy(blendState);
 	}
-	setBlendFunction(blendSrc, blendDst) {
-		this.renderState.setBlendFunction(blendSrc, blendDst);
+	setDepthState(depthState) {
+		this.depthState.copy(depthState);
 	}
-	setBlendEquation(blendEquation) {
-		this.renderState.setBlendEquation(blendEquation);
-	}
+	setBlendColor(r, g, b, a) {}
 	setDepthFunc(func) {}
 	setDepthTest(depthTest) {}
-	getDepthTest() {
-		return true;
-	}
 	setCullMode(cullMode) {}
 	getCullMode() {
 		return CULLFACE_BACK;
 	}
 	setAlphaToCoverage(state) {}
-	setColorWrite(writeRed, writeGreen, writeBlue, writeAlpha) {}
 	setDepthWrite(writeDepth) {}
-	getDepthWrite() {
-		return true;
-	}
 	initializeContextCaches() {
 		super.initializeContextCaches();
 	}
@@ -217,14 +247,8 @@ class WebgpuGraphicsDevice extends GraphicsDevice {
 		const rt = renderPass.renderTarget || this.frameBuffer;
 		this.renderTarget = rt;
 		const wrt = rt.impl;
-		let outColorBuffer;
-		if (rt === this.frameBuffer) {
-			outColorBuffer = this.gpuContext.getCurrentTexture();
-			wrt.colorFormat = outColorBuffer.format;
-		}
-		this.initRenderTarget(rt);
-		if (outColorBuffer) {
-			wrt.assignColorTexture(outColorBuffer);
+		if (rt !== this.frameBuffer) {
+			this.initRenderTarget(rt);
 		}
 		wrt.setupForRenderPass(renderPass);
 		this.commandEncoder = this.wgpu.createCommandEncoder();
@@ -248,7 +272,7 @@ class WebgpuGraphicsDevice extends GraphicsDevice {
 	}
 	clear(options) {
 		if (options.flags) {
-			this.clearRenderer.clear(this, this.renderTarget, options);
+			this.clearRenderer.clear(this, this.renderTarget, options, this.defaultClearOptions);
 		}
 	}
 	get width() {
@@ -260,22 +284,30 @@ class WebgpuGraphicsDevice extends GraphicsDevice {
 	setDepthBias(on) {}
 	setDepthBiasValues(constBias, slopeBias) {}
 	setStencilTest(enable) {}
+	setStencilFunc(func, ref, mask) {}
+	setStencilOperation(fail, zfail, zpass, writeMask) {}
 	setViewport(x, y, w, h) {
 		if (this.passEncoder) {
+			if (!this.renderTarget.flipY) {
+				y = this.renderTarget.height - y - h;
+			}
 			this.vx = x;
 			this.vy = y;
 			this.vw = w;
 			this.vh = h;
-			this.passEncoder.setViewport(x, this.renderTarget.height - y - h, w, h, 0, 1);
+			this.passEncoder.setViewport(x, y, w, h, 0, 1);
 		}
 	}
 	setScissor(x, y, w, h) {
 		if (this.passEncoder) {
+			if (!this.renderTarget.flipY) {
+				y = this.renderTarget.height - y - h;
+			}
 			this.sx = x;
 			this.sy = y;
 			this.sw = w;
 			this.sh = h;
-			this.passEncoder.setScissorRect(x, this.renderTarget.height - y - h, w, h);
+			this.passEncoder.setScissorRect(x, y, w, h);
 		}
 	}
 	copyRenderTarget(source, dest, color, depth) {

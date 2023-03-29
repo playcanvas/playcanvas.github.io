@@ -3,6 +3,8 @@ import '../../core/time.js';
 import { ShaderInput } from '../shader-input.js';
 import { semanticToLocation } from '../constants.js';
 
+const _vertexShaderBuiltins = ['gl_VertexID', 'gl_InstanceID', 'gl_DrawID', 'gl_BaseVertex', 'gl_BaseInstance'];
+
 class WebglShader {
   constructor(shader) {
     this.init();
@@ -109,19 +111,19 @@ class WebglShader {
       return false;
     }
 
-    let i, info, location, shaderInput;
-    i = 0;
+    let i = 0;
     const numAttributes = gl.getProgramParameter(glProgram, gl.ACTIVE_ATTRIBUTES);
 
     while (i < numAttributes) {
-      info = gl.getActiveAttrib(glProgram, i++);
-      location = gl.getAttribLocation(glProgram, info.name);
+      const info = gl.getActiveAttrib(glProgram, i++);
+      const location = gl.getAttribLocation(glProgram, info.name);
+      if (_vertexShaderBuiltins.indexOf(info.name) !== -1) continue;
 
       if (definition.attributes[info.name] === undefined) {
         console.error(`Vertex shader attribute "${info.name}" is not mapped to a semantic in shader definition.`);
       }
 
-      shaderInput = new ShaderInput(device, definition.attributes[info.name], device.pcUniformType[info.type], location);
+      const shaderInput = new ShaderInput(device, definition.attributes[info.name], device.pcUniformType[info.type], location);
       this.attributes.push(shaderInput);
     }
 
@@ -129,9 +131,9 @@ class WebglShader {
     const numUniforms = gl.getProgramParameter(glProgram, gl.ACTIVE_UNIFORMS);
 
     while (i < numUniforms) {
-      info = gl.getActiveUniform(glProgram, i++);
-      location = gl.getUniformLocation(glProgram, info.name);
-      shaderInput = new ShaderInput(device, info.name, device.pcUniformType[info.type], location);
+      const info = gl.getActiveUniform(glProgram, i++);
+      const location = gl.getUniformLocation(glProgram, info.name);
+      const shaderInput = new ShaderInput(device, info.name, device.pcUniformType[info.type], location);
 
       if (info.type === gl.SAMPLER_2D || info.type === gl.SAMPLER_CUBE || device.webgl2 && (info.type === gl.SAMPLER_2D_SHADOW || info.type === gl.SAMPLER_CUBE_SHADOW || info.type === gl.SAMPLER_3D)) {
         this.samplers.push(shaderInput);

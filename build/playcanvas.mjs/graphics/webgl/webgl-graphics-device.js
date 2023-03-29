@@ -8,7 +8,6 @@ import { drawQuadWithShader } from '../simple-post-effect.js';
 import { shaderChunks } from '../program-lib/chunks/chunks.js';
 import { RenderTarget } from '../render-target.js';
 import { Texture } from '../texture.js';
-import { getProgramLibrary } from '../program-library.js';
 import { WebglVertexBuffer } from './webgl-vertex-buffer.js';
 import { WebglIndexBuffer } from './webgl-index-buffer.js';
 import { WebglShader } from './webgl-shader.js';
@@ -1673,7 +1672,7 @@ class WebglGraphicsDevice extends GraphicsDevice {
       delete this.vertexShaderCache[shaderSrc];
     }
 
-    getProgramLibrary(this).clearCache();
+    this.programLib.clearCache();
   }
 
   clearVertexArrayObjectCache() {
@@ -1687,7 +1686,7 @@ class WebglGraphicsDevice extends GraphicsDevice {
   }
 
   removeShaderFromCache(shader) {
-    getProgramLibrary(this).removeFromCache(shader);
+    this.programLib.removeFromCache(shader);
   }
 
   get width() {

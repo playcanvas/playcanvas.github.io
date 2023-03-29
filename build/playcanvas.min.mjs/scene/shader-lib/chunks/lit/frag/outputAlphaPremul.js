@@ -1,1 +1,1 @@
-var a="\ngl_FragColor.rgb *= dAlpha;\ngl_FragColor.a = dAlpha;\n";export{a as default};
+var r="\ngl_FragColor.rgb *= litShaderArgs.opacity;\ngl_FragColor.a = litShaderArgs.opacity;\n";export{r as default};

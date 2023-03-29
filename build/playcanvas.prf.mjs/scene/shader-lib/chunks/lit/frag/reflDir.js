@@ -1,11 +1,11 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.62.0 revision 818511d2b (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 var reflDirPS = `
-void getReflDir() {
-		dReflDirW = normalize(-reflect(dViewDirW, dNormalW));
+void getReflDir(vec3 worldNormal, vec3 viewDir, float gloss, mat3 tbn) {
+		dReflDirW = normalize(-reflect(viewDir, worldNormal));
 }
 `;
 

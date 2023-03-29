@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.62.0 revision 818511d2b (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import '../../core/tracing.js';
@@ -9,10 +9,10 @@ import { BLEND_NONE, FOG_NONE, GAMMA_NONE } from '../constants.js';
 class LitOptions {
 	constructor() {
 		this.hasTangents = false;
-		this.chunks = [];
+		this.chunks = {};
 		this._pass = 0;
 		this.alphaTest = false;
-		this.forceFragmentPrecision = false;
+		this.forceFragmentPrecision = null;
 		this.blendType = BLEND_NONE;
 		this.separateAmbient = false;
 		this.screenSpace = false;
@@ -21,7 +21,7 @@ class LitOptions {
 		this.useMorphPosition = false;
 		this.useMorphNormal = false;
 		this.useMorphTextureBased = false;
-		this.nineSlicedMode = false;
+		this.nineSlicedMode = 0;
 		this.clusteredLightingEnabled = true;
 		this.clusteredLightingCookiesEnabled = false;
 		this.clusteredLightingShadowsEnabled = false;
@@ -48,13 +48,13 @@ class LitOptions {
 		this.ambientSH = false;
 		this.fastTbn = false;
 		this.twoSidedLighting = false;
-		this.occludeSpecular = false;
+		this.occludeSpecular = 0;
 		this.occludeSpecularFloat = false;
 		this.useMsdf = false;
 		this.msdfTextAttribute = 0;
 		this.alphaToCoverage = false;
 		this.opacityFadesSpecular = false;
-		this.cubeMapProjection = false;
+		this.cubeMapProjection = 0;
 		this.occludeDirect = false;
 		this.conserveEnergy = false;
 		this.useSpecular = false;

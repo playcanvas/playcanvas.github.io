@@ -1,9 +1,9 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.62.0 revision 818511d2b (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
-import { PIXELFORMAT_RGBA32F, PIXELFORMAT_RGBA16F, PIXELFORMAT_DEPTH, PIXELFORMAT_RGBA8, FILTER_NEAREST, FILTER_LINEAR, TEXHINT_SHADOWMAP, ADDRESS_CLAMP_TO_EDGE, FUNC_LESS, DEVICETYPE_WEBGPU } from '../../platform/graphics/constants.js';
+import { PIXELFORMAT_RGBA32F, PIXELFORMAT_RGBA16F, PIXELFORMAT_DEPTH, PIXELFORMAT_RGBA8, FILTER_NEAREST, FILTER_LINEAR, TEXHINT_SHADOWMAP, ADDRESS_CLAMP_TO_EDGE, FUNC_LESS } from '../../platform/graphics/constants.js';
 import { RenderTarget } from '../../platform/graphics/render-target.js';
 import { Texture } from '../../platform/graphics/texture.js';
 import { SHADOW_VSM32, SHADOW_VSM16, SHADOW_PCF5, SHADOW_PCF3, LIGHTTYPE_OMNI } from '../constants.js';
@@ -93,7 +93,7 @@ class ShadowMap {
 				depth: true
 			});
 		}
-		if (device.deviceType === DEVICETYPE_WEBGPU) {
+		if (device.isWebGPU) {
 			target.flipY = true;
 		}
 		return new ShadowMap(texture, [target]);

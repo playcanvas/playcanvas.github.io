@@ -220,7 +220,7 @@ class StandardMaterial extends Material {
 		}
 		this._processParameters('_activeLightingParams');
 	}
-	getShaderVariant(device, scene, objDefs, staticLightList, pass, sortedLights, viewUniformFormat, viewBindGroupFormat) {
+	getShaderVariant(device, scene, objDefs, staticLightList, pass, sortedLights, viewUniformFormat, viewBindGroupFormat, vertexFormat) {
 		this.updateEnvUniforms(device, scene);
 		const minimalOptions = pass === SHADER_DEPTH || pass === SHADER_PICK || ShaderPass.isShadow(pass);
 		let options = minimalOptions ? standard.optionsContextMin : standard.optionsContext;
@@ -228,7 +228,7 @@ class StandardMaterial extends Material {
 		if (this.onUpdateShader) {
 			options = this.onUpdateShader(options);
 		}
-		const processingOptions = new ShaderProcessorOptions(viewUniformFormat, viewBindGroupFormat);
+		const processingOptions = new ShaderProcessorOptions(viewUniformFormat, viewBindGroupFormat, vertexFormat);
 		const library = getProgramLibrary(device);
 		library.register('standard', standard);
 		const shader = library.getProgram('standard', options, processingOptions);
@@ -423,14 +423,6 @@ function _defineMaterialProps() {
 	_defineFloat('sheenGloss', 0.0);
 	_defineFloat('gloss', 0.25, (material, device, scene) => {
 		return material.shadingModel === SPECULAR_PHONG ? Math.pow(2, material.gloss * 11) : material.gloss;
-	});
-	Object.defineProperty(StandardMaterial.prototype, 'shininess', {
-		get: function () {
-			return this.gloss * 100;
-		},
-		set: function (value) {
-			this.gloss = value * 0.01;
-		}
 	});
 	_defineFloat('heightMapFactor', 1, (material, device, scene) => {
 		return material.heightMapFactor * 0.025;

@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.62.0 revision 818511d2b (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import { Vec2 } from '../../core/math/vec2.js';
@@ -91,7 +91,8 @@ class LightTextureAtlas {
 	updateUniforms() {
 		const isShadowFilterPcf = true;
 		const rt = this.shadowAtlas.renderTargets[0];
-		const shadowBuffer = this.device.webgl2 && isShadowFilterPcf ? rt.depthBuffer : rt.colorBuffer;
+		const isDepthShadow = (this.device.isWebGPU || this.device.webgl2) && isShadowFilterPcf;
+		const shadowBuffer = isDepthShadow ? rt.depthBuffer : rt.colorBuffer;
 		this._shadowAtlasTextureId.setValue(shadowBuffer);
 		this._shadowAtlasParams[0] = this.shadowAtlasResolution;
 		this._shadowAtlasParams[1] = this.shadowEdgePixels;

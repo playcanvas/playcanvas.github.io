@@ -52,107 +52,142 @@
 
 
 
-    function example(canvas) {
-
-      // Create the application with input and start the update loop
-      var app = new pc.Application(canvas, {
-        mouse: new pc.Mouse(document.body),
-        touch: new pc.TouchDevice(document.body),
-        elementInput: new pc.ElementInput(canvas) });
-
+    function example(canvas, deviceType) {
 
       var assets = {
         'font': new pc.Asset('font', 'font', { url: '/../../static/assets/fonts/courier.json' }) };
 
 
-      var assetListLoader = new pc.AssetListLoader(Object.values(assets), app.assets);
-      assetListLoader.load(function () {
-        app.start();
+      var gfxOptions = {
+        deviceTypes: [deviceType],
+        glslangUrl: '/../../static/lib/glslang/glslang.js',
+        twgslUrl: '/../../static/lib/twgsl/twgsl.js' };
+
+
+      pc.createGraphicsDevice(canvas, gfxOptions).then(function (device) {
+
+        var createOptions = new pc.AppOptions();
+        createOptions.graphicsDevice = device;
+        createOptions.mouse = new pc.Mouse(document.body);
+        createOptions.touch = new pc.TouchDevice(document.body);
+        createOptions.elementInput = new pc.ElementInput(canvas);
+
+        createOptions.componentSystems = [
+        // @ts-ignore
+        pc.RenderComponentSystem,
+        // @ts-ignore
+        pc.CameraComponentSystem,
+        // @ts-ignore
+        pc.ScreenComponentSystem,
+        // @ts-ignore
+        pc.ButtonComponentSystem,
+        // @ts-ignore
+        pc.ElementComponentSystem,
+        // @ts-ignore
+        pc.LayoutGroupComponentSystem,
+        // @ts-ignore
+        pc.LayoutChildComponentSystem];
+
+        createOptions.resourceHandlers = [
+        // @ts-ignore
+        pc.TextureHandler,
+        // @ts-ignore
+        pc.FontHandler];
+
+
+        var app = new pc.AppBase(canvas);
+        app.init(createOptions);
 
         // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
         app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
         app.setCanvasResolution(pc.RESOLUTION_AUTO);
 
-        window.addEventListener("resize", function () {
-          app.resizeCanvas(canvas.width, canvas.height);
-        });
+        var assetListLoader = new pc.AssetListLoader(Object.values(assets), app.assets);
+        assetListLoader.load(function () {
 
-        // Create a camera
-        var camera = new pc.Entity();
-        camera.addComponent("camera", {
-          clearColor: new pc.Color(30 / 255, 30 / 255, 30 / 255) });
+          app.start();
 
-        app.root.addChild(camera);
+          window.addEventListener("resize", function () {
+            app.resizeCanvas(canvas.width, canvas.height);
+          });
 
-        // Create a 2D screen
-        var screen = new pc.Entity();
-        screen.addComponent("screen", {
-          referenceResolution: new pc.Vec2(1280, 720),
-          scaleBlend: 0.5,
-          scaleMode: pc.SCALEMODE_BLEND,
-          screenSpace: true });
+          // Create a camera
+          var camera = new pc.Entity();
+          camera.addComponent("camera", {
+            clearColor: new pc.Color(30 / 255, 30 / 255, 30 / 255) });
 
-        app.root.addChild(screen);
+          app.root.addChild(camera);
 
-        // Create Layout Group Entity
-        var group = new pc.Entity();
-        group.addComponent("element", {
-          // a Layout Group needs a 'group' element component
-          type: pc.ELEMENTTYPE_GROUP,
-          anchor: [0.5, 0.5, 0.5, 0.5],
-          pivot: [0.5, 0.5],
-          // the element's width and height dictate the group's bounds
-          width: 350,
-          height: 150 });
+          // Create a 2D screen
+          var screen = new pc.Entity();
+          screen.addComponent("screen", {
+            referenceResolution: new pc.Vec2(1280, 720),
+            scaleBlend: 0.5,
+            scaleMode: pc.SCALEMODE_BLEND,
+            screenSpace: true });
 
-        group.addComponent("layoutgroup", {
-          orientation: pc.ORIENTATION_HORIZONTAL,
-          spacing: new pc.Vec2(10, 10),
-          // fit_both for width and height, making all child elements take the entire space
-          widthFitting: pc.FITTING_BOTH,
-          heightFitting: pc.FITTING_BOTH,
-          // wrap children
-          wrap: true });
+          app.root.addChild(screen);
 
-        screen.addChild(group);
-
-        // create 15 children to show off the layout group
-        for (var i = 0; i < 15; ++i) {
-          // create a random-colored panel
-          var child = new pc.Entity();
-          child.addComponent("element", {
+          // Create Layout Group Entity
+          var group = new pc.Entity();
+          group.addComponent("element", {
+            // a Layout Group needs a 'group' element component
+            type: pc.ELEMENTTYPE_GROUP,
             anchor: [0.5, 0.5, 0.5, 0.5],
             pivot: [0.5, 0.5],
-            color: new pc.Color(Math.random(), Math.random(), Math.random()),
-            type: pc.ELEMENTTYPE_IMAGE });
+            // the element's width and height dictate the group's bounds
+            width: 350,
+            height: 150 });
 
-          child.addComponent("layoutchild", {
-            excludeFromLayout: false });
+          group.addComponent("layoutgroup", {
+            orientation: pc.ORIENTATION_HORIZONTAL,
+            spacing: new pc.Vec2(10, 10),
+            // fit_both for width and height, making all child elements take the entire space
+            widthFitting: pc.FITTING_BOTH,
+            heightFitting: pc.FITTING_BOTH,
+            // wrap children
+            wrap: true });
 
-          group.addChild(child);
+          screen.addChild(group);
 
-          // add a text label
-          var childLabel = new pc.Entity();
-          childLabel.addComponent("element", {
-            // center-position and attach to the borders of parent
-            // meaning this text element will scale along with parent
-            anchor: [0, 0, 1, 1],
-            margin: [0, 0, 0, 0],
-            pivot: [0.5, 0.5],
-            color: new pc.Color(1, 1, 1),
-            fontAsset: assets.font.id,
-            text: "".concat(i + 1),
-            type: pc.ELEMENTTYPE_TEXT,
-            // auto font size
-            autoWidth: false,
-            autoHeight: false,
-            autoFitWidth: true,
-            autoFitHeight: true });
+          // create 15 children to show off the layout group
+          for (var i = 0; i < 15; ++i) {
+            // create a random-colored panel
+            var child = new pc.Entity();
+            child.addComponent("element", {
+              anchor: [0.5, 0.5, 0.5, 0.5],
+              pivot: [0.5, 0.5],
+              color: new pc.Color(Math.random(), Math.random(), Math.random()),
+              type: pc.ELEMENTTYPE_IMAGE });
 
-          child.addChild(childLabel);
-        }
+            child.addComponent("layoutchild", {
+              excludeFromLayout: false });
+
+            group.addChild(child);
+
+            // add a text label
+            var childLabel = new pc.Entity();
+            childLabel.addComponent("element", {
+              // center-position and attach to the borders of parent
+              // meaning this text element will scale along with parent
+              anchor: [0, 0, 1, 1],
+              margin: [0, 0, 0, 0],
+              pivot: [0.5, 0.5],
+              color: new pc.Color(1, 1, 1),
+              fontAsset: assets.font.id,
+              text: "".concat(i + 1),
+              type: pc.ELEMENTTYPE_TEXT,
+              // auto font size
+              autoWidth: false,
+              autoHeight: false,
+              autoFitWidth: true,
+              autoFitHeight: true });
+
+            child.addChild(childLabel);
+          }
+        });
       });
-    } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'User Interface');_defineProperty(Example, "NAME", 'Layout Group');
+    } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'User Interface');_defineProperty(Example, "NAME", 'Layout Group');_defineProperty(Example, "WEBGPU_ENABLED", true);
         var example = new Example();
 
         var useTypeScript = window.top.localStorage.getItem('useTypeScript') === 'true';
@@ -167,7 +202,7 @@
                     presets: ["react", "typescript", "env"]
                 }).code;
             }
-            window.exampleFunction = new Function('canvas', 'data', exampleFunction);
+            window.exampleFunction = new Function('canvas', 'deviceType', 'data', exampleFunction);
         }
         window.loadFunction = example.load;
         window.files = window.top.editedFiles || example.constructor.FILES;
@@ -210,7 +245,7 @@
                 }).observe(canvasContainerElement);
             }
 
-            if (true) {
+            if (true && app.graphicsDevice.deviceType !== 'webgpu') {
                 // set up miniStats
                 var miniStats = new pcx.MiniStats(app);
                 if (urlParams.get('miniStats') === 'false') {
@@ -286,14 +321,28 @@
                     return data;
                 } else if (arg === 'pcx') {
                     return pcx;
+                } else if (arg === 'deviceType') {
+                    if (true) {
+                        return window.top.preferredGraphicsDevice || 'webgpu';
+                    } else if (['webgl1', 'webgl2'].includes(window.top.preferredGraphicsDevice)) {
+                        return window.top.preferredGraphicsDevice;
+                    } else {
+                        return 'webgl2';
+                    }
                 }
             });
+
             window.exampleFunction.apply(this, args);
-            if (pc.app && pc.app.graphicsDevice.canvas) {
-                setupApplication(pc.app);
+
+            const pollHandler = setInterval(appCreationPoll, 50);
+            function appCreationPoll() {
+                if (pc.app && pc.app.graphicsDevice.canvas) {
+                    clearInterval(pollHandler);
+                    setupApplication(pc.app);
+                    var event = new CustomEvent("exampleLoad");
+                    window.top.dispatchEvent(event);
+                }
             }
-            var event = new CustomEvent("exampleLoad");
-            window.top.dispatchEvent(event);
         }
     </script>
     <script>

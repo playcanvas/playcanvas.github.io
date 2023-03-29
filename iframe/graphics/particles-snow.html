@@ -52,7 +52,7 @@
 
 
 
-    function example(canvas) {
+    function example(canvas, deviceType) {
 
       // Create the application and start the update loop
       var app = new pc.Application(canvas, {});
@@ -149,7 +149,7 @@
                     presets: ["react", "typescript", "env"]
                 }).code;
             }
-            window.exampleFunction = new Function('canvas', 'data', exampleFunction);
+            window.exampleFunction = new Function('canvas', 'deviceType', 'data', exampleFunction);
         }
         window.loadFunction = example.load;
         window.files = window.top.editedFiles || example.constructor.FILES;
@@ -192,7 +192,7 @@
                 }).observe(canvasContainerElement);
             }
 
-            if (true) {
+            if (true && app.graphicsDevice.deviceType !== 'webgpu') {
                 // set up miniStats
                 var miniStats = new pcx.MiniStats(app);
                 if (urlParams.get('miniStats') === 'false') {
@@ -268,14 +268,28 @@
                     return data;
                 } else if (arg === 'pcx') {
                     return pcx;
+                } else if (arg === 'deviceType') {
+                    if (false) {
+                        return window.top.preferredGraphicsDevice || 'webgpu';
+                    } else if (['webgl1', 'webgl2'].includes(window.top.preferredGraphicsDevice)) {
+                        return window.top.preferredGraphicsDevice;
+                    } else {
+                        return 'webgl2';
+                    }
                 }
             });
+
             window.exampleFunction.apply(this, args);
-            if (pc.app && pc.app.graphicsDevice.canvas) {
-                setupApplication(pc.app);
+
+            const pollHandler = setInterval(appCreationPoll, 50);
+            function appCreationPoll() {
+                if (pc.app && pc.app.graphicsDevice.canvas) {
+                    clearInterval(pollHandler);
+                    setupApplication(pc.app);
+                    var event = new CustomEvent("exampleLoad");
+                    window.top.dispatchEvent(event);
+                }
             }
-            var event = new CustomEvent("exampleLoad");
-            window.top.dispatchEvent(event);
         }
     </script>
     <script>

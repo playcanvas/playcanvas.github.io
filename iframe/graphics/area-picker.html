@@ -51,14 +51,20 @@
 
 
 
-    function example(canvas) {var _this = this;
+    function example(canvas, deviceType) {var _this = this;
 
       var assets = {
         'bloom': new pc.Asset('bloom', 'script', { url: '/../../static/scripts/posteffects/posteffect-bloom.js' }),
         helipad: new pc.Asset('helipad-env-atlas', 'texture', { url: '/../../static/assets/cubemaps/helipad-env-atlas.png' }, { type: pc.TEXTURETYPE_RGBP }) };
 
 
-      pc.createGraphicsDevice(canvas).then(function (device) {
+      var gfxOptions = {
+        deviceTypes: [deviceType],
+        glslangUrl: '/../../static/lib/glslang/glslang.js',
+        twgslUrl: '/../../static/lib/twgsl/twgsl.js' };
+
+
+      pc.createGraphicsDevice(canvas, gfxOptions).then(function (device) {
 
         var createOptions = new pc.AppOptions();
         createOptions.graphicsDevice = device;
@@ -127,7 +133,7 @@
             // create material of random color
             var material = new pc.StandardMaterial();
             material.diffuse = new pc.Color(Math.random(), Math.random(), Math.random());
-            material.shininess = 60;
+            material.gloss = 0.6;
             material.metalness = 0.4;
             material.useMetalness = true;
             material.update();
@@ -281,7 +287,7 @@
                     presets: ["react", "typescript", "env"]
                 }).code;
             }
-            window.exampleFunction = new Function('canvas', 'data', exampleFunction);
+            window.exampleFunction = new Function('canvas', 'deviceType', 'data', exampleFunction);
         }
         window.loadFunction = example.load;
         window.files = window.top.editedFiles || example.constructor.FILES;
@@ -324,7 +330,7 @@
                 }).observe(canvasContainerElement);
             }
 
-            if (true) {
+            if (true && app.graphicsDevice.deviceType !== 'webgpu') {
                 // set up miniStats
                 var miniStats = new pcx.MiniStats(app);
                 if (urlParams.get('miniStats') === 'false') {
@@ -400,14 +406,28 @@
                     return data;
                 } else if (arg === 'pcx') {
                     return pcx;
+                } else if (arg === 'deviceType') {
+                    if (false) {
+                        return window.top.preferredGraphicsDevice || 'webgpu';
+                    } else if (['webgl1', 'webgl2'].includes(window.top.preferredGraphicsDevice)) {
+                        return window.top.preferredGraphicsDevice;
+                    } else {
+                        return 'webgl2';
+                    }
                 }
             });
+
             window.exampleFunction.apply(this, args);
-            if (pc.app && pc.app.graphicsDevice.canvas) {
-                setupApplication(pc.app);
+
+            const pollHandler = setInterval(appCreationPoll, 50);
+            function appCreationPoll() {
+                if (pc.app && pc.app.graphicsDevice.canvas) {
+                    clearInterval(pollHandler);
+                    setupApplication(pc.app);
+                    var event = new CustomEvent("exampleLoad");
+                    window.top.dispatchEvent(event);
+                }
             }
-            var event = new CustomEvent("exampleLoad");
-            window.top.dispatchEvent(event);
         }
     </script>
     <script>

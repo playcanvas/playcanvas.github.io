@@ -11,6 +11,7 @@ import { LayerComposition } from '../../scene/composition/layer-composition.js';
 import { getApplication } from '../globals.js';
 import { Entity } from '../entity.js';
 import '../../core/tracing.js';
+import { BlendState } from '../../platform/graphics/blend-state.js';
 
 const tempSet = new Set();
 const clearDepthOptions = {
@@ -19,6 +20,7 @@ const clearDepthOptions = {
 };
 class Picker {
 	constructor(app, width, height) {
+		this.renderTarget = null;
 		if (app instanceof GraphicsDevice) {
 			app = getApplication();
 		}
@@ -31,7 +33,6 @@ class Picker {
 		this.layer = null;
 		this.layerComp = null;
 		this.initLayerComposition();
-		this._renderTarget = null;
 		const device = this.device;
 		this.clearDepthCommand = new Command(0, 0, function () {
 			device.clear(clearDepthOptions);
@@ -96,10 +97,10 @@ class Picker {
 	}
 	releaseRenderTarget() {
 		this.cameraEntity.camera.renderTarget = null;
-		if (this._renderTarget) {
-			this._renderTarget.destroyTextureBuffers();
-			this._renderTarget.destroy();
-			this._renderTarget = null;
+		if (this.renderTarget) {
+			this.renderTarget.destroyTextureBuffers();
+			this.renderTarget.destroy();
+			this.renderTarget = null;
 		}
 	}
 	initLayerComposition() {
@@ -117,7 +118,7 @@ class Picker {
 				self.pickColor[1] = (index >> 8 & 0xff) / 255;
 				self.pickColor[2] = (index & 0xff) / 255;
 				pickColorId.setValue(self.pickColor);
-				device.setBlending(false);
+				device.setBlendState(BlendState.DEFAULT);
 				self.mapping[index] = meshInstance;
 			}
 		});

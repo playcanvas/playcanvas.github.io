@@ -51,142 +51,180 @@
 
 
 
-
-    function example(canvas) {
-
-      // Create the application with input and start the update loop
-      var app = new pc.Application(canvas, {
-        mouse: new pc.Mouse(document.body),
-        touch: new pc.TouchDevice(document.body),
-        elementInput: new pc.ElementInput(canvas) });
-
+    function example(canvas, deviceType) {
 
       var assets = {
         'font': new pc.Asset('font', 'font', { url: '/../../static/assets/fonts/arial.json' }) };
 
 
-      var assetListLoader = new pc.AssetListLoader(Object.values(assets), app.assets);
-      assetListLoader.load(function () {
-        app.start();
+      var gfxOptions = {
+        deviceTypes: [deviceType],
+        glslangUrl: '/../../static/lib/glslang/glslang.js',
+        twgslUrl: '/../../static/lib/twgsl/twgsl.js' };
+
+
+      pc.createGraphicsDevice(canvas, gfxOptions).then(function (device) {
+
+        var createOptions = new pc.AppOptions();
+        createOptions.graphicsDevice = device;
+        createOptions.mouse = new pc.Mouse(document.body);
+        createOptions.touch = new pc.TouchDevice(document.body);
+        createOptions.elementInput = new pc.ElementInput(canvas);
+
+        createOptions.componentSystems = [
+        // @ts-ignore
+        pc.RenderComponentSystem,
+        // @ts-ignore
+        pc.CameraComponentSystem,
+        // @ts-ignore
+        pc.ScreenComponentSystem,
+        // @ts-ignore
+        pc.ButtonComponentSystem,
+        // @ts-ignore
+        pc.ElementComponentSystem,
+        // @ts-ignore
+        pc.LayoutGroupComponentSystem,
+        // @ts-ignore
+        pc.ScrollViewComponentSystem,
+        // @ts-ignore
+        pc.ScrollbarComponentSystem,
+        // @ts-ignore
+        pc.LayoutChildComponentSystem];
+
+        createOptions.resourceHandlers = [
+        // @ts-ignore
+        pc.TextureHandler,
+        // @ts-ignore
+        pc.FontHandler];
+
+
+        var app = new pc.AppBase(canvas);
+        app.init(createOptions);
 
         // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
         app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
         app.setCanvasResolution(pc.RESOLUTION_AUTO);
 
-        window.addEventListener("resize", function () {
-          app.resizeCanvas(canvas.width, canvas.height);
-        });
+        var assetListLoader = new pc.AssetListLoader(Object.values(assets), app.assets);
+        assetListLoader.load(function () {
 
-        // Create a camera
-        var camera = new pc.Entity();
-        camera.addComponent("camera", {
-          clearColor: new pc.Color(30 / 255, 30 / 255, 30 / 255) });
+          app.start();
 
-        app.root.addChild(camera);
+          window.addEventListener("resize", function () {
+            app.resizeCanvas(canvas.width, canvas.height);
+          });
 
-        // Create a 2D screen
-        var screen = new pc.Entity();
-        screen.addComponent("screen", {
-          referenceResolution: new pc.Vec2(1280, 720),
-          scaleBlend: 0.5,
-          scaleMode: pc.SCALEMODE_BLEND,
-          screenSpace: true });
+          // Create a camera
+          var camera = new pc.Entity();
+          camera.addComponent("camera", {
+            clearColor: new pc.Color(30 / 255, 30 / 255, 30 / 255) });
 
-        app.root.addChild(screen);
+          app.root.addChild(camera);
 
-        // some sample text
-        var firstLineText = "PlayCanvas supports Emojis via CanvasFont!";
-        var flagsText = "Flags: 🇺🇸🇩🇪🇮🇪🇮🇹🏴‍☠️🇨🇦";
-        var complexText = "Complex emoji: 👨🏿3️⃣👁️‍🗨️";
+          // Create a 2D screen
+          var screen = new pc.Entity();
+          screen.addComponent("screen", {
+            referenceResolution: new pc.Vec2(1280, 720),
+            scaleBlend: 0.5,
+            scaleMode: pc.SCALEMODE_BLEND,
+            screenSpace: true });
 
-        // Create a canvas font asset
-        var size = 64;
-        var elSize = 32;
+          app.root.addChild(screen);
 
-        var canvasFont = new pc.CanvasFont(app, {
-          color: new pc.Color(1, 1, 1), // white
-          fontName: "Arial",
-          fontSize: size,
-          width: 256,
-          height: 256 });
+          // some sample text
+          var firstLineText = "PlayCanvas supports Emojis via CanvasFont!";
+          var flagsText = "Flags: 🇺🇸🇩🇪🇮🇪🇮🇹🏴‍☠️🇨🇦";
+          var complexText = "Complex emoji: 👨🏿3️⃣👁️‍🗨️";
+
+          // Create a canvas font asset
+          var size = 64;
+          var elSize = 32;
+
+          var canvasFont = new pc.CanvasFont(app, {
+            color: new pc.Color(1, 1, 1), // white
+            fontName: "Arial",
+            fontSize: size,
+            width: 256,
+            height: 256 });
 
 
-        // The first texture update needs to be `createTextures()`. Follow-up calls need to be `updateTextures()`.
-        canvasFont.createTextures(firstLineText);
-        canvasFont.updateTextures(flagsText);
-        canvasFont.updateTextures(complexText);
+          // The first texture update needs to be `createTextures()`. Follow-up calls need to be `updateTextures()`.
+          canvasFont.createTextures(firstLineText);
+          canvasFont.updateTextures(flagsText);
+          canvasFont.updateTextures(complexText);
 
-        // Create the text entities
-        function createText(y, text) {
-          var canvasElementEntity = new pc.Entity();
-          canvasElementEntity.setLocalPosition(0, y, 0);
-          canvasElementEntity.addComponent("element", {
+          // Create the text entities
+          function createText(y, text) {
+            var canvasElementEntity = new pc.Entity();
+            canvasElementEntity.setLocalPosition(0, y, 0);
+            canvasElementEntity.addComponent("element", {
+              pivot: new pc.Vec2(0.5, 0.5),
+              anchor: new pc.Vec4(0.5, 0.5, 0.5, 0.5),
+              fontSize: elSize,
+              text: text,
+              type: pc.ELEMENTTYPE_TEXT });
+
+            canvasElementEntity.element.font = canvasFont;
+            screen.addChild(canvasElementEntity);
+          }
+          createText(225, firstLineText);
+          createText(150, flagsText);
+          createText(100, complexText);
+
+
+          // Canvas Fonts Debug - you shouldn't do this in your actual project
+          var debugText = new pc.Entity();
+          debugText.setLocalPosition(0, -50, 0);
+          debugText.addComponent("element", {
             pivot: new pc.Vec2(0.5, 0.5),
             anchor: new pc.Vec4(0.5, 0.5, 0.5, 0.5),
+            fontAsset: assets.font.id,
             fontSize: elSize,
-            text: text,
+            text: "The following are the CanvasFont's Texture Atlases,\ncontaining all the rendered characters:",
             type: pc.ELEMENTTYPE_TEXT });
 
-          canvasElementEntity.element.font = canvasFont;
-          screen.addChild(canvasElementEntity);
-        }
-        createText(225, firstLineText);
-        createText(150, flagsText);
-        createText(100, complexText);
+          screen.addChild(debugText);
 
-
-        // Canvas Fonts Debug - you shouldn't do this in your actual project
-        var debugText = new pc.Entity();
-        debugText.setLocalPosition(0, -50, 0);
-        debugText.addComponent("element", {
-          pivot: new pc.Vec2(0.5, 0.5),
-          anchor: new pc.Vec4(0.5, 0.5, 0.5, 0.5),
-          fontAsset: assets.font.id,
-          fontSize: elSize,
-          text: "The following are the CanvasFont's Texture Atlases,\ncontaining all the rendered characters:",
-          type: pc.ELEMENTTYPE_TEXT });
-
-        screen.addChild(debugText);
-
-        // Create Layout Group Entity
-        var group = new pc.Entity();
-        group.setLocalPosition(0, -150, 0);
-        group.addComponent("element", {
-          // a Layout Group needs a 'group' element component
-          type: pc.ELEMENTTYPE_GROUP,
-          anchor: [0.5, 0.5, 0.5, 0.5],
-          pivot: [0.5, 0.5],
-          // the element's width and height dictate the group's bounds
-          width: 300,
-          height: 100 });
-
-        group.addComponent("layoutgroup", {
-          orientation: pc.ORIENTATION_HORIZONTAL,
-          // fit_both for width and height, making all child elements take the entire space
-          widthFitting: pc.FITTING_BOTH,
-          heightFitting: pc.FITTING_BOTH,
-          // wrap children
-          wrap: true });
-
-        screen.addChild(group);
-
-        // create 1 child per texture
-        for (var i = 0; i < canvasFont.textures.length; i++) {
-          var texture = canvasFont.textures[i];
-
-          // create a random-colored panel
-          var child = new pc.Entity();
-          child.addComponent("element", {
+          // Create Layout Group Entity
+          var group = new pc.Entity();
+          group.setLocalPosition(0, -150, 0);
+          group.addComponent("element", {
+            // a Layout Group needs a 'group' element component
+            type: pc.ELEMENTTYPE_GROUP,
             anchor: [0.5, 0.5, 0.5, 0.5],
             pivot: [0.5, 0.5],
-            texture: texture,
-            type: pc.ELEMENTTYPE_IMAGE });
+            // the element's width and height dictate the group's bounds
+            width: 300,
+            height: 100 });
 
-          child.addComponent("layoutchild", {
-            excludeFromLayout: false });
+          group.addComponent("layoutgroup", {
+            orientation: pc.ORIENTATION_HORIZONTAL,
+            // fit_both for width and height, making all child elements take the entire space
+            widthFitting: pc.FITTING_BOTH,
+            heightFitting: pc.FITTING_BOTH,
+            // wrap children
+            wrap: true });
 
-          group.addChild(child);
-        }
+          screen.addChild(group);
+
+          // create 1 child per texture
+          for (var i = 0; i < canvasFont.textures.length; i++) {
+            var texture = canvasFont.textures[i];
+
+            // create a random-colored panel
+            var child = new pc.Entity();
+            child.addComponent("element", {
+              anchor: [0.5, 0.5, 0.5, 0.5],
+              pivot: [0.5, 0.5],
+              texture: texture,
+              type: pc.ELEMENTTYPE_IMAGE });
+
+            child.addComponent("layoutchild", {
+              excludeFromLayout: false });
+
+            group.addChild(child);
+          }
+        });
       });
     } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'User Interface');_defineProperty(Example, "NAME", 'Text Emojis');
         var example = new Example();
@@ -203,7 +241,7 @@
                     presets: ["react", "typescript", "env"]
                 }).code;
             }
-            window.exampleFunction = new Function('canvas', 'data', exampleFunction);
+            window.exampleFunction = new Function('canvas', 'deviceType', 'data', exampleFunction);
         }
         window.loadFunction = example.load;
         window.files = window.top.editedFiles || example.constructor.FILES;
@@ -246,7 +284,7 @@
                 }).observe(canvasContainerElement);
             }
 
-            if (true) {
+            if (true && app.graphicsDevice.deviceType !== 'webgpu') {
                 // set up miniStats
                 var miniStats = new pcx.MiniStats(app);
                 if (urlParams.get('miniStats') === 'false') {
@@ -322,14 +360,28 @@
                     return data;
                 } else if (arg === 'pcx') {
                     return pcx;
+                } else if (arg === 'deviceType') {
+                    if (false) {
+                        return window.top.preferredGraphicsDevice || 'webgpu';
+                    } else if (['webgl1', 'webgl2'].includes(window.top.preferredGraphicsDevice)) {
+                        return window.top.preferredGraphicsDevice;
+                    } else {
+                        return 'webgl2';
+                    }
                 }
             });
+
             window.exampleFunction.apply(this, args);
-            if (pc.app && pc.app.graphicsDevice.canvas) {
-                setupApplication(pc.app);
+
+            const pollHandler = setInterval(appCreationPoll, 50);
+            function appCreationPoll() {
+                if (pc.app && pc.app.graphicsDevice.canvas) {
+                    clearInterval(pollHandler);
+                    setupApplication(pc.app);
+                    var event = new CustomEvent("exampleLoad");
+                    window.top.dispatchEvent(event);
+                }
             }
-            var event = new CustomEvent("exampleLoad");
-            window.top.dispatchEvent(event);
         }
     </script>
     <script>

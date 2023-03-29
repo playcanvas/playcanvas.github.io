@@ -4,6 +4,7 @@ class WebgpuRenderState {
 	constructor() {
 		this.reset();
 	}
+
 	reset() {
 		this.blendStateDirty = true;
 		this.blendStateKey = '';

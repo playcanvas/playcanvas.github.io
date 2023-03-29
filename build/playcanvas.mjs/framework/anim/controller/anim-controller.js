@@ -339,6 +339,7 @@ class AnimController {
 			this._stateNames.push(path[0]);
 		}
 		state.addAnimation(path, animTrack);
+		this._animEvaluator.updateClipTrack(state.name, animTrack);
 		if (speed !== undefined) {
 			state.speed = speed;
 		}
@@ -446,7 +447,7 @@ class AnimController {
 				}
 			}
 		}
-		this._animEvaluator.update(dt);
+		this._animEvaluator.update(dt, this.activeState.hasAnimations);
 	}
 	findParameter(name) {
 		return this._parameters[name];

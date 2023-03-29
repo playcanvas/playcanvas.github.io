@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="../../build/regeneratorRuntimePolyfill.js"></script>
+    <script src="../../build/urlSearchParamsPolyfill.js"></script>
+    <script src="../../build/promisePolyfill.js"></script>
+    <script src="../../build/fetchPolyfill.js"></script>
+    <script src="../../build/arrayFromPolyfill.js"></script>
+    <script src="../../build/objectValuesPolyfill.js"></script>
+    <script src="../../build/playcanvas-observer.js"></script>
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        body {
+            margin: 0;
+            overflow-y: hidden;
+        }
+        #application-canvas {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div id="appInner">
+            <!--A link without href, which makes it invisible. Setting href in an example would trigger a download when clicked.-->
+            <div style="width:100%; position:absolute; top:10px">
+                <div style="text-align: center;">
+                    <a id="ar-link" rel="ar" download="asset.usdz">
+                        <img id="button" width="200" src="/arkit.png">
+                    </a>    
+                </div>
+            </div>
+            <canvas id='application-canvas'></canvas>
+        </div>
+    </div>
+    <script>
+        // polyfill slice on UInt8Array
+        if (!Uint8Array.prototype.slice) {
+            Object.defineProperty(Uint8Array.prototype, 'slice', {
+                value: function (begin, end) {
+                    return new Uint8Array(Array.prototype.slice.call(this, begin, end));
+                }
+            });
+        }
+        var event = new CustomEvent("exampleLoading");
+        window.top.dispatchEvent(event);
+
+        // include the example class which contains the example function to execute and any assets to load
+        "use strict";function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}function _defineProperties(target, props) {for (var i = 0; i < props.length; i++) {var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);}}function _createClass(Constructor, protoProps, staticProps) {if (protoProps) _defineProperties(Constructor.prototype, protoProps);if (staticProps) _defineProperties(Constructor, staticProps);Object.defineProperty(Constructor, "prototype", { writable: false });return Constructor;}function _defineProperty(obj, key, value) {if (key in obj) {Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true });} else {obj[key] = value;}return obj;}var Example = /*#__PURE__*/function () {function Example() {_classCallCheck(this, Example);}_createClass(Example, [{ key: "example", value:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    function example(canvas, deviceType, files) {
+
+      var assets = {
+        envatlas: new pc.Asset('helipad-env-atlas', 'texture', { url: '/../../static/assets/cubemaps/dancing-hall-env-atlas.png' }, { type: pc.TEXTURETYPE_RGBP }),
+        'statue': new pc.Asset('statue', 'container', { url: '/../../static/assets/models/statue.glb' }),
+        'script': new pc.Asset('script', 'script', { url: '/../../static/scripts/utils/planar-renderer.js' }) };
+
+
+      var gfxOptions = {
+        deviceTypes: [deviceType],
+        glslangUrl: '/../../static/lib/glslang/glslang.js',
+        twgslUrl: '/../../static/lib/twgsl/twgsl.js' };
+
+
+      pc.createGraphicsDevice(canvas, gfxOptions).then(function (device) {
+
+        var createOptions = new pc.AppOptions();
+        createOptions.graphicsDevice = device;
+
+        createOptions.componentSystems = [
+        // @ts-ignore
+        pc.RenderComponentSystem,
+        // @ts-ignore
+        pc.CameraComponentSystem,
+        // @ts-ignore
+        pc.ScriptComponentSystem];
+
+        createOptions.resourceHandlers = [
+        // @ts-ignore
+        pc.TextureHandler,
+        // @ts-ignore
+        pc.ScriptHandler,
+        // @ts-ignore
+        pc.ContainerHandler];
+
+
+        var app = new pc.AppBase(canvas);
+        app.init(createOptions);
+
+        // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
+        app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
+        app.setCanvasResolution(pc.RESOLUTION_AUTO);
+
+        var assetListLoader = new pc.AssetListLoader(Object.values(assets), app.assets);
+        assetListLoader.load(function () {
+
+          app.start();
+
+          // set up some general scene rendering properties
+          app.scene.toneMapping = pc.TONEMAP_ACES;
+
+          // setup skydome
+          app.scene.envAtlas = assets.envatlas.resource;
+          app.scene.skyboxMip = 1;
+          app.scene.skyboxIntensity = 1.2; // make it brighter
+
+          // helper function to create a primitive with shape type, position, scale, color and layer
+          function createPrimitive(primitiveType, position, scale, color, layer) {var material = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : null;
+
+            // create material of specified color
+            if (!material) {
+              var standardMaterial = new pc.StandardMaterial();
+              standardMaterial.diffuse = color;
+              standardMaterial.gloss = 0.6;
+              standardMaterial.metalness = 0.7;
+              standardMaterial.useMetalness = true;
+              standardMaterial.update();
+              material = standardMaterial;
+            }
+
+            // create primitive
+            var primitive = new pc.Entity();
+            primitive.addComponent('render', {
+              type: primitiveType,
+              layers: layer,
+              material: material });
+
+
+            // set position and scale and add it to scene
+            primitive.setLocalPosition(position);
+            primitive.setLocalScale(scale);
+            app.root.addChild(primitive);
+
+            return primitive;
+          }
+
+          // create a layer for objects that do not render into texture
+          var excludedLayer = new pc.Layer({ name: "Excluded" });
+          app.scene.layers.push(excludedLayer);
+
+          // get world and skybox layers
+          var worldLayer = app.scene.layers.getLayerByName("World");
+          var skyboxLayer = app.scene.layers.getLayerByName("Skybox");
+
+          // Create the shader from the vertex and fragment shaders
+          var shader = pc.createShaderFromCode(app.graphicsDevice, files['shader.vert'], files['shader.frag'], 'myShader', {
+            aPosition: pc.SEMANTIC_POSITION,
+            aUv0: pc.SEMANTIC_TEXCOORD0 });
+
+
+          // reflective ground
+          // This is in the excluded layer so it does not render into reflection texture
+          var groundMaterial = new pc.Material();
+          groundMaterial.shader = shader;
+          createPrimitive("plane", new pc.Vec3(0, 0, 0), new pc.Vec3(40, 1, 40), new pc.Color(0.5, 0.5, 0.5), [excludedLayer.id], groundMaterial);
+
+          // get the instance of the statue and set up with render component
+          var statueEntity = assets.statue.resource.instantiateRenderEntity();
+          app.root.addChild(statueEntity);
+
+          // create few random primitives in the world layer
+          var entities = [];
+          var shapes = ["box", "cone", "cylinder", "sphere", "capsule"];
+          for (var i = 0; i < 6; i++) {
+            var shapeName = shapes[Math.floor(Math.random() * shapes.length)];
+            var color = new pc.Color(Math.random(), Math.random(), Math.random());
+            entities.push(createPrimitive(shapeName, pc.Vec3.ZERO, new pc.Vec3(3, 3, 3), color, [worldLayer.id]));
+          }
+
+          // Create main camera, which renders entities in world, excluded and skybox layers
+          var camera = new pc.Entity("MainCamera");
+          camera.addComponent("camera", {
+            fov: 60,
+            layers: [worldLayer.id, excludedLayer.id, skyboxLayer.id] });
+
+          app.root.addChild(camera);
+
+          // create reflection camera, which renders entities in world and skybox layers only
+          var reflectionCamera = new pc.Entity("ReflectionCamera");
+          reflectionCamera.addComponent("camera", {
+            fov: 60,
+            layers: [worldLayer.id, skyboxLayer.id],
+            priority: -1 // render reflections before the main camera
+          });
+
+          // add planarRenderer script which renders the reflection texture
+          reflectionCamera.addComponent('script');
+          reflectionCamera.script.create('planarRenderer', {
+            attributes: {
+              sceneCameraEntity: camera,
+              scale: 1,
+              mipmaps: false,
+              depth: true,
+              planePoint: pc.Vec3.ZERO,
+              planeNormal: pc.Vec3.UP } });
+
+
+          app.root.addChild(reflectionCamera);
+
+          // update things each frame
+          var time = 0;
+          app.on("update", function (dt) {
+            time += dt;
+
+            // rotate primitives around their center and also orbit them around the shiny sphere
+            for (var e = 0; e < entities.length; e++) {
+              var scale = (e + 1) / entities.length;
+              var offset = time + e * 200;
+              entities[e].setLocalPosition(7 * Math.sin(offset), e + 5, 7 * Math.cos(offset));
+              entities[e].rotate(1 * scale, 2 * scale, 3 * scale);
+            }
+
+            // slowly orbit camera around
+            camera.setLocalPosition(30 * Math.cos(time * 0.2), 10, 30 * Math.sin(time * 0.2));
+            camera.lookAt(pc.Vec3.ZERO);
+
+            // animate FOV
+            camera.camera.fov = 60 + 20 * Math.sin(time * 0.5);
+
+            // trigger reflection camera update (must be called after all parameters of the main camera are updated)
+            // @ts-ignore engine-tsd
+            var reflectionTexture = reflectionCamera.script.planarRenderer.frameUpdate();
+            groundMaterial.setParameter('uDiffuseMap', reflectionTexture);
+            groundMaterial.update();
+          });
+        });
+      });
+    } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'Graphics');_defineProperty(Example, "NAME", 'Reflection Planar');_defineProperty(Example, "WEBGPU_ENABLED", true);_defineProperty(Example, "FILES", { 'shader.vert': /* glsl */"\n            attribute vec3 aPosition;\n            attribute vec2 aUv0;\n\n            uniform mat4 matrix_model;\n            uniform mat4 matrix_viewProjection;\n\n            void main(void)\n            {\n                gl_Position = matrix_viewProjection * matrix_model * vec4(aPosition, 1.0);;\n            }", 'shader.frag': /* glsl */"\n\n            // engine built-in constant storing render target size in .xy and inverse size in .zw\n            uniform vec4 uScreenSize;\n\n            // reflection texture\n            uniform sampler2D uDiffuseMap;\n\n            void main(void)\n            {\n                // sample reflection texture\n                vec2 coord = gl_FragCoord.xy * uScreenSize.zw;\n                coord.y = 1.0 - coord.y;\n                vec4 reflection = texture2D(uDiffuseMap, coord);\n\n                gl_FragColor = vec4(reflection.xyz * 0.7, 1);\n            }" });
+        var example = new Example();
+
+        var useTypeScript = window.top.localStorage.getItem('useTypeScript') === 'true';
+        window.exampleFunction = window.top.localStorage.getItem(window.top.location.hash.replace('#', ''));
+        if (!window.exampleFunction) {
+            window.exampleFunction = example.example
+        } else {
+            if (useTypeScript) {
+                window.exampleFunction = window.top.Babel.transform(exampleFunction, {
+                    retainLines: true,
+                    filename: 'transformedScript.tsx',
+                    presets: ["react", "typescript", "env"]
+                }).code;
+            }
+            window.exampleFunction = new Function('canvas', 'deviceType', 'data', exampleFunction);
+        }
+        window.loadFunction = example.load;
+        window.files = window.top.editedFiles || example.constructor.FILES;
+
+        // get url parameters
+        var queryString = window.location.search;
+        var urlParams = new URLSearchParams(queryString);
+    </script>
+    <script>
+        function loadScript(url, onload) {
+            const script = document.createElement('script');
+            script.setAttribute('src', url);
+            script.onload = onload;
+            document.head.appendChild(script);
+        }
+
+        function loadEngine(callback) {
+            const enginePath = urlParams && urlParams.get('use_local_engine') || "/build/playcanvas.js";
+
+            loadScript(enginePath, () => {
+                window.top.pc = window.pc;
+                loadScript('../../build/playcanvas-extras.js', () => {
+                    callback();
+                });
+            });
+        }
+
+        function setupApplication(app) {
+            const canvas = app.graphicsDevice.canvas;
+            // handle resizing
+            var canvasContainerElement = canvas.parentElement;
+            canvas.setAttribute('width', window.innerWidth + 'px');
+            canvas.setAttribute('height', window.innerHeight + 'px');
+            var resizeTimeout = null;
+            app.setCanvasResolution(pc.RESOLUTION_AUTO);
+            if (window.ResizeObserver) {
+                new ResizeObserver(function() {
+                    canvas.width = canvasContainerElement.clientWidth;
+                    canvas.height = canvasContainerElement.clientHeight;
+                }).observe(canvasContainerElement);
+            }
+
+            if (true && app.graphicsDevice.deviceType !== 'webgpu') {
+                // set up miniStats
+                var miniStats = new pcx.MiniStats(app);
+                if (urlParams.get('miniStats') === 'false') {
+                    miniStats.enabled = false;
+                }
+                app.on('update', function () {
+                    if (window.top._showMiniStats !== undefined) miniStats.enabled = window.top._showMiniStats;
+                });
+            }
+        }
+
+        function loadResource(app, resource, callback) {
+            if (!resource.type) {
+                fetch(resource.url)
+                    .then(function(response) { return response.text() })
+                    .then(function(data) {
+                        var module = {
+                            exports: {}
+                        };
+                        window[resource.name] = (Function('module', 'exports', data).call(module, module, module.exports), module).exports;
+                        callback({});
+                    });
+                return;
+            }
+        }
+
+        function loadResources(app, callback) {
+            var assets = [];
+            var assetManifest = {};
+
+            // stub out react
+            window.React = { createElement: function(type, props) { if (type === 'div') assets.push(props); } };
+            // call the stubbed load function to add all assets to the assets list
+            window.loadFunction();
+
+            var count = assets.length;
+            function onLoadedResource(key, asset) {
+                count--;
+                if (key) {
+                    assetManifest[key] = asset;
+                }
+                if (count <= 0) {
+                    callback(assetManifest);
+                }
+            }
+
+            assets.forEach(function (resource) {
+                loadResource(app, resource, function(asset) {
+                    onLoadedResource(resource.name, asset);
+                });
+            });
+        }
+
+        function callExample(canvas, assetManifest, files, data) {
+            function escapeRegExp(string) {
+                return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            }
+            function replaceAll(str, find, replace) {
+                return str.replace(new RegExp(escapeRegExp(find), 'g'), replace);
+            }
+            var argsString = window.exampleFunction.toString().match(/function\s.*?\(([^)]*)\)/)[1];
+            argsString = replaceAll(argsString, ' ', '');
+            argsString = replaceAll(argsString, '\n', '');
+            var argNames = argsString.split(',');
+            var args = argNames.map(function(arg) {
+                if (arg === 'canvas') {
+                    return canvas;
+                } else if (arg === 'assetManifest') {
+                    return assetManifest;
+                } else if (arg === 'files') {
+                    return files;
+                } else if (arg === 'data') {
+                    return data;
+                } else if (arg === 'pcx') {
+                    return pcx;
+                } else if (arg === 'deviceType') {
+                    if (true) {
+                        return window.top.preferredGraphicsDevice || 'webgpu';
+                    } else if (['webgl1', 'webgl2'].includes(window.top.preferredGraphicsDevice)) {
+                        return window.top.preferredGraphicsDevice;
+                    } else {
+                        return 'webgl2';
+                    }
+                }
+            });
+
+            window.exampleFunction.apply(this, args);
+
+            const pollHandler = setInterval(appCreationPoll, 50);
+            function appCreationPoll() {
+                if (pc.app && pc.app.graphicsDevice.canvas) {
+                    clearInterval(pollHandler);
+                    setupApplication(pc.app);
+                    var event = new CustomEvent("exampleLoad");
+                    window.top.dispatchEvent(event);
+                }
+            }
+        }
+    </script>
+    <script>
+        // create the example observer 
+        var data = new observer.Observer({});
+        window.top.observerData = data;
+
+        // load the engine, create the application, load the resources if necessary, then call the example
+        loadEngine(function() {
+            var canvas = document.getElementById('application-canvas');
+
+            if (!window.loadFunction) {
+                callExample(canvas, {}, window.files, data);
+            } else {
+                loadResources(undefined, function(assetManifest) {
+                    callExample(canvas, assetManifest, window.files, data);
+                });
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,5 +1,4 @@
 import { path } from '../../core/path.js';
-import '../../core/tracing.js';
 import { Http, http } from '../../platform/net/http.js';
 import { getDefaultMaterial } from '../../scene/materials/default-material.js';
 import { GlbModelParser } from '../parsers/glb-model.js';
@@ -37,23 +36,30 @@ class ModelHandler {
 				options.responseType = Http.ResponseType.JSON;
 			}
 		}
-		http.get(url.load, options, function (err, response) {
+		http.get(url.load, options, (err, response) => {
 			if (!callback) return;
 			if (!err) {
-				callback(null, response);
+				for (let i = 0; i < this._parsers.length; i++) {
+					const p = this._parsers[i];
+					if (p.decider(url.original, response)) {
+						p.parser.parse(response, (err, parseResult) => {
+							if (err) {
+								callback(err);
+							} else {
+								callback(null, parseResult);
+							}
+						});
+						return;
+					}
+				}
+				callback("No parsers found");
 			} else {
 				callback(`Error loading model: ${url.original} [${err}]`);
 			}
 		});
 	}
 	open(url, data) {
-		for (let i = 0; i < this._parsers.length; i++) {
-			const p = this._parsers[i];
-			if (p.decider(url, data)) {
-				return p.parser.parse(data);
-			}
-		}
-		return null;
+		return data;
 	}
 	patch(asset, assets) {
 		if (!asset.resource) return;

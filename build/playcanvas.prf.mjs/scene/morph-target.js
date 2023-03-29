@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.62.0 revision 818511d2b (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import '../core/tracing.js';
@@ -18,11 +18,7 @@ class MorphTarget {
 		this.options = options;
 		this._name = options.name;
 		this._defaultWeight = options.defaultWeight || 0;
-		this.aabb = options.aabb;
-		if (!this.aabb) {
-			this.aabb = new BoundingBox();
-			if (options.deltaPositions) this.aabb.compute(options.deltaPositions);
-		}
+		this._aabb = options.aabb;
 		this.deltaPositions = options.deltaPositions;
 	}
 	destroy() {
@@ -41,6 +37,13 @@ class MorphTarget {
 	}
 	get defaultWeight() {
 		return this._defaultWeight;
+	}
+	get aabb() {
+		if (!this._aabb) {
+			this._aabb = new BoundingBox();
+			if (this.deltaPositions) this._aabb.compute(this.deltaPositions);
+		}
+		return this._aabb;
 	}
 	get morphPositions() {
 		return !!this._vertexBufferPositions || !!this.texturePositions;

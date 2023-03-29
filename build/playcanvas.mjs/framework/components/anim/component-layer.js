@@ -134,7 +134,7 @@ class AnimComponentLayer {
 		this._mask = mask;
 	}
 	assignAnimation(nodePath, animTrack, speed, loop) {
-		if (animTrack.constructor !== AnimTrack) {
+		if (!(animTrack instanceof AnimTrack)) {
 			return;
 		}
 		this._controller.assignAnimation(nodePath, animTrack, speed, loop);

@@ -1,13 +1,13 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.62.0 revision 818511d2b (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import { setupVertexArrayObject } from '../../../polyfill/OESVertexArrayObject.js';
 import '../../../core/tracing.js';
 import { platform } from '../../../core/platform.js';
 import { Color } from '../../../core/math/color.js';
-import { DEVICETYPE_WEBGL, PIXELFORMAT_RGBA8, PIXELFORMAT_RGB8, CLEARFLAG_COLOR, CLEARFLAG_DEPTH, UNIFORMTYPE_BOOL, UNIFORMTYPE_INT, UNIFORMTYPE_FLOAT, UNIFORMTYPE_VEC2, UNIFORMTYPE_VEC3, UNIFORMTYPE_VEC4, UNIFORMTYPE_IVEC2, UNIFORMTYPE_IVEC3, UNIFORMTYPE_IVEC4, UNIFORMTYPE_BVEC2, UNIFORMTYPE_BVEC3, UNIFORMTYPE_BVEC4, UNIFORMTYPE_MAT2, UNIFORMTYPE_MAT3, UNIFORMTYPE_MAT4, UNIFORMTYPE_TEXTURE2D, UNIFORMTYPE_TEXTURECUBE, UNIFORMTYPE_TEXTURE2D_SHADOW, UNIFORMTYPE_TEXTURECUBE_SHADOW, UNIFORMTYPE_TEXTURE3D, UNIFORMTYPE_FLOATARRAY, UNIFORMTYPE_VEC2ARRAY, UNIFORMTYPE_VEC3ARRAY, UNIFORMTYPE_VEC4ARRAY, PIXELFORMAT_RGBA16F, PIXELFORMAT_RGBA32F, BLENDMODE_ONE, BLENDMODE_ZERO, BLENDEQUATION_ADD, CULLFACE_BACK, FUNC_LESSEQUAL, FUNC_ALWAYS, STENCILOP_KEEP, ADDRESS_CLAMP_TO_EDGE, semanticToLocation, CLEARFLAG_STENCIL, CULLFACE_NONE, PRIMITIVE_TRISTRIP, FILTER_NEAREST_MIPMAP_NEAREST, FILTER_NEAREST_MIPMAP_LINEAR, FILTER_NEAREST, FILTER_LINEAR_MIPMAP_NEAREST, FILTER_LINEAR_MIPMAP_LINEAR, FILTER_LINEAR } from '../constants.js';
+import { DEVICETYPE_WEBGL2, DEVICETYPE_WEBGL1, PIXELFORMAT_RGBA8, PIXELFORMAT_RGB8, UNIFORMTYPE_BOOL, UNIFORMTYPE_INT, UNIFORMTYPE_FLOAT, UNIFORMTYPE_VEC2, UNIFORMTYPE_VEC3, UNIFORMTYPE_VEC4, UNIFORMTYPE_IVEC2, UNIFORMTYPE_IVEC3, UNIFORMTYPE_IVEC4, UNIFORMTYPE_BVEC2, UNIFORMTYPE_BVEC3, UNIFORMTYPE_BVEC4, UNIFORMTYPE_MAT2, UNIFORMTYPE_MAT3, UNIFORMTYPE_MAT4, UNIFORMTYPE_TEXTURE2D, UNIFORMTYPE_TEXTURECUBE, UNIFORMTYPE_TEXTURE2D_SHADOW, UNIFORMTYPE_TEXTURECUBE_SHADOW, UNIFORMTYPE_TEXTURE3D, UNIFORMTYPE_FLOATARRAY, UNIFORMTYPE_VEC2ARRAY, UNIFORMTYPE_VEC3ARRAY, UNIFORMTYPE_VEC4ARRAY, PIXELFORMAT_RGBA16F, PIXELFORMAT_RGBA32F, CULLFACE_BACK, FUNC_ALWAYS, STENCILOP_KEEP, ADDRESS_CLAMP_TO_EDGE, semanticToLocation, CLEARFLAG_COLOR, CLEARFLAG_DEPTH, CLEARFLAG_STENCIL, CULLFACE_NONE, PRIMITIVE_TRISTRIP, FILTER_NEAREST_MIPMAP_NEAREST, FILTER_NEAREST_MIPMAP_LINEAR, FILTER_NEAREST, FILTER_LINEAR_MIPMAP_NEAREST, FILTER_LINEAR_MIPMAP_LINEAR, FILTER_LINEAR } from '../constants.js';
 import { GraphicsDevice } from '../graphics-device.js';
 import { RenderTarget } from '../render-target.js';
 import { Texture } from '../texture.js';
@@ -18,6 +18,8 @@ import { WebglTexture } from './webgl-texture.js';
 import { WebglRenderTarget } from './webgl-render-target.js';
 import { ShaderUtils } from '../shader-utils.js';
 import { Shader } from '../shader.js';
+import { BlendState } from '../blend-state.js';
+import { DepthState } from '../depth-state.js';
 
 const invalidateAttachments = [];
 const _fullScreenQuadVS = `
@@ -60,17 +62,9 @@ function quadWithShader(device, target, shader) {
 	const oldRt = device.renderTarget;
 	device.setRenderTarget(target);
 	device.updateBegin();
-	const oldDepthTest = device.getDepthTest();
-	const oldDepthWrite = device.getDepthWrite();
-	const oldCullMode = device.getCullMode();
-	const oldWR = device.writeRed;
-	const oldWG = device.writeGreen;
-	const oldWB = device.writeBlue;
-	const oldWA = device.writeAlpha;
-	device.setDepthTest(false);
-	device.setDepthWrite(false);
 	device.setCullMode(CULLFACE_NONE);
-	device.setColorWrite(true, true, true, true);
+	device.setBlendState(BlendState.DEFAULT);
+	device.setDepthState(DepthState.NODEPTH);
 	device.setVertexBuffer(device.quadVertexBuffer, 0);
 	device.setShader(shader);
 	device.draw({
@@ -79,10 +73,6 @@ function quadWithShader(device, target, shader) {
 		count: 4,
 		indexed: false
 	});
-	device.setDepthTest(oldDepthTest);
-	device.setDepthWrite(oldDepthWrite);
-	device.setCullMode(oldCullMode);
-	device.setColorWrite(oldWR, oldWG, oldWB, oldWA);
 	device.updateEnd();
 	device.setRenderTarget(oldRt);
 	device.updateBegin();
@@ -211,7 +201,6 @@ class WebglGraphicsDevice extends GraphicsDevice {
 		super(canvas);
 		this.gl = void 0;
 		this.webgl2 = void 0;
-		this.deviceType = DEVICETYPE_WEBGL;
 		this.defaultFramebuffer = null;
 		this.updateClientRect();
 		this.contextLost = false;
@@ -241,7 +230,8 @@ class WebglGraphicsDevice extends GraphicsDevice {
 		for (let i = 0; i < names.length; i++) {
 			gl = canvas.getContext(names[i], options);
 			if (gl) {
-				this.webgl2 = names[i] === 'webgl2';
+				this.webgl2 = names[i] === DEVICETYPE_WEBGL2;
+				this._deviceType = this.webgl2 ? DEVICETYPE_WEBGL2 : DEVICETYPE_WEBGL1;
 				break;
 			}
 		}
@@ -270,15 +260,10 @@ class WebglGraphicsDevice extends GraphicsDevice {
 				this.supportsImageBitmap = result;
 			});
 		}
-		this.defaultClearOptions = {
-			color: [0, 0, 0, 1],
-			depth: 1,
-			stencil: 0,
-			flags: CLEARFLAG_COLOR | CLEARFLAG_DEPTH
-		};
 		this.glAddress = [gl.REPEAT, gl.CLAMP_TO_EDGE, gl.MIRRORED_REPEAT];
 		this.glBlendEquation = [gl.FUNC_ADD, gl.FUNC_SUBTRACT, gl.FUNC_REVERSE_SUBTRACT, this.webgl2 ? gl.MIN : this.extBlendMinmax ? this.extBlendMinmax.MIN_EXT : gl.FUNC_ADD, this.webgl2 ? gl.MAX : this.extBlendMinmax ? this.extBlendMinmax.MAX_EXT : gl.FUNC_ADD];
-		this.glBlendFunction = [gl.ZERO, gl.ONE, gl.SRC_COLOR, gl.ONE_MINUS_SRC_COLOR, gl.DST_COLOR, gl.ONE_MINUS_DST_COLOR, gl.SRC_ALPHA, gl.SRC_ALPHA_SATURATE, gl.ONE_MINUS_SRC_ALPHA, gl.DST_ALPHA, gl.ONE_MINUS_DST_ALPHA, gl.CONSTANT_COLOR, gl.ONE_MINUS_CONSTANT_COLOR, gl.CONSTANT_ALPHA, gl.ONE_MINUS_CONSTANT_ALPHA];
+		this.glBlendFunctionColor = [gl.ZERO, gl.ONE, gl.SRC_COLOR, gl.ONE_MINUS_SRC_COLOR, gl.DST_COLOR, gl.ONE_MINUS_DST_COLOR, gl.SRC_ALPHA, gl.SRC_ALPHA_SATURATE, gl.ONE_MINUS_SRC_ALPHA, gl.DST_ALPHA, gl.ONE_MINUS_DST_ALPHA, gl.CONSTANT_COLOR, gl.ONE_MINUS_CONSTANT_COLOR];
+		this.glBlendFunctionAlpha = [gl.ZERO, gl.ONE, gl.SRC_COLOR, gl.ONE_MINUS_SRC_COLOR, gl.DST_COLOR, gl.ONE_MINUS_DST_COLOR, gl.SRC_ALPHA, gl.SRC_ALPHA_SATURATE, gl.ONE_MINUS_SRC_ALPHA, gl.DST_ALPHA, gl.ONE_MINUS_DST_ALPHA, gl.CONSTANT_ALPHA, gl.ONE_MINUS_CONSTANT_ALPHA];
 		this.glComparison = [gl.NEVER, gl.LESS, gl.EQUAL, gl.LEQUAL, gl.GREATER, gl.NOTEQUAL, gl.GEQUAL, gl.ALWAYS];
 		this.glStencilOp = [gl.KEEP, gl.ZERO, gl.REPLACE, gl.INCR, gl.INCR_WRAP, gl.DECR, gl.DECR_WRAP, gl.INVERT];
 		this.glClearFlag = [0, gl.COLOR_BUFFER_BIT, gl.DEPTH_BUFFER_BIT, gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT, gl.STENCIL_BUFFER_BIT, gl.STENCIL_BUFFER_BIT | gl.COLOR_BUFFER_BIT, gl.STENCIL_BUFFER_BIT | gl.DEPTH_BUFFER_BIT, gl.STENCIL_BUFFER_BIT | gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT];
@@ -518,17 +503,26 @@ class WebglGraphicsDevice extends GraphicsDevice {
 		}
 		return precision;
 	}
+	getExtension() {
+		for (let i = 0; i < arguments.length; i++) {
+			if (this.supportedExtensions.indexOf(arguments[i]) !== -1) {
+				return this.gl.getExtension(arguments[i]);
+			}
+		}
+		return null;
+	}
+	get extDisjointTimerQuery() {
+		if (!this._extDisjointTimerQuery) {
+			if (this.webgl2) {
+				this._extDisjointTimerQuery = this.getExtension('EXT_disjoint_timer_query_webgl2', 'EXT_disjoint_timer_query');
+			}
+		}
+		return this._extDisjointTimerQuery;
+	}
 	initializeExtensions() {
 		const gl = this.gl;
 		const supportedExtensions = gl.getSupportedExtensions();
-		const getExtension = function getExtension() {
-			for (let i = 0; i < arguments.length; i++) {
-				if (supportedExtensions.indexOf(arguments[i]) !== -1) {
-					return gl.getExtension(arguments[i]);
-				}
-			}
-			return null;
-		};
+		this.supportedExtensions = supportedExtensions;
 		if (this.webgl2) {
 			this.extBlendMinmax = true;
 			this.extDrawBuffers = true;
@@ -539,25 +533,24 @@ class WebglGraphicsDevice extends GraphicsDevice {
 			this.extTextureLod = true;
 			this.extUintElement = true;
 			this.extVertexArrayObject = true;
-			this.extColorBufferFloat = getExtension('EXT_color_buffer_float');
-			this.extDisjointTimerQuery = getExtension('EXT_disjoint_timer_query_webgl2', 'EXT_disjoint_timer_query');
+			this.extColorBufferFloat = this.getExtension('EXT_color_buffer_float');
 			this.extDepthTexture = true;
 		} else {
-			this.extBlendMinmax = getExtension("EXT_blend_minmax");
-			this.extDrawBuffers = getExtension('EXT_draw_buffers');
-			this.extInstancing = getExtension("ANGLE_instanced_arrays");
+			this.extBlendMinmax = this.getExtension("EXT_blend_minmax");
+			this.extDrawBuffers = this.getExtension('EXT_draw_buffers');
+			this.extInstancing = this.getExtension("ANGLE_instanced_arrays");
 			if (this.extInstancing) {
 				const ext = this.extInstancing;
 				gl.drawArraysInstanced = ext.drawArraysInstancedANGLE.bind(ext);
 				gl.drawElementsInstanced = ext.drawElementsInstancedANGLE.bind(ext);
 				gl.vertexAttribDivisor = ext.vertexAttribDivisorANGLE.bind(ext);
 			}
-			this.extStandardDerivatives = getExtension("OES_standard_derivatives");
-			this.extTextureFloat = getExtension("OES_texture_float");
-			this.extTextureHalfFloat = getExtension("OES_texture_half_float");
-			this.extTextureLod = getExtension('EXT_shader_texture_lod');
-			this.extUintElement = getExtension("OES_element_index_uint");
-			this.extVertexArrayObject = getExtension("OES_vertex_array_object");
+			this.extStandardDerivatives = this.getExtension("OES_standard_derivatives");
+			this.extTextureFloat = this.getExtension("OES_texture_float");
+			this.extTextureHalfFloat = this.getExtension("OES_texture_half_float");
+			this.extTextureLod = this.getExtension('EXT_shader_texture_lod');
+			this.extUintElement = this.getExtension("OES_element_index_uint");
+			this.extVertexArrayObject = this.getExtension("OES_vertex_array_object");
 			if (this.extVertexArrayObject) {
 				const ext = this.extVertexArrayObject;
 				gl.createVertexArray = ext.createVertexArrayOES.bind(ext);
@@ -566,22 +559,21 @@ class WebglGraphicsDevice extends GraphicsDevice {
 				gl.bindVertexArray = ext.bindVertexArrayOES.bind(ext);
 			}
 			this.extColorBufferFloat = null;
-			this.extDisjointTimerQuery = null;
 			this.extDepthTexture = gl.getExtension('WEBGL_depth_texture');
 		}
-		this.extDebugRendererInfo = getExtension('WEBGL_debug_renderer_info');
-		this.extTextureFloatLinear = getExtension("OES_texture_float_linear");
-		this.extTextureHalfFloatLinear = getExtension("OES_texture_half_float_linear");
-		this.extFloatBlend = getExtension("EXT_float_blend");
-		this.extTextureFilterAnisotropic = getExtension('EXT_texture_filter_anisotropic', 'WEBKIT_EXT_texture_filter_anisotropic');
-		this.extCompressedTextureETC1 = getExtension('WEBGL_compressed_texture_etc1');
-		this.extCompressedTextureETC = getExtension('WEBGL_compressed_texture_etc');
-		this.extCompressedTexturePVRTC = getExtension('WEBGL_compressed_texture_pvrtc', 'WEBKIT_WEBGL_compressed_texture_pvrtc');
-		this.extCompressedTextureS3TC = getExtension('WEBGL_compressed_texture_s3tc', 'WEBKIT_WEBGL_compressed_texture_s3tc');
-		this.extCompressedTextureATC = getExtension('WEBGL_compressed_texture_atc');
-		this.extCompressedTextureASTC = getExtension('WEBGL_compressed_texture_astc');
-		this.extParallelShaderCompile = getExtension('KHR_parallel_shader_compile');
-		this.extColorBufferHalfFloat = getExtension("EXT_color_buffer_half_float");
+		this.extDebugRendererInfo = this.getExtension('WEBGL_debug_renderer_info');
+		this.extTextureFloatLinear = this.getExtension("OES_texture_float_linear");
+		this.extTextureHalfFloatLinear = this.getExtension("OES_texture_half_float_linear");
+		this.extFloatBlend = this.getExtension("EXT_float_blend");
+		this.extTextureFilterAnisotropic = this.getExtension('EXT_texture_filter_anisotropic', 'WEBKIT_EXT_texture_filter_anisotropic');
+		this.extCompressedTextureETC1 = this.getExtension('WEBGL_compressed_texture_etc1');
+		this.extCompressedTextureETC = this.getExtension('WEBGL_compressed_texture_etc');
+		this.extCompressedTexturePVRTC = this.getExtension('WEBGL_compressed_texture_pvrtc', 'WEBKIT_WEBGL_compressed_texture_pvrtc');
+		this.extCompressedTextureS3TC = this.getExtension('WEBGL_compressed_texture_s3tc', 'WEBKIT_WEBGL_compressed_texture_s3tc');
+		this.extCompressedTextureATC = this.getExtension('WEBGL_compressed_texture_atc');
+		this.extCompressedTextureASTC = this.getExtension('WEBGL_compressed_texture_astc');
+		this.extParallelShaderCompile = this.getExtension('KHR_parallel_shader_compile');
+		this.extColorBufferHalfFloat = this.getExtension("EXT_color_buffer_half_float");
 	}
 	initializeCapabilities() {
 		const gl = this.gl;
@@ -628,33 +620,17 @@ class WebglGraphicsDevice extends GraphicsDevice {
 	initializeRenderState() {
 		super.initializeRenderState();
 		const gl = this.gl;
-		this.blending = false;
 		gl.disable(gl.BLEND);
-		this.blendSrc = BLENDMODE_ONE;
-		this.blendDst = BLENDMODE_ZERO;
-		this.blendSrcAlpha = BLENDMODE_ONE;
-		this.blendDstAlpha = BLENDMODE_ZERO;
-		this.separateAlphaBlend = false;
-		this.blendEquation = BLENDEQUATION_ADD;
-		this.blendAlphaEquation = BLENDEQUATION_ADD;
-		this.separateAlphaEquation = false;
 		gl.blendFunc(gl.ONE, gl.ZERO);
 		gl.blendEquation(gl.FUNC_ADD);
+		gl.colorMask(true, true, true, true);
 		this.blendColor = new Color(0, 0, 0, 0);
 		gl.blendColor(0, 0, 0, 0);
-		this.writeRed = true;
-		this.writeGreen = true;
-		this.writeBlue = true;
-		this.writeAlpha = true;
-		gl.colorMask(true, true, true, true);
 		this.cullMode = CULLFACE_BACK;
 		gl.enable(gl.CULL_FACE);
 		gl.cullFace(gl.BACK);
-		this.depthTest = true;
 		gl.enable(gl.DEPTH_TEST);
-		this.depthFunc = FUNC_LESSEQUAL;
 		gl.depthFunc(gl.LEQUAL);
-		this.depthWrite = true;
 		gl.depthMask(true);
 		this.stencil = false;
 		gl.disable(gl.STENCIL_TEST);
@@ -1046,7 +1022,7 @@ class WebglGraphicsDevice extends GraphicsDevice {
 			key = "";
 			for (let i = 0; i < vertexBuffers.length; i++) {
 				const vertexBuffer = vertexBuffers[i];
-				key += vertexBuffer.id + vertexBuffer.format.renderingingHash;
+				key += vertexBuffer.id + vertexBuffer.format.renderingHash;
 			}
 			vao = this._vaoMap.get(key);
 		}
@@ -1185,24 +1161,42 @@ class WebglGraphicsDevice extends GraphicsDevice {
 		this._primsPerFrame[primitive.type] += primitive.count * (numInstances > 1 ? numInstances : 1);
 	}
 	clear(options) {
+		var _options$flags;
 		const defaultOptions = this.defaultClearOptions;
 		options = options || defaultOptions;
-		const flags = options.flags === undefined ? defaultOptions.flags : options.flags;
+		const flags = (_options$flags = options.flags) != null ? _options$flags : defaultOptions.flags;
 		if (flags !== 0) {
 			const gl = this.gl;
 			if (flags & CLEARFLAG_COLOR) {
-				const color = options.color === undefined ? defaultOptions.color : options.color;
-				this.setClearColor(color[0], color[1], color[2], color[3]);
-				this.setColorWrite(true, true, true, true);
+				var _options$color;
+				const color = (_options$color = options.color) != null ? _options$color : defaultOptions.color;
+				const r = color[0];
+				const g = color[1];
+				const b = color[2];
+				const a = color[3];
+				const c = this.clearColor;
+				if (r !== c.r || g !== c.g || b !== c.b || a !== c.a) {
+					this.gl.clearColor(r, g, b, a);
+					this.clearColor.set(r, g, b, a);
+				}
+				this.setBlendState(BlendState.DEFAULT);
 			}
 			if (flags & CLEARFLAG_DEPTH) {
-				const depth = options.depth === undefined ? defaultOptions.depth : options.depth;
-				this.setClearDepth(depth);
-				this.setDepthWrite(true);
+				var _options$depth;
+				const depth = (_options$depth = options.depth) != null ? _options$depth : defaultOptions.depth;
+				if (depth !== this.clearDepth) {
+					this.gl.clearDepth(depth);
+					this.clearDepth = depth;
+				}
+				this.setDepthState(DepthState.WRITEDEPTH);
 			}
 			if (flags & CLEARFLAG_STENCIL) {
-				const stencil = options.stencil === undefined ? defaultOptions.stencil : options.stencil;
-				this.setClearStencil(stencil);
+				var _options$stencil;
+				const stencil = (_options$stencil = options.stencil) != null ? _options$stencil : defaultOptions.stencil;
+				if (stencil !== this.clearStencil) {
+					this.gl.clearStencil(stencil);
+					this.clearStencil = stencil;
+				}
 			}
 			gl.clear(this.glClearFlag[flags]);
 		}
@@ -1210,62 +1204,6 @@ class WebglGraphicsDevice extends GraphicsDevice {
 	readPixels(x, y, w, h, pixels) {
 		const gl = this.gl;
 		gl.readPixels(x, y, w, h, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-	}
-	setClearDepth(depth) {
-		if (depth !== this.clearDepth) {
-			this.gl.clearDepth(depth);
-			this.clearDepth = depth;
-		}
-	}
-	setClearColor(r, g, b, a) {
-		const c = this.clearColor;
-		if (r !== c.r || g !== c.g || b !== c.b || a !== c.a) {
-			this.gl.clearColor(r, g, b, a);
-			this.clearColor.set(r, g, b, a);
-		}
-	}
-	setClearStencil(value) {
-		if (value !== this.clearStencil) {
-			this.gl.clearStencil(value);
-			this.clearStencil = value;
-		}
-	}
-	getDepthTest() {
-		return this.depthTest;
-	}
-	setDepthTest(depthTest) {
-		if (this.depthTest !== depthTest) {
-			const gl = this.gl;
-			if (depthTest) {
-				gl.enable(gl.DEPTH_TEST);
-			} else {
-				gl.disable(gl.DEPTH_TEST);
-			}
-			this.depthTest = depthTest;
-		}
-	}
-	setDepthFunc(func) {
-		if (this.depthFunc === func) return;
-		this.gl.depthFunc(this.glComparison[func]);
-		this.depthFunc = func;
-	}
-	getDepthWrite() {
-		return this.depthWrite;
-	}
-	setDepthWrite(writeDepth) {
-		if (this.depthWrite !== writeDepth) {
-			this.gl.depthMask(writeDepth);
-			this.depthWrite = writeDepth;
-		}
-	}
-	setColorWrite(writeRed, writeGreen, writeBlue, writeAlpha) {
-		if (this.writeRed !== writeRed || this.writeGreen !== writeGreen || this.writeBlue !== writeBlue || this.writeAlpha !== writeAlpha) {
-			this.gl.colorMask(writeRed, writeGreen, writeBlue, writeAlpha);
-			this.writeRed = writeRed;
-			this.writeGreen = writeGreen;
-			this.writeBlue = writeBlue;
-			this.writeAlpha = writeAlpha;
-		}
 	}
 	setAlphaToCoverage(state) {
 		if (!this.webgl2) return;
@@ -1314,20 +1252,6 @@ class WebglGraphicsDevice extends GraphicsDevice {
 	}
 	setDepthBiasValues(constBias, slopeBias) {
 		this.gl.polygonOffset(slopeBias, constBias);
-	}
-	getBlending() {
-		return this.blending;
-	}
-	setBlending(blending) {
-		if (this.blending !== blending) {
-			const gl = this.gl;
-			if (blending) {
-				gl.enable(gl.BLEND);
-			} else {
-				gl.disable(gl.BLEND);
-			}
-			this.blending = blending;
-		}
 	}
 	setStencilTest(enable) {
 		if (this.stencil !== enable) {
@@ -1404,37 +1328,37 @@ class WebglGraphicsDevice extends GraphicsDevice {
 			this.stencilWriteMaskBack = writeMask;
 		}
 	}
-	setBlendFunction(blendSrc, blendDst) {
-		if (this.blendSrc !== blendSrc || this.blendDst !== blendDst || this.separateAlphaBlend) {
-			this.gl.blendFunc(this.glBlendFunction[blendSrc], this.glBlendFunction[blendDst]);
-			this.blendSrc = blendSrc;
-			this.blendDst = blendDst;
-			this.separateAlphaBlend = false;
-		}
-	}
-	setBlendFunctionSeparate(blendSrc, blendDst, blendSrcAlpha, blendDstAlpha) {
-		if (this.blendSrc !== blendSrc || this.blendDst !== blendDst || this.blendSrcAlpha !== blendSrcAlpha || this.blendDstAlpha !== blendDstAlpha || !this.separateAlphaBlend) {
-			this.gl.blendFuncSeparate(this.glBlendFunction[blendSrc], this.glBlendFunction[blendDst], this.glBlendFunction[blendSrcAlpha], this.glBlendFunction[blendDstAlpha]);
-			this.blendSrc = blendSrc;
-			this.blendDst = blendDst;
-			this.blendSrcAlpha = blendSrcAlpha;
-			this.blendDstAlpha = blendDstAlpha;
-			this.separateAlphaBlend = true;
-		}
-	}
-	setBlendEquation(blendEquation) {
-		if (this.blendEquation !== blendEquation || this.separateAlphaEquation) {
-			this.gl.blendEquation(this.glBlendEquation[blendEquation]);
-			this.blendEquation = blendEquation;
-			this.separateAlphaEquation = false;
-		}
-	}
-	setBlendEquationSeparate(blendEquation, blendAlphaEquation) {
-		if (this.blendEquation !== blendEquation || this.blendAlphaEquation !== blendAlphaEquation || !this.separateAlphaEquation) {
-			this.gl.blendEquationSeparate(this.glBlendEquation[blendEquation], this.glBlendEquation[blendAlphaEquation]);
-			this.blendEquation = blendEquation;
-			this.blendAlphaEquation = blendAlphaEquation;
-			this.separateAlphaEquation = true;
+	setBlendState(blendState) {
+		const currentBlendState = this.blendState;
+		if (!currentBlendState.equals(blendState)) {
+			const gl = this.gl;
+			const {
+				blend,
+				colorOp,
+				alphaOp,
+				colorSrcFactor,
+				colorDstFactor,
+				alphaSrcFactor,
+				alphaDstFactor
+			} = blendState;
+			if (currentBlendState.blend !== blend) {
+				if (blend) {
+					gl.enable(gl.BLEND);
+				} else {
+					gl.disable(gl.BLEND);
+				}
+			}
+			if (currentBlendState.colorOp !== colorOp || currentBlendState.alphaOp !== alphaOp) {
+				const glBlendEquation = this.glBlendEquation;
+				gl.blendEquationSeparate(glBlendEquation[colorOp], glBlendEquation[alphaOp]);
+			}
+			if (currentBlendState.colorSrcFactor !== colorSrcFactor || currentBlendState.colorDstFactor !== colorDstFactor || currentBlendState.alphaSrcFactor !== alphaSrcFactor || currentBlendState.alphaDstFactor !== alphaDstFactor) {
+				gl.blendFuncSeparate(this.glBlendFunctionColor[colorSrcFactor], this.glBlendFunctionColor[colorDstFactor], this.glBlendFunctionAlpha[alphaSrcFactor], this.glBlendFunctionAlpha[alphaDstFactor]);
+			}
+			if (currentBlendState.allWrite !== blendState.allWrite) {
+				this.gl.colorMask(blendState.redWrite, blendState.greenWrite, blendState.blueWrite, blendState.alphaWrite);
+			}
+			currentBlendState.copy(blendState);
 		}
 	}
 	setBlendColor(r, g, b, a) {
@@ -1442,6 +1366,35 @@ class WebglGraphicsDevice extends GraphicsDevice {
 		if (r !== c.r || g !== c.g || b !== c.b || a !== c.a) {
 			this.gl.blendColor(r, g, b, a);
 			c.set(r, g, b, a);
+		}
+	}
+	setDepthState(depthState) {
+		const currentDepthState = this.depthState;
+		if (!currentDepthState.equals(depthState)) {
+			const gl = this.gl;
+			const write = depthState.write;
+			if (currentDepthState.write !== write) {
+				gl.depthMask(write);
+			}
+			let {
+				func,
+				test
+			} = depthState;
+			if (!test && write) {
+				test = true;
+				func = FUNC_ALWAYS;
+			}
+			if (currentDepthState.func !== func) {
+				gl.depthFunc(this.glComparison[func]);
+			}
+			if (currentDepthState.test !== test) {
+				if (test) {
+					gl.enable(gl.DEPTH_TEST);
+				} else {
+					gl.disable(gl.DEPTH_TEST);
+				}
+			}
+			currentDepthState.copy(depthState);
 		}
 	}
 	setCullMode(cullMode) {
@@ -1497,6 +1450,18 @@ class WebglGraphicsDevice extends GraphicsDevice {
 			gl.deleteVertexArray(item);
 		});
 		this._vaoMap.clear();
+	}
+	resizeCanvas(width, height) {
+		this._width = width;
+		this._height = height;
+		const ratio = Math.min(this._maxPixelRatio, platform.browser ? window.devicePixelRatio : 1);
+		width = Math.floor(width * ratio);
+		height = Math.floor(height * ratio);
+		if (this.canvas.width !== width || this.canvas.height !== height) {
+			this.canvas.width = width;
+			this.canvas.height = height;
+			this.fire(GraphicsDevice.EVENT_RESIZE, width, height);
+		}
 	}
 	get width() {
 		return this.gl.drawingBufferWidth || this.canvas.width;

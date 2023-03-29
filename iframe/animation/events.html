@@ -51,146 +51,193 @@
 
 
 
-    function example(canvas) {
 
-      var app = new pc.Application(canvas, {
-        mouse: new pc.Mouse(document.body),
-        touch: new pc.TouchDevice(document.body) });
-
+    function example(canvas, deviceType) {
 
       var assets = {
         'model': new pc.Asset('model', 'container', { url: '/../../static/assets/models/bitmoji.glb' }),
         'walkAnim': new pc.Asset('walkAnim', 'container', { url: '/../../static/assets/animations/bitmoji/walk.glb' }),
-        'helipad.dds': new pc.Asset('helipad.dds', 'cubemap', { url: '/../../static/assets/cubemaps/helipad.dds' }),
+        helipad: new pc.Asset('helipad-env-atlas', 'texture', { url: '/../../static/assets/cubemaps/helipad-env-atlas.png' }, { type: pc.TEXTURETYPE_RGBP }),
         'bloom': new pc.Asset('bloom', 'script', { url: '/../../static/scripts/posteffects/posteffect-bloom.js' }) };
 
-      var assetListLoader = new pc.AssetListLoader(Object.values(assets), app.assets);
-      assetListLoader.load(function () {
-        app.scene.exposure = 2;
-        app.start();
-
-        // setup skydome
-        app.scene.skyboxMip = 2;
-        app.scene.setSkybox(assets['helipad.dds'].resources);
-        app.scene.skyboxIntensity = 0.4; // make it darker
-
-        // Create an Entity with a camera component
-        var cameraEntity = new pc.Entity();
-        cameraEntity.addComponent("camera", {
-          clearColor: new pc.Color(0.1, 0.1, 0.1) });
-
-        cameraEntity.translate(0, 1, 0);
-
-        // add bloom postprocessing (this is ignored by the picker)
-        cameraEntity.addComponent("script");
-        cameraEntity.script.create("bloom", {
-          attributes: {
-            bloomIntensity: 1,
-            bloomThreshold: 0.7,
-            blurAmount: 4 } });
+      var gfxOptions = {
+        deviceTypes: [deviceType],
+        glslangUrl: '/../../static/lib/glslang/glslang.js',
+        twgslUrl: '/../../static/lib/twgsl/twgsl.js' };
 
 
-        app.root.addChild(cameraEntity);
+      pc.createGraphicsDevice(canvas, gfxOptions).then(function (device) {
 
-        var boxes = {};
-        var highlightedBoxes = [];
+        var createOptions = new pc.AppOptions();
+        createOptions.graphicsDevice = device;
+        createOptions.mouse = new pc.Mouse(document.body);
+        createOptions.touch = new pc.TouchDevice(document.body);
+        createOptions.elementInput = new pc.ElementInput(canvas);
 
-        // create a floor made up of box models
-        for (var i = -5; i <= 5; i++) {
-          for (var j = -5; j <= 5; j++) {
-            var box = new pc.Entity();
-            boxes["".concat(i).concat(j)] = box;
-            box.addComponent('model', { type: 'box' });
-            box.setPosition(i, -0.5, j);
-            box.setLocalScale(0.95, 1, 0.95);
-            var material = new pc.StandardMaterial();
-            material.diffuse = new pc.Color(0.7, 0.7, 0.7);
-            material.shininess = 30;
-            material.metalness = 0.2;
-            material.useMetalness = true;
-            box.model.material = material;
-            material.update();
-            app.root.addChild(box);
+        createOptions.componentSystems = [
+        // @ts-ignore
+        pc.RenderComponentSystem,
+        // @ts-ignore
+        pc.CameraComponentSystem,
+        // @ts-ignore
+        pc.LightComponentSystem,
+        // @ts-ignore
+        pc.ScriptComponentSystem,
+        // @ts-ignore
+        pc.AnimComponentSystem];
 
+        createOptions.resourceHandlers = [
+        // @ts-ignore
+        pc.TextureHandler,
+        // @ts-ignore
+        pc.ContainerHandler,
+        // @ts-ignore
+        pc.ScriptHandler,
+        // @ts-ignore
+        pc.AnimClipHandler,
+        // @ts-ignore
+        pc.AnimStateGraphHandler];
+
+
+        var app = new pc.AppBase(canvas);
+        app.init(createOptions);
+
+        // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
+        app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
+        app.setCanvasResolution(pc.RESOLUTION_AUTO);
+
+        var assetListLoader = new pc.AssetListLoader(Object.values(assets), app.assets);
+        assetListLoader.load(function () {
+
+          app.start();
+
+          // setup skydome
+          app.scene.exposure = 2;
+          app.scene.skyboxMip = 2;
+          app.scene.envAtlas = assets.helipad.resource;
+          app.scene.skyboxIntensity = 0.4; // make it darker
+
+          // Create an Entity with a camera component
+          var cameraEntity = new pc.Entity();
+          cameraEntity.addComponent("camera", {
+            clearColor: new pc.Color(0.1, 0.1, 0.1) });
+
+          cameraEntity.translate(0, 1, 0);
+
+          // add bloom postprocessing (this is ignored by the picker)
+          cameraEntity.addComponent("script");
+          cameraEntity.script.create("bloom", {
+            attributes: {
+              bloomIntensity: 1,
+              bloomThreshold: 0.7,
+              blurAmount: 4 } });
+
+
+          app.root.addChild(cameraEntity);
+
+          var boxes = {};
+          var highlightedBoxes = [];
+
+          // create a floor made up of box models
+          for (var i = -5; i <= 5; i++) {
+            for (var j = -5; j <= 5; j++) {
+
+              var material = new pc.StandardMaterial();
+              material.diffuse = new pc.Color(0.7, 0.7, 0.7);
+              material.gloss = 0.3;
+              material.metalness = 0.2;
+              material.useMetalness = true;
+              material.update();
+
+              var box = new pc.Entity();
+              boxes["".concat(i).concat(j)] = box;
+              box.addComponent('render', {
+                type: 'box',
+                material: material });
+
+              box.setPosition(i, -0.5, j);
+              box.setLocalScale(0.95, 1, 0.95);
+              app.root.addChild(box);
+            }
           }
-        }
 
-        // light up a box at the given position with a random color using the emissive material property
-        var highlightBox = function highlightBox(pos) {
-          var i = Math.floor(pos.x + 0.5);
-          var j = Math.floor(pos.z + 0.5);
-          var colorVec = new pc.Vec3(Math.random(), Math.random(), Math.random());
-          colorVec.mulScalar(1 / colorVec.length());
-          boxes["".concat(i).concat(j)].model.material.emissive = new pc.Color(colorVec.x, colorVec.y, colorVec.z);
-          highlightedBoxes.push(boxes["".concat(i).concat(j)]);
-        };
+          // light up a box at the given position with a random color using the emissive material property
+          var highlightBox = function highlightBox(pos) {
+            var i = Math.floor(pos.x + 0.5);
+            var j = Math.floor(pos.z + 0.5);
+            var colorVec = new pc.Vec3(Math.random(), Math.random(), Math.random());
+            colorVec.mulScalar(1 / colorVec.length());
+            boxes["".concat(i).concat(j)].render.material.emissive = new pc.Color(colorVec.x, colorVec.y, colorVec.z);
+            highlightedBoxes.push(boxes["".concat(i).concat(j)]);
+          };
 
-        // create an entity from the loaded model using the render component
-        var modelEntity = assets.model.resource.instantiateRenderEntity({
-          castShadows: true });
-
-
-        // add an anim component to the entity
-        modelEntity.addComponent('anim', {
-          activate: true });
-
-        modelEntity.setLocalPosition(-3, 0, 0);
-
-        var modelEntityParent = new pc.Entity();
-        modelEntityParent.addChild(modelEntity);
-
-        app.root.addChild(modelEntityParent);
-
-        // rotate the model in a circle around the center of the scene
-        app.on('update', function (dt) {
-          modelEntityParent.rotate(0, 13.8 * dt, 0);
-        });
-
-        var walkTrack = assets.walkAnim.resource.animations[0].resource;
-
-        // Add two anim events to the walk animation, one for each foot step. These events should occur just as each foot touches the ground
-        walkTrack.events = new pc.AnimEvents([
-        {
-          time: walkTrack.duration * 0.1,
-          name: 'foot_step',
-          bone: 'R_foot0002_bind_JNT' },
-
-        {
-          time: walkTrack.duration * 0.6,
-          name: 'foot_step',
-          bone: 'L_foot0002_bind_JNT' }]);
+          // create an entity from the loaded model using the render component
+          var modelEntity = assets.model.resource.instantiateRenderEntity({
+            castShadows: true });
 
 
+          // add an anim component to the entity
+          modelEntity.addComponent('anim', {
+            activate: true });
 
-        // add the animation track to the anim component, with a defined speed
-        modelEntity.anim.assignAnimation('Walk', walkTrack, undefined, 0.62);
+          modelEntity.setLocalPosition(-3, 0, 0);
 
-        modelEntity.anim.on('foot_step', function (event) {
-          // highlight the box that is under the foot's bone position
-          highlightBox(modelEntity.findByName(event.bone).getPosition());
-        });
+          var modelEntityParent = new pc.Entity();
+          modelEntityParent.addChild(modelEntity);
 
-        app.on('update', function () {
-          // on update, iterate over any currently highlighted boxes and reduce their emissive property
-          highlightedBoxes.forEach(function (box) {
-            var material = box.model.material;
-            var emissive = material.emissive;
-            emissive.lerp(emissive, pc.Color.BLACK, 0.08);
-            material.update();
+          app.root.addChild(modelEntityParent);
+
+          // rotate the model in a circle around the center of the scene
+          app.on('update', function (dt) {
+            modelEntityParent.rotate(0, 13.8 * dt, 0);
           });
-          // remove old highlighted boxes from the update loop
-          while (highlightedBoxes.length > 5) {
-            highlightedBoxes.shift();
-          }
 
-          // set the camera to follow the model
-          var modelPosition = modelEntity.getPosition().clone();
-          modelPosition.y = 0.5;
-          cameraEntity.lookAt(modelPosition);
+          var walkTrack = assets.walkAnim.resource.animations[0].resource;
 
+          // Add two anim events to the walk animation, one for each foot step. These events should occur just as each foot touches the ground
+          walkTrack.events = new pc.AnimEvents([
+          {
+            time: walkTrack.duration * 0.1,
+            name: 'foot_step',
+            bone: 'R_foot0002_bind_JNT' },
+
+          {
+            time: walkTrack.duration * 0.6,
+            name: 'foot_step',
+            bone: 'L_foot0002_bind_JNT' }]);
+
+
+
+          // add the animation track to the anim component, with a defined speed
+          modelEntity.anim.assignAnimation('Walk', walkTrack, undefined, 0.62);
+
+          modelEntity.anim.on('foot_step', function (event) {
+            // highlight the box that is under the foot's bone position
+            highlightBox(modelEntity.findByName(event.bone).getPosition());
+          });
+
+          app.on('update', function () {
+            // on update, iterate over any currently highlighted boxes and reduce their emissive property
+            highlightedBoxes.forEach(function (box) {
+              var material = box.render.material;
+              var emissive = material.emissive;
+              emissive.lerp(emissive, pc.Color.BLACK, 0.08);
+              material.update();
+            });
+            // remove old highlighted boxes from the update loop
+            while (highlightedBoxes.length > 5) {
+              highlightedBoxes.shift();
+            }
+
+            // set the camera to follow the model
+            var modelPosition = modelEntity.getPosition().clone();
+            modelPosition.y = 0.5;
+            cameraEntity.lookAt(modelPosition);
+
+          });
         });
       });
-    } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'Animation');_defineProperty(Example, "NAME", 'Events');
+    } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'Animation');_defineProperty(Example, "NAME", 'Events');_defineProperty(Example, "WEBGPU_ENABLED", true);
         var example = new Example();
 
         var useTypeScript = window.top.localStorage.getItem('useTypeScript') === 'true';
@@ -205,7 +252,7 @@
                     presets: ["react", "typescript", "env"]
                 }).code;
             }
-            window.exampleFunction = new Function('canvas', 'data', exampleFunction);
+            window.exampleFunction = new Function('canvas', 'deviceType', 'data', exampleFunction);
         }
         window.loadFunction = example.load;
         window.files = window.top.editedFiles || example.constructor.FILES;
@@ -248,7 +295,7 @@
                 }).observe(canvasContainerElement);
             }
 
-            if (true) {
+            if (true && app.graphicsDevice.deviceType !== 'webgpu') {
                 // set up miniStats
                 var miniStats = new pcx.MiniStats(app);
                 if (urlParams.get('miniStats') === 'false') {
@@ -324,14 +371,28 @@
                     return data;
                 } else if (arg === 'pcx') {
                     return pcx;
+                } else if (arg === 'deviceType') {
+                    if (true) {
+                        return window.top.preferredGraphicsDevice || 'webgpu';
+                    } else if (['webgl1', 'webgl2'].includes(window.top.preferredGraphicsDevice)) {
+                        return window.top.preferredGraphicsDevice;
+                    } else {
+                        return 'webgl2';
+                    }
                 }
             });
+
             window.exampleFunction.apply(this, args);
-            if (pc.app && pc.app.graphicsDevice.canvas) {
-                setupApplication(pc.app);
+
+            const pollHandler = setInterval(appCreationPoll, 50);
+            function appCreationPoll() {
+                if (pc.app && pc.app.graphicsDevice.canvas) {
+                    clearInterval(pollHandler);
+                    setupApplication(pc.app);
+                    var event = new CustomEvent("exampleLoad");
+                    window.top.dispatchEvent(event);
+                }
             }
-            var event = new CustomEvent("exampleLoad");
-            window.top.dispatchEvent(event);
         }
     </script>
     <script>
