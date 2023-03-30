@@ -4,7 +4,7 @@ import { Color } from '../../core/math/color.js';
 import { Mat4 } from '../../core/math/mat4.js';
 import { Vec3 } from '../../core/math/vec3.js';
 import { Vec4 } from '../../core/math/vec4.js';
-import { DEVICETYPE_WEBGPU, FUNC_LESSEQUAL, UNIFORMTYPE_MAT4, UNIFORM_BUFFER_DEFAULT_SLOT_NAME, SHADERSTAGE_VERTEX, SHADERSTAGE_FRAGMENT } from '../../platform/graphics/constants.js';
+import { UNIFORMTYPE_MAT4, UNIFORM_BUFFER_DEFAULT_SLOT_NAME, SHADERSTAGE_VERTEX, SHADERSTAGE_FRAGMENT } from '../../platform/graphics/constants.js';
 import { drawQuadWithShader } from '../graphics/quad-render-utils.js';
 import { SHADOW_VSM8, SHADOW_VSM32, SHADOW_PCF5, SHADOW_PCF3, LIGHTTYPE_OMNI, LIGHTTYPE_DIRECTIONAL, SORTKEY_DEPTH, SHADOWUPDATE_NONE, SHADOWUPDATE_THISFRAME, BLUR_GAUSSIAN, SHADER_SHADOW } from '../constants.js';
 import { ShaderPass } from '../shader-pass.js';
@@ -13,15 +13,13 @@ import { createShaderFromCode } from '../shader-lib/utils.js';
 import { LightCamera } from './light-camera.js';
 import { UniformBufferFormat, UniformFormat } from '../../platform/graphics/uniform-buffer-format.js';
 import { BindGroupFormat, BindBufferFormat } from '../../platform/graphics/bind-group-format.js';
+import { BlendState } from '../../platform/graphics/blend-state.js';
+import { DepthState } from '../../platform/graphics/depth-state.js';
 
 function gauss(x, sigma) {
 	return Math.exp(-(x * x) / (2.0 * sigma * sigma));
 }
-const maxBlurSize = 25;
 function gaussWeights(kernelSize) {
-	if (kernelSize > maxBlurSize) {
-		kernelSize = maxBlurSize;
-	}
 	const sigma = (kernelSize - 1) / (2 * 3);
 	const halfWidth = (kernelSize - 1) * 0.5;
 	const values = new Array(kernelSize);
@@ -78,6 +76,9 @@ class ShadowRenderer {
 		this.shadowMapLightRadiusId = scope.resolve('light_radius');
 		this.viewUniformFormat = null;
 		this.viewBindGroupFormat = null;
+		this.blendStateWrite = new BlendState();
+		this.blendStateNoWrite = new BlendState();
+		this.blendStateNoWrite.setColorWrite(false, false, false, false);
 	}
 	static createShadowCamera(device, shadowType, type, face) {
 		const shadowCam = LightCamera.create('ShadowCamera', type, face);
@@ -102,10 +103,12 @@ class ShadowRenderer {
 		const numInstances = meshInstances.length;
 		for (let i = 0; i < numInstances; i++) {
 			const meshInstance = meshInstances[i];
-			if (!meshInstance.cull || meshInstance._isVisible(camera)) {
-				meshInstance.visibleThisFrame = true;
-				visible[count] = meshInstance;
-				count++;
+			if (meshInstance.castShadow) {
+				if (!meshInstance.cull || meshInstance._isVisible(camera)) {
+					meshInstance.visibleThisFrame = true;
+					visible[count] = meshInstance;
+					count++;
+				}
 			}
 		}
 		visible.length = count;
@@ -113,7 +116,7 @@ class ShadowRenderer {
 	}
 	setupRenderState(device, light) {
 		const isClustered = this.renderer.scene.clusteredLightingEnabled;
-		if (device.webgl2 || device.deviceType === DEVICETYPE_WEBGPU) {
+		if (device.webgl2 || device.isWebGPU) {
 			if (light._type === LIGHTTYPE_OMNI && !isClustered) {
 				device.setDepthBias(false);
 			} else {
@@ -131,16 +134,9 @@ class ShadowRenderer {
 				this.polygonOffsetId.setValue(this.polygonOffset);
 			}
 		}
-		device.setBlending(false);
-		device.setDepthWrite(true);
-		device.setDepthTest(true);
-		device.setDepthFunc(FUNC_LESSEQUAL);
 		const useShadowSampler = isClustered ? light._isPcf && device.webgl2 : light._isPcf && device.webgl2 && light._type !== LIGHTTYPE_OMNI;
-		if (useShadowSampler) {
-			device.setColorWrite(false, false, false, false);
-		} else {
-			device.setColorWrite(true, true, true, true);
-		}
+		device.setBlendState(useShadowSampler ? this.blendStateNoWrite : this.blendStateWrite);
+		device.setDepthState(DepthState.DEFAULT);
 	}
 	restoreRenderState(device) {
 		if (device.webgl2) {
@@ -187,7 +183,7 @@ class ShadowRenderer {
 				material.dirty = false;
 			}
 			if (material.chunks) {
-				renderer.setCullMode(true, false, meshInstance);
+				renderer.setupCullMode(true, 1, meshInstance);
 				material.setParameters(device);
 				meshInstance.setParameters(device, passFlags);
 			}
@@ -223,12 +219,14 @@ class ShadowRenderer {
 	setupRenderPass(renderPass, shadowCamera, clearRenderTarget) {
 		const rt = shadowCamera.renderTarget;
 		renderPass.init(rt);
-		if (clearRenderTarget) {
-			const clearColor = shadowCamera.clearColorBuffer;
-			renderPass.colorOps.clear = clearColor;
-			if (clearColor) renderPass.colorOps.clearValue.copy(shadowCamera.clearColor);
-			renderPass.depthStencilOps.storeDepth = !clearColor;
-			renderPass.setClearDepth(1.0);
+		renderPass.depthStencilOps.clearDepthValue = 1;
+		renderPass.depthStencilOps.clearDepth = clearRenderTarget;
+		if (rt.depthBuffer) {
+			renderPass.depthStencilOps.storeDepth = true;
+		} else {
+			renderPass.colorOps.clearValue.copy(shadowCamera.clearColor);
+			renderPass.colorOps.clear = clearRenderTarget;
+			renderPass.depthStencilOps.storeDepth = false;
 		}
 		renderPass.requiresCubemaps = false;
 	}
@@ -243,31 +241,35 @@ class ShadowRenderer {
 		shadowCam.renderTarget = light._shadowMap.renderTargets[renderTargetIndex];
 		return shadowCam;
 	}
-	renderFace(light, camera, face, clear) {
+	renderFace(light, camera, face, clear, insideRenderPass = true) {
 		const device = this.device;
-		this.setupRenderState(device, light);
 		const lightRenderData = this.getLightRenderData(light, camera, face);
 		const shadowCam = lightRenderData.shadowCamera;
 		this.dispatchUniforms(light, shadowCam, lightRenderData, face);
 		const rt = shadowCam.renderTarget;
-		this.renderer.setCameraUniforms(shadowCam, rt);
+		const renderer = this.renderer;
+		renderer.setCameraUniforms(shadowCam, rt);
 		if (device.supportsUniformBuffers) {
-			this.renderer.setupViewUniformBuffers(lightRenderData.viewBindGroups, this.viewUniformFormat, this.viewBindGroupFormat, 1);
+			renderer.setupViewUniformBuffers(lightRenderData.viewBindGroups, this.viewUniformFormat, this.viewBindGroupFormat, 1);
 		}
-		if (clear) {
-			this.renderer.clearView(shadowCam, rt, true, false);
+		if (insideRenderPass) {
+			renderer.setupViewport(shadowCam, rt);
+			if (clear) {
+				renderer.clear(shadowCam);
+			}
 		} else {
-			this.renderer.setupViewport(shadowCam, rt);
+			renderer.clearView(shadowCam, rt, true, false);
 		}
+		this.setupRenderState(device, light);
 		this.submitCasters(lightRenderData.visibleCasters, light);
 		this.restoreRenderState(device);
 	}
-	render(light, camera) {
+	render(light, camera, insideRenderPass = true) {
 		if (this.needsShadowRendering(light)) {
 			const faceCount = light.numShadowFaces;
 			for (let face = 0; face < faceCount; face++) {
 				this.prepareFace(light, camera, face);
-				this.renderFace(light, camera, face, true);
+				this.renderFace(light, camera, face, true, insideRenderPass);
 			}
 			this.renderVms(light, camera);
 		}
@@ -303,6 +305,7 @@ class ShadowRenderer {
 	}
 	applyVsmBlur(light, camera) {
 		const device = this.device;
+		device.setBlendState(BlendState.DEFAULT);
 		const lightRenderData = light.getRenderData(light._type === LIGHTTYPE_DIRECTIONAL ? camera : null, 0);
 		const shadowCam = lightRenderData.shadowCamera;
 		const origShadowMap = shadowCam.renderTarget;

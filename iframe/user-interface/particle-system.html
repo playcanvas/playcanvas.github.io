@@ -52,144 +52,176 @@
 
 
 
-    function example(canvas) {
-
-      // Create the application with input and start the update loop
-      var app = new pc.Application(canvas, {
-        mouse: new pc.Mouse(document.body),
-        touch: new pc.TouchDevice(document.body),
-        elementInput: new pc.ElementInput(canvas) });
-
+    function example(canvas, deviceType) {
 
       var assets = {
         'font': new pc.Asset('font', 'font', { url: '/../../static/assets/fonts/courier.json' }),
         'spark': new pc.Asset('spark', 'texture', { url: '/../../static/assets/textures/spark.png' }) };
 
 
-      var assetListLoader = new pc.AssetListLoader(Object.values(assets), app.assets);
-      assetListLoader.load(function () {
-        app.start();
+      var gfxOptions = {
+        deviceTypes: [deviceType],
+        glslangUrl: '/../../static/lib/glslang/glslang.js',
+        twgslUrl: '/../../static/lib/twgsl/twgsl.js' };
+
+
+      pc.createGraphicsDevice(canvas, gfxOptions).then(function (device) {
+
+        var createOptions = new pc.AppOptions();
+        createOptions.graphicsDevice = device;
+        createOptions.mouse = new pc.Mouse(document.body);
+        createOptions.touch = new pc.TouchDevice(document.body);
+        createOptions.elementInput = new pc.ElementInput(canvas);
+
+        createOptions.componentSystems = [
+        // @ts-ignore
+        pc.RenderComponentSystem,
+        // @ts-ignore
+        pc.CameraComponentSystem,
+        // @ts-ignore
+        pc.ScreenComponentSystem,
+        // @ts-ignore
+        pc.ButtonComponentSystem,
+        // @ts-ignore
+        pc.ElementComponentSystem,
+        // @ts-ignore
+        pc.ParticleSystemComponentSystem];
+
+        createOptions.resourceHandlers = [
+        // @ts-ignore
+        pc.TextureHandler,
+        // @ts-ignore
+        pc.FontHandler];
+
+
+        var app = new pc.AppBase(canvas);
+        app.init(createOptions);
 
         // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
         app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
         app.setCanvasResolution(pc.RESOLUTION_AUTO);
 
-        window.addEventListener("resize", function () {
-          app.resizeCanvas(canvas.width, canvas.height);
+        var assetListLoader = new pc.AssetListLoader(Object.values(assets), app.assets);
+        assetListLoader.load(function () {
+
+          app.start();
+
+          window.addEventListener("resize", function () {
+            app.resizeCanvas(canvas.width, canvas.height);
+          });
+
+          // Create a camera
+          var camera = new pc.Entity();
+          camera.addComponent("camera", {
+            clearColor: new pc.Color(30 / 255, 30 / 255, 30 / 255) });
+
+          app.root.addChild(camera);
+
+          // Create a 2D screen
+          var screen = new pc.Entity();
+          screen.addComponent("screen", {
+            referenceResolution: new pc.Vec2(1280, 720),
+            scaleBlend: 0.5,
+            scaleMode: pc.SCALEMODE_BLEND,
+            screenSpace: true });
+
+          app.root.addChild(screen);
+
+          // Create a simple panel
+          var panel = new pc.Entity();
+          panel.addComponent("element", {
+            anchor: [0.5, 0.5, 0.5, 0.5],
+            color: new pc.Color(0.4, 0.4, 0.4),
+            height: 40,
+            pivot: [0.5, 0.5],
+            type: pc.ELEMENTTYPE_IMAGE,
+            width: 175,
+            useInput: true });
+
+          screen.addChild(panel);
+
+          // Create a label for the panel
+          var label = new pc.Entity();
+          label.addComponent("element", {
+            anchor: [0.5, 0.5, 0.5, 0.5],
+            color: new pc.Color(1, 1, 0),
+            fontAsset: assets.font.id,
+            fontSize: 36,
+            height: 64,
+            pivot: [0.5, 0.5],
+            text: "LABEL",
+            type: pc.ELEMENTTYPE_TEXT,
+            width: 128,
+            wrapLines: true });
+
+          panel.addChild(label);
+
+          // Create entity for particle system
+          var particles = new pc.Entity();
+
+          // insert sparks as a child of the panel, but before Label - that is the order for rendering
+          panel.insertChild(particles, 0);
+
+          // particles will render in UI layer
+          var UILayer = app.scene.layers.getLayerByName("UI");
+
+          // particle size
+          var scaleCurve = new pc.Curve(
+          [0, 0.03]);
+
+
+          // color changes throughout lifetime
+          var colorCurve = new pc.CurveSet([
+          [0, 1, 0.25, 1, 0.375, 0.5, 0.5, 0],
+          [0, 0, 0.125, 0.25, 0.25, 0.5, 0.375, 0.75, 0.5, 1],
+          [0, 0, 1, 0]]);
+
+
+          // increasing gravity to get them to move
+          var worldVelocityCurve = new pc.CurveSet([
+          [0, 0],
+          [0, 0, 0.1, 0.1, 0.1, -0.1],
+          [0, 0]]);
+
+
+          // rotate sparks 360 degrees per second
+          var angleCurve = new pc.Curve(
+          [0, 360]);
+
+
+          // when texture is loaded add particlesystem component to entity
+          particles.addComponent("particlesystem", {
+            numParticles: 100,
+            lifetime: 1,
+            rate: 0.01,
+
+            // make them follow the buttn in screen-space
+            localSpace: true,
+            screenSpace: true,
+
+            emitterShape: pc.EMITTERSHAPE_SPHERE,
+            emitterRadius: 100,
+
+            scaleGraph: scaleCurve,
+            rotationSpeedGraph: angleCurve,
+            colorGraph: colorCurve,
+            velocityGraph: worldVelocityCurve,
+
+            colorMap: assets.spark.resource,
+            layers: [UILayer.id] });
+
+
+          // sort all screen elements
+          screen.screen.syncDrawOrder();
+
+          var time = 0;
+          app.on("update", function (dt) {
+            time += dt * 0.3;
+
+            // move buttons along the circular path
+            panel.setLocalPosition(300 * Math.sin(time), 300 * Math.cos(time), 0);
+          });
         });
-
-        // Create a camera
-        var camera = new pc.Entity();
-        camera.addComponent("camera", {
-          clearColor: new pc.Color(30 / 255, 30 / 255, 30 / 255) });
-
-        app.root.addChild(camera);
-
-        // Create a 2D screen
-        var screen = new pc.Entity();
-        screen.addComponent("screen", {
-          referenceResolution: new pc.Vec2(1280, 720),
-          scaleBlend: 0.5,
-          scaleMode: pc.SCALEMODE_BLEND,
-          screenSpace: true });
-
-        app.root.addChild(screen);
-
-        // Create a simple panel
-        var panel = new pc.Entity();
-        panel.addComponent("element", {
-          anchor: [0.5, 0.5, 0.5, 0.5],
-          color: new pc.Color(0.4, 0.4, 0.4),
-          height: 40,
-          pivot: [0.5, 0.5],
-          type: pc.ELEMENTTYPE_IMAGE,
-          width: 175,
-          useInput: true });
-
-        screen.addChild(panel);
-
-        // Create a label for the panel
-        var label = new pc.Entity();
-        label.addComponent("element", {
-          anchor: [0.5, 0.5, 0.5, 0.5],
-          color: new pc.Color(1, 1, 0),
-          fontAsset: assets.font.id,
-          fontSize: 36,
-          height: 64,
-          pivot: [0.5, 0.5],
-          text: "LABEL",
-          type: pc.ELEMENTTYPE_TEXT,
-          width: 128,
-          wrapLines: true });
-
-        panel.addChild(label);
-
-        // Create entity for particle system
-        var particles = new pc.Entity();
-
-        // insert sparks as a child of the panel, but before Label - that is the order for rendering
-        panel.insertChild(particles, 0);
-
-        // particles will render in UI layer
-        var UILayer = app.scene.layers.getLayerByName("UI");
-
-        // particle size
-        var scaleCurve = new pc.Curve(
-        [0, 0.03]);
-
-
-        // color changes throughout lifetime
-        var colorCurve = new pc.CurveSet([
-        [0, 1, 0.25, 1, 0.375, 0.5, 0.5, 0],
-        [0, 0, 0.125, 0.25, 0.25, 0.5, 0.375, 0.75, 0.5, 1],
-        [0, 0, 1, 0]]);
-
-
-        // increasing gravity to get them to move
-        var worldVelocityCurve = new pc.CurveSet([
-        [0, 0],
-        [0, 0, 0.1, 0.1, 0.1, -0.1],
-        [0, 0]]);
-
-
-        // rotate sparks 360 degrees per second
-        var angleCurve = new pc.Curve(
-        [0, 360]);
-
-
-        // when texture is loaded add particlesystem component to entity
-        particles.addComponent("particlesystem", {
-          numParticles: 100,
-          lifetime: 1,
-          rate: 0.01,
-
-          // make them follow the buttn in screen-space
-          localSpace: true,
-          screenSpace: true,
-
-          emitterShape: pc.EMITTERSHAPE_SPHERE,
-          emitterRadius: 100,
-
-          scaleGraph: scaleCurve,
-          rotationSpeedGraph: angleCurve,
-          colorGraph: colorCurve,
-          velocityGraph: worldVelocityCurve,
-
-          colorMap: assets.spark.resource,
-          layers: [UILayer.id] });
-
-
-        // sort all screen elements
-        screen.screen.syncDrawOrder();
-
-        var time = 0;
-        app.on("update", function (dt) {
-          time += dt * 0.3;
-
-          // move buttons along the circular path
-          panel.setLocalPosition(300 * Math.sin(time), 300 * Math.cos(time), 0);
-        });
-
       });
     } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'User Interface');_defineProperty(Example, "NAME", 'Particle System');
         var example = new Example();
@@ -206,7 +238,7 @@
                     presets: ["react", "typescript", "env"]
                 }).code;
             }
-            window.exampleFunction = new Function('canvas', 'data', exampleFunction);
+            window.exampleFunction = new Function('canvas', 'deviceType', 'data', exampleFunction);
         }
         window.loadFunction = example.load;
         window.files = window.top.editedFiles || example.constructor.FILES;
@@ -249,7 +281,7 @@
                 }).observe(canvasContainerElement);
             }
 
-            if (true) {
+            if (true && app.graphicsDevice.deviceType !== 'webgpu') {
                 // set up miniStats
                 var miniStats = new pcx.MiniStats(app);
                 if (urlParams.get('miniStats') === 'false') {
@@ -325,14 +357,28 @@
                     return data;
                 } else if (arg === 'pcx') {
                     return pcx;
+                } else if (arg === 'deviceType') {
+                    if (false) {
+                        return window.top.preferredGraphicsDevice || 'webgpu';
+                    } else if (['webgl1', 'webgl2'].includes(window.top.preferredGraphicsDevice)) {
+                        return window.top.preferredGraphicsDevice;
+                    } else {
+                        return 'webgl2';
+                    }
                 }
             });
+
             window.exampleFunction.apply(this, args);
-            if (pc.app && pc.app.graphicsDevice.canvas) {
-                setupApplication(pc.app);
+
+            const pollHandler = setInterval(appCreationPoll, 50);
+            function appCreationPoll() {
+                if (pc.app && pc.app.graphicsDevice.canvas) {
+                    clearInterval(pollHandler);
+                    setupApplication(pc.app);
+                    var event = new CustomEvent("exampleLoad");
+                    window.top.dispatchEvent(event);
+                }
             }
-            var event = new CustomEvent("exampleLoad");
-            window.top.dispatchEvent(event);
         }
     </script>
     <script>

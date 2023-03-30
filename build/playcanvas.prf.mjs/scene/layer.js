@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import '../core/tracing.js';
@@ -67,6 +67,7 @@ class InstanceList {
 }
 class Layer {
 	constructor(options = {}) {
+		var _options$enabled, _options$opaqueSortMo, _options$transparentS, _options$shaderPass, _options$passThrough;
 		if (options.id !== undefined) {
 			this.id = options.id;
 			layerCounter = Math.max(this.id + 1, layerCounter);
@@ -74,15 +75,15 @@ class Layer {
 			this.id = layerCounter++;
 		}
 		this.name = options.name;
-		this._enabled = options.enabled === undefined ? true : options.enabled;
+		this._enabled = (_options$enabled = options.enabled) != null ? _options$enabled : true;
 		this._refCounter = this._enabled ? 1 : 0;
-		this.opaqueSortMode = options.opaqueSortMode === undefined ? SORTMODE_MATERIALMESH : options.opaqueSortMode;
-		this.transparentSortMode = options.transparentSortMode === undefined ? SORTMODE_BACK2FRONT : options.transparentSortMode;
+		this.opaqueSortMode = (_options$opaqueSortMo = options.opaqueSortMode) != null ? _options$opaqueSortMo : SORTMODE_MATERIALMESH;
+		this.transparentSortMode = (_options$transparentS = options.transparentSortMode) != null ? _options$transparentS : SORTMODE_BACK2FRONT;
 		if (options.renderTarget) {
 			this.renderTarget = options.renderTarget;
 		}
-		this.shaderPass = options.shaderPass === undefined ? SHADER_FORWARD : options.shaderPass;
-		this.passThrough = options.passThrough === undefined ? false : options.passThrough;
+		this.shaderPass = (_options$shaderPass = options.shaderPass) != null ? _options$shaderPass : SHADER_FORWARD;
+		this.passThrough = (_options$passThrough = options.passThrough) != null ? _options$passThrough : false;
 		this._clearColorBuffer = !!options.clearColorBuffer;
 		this._clearDepthBuffer = !!options.clearDepthBuffer;
 		this._clearStencilBuffer = !!options.clearStencilBuffer;

@@ -1,8 +1,9 @@
 import '../core/tracing.js';
-import { BLENDMODE_ONE, BLENDEQUATION_ADD } from '../platform/graphics/constants.js';
+import { BLENDEQUATION_ADD, BLENDMODE_ONE } from '../platform/graphics/constants.js';
 import { drawQuadWithShader } from './graphics/quad-render-utils.js';
 import { RenderTarget } from '../platform/graphics/render-target.js';
 import { createShaderFromCode } from './shader-lib/utils.js';
+import { BlendState } from '../platform/graphics/blend-state.js';
 
 const textureMorphVertexShader = `
 		attribute vec2 vertex_position;
@@ -12,6 +13,7 @@ const textureMorphVertexShader = `
 				uv0 = vertex_position.xy * 0.5 + 0.5;
 		}
 		`;
+const blendStateAdditive = new BlendState(true, BLENDEQUATION_ADD, BLENDMODE_ONE, BLENDMODE_ONE);
 class MorphInstance {
 	constructor(morph) {
 		this.morph = morph;
@@ -132,13 +134,9 @@ class MorphInstance {
 		const device = this.device;
 		const submitBatch = (usedCount, blending) => {
 			this.morphFactor.setValue(this._shaderMorphWeights);
-			device.setBlending(blending);
-			if (blending) {
-				device.setBlendFunction(BLENDMODE_ONE, BLENDMODE_ONE);
-				device.setBlendEquation(BLENDEQUATION_ADD);
-			}
+			device.setBlendState(blending ? blendStateAdditive : BlendState.DEFAULT);
 			const shader = this._getShader(usedCount);
-			drawQuadWithShader(device, renderTarget, shader, undefined, undefined, blending);
+			drawQuadWithShader(device, renderTarget, shader);
 		};
 		let usedCount = 0;
 		let blending = false;

@@ -105,7 +105,7 @@
 
     } }, { key: "example", value:
 
-    function example(canvas, data) {
+    function example(canvas, deviceType, data) {
 
       var assets = {
         'script': new pc.Asset('script', 'script', { url: '/../../static/scripts/camera/orbit-camera.js' }),
@@ -115,7 +115,13 @@
         helipad: new pc.Asset('helipad-env-atlas', 'texture', { url: '/../../static/assets/cubemaps/helipad-env-atlas.png' }, { type: pc.TEXTURETYPE_RGBP }) };
 
 
-      pc.createGraphicsDevice(canvas).then(function (device) {
+      var gfxOptions = {
+        deviceTypes: [deviceType],
+        glslangUrl: '/../../static/lib/glslang/glslang.js',
+        twgslUrl: '/../../static/lib/twgsl/twgsl.js' };
+
+
+      pc.createGraphicsDevice(canvas, gfxOptions).then(function (device) {
 
         var createOptions = new pc.AppOptions();
         createOptions.graphicsDevice = device;
@@ -215,7 +221,7 @@
 
           // ground material
           var groundMaterial = new pc.StandardMaterial();
-          groundMaterial.shininess = 55;
+          groundMaterial.gloss = 0.55;
           groundMaterial.metalness = 0.4;
           groundMaterial.useMetalness = true;
           groundMaterial.normalMap = assets.normal.resource;
@@ -225,7 +231,7 @@
 
           // cube material
           var cubeMaterial = new pc.StandardMaterial();
-          cubeMaterial.shininess = 55;
+          cubeMaterial.gloss = 0.55;
           cubeMaterial.metalness = 0.4;
           cubeMaterial.useMetalness = true;
           cubeMaterial.normalMap = assets.normal.resource;
@@ -444,7 +450,7 @@
           });
         });
       });
-    } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'Graphics');_defineProperty(Example, "NAME", 'Clustered Spot Shadows');_defineProperty(Example, "ENGINE", 'DEBUG');
+    } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'Graphics');_defineProperty(Example, "NAME", 'Clustered Spot Shadows');_defineProperty(Example, "ENGINE", 'DEBUG');_defineProperty(Example, "WEBGPU_ENABLED", true);
         var example = new Example();
 
         var useTypeScript = window.top.localStorage.getItem('useTypeScript') === 'true';
@@ -459,7 +465,7 @@
                     presets: ["react", "typescript", "env"]
                 }).code;
             }
-            window.exampleFunction = new Function('canvas', 'data', exampleFunction);
+            window.exampleFunction = new Function('canvas', 'deviceType', 'data', exampleFunction);
         }
         window.loadFunction = example.load;
         window.files = window.top.editedFiles || example.constructor.FILES;
@@ -502,7 +508,7 @@
                 }).observe(canvasContainerElement);
             }
 
-            if (true) {
+            if (true && app.graphicsDevice.deviceType !== 'webgpu') {
                 // set up miniStats
                 var miniStats = new pcx.MiniStats(app);
                 if (urlParams.get('miniStats') === 'false') {
@@ -578,14 +584,28 @@
                     return data;
                 } else if (arg === 'pcx') {
                     return pcx;
+                } else if (arg === 'deviceType') {
+                    if (true) {
+                        return window.top.preferredGraphicsDevice || 'webgpu';
+                    } else if (['webgl1', 'webgl2'].includes(window.top.preferredGraphicsDevice)) {
+                        return window.top.preferredGraphicsDevice;
+                    } else {
+                        return 'webgl2';
+                    }
                 }
             });
+
             window.exampleFunction.apply(this, args);
-            if (pc.app && pc.app.graphicsDevice.canvas) {
-                setupApplication(pc.app);
+
+            const pollHandler = setInterval(appCreationPoll, 50);
+            function appCreationPoll() {
+                if (pc.app && pc.app.graphicsDevice.canvas) {
+                    clearInterval(pollHandler);
+                    setupApplication(pc.app);
+                    var event = new CustomEvent("exampleLoad");
+                    window.top.dispatchEvent(event);
+                }
             }
-            var event = new CustomEvent("exampleLoad");
-            window.top.dispatchEvent(event);
         }
     </script>
     <script>

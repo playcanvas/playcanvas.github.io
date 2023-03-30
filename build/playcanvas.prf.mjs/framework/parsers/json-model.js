@@ -1,9 +1,8 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
-import '../../core/tracing.js';
 import { Mat4 } from '../../core/math/mat4.js';
 import { Vec3 } from '../../core/math/vec3.js';
 import { BoundingBox } from '../../core/shape/bounding-box.js';
@@ -46,13 +45,15 @@ class JsonModelParser {
 		this._device = device;
 		this._defaultMaterial = defaultMaterial;
 	}
-	parse(data) {
+	parse(data, callback) {
 		const modelData = data.model;
 		if (!modelData) {
-			return null;
+			callback(null, null);
+			return;
 		}
 		if (modelData.version <= 1) {
-			return null;
+			callback('JsonModelParser#parse: Trying to parse unsupported model format.');
+			return;
 		}
 		const nodes = this._parseNodes(data);
 		const skins = this._parseSkins(data, nodes);
@@ -67,7 +68,7 @@ class JsonModelParser {
 		model.skinInstances = skins.instances;
 		model.morphInstances = morphs.instances;
 		model.getGraph().syncHierarchy();
-		return model;
+		callback(null, model);
 	}
 	_parseNodes(data) {
 		const modelData = data.model;

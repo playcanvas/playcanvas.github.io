@@ -2,9 +2,12 @@ import { BoundingBox } from '../../core/shape/bounding-box.js';
 
 class Batch {
 	constructor(meshInstances, dynamic, batchGroupId) {
-		this.origMeshInstances = meshInstances;
 		this._aabb = new BoundingBox();
+		this.origMeshInstances = void 0;
 		this.meshInstance = null;
+		this.dynamic = void 0;
+		this.batchGroupId = void 0;
+		this.origMeshInstances = meshInstances;
 		this.dynamic = dynamic;
 		this.batchGroupId = batchGroupId;
 	}

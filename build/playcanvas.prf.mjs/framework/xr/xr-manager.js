@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import '../../core/tracing.js';
@@ -256,29 +256,26 @@ class XrManager extends EventHandler {
 		if (!pose) return false;
 		const lengthOld = this.views.length;
 		const lengthNew = pose.views.length;
-		if (lengthNew > this.views.length) {
-			for (let i = 0; i <= lengthNew - this.views.length; i++) {
-				let view = this.viewsPool.pop();
-				if (!view) {
-					view = {
-						viewport: new Vec4(),
-						projMat: new Mat4(),
-						viewMat: new Mat4(),
-						viewOffMat: new Mat4(),
-						viewInvMat: new Mat4(),
-						viewInvOffMat: new Mat4(),
-						projViewOffMat: new Mat4(),
-						viewMat3: new Mat3(),
-						position: new Float32Array(3),
-						rotation: new Quat()
-					};
-				}
-				this.views.push(view);
+		while (lengthNew > this.views.length) {
+			let view = this.viewsPool.pop();
+			if (!view) {
+				view = {
+					viewport: new Vec4(),
+					projMat: new Mat4(),
+					viewMat: new Mat4(),
+					viewOffMat: new Mat4(),
+					viewInvMat: new Mat4(),
+					viewInvOffMat: new Mat4(),
+					projViewOffMat: new Mat4(),
+					viewMat3: new Mat3(),
+					position: new Float32Array(3),
+					rotation: new Quat()
+				};
 			}
-		} else if (lengthNew <= this.views.length) {
-			for (let i = 0; i < this.views.length - lengthNew; i++) {
-				this.viewsPool.push(this.views.pop());
-			}
+			this.views.push(view);
+		}
+		while (lengthNew < this.views.length) {
+			this.viewsPool.push(this.views.pop());
 		}
 		const posePosition = pose.transform.position;
 		const poseOrientation = pose.transform.orientation;

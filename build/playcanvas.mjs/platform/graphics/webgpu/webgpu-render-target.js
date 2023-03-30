@@ -21,7 +21,6 @@ class WebgpuRenderTarget {
 	destroy(device) {
 		var _this$multisampledCol;
 		this.initialized = false;
-		this.renderPassDescriptor = null;
 		if (this.depthTextureInternal) {
 			var _this$depthTexture;
 			(_this$depthTexture = this.depthTexture) == null ? void 0 : _this$depthTexture.destroy();
@@ -112,7 +111,7 @@ class WebgpuRenderTarget {
 		} else {
 			colorAttachment.view = colorView;
 		}
-		if (colorAttachment.view) {
+		if (colorAttachment.view || this.colorFormat) {
 			this.renderPassDescriptor.colorAttachments.push(colorAttachment);
 		}
 		this.initialized = true;

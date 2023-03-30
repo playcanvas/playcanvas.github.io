@@ -1,8 +1,9 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
+import '../../../core/tracing.js';
 import { LAYERID_WORLD, RENDERSTYLE_SOLID } from '../../../scene/constants.js';
 import { BatchGroup } from '../../../scene/batching/batch-group.js';
 import { MeshInstance } from '../../../scene/mesh-instance.js';

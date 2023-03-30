@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 var shadowVSM8PS = `
@@ -21,12 +21,12 @@ float VSM8(sampler2D tex, vec2 texCoords, float resolution, float Z, float vsmBi
 		return calculateVSM8(moments, Z, vsmBias);
 }
 
-float getShadowVSM8(sampler2D shadowMap, vec3 shadowParams, float exponent) {
-		return VSM8(shadowMap, dShadowCoord.xy, shadowParams.x, dShadowCoord.z, shadowParams.y, 0.0);
+float getShadowVSM8(sampler2D shadowMap, vec3 shadowCoord, vec3 shadowParams, float exponent, vec3 lightDir) {
+		return VSM8(shadowMap, shadowCoord.xy, shadowParams.x, shadowCoord.z, shadowParams.y, 0.0);
 }
 
-float getShadowSpotVSM8(sampler2D shadowMap, vec4 shadowParams, float exponent) {
-		return VSM8(shadowMap, dShadowCoord.xy, shadowParams.x, length(dLightDirW) * shadowParams.w + shadowParams.z, shadowParams.y, 0.0);
+float getShadowSpotVSM8(sampler2D shadowMap, vec3 shadowCoord, vec4 shadowParams, float exponent, vec3 lightDir) {
+		return VSM8(shadowMap, shadowCoord.xy, shadowParams.x, length(lightDir) * shadowParams.w + shadowParams.z, shadowParams.y, 0.0);
 }
 `;
 

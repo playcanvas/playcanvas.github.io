@@ -69,6 +69,7 @@ class WorldClusters {
 		}
 	}
 	registerUniforms(device) {
+		this._clusterSkipId = device.scope.resolve('clusterSkip');
 		this._clusterMaxCellsId = device.scope.resolve('clusterMaxCells');
 		this._clusterWorldTextureId = device.scope.resolve('clusterWorldTexture');
 		this._clusterTextureSizeId = device.scope.resolve('clusterTextureSize');
@@ -127,6 +128,7 @@ class WorldClusters {
 		this.lightsBuffer.uploadTextures();
 	}
 	updateUniforms() {
+		this._clusterSkipId.setValue(this._usedLights.length > 1 ? 0 : 1);
 		this.lightsBuffer.updateUniforms();
 		this._clusterWorldTextureId.setValue(this.clusterTexture);
 		this._clusterMaxCellsId.setValue(this.maxCellLightCount);

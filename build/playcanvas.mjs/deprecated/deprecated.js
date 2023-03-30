@@ -12,7 +12,7 @@ import { BoundingBox } from '../core/shape/bounding-box.js';
 import { BoundingSphere } from '../core/shape/bounding-sphere.js';
 import { Frustum } from '../core/shape/frustum.js';
 import { Plane } from '../core/shape/plane.js';
-import { TYPE_INT8, TYPE_UINT8, TYPE_INT16, TYPE_UINT16, TYPE_INT32, TYPE_UINT32, TYPE_FLOAT32, PIXELFORMAT_LA8, PIXELFORMAT_RGB565, PIXELFORMAT_RGBA5551, PIXELFORMAT_RGBA4, PIXELFORMAT_RGB8, PIXELFORMAT_RGBA8, ADDRESS_CLAMP_TO_EDGE, ADDRESS_MIRRORED_REPEAT, ADDRESS_REPEAT, BLENDMODE_ZERO, BLENDMODE_ONE, BLENDMODE_SRC_COLOR, BLENDMODE_ONE_MINUS_SRC_COLOR, BLENDMODE_DST_COLOR, BLENDMODE_ONE_MINUS_DST_COLOR, BLENDMODE_SRC_ALPHA, BLENDMODE_SRC_ALPHA_SATURATE, BLENDMODE_ONE_MINUS_SRC_ALPHA, BLENDMODE_DST_ALPHA, BLENDMODE_ONE_MINUS_DST_ALPHA, BUFFER_STATIC, BUFFER_DYNAMIC, BUFFER_STREAM, CULLFACE_NONE, CULLFACE_BACK, CULLFACE_FRONT, CULLFACE_FRONTANDBACK, FILTER_NEAREST, FILTER_LINEAR, FILTER_NEAREST_MIPMAP_NEAREST, FILTER_NEAREST_MIPMAP_LINEAR, FILTER_LINEAR_MIPMAP_NEAREST, FILTER_LINEAR_MIPMAP_LINEAR, INDEXFORMAT_UINT8, INDEXFORMAT_UINT16, INDEXFORMAT_UINT32, PRIMITIVE_POINTS, PRIMITIVE_LINES, PRIMITIVE_LINELOOP, PRIMITIVE_LINESTRIP, PRIMITIVE_TRIANGLES, PRIMITIVE_TRISTRIP, PRIMITIVE_TRIFAN, SEMANTIC_POSITION, SEMANTIC_NORMAL, SEMANTIC_COLOR, SEMANTIC_TEXCOORD, SEMANTIC_TEXCOORD0, SEMANTIC_TEXCOORD1, SEMANTIC_ATTR0, SEMANTIC_ATTR1, SEMANTIC_ATTR2, SEMANTIC_ATTR3, TEXTURELOCK_READ, TEXTURELOCK_WRITE, TEXTURETYPE_RGBM, TEXTURETYPE_DEFAULT, TEXTURETYPE_SWIZZLEGGGR } from '../platform/graphics/constants.js';
+import { TYPE_INT8, TYPE_UINT8, TYPE_INT16, TYPE_UINT16, TYPE_INT32, TYPE_UINT32, TYPE_FLOAT32, PIXELFORMAT_LA8, PIXELFORMAT_RGB565, PIXELFORMAT_RGBA5551, PIXELFORMAT_RGBA4, PIXELFORMAT_RGB8, PIXELFORMAT_RGBA8, BLENDMODE_CONSTANT, BLENDMODE_ONE_MINUS_CONSTANT, ADDRESS_CLAMP_TO_EDGE, ADDRESS_MIRRORED_REPEAT, ADDRESS_REPEAT, BLENDMODE_ZERO, BLENDMODE_ONE, BLENDMODE_SRC_COLOR, BLENDMODE_ONE_MINUS_SRC_COLOR, BLENDMODE_DST_COLOR, BLENDMODE_ONE_MINUS_DST_COLOR, BLENDMODE_SRC_ALPHA, BLENDMODE_SRC_ALPHA_SATURATE, BLENDMODE_ONE_MINUS_SRC_ALPHA, BLENDMODE_DST_ALPHA, BLENDMODE_ONE_MINUS_DST_ALPHA, BUFFER_STATIC, BUFFER_DYNAMIC, BUFFER_STREAM, CULLFACE_NONE, CULLFACE_BACK, CULLFACE_FRONT, CULLFACE_FRONTANDBACK, FILTER_NEAREST, FILTER_LINEAR, FILTER_NEAREST_MIPMAP_NEAREST, FILTER_NEAREST_MIPMAP_LINEAR, FILTER_LINEAR_MIPMAP_NEAREST, FILTER_LINEAR_MIPMAP_LINEAR, INDEXFORMAT_UINT8, INDEXFORMAT_UINT16, INDEXFORMAT_UINT32, PRIMITIVE_POINTS, PRIMITIVE_LINES, PRIMITIVE_LINELOOP, PRIMITIVE_LINESTRIP, PRIMITIVE_TRIANGLES, PRIMITIVE_TRISTRIP, PRIMITIVE_TRIFAN, SEMANTIC_POSITION, SEMANTIC_NORMAL, SEMANTIC_COLOR, SEMANTIC_TEXCOORD, SEMANTIC_TEXCOORD0, SEMANTIC_TEXCOORD1, SEMANTIC_ATTR0, SEMANTIC_ATTR1, SEMANTIC_ATTR2, SEMANTIC_ATTR3, TEXTURELOCK_READ, TEXTURELOCK_WRITE, TEXTURETYPE_RGBM, TEXTURETYPE_DEFAULT, TEXTURETYPE_SWIZZLEGGGR } from '../platform/graphics/constants.js';
 import { begin, end, fogCode, gammaCode, skinCode, tonemapCode } from '../scene/shader-lib/programs/common.js';
 import { drawQuadWithShader } from '../scene/graphics/quad-render-utils.js';
 import { shaderChunks } from '../scene/shader-lib/chunks/chunks.js';
@@ -32,6 +32,8 @@ import { VertexFormat } from '../platform/graphics/vertex-format.js';
 import { VertexIterator } from '../platform/graphics/vertex-iterator.js';
 import { ShaderUtils } from '../platform/graphics/shader-utils.js';
 import { GraphicsDeviceAccess } from '../platform/graphics/graphics-device-access.js';
+import { BlendState } from '../platform/graphics/blend-state.js';
+import { DepthState } from '../platform/graphics/depth-state.js';
 import { LAYERID_WORLD, LAYERID_IMMEDIATE, LINEBATCH_OVERLAY, PROJECTION_ORTHOGRAPHIC, PROJECTION_PERSPECTIVE } from '../scene/constants.js';
 import { calculateTangents, createMesh, createTorus, createCylinder, createCapsule, createCone, createSphere, createPlane, createBox } from '../scene/procedural.js';
 import { partitionSkin } from '../scene/skin-partition.js';
@@ -250,6 +252,10 @@ const PIXELFORMAT_R5_G5_B5_A1 = PIXELFORMAT_RGBA5551;
 const PIXELFORMAT_R4_G4_B4_A4 = PIXELFORMAT_RGBA4;
 const PIXELFORMAT_R8_G8_B8 = PIXELFORMAT_RGB8;
 const PIXELFORMAT_R8_G8_B8_A8 = PIXELFORMAT_RGBA8;
+const BLENDMODE_CONSTANT_COLOR = BLENDMODE_CONSTANT;
+const BLENDMODE_ONE_MINUS_CONSTANT_COLOR = BLENDMODE_ONE_MINUS_CONSTANT;
+const BLENDMODE_CONSTANT_ALPHA = BLENDMODE_CONSTANT;
+const BLENDMODE_ONE_MINUS_CONSTANT_ALPHA = BLENDMODE_ONE_MINUS_CONSTANT;
 function UnsupportedBrowserError(message) {
 	this.name = 'UnsupportedBrowserError';
 	this.message = message || '';
@@ -382,7 +388,6 @@ const deprecatedChunks = {
 	'reflectionPrefilteredCubeLod.frag': 'reflectionEnv.frag'
 };
 Object.keys(deprecatedChunks).forEach(chunkName => {
-	deprecatedChunks[chunkName];
 	Object.defineProperty(shaderChunks, chunkName, {
 		get: function () {
 			return null;
@@ -434,6 +439,65 @@ GraphicsDevice.prototype.setProgramLibrary = function (lib) {
 };
 GraphicsDevice.prototype.removeShaderFromCache = function (shader) {
 	getProgramLibrary(this).removeFromCache(shader);
+};
+const _tempBlendState = new BlendState();
+const _tempDepthState = new DepthState();
+GraphicsDevice.prototype.setBlendFunction = function (blendSrc, blendDst) {
+	const currentBlendState = this.blendState;
+	_tempBlendState.copy(currentBlendState);
+	_tempBlendState.setColorBlend(currentBlendState.colorOp, blendSrc, blendDst);
+	_tempBlendState.setAlphaBlend(currentBlendState.alphaOp, blendSrc, blendDst);
+	this.setBlendState(_tempBlendState);
+};
+GraphicsDevice.prototype.setBlendFunctionSeparate = function (blendSrc, blendDst, blendSrcAlpha, blendDstAlpha) {
+	const currentBlendState = this.blendState;
+	_tempBlendState.copy(currentBlendState);
+	_tempBlendState.setColorBlend(currentBlendState.colorOp, blendSrc, blendDst);
+	_tempBlendState.setAlphaBlend(currentBlendState.alphaOp, blendSrcAlpha, blendDstAlpha);
+	this.setBlendState(_tempBlendState);
+};
+GraphicsDevice.prototype.setBlendEquation = function (blendEquation) {
+	const currentBlendState = this.blendState;
+	_tempBlendState.copy(currentBlendState);
+	_tempBlendState.setColorBlend(blendEquation, currentBlendState.colorSrcFactor, currentBlendState.colorDstFactor);
+	_tempBlendState.setAlphaBlend(blendEquation, currentBlendState.alphaSrcFactor, currentBlendState.alphaDstFactor);
+	this.setBlendState(_tempBlendState);
+};
+GraphicsDevice.prototype.setBlendEquationSeparate = function (blendEquation, blendAlphaEquation) {
+	const currentBlendState = this.blendState;
+	_tempBlendState.copy(currentBlendState);
+	_tempBlendState.setColorBlend(blendEquation, currentBlendState.colorSrcFactor, currentBlendState.colorDstFactor);
+	_tempBlendState.setAlphaBlend(blendAlphaEquation, currentBlendState.alphaSrcFactor, currentBlendState.alphaDstFactor);
+	this.setBlendState(_tempBlendState);
+};
+GraphicsDevice.prototype.setColorWrite = function (redWrite, greenWrite, blueWrite, alphaWrite) {
+	const currentBlendState = this.blendState;
+	_tempBlendState.copy(currentBlendState);
+	_tempBlendState.setColorWrite(redWrite, greenWrite, blueWrite, alphaWrite);
+	this.setBlendState(_tempBlendState);
+};
+GraphicsDevice.prototype.getBlending = function () {
+	return this.blendState.blend;
+};
+GraphicsDevice.prototype.setBlending = function (blending) {
+	_tempBlendState.copy(this.blendState);
+	_tempBlendState.blend = blending;
+	this.setBlendState(_tempBlendState);
+};
+GraphicsDevice.prototype.setDepthWrite = function (write) {
+	_tempDepthState.copy(this.depthState);
+	_tempDepthState.write = write;
+	this.setDepthState(_tempDepthState);
+};
+GraphicsDevice.prototype.setDepthFunc = function (func) {
+	_tempDepthState.copy(this.depthState);
+	_tempDepthState.func = func;
+	this.setDepthState(_tempDepthState);
+};
+GraphicsDevice.prototype.setDepthTest = function (test) {
+	_tempDepthState.copy(this.depthState);
+	_tempDepthState.test = test;
+	this.setDepthState(_tempDepthState);
 };
 const PhongMaterial = StandardMaterial;
 const scene = {
@@ -606,6 +670,46 @@ Material.prototype.getShader = function () {
 Material.prototype.setShader = function (shader) {
 	this.shader = shader;
 };
+Object.defineProperty(Material.prototype, 'blend', {
+	set: function (value) {
+		this.blendState.blend = value;
+	},
+	get: function () {
+		return this.blendState.blend;
+	}
+});
+Object.defineProperty(Material.prototype, 'blendSrc', {
+	set: function (value) {
+		const currentBlendState = this.blendState;
+		_tempBlendState.copy(currentBlendState);
+		_tempBlendState.setColorBlend(currentBlendState.colorOp, value, currentBlendState.colorDstFactor);
+		_tempBlendState.setAlphaBlend(currentBlendState.alphaOp, value, currentBlendState.alphaDstFactor);
+		this.blendState = _tempBlendState;
+	},
+	get: function () {
+		return this.blendState.colorSrcFactor;
+	}
+});
+Object.defineProperty(Material.prototype, 'blendDst', {
+	set: function (value) {
+		const currentBlendState = this.blendState;
+		_tempBlendState.copy(currentBlendState);
+		_tempBlendState.setColorBlend(currentBlendState.colorOp, currentBlendState.colorSrcFactor, value);
+		_tempBlendState.setAlphaBlend(currentBlendState.alphaOp, currentBlendState.alphaSrcFactor, value);
+		this.blendState = _tempBlendState;
+	},
+	get: function () {
+		return this.blendState.colorDstFactor;
+	}
+});
+Object.defineProperty(StandardMaterial.prototype, 'shininess', {
+	get: function () {
+		return this.gloss * 100;
+	},
+	set: function (value) {
+		this.gloss = value * 0.01;
+	}
+});
 function _defineAlias(newName, oldName) {
 	Object.defineProperty(StandardMaterial.prototype, oldName, {
 		get: function () {
@@ -962,4 +1066,4 @@ function basisSetDownloadConfig(glueUrl, wasmUrl, fallbackUrl) {
 }
 function prefilterCubemap(options) {}
 
-export { ContextCreationError, ELEMENTTYPE_FLOAT32, ELEMENTTYPE_INT16, ELEMENTTYPE_INT32, ELEMENTTYPE_INT8, ELEMENTTYPE_UINT16, ELEMENTTYPE_UINT32, ELEMENTTYPE_UINT8, PIXELFORMAT_L8_A8, PIXELFORMAT_R4_G4_B4_A4, PIXELFORMAT_R5_G5_B5_A1, PIXELFORMAT_R5_G6_B5, PIXELFORMAT_R8_G8_B8, PIXELFORMAT_R8_G8_B8_A8, PhongMaterial, RIGIDBODY_ACTIVE_TAG, RIGIDBODY_CF_KINEMATIC_OBJECT, RIGIDBODY_CF_NORESPONSE_OBJECT, RIGIDBODY_CF_STATIC_OBJECT, RIGIDBODY_DISABLE_DEACTIVATION, RIGIDBODY_DISABLE_SIMULATION, RIGIDBODY_ISLAND_SLEEPING, RIGIDBODY_TYPE_DYNAMIC, RIGIDBODY_TYPE_KINEMATIC, RIGIDBODY_TYPE_STATIC, RIGIDBODY_WANTS_DEACTIVATION, UnsupportedBrowserError, anim, asset, audio, basisSetDownloadConfig, createStyle, drawFullscreenQuad, gfx, inherits, input, log, makeArray, posteffect, prefilterCubemap, programlib, scene, shape, time };
+export { BLENDMODE_CONSTANT_ALPHA, BLENDMODE_CONSTANT_COLOR, BLENDMODE_ONE_MINUS_CONSTANT_ALPHA, BLENDMODE_ONE_MINUS_CONSTANT_COLOR, ContextCreationError, ELEMENTTYPE_FLOAT32, ELEMENTTYPE_INT16, ELEMENTTYPE_INT32, ELEMENTTYPE_INT8, ELEMENTTYPE_UINT16, ELEMENTTYPE_UINT32, ELEMENTTYPE_UINT8, PIXELFORMAT_L8_A8, PIXELFORMAT_R4_G4_B4_A4, PIXELFORMAT_R5_G5_B5_A1, PIXELFORMAT_R5_G6_B5, PIXELFORMAT_R8_G8_B8, PIXELFORMAT_R8_G8_B8_A8, PhongMaterial, RIGIDBODY_ACTIVE_TAG, RIGIDBODY_CF_KINEMATIC_OBJECT, RIGIDBODY_CF_NORESPONSE_OBJECT, RIGIDBODY_CF_STATIC_OBJECT, RIGIDBODY_DISABLE_DEACTIVATION, RIGIDBODY_DISABLE_SIMULATION, RIGIDBODY_ISLAND_SLEEPING, RIGIDBODY_TYPE_DYNAMIC, RIGIDBODY_TYPE_KINEMATIC, RIGIDBODY_TYPE_STATIC, RIGIDBODY_WANTS_DEACTIVATION, UnsupportedBrowserError, anim, asset, audio, basisSetDownloadConfig, createStyle, drawFullscreenQuad, gfx, inherits, input, log, makeArray, posteffect, prefilterCubemap, programlib, scene, shape, time };

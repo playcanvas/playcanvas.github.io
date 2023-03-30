@@ -1,15 +1,73 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import '../../core/tracing.js';
-import { BLENDMODE_ONE, BLENDMODE_ZERO, BLENDEQUATION_ADD, CULLFACE_BACK, FUNC_LESSEQUAL, BLENDEQUATION_MAX, BLENDEQUATION_MIN, BLENDMODE_DST_COLOR, BLENDMODE_ONE_MINUS_DST_COLOR, BLENDMODE_SRC_COLOR, BLENDMODE_SRC_ALPHA, BLENDMODE_ONE_MINUS_SRC_ALPHA } from '../../platform/graphics/constants.js';
+import { CULLFACE_BACK, BLENDMODE_ONE, BLENDEQUATION_REVERSE_SUBTRACT, BLENDMODE_ZERO, BLENDEQUATION_ADD, BLENDMODE_SRC_ALPHA, BLENDMODE_ONE_MINUS_SRC_ALPHA, BLENDMODE_DST_COLOR, BLENDMODE_SRC_COLOR, BLENDMODE_ONE_MINUS_DST_COLOR, BLENDEQUATION_MIN, BLENDEQUATION_MAX } from '../../platform/graphics/constants.js';
+import { BlendState } from '../../platform/graphics/blend-state.js';
+import { DepthState } from '../../platform/graphics/depth-state.js';
 import { ShaderProcessorOptions } from '../../platform/graphics/shader-processor-options.js';
-import { BLEND_MAX, BLEND_MIN, BLEND_MULTIPLICATIVE, BLEND_SCREEN, BLEND_MULTIPLICATIVE2X, BLEND_ADDITIVEALPHA, BLEND_ADDITIVE, BLEND_PREMULTIPLIED, BLEND_NORMAL, BLEND_NONE } from '../constants.js';
+import { BLEND_NONE, BLEND_NORMAL, BLEND_SUBTRACTIVE, BLEND_PREMULTIPLIED, BLEND_ADDITIVE, BLEND_ADDITIVEALPHA, BLEND_MULTIPLICATIVE2X, BLEND_SCREEN, BLEND_MULTIPLICATIVE, BLEND_MIN, BLEND_MAX } from '../constants.js';
 import { processShader } from '../shader-lib/utils.js';
 import { getDefaultMaterial } from './default-material.js';
 
+const blendModes = [];
+blendModes[BLEND_SUBTRACTIVE] = {
+	src: BLENDMODE_ONE,
+	dst: BLENDMODE_ONE,
+	op: BLENDEQUATION_REVERSE_SUBTRACT
+};
+blendModes[BLEND_NONE] = {
+	src: BLENDMODE_ONE,
+	dst: BLENDMODE_ZERO,
+	op: BLENDEQUATION_ADD
+};
+blendModes[BLEND_NORMAL] = {
+	src: BLENDMODE_SRC_ALPHA,
+	dst: BLENDMODE_ONE_MINUS_SRC_ALPHA,
+	op: BLENDEQUATION_ADD
+};
+blendModes[BLEND_PREMULTIPLIED] = {
+	src: BLENDMODE_ONE,
+	dst: BLENDMODE_ONE_MINUS_SRC_ALPHA,
+	op: BLENDEQUATION_ADD
+};
+blendModes[BLEND_ADDITIVE] = {
+	src: BLENDMODE_ONE,
+	dst: BLENDMODE_ONE,
+	op: BLENDEQUATION_ADD
+};
+blendModes[BLEND_ADDITIVEALPHA] = {
+	src: BLENDMODE_SRC_ALPHA,
+	dst: BLENDMODE_ONE,
+	op: BLENDEQUATION_ADD
+};
+blendModes[BLEND_MULTIPLICATIVE2X] = {
+	src: BLENDMODE_DST_COLOR,
+	dst: BLENDMODE_SRC_COLOR,
+	op: BLENDEQUATION_ADD
+};
+blendModes[BLEND_SCREEN] = {
+	src: BLENDMODE_ONE_MINUS_DST_COLOR,
+	dst: BLENDMODE_ONE,
+	op: BLENDEQUATION_ADD
+};
+blendModes[BLEND_MULTIPLICATIVE] = {
+	src: BLENDMODE_DST_COLOR,
+	dst: BLENDMODE_ZERO,
+	op: BLENDEQUATION_ADD
+};
+blendModes[BLEND_MIN] = {
+	src: BLENDMODE_ONE,
+	dst: BLENDMODE_ONE,
+	op: BLENDEQUATION_MIN
+};
+blendModes[BLEND_MAX] = {
+	src: BLENDMODE_ONE,
+	dst: BLENDMODE_ONE,
+	op: BLENDEQUATION_MAX
+};
 let id = 0;
 class Material {
 	constructor() {
@@ -21,30 +79,41 @@ class Material {
 		this.parameters = {};
 		this.alphaTest = 0;
 		this.alphaToCoverage = false;
-		this.blend = false;
-		this.blendSrc = BLENDMODE_ONE;
-		this.blendDst = BLENDMODE_ZERO;
-		this.blendEquation = BLENDEQUATION_ADD;
-		this.separateAlphaBlend = false;
-		this.blendSrcAlpha = BLENDMODE_ONE;
-		this.blendDstAlpha = BLENDMODE_ZERO;
-		this.blendAlphaEquation = BLENDEQUATION_ADD;
+		this._blendState = new BlendState();
+		this._depthState = new DepthState();
 		this.cull = CULLFACE_BACK;
-		this.depthTest = true;
-		this.depthFunc = FUNC_LESSEQUAL;
-		this.depthWrite = true;
 		this.stencilFront = null;
 		this.stencilBack = null;
 		this.depthBias = 0;
 		this.slopeDepthBias = 0;
-		this.redWrite = true;
-		this.greenWrite = true;
-		this.blueWrite = true;
-		this.alphaWrite = true;
 		this._shaderVersion = 0;
 		this._scene = null;
 		this._dirtyBlend = false;
 		this.dirty = true;
+	}
+	set redWrite(value) {
+		this._blendState.redWrite = value;
+	}
+	get redWrite() {
+		return this._blendState.redWrite;
+	}
+	set greenWrite(value) {
+		this._blendState.greenWrite = value;
+	}
+	get greenWrite() {
+		return this._blendState.greenWrite;
+	}
+	set blueWrite(value) {
+		this._blendState.blueWrite = value;
+	}
+	get blueWrite() {
+		return this._blendState.blueWrite;
+	}
+	set alphaWrite(value) {
+		this._blendState.alphaWrite = value;
+	}
+	get alphaWrite() {
+		return this._blendState.alphaWrite;
 	}
 	set shader(shader) {
 		this._shader = shader;
@@ -53,123 +122,87 @@ class Material {
 		return this._shader;
 	}
 	get transparent() {
-		return this.blend;
+		return this._blendState.blend;
+	}
+	_markBlendDirty() {
+		if (this._scene) {
+			this._scene.layers._dirtyBlend = true;
+		} else {
+			this._dirtyBlend = true;
+		}
+	}
+	set blendState(value) {
+		if (this._blendState.blend !== value.blend) {
+			this._markBlendDirty();
+		}
+		this._blendState.copy(value);
+	}
+	get blendState() {
+		return this._blendState;
 	}
 	set blendType(type) {
-		let blend = true;
-		switch (type) {
-			case BLEND_NONE:
-				blend = false;
-				this.blendSrc = BLENDMODE_ONE;
-				this.blendDst = BLENDMODE_ZERO;
-				this.blendEquation = BLENDEQUATION_ADD;
-				break;
-			case BLEND_NORMAL:
-				this.blendSrc = BLENDMODE_SRC_ALPHA;
-				this.blendDst = BLENDMODE_ONE_MINUS_SRC_ALPHA;
-				this.blendEquation = BLENDEQUATION_ADD;
-				break;
-			case BLEND_PREMULTIPLIED:
-				this.blendSrc = BLENDMODE_ONE;
-				this.blendDst = BLENDMODE_ONE_MINUS_SRC_ALPHA;
-				this.blendEquation = BLENDEQUATION_ADD;
-				break;
-			case BLEND_ADDITIVE:
-				this.blendSrc = BLENDMODE_ONE;
-				this.blendDst = BLENDMODE_ONE;
-				this.blendEquation = BLENDEQUATION_ADD;
-				break;
-			case BLEND_ADDITIVEALPHA:
-				this.blendSrc = BLENDMODE_SRC_ALPHA;
-				this.blendDst = BLENDMODE_ONE;
-				this.blendEquation = BLENDEQUATION_ADD;
-				break;
-			case BLEND_MULTIPLICATIVE2X:
-				this.blendSrc = BLENDMODE_DST_COLOR;
-				this.blendDst = BLENDMODE_SRC_COLOR;
-				this.blendEquation = BLENDEQUATION_ADD;
-				break;
-			case BLEND_SCREEN:
-				this.blendSrc = BLENDMODE_ONE_MINUS_DST_COLOR;
-				this.blendDst = BLENDMODE_ONE;
-				this.blendEquation = BLENDEQUATION_ADD;
-				break;
-			case BLEND_MULTIPLICATIVE:
-				this.blendSrc = BLENDMODE_DST_COLOR;
-				this.blendDst = BLENDMODE_ZERO;
-				this.blendEquation = BLENDEQUATION_ADD;
-				break;
-			case BLEND_MIN:
-				this.blendSrc = BLENDMODE_ONE;
-				this.blendDst = BLENDMODE_ONE;
-				this.blendEquation = BLENDEQUATION_MIN;
-				break;
-			case BLEND_MAX:
-				this.blendSrc = BLENDMODE_ONE;
-				this.blendDst = BLENDMODE_ONE;
-				this.blendEquation = BLENDEQUATION_MAX;
-				break;
-		}
-		if (this.blend !== blend) {
-			this.blend = blend;
-			if (this._scene) {
-				this._scene.layers._dirtyBlend = true;
-			} else {
-				this._dirtyBlend = true;
-			}
+		const blendMode = blendModes[type];
+		this._blendState.setColorBlend(blendMode.op, blendMode.src, blendMode.dst);
+		this._blendState.setAlphaBlend(blendMode.op, blendMode.src, blendMode.dst);
+		const blend = type !== BLEND_NONE;
+		if (this._blendState.blend !== blend) {
+			this._blendState.blend = blend;
+			this._markBlendDirty();
 		}
 		this._updateMeshInstanceKeys();
 	}
 	get blendType() {
-		if (!this.blend) {
+		if (!this.transparent) {
 			return BLEND_NONE;
 		}
-		if (this.blendSrc === BLENDMODE_SRC_ALPHA && this.blendDst === BLENDMODE_ONE_MINUS_SRC_ALPHA && this.blendEquation === BLENDEQUATION_ADD) {
-			return BLEND_NORMAL;
-		}
-		if (this.blendSrc === BLENDMODE_ONE && this.blendDst === BLENDMODE_ONE && this.blendEquation === BLENDEQUATION_ADD) {
-			return BLEND_ADDITIVE;
-		}
-		if (this.blendSrc === BLENDMODE_SRC_ALPHA && this.blendDst === BLENDMODE_ONE && this.blendEquation === BLENDEQUATION_ADD) {
-			return BLEND_ADDITIVEALPHA;
-		}
-		if (this.blendSrc === BLENDMODE_DST_COLOR && this.blendDst === BLENDMODE_SRC_COLOR && this.blendEquation === BLENDEQUATION_ADD) {
-			return BLEND_MULTIPLICATIVE2X;
-		}
-		if (this.blendSrc === BLENDMODE_ONE_MINUS_DST_COLOR && this.blendDst === BLENDMODE_ONE && this.blendEquation === BLENDEQUATION_ADD) {
-			return BLEND_SCREEN;
-		}
-		if (this.blendSrc === BLENDMODE_ONE && this.blendDst === BLENDMODE_ONE && this.blendEquation === BLENDEQUATION_MIN) {
-			return BLEND_MIN;
-		}
-		if (this.blendSrc === BLENDMODE_ONE && this.blendDst === BLENDMODE_ONE && this.blendEquation === BLENDEQUATION_MAX) {
-			return BLEND_MAX;
-		}
-		if (this.blendSrc === BLENDMODE_DST_COLOR && this.blendDst === BLENDMODE_ZERO && this.blendEquation === BLENDEQUATION_ADD) {
-			return BLEND_MULTIPLICATIVE;
-		}
-		if (this.blendSrc === BLENDMODE_ONE && this.blendDst === BLENDMODE_ONE_MINUS_SRC_ALPHA && this.blendEquation === BLENDEQUATION_ADD) {
-			return BLEND_PREMULTIPLIED;
+		const {
+			colorOp,
+			colorSrcFactor,
+			colorDstFactor,
+			alphaOp,
+			alphaSrcFactor,
+			alphaDstFactor
+		} = this._blendState;
+		for (let i = 0; i < blendModes.length; i++) {
+			const blendMode = blendModes[i];
+			if (blendMode.src === colorSrcFactor && blendMode.dst === colorDstFactor && blendMode.op === colorOp && blendMode.src === alphaSrcFactor && blendMode.dst === alphaDstFactor && blendMode.op === alphaOp) {
+				return i;
+			}
 		}
 		return BLEND_NORMAL;
+	}
+	set depthState(value) {
+		this._depthState.copy(value);
+	}
+	get depthState() {
+		return this._depthState;
+	}
+	set depthTest(value) {
+		this._depthState.test = value;
+	}
+	get depthTest() {
+		return this._depthState.test;
+	}
+	set depthFunc(value) {
+		this._depthState.func = value;
+	}
+	get depthFunc() {
+		return this._depthState.func;
+	}
+	set depthWrite(value) {
+		this._depthState.write = value;
+	}
+	get depthWrite() {
+		return this._depthState.write;
 	}
 	copy(source) {
 		this.name = source.name;
 		this._shader = source._shader;
 		this.alphaTest = source.alphaTest;
 		this.alphaToCoverage = source.alphaToCoverage;
-		this.blend = source.blend;
-		this.blendSrc = source.blendSrc;
-		this.blendDst = source.blendDst;
-		this.blendEquation = source.blendEquation;
-		this.separateAlphaBlend = source.separateAlphaBlend;
-		this.blendSrcAlpha = source.blendSrcAlpha;
-		this.blendDstAlpha = source.blendDstAlpha;
-		this.blendAlphaEquation = source.blendAlphaEquation;
+		this._blendState.copy(source._blendState);
+		this._depthState.copy(source._depthState);
 		this.cull = source.cull;
-		this.depthTest = source.depthTest;
-		this.depthFunc = source.depthFunc;
-		this.depthWrite = source.depthWrite;
 		this.depthBias = source.depthBias;
 		this.slopeDepthBias = source.slopeDepthBias;
 		if (source.stencilFront) this.stencilFront = source.stencilFront.clone();
@@ -180,10 +213,6 @@ class Material {
 				this.stencilBack = source.stencilBack.clone();
 			}
 		}
-		this.redWrite = source.redWrite;
-		this.greenWrite = source.greenWrite;
-		this.blueWrite = source.blueWrite;
-		this.alphaWrite = source.alphaWrite;
 		return this;
 	}
 	clone() {
@@ -197,8 +226,8 @@ class Material {
 		}
 	}
 	updateUniforms(device, scene) {}
-	getShaderVariant(device, scene, objDefs, staticLightList, pass, sortedLights, viewUniformFormat, viewBindGroupFormat) {
-		const processingOptions = new ShaderProcessorOptions(viewUniformFormat, viewBindGroupFormat);
+	getShaderVariant(device, scene, objDefs, staticLightList, pass, sortedLights, viewUniformFormat, viewBindGroupFormat, vertexFormat) {
+		const processingOptions = new ShaderProcessorOptions(viewUniformFormat, viewBindGroupFormat, vertexFormat);
 		return processShader(this._shader, processingOptions);
 	}
 	update() {

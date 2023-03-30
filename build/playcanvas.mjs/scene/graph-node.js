@@ -37,10 +37,12 @@ class GraphNode extends EventHandler {
 		this._scale = null;
 		this.localTransform = new Mat4();
 		this._dirtyLocal = false;
+		this._wasDirty = false;
 		this._aabbVer = 0;
 		this._frozen = false;
 		this.worldTransform = new Mat4();
 		this._dirtyWorld = false;
+		this._worldScaleSign = 0;
 		this._normalMatrix = new Mat3();
 		this._dirtyNormal = true;
 		this._right = null;
@@ -317,6 +319,12 @@ class GraphNode extends EventHandler {
 		this._sync();
 		return this.worldTransform;
 	}
+	get worldScaleSign() {
+		if (this._worldScaleSign === 0) {
+			this._worldScaleSign = this.getWorldTransform().scaleSign;
+		}
+		return this._worldScaleSign;
+	}
 	reparent(parent, index) {
 		const current = this._parent;
 		if (current) current.removeChild(this);
@@ -359,6 +367,7 @@ class GraphNode extends EventHandler {
 	_dirtifyLocal() {
 		if (!this._dirtyLocal) {
 			this._dirtyLocal = true;
+			this._wasDirty = true;
 			if (!this._dirtyWorld) this._dirtifyWorld();
 		}
 	}
@@ -382,6 +391,7 @@ class GraphNode extends EventHandler {
 			}
 		}
 		this._dirtyNormal = true;
+		this._worldScaleSign = 0;
 		this._aabbVer++;
 	}
 	setPosition(x, y, z) {

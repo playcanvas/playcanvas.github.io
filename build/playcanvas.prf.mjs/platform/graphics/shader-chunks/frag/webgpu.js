@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 var webgpuPS = `
@@ -16,7 +16,7 @@ layout(location = 0) out highp vec4 pc_fragColor;
 #define texture2DLodEXT(res, uv, lod) textureLod(sampler2D(res, res ## _sampler), uv, lod)
 #define textureCube(res, uv) texture(samplerCube(res, res ## _sampler), uv)
 #define textureCubeLodEXT(res, uv, lod) textureLod(samplerCube(res, res ## _sampler), uv, lod)
-#define textureShadow(res, uv) texture(sampler2DShadow(res, res ## _sampler), uv)
+#define textureShadow(res, uv) textureLod(sampler2DShadow(res, res ## _sampler), uv, 0.0)
 
 // TODO: implement other texture sampling macros
 // #define texture2DProj textureProj

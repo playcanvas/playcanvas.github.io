@@ -11,6 +11,7 @@ import { ChunkUtils } from '../shader-lib/chunk-utils.js';
 import { shaderChunks } from '../shader-lib/chunks/chunks.js';
 import { getProgramLibrary } from '../shader-lib/get-program-library.js';
 import { createShaderFromCode } from '../shader-lib/utils.js';
+import { BlendState } from '../../platform/graphics/blend-state.js';
 
 const getProjectionName = projection => {
 	switch (projection) {
@@ -277,6 +278,7 @@ function reprojectTexture(source, target, options = {}) {
 		const defines = `#define PROCESS_FUNC ${processFunc}\n` + (prefilterSamples ? `#define USE_SAMPLES_TEX\n` : '') + (source.cubemap ? `#define CUBEMAP_SOURCE\n` : '') + `#define DECODE_FUNC ${decodeFunc}\n` + `#define ENCODE_FUNC ${encodeFunc}\n` + `#define SOURCE_FUNC ${sourceFunc}\n` + `#define TARGET_FUNC ${targetFunc}\n` + `#define NUM_SAMPLES ${numSamples}\n` + `#define NUM_SAMPLES_SQRT ${Math.round(Math.sqrt(numSamples)).toFixed(1)}\n`;
 		shader = createShaderFromCode(device, vsCode, `${defines}\n${shaderChunks.reprojectPS}`, shaderKey);
 	}
+	device.setBlendState(BlendState.DEFAULT);
 	const constantSource = device.scope.resolve(source.cubemap ? "sourceCube" : "sourceTex");
 	constantSource.setValue(source);
 	const constantParams = device.scope.resolve("params");

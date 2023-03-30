@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import '../../core/tracing.js';
@@ -28,7 +28,7 @@ class BindTextureFormat {
 	}
 }
 class BindGroupFormat {
-	constructor(graphicsDevice, bufferFormats, textureFormats) {
+	constructor(graphicsDevice, bufferFormats = [], textureFormats = []) {
 		this.id = id++;
 		this.device = graphicsDevice;
 		this.bufferFormats = bufferFormats;

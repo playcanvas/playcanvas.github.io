@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import '../../../core/tracing.js';
@@ -26,7 +26,6 @@ class WebgpuRenderTarget {
 	destroy(device) {
 		var _this$multisampledCol;
 		this.initialized = false;
-		this.renderPassDescriptor = null;
 		if (this.depthTextureInternal) {
 			var _this$depthTexture;
 			(_this$depthTexture = this.depthTexture) == null ? void 0 : _this$depthTexture.destroy();
@@ -117,7 +116,7 @@ class WebgpuRenderTarget {
 		} else {
 			colorAttachment.view = colorView;
 		}
-		if (colorAttachment.view) {
+		if (colorAttachment.view || this.colorFormat) {
 			this.renderPassDescriptor.colorAttachments.push(colorAttachment);
 		}
 		this.initialized = true;

@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import '../../core/tracing.js';
@@ -8,7 +8,7 @@ import { now } from '../../core/time.js';
 import { Mat3 } from '../../core/math/mat3.js';
 import { Vec3 } from '../../core/math/vec3.js';
 import { BoundingBox } from '../../core/shape/bounding-box.js';
-import { PRIMITIVE_TRIFAN, SEMANTIC_BLENDINDICES, TYPE_FLOAT32, typedArrayTypes, typedArrayTypesByteSize, SEMANTIC_POSITION, SEMANTIC_NORMAL, SEMANTIC_TANGENT, typedArrayIndexFormats, PRIMITIVE_TRIANGLES } from '../../platform/graphics/constants.js';
+import { PRIMITIVE_TRIFAN, PRIMITIVE_TRISTRIP, SEMANTIC_BLENDINDICES, TYPE_FLOAT32, typedArrayTypes, typedArrayTypesByteSize, SEMANTIC_POSITION, SEMANTIC_NORMAL, SEMANTIC_TANGENT, typedArrayIndexFormats, PRIMITIVE_TRIANGLES } from '../../platform/graphics/constants.js';
 import { SPRITE_RENDERMODE_SIMPLE } from '../constants.js';
 import { Mesh } from '../mesh.js';
 import { MeshInstance } from '../mesh-instance.js';
@@ -50,17 +50,11 @@ function equalLightLists(lightList1, lightList2) {
 	}
 	return true;
 }
+const _triFanIndices = [0, 1, 3, 2, 3, 1];
+const _triStripIndices = [0, 1, 3, 0, 3, 2];
 const mat3 = new Mat3();
-const worldMatX = new Vec3();
-const worldMatY = new Vec3();
-const worldMatZ = new Vec3();
 function getScaleSign(mi) {
-	const wt = mi.node.worldTransform;
-	wt.getX(worldMatX);
-	wt.getY(worldMatY);
-	wt.getZ(worldMatZ);
-	worldMatX.cross(worldMatX, worldMatY);
-	return worldMatX.dot(worldMatZ) >= 0 ? 1 : -1;
+	return mi.node.worldTransform.scaleSign;
 }
 class BatchManager {
 	constructor(device, root, scene) {
@@ -418,7 +412,14 @@ class BatchManager {
 				const mesh = meshInstances[i].mesh;
 				const numVerts = mesh.vertexBuffer.numVertices;
 				batchNumVerts += numVerts;
-				batchNumIndices += mesh.primitive[0].indexed ? mesh.primitive[0].count : mesh.primitive[0].type === PRIMITIVE_TRIFAN && mesh.primitive[0].count === 4 ? 6 : 0;
+				if (mesh.primitive[0].indexed) {
+					batchNumIndices += mesh.primitive[0].count;
+				} else {
+					const primitiveType = mesh.primitive[0].type;
+					if (primitiveType === PRIMITIVE_TRIFAN || primitiveType === PRIMITIVE_TRISTRIP) {
+						if (mesh.primitive[0].count === 4) batchNumIndices += 6;
+					}
+				}
 				if (!streams) {
 					material = meshInstances[i].material;
 					streams = {};
@@ -530,13 +531,18 @@ class BatchManager {
 					numIndices = mesh.primitive[0].count;
 					const srcFormat = mesh.indexBuffer[0].getFormat();
 					indexData = new typedArrayIndexFormats[srcFormat](mesh.indexBuffer[0].storage);
-				} else if (mesh.primitive[0].type === PRIMITIVE_TRIFAN && mesh.primitive[0].count === 4) {
-					indexBase = 0;
-					numIndices = 6;
-					indexData = [0, 1, 3, 2, 3, 1];
 				} else {
-					numIndices = 0;
-					continue;
+					const primitiveType = mesh.primitive[0].type;
+					if (primitiveType === PRIMITIVE_TRIFAN || primitiveType === PRIMITIVE_TRISTRIP) {
+						if (mesh.primitive[0].count === 4) {
+							indexBase = 0;
+							numIndices = 6;
+							indexData = primitiveType === PRIMITIVE_TRIFAN ? _triFanIndices : _triStripIndices;
+						} else {
+							numIndices = 0;
+							continue;
+						}
+					}
 				}
 				for (let j = 0; j < numIndices; j++) {
 					indices[j + indexOffset] = indexData[indexBase + j] + verticesOffset;
@@ -579,7 +585,7 @@ class BatchManager {
 			meshInstance.drawOrder = batch.origMeshInstances[0].drawOrder;
 			meshInstance.stencilFront = batch.origMeshInstances[0].stencilFront;
 			meshInstance.stencilBack = batch.origMeshInstances[0].stencilBack;
-			meshInstance.flipFaces = getScaleSign(batch.origMeshInstances[0]) < 0;
+			meshInstance.flipFacesFactor = getScaleSign(batch.origMeshInstances[0]);
 			meshInstance.castShadow = batch.origMeshInstances[0].castShadow;
 			batch.meshInstance = meshInstance;
 			batch.updateBoundingBox();

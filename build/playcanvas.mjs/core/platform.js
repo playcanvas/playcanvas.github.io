@@ -28,7 +28,7 @@ if (typeof navigator !== 'undefined') {
 	if (typeof window !== 'undefined') {
 		touch = 'ontouchstart' in window || 'maxTouchPoints' in navigator && navigator.maxTouchPoints > 0;
 	}
-	gamepads = 'getGamepads' in navigator;
+	gamepads = !!navigator.getGamepads || !!navigator.webkitGetGamepads;
 	workers = typeof Worker !== 'undefined';
 	try {
 		const opts = Object.defineProperty({}, 'passive', {

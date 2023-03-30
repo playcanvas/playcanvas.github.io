@@ -2,8 +2,8 @@ import { LitOptions } from './lit-options.js';
 
 class StandardMaterialOptions {
 	constructor() {
-		this.chunks = [];
 		this._pass = 0;
+		this.chunks = [];
 		this.forceUv1 = false;
 		this.ambientTint = false;
 		this.diffuseTint = false;

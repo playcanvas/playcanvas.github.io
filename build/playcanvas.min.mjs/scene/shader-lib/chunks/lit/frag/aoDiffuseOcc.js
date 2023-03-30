@@ -1,1 +1,1 @@
-var d="\nvoid occludeDiffuse() {\n\t\tdDiffuseLight *= dAo;\n}\n";export{d as default};
+var a="\nvoid occludeDiffuse(float ao) {\n\t\tdDiffuseLight *= ao;\n}\n";export{a as default};

@@ -1,17 +1,22 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 var aoSpecOccConstPS = `
-void occludeSpecular() {
+void occludeSpecular(float gloss, float ao, vec3 worldNormal, vec3 viewDir) {
 		// approximated specular occlusion from AO
-		float specPow = exp2(dGlossiness * 11.0);
+		float specPow = exp2(gloss * 11.0);
 		// http://research.tri-ace.com/Data/cedec2011_RealtimePBR_Implementation_e.pptx
-		float specOcc = saturate(pow(dot(dNormalW, dViewDirW) + dAo, 0.01*specPow) - 1.0 + dAo);
+		float specOcc = saturate(pow(dot(worldNormal, viewDir) + ao, 0.01*specPow) - 1.0 + ao);
 
 		dSpecularLight *= specOcc;
 		dReflection *= specOcc;
+		
+#ifdef LIT_SHEEN
+		sSpecularLight *= specOcc;
+		sReflection *= specOcc;
+#endif
 }
 `;
 

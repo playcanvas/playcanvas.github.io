@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import '../../../core/tracing.js';
@@ -8,7 +8,8 @@ import { WebgpuVertexBufferLayout } from './webgpu-vertex-buffer-layout.js';
 
 const _primitiveTopology = ['point-list', 'line-list', undefined, 'line-strip', 'triangle-list', 'triangle-strip', undefined];
 const _blendOperation = ['add', 'subtract', 'reverse-subtract', 'min', 'max'];
-const _blendFactor = ['zero', 'one', 'src', 'one-minus-src', 'dst', 'one-minus-dst', 'src-alpha', 'src-alpha-saturated', 'one-minus-src-alpha', 'dst-alpha', 'one-minus-dst-alpha', 'constant', 'one-minus-constant', undefined, undefined];
+const _blendFactor = ['zero', 'one', 'src', 'one-minus-src', 'dst', 'one-minus-dst', 'src-alpha', 'src-alpha-saturated', 'one-minus-src-alpha', 'dst-alpha', 'one-minus-dst-alpha', 'constant', 'one-minus-constant'];
+const _depthCompareFunction = ['never', 'less', 'equal', 'less-equal', 'greater', 'not-equal', 'greater-equal', 'always'];
 const _bindGroupLayouts = [];
 class WebgpuRenderPipeline {
 	constructor(device) {
@@ -16,27 +17,26 @@ class WebgpuRenderPipeline {
 		this.vertexBufferLayout = new WebgpuVertexBufferLayout();
 		this.cache = new Map();
 	}
-	get(primitive, vertexFormat0, vertexFormat1, shader, renderTarget, bindGroupFormats, renderState) {
-		const key = this.getKey(primitive, vertexFormat0, vertexFormat1, shader, renderTarget, bindGroupFormats, renderState);
+	get(primitive, vertexFormat0, vertexFormat1, shader, renderTarget, bindGroupFormats, blendState, depthState) {
+		const key = this.getKey(primitive, vertexFormat0, vertexFormat1, shader, renderTarget, bindGroupFormats, blendState, depthState);
 		let pipeline = this.cache.get(key);
 		if (!pipeline) {
 			const primitiveTopology = _primitiveTopology[primitive.type];
 			const pipelineLayout = this.getPipelineLayout(bindGroupFormats);
 			const vertexBufferLayout = this.vertexBufferLayout.get(vertexFormat0, vertexFormat1);
-			pipeline = this.create(primitiveTopology, shader.impl, renderTarget, pipelineLayout, renderState, vertexBufferLayout);
+			pipeline = this.create(primitiveTopology, shader, renderTarget, pipelineLayout, blendState, depthState, vertexBufferLayout);
 			this.cache.set(key, pipeline);
 		}
 		return pipeline;
 	}
-	getKey(primitive, vertexFormat0, vertexFormat1, shader, renderTarget, bindGroupFormats, renderState) {
+	getKey(primitive, vertexFormat0, vertexFormat1, shader, renderTarget, bindGroupFormats, blendState, depthState) {
 		let bindGroupKey = '';
 		for (let i = 0; i < bindGroupFormats.length; i++) {
 			bindGroupKey += bindGroupFormats[i].key;
 		}
 		const vertexBufferLayoutKey = this.vertexBufferLayout.getKey(vertexFormat0, vertexFormat1);
 		const renderTargetKey = renderTarget.impl.key;
-		const renderStateKey = renderState.blendKey;
-		return vertexBufferLayoutKey + shader.impl.vertexCode + shader.impl.fragmentCode + renderTargetKey + renderStateKey + primitive.type + bindGroupKey;
+		return vertexBufferLayoutKey + shader.impl.vertexCode + shader.impl.fragmentCode + renderTargetKey + primitive.type + bindGroupKey + blendState.key + depthState.key;
 	}
 	getPipelineLayout(bindGroupFormats) {
 		bindGroupFormats.forEach(format => {
@@ -49,45 +49,58 @@ class WebgpuRenderPipeline {
 		_bindGroupLayouts.length = 0;
 		return pipelineLayout;
 	}
-	getBlend(renderState) {
+	getBlend(blendState) {
 		let blend;
-		if (renderState.blending) {
+		if (blendState.blend) {
 			blend = {
 				color: {
-					operation: _blendOperation[renderState.blendEquationColor],
-					srcFactor: _blendFactor[renderState.blendSrcColor],
-					dstFactor: _blendFactor[renderState.blendDstColor]
+					operation: _blendOperation[blendState.colorOp],
+					srcFactor: _blendFactor[blendState.colorSrcFactor],
+					dstFactor: _blendFactor[blendState.colorDstFactor]
 				},
 				alpha: {
-					operation: _blendOperation[renderState.blendEquationAlpha],
-					srcFactor: _blendFactor[renderState.blendSrcAlpha],
-					dstFactor: _blendFactor[renderState.blendDstAlpha]
+					operation: _blendOperation[blendState.alphaOp],
+					srcFactor: _blendFactor[blendState.alphaSrcFactor],
+					dstFactor: _blendFactor[blendState.alphaDstFactor]
 				}
 			};
 		}
 		return blend;
 	}
-	create(primitiveTopology, webgpuShader, renderTarget, pipelineLayout, renderState, vertexBufferLayout) {
+	getDepthStencil(depthState, renderTarget) {
+		let depthStencil;
+		const {
+			depth,
+			stencil
+		} = renderTarget;
+		if (depth || stencil) {
+			depthStencil = {
+				format: renderTarget.impl.depthFormat
+			};
+			if (depth) {
+				depthStencil.depthWriteEnabled = depthState.write;
+				depthStencil.depthCompare = _depthCompareFunction[depthState.func];
+			} else {
+				depthStencil.depthWriteEnabled = false;
+				depthStencil.depthCompare = 'always';
+			}
+		}
+		return depthStencil;
+	}
+	create(primitiveTopology, shader, renderTarget, pipelineLayout, blendState, depthState, vertexBufferLayout) {
 		const wgpu = this.device.wgpu;
-		const depthStencil = renderTarget.depth ? {
-			depthWriteEnabled: true,
-			depthCompare: 'less',
-			format: renderTarget.impl.depthFormat
-		} : undefined;
-		const vertexModule = wgpu.createShaderModule({
-			code: webgpuShader.vertexCode
-		});
+		const webgpuShader = shader.impl;
 		const descr = {
 			vertex: {
-				module: vertexModule,
-				entryPoint: 'main',
+				module: webgpuShader.getVertexShaderModule(),
+				entryPoint: webgpuShader.vertexEntryPoint,
 				buffers: vertexBufferLayout
 			},
 			primitive: {
 				topology: primitiveTopology,
 				cullMode: "none"
 			},
-			depthStencil,
+			depthStencil: this.getDepthStencil(depthState, renderTarget),
 			multisample: {
 				count: renderTarget.samples
 			},
@@ -95,16 +108,18 @@ class WebgpuRenderPipeline {
 		};
 		const colorFormat = renderTarget.impl.colorFormat;
 		if (colorFormat) {
-			const fragmentModule = wgpu.createShaderModule({
-				code: webgpuShader.fragmentCode
-			});
+			let writeMask = 0;
+			if (blendState.redWrite) writeMask |= GPUColorWrite.RED;
+			if (blendState.greenWrite) writeMask |= GPUColorWrite.GREEN;
+			if (blendState.blueWrite) writeMask |= GPUColorWrite.BLUE;
+			if (blendState.alphaWrite) writeMask |= GPUColorWrite.ALPHA;
 			descr.fragment = {
-				module: fragmentModule,
-				entryPoint: 'main',
+				module: webgpuShader.getFragmentShaderModule(),
+				entryPoint: webgpuShader.fragmentEntryPoint,
 				targets: [{
 					format: renderTarget.impl.colorFormat,
-					writeMask: GPUColorWrite.ALL,
-					blend: this.getBlend(renderState)
+					writeMask: writeMask,
+					blend: this.getBlend(blendState)
 				}]
 			};
 		}

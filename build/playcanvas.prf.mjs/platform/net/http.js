@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import { extend } from '../../core/core.js';
@@ -201,10 +201,10 @@ class Http {
 			contentType = parts[0].trim();
 		}
 		try {
-			if (contentType === Http.ContentType.JSON || url.split('?')[0].endsWith('.json')) {
-				response = JSON.parse(xhr.responseText);
-			} else if (this._isBinaryContentType(contentType) || this._isBinaryResponseType(xhr.responseType)) {
+			if (this._isBinaryContentType(contentType) || this._isBinaryResponseType(xhr.responseType)) {
 				response = xhr.response;
+			} else if (contentType === Http.ContentType.JSON || url.split('?')[0].endsWith('.json')) {
+				response = JSON.parse(xhr.responseText);
 			} else if (xhr.responseType === Http.ResponseType.DOCUMENT || contentType === Http.ContentType.XML) {
 				response = xhr.responseXML;
 			} else {

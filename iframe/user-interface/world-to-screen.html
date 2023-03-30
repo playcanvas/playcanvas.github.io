@@ -52,193 +52,230 @@
 
 
 
-    function example(canvas) {
-
-      // Create the application with input and start the update loop
-      var app = new pc.Application(canvas, {
-        mouse: new pc.Mouse(document.body),
-        touch: new pc.TouchDevice(document.body),
-        elementInput: new pc.ElementInput(canvas) });
-
+    function example(canvas, deviceType) {
 
       var assets = {
         "checkboard": new pc.Asset("checkboard", "texture", { url: "/../../static/assets/textures/checkboard.png" }),
         'font': new pc.Asset('font', 'font', { url: '/../../static/assets/fonts/courier.json' }) };
 
 
-      var assetListLoader = new pc.AssetListLoader(Object.values(assets), app.assets);
-      assetListLoader.load(function () {
-        app.start();
+      var gfxOptions = {
+        deviceTypes: [deviceType],
+        glslangUrl: '/../../static/lib/glslang/glslang.js',
+        twgslUrl: '/../../static/lib/twgsl/twgsl.js' };
 
-        // Create an Entity with a camera component
-        var camera = new pc.Entity();
-        camera.addComponent("camera", {
-          clearColor: new pc.Color(30 / 255, 30 / 255, 30 / 255) });
 
-        camera.rotateLocal(-30, 0, 0);
-        camera.translateLocal(0, 0, 7);
-        app.root.addChild(camera);
+      pc.createGraphicsDevice(canvas, gfxOptions).then(function (device) {
 
-        // Create an Entity for the ground
-        var material = new pc.StandardMaterial();
-        material.diffuse = pc.Color.WHITE;
-        material.diffuseMap = assets.checkboard.resource;
-        material.diffuseMapTiling = new pc.Vec2(50, 50);
-        material.update();
+        var createOptions = new pc.AppOptions();
+        createOptions.graphicsDevice = device;
+        createOptions.mouse = new pc.Mouse(document.body);
+        createOptions.touch = new pc.TouchDevice(document.body);
+        createOptions.elementInput = new pc.ElementInput(canvas);
 
-        var ground = new pc.Entity();
-        ground.addComponent("render", {
-          type: "box",
-          material: material });
+        createOptions.componentSystems = [
+        // @ts-ignore
+        pc.RenderComponentSystem,
+        // @ts-ignore
+        pc.CameraComponentSystem,
+        // @ts-ignore
+        pc.LightComponentSystem,
+        // @ts-ignore
+        pc.ScreenComponentSystem,
+        // @ts-ignore
+        pc.ButtonComponentSystem,
+        // @ts-ignore
+        pc.ElementComponentSystem];
 
-        ground.setLocalScale(50, 1, 50);
-        ground.setLocalPosition(0, -0.5, 0);
-        app.root.addChild(ground);
+        createOptions.resourceHandlers = [
+        // @ts-ignore
+        pc.TextureHandler,
+        // @ts-ignore
+        pc.FontHandler];
 
-        // Create an entity with a light component
-        var light = new pc.Entity();
-        light.addComponent("light", {
-          type: "directional",
-          color: new pc.Color(1, 1, 1),
-          castShadows: true,
-          intensity: 1,
-          shadowBias: 0.2,
-          shadowDistance: 16,
-          normalOffsetBias: 0.05,
-          shadowResolution: 2048 });
 
-        light.setLocalEulerAngles(45, 30, 0);
-        app.root.addChild(light);
+        var app = new pc.AppBase(canvas);
+        app.init(createOptions);
 
-        // Create a 2D screen
-        var screen = new pc.Entity();
-        screen.setLocalScale(0.01, 0.01, 0.01);
-        screen.addComponent("screen", {
-          referenceResolution: new pc.Vec2(1280, 720),
-          screenSpace: true });
+        // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
+        app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
+        app.setCanvasResolution(pc.RESOLUTION_AUTO);
 
-        app.root.addChild(screen);
+        var assetListLoader = new pc.AssetListLoader(Object.values(assets), app.assets);
+        assetListLoader.load(function () {
 
-        /**
-         * Converts a coordinate in world space into a screen's space.
-         *
-         * @param {pc.Vec3} worldPosition - the Vec3 representing the world-space coordinate.
-         * @param {pc.CameraComponent} camera - the Camera.
-         * @param {pc.ScreenComponent} screen - the Screen
-         * @returns {pc.Vec3} a Vec3 of the input worldPosition relative to the camera and screen. The Z coordinate represents the depth,
-         * and negative numbers signal that the worldPosition is behind the camera.
-         */
-        function worldToScreenSpace(worldPosition, camera, screen) {
-          var screenPos = camera.worldToScreen(worldPosition);
+          app.start();
 
-          // take pixel ratio into account
-          var pixelRatio = app.graphicsDevice.maxPixelRatio;
-          screenPos.x *= pixelRatio;
-          screenPos.y *= pixelRatio;
+          // Create an Entity with a camera component
+          var camera = new pc.Entity();
+          camera.addComponent("camera", {
+            clearColor: new pc.Color(30 / 255, 30 / 255, 30 / 255) });
 
-          // account for screen scaling
-          var scale = screen.scale;
+          camera.rotateLocal(-30, 0, 0);
+          camera.translateLocal(0, 0, 7);
+          app.root.addChild(camera);
 
-          // invert the y position
-          screenPos.y = screen.resolution.y - screenPos.y;
+          // Create an Entity for the ground
+          var material = new pc.StandardMaterial();
+          material.diffuse = pc.Color.WHITE;
+          material.diffuseMap = assets.checkboard.resource;
+          material.diffuseMapTiling = new pc.Vec2(50, 50);
+          material.update();
 
-          // put that into a Vec3
-          return new pc.Vec3(screenPos.x / scale, screenPos.y / scale, screenPos.z / scale);
-        }
+          var ground = new pc.Entity();
+          ground.addComponent("render", {
+            type: "box",
+            material: material });
 
-        function createPlayer(id, startingAngle, speed, radius) {
-          // Create a capsule entity to represent a player in the 3d world
-          var entity = new pc.Entity();
-          entity.setLocalScale(new pc.Vec3(0.5, 0.5, 0.5));
-          entity.addComponent("render", {
-            type: "capsule" });
+          ground.setLocalScale(50, 1, 50);
+          ground.setLocalPosition(0, -0.5, 0);
+          app.root.addChild(ground);
 
-          app.root.addChild(entity);
+          // Create an entity with a light component
+          var light = new pc.Entity();
+          light.addComponent("light", {
+            type: "directional",
+            color: new pc.Color(1, 1, 1),
+            castShadows: true,
+            intensity: 1,
+            shadowBias: 0.2,
+            shadowDistance: 16,
+            normalOffsetBias: 0.05,
+            shadowResolution: 2048 });
 
-          // update the player position every frame with some mock logic
-          // normally, this would be taking inputs, running physics simulation, etc
-          var angle = startingAngle;
-          var height = 0.5;
-          app.on("update", function (dt) {
-            angle += dt * speed;
-            if (angle > 360) {
-              angle -= 360;
-            }
-            entity.setLocalPosition(radius * Math.sin(angle * pc.math.DEG_TO_RAD), height, radius * Math.cos(angle * pc.math.DEG_TO_RAD));
-            entity.setLocalEulerAngles(0, angle + 90, 0);
-          });
+          light.setLocalEulerAngles(45, 30, 0);
+          app.root.addChild(light);
 
-          // Create a text element that will hover the player's head
-          var playerInfo = new pc.Entity();
-          playerInfo.addComponent("element", {
-            pivot: new pc.Vec2(0.5, 0),
-            anchor: new pc.Vec4(0, 0, 0, 0),
-            width: 150,
-            height: 50,
-            opacity: 0.05,
-            type: pc.ELEMENTTYPE_IMAGE });
+          // Create a 2D screen
+          var screen = new pc.Entity();
+          screen.setLocalScale(0.01, 0.01, 0.01);
+          screen.addComponent("screen", {
+            referenceResolution: new pc.Vec2(1280, 720),
+            screenSpace: true });
 
-          screen.addChild(playerInfo);
+          app.root.addChild(screen);
 
-          var name = new pc.Entity();
-          name.addComponent("element", {
-            pivot: new pc.Vec2(0.5, 0.5),
-            anchor: new pc.Vec4(0, 0.4, 1, 1),
-            margin: new pc.Vec4(0, 0, 0, 0),
-            fontAsset: assets.font.id,
-            fontSize: 20,
-            text: "Player ".concat(id),
-            useInput: true,
-            type: pc.ELEMENTTYPE_TEXT });
+          /**
+           * Converts a coordinate in world space into a screen's space.
+           *
+           * @param {pc.Vec3} worldPosition - the Vec3 representing the world-space coordinate.
+           * @param {pc.CameraComponent} camera - the Camera.
+           * @param {pc.ScreenComponent} screen - the Screen
+           * @returns {pc.Vec3} a Vec3 of the input worldPosition relative to the camera and screen. The Z coordinate represents the depth,
+           * and negative numbers signal that the worldPosition is behind the camera.
+           */
+          function worldToScreenSpace(worldPosition, camera, screen) {
+            var screenPos = camera.worldToScreen(worldPosition);
 
-          name.addComponent("button", {
-            imageEntity: name });
+            // take pixel ratio into account
+            var pixelRatio = app.graphicsDevice.maxPixelRatio;
+            screenPos.x *= pixelRatio;
+            screenPos.y *= pixelRatio;
 
-          name.button.on('click', function () {
-            var color = new pc.Color(Math.random(), Math.random(), Math.random());
-            name.element.color = color;
-            entity.render.material.setParameter("material_diffuse", [color.r, color.g, color.b]);
-          });
-          playerInfo.addChild(name);
+            // account for screen scaling
+            var scale = screen.scale;
 
-          var healthBar = new pc.Entity();
-          healthBar.addComponent("element", {
-            pivot: new pc.Vec2(0.5, 0),
-            anchor: new pc.Vec4(0, 0, 1, 0.4),
-            margin: new pc.Vec4(0, 0, 0, 0),
-            color: new pc.Color(0.2, 0.6, 0.2, 1),
-            opacity: 1,
-            type: pc.ELEMENTTYPE_IMAGE });
+            // invert the y position
+            screenPos.y = screen.resolution.y - screenPos.y;
 
-          playerInfo.addChild(healthBar);
+            // put that into a Vec3
+            return new pc.Vec3(screenPos.x / scale, screenPos.y / scale, screenPos.z / scale);
+          }
 
-          // update the player text's position to always hover the player
-          app.on("update", function () {
-            // get the desired world position
-            var worldPosition = entity.getPosition();
-            worldPosition.y += 0.6; // slightly above the player's head
+          function createPlayer(id, startingAngle, speed, radius) {
+            // Create a capsule entity to represent a player in the 3d world
+            var entity = new pc.Entity();
+            entity.setLocalScale(new pc.Vec3(0.5, 0.5, 0.5));
+            entity.addComponent("render", {
+              type: "capsule" });
 
-            // convert to screen position
-            var screenPosition = worldToScreenSpace(worldPosition, camera.camera, screen.screen);
+            app.root.addChild(entity);
 
-            if (screenPosition.z > 0) {
-              // if world position is in front of the camera, show it
-              playerInfo.enabled = true;
+            // update the player position every frame with some mock logic
+            // normally, this would be taking inputs, running physics simulation, etc
+            var angle = startingAngle;
+            var height = 0.5;
+            app.on("update", function (dt) {
+              angle += dt * speed;
+              if (angle > 360) {
+                angle -= 360;
+              }
+              entity.setLocalPosition(radius * Math.sin(angle * pc.math.DEG_TO_RAD), height, radius * Math.cos(angle * pc.math.DEG_TO_RAD));
+              entity.setLocalEulerAngles(0, angle + 90, 0);
+            });
 
-              // set the UI position
-              playerInfo.setLocalPosition(screenPosition);
-            } else {
-              // if world position is actually *behind* the camera, hide the UI
-              playerInfo.enabled = false;
-            }
-          });
-        }
+            // Create a text element that will hover the player's head
+            var playerInfo = new pc.Entity();
+            playerInfo.addComponent("element", {
+              pivot: new pc.Vec2(0.5, 0),
+              anchor: new pc.Vec4(0, 0, 0, 0),
+              width: 150,
+              height: 50,
+              opacity: 0.05,
+              type: pc.ELEMENTTYPE_IMAGE });
 
-        createPlayer(1, 135, 30, 1.5);
-        createPlayer(2, 65, -18, 1);
-        createPlayer(3, 0, 15, 2.5);
+            screen.addChild(playerInfo);
+
+            var name = new pc.Entity();
+            name.addComponent("element", {
+              pivot: new pc.Vec2(0.5, 0.5),
+              anchor: new pc.Vec4(0, 0.4, 1, 1),
+              margin: new pc.Vec4(0, 0, 0, 0),
+              fontAsset: assets.font.id,
+              fontSize: 20,
+              text: "Player ".concat(id),
+              useInput: true,
+              type: pc.ELEMENTTYPE_TEXT });
+
+            name.addComponent("button", {
+              imageEntity: name });
+
+            name.button.on('click', function () {
+              var color = new pc.Color(Math.random(), Math.random(), Math.random());
+              name.element.color = color;
+              entity.render.material.setParameter("material_diffuse", [color.r, color.g, color.b]);
+            });
+            playerInfo.addChild(name);
+
+            var healthBar = new pc.Entity();
+            healthBar.addComponent("element", {
+              pivot: new pc.Vec2(0.5, 0),
+              anchor: new pc.Vec4(0, 0, 1, 0.4),
+              margin: new pc.Vec4(0, 0, 0, 0),
+              color: new pc.Color(0.2, 0.6, 0.2, 1),
+              opacity: 1,
+              type: pc.ELEMENTTYPE_IMAGE });
+
+            playerInfo.addChild(healthBar);
+
+            // update the player text's position to always hover the player
+            app.on("update", function () {
+              // get the desired world position
+              var worldPosition = entity.getPosition();
+              worldPosition.y += 0.6; // slightly above the player's head
+
+              // convert to screen position
+              var screenPosition = worldToScreenSpace(worldPosition, camera.camera, screen.screen);
+
+              if (screenPosition.z > 0) {
+                // if world position is in front of the camera, show it
+                playerInfo.enabled = true;
+
+                // set the UI position
+                playerInfo.setLocalPosition(screenPosition);
+              } else {
+                // if world position is actually *behind* the camera, hide the UI
+                playerInfo.enabled = false;
+              }
+            });
+          }
+
+          createPlayer(1, 135, 30, 1.5);
+          createPlayer(2, 65, -18, 1);
+          createPlayer(3, 0, 15, 2.5);
+        });
       });
-    } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'User Interface');_defineProperty(Example, "NAME", 'World to Screen');
+    } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'User Interface');_defineProperty(Example, "NAME", 'World to Screen');_defineProperty(Example, "WEBGPU_ENABLED", true);
         var example = new Example();
 
         var useTypeScript = window.top.localStorage.getItem('useTypeScript') === 'true';
@@ -253,7 +290,7 @@
                     presets: ["react", "typescript", "env"]
                 }).code;
             }
-            window.exampleFunction = new Function('canvas', 'data', exampleFunction);
+            window.exampleFunction = new Function('canvas', 'deviceType', 'data', exampleFunction);
         }
         window.loadFunction = example.load;
         window.files = window.top.editedFiles || example.constructor.FILES;
@@ -296,7 +333,7 @@
                 }).observe(canvasContainerElement);
             }
 
-            if (true) {
+            if (true && app.graphicsDevice.deviceType !== 'webgpu') {
                 // set up miniStats
                 var miniStats = new pcx.MiniStats(app);
                 if (urlParams.get('miniStats') === 'false') {
@@ -372,14 +409,28 @@
                     return data;
                 } else if (arg === 'pcx') {
                     return pcx;
+                } else if (arg === 'deviceType') {
+                    if (true) {
+                        return window.top.preferredGraphicsDevice || 'webgpu';
+                    } else if (['webgl1', 'webgl2'].includes(window.top.preferredGraphicsDevice)) {
+                        return window.top.preferredGraphicsDevice;
+                    } else {
+                        return 'webgl2';
+                    }
                 }
             });
+
             window.exampleFunction.apply(this, args);
-            if (pc.app && pc.app.graphicsDevice.canvas) {
-                setupApplication(pc.app);
+
+            const pollHandler = setInterval(appCreationPoll, 50);
+            function appCreationPoll() {
+                if (pc.app && pc.app.graphicsDevice.canvas) {
+                    clearInterval(pollHandler);
+                    setupApplication(pc.app);
+                    var event = new CustomEvent("exampleLoad");
+                    window.top.dispatchEvent(event);
+                }
             }
-            var event = new CustomEvent("exampleLoad");
-            window.top.dispatchEvent(event);
         }
     </script>
     <script>

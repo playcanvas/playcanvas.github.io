@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import { extends as _extends } from '../../../_virtual/_rollupPluginBabelHelpers.js';
@@ -344,6 +344,7 @@ class AnimController {
 			this._stateNames.push(path[0]);
 		}
 		state.addAnimation(path, animTrack);
+		this._animEvaluator.updateClipTrack(state.name, animTrack);
 		if (speed !== undefined) {
 			state.speed = speed;
 		}
@@ -451,7 +452,7 @@ class AnimController {
 				}
 			}
 		}
-		this._animEvaluator.update(dt);
+		this._animEvaluator.update(dt, this.activeState.hasAnimations);
 	}
 	findParameter(name) {
 		return this._parameters[name];

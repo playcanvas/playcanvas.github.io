@@ -1,30 +1,40 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (DEBUG PROFILER)
+ * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (DEBUG PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 var refractionCubePS = /* glsl */`
 uniform float material_refractionIndex;
 
-vec3 refract2(vec3 viewVec, vec3 Normal, float IOR) {
-    float vn = dot(viewVec, Normal);
+vec3 refract2(vec3 viewVec, vec3 normal, float IOR) {
+    float vn = dot(viewVec, normal);
     float k = 1.0 - IOR * IOR * (1.0 - vn * vn);
-    vec3 refrVec = IOR * viewVec - (IOR * vn + sqrt(k)) * Normal;
+    vec3 refrVec = IOR * viewVec - (IOR * vn + sqrt(k)) * normal;
     return refrVec;
 }
 
-void addRefraction() {
+void addRefraction(
+    vec3 worldNormal, 
+    vec3 viewDir, 
+    float thickness, 
+    float gloss, 
+    vec3 specularity, 
+    vec3 albedo, 
+    float transmission
+#if defined(LIT_IRIDESCENCE)
+    , vec3 iridescenceFresnel,
+    IridescenceArgs iridescence
+#endif 
+) {
     // use same reflection code with refraction vector
-    vec3 tmpDir = dReflDirW;
     vec4 tmpRefl = dReflection;
-    dReflDirW = refract2(-dViewDirW, dNormalW, material_refractionIndex);
+    vec3 reflectionDir = refract2(-viewDir, worldNormal, material_refractionIndex);
     dReflection = vec4(0);
-    addReflection();
-    dDiffuseLight = mix(dDiffuseLight, dReflection.rgb * dAlbedo, dTransmission);
+    addReflection(reflectionDir, gloss);
+    dDiffuseLight = mix(dDiffuseLight, dReflection.rgb * albedo, transmission);
     dReflection = tmpRefl;
-    dReflDirW = tmpDir;
 }
 `;
 
 export { refractionCubePS as default };
-//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoicmVmcmFjdGlvbkN1YmUuanMiLCJzb3VyY2VzIjpbIi4uLy4uLy4uLy4uLy4uLy4uLy4uL3NyYy9zY2VuZS9zaGFkZXItbGliL2NodW5rcy9saXQvZnJhZy9yZWZyYWN0aW9uQ3ViZS5qcyJdLCJzb3VyY2VzQ29udGVudCI6WyJleHBvcnQgZGVmYXVsdCAvKiBnbHNsICovYFxudW5pZm9ybSBmbG9hdCBtYXRlcmlhbF9yZWZyYWN0aW9uSW5kZXg7XG5cbnZlYzMgcmVmcmFjdDIodmVjMyB2aWV3VmVjLCB2ZWMzIE5vcm1hbCwgZmxvYXQgSU9SKSB7XG4gICAgZmxvYXQgdm4gPSBkb3Qodmlld1ZlYywgTm9ybWFsKTtcbiAgICBmbG9hdCBrID0gMS4wIC0gSU9SICogSU9SICogKDEuMCAtIHZuICogdm4pO1xuICAgIHZlYzMgcmVmclZlYyA9IElPUiAqIHZpZXdWZWMgLSAoSU9SICogdm4gKyBzcXJ0KGspKSAqIE5vcm1hbDtcbiAgICByZXR1cm4gcmVmclZlYztcbn1cblxudm9pZCBhZGRSZWZyYWN0aW9uKCkge1xuICAgIC8vIHVzZSBzYW1lIHJlZmxlY3Rpb24gY29kZSB3aXRoIHJlZnJhY3Rpb24gdmVjdG9yXG4gICAgdmVjMyB0bXBEaXIgPSBkUmVmbERpclc7XG4gICAgdmVjNCB0bXBSZWZsID0gZFJlZmxlY3Rpb247XG4gICAgZFJlZmxEaXJXID0gcmVmcmFjdDIoLWRWaWV3RGlyVywgZE5vcm1hbFcsIG1hdGVyaWFsX3JlZnJhY3Rpb25JbmRleCk7XG4gICAgZFJlZmxlY3Rpb24gPSB2ZWM0KDApO1xuICAgIGFkZFJlZmxlY3Rpb24oKTtcbiAgICBkRGlmZnVzZUxpZ2h0ID0gbWl4KGREaWZmdXNlTGlnaHQsIGRSZWZsZWN0aW9uLnJnYiAqIGRBbGJlZG8sIGRUcmFuc21pc3Npb24pO1xuICAgIGRSZWZsZWN0aW9uID0gdG1wUmVmbDtcbiAgICBkUmVmbERpclcgPSB0bXBEaXI7XG59XG5gO1xuIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7Ozs7O0FBQUEsdUJBQWUsVUFBVyxDQUFBO0FBQzFCO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQSxDQUFDOzs7OyJ9
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoicmVmcmFjdGlvbkN1YmUuanMiLCJzb3VyY2VzIjpbIi4uLy4uLy4uLy4uLy4uLy4uLy4uL3NyYy9zY2VuZS9zaGFkZXItbGliL2NodW5rcy9saXQvZnJhZy9yZWZyYWN0aW9uQ3ViZS5qcyJdLCJzb3VyY2VzQ29udGVudCI6WyJleHBvcnQgZGVmYXVsdCAvKiBnbHNsICovYFxudW5pZm9ybSBmbG9hdCBtYXRlcmlhbF9yZWZyYWN0aW9uSW5kZXg7XG5cbnZlYzMgcmVmcmFjdDIodmVjMyB2aWV3VmVjLCB2ZWMzIG5vcm1hbCwgZmxvYXQgSU9SKSB7XG4gICAgZmxvYXQgdm4gPSBkb3Qodmlld1ZlYywgbm9ybWFsKTtcbiAgICBmbG9hdCBrID0gMS4wIC0gSU9SICogSU9SICogKDEuMCAtIHZuICogdm4pO1xuICAgIHZlYzMgcmVmclZlYyA9IElPUiAqIHZpZXdWZWMgLSAoSU9SICogdm4gKyBzcXJ0KGspKSAqIG5vcm1hbDtcbiAgICByZXR1cm4gcmVmclZlYztcbn1cblxudm9pZCBhZGRSZWZyYWN0aW9uKFxuICAgIHZlYzMgd29ybGROb3JtYWwsIFxuICAgIHZlYzMgdmlld0RpciwgXG4gICAgZmxvYXQgdGhpY2tuZXNzLCBcbiAgICBmbG9hdCBnbG9zcywgXG4gICAgdmVjMyBzcGVjdWxhcml0eSwgXG4gICAgdmVjMyBhbGJlZG8sIFxuICAgIGZsb2F0IHRyYW5zbWlzc2lvblxuI2lmIGRlZmluZWQoTElUX0lSSURFU0NFTkNFKVxuICAgICwgdmVjMyBpcmlkZXNjZW5jZUZyZXNuZWwsXG4gICAgSXJpZGVzY2VuY2VBcmdzIGlyaWRlc2NlbmNlXG4jZW5kaWYgXG4pIHtcbiAgICAvLyB1c2Ugc2FtZSByZWZsZWN0aW9uIGNvZGUgd2l0aCByZWZyYWN0aW9uIHZlY3RvclxuICAgIHZlYzQgdG1wUmVmbCA9IGRSZWZsZWN0aW9uO1xuICAgIHZlYzMgcmVmbGVjdGlvbkRpciA9IHJlZnJhY3QyKC12aWV3RGlyLCB3b3JsZE5vcm1hbCwgbWF0ZXJpYWxfcmVmcmFjdGlvbkluZGV4KTtcbiAgICBkUmVmbGVjdGlvbiA9IHZlYzQoMCk7XG4gICAgYWRkUmVmbGVjdGlvbihyZWZsZWN0aW9uRGlyLCBnbG9zcyk7XG4gICAgZERpZmZ1c2VMaWdodCA9IG1peChkRGlmZnVzZUxpZ2h0LCBkUmVmbGVjdGlvbi5yZ2IgKiBhbGJlZG8sIHRyYW5zbWlzc2lvbik7XG4gICAgZFJlZmxlY3Rpb24gPSB0bXBSZWZsO1xufVxuYDtcbiJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiOzs7OztBQUFBLHVCQUFlLFVBQVcsQ0FBQTtBQUMxQjtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQSxDQUFDOzs7OyJ9

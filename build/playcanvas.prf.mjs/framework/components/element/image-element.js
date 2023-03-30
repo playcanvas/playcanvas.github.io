@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import '../../../core/tracing.js';
@@ -9,9 +9,10 @@ import { Color } from '../../../core/math/color.js';
 import { Vec2 } from '../../../core/math/vec2.js';
 import { Vec3 } from '../../../core/math/vec3.js';
 import { Vec4 } from '../../../core/math/vec4.js';
-import { BUFFER_STATIC, PRIMITIVE_TRIFAN, FUNC_EQUAL, STENCILOP_DECREMENT, SEMANTIC_POSITION, TYPE_FLOAT32, SEMANTIC_NORMAL, SEMANTIC_TEXCOORD0 } from '../../../platform/graphics/constants.js';
+import { SEMANTIC_POSITION, TYPE_FLOAT32, SEMANTIC_NORMAL, SEMANTIC_TEXCOORD0, BUFFER_STATIC, PRIMITIVE_TRISTRIP, FUNC_EQUAL, STENCILOP_DECREMENT } from '../../../platform/graphics/constants.js';
 import { VertexBuffer } from '../../../platform/graphics/vertex-buffer.js';
 import { VertexFormat } from '../../../platform/graphics/vertex-format.js';
+import { DeviceCache } from '../../../platform/graphics/device-cache.js';
 import { SPRITE_RENDERMODE_SLICED, SPRITE_RENDERMODE_TILED, LAYER_HUD, LAYER_WORLD, SPRITE_RENDERMODE_SIMPLE } from '../../../scene/constants.js';
 import { GraphNode } from '../../../scene/graph-node.js';
 import { Mesh } from '../../../scene/mesh.js';
@@ -21,6 +22,7 @@ import { StencilParameters } from '../../../scene/stencil-parameters.js';
 import { FITMODE_STRETCH, FITMODE_CONTAIN, FITMODE_COVER } from './constants.js';
 import { Asset } from '../../asset/asset.js';
 
+const _vertexFormatDeviceCache = new DeviceCache();
 class ImageRenderable {
 	constructor(entity, mesh, material) {
 		this._entity = entity;
@@ -285,43 +287,27 @@ class ImageElement {
 		const w = element.calculatedWidth;
 		const h = element.calculatedHeight;
 		const r = this._rect;
-		const vertexData = new ArrayBuffer(4 * 8 * 4);
-		const vertexDataF32 = new Float32Array(vertexData);
-		vertexDataF32[5] = 1;
-		vertexDataF32[6] = r.x;
-		vertexDataF32[7] = 1.0 - r.y;
-		vertexDataF32[8] = w;
-		vertexDataF32[13] = 1;
-		vertexDataF32[14] = r.x + r.z;
-		vertexDataF32[15] = 1.0 - r.y;
-		vertexDataF32[16] = w;
-		vertexDataF32[17] = h;
-		vertexDataF32[21] = 1;
-		vertexDataF32[22] = r.x + r.z;
-		vertexDataF32[23] = 1.0 - (r.y + r.w);
-		vertexDataF32[25] = h;
-		vertexDataF32[29] = 1;
-		vertexDataF32[30] = r.x;
-		vertexDataF32[31] = 1.0 - (r.y + r.w);
-		const vertexDesc = [{
-			semantic: SEMANTIC_POSITION,
-			components: 3,
-			type: TYPE_FLOAT32
-		}, {
-			semantic: SEMANTIC_NORMAL,
-			components: 3,
-			type: TYPE_FLOAT32
-		}, {
-			semantic: SEMANTIC_TEXCOORD0,
-			components: 2,
-			type: TYPE_FLOAT32
-		}];
 		const device = this._system.app.graphicsDevice;
-		const vertexFormat = new VertexFormat(device, vertexDesc);
-		const vertexBuffer = new VertexBuffer(device, vertexFormat, 4, BUFFER_STATIC, vertexData);
+		const vertexData = new Float32Array([w, 0, 0, 0, 0, 1, r.x + r.z, 1.0 - r.y, w, h, 0, 0, 0, 1, r.x + r.z, 1.0 - (r.y + r.w), 0, 0, 0, 0, 0, 1, r.x, 1.0 - r.y, 0, h, 0, 0, 0, 1, r.x, 1.0 - (r.y + r.w)]);
+		const vertexFormat = _vertexFormatDeviceCache.get(device, () => {
+			return new VertexFormat(device, [{
+				semantic: SEMANTIC_POSITION,
+				components: 3,
+				type: TYPE_FLOAT32
+			}, {
+				semantic: SEMANTIC_NORMAL,
+				components: 3,
+				type: TYPE_FLOAT32
+			}, {
+				semantic: SEMANTIC_TEXCOORD0,
+				components: 2,
+				type: TYPE_FLOAT32
+			}]);
+		});
+		const vertexBuffer = new VertexBuffer(device, vertexFormat, 4, BUFFER_STATIC, vertexData.buffer);
 		const mesh = new Mesh(device);
 		mesh.vertexBuffer = vertexBuffer;
-		mesh.primitive[0].type = PRIMITIVE_TRIFAN;
+		mesh.primitive[0].type = PRIMITIVE_TRISTRIP;
 		mesh.primitive[0].base = 0;
 		mesh.primitive[0].count = 4;
 		mesh.primitive[0].indexed = false;
@@ -384,12 +370,12 @@ class ImageElement {
 			const vertexDataF32 = new Float32Array(vb.lock());
 			const hp = element.pivot.x;
 			const vp = element.pivot.y;
-			vertexDataF32[0] = 0 - hp * w;
+			vertexDataF32[0] = w - hp * w;
 			vertexDataF32[1] = 0 - vp * h;
 			vertexDataF32[8] = w - hp * w;
-			vertexDataF32[9] = 0 - vp * h;
-			vertexDataF32[16] = w - hp * w;
-			vertexDataF32[17] = h - vp * h;
+			vertexDataF32[9] = h - vp * h;
+			vertexDataF32[16] = 0 - hp * w;
+			vertexDataF32[17] = 0 - vp * h;
 			vertexDataF32[24] = 0 - hp * w;
 			vertexDataF32[25] = h - vp * h;
 			let atlasTextureWidth = 1;
@@ -403,12 +389,12 @@ class ImageElement {
 					atlasTextureHeight = this._sprite.atlas.texture.height;
 				}
 			}
-			vertexDataF32[6] = rect.x / atlasTextureWidth;
+			vertexDataF32[6] = (rect.x + rect.z) / atlasTextureWidth;
 			vertexDataF32[7] = 1.0 - rect.y / atlasTextureHeight;
 			vertexDataF32[14] = (rect.x + rect.z) / atlasTextureWidth;
-			vertexDataF32[15] = 1.0 - rect.y / atlasTextureHeight;
-			vertexDataF32[22] = (rect.x + rect.z) / atlasTextureWidth;
-			vertexDataF32[23] = 1.0 - (rect.y + rect.w) / atlasTextureHeight;
+			vertexDataF32[15] = 1.0 - (rect.y + rect.w) / atlasTextureHeight;
+			vertexDataF32[22] = rect.x / atlasTextureWidth;
+			vertexDataF32[23] = 1.0 - rect.y / atlasTextureHeight;
 			vertexDataF32[30] = rect.x / atlasTextureWidth;
 			vertexDataF32[31] = 1.0 - (rect.y + rect.w) / atlasTextureHeight;
 			vb.unlock();

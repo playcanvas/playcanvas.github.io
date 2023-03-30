@@ -51,11 +51,12 @@
 
 
 
+
     function controls(data) {
       return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/
       React.createElement(Panel, { headerText: "Material" }, /*#__PURE__*/
-      React.createElement(LabelGroup, { text: "Shininess" }, /*#__PURE__*/
-      React.createElement(SliderInput, { binding: new BindingTwoWay(), link: { observer: data, path: 'settings.material.shininess' }, min: 0, max: 100, precision: 0 })), /*#__PURE__*/
+      React.createElement(LabelGroup, { text: "Gloss" }, /*#__PURE__*/
+      React.createElement(SliderInput, { binding: new BindingTwoWay(), link: { observer: data, path: 'settings.material.gloss' }, min: 0, max: 1, precision: 2 })), /*#__PURE__*/
 
       React.createElement(LabelGroup, { text: "Metalness" }, /*#__PURE__*/
       React.createElement(SliderInput, { binding: new BindingTwoWay(), link: { observer: data, path: 'settings.material.metalness' }, min: 0, max: 1, precision: 2 }))));
@@ -64,11 +65,11 @@
 
     } }, { key: "example", value:
 
-    function example(canvas, data) {
+    function example(canvas, deviceType, data) {
 
       data.set('settings', {
         material: {
-          shininess: 80,
+          gloss: 0.8,
           metalness: 0.7 } });
 
 
@@ -82,7 +83,13 @@
         'luts': new pc.Asset('luts', 'json', { url: '/../../static/assets/json/area-light-luts.json' }) };
 
 
-      pc.createGraphicsDevice(canvas).then(function (device) {
+      var gfxOptions = {
+        deviceTypes: [deviceType],
+        glslangUrl: '/../../static/lib/glslang/glslang.js',
+        twgslUrl: '/../../static/lib/twgsl/twgsl.js' };
+
+
+      pc.createGraphicsDevice(canvas, gfxOptions).then(function (device) {
 
         var createOptions = new pc.AppOptions();
         createOptions.graphicsDevice = device;
@@ -149,7 +156,7 @@
           // ground material
           var groundMaterial = new pc.StandardMaterial();
           groundMaterial.diffuse = pc.Color.GRAY;
-          groundMaterial.shininess = 80;
+          groundMaterial.gloss = 0.8;
           groundMaterial.metalness = 0.7;
           groundMaterial.useMetalness = true;
 
@@ -304,13 +311,13 @@
           // handle HUD changes - update properties on the material
           data.on('*:set', function (path, value) {
             var pathArray = path.split('.');
-            if (pathArray[2] === "shininess") groundMaterial.shininess = value;
+            if (pathArray[2] === "gloss") groundMaterial.gloss = value;
             if (pathArray[2] === "metalness") groundMaterial.metalness = value;
             groundMaterial.update();
           });
         });
       });
-    } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'Graphics');_defineProperty(Example, "NAME", 'Clustered Area Lights');
+    } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'Graphics');_defineProperty(Example, "NAME", 'Clustered Area Lights');_defineProperty(Example, "WEBGPU_ENABLED", true);
         var example = new Example();
 
         var useTypeScript = window.top.localStorage.getItem('useTypeScript') === 'true';
@@ -325,7 +332,7 @@
                     presets: ["react", "typescript", "env"]
                 }).code;
             }
-            window.exampleFunction = new Function('canvas', 'data', exampleFunction);
+            window.exampleFunction = new Function('canvas', 'deviceType', 'data', exampleFunction);
         }
         window.loadFunction = example.load;
         window.files = window.top.editedFiles || example.constructor.FILES;
@@ -368,7 +375,7 @@
                 }).observe(canvasContainerElement);
             }
 
-            if (true) {
+            if (true && app.graphicsDevice.deviceType !== 'webgpu') {
                 // set up miniStats
                 var miniStats = new pcx.MiniStats(app);
                 if (urlParams.get('miniStats') === 'false') {
@@ -444,14 +451,28 @@
                     return data;
                 } else if (arg === 'pcx') {
                     return pcx;
+                } else if (arg === 'deviceType') {
+                    if (true) {
+                        return window.top.preferredGraphicsDevice || 'webgpu';
+                    } else if (['webgl1', 'webgl2'].includes(window.top.preferredGraphicsDevice)) {
+                        return window.top.preferredGraphicsDevice;
+                    } else {
+                        return 'webgl2';
+                    }
                 }
             });
+
             window.exampleFunction.apply(this, args);
-            if (pc.app && pc.app.graphicsDevice.canvas) {
-                setupApplication(pc.app);
+
+            const pollHandler = setInterval(appCreationPoll, 50);
+            function appCreationPoll() {
+                if (pc.app && pc.app.graphicsDevice.canvas) {
+                    clearInterval(pollHandler);
+                    setupApplication(pc.app);
+                    var event = new CustomEvent("exampleLoad");
+                    window.top.dispatchEvent(event);
+                }
             }
-            var event = new CustomEvent("exampleLoad");
-            window.top.dispatchEvent(event);
         }
     </script>
     <script>

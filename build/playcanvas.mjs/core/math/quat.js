@@ -39,6 +39,9 @@ class Quat {
 	equals(rhs) {
 		return this.x === rhs.x && this.y === rhs.y && this.z === rhs.z && this.w === rhs.w;
 	}
+	equalsApprox(rhs, epsilon = 1e-6) {
+		return Math.abs(this.x - rhs.x) < epsilon && Math.abs(this.y - rhs.y) < epsilon && Math.abs(this.z - rhs.z) < epsilon && Math.abs(this.w - rhs.w) < epsilon;
+	}
 	getAxisAngle(axis) {
 		let rad = Math.acos(this.w) * 2;
 		const s = Math.sin(rad / 2);
@@ -250,6 +253,28 @@ class Quat {
 			}
 		}
 		return this;
+	}
+	setFromDirections(from, to) {
+		const dotProduct = 1 + from.dot(to);
+		if (dotProduct < Number.EPSILON) {
+			if (Math.abs(from.x) > Math.abs(from.y)) {
+				this.x = -from.z;
+				this.y = 0;
+				this.z = from.x;
+				this.w = 0;
+			} else {
+				this.x = 0;
+				this.y = -from.z;
+				this.z = from.y;
+				this.w = 0;
+			}
+		} else {
+			this.x = from.y * to.z - from.z * to.y;
+			this.y = from.z * to.x - from.x * to.z;
+			this.z = from.x * to.y - from.y * to.x;
+			this.w = dotProduct;
+		}
+		return this.normalize();
 	}
 	slerp(lhs, rhs, alpha) {
 		const lx = lhs.x;

@@ -1,24 +1,19 @@
 import { Vec3 } from '../math/vec3.js';
 
-const tmpVecA = new Vec3();
 class Plane {
-	constructor(point, normal) {
-		this.point = new Vec3();
-		this.normal = Vec3.BACK.clone();
-		if (point) {
-			this.point.copy(point);
-		}
-		if (normal) {
-			this.normal.copy(normal);
-		}
-	}
-	set(point, normal) {
-		this.point.copy(point);
+	constructor(normal = Vec3.UP, distance = 0) {
+		this.normal = new Vec3();
+		this.distance = void 0;
 		this.normal.copy(normal);
+		this.distance = distance;
+	}
+	setFromPointNormal(point, normal) {
+		this.normal.copy(normal);
+		this.distance = -this.normal.dot(point);
 		return this;
 	}
 	intersectsLine(start, end, point) {
-		const d = -this.normal.dot(this.point);
+		const d = this.distance;
 		const d0 = this.normal.dot(start) + d;
 		const d1 = this.normal.dot(end) + d;
 		const t = d0 / (d0 - d1);
@@ -27,17 +22,22 @@ class Plane {
 		return intersects;
 	}
 	intersectsRay(ray, point) {
-		const pointToOrigin = tmpVecA.sub2(this.point, ray.origin);
-		const t = this.normal.dot(pointToOrigin) / this.normal.dot(ray.direction);
-		const intersects = t >= 0;
-		if (intersects && point) point.copy(ray.direction).mulScalar(t).add(ray.origin);
-		return intersects;
+		const denominator = this.normal.dot(ray.direction);
+		if (denominator === 0) return false;
+		const t = -(this.normal.dot(ray.origin) + this.distance) / denominator;
+		if (t >= 0 && point) {
+			point.copy(ray.direction).mulScalar(t).add(ray.origin);
+		}
+		return t >= 0;
 	}
 	copy(src) {
-		return this.set(src.point, src.normal);
+		this.normal.copy(src.normal);
+		this.distance = src.distance;
+		return this;
 	}
 	clone() {
-		return new this.constructor(this.point, this.normal);
+		const cstr = this.constructor;
+		return new cstr().copy(this);
 	}
 }
 

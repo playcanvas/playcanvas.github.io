@@ -1,6 +1,3 @@
-import '../core/tracing.js';
-import '../platform/graphics/constants.js';
-
 class FrameGraph {
 	constructor() {
 		this.renderPasses = [];
@@ -66,9 +63,7 @@ class FrameGraph {
 		for (let i = 0; i < renderPasses.length; i++) {
 			renderPasses[i].render();
 		}
-		this.log(device);
 	}
-	log(device) {}
 }
 
 export { FrameGraph };

@@ -51,85 +51,114 @@
 
 
 
+
     function controls(data) {
       return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/
       React.createElement(Button, { text: "Download USDZ", onClick: function onClick() {return data.emit('download');} }));
 
     } }, { key: "example", value:
 
-    function example(canvas, pcx, data) {
-
-      // Create the app and start the update loop
-      var app = new pc.Application(canvas, {});
+    function example(canvas, deviceType, pcx, data) {
 
       var assets = {
-        'helipad.dds': new pc.Asset('helipad.dds', 'cubemap', { url: '/../../static/assets/cubemaps/helipad.dds' }, { type: pc.TEXTURETYPE_RGBM }),
+        'helipad': new pc.Asset('helipad-env-atlas', 'texture', { url: '/../../static/assets/cubemaps/helipad-env-atlas.png' }, { type: pc.TEXTURETYPE_RGBP }),
         'bench': new pc.Asset('bench', 'container', { url: '/../../static/assets/models/bench_wooden_01.glb' }) };
 
 
-      var assetListLoader = new pc.AssetListLoader(Object.values(assets), app.assets);
-      assetListLoader.load(function () {
+      var gfxOptions = {
+        deviceTypes: [deviceType],
+        glslangUrl: '/../../static/lib/glslang/glslang.js',
+        twgslUrl: '/../../static/lib/twgsl/twgsl.js' };
+
+
+      pc.createGraphicsDevice(canvas, gfxOptions).then(function (device) {
+
+        var createOptions = new pc.AppOptions();
+        createOptions.graphicsDevice = device;
+
+        createOptions.componentSystems = [
+        // @ts-ignore
+        pc.RenderComponentSystem,
+        // @ts-ignore
+        pc.CameraComponentSystem,
+        // @ts-ignore
+        pc.LightComponentSystem];
+
+        createOptions.resourceHandlers = [
+        // @ts-ignore
+        pc.TextureHandler,
+        // @ts-ignore
+        pc.ContainerHandler];
+
+
+        var app = new pc.AppBase(canvas);
+        app.init(createOptions);
 
         // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
         app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
         app.setCanvasResolution(pc.RESOLUTION_AUTO);
 
-        app.start();
+        var assetListLoader = new pc.AssetListLoader(Object.values(assets), app.assets);
+        assetListLoader.load(function () {
 
-        // get the instance of the bench and set up with render component
-        var entity = assets.bench.resource.instantiateRenderEntity();
-        app.root.addChild(entity);
-
-        // Create an Entity with a camera component
-        var camera = new pc.Entity();
-        camera.addComponent("camera", {
-          clearColor: new pc.Color(0.2, 0.1, 0.1),
-          farClip: 100 });
-
-        camera.translate(-3, 1, 2);
-        camera.lookAt(0, 0.5, 0);
-        app.root.addChild(camera);
-
-        // set skybox
-        app.scene.setSkybox(assets["helipad.dds"].resources);
-        app.scene.toneMapping = pc.TONEMAP_ACES;
-        app.scene.skyboxMip = 1;
-
-        // a link element, created in the html part of the examples.
-        var link = document.getElementById('ar-link');
-
-        // convert the loaded entity into asdz file
-        var options = {
-          maxTextureSize: 1024 };
+          app.start();
 
 
-        new pcx.UsdzExporter().build(entity, options).then(function (arrayBuffer) {
-          var blob = new Blob([arrayBuffer], { type: 'application/octet-stream' });
+          // get the instance of the bench and set up with render component
+          var entity = assets.bench.resource.instantiateRenderEntity();
+          app.root.addChild(entity);
 
-          // On iPhone Safari, this link creates a clickable AR link on the screen. When this is clicked,
-          // the download of the .asdz file triggers its opening in QuickLook AT mode.
-          // In other browsers, this simply downloads the generated .asdz file.
+          // Create an Entity with a camera component
+          var camera = new pc.Entity();
+          camera.addComponent("camera", {
+            clearColor: new pc.Color(0.2, 0.1, 0.1),
+            farClip: 100 });
 
-          // @ts-ignore
-          link.download = "bench.usdz";
+          camera.translate(-3, 1, 2);
+          camera.lookAt(0, 0.5, 0);
+          app.root.addChild(camera);
 
-          // @ts-ignore
-          link.href = URL.createObjectURL(blob);
-        })["catch"](console.error);
+          // set skybox
+          app.scene.envAtlas = assets.helipad.resource;
+          app.scene.toneMapping = pc.TONEMAP_ACES;
+          app.scene.skyboxMip = 1;
 
-        // when clicking on the download UI button, trigger the download
-        data.on('download', function () {
-          link.click();
-        });
+          // a link element, created in the html part of the examples.
+          var link = document.getElementById('ar-link');
 
-        // spin the meshe
-        app.on("update", function (dt) {
-          if (entity) {
-            entity.rotate(0, -12 * dt, 0);
-          }
+          // convert the loaded entity into asdz file
+          var options = {
+            maxTextureSize: 1024 };
+
+
+          new pcx.UsdzExporter().build(entity, options).then(function (arrayBuffer) {
+            var blob = new Blob([arrayBuffer], { type: 'application/octet-stream' });
+
+            // On iPhone Safari, this link creates a clickable AR link on the screen. When this is clicked,
+            // the download of the .asdz file triggers its opening in QuickLook AT mode.
+            // In other browsers, this simply downloads the generated .asdz file.
+
+            // @ts-ignore
+            link.download = "bench.usdz";
+
+            // @ts-ignore
+            link.href = URL.createObjectURL(blob);
+          })["catch"](console.error);
+
+          // when clicking on the download UI button, trigger the download
+          data.on('download', function () {
+            link.click();
+          });
+
+          // spin the meshe
+          app.on("update", function (dt) {
+            if (entity) {
+              entity.rotate(0, -12 * dt, 0);
+            }
+          });
         });
       });
-    } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'Loaders');_defineProperty(Example, "NAME", 'USDZ Export');
+    } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'Loaders');_defineProperty(Example, "NAME", 'USDZ Export');_defineProperty(Example, "WEBGPU_ENABLED", true);
         var example = new Example();
 
         var useTypeScript = window.top.localStorage.getItem('useTypeScript') === 'true';
@@ -144,7 +173,7 @@
                     presets: ["react", "typescript", "env"]
                 }).code;
             }
-            window.exampleFunction = new Function('canvas', 'data', exampleFunction);
+            window.exampleFunction = new Function('canvas', 'deviceType', 'data', exampleFunction);
         }
         window.loadFunction = example.load;
         window.files = window.top.editedFiles || example.constructor.FILES;
@@ -187,7 +216,7 @@
                 }).observe(canvasContainerElement);
             }
 
-            if (true) {
+            if (true && app.graphicsDevice.deviceType !== 'webgpu') {
                 // set up miniStats
                 var miniStats = new pcx.MiniStats(app);
                 if (urlParams.get('miniStats') === 'false') {
@@ -263,14 +292,28 @@
                     return data;
                 } else if (arg === 'pcx') {
                     return pcx;
+                } else if (arg === 'deviceType') {
+                    if (true) {
+                        return window.top.preferredGraphicsDevice || 'webgpu';
+                    } else if (['webgl1', 'webgl2'].includes(window.top.preferredGraphicsDevice)) {
+                        return window.top.preferredGraphicsDevice;
+                    } else {
+                        return 'webgl2';
+                    }
                 }
             });
+
             window.exampleFunction.apply(this, args);
-            if (pc.app && pc.app.graphicsDevice.canvas) {
-                setupApplication(pc.app);
+
+            const pollHandler = setInterval(appCreationPoll, 50);
+            function appCreationPoll() {
+                if (pc.app && pc.app.graphicsDevice.canvas) {
+                    clearInterval(pollHandler);
+                    setupApplication(pc.app);
+                    var event = new CustomEvent("exampleLoad");
+                    window.top.dispatchEvent(event);
+                }
             }
-            var event = new CustomEvent("exampleLoad");
-            window.top.dispatchEvent(event);
         }
     </script>
     <script>

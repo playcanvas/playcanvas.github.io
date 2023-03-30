@@ -1,1 +1,1 @@
-var a="\nvoid getTBN() {\n\t\tdTBN = mat3(normalize(dTangentW), normalize(dBinormalW), normalize(dVertexNormalW));\n}\n";export{a as default};
+var n="\nvoid getTBN(vec3 tangent, vec3 binormal, vec3 normal) {\n\t\tdTBN = mat3(normalize(tangent), normalize(binormal), normalize(normal));\n}\n";export{n as default};

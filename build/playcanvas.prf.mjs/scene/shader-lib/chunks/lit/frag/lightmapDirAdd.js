@@ -1,27 +1,47 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 var lightmapDirAddPS = `
-void addLightMap() {
-		if (dot(dLightmapDir, dLightmapDir) < 0.0001) {
-				dDiffuseLight += dLightmap;
+void addLightMap(
+		vec3 lightmap, 
+		vec3 dir, 
+		vec3 worldNormal, 
+		vec3 viewDir, 
+		vec3 reflectionDir, 
+		float gloss, 
+		vec3 specularity, 
+		vec3 vertexNormal, 
+		mat3 tbn
+#if defined(LIT_IRIDESCENCE)
+		vec3 iridescenceFresnel, 
+		IridescenceArgs iridescence
+#endif
+) {
+		if (dot(dir, dir) < 0.0001) {
+				dDiffuseLight += lightmap;
 		} else {
-				dLightDirNormW = dLightmapDir;
-
-				float vlight = saturate(dot(dLightDirNormW, -dVertexNormalW));
-				float flight = saturate(dot(dLightDirNormW, -dNormalW));
+				float vlight = saturate(dot(dir, -vertexNormal));
+				float flight = saturate(dot(dir, -worldNormal));
 				float nlight = (flight / max(vlight, 0.01)) * 0.5;
 
-				dDiffuseLight += dLightmap * nlight * 2.0;
+				dDiffuseLight += lightmap * nlight * 2.0;
 
-				vec3 halfDirW = normalize(-dLightmapDir + dViewDirW);
-				vec3 specularLight = dLightmap * getLightSpecular(halfDirW);
+				vec3 halfDir = normalize(-dir + viewDir);
+				vec3 specularLight = lightmap * getLightSpecular(halfDir, reflectionDir, worldNormal, viewDir, dir, gloss, tbn);
 
-				#ifdef LIT_SPECULAR_FRESNEL
-				specularLight *= getFresnel(dot(dViewDirW, halfDirW), dSpecularity);
+#ifdef LIT_SPECULAR_FRESNEL
+				specularLight *= 
+						getFresnel(dot(viewDir, halfDir), 
+						gloss, 
+						specularity
+				#if defined(LIT_IRIDESCENCE)
+						, iridescenceFresnel,
+						iridescence
 				#endif
+						);
+#endif
 
 				dSpecularLight += specularLight;
 		}

@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import { extends as _extends } from '../../../_virtual/_rollupPluginBabelHelpers.js';
@@ -25,6 +25,10 @@ class AnimClip {
 	}
 	get name() {
 		return this._name;
+	}
+	set track(track) {
+		this._track = track;
+		this._snapshot = new AnimSnapshot(track);
 	}
 	get track() {
 		return this._track;

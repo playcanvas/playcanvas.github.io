@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 let desktop = false;
@@ -33,7 +33,7 @@ if (typeof navigator !== 'undefined') {
 	if (typeof window !== 'undefined') {
 		touch = 'ontouchstart' in window || 'maxTouchPoints' in navigator && navigator.maxTouchPoints > 0;
 	}
-	gamepads = 'getGamepads' in navigator;
+	gamepads = !!navigator.getGamepads || !!navigator.webkitGetGamepads;
 	workers = typeof Worker !== 'undefined';
 	try {
 		const opts = Object.defineProperty({}, 'passive', {

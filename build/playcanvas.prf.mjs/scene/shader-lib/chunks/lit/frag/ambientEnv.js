@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 var ambientEnvPS = `
@@ -9,8 +9,8 @@ var ambientEnvPS = `
 uniform sampler2D texture_envAtlas;
 #endif
 
-void addAmbient() {
-		vec3 dir = normalize(cubeMapRotate(dNormalW) * vec3(-1.0, 1.0, 1.0));
+void addAmbient(vec3 worldNormal) {
+		vec3 dir = normalize(cubeMapRotate(worldNormal) * vec3(-1.0, 1.0, 1.0));
 		vec2 uv = mapUv(toSphericalUv(dir), vec4(128.0, 256.0 + 128.0, 64.0, 32.0) / atlasSize);
 
 		vec4 raw = texture2D(texture_envAtlas, uv);

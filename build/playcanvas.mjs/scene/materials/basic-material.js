@@ -32,7 +32,7 @@ class BasicMaterial extends Material {
 			this.setParameter('texture_diffuseMap', this.colorMap);
 		}
 	}
-	getShaderVariant(device, scene, objDefs, staticLightList, pass, sortedLights, viewUniformFormat, viewBindGroupFormat) {
+	getShaderVariant(device, scene, objDefs, staticLightList, pass, sortedLights, viewUniformFormat, viewBindGroupFormat, vertexFormat) {
 		if (this.updateShader) {
 			this.updateShader(device, scene, objDefs, staticLightList, pass, sortedLights);
 			return this.shader;
@@ -49,7 +49,7 @@ class BasicMaterial extends Material {
 			diffuseMap: !!this.colorMap,
 			pass: pass
 		};
-		const processingOptions = new ShaderProcessorOptions(viewUniformFormat, viewBindGroupFormat);
+		const processingOptions = new ShaderProcessorOptions(viewUniformFormat, viewBindGroupFormat, vertexFormat);
 		const library = getProgramLibrary(device);
 		library.register('basic', basic);
 		return library.getProgram('basic', options, processingOptions);

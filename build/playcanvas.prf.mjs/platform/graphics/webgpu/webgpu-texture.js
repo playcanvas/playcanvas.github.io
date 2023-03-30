@@ -1,10 +1,10 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import '../../../core/tracing.js';
-import { PIXELFORMAT_DEPTHSTENCIL, PIXELFORMAT_RGBA32F, PIXELFORMAT_RGBA16F, pixelFormatByteSizes, PIXELFORMAT_A8, PIXELFORMAT_L8, PIXELFORMAT_LA8, PIXELFORMAT_RGB565, PIXELFORMAT_RGBA5551, PIXELFORMAT_RGBA4, PIXELFORMAT_RGB8, PIXELFORMAT_RGBA8, PIXELFORMAT_DXT1, PIXELFORMAT_DXT3, PIXELFORMAT_DXT5, PIXELFORMAT_RGB16F, PIXELFORMAT_RGB32F, PIXELFORMAT_R32F, PIXELFORMAT_DEPTH, PIXELFORMAT_111110F, PIXELFORMAT_SRGB, PIXELFORMAT_SRGBA, PIXELFORMAT_ETC1, PIXELFORMAT_ETC2_RGB, PIXELFORMAT_ETC2_RGBA, PIXELFORMAT_PVRTC_2BPP_RGB_1, PIXELFORMAT_PVRTC_2BPP_RGBA_1, PIXELFORMAT_PVRTC_4BPP_RGB_1, PIXELFORMAT_PVRTC_4BPP_RGBA_1, PIXELFORMAT_ASTC_4x4, PIXELFORMAT_ATC_RGB, PIXELFORMAT_ATC_RGBA, PIXELFORMAT_BGRA8, ADDRESS_REPEAT, ADDRESS_CLAMP_TO_EDGE, ADDRESS_MIRRORED_REPEAT } from '../constants.js';
+import { PIXELFORMAT_DEPTHSTENCIL, SAMPLETYPE_DEPTH, SAMPLETYPE_UNFILTERABLE_FLOAT, PIXELFORMAT_RGBA32F, PIXELFORMAT_RGBA16F, pixelFormatByteSizes, PIXELFORMAT_A8, PIXELFORMAT_L8, PIXELFORMAT_LA8, PIXELFORMAT_RGB565, PIXELFORMAT_RGBA5551, PIXELFORMAT_RGBA4, PIXELFORMAT_RGB8, PIXELFORMAT_RGBA8, PIXELFORMAT_DXT1, PIXELFORMAT_DXT3, PIXELFORMAT_DXT5, PIXELFORMAT_RGB16F, PIXELFORMAT_RGB32F, PIXELFORMAT_R32F, PIXELFORMAT_DEPTH, PIXELFORMAT_111110F, PIXELFORMAT_SRGB, PIXELFORMAT_SRGBA, PIXELFORMAT_ETC1, PIXELFORMAT_ETC2_RGB, PIXELFORMAT_ETC2_RGBA, PIXELFORMAT_PVRTC_2BPP_RGB_1, PIXELFORMAT_PVRTC_2BPP_RGBA_1, PIXELFORMAT_PVRTC_4BPP_RGB_1, PIXELFORMAT_PVRTC_4BPP_RGBA_1, PIXELFORMAT_ASTC_4x4, PIXELFORMAT_ATC_RGB, PIXELFORMAT_ATC_RGBA, PIXELFORMAT_BGRA8, ADDRESS_REPEAT, ADDRESS_CLAMP_TO_EDGE, ADDRESS_MIRRORED_REPEAT } from '../constants.js';
 
 const gpuTextureFormats = [];
 gpuTextureFormats[PIXELFORMAT_A8] = '';
@@ -47,7 +47,7 @@ class WebgpuTexture {
 	constructor(texture) {
 		this.gpuTexture = void 0;
 		this.view = void 0;
-		this.sampler = void 0;
+		this.samplers = [];
 		this.descr = void 0;
 		this.format = void 0;
 		this.texture = texture;
@@ -106,30 +106,41 @@ class WebgpuTexture {
 		const view = this.gpuTexture.createView(descr);
 		return view;
 	}
-	getSampler(device) {
-		if (!this.sampler) {
+	getSampler(device, sampleType) {
+		let sampler = this.samplers[sampleType];
+		if (!sampler) {
 			const texture = this.texture;
 			const descr = {
 				addressModeU: gpuAddressModes[texture.addressU],
 				addressModeV: gpuAddressModes[texture.addressV],
 				addressModeW: gpuAddressModes[texture.addressW]
 			};
-			if (this.texture.format === PIXELFORMAT_RGBA32F || this.texture.format === PIXELFORMAT_DEPTHSTENCIL || this.texture.format === PIXELFORMAT_RGBA16F) {
-				descr.magFilter = 'nearest';
-				descr.minFilter = 'nearest';
-				descr.mipmapFilter = 'nearest';
-			} else if (texture.compareOnRead) {
+			if (!sampleType && texture.compareOnRead) {
+				sampleType = SAMPLETYPE_DEPTH;
+			}
+			if (sampleType === SAMPLETYPE_DEPTH) {
 				descr.compare = 'less';
 				descr.magFilter = 'linear';
 				descr.minFilter = 'linear';
+			} else if (sampleType === SAMPLETYPE_UNFILTERABLE_FLOAT) {
+				descr.magFilter = 'nearest';
+				descr.minFilter = 'nearest';
+				descr.mipmapFilter = 'nearest';
 			} else {
-				descr.magFilter = 'linear';
-				descr.minFilter = 'linear';
-				descr.mipmapFilter = 'linear';
+				if (this.texture.format === PIXELFORMAT_RGBA32F || this.texture.format === PIXELFORMAT_DEPTHSTENCIL || this.texture.format === PIXELFORMAT_RGBA16F) {
+					descr.magFilter = 'nearest';
+					descr.minFilter = 'nearest';
+					descr.mipmapFilter = 'nearest';
+				} else {
+					descr.magFilter = 'linear';
+					descr.minFilter = 'linear';
+					descr.mipmapFilter = 'linear';
+				}
 			}
-			this.sampler = device.wgpu.createSampler(descr);
+			sampler = device.wgpu.createSampler(descr);
+			this.samplers[sampleType] = sampler;
 		}
-		return this.sampler;
+		return sampler;
 	}
 	loseContext() {}
 	uploadImmediate(device, texture) {

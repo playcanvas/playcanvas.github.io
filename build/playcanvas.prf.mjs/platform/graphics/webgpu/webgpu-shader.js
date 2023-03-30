@@ -1,24 +1,49 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import '../../../core/tracing.js';
+import { SHADERLANGUAGE_WGSL } from '../constants.js';
 import { ShaderProcessor } from '../shader-processor.js';
 
 class WebgpuShader {
 	constructor(shader) {
 		this._vertexCode = void 0;
 		this._fragmentCode = void 0;
+		this.vertexEntryPoint = 'main';
+		this.fragmentEntryPoint = 'main';
 		this.shader = shader;
 		const definition = shader.definition;
-		if (definition.processingOptions) {
-			this.process();
+		if (definition.shaderLanguage === SHADERLANGUAGE_WGSL) {
+			this._vertexCode = definition.vshader;
+			this._fragmentCode = definition.fshader;
+			this.vertexEntryPoint = 'vertexMain';
+			this.fragmentEntryPoint = 'fragmentMain';
+			shader.ready = true;
+		} else {
+			if (definition.processingOptions) {
+				this.process();
+			}
 		}
 	}
 	destroy(shader) {
 		this._vertexCode = null;
 		this._fragmentCode = null;
+	}
+	createShaderModule(code, shaderType) {
+		const device = this.shader.device;
+		const wgpu = device.wgpu;
+		const shaderModule = wgpu.createShaderModule({
+			code: code
+		});
+		return shaderModule;
+	}
+	getVertexShaderModule() {
+		return this.createShaderModule(this._vertexCode, 'Vertex');
+	}
+	getFragmentShaderModule() {
+		return this.createShaderModule(this._fragmentCode, 'Fragment');
 	}
 	process() {
 		const shader = this.shader;

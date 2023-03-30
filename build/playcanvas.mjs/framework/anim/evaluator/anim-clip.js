@@ -21,6 +21,10 @@ class AnimClip {
 	get name() {
 		return this._name;
 	}
+	set track(track) {
+		this._track = track;
+		this._snapshot = new AnimSnapshot(track);
+	}
 	get track() {
 		return this._track;
 	}

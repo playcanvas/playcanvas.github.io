@@ -1,9 +1,10 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import '../../../core/tracing.js';
+import { AnimTrack } from '../evaluator/anim-track.js';
 import { AnimBlendTree1D } from './anim-blend-tree-1d.js';
 import { AnimBlendTreeCartesian2D } from './anim-blend-tree-2d-cartesian.js';
 import { AnimBlendTreeDirectional2D } from './anim-blend-tree-2d-directional.js';
@@ -12,13 +13,14 @@ import { AnimNode } from './anim-node.js';
 import { ANIM_BLEND_DIRECT, ANIM_BLEND_2D_DIRECTIONAL, ANIM_BLEND_2D_CARTESIAN, ANIM_BLEND_1D, ANIM_CONTROL_STATES } from './constants.js';
 
 class AnimState {
-	constructor(controller, name, speed, loop, blendTree) {
-		this._controller = controller;
-		this._name = name;
+	constructor(controller, name, speed = 1, loop = true, blendTree) {
 		this._animations = {};
 		this._animationList = [];
-		this._speed = speed || 1.0;
-		this._loop = loop === undefined ? true : loop;
+		this._controller = controller;
+		this._name = name;
+		this._speed = speed;
+		this._loop = loop;
+		this._hasAnimations = false;
 		const findParameter = this._controller.findParameter.bind(this._controller);
 		if (blendTree) {
 			this._blendTree = this._createTree(blendTree.type, this, null, name, 1.0, blendTree.parameter ? [blendTree.parameter] : blendTree.parameters, blendTree.children, blendTree.syncAnimations, this._createTree, findParameter);
@@ -58,15 +60,23 @@ class AnimState {
 			node.animTrack = animTrack;
 			this._animationList.push(node);
 		}
+		this._updateHasAnimations();
+	}
+	_updateHasAnimations() {
+		this._hasAnimations = this._animationList.length > 0 && this._animationList.every(animation => animation.animTrack && animation.animTrack !== AnimTrack.EMPTY);
 	}
 	get name() {
 		return this._name;
 	}
 	set animations(value) {
 		this._animationList = value;
+		this._updateHasAnimations();
 	}
 	get animations() {
 		return this._animationList;
+	}
+	get hasAnimations() {
+		return this._hasAnimations;
 	}
 	set speed(value) {
 		this._speed = value;

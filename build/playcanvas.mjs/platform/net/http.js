@@ -196,10 +196,10 @@ class Http {
 			contentType = parts[0].trim();
 		}
 		try {
-			if (contentType === Http.ContentType.JSON || url.split('?')[0].endsWith('.json')) {
-				response = JSON.parse(xhr.responseText);
-			} else if (this._isBinaryContentType(contentType) || this._isBinaryResponseType(xhr.responseType)) {
+			if (this._isBinaryContentType(contentType) || this._isBinaryResponseType(xhr.responseType)) {
 				response = xhr.response;
+			} else if (contentType === Http.ContentType.JSON || url.split('?')[0].endsWith('.json')) {
+				response = JSON.parse(xhr.responseText);
 			} else if (xhr.responseType === Http.ResponseType.DOCUMENT || contentType === Http.ContentType.XML) {
 				response = xhr.responseXML;
 			} else {

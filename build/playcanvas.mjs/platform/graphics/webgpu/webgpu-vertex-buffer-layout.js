@@ -1,4 +1,3 @@
-import '../../../core/tracing.js';
 import { semanticToLocation, TYPE_INT8, TYPE_UINT8, TYPE_INT16, TYPE_UINT16, TYPE_INT32, TYPE_UINT32, TYPE_FLOAT32 } from '../constants.js';
 
 const gpuVertexFormats = [];
@@ -23,7 +22,7 @@ class WebgpuVertexBufferLayout {
 		return layout;
 	}
 	getKey(vertexFormat0, vertexFormat1 = null) {
-		return vertexFormat0.renderingingHashString + (vertexFormat1 ? vertexFormat1.renderingingHashString : '');
+		return `VB[${vertexFormat0 == null ? void 0 : vertexFormat0.renderingHashString}, ${vertexFormat1 == null ? void 0 : vertexFormat1.renderingHashString}]`;
 	}
 	create(vertexFormat0, vertexFormat1) {
 		const layout = [];
@@ -50,10 +49,8 @@ class WebgpuVertexBufferLayout {
 				}
 			}
 		};
-		addFormat(vertexFormat0);
-		if (vertexFormat1) {
-			addFormat(vertexFormat1);
-		}
+		if (vertexFormat0) addFormat(vertexFormat0);
+		if (vertexFormat1) addFormat(vertexFormat1);
 		return layout;
 	}
 }

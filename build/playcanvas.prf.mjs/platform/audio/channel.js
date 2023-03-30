@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import { math } from '../../core/math/math.js';
@@ -8,9 +8,10 @@ import { hasAudioContext } from './capabilities.js';
 
 class Channel {
 	constructor(manager, sound, options = {}) {
-		this.volume = options.volume === undefined ? 1 : options.volume;
-		this.loop = options.loop === undefined ? false : options.loop;
-		this.pitch = options.pitch === undefined ? 1 : options.pitch;
+		var _options$volume, _options$loop, _options$pitch;
+		this.volume = (_options$volume = options.volume) != null ? _options$volume : 1;
+		this.loop = (_options$loop = options.loop) != null ? _options$loop : false;
+		this.pitch = (_options$pitch = options.pitch) != null ? _options$pitch : 1;
 		this.sound = sound;
 		this.paused = false;
 		this.suspended = false;

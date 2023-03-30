@@ -1,10 +1,10 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import '../../core/tracing.js';
-import { DEVICETYPE_WEBGPU, DEVICETYPE_WEBGL, SEMANTIC_POSITION, SEMANTIC_NORMAL, SEMANTIC_TANGENT, SEMANTIC_TEXCOORD0, SEMANTIC_TEXCOORD1, SEMANTIC_TEXCOORD2, SEMANTIC_TEXCOORD3, SEMANTIC_TEXCOORD4, SEMANTIC_TEXCOORD5, SEMANTIC_TEXCOORD6, SEMANTIC_TEXCOORD7, SEMANTIC_COLOR, SEMANTIC_BLENDINDICES, SEMANTIC_BLENDWEIGHT } from './constants.js';
+import { SEMANTIC_POSITION, SEMANTIC_NORMAL, SEMANTIC_TANGENT, SEMANTIC_TEXCOORD0, SEMANTIC_TEXCOORD1, SEMANTIC_TEXCOORD2, SEMANTIC_TEXCOORD3, SEMANTIC_TEXCOORD4, SEMANTIC_TEXCOORD5, SEMANTIC_TEXCOORD6, SEMANTIC_TEXCOORD7, SEMANTIC_COLOR, SEMANTIC_BLENDINDICES, SEMANTIC_BLENDWEIGHT } from './constants.js';
 import gles2PS from './shader-chunks/frag/gles2.js';
 import gles3PS from './shader-chunks/frag/gles3.js';
 import gles3VS from './shader-chunks/vert/gles3.js';
@@ -32,7 +32,7 @@ class ShaderUtils {
 	static createDefinition(device, options) {
 		var _options$name, _options$attributes;
 		const getDefines = (gpu, gl2, gl1, isVertex) => {
-			return device.deviceType === DEVICETYPE_WEBGPU ? gpu : device.webgl2 ? gl2 : ShaderUtils.gl1Extensions(device, options) + gl1;
+			return device.isWebGPU ? gpu : device.webgl2 ? gl2 : ShaderUtils.gl1Extensions(device, options) + gl1;
 		};
 		const name = (_options$name = options.name) != null ? _options$name : 'Untitled';
 		const vertDefines = options.vertexDefines || getDefines(webgpuVS, gles3VS, '');
@@ -71,7 +71,7 @@ class ShaderUtils {
 		return "void main(void) {gl_FragColor = vec4(0.0);}";
 	}
 	static versionCode(device) {
-		if (device.deviceType === DEVICETYPE_WEBGPU) {
+		if (device.isWebGPU) {
 			return '#version 450\n';
 		}
 		return device.webgl2 ? "#version 300 es\n" : "";
@@ -90,7 +90,7 @@ class ShaderUtils {
 			}
 		}
 		const precision = forcePrecision ? forcePrecision : device.precision;
-		if (device.deviceType === DEVICETYPE_WEBGL) {
+		if (!device.isWebGPU) {
 			code = `precision ${precision} float;\n`;
 			if (device.webgl2) {
 				code += `precision ${precision} sampler2DShadow;\n`;

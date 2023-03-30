@@ -10,30 +10,46 @@ import { PIXELFORMAT_RGBA16F, PIXELFORMAT_RGBA32F, PIXELFORMAT_RGB32F, BUFFER_ST
 import { GraphicsDeviceAccess } from '../platform/graphics/graphics-device-access.js';
 
 const _floatRounding = 0.2;
+const defaultOptions = {
+	preferHighPrecision: false
+};
 class Morph extends RefCountedObject {
-	constructor(targets, graphicsDevice) {
+	constructor(targets, graphicsDevice, options = defaultOptions) {
 		super();
+		this._aabb = void 0;
+		this.preferHighPrecision = void 0;
 		this.device = graphicsDevice || GraphicsDeviceAccess.get();
+		this.preferHighPrecision = options.preferHighPrecision;
 		targets.forEach(target => void 0);
 		this._targets = targets.slice();
-		if (this.device.supportsMorphTargetTexturesCore) {
-			if (this.device.extTextureHalfFloat && this.device.textureHalfFloatRenderable) {
-				this._renderTextureFormat = PIXELFORMAT_RGBA16F;
-			} else if (this.device.extTextureFloat && this.device.textureFloatRenderable) {
-				this._renderTextureFormat = PIXELFORMAT_RGBA32F;
-			}
-			if (this.device.extTextureHalfFloat && this.device.textureHalfFloatUpdatable) {
-				this._textureFormat = PIXELFORMAT_RGBA16F;
-			} else if (this.device.extTextureFloat) {
-				this._textureFormat = PIXELFORMAT_RGB32F;
-			}
+		const device = this.device;
+		if (device.supportsMorphTargetTexturesCore) {
+			const renderableHalf = device.extTextureHalfFloat && device.textureHalfFloatRenderable ? PIXELFORMAT_RGBA16F : undefined;
+			const renderableFloat = device.extTextureFloat && device.textureFloatRenderable ? PIXELFORMAT_RGBA32F : undefined;
+			this._renderTextureFormat = this.preferHighPrecision ? renderableFloat != null ? renderableFloat : renderableHalf : renderableHalf != null ? renderableHalf : renderableFloat;
+			const textureHalf = device.extTextureHalfFloat && device.textureHalfFloatUpdatable ? PIXELFORMAT_RGBA16F : undefined;
+			const textureFloat = device.extTextureFloat ? PIXELFORMAT_RGB32F : undefined;
+			this._textureFormat = this.preferHighPrecision ? textureFloat != null ? textureFloat : textureHalf : textureHalf != null ? textureHalf : textureFloat;
 			if (this._renderTextureFormat !== undefined && this._textureFormat !== undefined) {
 				this._useTextureMorph = true;
 			}
 		}
 		this._init();
 		this._updateMorphFlags();
-		this._calculateAabb();
+	}
+	get aabb() {
+		if (!this._aabb) {
+			const min = new Vec3();
+			const max = new Vec3();
+			for (let i = 0; i < this._targets.length; i++) {
+				const targetAabb = this._targets[i].aabb;
+				min.min(targetAabb.getMin());
+				max.max(targetAabb.getMax());
+			}
+			this._aabb = new BoundingBox();
+			this._aabb.setMinMax(min, max);
+		}
+		return this._aabb;
 	}
 	get morphPositions() {
 		return this._morphPositions;
@@ -61,6 +77,28 @@ class Morph extends RefCountedObject {
 			this._targets[i]._postInit();
 		}
 	}
+	_findSparseSet(deltaArrays, ids, usedDataIndices) {
+		let freeIndex = 1;
+		const dataCount = deltaArrays[0].length;
+		for (let v = 0; v < dataCount; v += 3) {
+			let vertexUsed = false;
+			for (let i = 0; i < deltaArrays.length; i++) {
+				const data = deltaArrays[i];
+				if (data[v] !== 0 || data[v + 1] !== 0 || data[v + 2] !== 0) {
+					vertexUsed = true;
+					break;
+				}
+			}
+			if (vertexUsed) {
+				ids.push(freeIndex + _floatRounding);
+				usedDataIndices.push(v / 3);
+				freeIndex++;
+			} else {
+				ids.push(0 + _floatRounding);
+			}
+		}
+		return freeIndex;
+	}
 	_initTextureBased() {
 		const deltaArrays = [],
 			deltaInfos = [];
@@ -83,25 +121,7 @@ class Morph extends RefCountedObject {
 		}
 		const ids = [],
 			usedDataIndices = [];
-		let freeIndex = 1;
-		const dataCount = deltaArrays[0].length;
-		for (let v = 0; v < dataCount; v += 3) {
-			let vertexUsed = false;
-			for (let i = 0; i < deltaArrays.length; i++) {
-				const data = deltaArrays[i];
-				if (data[v] !== 0 || data[v + 1] !== 0 || data[v + 2] !== 0) {
-					vertexUsed = true;
-					break;
-				}
-			}
-			if (vertexUsed) {
-				ids.push(freeIndex + _floatRounding);
-				usedDataIndices.push(v / 3);
-				freeIndex++;
-			} else {
-				ids.push(0 + _floatRounding);
-			}
-		}
+		const freeIndex = this._findSparseSet(deltaArrays, ids, usedDataIndices);
 		const maxTextureSize = Math.min(this.device.maxTextureSize, 4096);
 		let morphTextureWidth = Math.ceil(Math.sqrt(freeIndex));
 		morphTextureWidth = Math.min(morphTextureWidth, maxTextureSize);
@@ -118,20 +138,29 @@ class Morph extends RefCountedObject {
 			halfFloat = true;
 			numComponents = 4;
 		}
+		const textures = [];
+		for (let i = 0; i < deltaArrays.length; i++) {
+			textures.push(this._createTexture('MorphTarget', this._textureFormat));
+		}
 		for (let i = 0; i < deltaArrays.length; i++) {
 			const data = deltaArrays[i];
-			const texture = this._createTexture('MorphTarget', this._textureFormat);
-			const packedDeltas = texture.lock();
-			for (let v = 0; v < usedDataIndices.length; v++) {
-				const index = usedDataIndices[v];
-				if (halfFloat) {
-					packedDeltas[v * numComponents + numComponents] = float2Half(data[index * 3]);
-					packedDeltas[v * numComponents + numComponents + 1] = float2Half(data[index * 3 + 1]);
-					packedDeltas[v * numComponents + numComponents + 2] = float2Half(data[index * 3 + 2]);
-				} else {
-					packedDeltas[v * numComponents + numComponents] = data[index * 3];
-					packedDeltas[v * numComponents + numComponents + 1] = data[index * 3 + 1];
-					packedDeltas[v * numComponents + numComponents + 2] = data[index * 3 + 2];
+			const texture = textures[i];
+			const textureData = texture.lock();
+			if (halfFloat) {
+				for (let v = 0; v < usedDataIndices.length; v++) {
+					const index = usedDataIndices[v] * 3;
+					const dstIndex = v * numComponents + numComponents;
+					textureData[dstIndex] = float2Half(data[index]);
+					textureData[dstIndex + 1] = float2Half(data[index + 1]);
+					textureData[dstIndex + 2] = float2Half(data[index + 2]);
+				}
+			} else {
+				for (let v = 0; v < usedDataIndices.length; v++) {
+					const index = usedDataIndices[v] * 3;
+					const dstIndex = v * numComponents + numComponents;
+					textureData[dstIndex] = data[index];
+					textureData[dstIndex + 1] = data[index + 1];
+					textureData[dstIndex + 2] = data[index + 2];
 				}
 			}
 			texture.unlock();
@@ -170,17 +199,6 @@ class Morph extends RefCountedObject {
 				this._morphNormals = true;
 			}
 		}
-	}
-	_calculateAabb() {
-		const min = new Vec3();
-		const max = new Vec3();
-		for (let i = 0; i < this._targets.length; i++) {
-			const targetAabb = this._targets[i].aabb;
-			min.min(targetAabb.getMin());
-			max.max(targetAabb.getMax());
-		}
-		this.aabb = new BoundingBox();
-		this.aabb.setMinMax(min, max);
 	}
 	_createTexture(name, format) {
 		return new Texture(this.device, {

@@ -1,6 +1,6 @@
 var outputAlphaPremulPS = `
-gl_FragColor.rgb *= dAlpha;
-gl_FragColor.a = dAlpha;
+gl_FragColor.rgb *= litShaderArgs.opacity;
+gl_FragColor.a = litShaderArgs.opacity;
 `;
 
 export { outputAlphaPremulPS as default };

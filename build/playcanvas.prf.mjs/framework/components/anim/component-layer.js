@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import '../../../core/tracing.js';
@@ -139,7 +139,7 @@ class AnimComponentLayer {
 		this._mask = mask;
 	}
 	assignAnimation(nodePath, animTrack, speed, loop) {
-		if (animTrack.constructor !== AnimTrack) {
+		if (!(animTrack instanceof AnimTrack)) {
 			return;
 		}
 		this._controller.assignAnimation(nodePath, animTrack, speed, loop);

@@ -1,5 +1,5 @@
 var outputAlphaPS = `
-gl_FragColor.a = dAlpha;
+gl_FragColor.a = litShaderArgs.opacity;
 `;
 
 export { outputAlphaPS as default };

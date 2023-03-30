@@ -1,12 +1,13 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import '../../core/tracing.js';
-import { DEVICETYPE_WEBGPU, FILTER_NEAREST, FILTER_LINEAR_MIPMAP_LINEAR, FILTER_LINEAR, ADDRESS_CLAMP_TO_EDGE, PIXELFORMAT_DEPTHSTENCIL, PIXELFORMAT_RGBA8 } from '../../platform/graphics/constants.js';
+import { FILTER_NEAREST, FILTER_LINEAR_MIPMAP_LINEAR, FILTER_LINEAR, ADDRESS_CLAMP_TO_EDGE, PIXELFORMAT_DEPTHSTENCIL, PIXELFORMAT_RGBA8 } from '../../platform/graphics/constants.js';
 import { RenderTarget } from '../../platform/graphics/render-target.js';
 import { Texture } from '../../platform/graphics/texture.js';
+import { BlendState } from '../../platform/graphics/blend-state.js';
 import { LAYERID_DEPTH, SHADER_DEPTH, LAYERID_WORLD } from '../constants.js';
 import { Layer } from '../layer.js';
 
@@ -17,14 +18,14 @@ class SceneGrab {
 		this.scene = scene;
 		this.device = device;
 		this.layer = null;
-		if (this.device.webgl2 || this.device.deviceType === DEVICETYPE_WEBGPU) {
+		if (this.device.webgl2 || this.device.isWebGPU) {
 			this.initMainPath();
 		} else {
 			this.initFallbackPath();
 		}
 	}
 	static requiresRenderPass(device, camera) {
-		if (device.webgl2 || device.deviceType === DEVICETYPE_WEBGPU) {
+		if (device.webgl2 || device.isWebGPU) {
 			return false;
 		}
 		return camera.renderSceneDepthMap;
@@ -112,7 +113,7 @@ class SceneGrab {
 						this.colorRenderTarget = self.allocateRenderTarget(this.colorRenderTarget, camera.renderTarget, device, format, false, true, false);
 					}
 					const colorBuffer = this.colorRenderTarget.colorBuffer;
-					if (device.deviceType === DEVICETYPE_WEBGPU) {
+					if (device.isWebGPU) {
 						device.copyRenderTarget(camera.renderTarget, this.colorRenderTarget, true, false);
 					} else {
 						device.copyRenderTarget(device.renderTarget, this.colorRenderTarget, true, false);
@@ -223,7 +224,7 @@ class SceneGrab {
 				}
 			},
 			onDrawCall: function () {
-				device.setColorWrite(true, true, true, true);
+				device.setBlendState(BlendState.DEFAULT);
 			},
 			onPostRenderOpaque: function (cameraPass) {
 				const camera = this.cameras[cameraPass];

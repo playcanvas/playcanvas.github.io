@@ -1,19 +1,19 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (DEBUG PROFILER)
+ * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (DEBUG PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 var reflDirAnisoPS = /* glsl */`
-void getReflDir() {
-    float roughness = sqrt(1.0 - min(dGlossiness, 1.0));
+void getReflDir(vec3 worldNormal, vec3 viewDir, float gloss, mat3 tbn) {
+    float roughness = sqrt(1.0 - min(gloss, 1.0));
     float anisotropy = material_anisotropy * roughness;
-    vec3 anisotropicDirection = anisotropy >= 0.0 ? dTBN[1] : dTBN[0];
-    vec3 anisotropicTangent = cross(anisotropicDirection, dViewDirW);
+    vec3 anisotropicDirection = anisotropy >= 0.0 ? tbn[1] : tbn[0];
+    vec3 anisotropicTangent = cross(anisotropicDirection, viewDir);
     vec3 anisotropicNormal = cross(anisotropicTangent, anisotropicDirection);
-    vec3 bentNormal = normalize(mix(normalize(dNormalW), normalize(anisotropicNormal), anisotropy));
-    dReflDirW = reflect(-dViewDirW, bentNormal);
+    vec3 bentNormal = normalize(mix(normalize(worldNormal), normalize(anisotropicNormal), anisotropy));
+    dReflDirW = reflect(-viewDir, bentNormal);
 }
 `;
 
 export { reflDirAnisoPS as default };
-//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoicmVmbERpckFuaXNvLmpzIiwic291cmNlcyI6WyIuLi8uLi8uLi8uLi8uLi8uLi8uLi9zcmMvc2NlbmUvc2hhZGVyLWxpYi9jaHVua3MvbGl0L2ZyYWcvcmVmbERpckFuaXNvLmpzIl0sInNvdXJjZXNDb250ZW50IjpbImV4cG9ydCBkZWZhdWx0IC8qIGdsc2wgKi9gXG52b2lkIGdldFJlZmxEaXIoKSB7XG4gICAgZmxvYXQgcm91Z2huZXNzID0gc3FydCgxLjAgLSBtaW4oZEdsb3NzaW5lc3MsIDEuMCkpO1xuICAgIGZsb2F0IGFuaXNvdHJvcHkgPSBtYXRlcmlhbF9hbmlzb3Ryb3B5ICogcm91Z2huZXNzO1xuICAgIHZlYzMgYW5pc290cm9waWNEaXJlY3Rpb24gPSBhbmlzb3Ryb3B5ID49IDAuMCA/IGRUQk5bMV0gOiBkVEJOWzBdO1xuICAgIHZlYzMgYW5pc290cm9waWNUYW5nZW50ID0gY3Jvc3MoYW5pc290cm9waWNEaXJlY3Rpb24sIGRWaWV3RGlyVyk7XG4gICAgdmVjMyBhbmlzb3Ryb3BpY05vcm1hbCA9IGNyb3NzKGFuaXNvdHJvcGljVGFuZ2VudCwgYW5pc290cm9waWNEaXJlY3Rpb24pO1xuICAgIHZlYzMgYmVudE5vcm1hbCA9IG5vcm1hbGl6ZShtaXgobm9ybWFsaXplKGROb3JtYWxXKSwgbm9ybWFsaXplKGFuaXNvdHJvcGljTm9ybWFsKSwgYW5pc290cm9weSkpO1xuICAgIGRSZWZsRGlyVyA9IHJlZmxlY3QoLWRWaWV3RGlyVywgYmVudE5vcm1hbCk7XG59XG5gO1xuIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7Ozs7O0FBQUEscUJBQWUsVUFBVyxDQUFBO0FBQzFCO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBLENBQUM7Ozs7In0=
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoicmVmbERpckFuaXNvLmpzIiwic291cmNlcyI6WyIuLi8uLi8uLi8uLi8uLi8uLi8uLi9zcmMvc2NlbmUvc2hhZGVyLWxpYi9jaHVua3MvbGl0L2ZyYWcvcmVmbERpckFuaXNvLmpzIl0sInNvdXJjZXNDb250ZW50IjpbImV4cG9ydCBkZWZhdWx0IC8qIGdsc2wgKi9gXG52b2lkIGdldFJlZmxEaXIodmVjMyB3b3JsZE5vcm1hbCwgdmVjMyB2aWV3RGlyLCBmbG9hdCBnbG9zcywgbWF0MyB0Ym4pIHtcbiAgICBmbG9hdCByb3VnaG5lc3MgPSBzcXJ0KDEuMCAtIG1pbihnbG9zcywgMS4wKSk7XG4gICAgZmxvYXQgYW5pc290cm9weSA9IG1hdGVyaWFsX2FuaXNvdHJvcHkgKiByb3VnaG5lc3M7XG4gICAgdmVjMyBhbmlzb3Ryb3BpY0RpcmVjdGlvbiA9IGFuaXNvdHJvcHkgPj0gMC4wID8gdGJuWzFdIDogdGJuWzBdO1xuICAgIHZlYzMgYW5pc290cm9waWNUYW5nZW50ID0gY3Jvc3MoYW5pc290cm9waWNEaXJlY3Rpb24sIHZpZXdEaXIpO1xuICAgIHZlYzMgYW5pc290cm9waWNOb3JtYWwgPSBjcm9zcyhhbmlzb3Ryb3BpY1RhbmdlbnQsIGFuaXNvdHJvcGljRGlyZWN0aW9uKTtcbiAgICB2ZWMzIGJlbnROb3JtYWwgPSBub3JtYWxpemUobWl4KG5vcm1hbGl6ZSh3b3JsZE5vcm1hbCksIG5vcm1hbGl6ZShhbmlzb3Ryb3BpY05vcm1hbCksIGFuaXNvdHJvcHkpKTtcbiAgICBkUmVmbERpclcgPSByZWZsZWN0KC12aWV3RGlyLCBiZW50Tm9ybWFsKTtcbn1cbmA7XG4iXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6Ijs7Ozs7QUFBQSxxQkFBZSxVQUFXLENBQUE7QUFDMUI7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0EsQ0FBQzs7OzsifQ==

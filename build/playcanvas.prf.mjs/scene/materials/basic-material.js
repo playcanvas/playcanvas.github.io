@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import '../../core/tracing.js';
@@ -37,7 +37,7 @@ class BasicMaterial extends Material {
 			this.setParameter('texture_diffuseMap', this.colorMap);
 		}
 	}
-	getShaderVariant(device, scene, objDefs, staticLightList, pass, sortedLights, viewUniformFormat, viewBindGroupFormat) {
+	getShaderVariant(device, scene, objDefs, staticLightList, pass, sortedLights, viewUniformFormat, viewBindGroupFormat, vertexFormat) {
 		if (this.updateShader) {
 			this.updateShader(device, scene, objDefs, staticLightList, pass, sortedLights);
 			return this.shader;
@@ -54,7 +54,7 @@ class BasicMaterial extends Material {
 			diffuseMap: !!this.colorMap,
 			pass: pass
 		};
-		const processingOptions = new ShaderProcessorOptions(viewUniformFormat, viewBindGroupFormat);
+		const processingOptions = new ShaderProcessorOptions(viewUniformFormat, viewBindGroupFormat, vertexFormat);
 		const library = getProgramLibrary(device);
 		library.register('basic', basic);
 		return library.getProgram('basic', options, processingOptions);

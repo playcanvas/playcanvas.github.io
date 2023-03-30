@@ -9,6 +9,7 @@ import { Renderer } from './renderer.js';
 import { LightCamera } from './light-camera.js';
 import '../lighting/world-clusters-debug.js';
 import { SceneGrab } from '../graphics/scene-grab.js';
+import { BlendState } from '../../platform/graphics/blend-state.js';
 
 const webgl1DepthClearColor = new Color(254.0 / 255, 254.0 / 255, 254.0 / 255, 254.0 / 255);
 const _drawCallList = {
@@ -307,16 +308,6 @@ class ForwardRenderer extends Renderer {
 			}
 		}
 	}
-	renderShadowsLocal(lights, camera) {
-		const isClustered = this.scene.clusteredLightingEnabled;
-		for (let i = 0; i < lights.length; i++) {
-			const light = lights[i];
-			if (isClustered && !light.atlasViewportAllocated) {
-				continue;
-			}
-			this.shadowRenderer.render(light, camera);
-		}
-	}
 	renderForwardPrepareMaterials(camera, drawCalls, drawCallsCount, sortedLights, cullingMask, layer, pass) {
 		const addCall = (drawCall, isNewMaterial, lightMaskChanged) => {
 			_drawCallList.drawCalls.push(drawCall);
@@ -387,6 +378,7 @@ class ForwardRenderer extends Renderer {
 		const device = this.device;
 		const scene = this.scene;
 		const passFlag = 1 << pass;
+		const flipFactor = flipFaces ? -1 : 1;
 		let skipMaterial = false;
 		const preparedCallsCount = preparedCalls.drawCalls.length;
 		for (let i = 0; i < preparedCallsCount; i++) {
@@ -410,25 +402,8 @@ class ForwardRenderer extends Renderer {
 						this.dispatchLocalLights(sortedLights, scene, lightMask, usedDirLights, drawCall._staticLightList);
 					}
 					this.alphaTestId.setValue(material.alphaTest);
-					device.setBlending(material.blend);
-					if (material.blend) {
-						if (material.separateAlphaBlend) {
-							device.setBlendFunctionSeparate(material.blendSrc, material.blendDst, material.blendSrcAlpha, material.blendDstAlpha);
-							device.setBlendEquationSeparate(material.blendEquation, material.blendAlphaEquation);
-						} else {
-							device.setBlendFunction(material.blendSrc, material.blendDst);
-							device.setBlendEquation(material.blendEquation);
-						}
-					}
-					device.setColorWrite(material.redWrite, material.greenWrite, material.blueWrite, material.alphaWrite);
-					device.setDepthWrite(material.depthWrite);
-					if (material.depthWrite && !material.depthTest) {
-						device.setDepthFunc(FUNC_ALWAYS);
-						device.setDepthTest(true);
-					} else {
-						device.setDepthFunc(material.depthFunc);
-						device.setDepthTest(material.depthTest);
-					}
+					device.setBlendState(material.blendState);
+					device.setDepthState(material.depthState);
 					device.setAlphaToCoverage(material.alphaToCoverage);
 					if (material.depthBias || material.slopeDepthBias) {
 						device.setDepthBias(true);
@@ -437,7 +412,7 @@ class ForwardRenderer extends Renderer {
 						device.setDepthBias(false);
 					}
 				}
-				this.setCullMode(camera._cullFaces, flipFaces, drawCall);
+				this.setupCullMode(camera._cullFaces, flipFactor, drawCall);
 				const stencilFront = drawCall.stencilFront || material.stencilFront;
 				const stencilBack = drawCall.stencilBack || material.stencilBack;
 				if (stencilFront || stencilBack) {
@@ -538,30 +513,36 @@ class ForwardRenderer extends Renderer {
 	}
 	updateLightStats(comp, compUpdatedFlags) {}
 	buildFrameGraph(frameGraph, layerComposition) {
+		const clusteredLightingEnabled = this.scene.clusteredLightingEnabled;
 		frameGraph.reset();
 		this.update(layerComposition);
-		const clusteredLightingEnabled = this.scene.clusteredLightingEnabled;
 		if (clusteredLightingEnabled) {
-			const _renderPass = new RenderPass(this.device, () => {
-				if (this.scene.lighting.cookiesEnabled) {
-					this.renderCookies(layerComposition._splitLights[LIGHTTYPE_SPOT]);
-					this.renderCookies(layerComposition._splitLights[LIGHTTYPE_OMNI]);
+			{
+				const renderPass = new RenderPass(this.device, () => {
+					if (this.scene.lighting.cookiesEnabled) {
+						this.renderCookies(layerComposition._splitLights[LIGHTTYPE_SPOT]);
+						this.renderCookies(layerComposition._splitLights[LIGHTTYPE_OMNI]);
+					}
+				});
+				renderPass.requiresCubemaps = false;
+				frameGraph.addRenderPass(renderPass);
+			}
+			{
+				const renderPass = new RenderPass(this.device);
+				renderPass.requiresCubemaps = false;
+				frameGraph.addRenderPass(renderPass);
+				if (this.scene.lighting.shadowsEnabled) {
+					const splitLights = layerComposition._splitLights;
+					this._shadowRendererLocal.prepareClusteredRenderPass(renderPass, splitLights[LIGHTTYPE_SPOT], splitLights[LIGHTTYPE_OMNI]);
 				}
-			});
-			_renderPass.requiresCubemaps = false;
-			frameGraph.addRenderPass(_renderPass);
+				renderPass.after = () => {
+					this.updateClusters(layerComposition);
+				};
+			}
+		} else {
+			const splitLights = layerComposition._splitLights;
+			this._shadowRendererLocal.buildNonClusteredRenderPasses(frameGraph, splitLights[LIGHTTYPE_SPOT], splitLights[LIGHTTYPE_OMNI]);
 		}
-		const renderPass = new RenderPass(this.device, () => {
-			if (!clusteredLightingEnabled || clusteredLightingEnabled && this.scene.lighting.shadowsEnabled) {
-				this.renderShadowsLocal(layerComposition._splitLights[LIGHTTYPE_SPOT]);
-				this.renderShadowsLocal(layerComposition._splitLights[LIGHTTYPE_OMNI]);
-			}
-			if (clusteredLightingEnabled) {
-				this.updateClusters(layerComposition);
-			}
-		});
-		renderPass.requiresCubemaps = false;
-		frameGraph.addRenderPass(renderPass);
 		let startIndex = 0;
 		let newStart = true;
 		let renderTarget = null;
@@ -593,11 +574,11 @@ class ForwardRenderer extends Renderer {
 			if (!nextRenderAction || nextRenderAction.renderTarget !== renderTarget || nextRenderAction.hasDirectionalShadowLights || isNextLayerGrabPass || isGrabPass) {
 				this.addMainRenderPass(frameGraph, layerComposition, renderTarget, startIndex, i, isGrabPass);
 				if (renderAction.triggerPostprocess && camera != null && camera.onPostprocessing) {
-					const _renderPass2 = new RenderPass(this.device, () => {
+					const renderPass = new RenderPass(this.device, () => {
 						this.renderPassPostprocessing(renderAction, layerComposition);
 					});
-					_renderPass2.requiresCubemaps = false;
-					frameGraph.addRenderPass(_renderPass2);
+					renderPass.requiresCubemaps = false;
+					frameGraph.addRenderPass(renderPass);
 				}
 				newStart = true;
 			}
@@ -700,7 +681,7 @@ class ForwardRenderer extends Renderer {
 			var _renderAction$renderT;
 			this.setupViewport(camera.camera, renderAction.renderTarget);
 			if (!firstRenderAction || !camera.camera.fullSizeClearRect) {
-				this.clear(renderAction, camera.camera);
+				this.clear(camera.camera, renderAction.clearColor, renderAction.clearDepth, renderAction.clearStencil);
 			}
 			layer._sortVisible(transparent, camera.camera.node, cameraPass);
 			const objects = layer.instances;
@@ -721,7 +702,7 @@ class ForwardRenderer extends Renderer {
 			const draws = this._forwardDrawCalls;
 			this.renderForward(camera.camera, visible.list, visible.length, layer._splitLights, layer.shaderPass, layer.cullingMask, layer.onDrawCall, layer, flipFaces);
 			layer._forwardDrawCalls += this._forwardDrawCalls - draws;
-			device.setColorWrite(true, true, true, true);
+			device.setBlendState(BlendState.DEFAULT);
 			device.setStencilTest(false);
 			device.setAlphaToCoverage(false);
 			device.setDepthBias(false);

@@ -520,6 +520,9 @@ class AppBase extends EventHandler {
 		this.fire("update", dt);
 		this.inputUpdate(dt);
 	}
+	frameStart() {
+		this.graphicsDevice.frameStart();
+	}
 	render() {
 		this.fire('prerender');
 		this.root.syncHierarchy();
@@ -763,13 +766,14 @@ class AppBase extends EventHandler {
 	drawQuad(matrix, material, layer = this.scene.defaultDrawLayer) {
 		this.scene.immediate.drawMesh(material, matrix, this.scene.immediate.getQuadMesh(), null, layer);
 	}
-	drawTexture(x, y, width, height, texture, material, layer = this.scene.defaultDrawLayer) {
+	drawTexture(x, y, width, height, texture, material, layer = this.scene.defaultDrawLayer, filterable = true) {
+		if (filterable === false && !this.graphicsDevice.isWebGPU) return;
 		const matrix = new Mat4();
 		matrix.setTRS(new Vec3(x, y, 0.0), Quat.IDENTITY, new Vec3(width, height, 0.0));
 		if (!material) {
 			material = new Material();
 			material.setParameter("colorMap", texture);
-			material.shader = this.scene.immediate.getTextureShader();
+			material.shader = filterable ? this.scene.immediate.getTextureShader() : this.scene.immediate.getUnfilterableTextureShader();
 			material.update();
 		}
 		this.drawQuad(matrix, material, layer);
@@ -815,6 +819,10 @@ class AppBase extends EventHandler {
 		if (this.elementInput) {
 			this.elementInput.detach();
 			this.elementInput = null;
+		}
+		if (this.gamepads) {
+			this.gamepads.destroy();
+			this.gamepads = null;
 		}
 		if (this.controller) {
 			this.controller = null;
@@ -929,6 +937,7 @@ const makeTick = function makeTick(_app) {
 			application.fire("framerender");
 			if (application.autoRender || application.renderNextFrame) {
 				application.updateCanvasSize();
+				application.frameStart();
 				application.render();
 				application.renderNextFrame = false;
 			}

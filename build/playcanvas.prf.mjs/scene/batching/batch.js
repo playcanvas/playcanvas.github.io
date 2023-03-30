@@ -1,15 +1,18 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import { BoundingBox } from '../../core/shape/bounding-box.js';
 
 class Batch {
 	constructor(meshInstances, dynamic, batchGroupId) {
-		this.origMeshInstances = meshInstances;
 		this._aabb = new BoundingBox();
+		this.origMeshInstances = void 0;
 		this.meshInstance = null;
+		this.dynamic = void 0;
+		this.batchGroupId = void 0;
+		this.origMeshInstances = meshInstances;
 		this.dynamic = dynamic;
 		this.batchGroupId = batchGroupId;
 	}

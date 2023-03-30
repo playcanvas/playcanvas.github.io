@@ -27,8 +27,8 @@ class QuadRender {
 			if (ubFormat) {
 				this.uniformBuffer = new UniformBuffer(device, ubFormat);
 			}
-			const bingGroupFormat = this.shader.meshBindGroupFormat;
-			this.bindGroup = new BindGroup(device, bingGroupFormat, this.uniformBuffer);
+			const bindGroupFormat = this.shader.meshBindGroupFormat;
+			this.bindGroup = new BindGroup(device, bindGroupFormat, this.uniformBuffer);
 		}
 	}
 	destroy() {

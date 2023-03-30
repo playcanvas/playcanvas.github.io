@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import '../../core/tracing.js';
@@ -24,7 +24,7 @@ uniformTypeToNumElements[UNIFORMTYPE_MAT2] = 8;
 uniformTypeToNumElements[UNIFORMTYPE_MAT3] = 12;
 uniformTypeToNumElements[UNIFORMTYPE_MAT4] = 16;
 class UniformFormat {
-	constructor(name, type, count = 1) {
+	constructor(name, type, count = 0) {
 		this.name = void 0;
 		this.type = void 0;
 		this.byteSize = void 0;
@@ -32,10 +32,10 @@ class UniformFormat {
 		this.scopeId = void 0;
 		this.count = void 0;
 		this.shortName = name;
-		this.name = count > 1 ? `${name}[0]` : name;
+		this.name = count ? `${name}[0]` : name;
 		this.type = type;
 		this.updateType = type;
-		if (count > 1) {
+		if (count) {
 			switch (type) {
 				case UNIFORMTYPE_FLOAT:
 					this.updateType = UNIFORMTYPE_FLOATARRAY;
@@ -56,12 +56,13 @@ class UniformFormat {
 		}
 		this.count = count;
 		let elementSize = uniformTypeToNumElements[type];
-		if (count > 1) elementSize = math.roundUp(elementSize, 4);
-		this.byteSize = count * elementSize * 4;
+		if (count) elementSize = math.roundUp(elementSize, 4);
+		this.byteSize = elementSize * 4;
+		if (count) this.byteSize *= count;
 	}
 	calculateOffset(offset) {
 		let alignment = this.byteSize <= 8 ? this.byteSize : 16;
-		if (this.count > 1) alignment = 16;
+		if (this.count) alignment = 16;
 		offset = math.roundUp(offset, alignment);
 		this.offset = offset / 4;
 	}
@@ -90,7 +91,7 @@ class UniformBufferFormat {
 		let code = `layout(set = ${bindGroup}, binding = ${bindIndex}, std140) uniform ub_${name} {\n`;
 		this.uniforms.forEach(uniform => {
 			const typeString = uniformTypeToName[uniform.type];
-			code += `    ${typeString} ${uniform.shortName}${uniform.count !== 1 ? `[${uniform.count}]` : ''};\n`;
+			code += `    ${typeString} ${uniform.shortName}${uniform.count ? `[${uniform.count}]` : ''};\n`;
 		});
 		return code + '};\n';
 	}

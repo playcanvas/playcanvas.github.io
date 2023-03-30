@@ -2,17 +2,18 @@ import '../../core/tracing.js';
 import { EventHandler } from '../../core/event-handler.js';
 import { platform } from '../../core/platform.js';
 import '../../core/time.js';
-import { PRIMITIVE_TRIFAN, SEMANTIC_POSITION, TYPE_FLOAT32, BUFFER_STATIC, PRIMITIVE_POINTS } from './constants.js';
+import { CLEARFLAG_COLOR, CLEARFLAG_DEPTH, PRIMITIVE_TRIFAN, SEMANTIC_POSITION, TYPE_FLOAT32, BUFFER_STATIC, PRIMITIVE_POINTS } from './constants.js';
+import { BlendState } from './blend-state.js';
+import { DepthState } from './depth-state.js';
 import { ScopeSpace } from './scope-space.js';
 import { VertexBuffer } from './vertex-buffer.js';
 import { VertexFormat } from './vertex-format.js';
 
-const EVENT_RESIZE = 'resizecanvas';
 class GraphicsDevice extends EventHandler {
 	constructor(canvas) {
 		super();
 		this.canvas = void 0;
-		this.deviceType = void 0;
+		this.isWebGPU = false;
 		this.scope = void 0;
 		this.boneLimit = void 0;
 		this.maxAnisotropy = void 0;
@@ -20,13 +21,23 @@ class GraphicsDevice extends EventHandler {
 		this.maxTextureSize = void 0;
 		this.maxVolumeSize = void 0;
 		this.precision = void 0;
+		this.samples = void 0;
 		this.renderTarget = null;
+		this.renderPassIndex = void 0;
 		this.insideRenderPass = false;
 		this.supportsInstancing = void 0;
 		this.supportsUniformBuffers = false;
 		this.textureFloatRenderable = void 0;
 		this.textureHalfFloatRenderable = void 0;
 		this.quadVertexBuffer = void 0;
+		this.blendState = new BlendState();
+		this.depthState = new DepthState();
+		this.defaultClearOptions = {
+			color: [0, 0, 0, 1],
+			depth: 1,
+			stencil: 0,
+			flags: CLEARFLAG_COLOR | CLEARFLAG_DEPTH
+		};
 		this.canvas = canvas;
 		this._width = 0;
 		this._height = 0;
@@ -96,9 +107,13 @@ class GraphicsDevice extends EventHandler {
 		this.renderTarget = null;
 	}
 	initializeRenderState() {
+		this.blendState = new BlendState();
+		this.depthState = new DepthState();
 		this.vx = this.vy = this.vw = this.vh = 0;
 		this.sx = this.sy = this.sw = this.sh = 0;
 	}
+	setBlendState(blendState) {}
+	setDepthState(depthState) {}
 	setRenderTarget(renderTarget) {
 		this.renderTarget = renderTarget;
 	}
@@ -124,24 +139,13 @@ class GraphicsDevice extends EventHandler {
 	_isImageBrowserInterface(texture) {
 		return typeof ImageBitmap !== 'undefined' && texture instanceof ImageBitmap || typeof HTMLImageElement !== 'undefined' && texture instanceof HTMLImageElement;
 	}
-	resizeCanvas(width, height) {
-		this._width = width;
-		this._height = height;
-		const ratio = Math.min(this._maxPixelRatio, platform.browser ? window.devicePixelRatio : 1);
-		width = Math.floor(width * ratio);
-		height = Math.floor(height * ratio);
-		if (this.canvas.width !== width || this.canvas.height !== height) {
-			this.canvas.width = width;
-			this.canvas.height = height;
-			this.fire(EVENT_RESIZE, width, height);
-		}
-	}
+	resizeCanvas(width, height) {}
 	setResolution(width, height) {
 		this._width = width;
 		this._height = height;
 		this.canvas.width = width;
 		this.canvas.height = height;
-		this.fire(EVENT_RESIZE, width, height);
+		this.fire(GraphicsDevice.EVENT_RESIZE, width, height);
 	}
 	updateClientRect() {
 		this.clientRect = this.canvas.getBoundingClientRect();
@@ -157,11 +161,16 @@ class GraphicsDevice extends EventHandler {
 		return false;
 	}
 	set maxPixelRatio(ratio) {
-		this._maxPixelRatio = ratio;
-		this.resizeCanvas(this._width, this._height);
+		if (this._maxPixelRatio !== ratio) {
+			this._maxPixelRatio = ratio;
+			this.resizeCanvas(this._width, this._height);
+		}
 	}
 	get maxPixelRatio() {
 		return this._maxPixelRatio;
+	}
+	get deviceType() {
+		return this._deviceType;
 	}
 	getBoneLimit() {
 		return this.boneLimit;
@@ -169,6 +178,10 @@ class GraphicsDevice extends EventHandler {
 	setBoneLimit(maxBones) {
 		this.boneLimit = maxBones;
 	}
+	frameStart() {
+		this.renderPassIndex = 0;
+	}
 }
+GraphicsDevice.EVENT_RESIZE = 'resizecanvas';
 
 export { GraphicsDevice };

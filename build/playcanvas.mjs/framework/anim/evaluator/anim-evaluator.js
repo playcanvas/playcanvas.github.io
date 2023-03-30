@@ -95,6 +95,14 @@ class AnimEvaluator {
 			this.removeClip(0);
 		}
 	}
+	updateClipTrack(name, animTrack) {
+		this._clips.forEach(clip => {
+			if (clip.name.includes(name)) {
+				clip.track = animTrack;
+			}
+		});
+		this.rebind();
+	}
 	findClip(name) {
 		const clips = this._clips;
 		for (let i = 0; i < clips.length; ++i) {
@@ -117,7 +125,7 @@ class AnimEvaluator {
 	assignMask(mask) {
 		return this._binder.assignMask(mask);
 	}
-	update(deltaTime) {
+	update(deltaTime, outputAnimation = true) {
 		const clips = this._clips;
 		const order = clips.map(function (c, i) {
 			return i;
@@ -134,6 +142,7 @@ class AnimEvaluator {
 			if (blendWeight > 0.0) {
 				clip._update(deltaTime);
 			}
+			if (!outputAnimation) break;
 			let input;
 			let output;
 			let value;
@@ -182,7 +191,7 @@ class AnimEvaluator {
 				target.blendCounter = 0;
 			}
 		}
-		binder.update(deltaTime);
+		this._binder.update(deltaTime);
 	}
 }
 

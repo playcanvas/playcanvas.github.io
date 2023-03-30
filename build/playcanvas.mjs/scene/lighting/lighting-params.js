@@ -1,12 +1,9 @@
-import { Vec3 } from '../../core/math/vec3.js';
 import { math } from '../../core/math/math.js';
+import { Vec3 } from '../../core/math/vec3.js';
 import { SHADOW_PCF3 } from '../constants.js';
 
 class LightingParams {
 	constructor(supportsAreaLights, maxTextureSize, dirtyLightsFnc) {
-		this._maxTextureSize = maxTextureSize;
-		this._supportsAreaLights = supportsAreaLights;
-		this._dirtyLightsFnc = dirtyLightsFnc;
 		this._areaLightsEnabled = false;
 		this._cells = new Vec3(10, 3, 10);
 		this._maxLightsPerCell = 255;
@@ -15,8 +12,11 @@ class LightingParams {
 		this._shadowAtlasResolution = 2048;
 		this._cookiesEnabled = false;
 		this._cookieAtlasResolution = 2048;
+		this.debugLayer = void 0;
 		this.atlasSplit = null;
-		this.debugLayer = undefined;
+		this._supportsAreaLights = supportsAreaLights;
+		this._maxTextureSize = maxTextureSize;
+		this._dirtyLightsFnc = dirtyLightsFnc;
 	}
 	applySettings(render) {
 		this.shadowsEnabled = render.lightingShadowsEnabled;

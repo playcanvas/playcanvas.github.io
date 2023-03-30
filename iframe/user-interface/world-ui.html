@@ -52,14 +52,7 @@
 
 
 
-    function example(canvas) {
-
-      // Create the application with input and start the update loop
-      var app = new pc.Application(canvas, {
-        mouse: new pc.Mouse(document.body),
-        touch: new pc.TouchDevice(document.body),
-        elementInput: new pc.ElementInput(canvas) });
-
+    function example(canvas, deviceType) {
 
       var assets = {
         "checkboard": new pc.Asset("checkboard", "texture", { url: "/../../static/assets/textures/checkboard.png" }),
@@ -67,125 +60,173 @@
         'script': new pc.Asset('script', 'script', { url: '/../../static/scripts/camera/orbit-camera.js' }) };
 
 
-      var assetListLoader = new pc.AssetListLoader(Object.values(assets), app.assets);
-      assetListLoader.load(function () {
-        app.start();
+      var gfxOptions = {
+        deviceTypes: [deviceType],
+        glslangUrl: '/../../static/lib/glslang/glslang.js',
+        twgslUrl: '/../../static/lib/twgsl/twgsl.js' };
 
-        // Create an Entity with a camera component and simple orbiter script
-        var camera = new pc.Entity();
-        camera.addComponent("camera", {
-          clearColor: new pc.Color(30 / 255, 30 / 255, 30 / 255) });
 
-        camera.rotateLocal(-30, 0, 0);
-        camera.translateLocal(0, 0, 7);
-        camera.addComponent("script");
-        camera.script.create("orbitCamera", {
-          attributes: {
-            inertiaFactor: 0.2 // Override default of 0 (no inertia)
-          } });
+      pc.createGraphicsDevice(canvas, gfxOptions).then(function (device) {
 
-        camera.script.create("orbitCameraInputMouse");
-        camera.script.create("orbitCameraInputTouch");
-        app.root.addChild(camera);
+        var createOptions = new pc.AppOptions();
+        createOptions.graphicsDevice = device;
+        createOptions.mouse = new pc.Mouse(document.body);
+        createOptions.touch = new pc.TouchDevice(document.body);
+        createOptions.elementInput = new pc.ElementInput(canvas);
 
-        // Create an Entity for the ground
-        var material = new pc.StandardMaterial();
-        material.diffuse = pc.Color.WHITE;
-        material.diffuseMap = assets.checkboard.resource;
-        material.diffuseMapTiling = new pc.Vec2(50, 50);
-        material.update();
+        createOptions.componentSystems = [
+        // @ts-ignore
+        pc.RenderComponentSystem,
+        // @ts-ignore
+        pc.CameraComponentSystem,
+        // @ts-ignore
+        pc.LightComponentSystem,
+        // @ts-ignore
+        pc.ScreenComponentSystem,
+        // @ts-ignore
+        pc.ButtonComponentSystem,
+        // @ts-ignore
+        pc.ElementComponentSystem,
+        // @ts-ignore
+        pc.ScriptComponentSystem];
 
-        var ground = new pc.Entity();
-        ground.addComponent("render", {
-          type: "box",
-          material: material });
+        createOptions.resourceHandlers = [
+        // @ts-ignore
+        pc.TextureHandler,
+        // @ts-ignore
+        pc.FontHandler,
+        // @ts-ignore
+        pc.ScriptHandler];
 
-        ground.setLocalScale(50, 1, 50);
-        ground.setLocalPosition(0, -0.5, 0);
-        app.root.addChild(ground);
 
-        // Create an entity with a light component
-        var light = new pc.Entity();
-        light.addComponent("light", {
-          type: "directional",
-          color: new pc.Color(1, 1, 1),
-          castShadows: true,
-          intensity: 1,
-          shadowBias: 0.2,
-          shadowDistance: 16,
-          normalOffsetBias: 0.05,
-          shadowResolution: 2048 });
+        var app = new pc.AppBase(canvas);
+        app.init(createOptions);
 
-        light.setLocalEulerAngles(45, 30, 0);
-        app.root.addChild(light);
+        // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
+        app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
+        app.setCanvasResolution(pc.RESOLUTION_AUTO);
 
-        // Create a 3D world screen, which is basically a `screen` with `screenSpace` set to false
-        var screen = new pc.Entity();
-        screen.setLocalScale(0.01, 0.01, 0.01);
-        screen.setPosition(0, 0.01, 0); // place UI slightly above the ground
-        screen.setLocalRotation(new pc.Quat().setFromEulerAngles(-90, 0, 0));
-        screen.addComponent("screen", {
-          referenceResolution: new pc.Vec2(1280, 720),
-          screenSpace: false });
+        var assetListLoader = new pc.AssetListLoader(Object.values(assets), app.assets);
+        assetListLoader.load(function () {
 
-        app.root.addChild(screen);
+          app.start();
 
-        // Text
-        var text = new pc.Entity();
-        text.setLocalPosition(0, 25, 0);
-        text.addComponent("element", {
-          pivot: new pc.Vec2(0.5, 0.5),
-          anchor: new pc.Vec4(0.5, 0.5, 0.5, 0.5),
-          fontAsset: assets.font.id,
-          fontSize: 18,
-          text: "this is a UI screen placed in the 3D world",
-          width: 200,
-          height: 100,
-          autoWidth: false,
-          autoHeight: false,
-          wrapLines: true,
-          enableMarkup: true,
-          type: pc.ELEMENTTYPE_TEXT });
+          // Create an Entity with a camera component and simple orbiter script
+          var camera = new pc.Entity();
+          camera.addComponent("camera", {
+            clearColor: new pc.Color(30 / 255, 30 / 255, 30 / 255) });
 
-        screen.addChild(text);
+          camera.rotateLocal(-30, 0, 0);
+          camera.translateLocal(0, 0, 7);
+          camera.addComponent("script");
+          camera.script.create("orbitCamera", {
+            attributes: {
+              inertiaFactor: 0.2 // Override default of 0 (no inertia)
+            } });
 
-        // Button
-        var button = new pc.Entity();
-        button.setLocalPosition(0, -25, 0);
-        button.addComponent("button", {
-          imageEntity: button });
+          camera.script.create("orbitCameraInputMouse");
+          camera.script.create("orbitCameraInputTouch");
+          app.root.addChild(camera);
 
-        button.addComponent("element", {
-          anchor: [0.5, 0.5, 0.5, 0.5],
-          width: 100,
-          height: 25,
-          pivot: [0.5, 0.5],
-          type: pc.ELEMENTTYPE_IMAGE,
-          useInput: true });
+          // Create an Entity for the ground
+          var material = new pc.StandardMaterial();
+          material.diffuse = pc.Color.WHITE;
+          material.diffuseMap = assets.checkboard.resource;
+          material.diffuseMapTiling = new pc.Vec2(50, 50);
+          material.update();
 
-        screen.addChild(button);
+          var ground = new pc.Entity();
+          ground.addComponent("render", {
+            type: "box",
+            material: material });
 
-        // Create a label for the button
-        var buttonText = new pc.Entity();
-        buttonText.addComponent("element", {
-          pivot: new pc.Vec2(0.5, 0.5),
-          anchor: new pc.Vec4(0, 0, 1, 1),
-          margin: new pc.Vec4(0, 0, 0, 0),
-          color: new pc.Color(0, 0, 0),
-          fontAsset: assets.font.id,
-          fontSize: 12,
-          text: "and this is a button",
-          type: pc.ELEMENTTYPE_TEXT,
-          wrapLines: true });
+          ground.setLocalScale(50, 1, 50);
+          ground.setLocalPosition(0, -0.5, 0);
+          app.root.addChild(ground);
 
-        button.addChild(buttonText);
+          // Create an entity with a light component
+          var light = new pc.Entity();
+          light.addComponent("light", {
+            type: "directional",
+            color: new pc.Color(1, 1, 1),
+            castShadows: true,
+            intensity: 1,
+            shadowBias: 0.2,
+            shadowDistance: 16,
+            normalOffsetBias: 0.05,
+            shadowResolution: 2048 });
 
-        // Change the background color every time the button is clicked
-        button.button.on('click', function () {
-          camera.camera.clearColor = new pc.Color(Math.random(), Math.random(), Math.random());
+          light.setLocalEulerAngles(45, 30, 0);
+          app.root.addChild(light);
+
+          // Create a 3D world screen, which is basically a `screen` with `screenSpace` set to false
+          var screen = new pc.Entity();
+          screen.setLocalScale(0.01, 0.01, 0.01);
+          screen.setPosition(0, 0.01, 0); // place UI slightly above the ground
+          screen.setLocalRotation(new pc.Quat().setFromEulerAngles(-90, 0, 0));
+          screen.addComponent("screen", {
+            referenceResolution: new pc.Vec2(1280, 720),
+            screenSpace: false });
+
+          app.root.addChild(screen);
+
+          // Text
+          var text = new pc.Entity();
+          text.setLocalPosition(0, 25, 0);
+          text.addComponent("element", {
+            pivot: new pc.Vec2(0.5, 0.5),
+            anchor: new pc.Vec4(0.5, 0.5, 0.5, 0.5),
+            fontAsset: assets.font.id,
+            fontSize: 18,
+            text: "this is a UI screen placed in the 3D world",
+            width: 200,
+            height: 100,
+            autoWidth: false,
+            autoHeight: false,
+            wrapLines: true,
+            enableMarkup: true,
+            type: pc.ELEMENTTYPE_TEXT });
+
+          screen.addChild(text);
+
+          // Button
+          var button = new pc.Entity();
+          button.setLocalPosition(0, -25, 0);
+          button.addComponent("button", {
+            imageEntity: button });
+
+          button.addComponent("element", {
+            anchor: [0.5, 0.5, 0.5, 0.5],
+            width: 100,
+            height: 25,
+            pivot: [0.5, 0.5],
+            type: pc.ELEMENTTYPE_IMAGE,
+            useInput: true });
+
+          screen.addChild(button);
+
+          // Create a label for the button
+          var buttonText = new pc.Entity();
+          buttonText.addComponent("element", {
+            pivot: new pc.Vec2(0.5, 0.5),
+            anchor: new pc.Vec4(0, 0, 1, 1),
+            margin: new pc.Vec4(0, 0, 0, 0),
+            color: new pc.Color(0, 0, 0),
+            fontAsset: assets.font.id,
+            fontSize: 12,
+            text: "and this is a button",
+            type: pc.ELEMENTTYPE_TEXT,
+            wrapLines: true });
+
+          button.addChild(buttonText);
+
+          // Change the background color every time the button is clicked
+          button.button.on('click', function () {
+            camera.camera.clearColor = new pc.Color(Math.random(), Math.random(), Math.random());
+          });
         });
       });
-    } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'User Interface');_defineProperty(Example, "NAME", 'World UI');
+    } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'User Interface');_defineProperty(Example, "NAME", 'World UI');_defineProperty(Example, "WEBGPU_ENABLED", true);
         var example = new Example();
 
         var useTypeScript = window.top.localStorage.getItem('useTypeScript') === 'true';
@@ -200,7 +241,7 @@
                     presets: ["react", "typescript", "env"]
                 }).code;
             }
-            window.exampleFunction = new Function('canvas', 'data', exampleFunction);
+            window.exampleFunction = new Function('canvas', 'deviceType', 'data', exampleFunction);
         }
         window.loadFunction = example.load;
         window.files = window.top.editedFiles || example.constructor.FILES;
@@ -243,7 +284,7 @@
                 }).observe(canvasContainerElement);
             }
 
-            if (true) {
+            if (true && app.graphicsDevice.deviceType !== 'webgpu') {
                 // set up miniStats
                 var miniStats = new pcx.MiniStats(app);
                 if (urlParams.get('miniStats') === 'false') {
@@ -319,14 +360,28 @@
                     return data;
                 } else if (arg === 'pcx') {
                     return pcx;
+                } else if (arg === 'deviceType') {
+                    if (true) {
+                        return window.top.preferredGraphicsDevice || 'webgpu';
+                    } else if (['webgl1', 'webgl2'].includes(window.top.preferredGraphicsDevice)) {
+                        return window.top.preferredGraphicsDevice;
+                    } else {
+                        return 'webgl2';
+                    }
                 }
             });
+
             window.exampleFunction.apply(this, args);
-            if (pc.app && pc.app.graphicsDevice.canvas) {
-                setupApplication(pc.app);
+
+            const pollHandler = setInterval(appCreationPoll, 50);
+            function appCreationPoll() {
+                if (pc.app && pc.app.graphicsDevice.canvas) {
+                    clearInterval(pollHandler);
+                    setupApplication(pc.app);
+                    var event = new CustomEvent("exampleLoad");
+                    window.top.dispatchEvent(event);
+                }
             }
-            var event = new CustomEvent("exampleLoad");
-            window.top.dispatchEvent(event);
         }
     </script>
     <script>

@@ -1,17 +1,17 @@
 /**
  * @license
- * PlayCanvas Engine v1.62.0-dev revision 7d088032c (PROFILER)
+ * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 var reflDirAnisoPS = `
-void getReflDir() {
-		float roughness = sqrt(1.0 - min(dGlossiness, 1.0));
+void getReflDir(vec3 worldNormal, vec3 viewDir, float gloss, mat3 tbn) {
+		float roughness = sqrt(1.0 - min(gloss, 1.0));
 		float anisotropy = material_anisotropy * roughness;
-		vec3 anisotropicDirection = anisotropy >= 0.0 ? dTBN[1] : dTBN[0];
-		vec3 anisotropicTangent = cross(anisotropicDirection, dViewDirW);
+		vec3 anisotropicDirection = anisotropy >= 0.0 ? tbn[1] : tbn[0];
+		vec3 anisotropicTangent = cross(anisotropicDirection, viewDir);
 		vec3 anisotropicNormal = cross(anisotropicTangent, anisotropicDirection);
-		vec3 bentNormal = normalize(mix(normalize(dNormalW), normalize(anisotropicNormal), anisotropy));
-		dReflDirW = reflect(-dViewDirW, bentNormal);
+		vec3 bentNormal = normalize(mix(normalize(worldNormal), normalize(anisotropicNormal), anisotropy));
+		dReflDirW = reflect(-viewDir, bentNormal);
 }
 `;
 
