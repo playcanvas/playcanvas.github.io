@@ -1,8 +1,3 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 var shadowVSM8PS = `
 float calculateVSM8(vec3 moments, float Z, float vsmBias) {
 		float VSMBias = vsmBias;//0.01 * 0.25;

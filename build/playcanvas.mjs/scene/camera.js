@@ -13,6 +13,7 @@ const _invViewProjMat = new Mat4();
 const _frustumPoints = [new Vec3(), new Vec3(), new Vec3(), new Vec3(), new Vec3(), new Vec3(), new Vec3(), new Vec3()];
 class Camera {
 	constructor() {
+		this.shaderPassInfo = void 0;
 		this._aspectRatio = 16 / 9;
 		this._aspectRatioMode = ASPECT_AUTO;
 		this._calculateProjection = null;
@@ -323,6 +324,7 @@ class Camera {
 		this.aperture = other.aperture;
 		this.shutter = other.shutter;
 		this.sensitivity = other.sensitivity;
+		this.shaderPassInfo = other.shaderPassInfo;
 		this._projMatDirty = true;
 		return this;
 	}

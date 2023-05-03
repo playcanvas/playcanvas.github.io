@@ -1,3 +1,4 @@
+import { extends as _extends } from '../../../_virtual/_rollupPluginBabelHelpers.js';
 import { ADDRESS_CLAMP_TO_EDGE, ADDRESS_REPEAT } from '../../../platform/graphics/constants.js';
 import { Texture } from '../../../platform/graphics/texture.js';
 import { Asset } from '../../asset/asset.js';
@@ -27,8 +28,8 @@ class BasisParser {
 			}
 		}, asset, this.maxRetries);
 	}
-	open(url, data, device) {
-		const texture = new Texture(device, {
+	open(url, data, device, textureOptions = {}) {
+		const texture = new Texture(device, _extends({
 			name: url,
 			addressU: data.cubemap ? ADDRESS_CLAMP_TO_EDGE : ADDRESS_REPEAT,
 			addressV: data.cubemap ? ADDRESS_CLAMP_TO_EDGE : ADDRESS_REPEAT,
@@ -37,7 +38,7 @@ class BasisParser {
 			format: data.format,
 			cubemap: data.cubemap,
 			levels: data.levels
-		});
+		}, textureOptions));
 		texture.upload();
 		return texture;
 	}

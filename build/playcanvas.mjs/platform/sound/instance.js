@@ -269,6 +269,7 @@ class SoundInstance extends EventHandler {
 		if (this._state !== STATE_PAUSED) {
 			return false;
 		}
+		let offset = this.currentTime;
 		this._state = STATE_PLAYING;
 		if (this._waitingContextSuspension) {
 			return true;
@@ -276,7 +277,6 @@ class SoundInstance extends EventHandler {
 		if (!this.source) {
 			this._createSource();
 		}
-		let offset = this.currentTime;
 		if (this._startOffset !== null) {
 			offset = capTime(this._startOffset, this.duration);
 			offset = capTime(this._startTime + offset, this._sound.duration);

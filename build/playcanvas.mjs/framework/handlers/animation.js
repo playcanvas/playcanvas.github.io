@@ -9,6 +9,8 @@ import { GlbParser } from '../parsers/glb-parser.js';
 class AnimationHandler {
 	constructor(app) {
 		this.handlerType = "animation";
+		this.device = app.graphicsDevice;
+		this.assets = app.assets;
 		this.maxRetries = 0;
 	}
 	load(url, callback, asset) {
@@ -34,7 +36,8 @@ class AnimationHandler {
 				callback(`Error loading animation resource: ${url.original} [${err}]`);
 			} else {
 				if (path.getExtension(url.original).toLowerCase() === '.glb') {
-					GlbParser.parse('filename.glb', response, null, null, (err, parseResult) => {
+					var _asset$options;
+					GlbParser.parse('filename.glb', '', response, this.device, this.assets, (_asset$options = asset == null ? void 0 : asset.options) != null ? _asset$options : {}, (err, parseResult) => {
 						if (err) {
 							callback(err);
 						} else {

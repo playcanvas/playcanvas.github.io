@@ -1,8 +1,3 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 import { hashCode } from '../../../core/hash.js';
 import '../../../core/tracing.js';
 import { LIGHTTYPE_DIRECTIONAL, SPRITE_RENDERMODE_SLICED, SPRITE_RENDERMODE_TILED, SPECULAR_PHONG, FRESNEL_SCHLICK, BLEND_NONE } from '../../constants.js';
@@ -68,7 +63,7 @@ const standard = {
 	_getUvSourceExpression: function (transformPropName, uVPropName, options) {
 		const transformId = options[transformPropName];
 		const uvChannel = options[uVPropName];
-		const isMainPass = ShaderPass.isForward(options.pass);
+		const isMainPass = options.isForwardPass;
 		let expression;
 		if (isMainPass && options.litOptions.nineSlicedMode === SPRITE_RENDERMODE_SLICED) {
 			expression = "nineSlicedUv";
@@ -166,6 +161,9 @@ const standard = {
 		}
 	},
 	createShaderDefinition: function (device, options) {
+		const shaderPassInfo = ShaderPass.get(device).getByIndex(options.pass);
+		const isForwardPass = shaderPassInfo.isForward;
+		options.isForwardPass = isForwardPass;
 		const litShader = new LitShader(device, options.litOptions);
 		const useUv = [];
 		const useUnmodifiedUv = [];
@@ -217,7 +215,7 @@ const standard = {
 		} else {
 			decl.append(`uniform float textureBias;`);
 		}
-		if (ShaderPass.isForward(options.pass)) {
+		if (isForwardPass) {
 			if (options.heightMap) {
 				decl.append("vec2 dUvOffset;");
 				code.append(this._addMap("height", "parallaxPS", options, litShader.chunks, textureMapping));

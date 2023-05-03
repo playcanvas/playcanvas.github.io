@@ -1,13 +1,7 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 import { now } from '../../core/time.js';
 import '../../core/tracing.js';
 import { Vec3 } from '../../core/math/vec3.js';
 import { Color } from '../../core/math/color.js';
-import { FUNC_ALWAYS, STENCILOP_KEEP } from '../../platform/graphics/constants.js';
 import { RenderPass } from '../../platform/graphics/render-pass.js';
 import { LIGHTSHAPE_PUNCTUAL, LIGHTTYPE_OMNI, LIGHTTYPE_SPOT, LIGHTTYPE_DIRECTIONAL, FOG_NONE, FOG_LINEAR, COMPUPDATED_LIGHTS, MASK_AFFECT_DYNAMIC, MASK_AFFECT_LIGHTMAPPED, MASK_BAKE, COMPUPDATED_INSTANCES, LAYERID_DEPTH } from '../constants.js';
 import { Renderer } from './renderer.js';
@@ -20,7 +14,12 @@ const webgl1DepthClearColor = new Color(254.0 / 255, 254.0 / 255, 254.0 / 255, 2
 const _drawCallList = {
 	drawCalls: [],
 	isNewMaterial: [],
-	lightMaskChanged: []
+	lightMaskChanged: [],
+	clear: function () {
+		this.drawCalls.length = 0;
+		this.isNewMaterial.length = 0;
+		this.lightMaskChanged.length = 0;
+	}
 };
 class ForwardRenderer extends Renderer {
 	constructor(graphicsDevice) {
@@ -319,9 +318,7 @@ class ForwardRenderer extends Renderer {
 			_drawCallList.isNewMaterial.push(isNewMaterial);
 			_drawCallList.lightMaskChanged.push(lightMaskChanged);
 		};
-		_drawCallList.drawCalls.length = 0;
-		_drawCallList.isNewMaterial.length = 0;
-		_drawCallList.lightMaskChanged.length = 0;
+		_drawCallList.clear();
 		const device = this.device;
 		const scene = this.scene;
 		const lightHash = layer ? layer._lightHash : 0;
@@ -399,6 +396,7 @@ class ForwardRenderer extends Renderer {
 			if (drawCall.command) {
 				drawCall.command();
 			} else {
+				var _drawCall$stencilFron, _drawCall$stencilBack;
 				const newMaterial = preparedCalls.isNewMaterial[i];
 				const lightMaskChanged = preparedCalls.lightMaskChanged[i];
 				const material = drawCall.material;
@@ -426,32 +424,9 @@ class ForwardRenderer extends Renderer {
 					}
 				}
 				this.setupCullMode(camera._cullFaces, flipFactor, drawCall);
-				const stencilFront = drawCall.stencilFront || material.stencilFront;
-				const stencilBack = drawCall.stencilBack || material.stencilBack;
-				if (stencilFront || stencilBack) {
-					device.setStencilTest(true);
-					if (stencilFront === stencilBack) {
-						device.setStencilFunc(stencilFront.func, stencilFront.ref, stencilFront.readMask);
-						device.setStencilOperation(stencilFront.fail, stencilFront.zfail, stencilFront.zpass, stencilFront.writeMask);
-					} else {
-						if (stencilFront) {
-							device.setStencilFuncFront(stencilFront.func, stencilFront.ref, stencilFront.readMask);
-							device.setStencilOperationFront(stencilFront.fail, stencilFront.zfail, stencilFront.zpass, stencilFront.writeMask);
-						} else {
-							device.setStencilFuncFront(FUNC_ALWAYS, 0, 0xFF);
-							device.setStencilOperationFront(STENCILOP_KEEP, STENCILOP_KEEP, STENCILOP_KEEP, 0xFF);
-						}
-						if (stencilBack) {
-							device.setStencilFuncBack(stencilBack.func, stencilBack.ref, stencilBack.readMask);
-							device.setStencilOperationBack(stencilBack.fail, stencilBack.zfail, stencilBack.zpass, stencilBack.writeMask);
-						} else {
-							device.setStencilFuncBack(FUNC_ALWAYS, 0, 0xFF);
-							device.setStencilOperationBack(STENCILOP_KEEP, STENCILOP_KEEP, STENCILOP_KEEP, 0xFF);
-						}
-					}
-				} else {
-					device.setStencilTest(false);
-				}
+				const stencilFront = (_drawCall$stencilFron = drawCall.stencilFront) != null ? _drawCall$stencilFron : material.stencilFront;
+				const stencilBack = (_drawCall$stencilBack = drawCall.stencilBack) != null ? _drawCall$stencilBack : material.stencilBack;
+				device.setStencilState(stencilFront, stencilBack);
 				const mesh = drawCall.mesh;
 				drawCall.setParameters(device, passFlag);
 				this.setVertexBuffers(device, mesh);
@@ -460,9 +435,7 @@ class ForwardRenderer extends Renderer {
 				this.setupMeshUniformBuffers(drawCall, pass);
 				const style = drawCall.renderStyle;
 				device.setIndexBuffer(mesh.indexBuffer[style]);
-				if (drawCallback) {
-					drawCallback(drawCall, i);
-				}
+				drawCallback == null ? void 0 : drawCallback(drawCall, i);
 				if (camera.xr && camera.xr.session && camera.xr.views.length) {
 					const views = camera.xr.views;
 					for (let v = 0; v < views.length; v++) {
@@ -496,7 +469,7 @@ class ForwardRenderer extends Renderer {
 		const forwardStartTime = now();
 		const preparedCalls = this.renderForwardPrepareMaterials(camera, allDrawCalls, allDrawCallsCount, sortedLights, cullingMask, layer, pass);
 		this.renderForwardInternal(camera, preparedCalls, sortedLights, pass, drawCallback, flipFaces);
-		_drawCallList.length = 0;
+		_drawCallList.clear();
 		this._forwardTime += now() - forwardStartTime;
 	}
 	setSceneConstants() {
@@ -717,7 +690,7 @@ class ForwardRenderer extends Renderer {
 			layer._preRenderCalledForCameras |= 1 << cameraPass;
 		}
 		if (camera) {
-			var _renderAction$renderT;
+			var _renderAction$renderT, _camera$camera$shader, _camera$camera$shader2;
 			this.setupViewport(camera.camera, renderAction.renderTarget);
 			if (!firstRenderAction || !camera.camera.fullSizeClearRect) {
 				this.clear(camera.camera, renderAction.clearColor, renderAction.clearDepth, renderAction.clearStencil);
@@ -740,11 +713,12 @@ class ForwardRenderer extends Renderer {
 				this.setupViewUniformBuffers(renderAction.viewBindGroups, this.viewUniformFormat, this.viewBindGroupFormat, viewCount);
 			}
 			const flipFaces = !!(camera.camera._flipFaces ^ (renderAction == null ? void 0 : (_renderAction$renderT = renderAction.renderTarget) == null ? void 0 : _renderAction$renderT.flipY));
+			const shaderPass = (_camera$camera$shader = (_camera$camera$shader2 = camera.camera.shaderPassInfo) == null ? void 0 : _camera$camera$shader2.index) != null ? _camera$camera$shader : layer.shaderPass;
 			const draws = this._forwardDrawCalls;
-			this.renderForward(camera.camera, visible.list, visible.length, layer._splitLights, layer.shaderPass, layer.cullingMask, layer.onDrawCall, layer, flipFaces);
+			this.renderForward(camera.camera, visible.list, visible.length, layer._splitLights, shaderPass, layer.cullingMask, layer.onDrawCall, layer, flipFaces);
 			layer._forwardDrawCalls += this._forwardDrawCalls - draws;
 			device.setBlendState(BlendState.DEFAULT);
-			device.setStencilTest(false);
+			device.setStencilState(null, null);
 			device.setAlphaToCoverage(false);
 			device.setDepthBias(false);
 		}

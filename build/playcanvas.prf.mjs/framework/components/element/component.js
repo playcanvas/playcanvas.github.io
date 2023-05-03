@@ -1,8 +1,3 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 import '../../../core/tracing.js';
 import { Mat4 } from '../../../core/math/mat4.js';
 import { Vec2 } from '../../../core/math/vec2.js';
@@ -11,7 +6,7 @@ import { Vec4 } from '../../../core/math/vec4.js';
 import { FUNC_EQUAL, STENCILOP_INCREMENT, FUNC_ALWAYS, STENCILOP_REPLACE } from '../../../platform/graphics/constants.js';
 import { LAYERID_UI } from '../../../scene/constants.js';
 import { BatchGroup } from '../../../scene/batching/batch-group.js';
-import { StencilParameters } from '../../../scene/stencil-parameters.js';
+import { StencilParameters } from '../../../platform/graphics/stencil-parameters.js';
 import { Entity } from '../../entity.js';
 import { Component } from '../component.js';
 import { ELEMENTTYPE_GROUP, FITMODE_STRETCH, ELEMENTTYPE_IMAGE, ELEMENTTYPE_TEXT } from './constants.js';
@@ -605,18 +600,13 @@ class ElementComponent extends Component {
 		const renderableElement = this._image || this._text;
 		if (mask) {
 			const ref = mask.element._image._maskRef;
-			const sp = new StencilParameters({
+			renderableElement == null ? void 0 : renderableElement._setStencil(new StencilParameters({
 				ref: ref,
 				func: FUNC_EQUAL
-			});
-			if (renderableElement && renderableElement._setStencil) {
-				renderableElement._setStencil(sp);
-			}
+			}));
 			this._maskedBy = mask;
 		} else {
-			if (renderableElement && renderableElement._setStencil) {
-				renderableElement._setStencil(null);
-			}
+			renderableElement == null ? void 0 : renderableElement._setStencil(null);
 			this._maskedBy = null;
 		}
 	}
@@ -637,9 +627,8 @@ class ElementComponent extends Component {
 			}
 			const children = this.entity.children;
 			for (let i = 0, l = children.length; i < l; i++) {
-				if (children[i].element) {
-					children[i].element._updateMask(currentMask, depth);
-				}
+				var _children$i$element;
+				(_children$i$element = children[i].element) == null ? void 0 : _children$i$element._updateMask(currentMask, depth);
 			}
 			if (this.mask) depth--;
 		} else {
@@ -657,9 +646,8 @@ class ElementComponent extends Component {
 			}
 			const children = this.entity.children;
 			for (let i = 0, l = children.length; i < l; i++) {
-				if (children[i].element) {
-					children[i].element._updateMask(currentMask, depth);
-				}
+				var _children$i$element2;
+				(_children$i$element2 = children[i].element) == null ? void 0 : _children$i$element2._updateMask(currentMask, depth);
 			}
 			if (this.mask) depth--;
 		}

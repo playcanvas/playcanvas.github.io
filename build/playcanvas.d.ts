@@ -95,6 +95,12 @@ declare const TRACEID_RENDERPIPELINE_ALLOC: string;
  * @type {string}
  */
 declare const TRACEID_PIPELINELAYOUT_ALLOC: string;
+/**
+ * Logs the internal debug information for Elements.
+ *
+ * @type {string}
+ */
+declare const TRACE_ID_ELEMENT: string;
 
 /**
  * A linear interpolation scheme.
@@ -388,6 +394,7 @@ declare const CULLFACE_FRONT: number;
  * that point or line primitives are unaffected by this render state.
  *
  * @type {number}
+ * @ignore
  */
 declare const CULLFACE_FRONTANDBACK: number;
 /**
@@ -930,7 +937,7 @@ declare const STENCILOP_KEEP: number;
  */
 declare const STENCILOP_ZERO: number;
 /**
- * Replace value with the reference value (see {@link GraphicsDevice#setStencilFunc}).
+ * Replace value with the reference value (see {@link StencilParameters}).
  *
  * @type {number}
  */
@@ -2466,25 +2473,67 @@ declare const SHADER_SHADOW: 4;
  *
  * @type {string}
  */
-declare const SHADERTYPE_FORWARD: string;
+declare const SHADERPASS_FORWARD: string;
 /**
- * Shader that performs depth rendering.
+ * Shader used for debug rendering of albedo.
  *
  * @type {string}
  */
-declare const SHADERTYPE_DEPTH: string;
+declare const SHADERPASS_ALBEDO: string;
 /**
- * Shader used for picking.
+ * Shader used for debug rendering of world normal.
  *
  * @type {string}
  */
-declare const SHADERTYPE_PICK: string;
+declare const SHADERPASS_WORLDNORMAL: string;
 /**
- * Shader used for rendering shadow textures.
+ * Shader used for debug rendering of opacity.
  *
  * @type {string}
  */
-declare const SHADERTYPE_SHADOW: string;
+declare const SHADERPASS_OPACITY: string;
+/**
+ * Shader used for debug rendering of specularity.
+ *
+ * @type {string}
+ */
+declare const SHADERPASS_SPECULARITY: string;
+/**
+ * Shader used for debug rendering of gloss.
+ *
+ * @type {string}
+ */
+declare const SHADERPASS_GLOSS: string;
+/**
+ * Shader used for debug rendering of metalness.
+ *
+ * @type {string}
+ */
+declare const SHADERPASS_METALNESS: string;
+/**
+ * Shader used for debug rendering of ao.
+ *
+ * @type {string}
+ */
+declare const SHADERPASS_AO: string;
+/**
+ * Shader used for debug rendering of emission.
+ *
+ * @type {string}
+ */
+declare const SHADERPASS_EMISSION: string;
+/**
+ * Shader used for debug rendering of lighting.
+ *
+ * @type {string}
+ */
+declare const SHADERPASS_LIGHTING: string;
+/**
+ * Shader used for debug rendering of UV0 texture coordinates.
+ *
+ * @type {string}
+ */
+declare const SHADERPASS_UV0: string;
 /**
  * This mode renders a sprite as a simple quad.
  *
@@ -3333,7 +3382,7 @@ declare class Vec3 {
      * @param {number} [y] - The y value. Defaults to 0.
      * @param {number} [z] - The z value. Defaults to 0.
      * @example
-     * var v = new pc.Vec3(1, 2, 3);
+     * const v = new pc.Vec3(1, 2, 3);
      */
     constructor(x?: number | number[], y?: number, z?: number);
     /**
@@ -3360,8 +3409,8 @@ declare class Vec3 {
      * @param {Vec3} rhs - The vector to add to the specified vector.
      * @returns {Vec3} Self for chaining.
      * @example
-     * var a = new pc.Vec3(10, 10, 10);
-     * var b = new pc.Vec3(20, 20, 20);
+     * const a = new pc.Vec3(10, 10, 10);
+     * const b = new pc.Vec3(20, 20, 20);
      *
      * a.add(b);
      *
@@ -3376,9 +3425,9 @@ declare class Vec3 {
      * @param {Vec3} rhs - The second vector operand for the addition.
      * @returns {Vec3} Self for chaining.
      * @example
-     * var a = new pc.Vec3(10, 10, 10);
-     * var b = new pc.Vec3(20, 20, 20);
-     * var r = new pc.Vec3();
+     * const a = new pc.Vec3(10, 10, 10);
+     * const b = new pc.Vec3(20, 20, 20);
+     * const r = new pc.Vec3();
      *
      * r.add2(a, b);
      * // Outputs [30, 30, 30]
@@ -3392,7 +3441,7 @@ declare class Vec3 {
      * @param {number} scalar - The number to add.
      * @returns {Vec3} Self for chaining.
      * @example
-     * var vec = new pc.Vec3(3, 4, 5);
+     * const vec = new pc.Vec3(3, 4, 5);
      *
      * vec.addScalar(2);
      *
@@ -3405,8 +3454,8 @@ declare class Vec3 {
      *
      * @returns {this} A 3-dimensional vector containing the result of the cloning.
      * @example
-     * var v = new pc.Vec3(10, 20, 30);
-     * var vclone = v.clone();
+     * const v = new pc.Vec3(10, 20, 30);
+     * const vclone = v.clone();
      * console.log("The result of the cloning is: " + vclone.toString());
      */
     clone(): this;
@@ -3416,8 +3465,8 @@ declare class Vec3 {
      * @param {Vec3} rhs - A vector to copy to the specified vector.
      * @returns {Vec3} Self for chaining.
      * @example
-     * var src = new pc.Vec3(10, 20, 30);
-     * var dst = new pc.Vec3();
+     * const src = new pc.Vec3(10, 20, 30);
+     * const dst = new pc.Vec3();
      *
      * dst.copy(src);
      *
@@ -3432,7 +3481,7 @@ declare class Vec3 {
      * @param {Vec3} rhs - The second 3-dimensional vector operand of the cross product.
      * @returns {Vec3} Self for chaining.
      * @example
-     * var back = new pc.Vec3().cross(pc.Vec3.RIGHT, pc.Vec3.UP);
+     * const back = new pc.Vec3().cross(pc.Vec3.RIGHT, pc.Vec3.UP);
      *
      * // Prints the Z axis (i.e. [0, 0, 1])
      * console.log("The result of the cross product is: " + back.toString());
@@ -3444,9 +3493,9 @@ declare class Vec3 {
      * @param {Vec3} rhs - The second 3-dimensional vector to test.
      * @returns {number} The distance between the two vectors.
      * @example
-     * var v1 = new pc.Vec3(5, 10, 20);
-     * var v2 = new pc.Vec3(10, 20, 40);
-     * var d = v1.distance(v2);
+     * const v1 = new pc.Vec3(5, 10, 20);
+     * const v2 = new pc.Vec3(10, 20, 40);
+     * const d = v1.distance(v2);
      * console.log("The distance between v1 and v2 is: " + d);
      */
     distance(rhs: Vec3): number;
@@ -3456,8 +3505,8 @@ declare class Vec3 {
      * @param {Vec3} rhs - The vector to divide the specified vector by.
      * @returns {Vec3} Self for chaining.
      * @example
-     * var a = new pc.Vec3(4, 9, 16);
-     * var b = new pc.Vec3(2, 3, 4);
+     * const a = new pc.Vec3(4, 9, 16);
+     * const b = new pc.Vec3(2, 3, 4);
      *
      * a.div(b);
      *
@@ -3472,9 +3521,9 @@ declare class Vec3 {
      * @param {Vec3} rhs - The divisor vector (the vector dividing the dividend).
      * @returns {Vec3} Self for chaining.
      * @example
-     * var a = new pc.Vec3(4, 9, 16);
-     * var b = new pc.Vec3(2, 3, 4);
-     * var r = new pc.Vec3();
+     * const a = new pc.Vec3(4, 9, 16);
+     * const b = new pc.Vec3(2, 3, 4);
+     * const r = new pc.Vec3();
      *
      * r.div2(a, b);
      * // Outputs [2, 3, 4]
@@ -3488,7 +3537,7 @@ declare class Vec3 {
      * @param {number} scalar - The number to divide by.
      * @returns {Vec3} Self for chaining.
      * @example
-     * var vec = new pc.Vec3(3, 6, 9);
+     * const vec = new pc.Vec3(3, 6, 9);
      *
      * vec.divScalar(3);
      *
@@ -3503,9 +3552,9 @@ declare class Vec3 {
      * @param {Vec3} rhs - The second 3-dimensional vector operand of the dot product.
      * @returns {number} The result of the dot product operation.
      * @example
-     * var v1 = new pc.Vec3(5, 10, 20);
-     * var v2 = new pc.Vec3(10, 20, 40);
-     * var v1dotv2 = v1.dot(v2);
+     * const v1 = new pc.Vec3(5, 10, 20);
+     * const v2 = new pc.Vec3(10, 20, 40);
+     * const v1dotv2 = v1.dot(v2);
      * console.log("The result of the dot product is: " + v1dotv2);
      */
     dot(rhs: Vec3): number;
@@ -3515,8 +3564,8 @@ declare class Vec3 {
      * @param {Vec3} rhs - The vector to compare to the specified vector.
      * @returns {boolean} True if the vectors are equal and false otherwise.
      * @example
-     * var a = new pc.Vec3(1, 2, 3);
-     * var b = new pc.Vec3(4, 5, 6);
+     * const a = new pc.Vec3(1, 2, 3);
+     * const b = new pc.Vec3(4, 5, 6);
      * console.log("The two vectors are " + (a.equals(b) ? "equal" : "different"));
      */
     equals(rhs: Vec3): boolean;
@@ -3525,8 +3574,8 @@ declare class Vec3 {
      *
      * @returns {number} The magnitude of the specified 3-dimensional vector.
      * @example
-     * var vec = new pc.Vec3(3, 4, 0);
-     * var len = vec.length();
+     * const vec = new pc.Vec3(3, 4, 0);
+     * const len = vec.length();
      * // Outputs 5
      * console.log("The length of the vector is: " + len);
      */
@@ -3536,8 +3585,8 @@ declare class Vec3 {
      *
      * @returns {number} The magnitude of the specified 3-dimensional vector.
      * @example
-     * var vec = new pc.Vec3(3, 4, 0);
-     * var len = vec.lengthSq();
+     * const vec = new pc.Vec3(3, 4, 0);
+     * const len = vec.lengthSq();
      * // Outputs 25
      * console.log("The length squared of the vector is: " + len);
      */
@@ -3552,9 +3601,9 @@ declare class Vec3 {
      * range, the linear interpolant will occur on a ray extrapolated from this line.
      * @returns {Vec3} Self for chaining.
      * @example
-     * var a = new pc.Vec3(0, 0, 0);
-     * var b = new pc.Vec3(10, 10, 10);
-     * var r = new pc.Vec3();
+     * const a = new pc.Vec3(0, 0, 0);
+     * const b = new pc.Vec3(10, 10, 10);
+     * const r = new pc.Vec3();
      *
      * r.lerp(a, b, 0);   // r is equal to a
      * r.lerp(a, b, 0.5); // r is 5, 5, 5
@@ -3567,8 +3616,8 @@ declare class Vec3 {
      * @param {Vec3} rhs - The 3-dimensional vector used as the second multiplicand of the operation.
      * @returns {Vec3} Self for chaining.
      * @example
-     * var a = new pc.Vec3(2, 3, 4);
-     * var b = new pc.Vec3(4, 5, 6);
+     * const a = new pc.Vec3(2, 3, 4);
+     * const b = new pc.Vec3(4, 5, 6);
      *
      * a.mul(b);
      *
@@ -3583,9 +3632,9 @@ declare class Vec3 {
      * @param {Vec3} rhs - The 3-dimensional vector used as the second multiplicand of the operation.
      * @returns {Vec3} Self for chaining.
      * @example
-     * var a = new pc.Vec3(2, 3, 4);
-     * var b = new pc.Vec3(4, 5, 6);
-     * var r = new pc.Vec3();
+     * const a = new pc.Vec3(2, 3, 4);
+     * const b = new pc.Vec3(4, 5, 6);
+     * const r = new pc.Vec3();
      *
      * r.mul2(a, b);
      *
@@ -3599,7 +3648,7 @@ declare class Vec3 {
      * @param {number} scalar - The number to multiply by.
      * @returns {Vec3} Self for chaining.
      * @example
-     * var vec = new pc.Vec3(3, 6, 9);
+     * const vec = new pc.Vec3(3, 6, 9);
      *
      * vec.mulScalar(3);
      *
@@ -3613,7 +3662,7 @@ declare class Vec3 {
      *
      * @returns {Vec3} Self for chaining.
      * @example
-     * var v = new pc.Vec3(25, 0, 0);
+     * const v = new pc.Vec3(25, 0, 0);
      *
      * v.normalize();
      *
@@ -3659,8 +3708,8 @@ declare class Vec3 {
      * @param {Vec3} rhs - The vector onto which the original vector will be projected on.
      * @returns {Vec3} Self for chaining.
      * @example
-     * var v = new pc.Vec3(5, 5, 5);
-     * var normal = new pc.Vec3(1, 0, 0);
+     * const v = new pc.Vec3(5, 5, 5);
+     * const normal = new pc.Vec3(1, 0, 0);
      *
      * v.project(normal);
      *
@@ -3676,7 +3725,7 @@ declare class Vec3 {
      * @param {number} z - The value to set on the third component of the vector.
      * @returns {Vec3} Self for chaining.
      * @example
-     * var v = new pc.Vec3();
+     * const v = new pc.Vec3();
      * v.set(5, 10, 20);
      *
      * // Outputs 5, 10, 20
@@ -3689,8 +3738,8 @@ declare class Vec3 {
      * @param {Vec3} rhs - The vector to subtract from the specified vector.
      * @returns {Vec3} Self for chaining.
      * @example
-     * var a = new pc.Vec3(10, 10, 10);
-     * var b = new pc.Vec3(20, 20, 20);
+     * const a = new pc.Vec3(10, 10, 10);
+     * const b = new pc.Vec3(20, 20, 20);
      *
      * a.sub(b);
      *
@@ -3705,9 +3754,9 @@ declare class Vec3 {
      * @param {Vec3} rhs - The second vector operand for the subtraction.
      * @returns {Vec3} Self for chaining.
      * @example
-     * var a = new pc.Vec3(10, 10, 10);
-     * var b = new pc.Vec3(20, 20, 20);
-     * var r = new pc.Vec3();
+     * const a = new pc.Vec3(10, 10, 10);
+     * const b = new pc.Vec3(20, 20, 20);
+     * const r = new pc.Vec3();
      *
      * r.sub2(a, b);
      *
@@ -3721,7 +3770,7 @@ declare class Vec3 {
      * @param {number} scalar - The number to subtract.
      * @returns {Vec3} Self for chaining.
      * @example
-     * var vec = new pc.Vec3(3, 4, 5);
+     * const vec = new pc.Vec3(3, 4, 5);
      *
      * vec.subScalar(2);
      *
@@ -3734,7 +3783,7 @@ declare class Vec3 {
      *
      * @returns {string} The vector in string form.
      * @example
-     * var v = new pc.Vec3(20, 10, 5);
+     * const v = new pc.Vec3(20, 10, 5);
      * // Outputs [20, 10, 5]
      * console.log(v.toString());
      */
@@ -3756,7 +3805,7 @@ declare class Ray {
      * @example
      * // Create a new ray starting at the position of this entity and pointing down
      * // the entity's negative Z axis
-     * var ray = new pc.Ray(this.entity.getPosition(), this.entity.forward);
+     * const ray = new pc.Ray(this.entity.getPosition(), this.entity.forward);
      */
     constructor(origin?: Vec3, direction?: Vec3);
     /**
@@ -3808,7 +3857,7 @@ declare class BoundingSphere {
      * @param {number} [radius] - The radius of the bounding sphere. Defaults to 0.5.
      * @example
      * // Create a new bounding sphere centered on the origin with a radius of 0.5
-     * var sphere = new pc.BoundingSphere();
+     * const sphere = new pc.BoundingSphere();
      */
     constructor(center?: Vec3, radius?: number);
     /**
@@ -3899,8 +3948,8 @@ declare class Quat {
      *
      * @returns {this} A quaternion containing the result of the cloning.
      * @example
-     * var q = new pc.Quat(-0.11, -0.15, -0.46, 0.87);
-     * var qclone = q.clone();
+     * const q = new pc.Quat(-0.11, -0.15, -0.46, 0.87);
+     * const qclone = q.clone();
      *
      * console.log("The result of the cloning is: " + q.toString());
      */
@@ -3912,8 +3961,8 @@ declare class Quat {
      * @param {Quat} rhs - The quaternion to be copied.
      * @returns {Quat} Self for chaining.
      * @example
-     * var src = new pc.Quat();
-     * var dst = new pc.Quat();
+     * const src = new pc.Quat();
+     * const dst = new pc.Quat();
      * dst.copy(src, src);
      * console.log("The two quaternions are " + (src.equals(dst) ? "equal" : "different"));
      */
@@ -3924,8 +3973,8 @@ declare class Quat {
      * @param {Quat} rhs - The quaternion to be compared against.
      * @returns {boolean} True if the quaternions are equal and false otherwise.
      * @example
-     * var a = new pc.Quat();
-     * var b = new pc.Quat();
+     * const a = new pc.Quat();
+     * const b = new pc.Quat();
      * console.log("The two quaternions are " + (a.equals(b) ? "equal" : "different"));
      */
     equals(rhs: Quat): boolean;
@@ -3936,8 +3985,8 @@ declare class Quat {
      * @param {number} [epsilon=1e-6] - The maximum difference between each component of the two quaternions. Defaults to 1e-6.
      * @returns {boolean} True if the quaternions are equal and false otherwise.
      * @example
-     * var a = new pc.Quat();
-     * var b = new pc.Quat();
+     * const a = new pc.Quat();
+     * const b = new pc.Quat();
      * console.log("The two quaternions are approximately " + (a.equalsApprox(b, 1e-9) ? "equal" : "different"));
      */
     equalsApprox(rhs: Quat, epsilon?: number): boolean;
@@ -3949,10 +3998,10 @@ declare class Quat {
      * @param {Vec3} axis - The 3-dimensional vector to receive the axis of rotation.
      * @returns {number} Angle, in degrees, of the rotation.
      * @example
-     * var q = new pc.Quat();
+     * const q = new pc.Quat();
      * q.setFromAxisAngle(new pc.Vec3(0, 1, 0), 90);
-     * var v = new pc.Vec3();
-     * var angle = q.getAxisAngle(v);
+     * const v = new pc.Vec3();
+     * const angle = q.getAxisAngle(v);
      * // Outputs 90
      * console.log(angle);
      * // Outputs [0, 1, 0]
@@ -3973,7 +4022,7 @@ declare class Quat {
      * @returns {Quat} Self for chaining.
      * @example
      * // Create a quaternion rotated 180 degrees around the y-axis
-     * var rot = new pc.Quat().setFromEulerAngles(0, 180, 0);
+     * const rot = new pc.Quat().setFromEulerAngles(0, 180, 0);
      *
      * // Invert in place
      * rot.invert();
@@ -3984,8 +4033,8 @@ declare class Quat {
      *
      * @returns {number} The magnitude of the specified quaternion.
      * @example
-     * var q = new pc.Quat(0, 0, 0, 5);
-     * var len = q.length();
+     * const q = new pc.Quat(0, 0, 0, 5);
+     * const len = q.length();
      * // Outputs 5
      * console.log("The length of the quaternion is: " + len);
      */
@@ -3995,8 +4044,8 @@ declare class Quat {
      *
      * @returns {number} The magnitude of the specified quaternion.
      * @example
-     * var q = new pc.Quat(3, 4, 0);
-     * var lenSq = q.lengthSq();
+     * const q = new pc.Quat(3, 4, 0);
+     * const lenSq = q.lengthSq();
      * // Outputs 25
      * console.log("The length squared of the quaternion is: " + lenSq);
      */
@@ -4007,8 +4056,8 @@ declare class Quat {
      * @param {Quat} rhs - The quaternion used as the second multiplicand of the operation.
      * @returns {Quat} Self for chaining.
      * @example
-     * var a = new pc.Quat().setFromEulerAngles(0, 30, 0);
-     * var b = new pc.Quat().setFromEulerAngles(0, 60, 0);
+     * const a = new pc.Quat().setFromEulerAngles(0, 30, 0);
+     * const b = new pc.Quat().setFromEulerAngles(0, 60, 0);
      *
      * // a becomes a 90 degree rotation around the Y axis
      * // In other words, a = a * b
@@ -4024,9 +4073,9 @@ declare class Quat {
      * @param {Quat} rhs - The quaternion used as the second multiplicand of the operation.
      * @returns {Quat} Self for chaining.
      * @example
-     * var a = new pc.Quat().setFromEulerAngles(0, 30, 0);
-     * var b = new pc.Quat().setFromEulerAngles(0, 60, 0);
-     * var r = new pc.Quat();
+     * const a = new pc.Quat().setFromEulerAngles(0, 30, 0);
+     * const b = new pc.Quat().setFromEulerAngles(0, 60, 0);
+     * const r = new pc.Quat();
      *
      * // r is set to a 90 degree rotation around the Y axis
      * // In other words, r = a * b
@@ -4040,7 +4089,7 @@ declare class Quat {
      *
      * @returns {Quat} The result of the normalization.
      * @example
-     * var v = new pc.Quat(0, 0, 0, 5);
+     * const v = new pc.Quat(0, 0, 0, 5);
      *
      * v.normalize();
      *
@@ -4057,7 +4106,7 @@ declare class Quat {
      * @param {number} w - The w component of the quaternion.
      * @returns {Quat} Self for chaining.
      * @example
-     * var q = new pc.Quat();
+     * const q = new pc.Quat();
      * q.set(1, 0, 0, 0);
      *
      * // Outputs 1, 0, 0, 0
@@ -4071,7 +4120,7 @@ declare class Quat {
      * @param {number} angle - Angle to rotate around the given axis in degrees.
      * @returns {Quat} Self for chaining.
      * @example
-     * var q = new pc.Quat();
+     * const q = new pc.Quat();
      * q.setFromAxisAngle(pc.Vec3.UP, 90);
      */
     setFromAxisAngle(axis: Vec3, angle: number): Quat;
@@ -4085,12 +4134,12 @@ declare class Quat {
      * @returns {Quat} Self for chaining.
      * @example
      * // Create a quaternion from 3 euler angles
-     * var q = new pc.Quat();
+     * const q = new pc.Quat();
      * q.setFromEulerAngles(45, 90, 180);
      *
      * // Create the same quaternion from a vector containing the same 3 euler angles
-     * var v = new pc.Vec3(45, 90, 180);
-     * var r = new pc.Quat();
+     * const v = new pc.Vec3(45, 90, 180);
+     * const r = new pc.Quat();
      * r.setFromEulerAngles(v);
      */
     setFromEulerAngles(ex: number | Vec3, ey?: number, ez?: number): Quat;
@@ -4102,10 +4151,10 @@ declare class Quat {
      * @returns {Quat} Self for chaining.
      * @example
      * // Create a 4x4 rotation matrix of 180 degrees around the y-axis
-     * var rot = new pc.Mat4().setFromAxisAngle(pc.Vec3.UP, 180);
+     * const rot = new pc.Mat4().setFromAxisAngle(pc.Vec3.UP, 180);
      *
      * // Convert to a quaternion
-     * var q = new pc.Quat().setFromMat4(rot);
+     * const q = new pc.Quat().setFromMat4(rot);
      */
     setFromMat4(m: Mat4): Quat;
     /**
@@ -4129,10 +4178,10 @@ declare class Quat {
      * in between generating a spherical interpolation between the two.
      * @returns {Quat} Self for chaining.
      * @example
-     * var q1 = new pc.Quat(-0.11, -0.15, -0.46, 0.87);
-     * var q2 = new pc.Quat(-0.21, -0.21, -0.67, 0.68);
+     * const q1 = new pc.Quat(-0.11, -0.15, -0.46, 0.87);
+     * const q2 = new pc.Quat(-0.21, -0.21, -0.67, 0.68);
      *
-     * var result;
+     * const result;
      * result = new pc.Quat().slerp(q1, q2, 0);   // Return q1
      * result = new pc.Quat().slerp(q1, q2, 0.5); // Return the midpoint interpolant
      * result = new pc.Quat().slerp(q1, q2, 1);   // Return q2
@@ -4146,12 +4195,12 @@ declare class Quat {
      * @returns {Vec3} The input vector v transformed by the current instance.
      * @example
      * // Create a 3-dimensional vector
-     * var v = new pc.Vec3(1, 2, 3);
+     * const v = new pc.Vec3(1, 2, 3);
      *
      * // Create a 4x4 rotation matrix
-     * var q = new pc.Quat().setFromEulerAngles(10, 20, 30);
+     * const q = new pc.Quat().setFromEulerAngles(10, 20, 30);
      *
-     * var tv = q.transformVector(v);
+     * const tv = q.transformVector(v);
      */
     transformVector(vec: Vec3, res?: Vec3): Vec3;
     /**
@@ -4159,7 +4208,7 @@ declare class Quat {
      *
      * @returns {string} The quaternion in string form.
      * @example
-     * var v = new pc.Quat(0, 0, 0, 1);
+     * const v = new pc.Quat(0, 0, 0, 1);
      * // Outputs [0, 0, 0, 1]
      * console.log(v.toString());
      */
@@ -4193,7 +4242,7 @@ declare class Vec4 {
      * @param {number} [z] - The z value. Defaults to 0.
      * @param {number} [w] - The w value. Defaults to 0.
      * @example
-     * var v = new pc.Vec4(1, 2, 3, 4);
+     * const v = new pc.Vec4(1, 2, 3, 4);
      */
     constructor(x?: number | number[], y?: number, z?: number, w?: number);
     /**
@@ -4226,8 +4275,8 @@ declare class Vec4 {
      * @param {Vec4} rhs - The vector to add to the specified vector.
      * @returns {Vec4} Self for chaining.
      * @example
-     * var a = new pc.Vec4(10, 10, 10, 10);
-     * var b = new pc.Vec4(20, 20, 20, 20);
+     * const a = new pc.Vec4(10, 10, 10, 10);
+     * const b = new pc.Vec4(20, 20, 20, 20);
      *
      * a.add(b);
      *
@@ -4242,9 +4291,9 @@ declare class Vec4 {
      * @param {Vec4} rhs - The second vector operand for the addition.
      * @returns {Vec4} Self for chaining.
      * @example
-     * var a = new pc.Vec4(10, 10, 10, 10);
-     * var b = new pc.Vec4(20, 20, 20, 20);
-     * var r = new pc.Vec4();
+     * const a = new pc.Vec4(10, 10, 10, 10);
+     * const b = new pc.Vec4(20, 20, 20, 20);
+     * const r = new pc.Vec4();
      *
      * r.add2(a, b);
      * // Outputs [30, 30, 30]
@@ -4258,7 +4307,7 @@ declare class Vec4 {
      * @param {number} scalar - The number to add.
      * @returns {Vec4} Self for chaining.
      * @example
-     * var vec = new pc.Vec4(3, 4, 5, 6);
+     * const vec = new pc.Vec4(3, 4, 5, 6);
      *
      * vec.addScalar(2);
      *
@@ -4271,8 +4320,8 @@ declare class Vec4 {
      *
      * @returns {this} A 4-dimensional vector containing the result of the cloning.
      * @example
-     * var v = new pc.Vec4(10, 20, 30, 40);
-     * var vclone = v.clone();
+     * const v = new pc.Vec4(10, 20, 30, 40);
+     * const vclone = v.clone();
      * console.log("The result of the cloning is: " + vclone.toString());
      */
     clone(): this;
@@ -4282,8 +4331,8 @@ declare class Vec4 {
      * @param {Vec4} rhs - A vector to copy to the specified vector.
      * @returns {Vec4} Self for chaining.
      * @example
-     * var src = new pc.Vec4(10, 20, 30, 40);
-     * var dst = new pc.Vec4();
+     * const src = new pc.Vec4(10, 20, 30, 40);
+     * const dst = new pc.Vec4();
      *
      * dst.copy(src);
      *
@@ -4296,8 +4345,8 @@ declare class Vec4 {
      * @param {Vec4} rhs - The vector to divide the specified vector by.
      * @returns {Vec4} Self for chaining.
      * @example
-     * var a = new pc.Vec4(4, 9, 16, 25);
-     * var b = new pc.Vec4(2, 3, 4, 5);
+     * const a = new pc.Vec4(4, 9, 16, 25);
+     * const b = new pc.Vec4(2, 3, 4, 5);
      *
      * a.div(b);
      *
@@ -4312,9 +4361,9 @@ declare class Vec4 {
      * @param {Vec4} rhs - The divisor vector (the vector dividing the dividend).
      * @returns {Vec4} Self for chaining.
      * @example
-     * var a = new pc.Vec4(4, 9, 16, 25);
-     * var b = new pc.Vec4(2, 3, 4, 5);
-     * var r = new pc.Vec4();
+     * const a = new pc.Vec4(4, 9, 16, 25);
+     * const b = new pc.Vec4(2, 3, 4, 5);
+     * const r = new pc.Vec4();
      *
      * r.div2(a, b);
      * // Outputs [2, 3, 4, 5]
@@ -4328,7 +4377,7 @@ declare class Vec4 {
      * @param {number} scalar - The number to divide by.
      * @returns {Vec4} Self for chaining.
      * @example
-     * var vec = new pc.Vec4(3, 6, 9, 12);
+     * const vec = new pc.Vec4(3, 6, 9, 12);
      *
      * vec.divScalar(3);
      *
@@ -4343,9 +4392,9 @@ declare class Vec4 {
      * @param {Vec4} rhs - The second 4-dimensional vector operand of the dot product.
      * @returns {number} The result of the dot product operation.
      * @example
-     * var v1 = new pc.Vec4(5, 10, 20, 40);
-     * var v2 = new pc.Vec4(10, 20, 40, 80);
-     * var v1dotv2 = v1.dot(v2);
+     * const v1 = new pc.Vec4(5, 10, 20, 40);
+     * const v2 = new pc.Vec4(10, 20, 40, 80);
+     * const v1dotv2 = v1.dot(v2);
      * console.log("The result of the dot product is: " + v1dotv2);
      */
     dot(rhs: Vec4): number;
@@ -4355,8 +4404,8 @@ declare class Vec4 {
      * @param {Vec4} rhs - The vector to compare to the specified vector.
      * @returns {boolean} True if the vectors are equal and false otherwise.
      * @example
-     * var a = new pc.Vec4(1, 2, 3, 4);
-     * var b = new pc.Vec4(5, 6, 7, 8);
+     * const a = new pc.Vec4(1, 2, 3, 4);
+     * const b = new pc.Vec4(5, 6, 7, 8);
      * console.log("The two vectors are " + (a.equals(b) ? "equal" : "different"));
      */
     equals(rhs: Vec4): boolean;
@@ -4365,8 +4414,8 @@ declare class Vec4 {
      *
      * @returns {number} The magnitude of the specified 4-dimensional vector.
      * @example
-     * var vec = new pc.Vec4(3, 4, 0, 0);
-     * var len = vec.length();
+     * const vec = new pc.Vec4(3, 4, 0, 0);
+     * const len = vec.length();
      * // Outputs 5
      * console.log("The length of the vector is: " + len);
      */
@@ -4376,8 +4425,8 @@ declare class Vec4 {
      *
      * @returns {number} The magnitude of the specified 4-dimensional vector.
      * @example
-     * var vec = new pc.Vec4(3, 4, 0);
-     * var len = vec.lengthSq();
+     * const vec = new pc.Vec4(3, 4, 0);
+     * const len = vec.lengthSq();
      * // Outputs 25
      * console.log("The length squared of the vector is: " + len);
      */
@@ -4392,9 +4441,9 @@ declare class Vec4 {
      * range, the linear interpolant will occur on a ray extrapolated from this line.
      * @returns {Vec4} Self for chaining.
      * @example
-     * var a = new pc.Vec4(0, 0, 0, 0);
-     * var b = new pc.Vec4(10, 10, 10, 10);
-     * var r = new pc.Vec4();
+     * const a = new pc.Vec4(0, 0, 0, 0);
+     * const b = new pc.Vec4(10, 10, 10, 10);
+     * const r = new pc.Vec4();
      *
      * r.lerp(a, b, 0);   // r is equal to a
      * r.lerp(a, b, 0.5); // r is 5, 5, 5, 5
@@ -4407,8 +4456,8 @@ declare class Vec4 {
      * @param {Vec4} rhs - The 4-dimensional vector used as the second multiplicand of the operation.
      * @returns {Vec4} Self for chaining.
      * @example
-     * var a = new pc.Vec4(2, 3, 4, 5);
-     * var b = new pc.Vec4(4, 5, 6, 7);
+     * const a = new pc.Vec4(2, 3, 4, 5);
+     * const b = new pc.Vec4(4, 5, 6, 7);
      *
      * a.mul(b);
      *
@@ -4423,9 +4472,9 @@ declare class Vec4 {
      * @param {Vec4} rhs - The 4-dimensional vector used as the second multiplicand of the operation.
      * @returns {Vec4} Self for chaining.
      * @example
-     * var a = new pc.Vec4(2, 3, 4, 5);
-     * var b = new pc.Vec4(4, 5, 6, 7);
-     * var r = new pc.Vec4();
+     * const a = new pc.Vec4(2, 3, 4, 5);
+     * const b = new pc.Vec4(4, 5, 6, 7);
+     * const r = new pc.Vec4();
      *
      * r.mul2(a, b);
      *
@@ -4439,7 +4488,7 @@ declare class Vec4 {
      * @param {number} scalar - The number to multiply by.
      * @returns {Vec4} Self for chaining.
      * @example
-     * var vec = new pc.Vec4(3, 6, 9, 12);
+     * const vec = new pc.Vec4(3, 6, 9, 12);
      *
      * vec.mulScalar(3);
      *
@@ -4453,7 +4502,7 @@ declare class Vec4 {
      *
      * @returns {Vec4} Self for chaining.
      * @example
-     * var v = new pc.Vec4(25, 0, 0, 0);
+     * const v = new pc.Vec4(25, 0, 0, 0);
      *
      * v.normalize();
      *
@@ -4502,7 +4551,7 @@ declare class Vec4 {
      * @param {number} w - The value to set on the fourth component of the vector.
      * @returns {Vec4} Self for chaining.
      * @example
-     * var v = new pc.Vec4();
+     * const v = new pc.Vec4();
      * v.set(5, 10, 20, 40);
      *
      * // Outputs 5, 10, 20, 40
@@ -4515,8 +4564,8 @@ declare class Vec4 {
      * @param {Vec4} rhs - The vector to add to the specified vector.
      * @returns {Vec4} Self for chaining.
      * @example
-     * var a = new pc.Vec4(10, 10, 10, 10);
-     * var b = new pc.Vec4(20, 20, 20, 20);
+     * const a = new pc.Vec4(10, 10, 10, 10);
+     * const b = new pc.Vec4(20, 20, 20, 20);
      *
      * a.sub(b);
      *
@@ -4531,9 +4580,9 @@ declare class Vec4 {
      * @param {Vec4} rhs - The second vector operand for the subtraction.
      * @returns {Vec4} Self for chaining.
      * @example
-     * var a = new pc.Vec4(10, 10, 10, 10);
-     * var b = new pc.Vec4(20, 20, 20, 20);
-     * var r = new pc.Vec4();
+     * const a = new pc.Vec4(10, 10, 10, 10);
+     * const b = new pc.Vec4(20, 20, 20, 20);
+     * const r = new pc.Vec4();
      *
      * r.sub2(a, b);
      *
@@ -4547,7 +4596,7 @@ declare class Vec4 {
      * @param {number} scalar - The number to subtract.
      * @returns {Vec4} Self for chaining.
      * @example
-     * var vec = new pc.Vec4(3, 4, 5, 6);
+     * const vec = new pc.Vec4(3, 4, 5, 6);
      *
      * vec.subScalar(2);
      *
@@ -4560,7 +4609,7 @@ declare class Vec4 {
      *
      * @returns {string} The vector in string form.
      * @example
-     * var v = new pc.Vec4(20, 10, 5, 0);
+     * const v = new pc.Vec4(20, 10, 5, 0);
      * // Outputs [20, 10, 5, 0]
      * console.log(v.toString());
      */
@@ -4599,7 +4648,7 @@ declare class Mat4 {
      * @param {Mat4} rhs - The 4x4 matrix used as the second operand of the addition.
      * @returns {Mat4} Self for chaining.
      * @example
-     * var m = new pc.Mat4();
+     * const m = new pc.Mat4();
      *
      * m.add2(pc.Mat4.IDENTITY, pc.Mat4.ONE);
      *
@@ -4612,7 +4661,7 @@ declare class Mat4 {
      * @param {Mat4} rhs - The 4x4 matrix used as the second operand of the addition.
      * @returns {Mat4} Self for chaining.
      * @example
-     * var m = new pc.Mat4();
+     * const m = new pc.Mat4();
      *
      * m.add(pc.Mat4.ONE);
      *
@@ -4624,8 +4673,8 @@ declare class Mat4 {
      *
      * @returns {this} A duplicate matrix.
      * @example
-     * var src = new pc.Mat4().setFromEulerAngles(10, 20, 30);
-     * var dst = src.clone();
+     * const src = new pc.Mat4().setFromEulerAngles(10, 20, 30);
+     * const dst = src.clone();
      * console.log("The two matrices are " + (src.equals(dst) ? "equal" : "different"));
      */
     clone(): this;
@@ -4635,8 +4684,8 @@ declare class Mat4 {
      * @param {Mat4} rhs - A 4x4 matrix to be copied.
      * @returns {Mat4} Self for chaining.
      * @example
-     * var src = new pc.Mat4().setFromEulerAngles(10, 20, 30);
-     * var dst = new pc.Mat4();
+     * const src = new pc.Mat4().setFromEulerAngles(10, 20, 30);
+     * const dst = new pc.Mat4();
      * dst.copy(src);
      * console.log("The two matrices are " + (src.equals(dst) ? "equal" : "different"));
      */
@@ -4647,8 +4696,8 @@ declare class Mat4 {
      * @param {Mat4} rhs - The other matrix.
      * @returns {boolean} True if the matrices are equal and false otherwise.
      * @example
-     * var a = new pc.Mat4().setFromEulerAngles(10, 20, 30);
-     * var b = new pc.Mat4();
+     * const a = new pc.Mat4().setFromEulerAngles(10, 20, 30);
+     * const b = new pc.Mat4();
      * console.log("The two matrices are " + (a.equals(b) ? "equal" : "different"));
      */
     equals(rhs: Mat4): boolean;
@@ -4657,7 +4706,7 @@ declare class Mat4 {
      *
      * @returns {boolean} True if the matrix is identity and false otherwise.
      * @example
-     * var m = new pc.Mat4();
+     * const m = new pc.Mat4();
      * console.log("The matrix is " + (m.isIdentity() ? "identity" : "not identity"));
      */
     isIdentity(): boolean;
@@ -4669,9 +4718,9 @@ declare class Mat4 {
      * @param {Mat4} rhs - The 4x4 matrix used as the second multiplicand of the operation.
      * @returns {Mat4} Self for chaining.
      * @example
-     * var a = new pc.Mat4().setFromEulerAngles(10, 20, 30);
-     * var b = new pc.Mat4().setFromAxisAngle(pc.Vec3.UP, 180);
-     * var r = new pc.Mat4();
+     * const a = new pc.Mat4().setFromEulerAngles(10, 20, 30);
+     * const b = new pc.Mat4().setFromAxisAngle(pc.Vec3.UP, 180);
+     * const r = new pc.Mat4();
      *
      * // r = a * b
      * r.mul2(a, b);
@@ -4700,8 +4749,8 @@ declare class Mat4 {
      * @param {Mat4} rhs - The 4x4 matrix used as the second multiplicand of the operation.
      * @returns {Mat4} Self for chaining.
      * @example
-     * var a = new pc.Mat4().setFromEulerAngles(10, 20, 30);
-     * var b = new pc.Mat4().setFromAxisAngle(pc.Vec3.UP, 180);
+     * const a = new pc.Mat4().setFromEulerAngles(10, 20, 30);
+     * const b = new pc.Mat4().setFromAxisAngle(pc.Vec3.UP, 180);
      *
      * // a = a * b
      * a.mul(b);
@@ -4718,12 +4767,12 @@ declare class Mat4 {
      * @returns {Vec3} The input point v transformed by the current instance.
      * @example
      * // Create a 3-dimensional point
-     * var v = new pc.Vec3(1, 2, 3);
+     * const v = new pc.Vec3(1, 2, 3);
      *
      * // Create a 4x4 rotation matrix
-     * var m = new pc.Mat4().setFromEulerAngles(10, 20, 30);
+     * const m = new pc.Mat4().setFromEulerAngles(10, 20, 30);
      *
-     * var tv = m.transformPoint(v);
+     * const tv = m.transformPoint(v);
      */
     transformPoint(vec: Vec3, res?: Vec3): Vec3;
     /**
@@ -4735,12 +4784,12 @@ declare class Mat4 {
      * @returns {Vec3} The input vector v transformed by the current instance.
      * @example
      * // Create a 3-dimensional vector
-     * var v = new pc.Vec3(1, 2, 3);
+     * const v = new pc.Vec3(1, 2, 3);
      *
      * // Create a 4x4 rotation matrix
-     * var m = new pc.Mat4().setFromEulerAngles(10, 20, 30);
+     * const m = new pc.Mat4().setFromEulerAngles(10, 20, 30);
      *
-     * var tv = m.transformVector(v);
+     * const tv = m.transformVector(v);
      */
     transformVector(vec: Vec3, res?: Vec3): Vec3;
     /**
@@ -4752,13 +4801,13 @@ declare class Mat4 {
      * @returns {Vec4} The input vector v transformed by the current instance.
      * @example
      * // Create an input 4-dimensional vector
-     * var v = new pc.Vec4(1, 2, 3, 4);
+     * const v = new pc.Vec4(1, 2, 3, 4);
      *
      * // Create an output 4-dimensional vector
-     * var result = new pc.Vec4();
+     * const result = new pc.Vec4();
      *
      * // Create a 4x4 rotation matrix
-     * var m = new pc.Mat4().setFromEulerAngles(10, 20, 30);
+     * const m = new pc.Mat4().setFromEulerAngles(10, 20, 30);
      *
      * m.transformVec4(v, result);
      */
@@ -4777,10 +4826,10 @@ declare class Mat4 {
      * @param {Vec3} up - 3-d vector holding the up direction.
      * @returns {Mat4} Self for chaining.
      * @example
-     * var position = new pc.Vec3(10, 10, 10);
-     * var target = new pc.Vec3(0, 0, 0);
-     * var up = new pc.Vec3(0, 1, 0);
-     * var m = new pc.Mat4().setLookAt(position, target, up);
+     * const position = new pc.Vec3(10, 10, 10);
+     * const target = new pc.Vec3(0, 0, 0);
+     * const up = new pc.Vec3(0, 1, 0);
+     * const m = new pc.Mat4().setLookAt(position, target, up);
      */
     setLookAt(position: Vec3, target: Vec3, up: Vec3): Mat4;
     /**
@@ -4800,7 +4849,7 @@ declare class Mat4 {
      * @returns {Mat4} Self for chaining.
      * @example
      * // Create a 4x4 perspective projection matrix
-     * var f = pc.Mat4().setFrustum(-2, 2, -1, 1, 1, 1000);
+     * const f = pc.Mat4().setFrustum(-2, 2, -1, 1, 1, 1000);
      * @ignore
      */
     setFrustum(left: number, right: number, bottom: number, top: number, znear: number, zfar: number): Mat4;
@@ -4820,7 +4869,7 @@ declare class Mat4 {
      * @returns {Mat4} Self for chaining.
      * @example
      * // Create a 4x4 perspective projection matrix
-     * var persp = pc.Mat4().setPerspective(45, 16 / 9, 1, 1000);
+     * const persp = pc.Mat4().setPerspective(45, 16 / 9, 1, 1000);
      */
     setPerspective(fov: number, aspect: number, znear: number, zfar: number, fovIsHorizontal?: boolean): Mat4;
     /**
@@ -4840,7 +4889,7 @@ declare class Mat4 {
      * @returns {Mat4} Self for chaining.
      * @example
      * // Create a 4x4 orthographic projection matrix
-     * var ortho = pc.Mat4().ortho(-2, 2, -2, 2, 1, 1000);
+     * const ortho = pc.Mat4().ortho(-2, 2, -2, 2, 1, 1000);
      */
     setOrtho(left: number, right: number, bottom: number, top: number, near: number, far: number): Mat4;
     /**
@@ -4852,7 +4901,7 @@ declare class Mat4 {
      * @returns {Mat4} Self for chaining.
      * @example
      * // Create a 4x4 rotation matrix
-     * var rm = new pc.Mat4().setFromAxisAngle(pc.Vec3.UP, 90);
+     * const rm = new pc.Mat4().setFromAxisAngle(pc.Vec3.UP, 90);
      */
     setFromAxisAngle(axis: Vec3, angle: number): Mat4;
     /**
@@ -4864,7 +4913,7 @@ declare class Mat4 {
      * @returns {Mat4} Self for chaining.
      * @example
      * // Create a 4x4 translation matrix
-     * var tm = new pc.Mat4().setTranslate(10, 10, 10);
+     * const tm = new pc.Mat4().setTranslate(10, 10, 10);
      * @ignore
      */
     setTranslate(x: number, y: number, z: number): Mat4;
@@ -4877,7 +4926,7 @@ declare class Mat4 {
      * @returns {Mat4} Self for chaining.
      * @example
      * // Create a 4x4 scale matrix
-     * var sm = new pc.Mat4().setScale(10, 10, 10);
+     * const sm = new pc.Mat4().setScale(10, 10, 10);
      * @ignore
      */
     setScale(x: number, y: number, z: number): Mat4;
@@ -4893,7 +4942,7 @@ declare class Mat4 {
      * @returns {Mat4} Self for chaining.
      * @example
      * // Create a 4x4 viewport matrix which scales normalized view volume to full texture viewport
-     * var vm = new pc.Mat4().setViewport(0, 0, 1, 1);
+     * const vm = new pc.Mat4().setViewport(0, 0, 1, 1);
      * @ignore
      */
     setViewport(x: number, y: number, width: number, height: number): Mat4;
@@ -4912,7 +4961,7 @@ declare class Mat4 {
      * @returns {Mat4} Self for chaining.
      * @example
      * // Create a 4x4 rotation matrix of 180 degrees around the y-axis
-     * var rot = new pc.Mat4().setFromAxisAngle(pc.Vec3.UP, 180);
+     * const rot = new pc.Mat4().setFromAxisAngle(pc.Vec3.UP, 180);
      *
      * // Invert in place
      * rot.invert();
@@ -4943,11 +4992,11 @@ declare class Mat4 {
      * @param {Vec3} s - A 3-d vector scale.
      * @returns {Mat4} Self for chaining.
      * @example
-     * var t = new pc.Vec3(10, 20, 30);
-     * var r = new pc.Quat();
-     * var s = new pc.Vec3(2, 2, 2);
+     * const t = new pc.Vec3(10, 20, 30);
+     * const r = new pc.Quat();
+     * const s = new pc.Vec3(2, 2, 2);
      *
-     * var m = new pc.Mat4();
+     * const m = new pc.Mat4();
      * m.setTRS(t, r, s);
      */
     setTRS(t: Vec3, r: Quat, s: Vec3): Mat4;
@@ -4956,7 +5005,7 @@ declare class Mat4 {
      *
      * @returns {Mat4} Self for chaining.
      * @example
-     * var m = new pc.Mat4();
+     * const m = new pc.Mat4();
      *
      * // Transpose in place
      * m.transpose();
@@ -4970,10 +5019,10 @@ declare class Mat4 {
      * @returns {Vec3} The translation of the specified 4x4 matrix.
      * @example
      * // Create a 4x4 matrix
-     * var m = new pc.Mat4();
+     * const m = new pc.Mat4();
      *
      * // Query the translation component
-     * var t = new pc.Vec3();
+     * const t = new pc.Vec3();
      * m.getTranslation(t);
      */
     getTranslation(t?: Vec3): Vec3;
@@ -4984,10 +5033,10 @@ declare class Mat4 {
      * @returns {Vec3} The x-axis of the specified 4x4 matrix.
      * @example
      * // Create a 4x4 matrix
-     * var m = new pc.Mat4();
+     * const m = new pc.Mat4();
      *
      * // Query the x-axis component
-     * var x = new pc.Vec3();
+     * const x = new pc.Vec3();
      * m.getX(x);
      */
     getX(x?: Vec3): Vec3;
@@ -4998,10 +5047,10 @@ declare class Mat4 {
      * @returns {Vec3} The y-axis of the specified 4x4 matrix.
      * @example
      * // Create a 4x4 matrix
-     * var m = new pc.Mat4();
+     * const m = new pc.Mat4();
      *
      * // Query the y-axis component
-     * var y = new pc.Vec3();
+     * const y = new pc.Vec3();
      * m.getY(y);
      */
     getY(y?: Vec3): Vec3;
@@ -5012,10 +5061,10 @@ declare class Mat4 {
      * @returns {Vec3} The z-axis of the specified 4x4 matrix.
      * @example
      * // Create a 4x4 matrix
-     * var m = new pc.Mat4();
+     * const m = new pc.Mat4();
      *
      * // Query the z-axis component
-     * var z = new pc.Vec3();
+     * const z = new pc.Vec3();
      * m.getZ(z);
      */
     getZ(z?: Vec3): Vec3;
@@ -5026,7 +5075,7 @@ declare class Mat4 {
      * @returns {Vec3} The scale in X, Y and Z of the specified 4x4 matrix.
      * @example
      * // Query the scale component
-     * var scale = m.getScale();
+     * const scale = m.getScale();
      */
     getScale(scale?: Vec3): Vec3;
     /**
@@ -5045,7 +5094,7 @@ declare class Mat4 {
      * @param {number} ez - Angle to rotate around Z axis in degrees.
      * @returns {Mat4} Self for chaining.
      * @example
-     * var m = new pc.Mat4();
+     * const m = new pc.Mat4();
      * m.setFromEulerAngles(45, 90, 180);
      */
     setFromEulerAngles(ex: number, ey: number, ez: number): Mat4;
@@ -5057,9 +5106,9 @@ declare class Mat4 {
      * @returns {Vec3} A 3-d vector containing the Euler angles.
      * @example
      * // Create a 4x4 rotation matrix of 45 degrees around the y-axis
-     * var m = new pc.Mat4().setFromAxisAngle(pc.Vec3.UP, 45);
+     * const m = new pc.Mat4().setFromAxisAngle(pc.Vec3.UP, 45);
      *
-     * var eulers = m.getEulerAngles();
+     * const eulers = m.getEulerAngles();
      */
     getEulerAngles(eulers?: Vec3): Vec3;
     /**
@@ -5067,7 +5116,7 @@ declare class Mat4 {
      *
      * @returns {string} The matrix in string form.
      * @example
-     * var m = new pc.Mat4();
+     * const m = new pc.Mat4();
      * // Outputs [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
      * console.log(m.toString());
      */
@@ -5398,12 +5447,12 @@ declare class VertexFormat {
      * vertex format will be interleaved. (example: PNCPNCPNCPNC).
      * @example
      * // Specify 3-component positions (x, y, z)
-     * var vertexFormat = new pc.VertexFormat(graphicsDevice, [
+     * const vertexFormat = new pc.VertexFormat(graphicsDevice, [
      *     { semantic: pc.SEMANTIC_POSITION, components: 3, type: pc.TYPE_FLOAT32 }
      * ]);
      * @example
      * // Specify 2-component positions (x, y), a texture coordinate (u, v) and a vertex color (r, g, b, a)
-     * var vertexFormat = new pc.VertexFormat(graphicsDevice, [
+     * const vertexFormat = new pc.VertexFormat(graphicsDevice, [
      *     { semantic: pc.SEMANTIC_POSITION, components: 2, type: pc.TYPE_FLOAT32 },
      *     { semantic: pc.SEMANTIC_TEXCOORD0, components: 2, type: pc.TYPE_FLOAT32 },
      *     { semantic: pc.SEMANTIC_COLOR, components: 4, type: pc.TYPE_UINT8, normalize: true }
@@ -5568,12 +5617,12 @@ declare class IndexBuffer {
      * @example
      * // Create an index buffer holding 3 16-bit indices. The buffer is marked as
      * // static, hinting that the buffer will never be modified.
-     * var indices = new UInt16Array([0, 1, 2]);
-     * var indexBuffer = new pc.IndexBuffer(graphicsDevice,
-     *                                      pc.INDEXFORMAT_UINT16,
-     *                                      3,
-     *                                      pc.BUFFER_STATIC,
-     *                                      indices);
+     * const indices = new UInt16Array([0, 1, 2]);
+     * const indexBuffer = new pc.IndexBuffer(graphicsDevice,
+     *                                        pc.INDEXFORMAT_UINT16,
+     *                                        3,
+     *                                        pc.BUFFER_STATIC,
+     *                                        indices);
      */
     constructor(graphicsDevice: GraphicsDevice, format: number, numIndices: number, usage?: number, initialData?: ArrayBuffer);
     device: GraphicsDevice;
@@ -5728,7 +5777,7 @@ declare class Texture {
      * @param {import('./graphics-device.js').GraphicsDevice} graphicsDevice - The graphics device
      * used to manage this texture.
      * @param {object} [options] - Object for passing optional arguments.
-     * @param {string} [options.name] - The name of the texture.
+     * @param {string} [options.name] - The name of the texture. Defaults to null.
      * @param {number} [options.width] - The width of the texture in pixels. Defaults to 4.
      * @param {number} [options.height] - The height of the texture in pixels. Defaults to 4.
      * @param {number} [options.depth] - The number of depth slices in a 3D texture (WebGL2 only).
@@ -5769,7 +5818,7 @@ declare class Texture {
      * - {@link TEXTUREPROJECTION_EQUIRECT}
      * - {@link TEXTUREPROJECTION_OCTAHEDRAL}
      *
-     * Defaults to {@link TEXTUREPROJECTION_CUBE} if options.cubemap is specified, otherwise
+     * Defaults to {@link TEXTUREPROJECTION_CUBE} if options.cubemap is true, otherwise
      * {@link TEXTUREPROJECTION_NONE}.
      * @param {number} [options.minFilter] - The minification filter type to use. Defaults to
      * {@link FILTER_LINEAR_MIPMAP_LINEAR}.
@@ -5789,7 +5838,15 @@ declare class Texture {
      * Defaults to false.
      * @param {boolean} [options.volume] - Specifies whether the texture is to be a 3D volume
      * (WebGL2 only). Defaults to false.
-     * @param {string} [options.type] - Specifies the image type, see {@link TEXTURETYPE_DEFAULT}.
+     * @param {string} [options.type] - Specifies the texture type.  Can be:
+     *
+     * - {@link TEXTURETYPE_DEFAULT}
+     * - {@link TEXTURETYPE_RGBM}
+     * - {@link TEXTURETYPE_RGBE}
+     * - {@link TEXTURETYPE_RGBP}
+     * - {@link TEXTURETYPE_SWIZZLEGGGR}
+     *
+     * Defaults to {@link TEXTURETYPE_DEFAULT}.
      * @param {boolean} [options.fixCubemapSeams] - Specifies whether this cubemap texture requires
      * special seam fixing shader code to look right. Defaults to false.
      * @param {boolean} [options.flipY] - Specifies whether the texture should be flipped in the
@@ -5816,17 +5873,17 @@ declare class Texture {
      * @param {Uint8Array[]} [options.levels] - Array of Uint8Array.
      * @example
      * // Create a 8x8x24-bit texture
-     * var texture = new pc.Texture(graphicsDevice, {
+     * const texture = new pc.Texture(graphicsDevice, {
      *     width: 8,
      *     height: 8,
      *     format: pc.PIXELFORMAT_RGB8
      * });
      *
      * // Fill the texture with a gradient
-     * var pixels = texture.lock();
-     * var count = 0;
-     * for (var i = 0; i < 8; i++) {
-     *     for (var j = 0; j < 8; j++) {
+     * const pixels = texture.lock();
+     * const count = 0;
+     * for (let i = 0; i < 8; i++) {
+     *     for (let j = 0; j < 8; j++) {
      *         pixels[count++] = i * 32;
      *         pixels[count++] = j * 32;
      *         pixels[count++] = 255;
@@ -5858,26 +5915,33 @@ declare class Texture {
         compareFunc?: number;
         levels?: Uint8Array[];
     });
-    id: number;
-    device: GraphicsDevice;
     /**
-     * The name of the texture. Defaults to null.
+     * The name of the texture.
      *
      * @type {string}
      */
     name: string;
+    /** @protected */
+    protected _isRenderTarget: boolean;
+    /** @protected */
+    protected _gpuSize: number;
+    /** @protected */
+    protected id: number;
+    /** @protected */
+    protected _invalid: boolean;
+    /** @protected */
+    protected _lockedLevel: number;
+    device: GraphicsDevice;
     _width: number;
     _height: number;
-    _depth: number;
     _format: number;
-    type: string;
-    projection: string;
-    _cubemap: boolean;
+    _compressed: boolean;
     _volume: boolean;
+    _depth: number;
+    _cubemap: boolean;
     fixCubemapSeams: boolean;
     _flipY: boolean;
     _premultiplyAlpha: boolean;
-    _isRenderTarget: boolean;
     _mipmaps: any;
     _minFilter: number;
     _magFilter: number;
@@ -5886,13 +5950,11 @@ declare class Texture {
     _addressV: number;
     _addressW: number;
     _compareOnRead: boolean;
-    _compareFunc: any;
+    _compareFunc: number;
+    type: string;
+    projection: string;
     profilerHint: any;
     _levels: Uint8Array[] | any[][];
-    _compressed: boolean;
-    _invalid: boolean;
-    _lockedLevel: number;
-    _gpuSize: number;
     impl: any;
     /**
      * Frees resources associated with this texture.
@@ -5988,8 +6050,8 @@ declare class Texture {
      *
      * @type {number}
      */
-    set compareFunc(arg: any);
-    get compareFunc(): any;
+    set compareFunc(arg: number);
+    get compareFunc(): number;
     /**
      * Integer value specifying the level of anisotropic to apply to the texture ranging from 1 (no
      * anisotropic filtering) to the {@link GraphicsDevice} property maxAnisotropy.
@@ -5998,15 +6060,6 @@ declare class Texture {
      */
     set anisotropy(arg: number);
     get anisotropy(): number;
-    /**
-     * Toggles automatic mipmap generation. Can't be used on non power of two textures.
-     *
-     * @type {boolean}
-     * @ignore
-     * @deprecated
-     */
-    set autoMipmap(arg: any);
-    get autoMipmap(): any;
     /**
      * Defines if texture should generate/upload mipmaps if possible.
      *
@@ -6353,7 +6406,7 @@ declare class Shader {
      * fragment shaders. Defaults to {@link SHADERLANGUAGE_GLSL}.
      * @example
      * // Create a shader that renders primitives with a solid red color
-     * var shaderDefinition = {
+     * const shaderDefinition = {
      *     attributes: {
      *         aPosition: pc.SEMANTIC_POSITION
      *     },
@@ -6375,7 +6428,7 @@ declare class Shader {
      *     ].join("\n")
      * };
      *
-     * var shader = new pc.Shader(graphicsDevice, shaderDefinition);
+     * const shader = new pc.Shader(graphicsDevice, shaderDefinition);
      */
     constructor(graphicsDevice: GraphicsDevice, definition: {
         name?: string;
@@ -6442,7 +6495,7 @@ declare class RenderTarget {
     /**
      * Creates a new RenderTarget instance. A color buffer or a depth buffer must be set.
      *
-     * @param {object} options - Object for passing optional arguments.
+     * @param {object} [options] - Object for passing optional arguments.
      * @param {boolean} [options.autoResolve] - If samples > 1, enables or disables automatic MSAA
      * resolve after rendering to this RT (see {@link RenderTarget#resolve}). Defaults to true.
      * @param {import('./texture.js').Texture} [options.colorBuffer] - The texture that this render
@@ -6473,12 +6526,12 @@ declare class RenderTarget {
      * Defaults to false. Ignored if depthBuffer is defined or depth is false.
      * @example
      * // Create a 512x512x24-bit render target with a depth buffer
-     * var colorBuffer = new pc.Texture(graphicsDevice, {
+     * const colorBuffer = new pc.Texture(graphicsDevice, {
      *     width: 512,
      *     height: 512,
      *     format: pc.PIXELFORMAT_RGB8
      * });
-     * var renderTarget = new pc.RenderTarget({
+     * const renderTarget = new pc.RenderTarget({
      *     colorBuffer: colorBuffer,
      *     depth: true
      * });
@@ -6492,7 +6545,7 @@ declare class RenderTarget {
      * renderTarget.destroy();
      * camera.renderTarget = null;
      */
-    constructor(options: {
+    constructor(options?: {
         autoResolve?: boolean;
         colorBuffer?: Texture;
         depth?: boolean;
@@ -6532,7 +6585,7 @@ declare class RenderTarget {
      */
     destroyTextureBuffers(): void;
     /**
-     * Initialises the resources associated with this render target.
+     * Initializes the resources associated with this render target.
      *
      * @ignore
      */
@@ -6649,7 +6702,7 @@ export type HandleEventCallback = (arg1?: any, arg2?: any, arg3?: any, arg4?: an
  * Abstract base class that implements functionality for event handling.
  *
  * ```javascript
- * var obj = new EventHandlerSubclass();
+ * const obj = new EventHandlerSubclass();
  *
  * // subscribe to an event
  * obj.on('hello', function (str) {
@@ -6715,7 +6768,7 @@ declare class EventHandler {
      * @param {object} [scope] - Scope that was used as the this when the event is fired.
      * @returns {EventHandler} Self for chaining.
      * @example
-     * var handler = function () {
+     * const handler = function () {
      * };
      * obj.on('test', handler);
      *
@@ -7006,6 +7059,103 @@ declare class DepthState {
 }
 
 /**
+ * Holds stencil test settings.
+ */
+declare class StencilParameters {
+    /**
+     * A default stencil state.
+     *
+     * @type {StencilParameters}
+     * @readonly
+     */
+    static readonly DEFAULT: StencilParameters;
+    /**
+     * Create a new StencilParameters instance.
+     *
+     * @param {object} [options] - Options object to configure the stencil parameters.
+     */
+    constructor(options?: object);
+    /**
+     * A comparison function that decides if the pixel should be written, based on the current
+     * stencil buffer value, reference value, and mask value. Can be:
+     *
+     * - {@link FUNC_NEVER}: never pass
+     * - {@link FUNC_LESS}: pass if (ref & mask) < (stencil & mask)
+     * - {@link FUNC_EQUAL}: pass if (ref & mask) == (stencil & mask)
+     * - {@link FUNC_LESSEQUAL}: pass if (ref & mask) <= (stencil & mask)
+     * - {@link FUNC_GREATER}: pass if (ref & mask) > (stencil & mask)
+     * - {@link FUNC_NOTEQUAL}: pass if (ref & mask) != (stencil & mask)
+     * - {@link FUNC_GREATEREQUAL}: pass if (ref & mask) >= (stencil & mask)
+     * - {@link FUNC_ALWAYS}: always pass
+     *
+     * @type {number}
+     */
+    func: number;
+    /**
+     * Sets stencil test reference value used in comparisons.
+     *
+     * @type {number}
+     */
+    ref: number;
+    /**
+     * Operation to perform if stencil test is failed. Can be:
+     *
+     * - {@link STENCILOP_KEEP}: don't change the stencil buffer value
+     * - {@link STENCILOP_ZERO}: set value to zero
+     * - {@link STENCILOP_REPLACE}: replace value with the reference value.
+     * - {@link STENCILOP_INCREMENT}: increment the value
+     * - {@link STENCILOP_INCREMENTWRAP}: increment the value, but wrap it to zero when it's larger
+     * than a maximum representable value
+     * - {@link STENCILOP_DECREMENT}: decrement the value
+     * - {@link STENCILOP_DECREMENTWRAP}: decrement the value, but wrap it to a maximum
+     * representable value, if the current value is 0
+     * - {@link STENCILOP_INVERT}: invert the value bitwise
+     *
+     * @type {number}
+     */
+    fail: number;
+    /**
+     * Operation to perform if depth test is failed. Accepts the same values as `fail`.
+     *
+     * @type {number}
+     */
+    zfail: number;
+    /**
+     * Operation to perform if both stencil and depth test are passed. Accepts the same values as
+     * `fail`.
+     *
+     * @type {number}
+     */
+    zpass: number;
+    /**
+     * Mask applied to stencil buffer value and reference value before comparison.
+     *
+     * @type {number}
+     */
+    readMask: number;
+    /**
+     * A bit mask applied to the stencil value, when written.
+     *
+     * @type {number}
+     */
+    writeMask: number;
+    get key(): string;
+    /**
+     * Copies the contents of a source stencil parameters to this stencil parameters.
+     *
+     * @param {StencilParameters} rhs - A stencil parameters to copy from.
+     * @returns {StencilParameters} Self for chaining.
+     */
+    copy(rhs: StencilParameters): StencilParameters;
+    /**
+     * Clone the stencil parameters.
+     *
+     * @returns {StencilParameters} A cloned StencilParameters object.
+     */
+    clone(): StencilParameters;
+}
+
+/**
  * The graphics device manages the underlying graphics context. It is responsible for submitting
  * render state changes and graphics primitives to the hardware. A graphics device is tied to a
  * specific canvas HTML element. It is valid to have more than one canvas element per page and
@@ -7015,7 +7165,7 @@ declare class DepthState {
  */
 declare class GraphicsDevice extends EventHandler {
     static EVENT_RESIZE: string;
-    constructor(canvas: any);
+    constructor(canvas: any, options: any);
     /**
      * The canvas DOM element that provides the underlying WebGL context used by the graphics device.
      *
@@ -7150,12 +7300,31 @@ declare class GraphicsDevice extends EventHandler {
      * @ignore
      */
     depthState: DepthState;
+    /**
+     * True if stencil is enabled and stencilFront and stencilBack are used
+     *
+     * @ignore
+     */
+    stencilEnabled: boolean;
+    /**
+     * The current front stencil parameters.
+     *
+     * @ignore
+     */
+    stencilFront: StencilParameters;
+    /**
+     * The current back stencil parameters.
+     *
+     * @ignore
+     */
+    stencilBack: StencilParameters;
     defaultClearOptions: {
         color: number[];
         depth: number;
         stencil: number;
         flags: number;
     };
+    initOptions: any;
     _width: number;
     _height: number;
     _maxPixelRatio: number;
@@ -7210,6 +7379,7 @@ declare class GraphicsDevice extends EventHandler {
     vertexBuffers: any[];
     shader: any;
     initializeRenderState(): void;
+    cullMode: number;
     vx: number;
     vy: number;
     vw: number;
@@ -7218,6 +7388,16 @@ declare class GraphicsDevice extends EventHandler {
     sy: number;
     sw: number;
     sh: number;
+    /**
+     * Sets the specified stencil state. If both stencilFront and stencilBack are null, stencil
+     * operation is disabled.
+     *
+     * @param {StencilParameters} [stencilFront] - The front stencil parameters. Defaults to
+     * {@link StencilParameters#DEFAULT} if not specified.
+     * @param {StencilParameters} [stencilBack] - The back stencil parameters. Defaults to
+     * {@link StencilParameters#DEFAULT} if not specified.
+     */
+    setStencilState(stencilFront?: StencilParameters, stencilBack?: StencilParameters): void;
     /**
      * Sets the specified blend state.
      *
@@ -7230,6 +7410,17 @@ declare class GraphicsDevice extends EventHandler {
      * @param {DepthState} depthState - New depth state.
      */
     setDepthState(depthState: DepthState): void;
+    /**
+     * Controls how triangles are culled based on their face direction. The default cull mode is
+     * {@link CULLFACE_BACK}.
+     *
+     * @param {number} cullMode - The cull mode to set. Can be:
+     *
+     * - {@link CULLFACE_NONE}
+     * - {@link CULLFACE_BACK}
+     * - {@link CULLFACE_FRONT}
+     */
+    setCullMode(cullMode: number): void;
     /**
      * Sets the specified render target on the device. If null is passed as a parameter, the back
      * buffer becomes the current target for all rendering operations.
@@ -7268,7 +7459,7 @@ declare class GraphicsDevice extends EventHandler {
      * @returns {import('./render-target.js').RenderTarget} The current render target.
      * @example
      * // Get the current render target
-     * var renderTarget = device.getRenderTarget();
+     * const renderTarget = device.getRenderTarget();
      */
     getRenderTarget(): RenderTarget;
     /**
@@ -7289,6 +7480,8 @@ declare class GraphicsDevice extends EventHandler {
      */
     _isBrowserInterface(texture: any): boolean;
     _isImageBrowserInterface(texture: any): boolean;
+    _isImageCanvasInterface(texture: any): boolean;
+    _isImageVideoInterface(texture: any): boolean;
     /**
      * Sets the width and height of the canvas, then fires the `resizecanvas` event. Note that the
      * specified width and height values will be multiplied by the value of
@@ -7483,6 +7676,7 @@ declare class LitOptions {
         [x: string]: string;
     };
     _pass: number;
+    _isForwardPass: boolean;
     /**
      * Enable alpha testing. See {@link Material#alphaTest}.
      *
@@ -7714,6 +7908,8 @@ declare class LitOptions {
     lightMaskDynamic: number;
     set pass(arg: number);
     get pass(): number;
+    set isForwardPass(arg: boolean);
+    get isForwardPass(): boolean;
 }
 
 /**
@@ -7723,6 +7919,8 @@ declare class LitOptions {
 declare class StandardMaterialOptions {
     /** @private */
     private _pass;
+    /** @private */
+    private _isForwardPass;
     chunks: any[];
     /**
      * If UV1 (second set of texture coordinates) is required in the shader. Will be declared as
@@ -7808,6 +8006,8 @@ declare class StandardMaterialOptions {
      */
     set pass(arg: number);
     get pass(): number;
+    set isForwardPass(arg: boolean);
+    get isForwardPass(): boolean;
 }
 
 /**
@@ -7914,7 +8114,7 @@ declare class VertexIterator {
      * @param {number} [count] - Optional number of steps to move on when calling next. Defaults to
      * 1.
      * @example
-     * var iterator = new pc.VertexIterator(vertexBuffer);
+     * const iterator = new pc.VertexIterator(vertexBuffer);
      * iterator.element[pc.SEMANTIC_POSITION].set(-0.9, -0.9, 0.0);
      * iterator.element[pc.SEMANTIC_COLOR].set(255, 0, 0, 255);
      * iterator.next();
@@ -7931,7 +8131,7 @@ declare class VertexIterator {
      * buffer is unlocked and vertex data is uploaded to video memory.
      *
      * @example
-     * var iterator = new pc.VertexIterator(vertexBuffer);
+     * const iterator = new pc.VertexIterator(vertexBuffer);
      * iterator.element[pc.SEMANTIC_POSITION].set(-0.9, -0.9, 0.0);
      * iterator.element[pc.SEMANTIC_COLOR].set(255, 0, 0, 255);
      * iterator.next();
@@ -8191,8 +8391,8 @@ declare class RefCountedObject {
  * form a single triangle.
  *
  * ```javascript
- * var mesh = new pc.Mesh(device);
- * var positions = [
+ * const mesh = new pc.Mesh(device);
+ * const positions = [
  *     0, 0, 0, // pos 0
  *     1, 0, 0, // pos 1
  *     1, 1, 0  // pos 2
@@ -8205,20 +8405,20 @@ declare class RefCountedObject {
  * channel 0, and an index buffer to form two triangles. Float32Array is used for positions and uvs.
  *
  * ```javascript
- * var mesh = new pc.Mesh(device);
- * var positions = new Float32Array([
+ * const mesh = new pc.Mesh(device);
+ * const positions = new Float32Array([
  *     0, 0, 0, // pos 0
  *     1, 0, 0, // pos 1
  *     1, 1, 0, // pos 2
  *     0, 1, 0  // pos 3
  * ]);
- * var uvs = new Float32Array([
+ * const uvs = new Float32Array([
  *     0, 0, // uv 0
  *     1, 0, // uv 1
  *     1, 1, // uv 2
  *     0, 1  // uv 3
  * ]);
- * var indices = [
+ * const indices = [
  *     0, 1, 2, // triangle 0
  *     0, 2, 3  // triangle 1
  * ];
@@ -8688,8 +8888,8 @@ declare class Mat3 {
      *
      * @returns {this} A duplicate matrix.
      * @example
-     * var src = new pc.Mat3().translate(10, 20, 30);
-     * var dst = src.clone();
+     * const src = new pc.Mat3().translate(10, 20, 30);
+     * const dst = src.clone();
      * console.log("The two matrices are " + (src.equals(dst) ? "equal" : "different"));
      */
     clone(): this;
@@ -8699,8 +8899,8 @@ declare class Mat3 {
      * @param {Mat3} rhs - A 3x3 matrix to be copied.
      * @returns {Mat3} Self for chaining.
      * @example
-     * var src = new pc.Mat3().translate(10, 20, 30);
-     * var dst = new pc.Mat3();
+     * const src = new pc.Mat3().translate(10, 20, 30);
+     * const dst = new pc.Mat3();
      * dst.copy(src);
      * console.log("The two matrices are " + (src.equals(dst) ? "equal" : "different"));
      */
@@ -8711,7 +8911,7 @@ declare class Mat3 {
      * @param {number[]} src - An array[9] to be copied.
      * @returns {Mat3} Self for chaining.
      * @example
-     * var dst = new pc.Mat3();
+     * const dst = new pc.Mat3();
      * dst.set([0, 1, 2, 3, 4, 5, 6, 7, 8]);
      */
     set(src: number[]): Mat3;
@@ -8721,8 +8921,8 @@ declare class Mat3 {
      * @param {Mat3} rhs - The other matrix.
      * @returns {boolean} True if the matrices are equal and false otherwise.
      * @example
-     * var a = new pc.Mat3().translate(10, 20, 30);
-     * var b = new pc.Mat3();
+     * const a = new pc.Mat3().translate(10, 20, 30);
+     * const b = new pc.Mat3();
      * console.log("The two matrices are " + (a.equals(b) ? "equal" : "different"));
      */
     equals(rhs: Mat3): boolean;
@@ -8731,7 +8931,7 @@ declare class Mat3 {
      *
      * @returns {boolean} True if the matrix is identity and false otherwise.
      * @example
-     * var m = new pc.Mat3();
+     * const m = new pc.Mat3();
      * console.log("The matrix is " + (m.isIdentity() ? "identity" : "not identity"));
      */
     isIdentity(): boolean;
@@ -8749,7 +8949,7 @@ declare class Mat3 {
      *
      * @returns {string} The matrix in string form.
      * @example
-     * var m = new pc.Mat3();
+     * const m = new pc.Mat3();
      * // Outputs [1, 0, 0, 0, 1, 0, 0, 0, 1]
      * console.log(m.toString());
      */
@@ -8759,7 +8959,7 @@ declare class Mat3 {
      *
      * @returns {Mat3} Self for chaining.
      * @example
-     * var m = new pc.Mat3();
+     * const m = new pc.Mat3();
      *
      * // Transpose in place
      * m.transpose();
@@ -8887,19 +9087,14 @@ declare class GraphNode extends EventHandler {
      */
     private _dirtyLocal;
     /**
-     * @type {boolean}
-     * @private
-     */
-    private _wasDirty;
-    /**
      * @type {number}
      * @private
      */
     private _aabbVer;
     /**
-     * Marks the node to ignore hierarchy sync entirely (including children nodes). The engine
-     * code automatically freezes and unfreezes objects whenever required. Segregating dynamic
-     * and stationary nodes into subhierarchies allows to reduce sync time significantly.
+     * Marks the node to ignore hierarchy sync entirely (including children nodes). The engine code
+     * automatically freezes and unfreezes objects whenever required. Segregating dynamic and
+     * stationary nodes into subhierarchies allows to reduce sync time significantly.
      *
      * @type {boolean}
      * @private
@@ -8916,10 +9111,10 @@ declare class GraphNode extends EventHandler {
      */
     private _dirtyWorld;
     /**
-     * Cached value representing the negatively scaled world transform. If the value is 0,
-     * this marks this value as dirty and it needs to be recalculated. If the value is 1, the
-     * world transform is not negatively scaled. If the value is -1, the world transform is
-     * negatively scaled.
+     * Cached value representing the negatively scaled world transform. If the value is 0, this
+     * marks this value as dirty and it needs to be recalculated. If the value is 1, the world
+     * transform is not negatively scaled. If the value is -1, the world transform is negatively
+     * scaled.
      *
      * @type {number}
      * @private
@@ -8966,16 +9161,16 @@ declare class GraphNode extends EventHandler {
      */
     private _graphDepth;
     /**
-     * Represents enabled state of the entity. If the entity is disabled, the entity including
-     * all children are excluded from updates.
+     * Represents enabled state of the entity. If the entity is disabled, the entity including all
+     * children are excluded from updates.
      *
      * @type {boolean}
      * @private
      */
     private _enabled;
     /**
-     * Represents enabled state of the entity in the hierarchy. It's true only if this entity
-     * and all parent entities all the way to the scene's root are enabled.
+     * Represents enabled state of the entity in the hierarchy. It's true only if this entity and
+     * all parent entities all the way to the scene's root are enabled.
      *
      * @type {boolean}
      * @private
@@ -9100,12 +9295,12 @@ declare class GraphNode extends EventHandler {
      * @returns {GraphNode[]} The array of graph nodes that match the search criteria.
      * @example
      * // Finds all nodes that have a model component and have 'door' in their lower-cased name
-     * var doors = house.find(function (node) {
+     * const doors = house.find(function (node) {
      *     return node.model && node.name.toLowerCase().indexOf('door') !== -1;
      * });
      * @example
      * // Finds all nodes that have the name property set to 'Test'
-     * var entities = parent.find('name', 'Test');
+     * const entities = parent.find('name', 'Test');
      */
     find(attr: FindNodeCallback | string, value?: object): GraphNode[];
     /**
@@ -9125,12 +9320,12 @@ declare class GraphNode extends EventHandler {
      * node is found.
      * @example
      * // Find the first node that is called 'head' and has a model component
-     * var head = player.findOne(function (node) {
+     * const head = player.findOne(function (node) {
      *     return node.model && node.name === 'head';
      * });
      * @example
      * // Finds the first node that has the name property set to 'Test'
-     * var node = parent.findOne('name', 'Test');
+     * const node = parent.findOne('name', 'Test');
      */
     findOne(attr: FindNodeCallback | string, value?: object): GraphNode | null;
     /**
@@ -9143,16 +9338,16 @@ declare class GraphNode extends EventHandler {
      * @returns {GraphNode[]} A list of all graph nodes that match the query.
      * @example
      * // Return all graph nodes that tagged by `animal`
-     * var animals = node.findByTag("animal");
+     * const animals = node.findByTag("animal");
      * @example
      * // Return all graph nodes that tagged by `bird` OR `mammal`
-     * var birdsAndMammals = node.findByTag("bird", "mammal");
+     * const birdsAndMammals = node.findByTag("bird", "mammal");
      * @example
      * // Return all assets that tagged by `carnivore` AND `mammal`
-     * var meatEatingMammals = node.findByTag(["carnivore", "mammal"]);
+     * const meatEatingMammals = node.findByTag(["carnivore", "mammal"]);
      * @example
      * // Return all assets that tagged by (`carnivore` AND `mammal`) OR (`carnivore` AND `reptile`)
-     * var meatEatingMammalsAndReptiles = node.findByTag(["carnivore", "mammal"], ["carnivore", "reptile"]);
+     * const meatEatingMammalsAndReptiles = node.findByTag(["carnivore", "mammal"], ["carnivore", "reptile"]);
      */
     findByTag(...args: any[]): GraphNode[];
     /**
@@ -9173,10 +9368,10 @@ declare class GraphNode extends EventHandler {
      * null if no node is found.
      * @example
      * // String form
-     * var grandchild = this.entity.findByPath('child/grandchild');
+     * const grandchild = this.entity.findByPath('child/grandchild');
      * @example
      * // Array form
-     * var grandchild = this.entity.findByPath(['child', 'grandchild']);
+     * const grandchild = this.entity.findByPath(['child', 'grandchild']);
      */
     findByPath(path: string | string[]): GraphNode | null;
     /**
@@ -9222,7 +9417,7 @@ declare class GraphNode extends EventHandler {
      *
      * @returns {Vec3} The world space rotation of the graph node in Euler angle form.
      * @example
-     * var angles = this.entity.getEulerAngles();
+     * const angles = this.entity.getEulerAngles();
      * angles.y = 180; // rotate the entity around Y by 180 degrees
      * this.entity.setEulerAngles(angles);
      */
@@ -9234,7 +9429,7 @@ declare class GraphNode extends EventHandler {
      *
      * @returns {Vec3} The local space rotation of the graph node as euler angles in XYZ order.
      * @example
-     * var angles = this.entity.getLocalEulerAngles();
+     * const angles = this.entity.getLocalEulerAngles();
      * angles.y = 180;
      * this.entity.setLocalEulerAngles(angles);
      */
@@ -9246,7 +9441,7 @@ declare class GraphNode extends EventHandler {
      *
      * @returns {Vec3} The local space position of the graph node.
      * @example
-     * var position = this.entity.getLocalPosition();
+     * const position = this.entity.getLocalPosition();
      * position.x += 1; // move the entity 1 unit along x.
      * this.entity.setLocalPosition(position);
      */
@@ -9258,7 +9453,7 @@ declare class GraphNode extends EventHandler {
      *
      * @returns {Quat} The local space rotation of the graph node as a quaternion.
      * @example
-     * var rotation = this.entity.getLocalRotation();
+     * const rotation = this.entity.getLocalRotation();
      */
     getLocalRotation(): Quat;
     /**
@@ -9268,7 +9463,7 @@ declare class GraphNode extends EventHandler {
      *
      * @returns {Vec3} The local space scale of the graph node.
      * @example
-     * var scale = this.entity.getLocalScale();
+     * const scale = this.entity.getLocalScale();
      * scale.x = 100;
      * this.entity.setLocalScale(scale);
      */
@@ -9279,7 +9474,7 @@ declare class GraphNode extends EventHandler {
      *
      * @returns {Mat4} The node's local transformation matrix.
      * @example
-     * var transform = this.entity.getLocalTransform();
+     * const transform = this.entity.getLocalTransform();
      */
     getLocalTransform(): Mat4;
     /**
@@ -9289,7 +9484,7 @@ declare class GraphNode extends EventHandler {
      *
      * @returns {Vec3} The world space position of the graph node.
      * @example
-     * var position = this.entity.getPosition();
+     * const position = this.entity.getPosition();
      * position.x = 10;
      * this.entity.setPosition(position);
      */
@@ -9301,7 +9496,7 @@ declare class GraphNode extends EventHandler {
      *
      * @returns {Quat} The world space rotation of the graph node as a quaternion.
      * @example
-     * var rotation = this.entity.getRotation();
+     * const rotation = this.entity.getRotation();
      */
     getRotation(): Quat;
     /**
@@ -9314,7 +9509,7 @@ declare class GraphNode extends EventHandler {
      *
      * @returns {Vec3} The world space scale of the graph node.
      * @example
-     * var scale = this.entity.getScale();
+     * const scale = this.entity.getScale();
      * @ignore
      */
     getScale(): Vec3;
@@ -9323,7 +9518,7 @@ declare class GraphNode extends EventHandler {
      *
      * @returns {Mat4} The node's world transformation matrix.
      * @example
-     * var transform = this.entity.getWorldTransform();
+     * const transform = this.entity.getWorldTransform();
      */
     getWorldTransform(): Mat4;
     /**
@@ -9355,7 +9550,7 @@ declare class GraphNode extends EventHandler {
      * this.entity.setLocalEulerAngles(0, 90, 0);
      * @example
      * // Set rotation of 90 degrees around y-axis via a vector
-     * var angles = new pc.Vec3(0, 90, 0);
+     * const angles = new pc.Vec3(0, 90, 0);
      * this.entity.setLocalEulerAngles(angles);
      */
     setLocalEulerAngles(x: Vec3 | number, y?: number, z?: number): void;
@@ -9373,7 +9568,7 @@ declare class GraphNode extends EventHandler {
      * this.entity.setLocalPosition(0, 10, 0);
      * @example
      * // Set via vector
-     * var pos = new pc.Vec3(0, 10, 0);
+     * const pos = new pc.Vec3(0, 10, 0);
      * this.entity.setLocalPosition(pos);
      */
     setLocalPosition(x: Vec3 | number, y?: number, z?: number): void;
@@ -9392,7 +9587,7 @@ declare class GraphNode extends EventHandler {
      * this.entity.setLocalRotation(0, 0, 0, 1);
      * @example
      * // Set via quaternion
-     * var q = pc.Quat();
+     * const q = pc.Quat();
      * this.entity.setLocalRotation(q);
      */
     setLocalRotation(x: Quat | number, y?: number, z?: number, w?: number): void;
@@ -9409,7 +9604,7 @@ declare class GraphNode extends EventHandler {
      * this.entity.setLocalScale(10, 10, 10);
      * @example
      * // Set via vector
-     * var scale = new pc.Vec3(10, 10, 10);
+     * const scale = new pc.Vec3(10, 10, 10);
      * this.entity.setLocalScale(scale);
      */
     setLocalScale(x: Vec3 | number, y?: number, z?: number): void;
@@ -9435,7 +9630,7 @@ declare class GraphNode extends EventHandler {
      * this.entity.setPosition(0, 10, 0);
      * @example
      * // Set via vector
-     * var position = new pc.Vec3(0, 10, 0);
+     * const position = new pc.Vec3(0, 10, 0);
      * this.entity.setPosition(position);
      */
     setPosition(x: Vec3 | number, y?: number, z?: number): void;
@@ -9454,7 +9649,7 @@ declare class GraphNode extends EventHandler {
      * this.entity.setRotation(0, 0, 0, 1);
      * @example
      * // Set via quaternion
-     * var q = pc.Quat();
+     * const q = pc.Quat();
      * this.entity.setRotation(q);
      */
     setRotation(x: Quat | number, y?: number, z?: number, w?: number): void;
@@ -9473,7 +9668,7 @@ declare class GraphNode extends EventHandler {
      * this.entity.setEulerAngles(0, 90, 0);
      * @example
      * // Set rotation of 90 degrees around world-space y-axis via a vector
-     * var angles = new pc.Vec3(0, 90, 0);
+     * const angles = new pc.Vec3(0, 90, 0);
      * this.entity.setEulerAngles(angles);
      */
     setEulerAngles(x: Vec3 | number, y?: number, z?: number): void;
@@ -9483,7 +9678,7 @@ declare class GraphNode extends EventHandler {
      *
      * @param {GraphNode} node - The new child to add.
      * @example
-     * var e = new pc.Entity(app);
+     * const e = new pc.Entity(app);
      * this.entity.addChild(e);
      */
     addChild(node: GraphNode): void;
@@ -9493,7 +9688,7 @@ declare class GraphNode extends EventHandler {
      *
      * @param {GraphNode} node - The child to add.
      * @example
-     * var e = new pc.Entity(app);
+     * const e = new pc.Entity(app);
      * this.entity.addChildAndSaveTransform(e);
      * @ignore
      */
@@ -9506,7 +9701,7 @@ declare class GraphNode extends EventHandler {
      * @param {number} index - The index in the child list of the parent where the new node will be
      * inserted.
      * @example
-     * var e = new pc.Entity(app);
+     * const e = new pc.Entity(app);
      * this.entity.insertChild(e, 1);
      */
     insertChild(node: GraphNode, index: number): void;
@@ -9545,7 +9740,7 @@ declare class GraphNode extends EventHandler {
      *
      * @param {GraphNode} child - The node to remove.
      * @example
-     * var child = this.entity.children[0];
+     * const child = this.entity.children[0];
      * this.entity.removeChild(child);
      */
     removeChild(child: GraphNode): void;
@@ -9571,11 +9766,11 @@ declare class GraphNode extends EventHandler {
      * @param {number} [uz=0] - Z-component of the up vector for the look at transform.
      * @example
      * // Look at another entity, using the (default) positive y-axis for up
-     * var position = otherEntity.getPosition();
+     * const position = otherEntity.getPosition();
      * this.entity.lookAt(position);
      * @example
      * // Look at another entity, using the negative world y-axis for up
-     * var position = otherEntity.getPosition();
+     * const position = otherEntity.getPosition();
      * this.entity.lookAt(position, pc.Vec3.DOWN);
      * @example
      * // Look at the world space origin, using the (default) positive y-axis for up
@@ -9599,7 +9794,7 @@ declare class GraphNode extends EventHandler {
      * this.entity.translate(10, 0, 0);
      * @example
      * // Translate via vector
-     * var t = new pc.Vec3(10, 0, 0);
+     * const t = new pc.Vec3(10, 0, 0);
      * this.entity.translate(t);
      */
     translate(x: Vec3 | number, y?: number, z?: number): void;
@@ -9617,7 +9812,7 @@ declare class GraphNode extends EventHandler {
      * this.entity.translateLocal(10, 0, 0);
      * @example
      * // Translate via vector
-     * var t = new pc.Vec3(10, 0, 0);
+     * const t = new pc.Vec3(10, 0, 0);
      * this.entity.translateLocal(t);
      */
     translateLocal(x: Vec3 | number, y?: number, z?: number): void;
@@ -9635,7 +9830,7 @@ declare class GraphNode extends EventHandler {
      * this.entity.rotate(0, 90, 0);
      * @example
      * // Rotate via vector
-     * var r = new pc.Vec3(0, 90, 0);
+     * const r = new pc.Vec3(0, 90, 0);
      * this.entity.rotate(r);
      */
     rotate(x: Vec3 | number, y?: number, z?: number): void;
@@ -9653,7 +9848,7 @@ declare class GraphNode extends EventHandler {
      * this.entity.rotateLocal(0, 90, 0);
      * @example
      * // Rotate via vector
-     * var r = new pc.Vec3(0, 90, 0);
+     * const r = new pc.Vec3(0, 90, 0);
      * this.entity.rotateLocal(r);
      */
     rotateLocal(x: Vec3 | number, y?: number, z?: number): void;
@@ -9790,8 +9985,8 @@ declare class Color {
      * @param {Color} rhs - A color to copy to the specified color.
      * @returns {Color} Self for chaining.
      * @example
-     * var src = new pc.Color(1, 0, 0, 1);
-     * var dst = new pc.Color();
+     * const src = new pc.Color(1, 0, 0, 1);
+     * const dst = new pc.Color();
      *
      * dst.copy(src);
      *
@@ -9804,8 +9999,8 @@ declare class Color {
      * @param {Color} rhs - The color to compare to the specified color.
      * @returns {boolean} True if the colors are equal and false otherwise.
      * @example
-     * var a = new pc.Color(1, 0, 0, 1);
-     * var b = new pc.Color(1, 1, 0, 1);
+     * const a = new pc.Color(1, 0, 0, 1);
+     * const b = new pc.Color(1, 1, 0, 1);
      * console.log("The two colors are " + (a.equals(b) ? "equal" : "different"));
      */
     equals(rhs: Color): boolean;
@@ -9829,9 +10024,9 @@ declare class Color {
      * range, the linear interpolant will occur on a ray extrapolated from this line.
      * @returns {Color} Self for chaining.
      * @example
-     * var a = new pc.Color(0, 0, 0);
-     * var b = new pc.Color(1, 1, 0.5);
-     * var r = new pc.Color();
+     * const a = new pc.Color(0, 0, 0);
+     * const b = new pc.Color(1, 1, 0.5);
+     * const r = new pc.Color();
      *
      * r.lerp(a, b, 0);   // r is equal to a
      * r.lerp(a, b, 0.5); // r is 0.5, 0.5, 0.25
@@ -9855,7 +10050,7 @@ declare class Color {
      * @param {boolean} alpha - If true, the output string will include the alpha value.
      * @returns {string} The color in string form.
      * @example
-     * var c = new pc.Color(1, 1, 1);
+     * const c = new pc.Color(1, 1, 1);
      * // Outputs #ffffffff
      * console.log(c.toString());
      */
@@ -9924,7 +10119,7 @@ declare class Vec2 {
      * array will be used to populate all components.
      * @param {number} [y] - The y value. Defaults to 0.
      * @example
-     * var v = new pc.Vec2(1, 2);
+     * const v = new pc.Vec2(1, 2);
      */
     constructor(x?: number | number[], y?: number);
     /**
@@ -9945,8 +10140,8 @@ declare class Vec2 {
      * @param {Vec2} rhs - The vector to add to the specified vector.
      * @returns {Vec2} Self for chaining.
      * @example
-     * var a = new pc.Vec2(10, 10);
-     * var b = new pc.Vec2(20, 20);
+     * const a = new pc.Vec2(10, 10);
+     * const b = new pc.Vec2(20, 20);
      *
      * a.add(b);
      *
@@ -9961,9 +10156,9 @@ declare class Vec2 {
      * @param {Vec2} rhs - The second vector operand for the addition.
      * @returns {Vec2} Self for chaining.
      * @example
-     * var a = new pc.Vec2(10, 10);
-     * var b = new pc.Vec2(20, 20);
-     * var r = new pc.Vec2();
+     * const a = new pc.Vec2(10, 10);
+     * const b = new pc.Vec2(20, 20);
+     * const r = new pc.Vec2();
      *
      * r.add2(a, b);
      * // Outputs [30, 30]
@@ -9977,7 +10172,7 @@ declare class Vec2 {
      * @param {number} scalar - The number to add.
      * @returns {Vec2} Self for chaining.
      * @example
-     * var vec = new pc.Vec2(3, 4);
+     * const vec = new pc.Vec2(3, 4);
      *
      * vec.addScalar(2);
      *
@@ -9990,8 +10185,8 @@ declare class Vec2 {
      *
      * @returns {this} A 2-dimensional vector containing the result of the cloning.
      * @example
-     * var v = new pc.Vec2(10, 20);
-     * var vclone = v.clone();
+     * const v = new pc.Vec2(10, 20);
+     * const vclone = v.clone();
      * console.log("The result of the cloning is: " + vclone.toString());
      */
     clone(): this;
@@ -10001,8 +10196,8 @@ declare class Vec2 {
      * @param {Vec2} rhs - A vector to copy to the specified vector.
      * @returns {Vec2} Self for chaining.
      * @example
-     * var src = new pc.Vec2(10, 20);
-     * var dst = new pc.Vec2();
+     * const src = new pc.Vec2(10, 20);
+     * const dst = new pc.Vec2();
      *
      * dst.copy(src);
      *
@@ -10016,9 +10211,9 @@ declare class Vec2 {
      * @param {Vec2} rhs - The second 2-dimensional vector operand of the cross product.
      * @returns {number} The cross product of the two vectors.
      * @example
-     * var right = new pc.Vec2(1, 0);
-     * var up = new pc.Vec2(0, 1);
-     * var crossProduct = right.cross(up);
+     * const right = new pc.Vec2(1, 0);
+     * const up = new pc.Vec2(0, 1);
+     * const crossProduct = right.cross(up);
      *
      * // Prints 1
      * console.log("The result of the cross product is: " + crossProduct);
@@ -10030,9 +10225,9 @@ declare class Vec2 {
      * @param {Vec2} rhs - The second 2-dimensional vector to test.
      * @returns {number} The distance between the two vectors.
      * @example
-     * var v1 = new pc.Vec2(5, 10);
-     * var v2 = new pc.Vec2(10, 20);
-     * var d = v1.distance(v2);
+     * const v1 = new pc.Vec2(5, 10);
+     * const v2 = new pc.Vec2(10, 20);
+     * const d = v1.distance(v2);
      * console.log("The distance between v1 and v2 is: " + d);
      */
     distance(rhs: Vec2): number;
@@ -10042,8 +10237,8 @@ declare class Vec2 {
      * @param {Vec2} rhs - The vector to divide the specified vector by.
      * @returns {Vec2} Self for chaining.
      * @example
-     * var a = new pc.Vec2(4, 9);
-     * var b = new pc.Vec2(2, 3);
+     * const a = new pc.Vec2(4, 9);
+     * const b = new pc.Vec2(2, 3);
      *
      * a.div(b);
      *
@@ -10058,9 +10253,9 @@ declare class Vec2 {
      * @param {Vec2} rhs - The divisor vector (the vector dividing the dividend).
      * @returns {Vec2} Self for chaining.
      * @example
-     * var a = new pc.Vec2(4, 9);
-     * var b = new pc.Vec2(2, 3);
-     * var r = new pc.Vec2();
+     * const a = new pc.Vec2(4, 9);
+     * const b = new pc.Vec2(2, 3);
+     * const r = new pc.Vec2();
      *
      * r.div2(a, b);
      * // Outputs [2, 3]
@@ -10074,7 +10269,7 @@ declare class Vec2 {
      * @param {number} scalar - The number to divide by.
      * @returns {Vec2} Self for chaining.
      * @example
-     * var vec = new pc.Vec2(3, 6);
+     * const vec = new pc.Vec2(3, 6);
      *
      * vec.divScalar(3);
      *
@@ -10089,9 +10284,9 @@ declare class Vec2 {
      * @param {Vec2} rhs - The second 2-dimensional vector operand of the dot product.
      * @returns {number} The result of the dot product operation.
      * @example
-     * var v1 = new pc.Vec2(5, 10);
-     * var v2 = new pc.Vec2(10, 20);
-     * var v1dotv2 = v1.dot(v2);
+     * const v1 = new pc.Vec2(5, 10);
+     * const v2 = new pc.Vec2(10, 20);
+     * const v1dotv2 = v1.dot(v2);
      * console.log("The result of the dot product is: " + v1dotv2);
      */
     dot(rhs: Vec2): number;
@@ -10101,8 +10296,8 @@ declare class Vec2 {
      * @param {Vec2} rhs - The vector to compare to the specified vector.
      * @returns {boolean} True if the vectors are equal and false otherwise.
      * @example
-     * var a = new pc.Vec2(1, 2);
-     * var b = new pc.Vec2(4, 5);
+     * const a = new pc.Vec2(1, 2);
+     * const b = new pc.Vec2(4, 5);
      * console.log("The two vectors are " + (a.equals(b) ? "equal" : "different"));
      */
     equals(rhs: Vec2): boolean;
@@ -10111,8 +10306,8 @@ declare class Vec2 {
      *
      * @returns {number} The magnitude of the specified 2-dimensional vector.
      * @example
-     * var vec = new pc.Vec2(3, 4);
-     * var len = vec.length();
+     * const vec = new pc.Vec2(3, 4);
+     * const len = vec.length();
      * // Outputs 5
      * console.log("The length of the vector is: " + len);
      */
@@ -10122,8 +10317,8 @@ declare class Vec2 {
      *
      * @returns {number} The magnitude of the specified 2-dimensional vector.
      * @example
-     * var vec = new pc.Vec2(3, 4);
-     * var len = vec.lengthSq();
+     * const vec = new pc.Vec2(3, 4);
+     * const len = vec.lengthSq();
      * // Outputs 25
      * console.log("The length squared of the vector is: " + len);
      */
@@ -10138,9 +10333,9 @@ declare class Vec2 {
      * range, the linear interpolant will occur on a ray extrapolated from this line.
      * @returns {Vec2} Self for chaining.
      * @example
-     * var a = new pc.Vec2(0, 0);
-     * var b = new pc.Vec2(10, 10);
-     * var r = new pc.Vec2();
+     * const a = new pc.Vec2(0, 0);
+     * const b = new pc.Vec2(10, 10);
+     * const r = new pc.Vec2();
      *
      * r.lerp(a, b, 0);   // r is equal to a
      * r.lerp(a, b, 0.5); // r is 5, 5
@@ -10153,8 +10348,8 @@ declare class Vec2 {
      * @param {Vec2} rhs - The 2-dimensional vector used as the second multiplicand of the operation.
      * @returns {Vec2} Self for chaining.
      * @example
-     * var a = new pc.Vec2(2, 3);
-     * var b = new pc.Vec2(4, 5);
+     * const a = new pc.Vec2(2, 3);
+     * const b = new pc.Vec2(4, 5);
      *
      * a.mul(b);
      *
@@ -10169,9 +10364,9 @@ declare class Vec2 {
      * @param {Vec2} rhs - The 2-dimensional vector used as the second multiplicand of the operation.
      * @returns {Vec2} Self for chaining.
      * @example
-     * var a = new pc.Vec2(2, 3);
-     * var b = new pc.Vec2(4, 5);
-     * var r = new pc.Vec2();
+     * const a = new pc.Vec2(2, 3);
+     * const b = new pc.Vec2(4, 5);
+     * const r = new pc.Vec2();
      *
      * r.mul2(a, b);
      *
@@ -10185,7 +10380,7 @@ declare class Vec2 {
      * @param {number} scalar - The number to multiply by.
      * @returns {Vec2} Self for chaining.
      * @example
-     * var vec = new pc.Vec2(3, 6);
+     * const vec = new pc.Vec2(3, 6);
      *
      * vec.mulScalar(3);
      *
@@ -10199,7 +10394,7 @@ declare class Vec2 {
      *
      * @returns {Vec2} Self for chaining.
      * @example
-     * var v = new pc.Vec2(25, 0);
+     * const v = new pc.Vec2(25, 0);
      *
      * v.normalize();
      *
@@ -10246,7 +10441,7 @@ declare class Vec2 {
      * @param {number} y - The value to set on the second component of the vector.
      * @returns {Vec2} Self for chaining.
      * @example
-     * var v = new pc.Vec2();
+     * const v = new pc.Vec2();
      * v.set(5, 10);
      *
      * // Outputs 5, 10
@@ -10259,8 +10454,8 @@ declare class Vec2 {
      * @param {Vec2} rhs - The vector to subtract from the specified vector.
      * @returns {Vec2} Self for chaining.
      * @example
-     * var a = new pc.Vec2(10, 10);
-     * var b = new pc.Vec2(20, 20);
+     * const a = new pc.Vec2(10, 10);
+     * const b = new pc.Vec2(20, 20);
      *
      * a.sub(b);
      *
@@ -10275,9 +10470,9 @@ declare class Vec2 {
      * @param {Vec2} rhs - The second vector operand for the subtraction.
      * @returns {Vec2} Self for chaining.
      * @example
-     * var a = new pc.Vec2(10, 10);
-     * var b = new pc.Vec2(20, 20);
-     * var r = new pc.Vec2();
+     * const a = new pc.Vec2(10, 10);
+     * const b = new pc.Vec2(20, 20);
+     * const r = new pc.Vec2();
      *
      * r.sub2(a, b);
      *
@@ -10291,7 +10486,7 @@ declare class Vec2 {
      * @param {number} scalar - The number to subtract.
      * @returns {Vec2} Self for chaining.
      * @example
-     * var vec = new pc.Vec2(3, 4);
+     * const vec = new pc.Vec2(3, 4);
      *
      * vec.subScalar(2);
      *
@@ -10304,7 +10499,7 @@ declare class Vec2 {
      *
      * @returns {string} The vector in string form.
      * @example
-     * var v = new pc.Vec2(20, 10);
+     * const v = new pc.Vec2(20, 10);
      * // Outputs [20, 10]
      * console.log(v.toString());
      */
@@ -10321,7 +10516,7 @@ declare class Vec2 {
  *
  * ```javascript
  * // Add a pc.LightComponent to an entity
- * var entity = new pc.Entity();
+ * const entity = new pc.Entity();
  * entity.addComponent('light', {
  *     type: "omni",
  *     color: new pc.Color(1, 0, 0),
@@ -10329,7 +10524,7 @@ declare class Vec2 {
  * });
  *
  * // Get the pc.LightComponent on an entity
- * var lightComponent = entity.light;
+ * const lightComponent = entity.light;
  *
  * // Update a property on a light component
  * entity.light.range = 20;
@@ -11816,66 +12011,6 @@ declare class LightingParams {
 }
 
 /**
- * Holds stencil test settings.
- */
-declare class StencilParameters {
-    /**
-     * Create a new StencilParameters instance.
-     *
-     * @param {object} options - Options object to configure the stencil parameters.
-     */
-    constructor(options: object);
-    /**
-     * Sets stencil test function. See {@link GraphicsDevice#setStencilFunc}.
-     *
-     * @type {number}
-     */
-    func: number;
-    /**
-     * Sets stencil test reference value. See {@link GraphicsDevice#setStencilFunc}.
-     *
-     * @type {number}
-     */
-    ref: number;
-    /**
-     * Sets operation to perform if stencil test is failed. See {@link GraphicsDevice#setStencilOperation}.
-     *
-     * @type {number}
-     */
-    fail: number;
-    /**
-     * Sets operation to perform if depth test is failed. See {@link GraphicsDevice#setStencilOperation}.
-     *
-     * @type {number}
-     */
-    zfail: number;
-    /**
-     * Sets operation to perform if both stencil and depth test are passed. See {@link GraphicsDevice#setStencilOperation}.
-     *
-     * @type {number}
-     */
-    zpass: number;
-    /**
-     * Sets stencil test reading mask. See {@link GraphicsDevice#setStencilFunc}.
-     *
-     * @type {number}
-     */
-    readMask: number;
-    /**
-     * Sets stencil test writing mask. See {@link GraphicsDevice#setStencilOperation}.
-     *
-     * @type {number}
-     */
-    writeMask: number;
-    /**
-     * Clone the stencil parameters.
-     *
-     * @returns {StencilParameters} A cloned StencilParameters object.
-     */
-    clone(): StencilParameters;
-}
-
-/**
  * A material determines how a particular mesh instance is rendered. It specifies the shader and
  * render state that is set before the mesh instance is submitted to the graphics device.
  */
@@ -11938,8 +12073,6 @@ declare class Material {
      * away from the view point).
      * - {@link CULLFACE_FRONT}: Cull the front faces of triangles (do not render triangles facing
      * towards the view point).
-     * - {@link CULLFACE_FRONTANDBACK}: Cull both front and back faces (triangles will not be
-     * rendered).
      *
      * Defaults to {@link CULLFACE_BACK}.
      *
@@ -11949,13 +12082,13 @@ declare class Material {
     /**
      * Stencil parameters for front faces (default is null).
      *
-     * @type {import('../stencil-parameters.js').StencilParameters|null}
+     * @type {import('../../platform/graphics/stencil-parameters.js').StencilParameters|null}
      */
     stencilFront: StencilParameters | null;
     /**
      * Stencil parameters for back faces (default is null).
      *
-     * @type {import('../stencil-parameters.js').StencilParameters|null}
+     * @type {import('../../platform/graphics/stencil-parameters.js').StencilParameters|null}
      */
     stencilBack: StencilParameters | null;
     /**
@@ -12462,10 +12595,9 @@ declare class Scene extends EventHandler {
      * {@link LayerComposition}.
      * @example
      * this.app.scene.on('set:layers', function (oldComp, newComp) {
-     *     var list = newComp.layerList;
-     *     var layer;
-     *     for (var i = 0; i < list.length; i++) {
-     *         layer = list[i];
+     *     const list = newComp.layerList;
+     *     for (let i = 0; i < list.length; i++) {
+     *         const layer = list[i];
      *         switch (layer.name) {
      *             case 'MyLayer':
      *                 layer.onEnable = myOnEnableFunction;
@@ -12973,12 +13105,12 @@ declare class MeshInstance {
      * component is attached to.
      * @example
      * // Create a mesh instance pointing to a 1x1x1 'cube' mesh
-     * var mesh = pc.createBox(graphicsDevice);
-     * var material = new pc.StandardMaterial();
+     * const mesh = pc.createBox(graphicsDevice);
+     * const material = new pc.StandardMaterial();
      *
-     * var meshInstance = new pc.MeshInstance(mesh, material);
+     * const meshInstance = new pc.MeshInstance(mesh, material);
      *
-     * var entity = new pc.Entity();
+     * const entity = new pc.Entity();
      * entity.addComponent('render', {
      *     meshInstances: [meshInstance]
      * });
@@ -13908,7 +14040,7 @@ declare class XrHitTest extends EventHandler {
      *     }
      * });
      * @example
-     * var ray = new pc.Ray(new pc.Vec3(0, 0, 0), new pc.Vec3(0, -1, 0));
+     * const ray = new pc.Ray(new pc.Vec3(0, 0, 0), new pc.Vec3(0, -1, 0));
      * app.xr.hitTest.start({
      *     spaceType: pc.XRSPACE_LOCAL,
      *     offsetRay: ray,
@@ -14406,7 +14538,7 @@ declare class XrInputSource extends EventHandler {
      * @event XrInputSource#select
      * @param {object} evt - XRInputSourceEvent event data from WebXR API.
      * @example
-     * var ray = new pc.Ray();
+     * const ray = new pc.Ray();
      * inputSource.on('select', function (evt) {
      *     ray.set(inputSource.getOrigin(), inputSource.getDirection());
      *     if (obj.intersectsRay(ray)) {
@@ -15827,7 +15959,7 @@ declare class Model {
      *
      * @returns {Model} A clone of the specified model.
      * @example
-     * var clonedModel = model.clone();
+     * const clonedModel = model.clone();
      */
     clone(): Model;
     /**
@@ -15845,7 +15977,7 @@ declare class Model {
      *
      * @example
      * model.generateWireframe();
-     * for (var i = 0; i < model.meshInstances.length; i++) {
+     * for (let i = 0; i < model.meshInstances.length; i++) {
      *     model.meshInstances[i].renderStyle = pc.RENDERSTYLE_WIREFRAME;
      * }
      */
@@ -17516,7 +17648,7 @@ declare class GamePads extends EventHandler {
      * @event GamePads#gamepadconnected
      * @param {GamePad} gamepad - The gamepad that was just connected.
      * @example
-     * var onPadConnected = function (pad) {
+     * const onPadConnected = function (pad) {
      *     if (!pad.mapping) {
      *         // Map the gamepad as the system could not find the proper map.
      *     } else {
@@ -17531,7 +17663,7 @@ declare class GamePads extends EventHandler {
      * @event GamePads#gamepaddisconnected
      * @param {GamePad} gamepad - The gamepad that was just disconnected.
      * @example
-     * var onPadDisconnected = function (pad) {
+     * const onPadDisconnected = function (pad) {
      *     // Pause the game.
      * };
      * app.keyboard.on("gamepaddisconnected", onPadDisconnected, this);
@@ -17580,8 +17712,8 @@ declare class GamePads extends EventHandler {
      * @returns {GamePad[]} An array of gamepads and mappings for the model of gamepad that is
      * attached.
      * @example
-     * var gamepads = new pc.GamePads();
-     * var pads = gamepads.poll();
+     * const gamepads = new pc.GamePads();
+     * const pads = gamepads.poll();
      */
     poll(pads?: GamePad[]): GamePad[];
     /**
@@ -18174,7 +18306,7 @@ declare class Keyboard extends EventHandler {
      * event.
      * @example
      * // attach keyboard listeners to the window
-     * var keyboard = new pc.Keyboard(window);
+     * const keyboard = new pc.Keyboard(window);
      */
     constructor(element?: Element | Window, options?: {
         preventDefault?: boolean;
@@ -18196,7 +18328,7 @@ declare class Keyboard extends EventHandler {
      * @event Keyboard#keydown
      * @param {KeyboardEvent} event - The Keyboard event object. Note, this event is only valid for the current callback.
      * @example
-     * var onKeyDown = function (e) {
+     * const onKeyDown = function (e) {
      *     if (e.key === pc.KEY_SPACE) {
      *         // space key pressed
      *     }
@@ -18210,7 +18342,7 @@ declare class Keyboard extends EventHandler {
      * @event Keyboard#keyup
      * @param {KeyboardEvent} event - The Keyboard event object. Note, this event is only valid for the current callback.
      * @example
-     * var onKeyUp = function (e) {
+     * const onKeyUp = function (e) {
      *     if (e.key === pc.KEY_SPACE) {
      *         // space key released
      *     }
@@ -18377,7 +18509,7 @@ declare class Asset extends EventHandler {
      * For more details on crossOrigin and its use, see
      * https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/crossOrigin.
      * @example
-     * var asset = new pc.Asset("a texture", "texture", {
+     * const asset = new pc.Asset("a texture", "texture", {
      *     url: "http://example.com/my/assets/here/texture.png"
      * });
      */
@@ -18544,8 +18676,8 @@ declare class Asset extends EventHandler {
      *
      * @returns {string|null} The URL. Returns null if the asset has no associated file.
      * @example
-     * var assets = app.assets.find("My Image", "texture");
-     * var img = "&lt;img src='" + assets[0].getFileUrl() + "'&gt;";
+     * const assets = app.assets.find("My Image", "texture");
+     * const img = "&lt;img src='" + assets[0].getFileUrl() + "'&gt;";
      */
     getFileUrl(): string | null;
     /**
@@ -18590,7 +18722,7 @@ declare class Asset extends EventHandler {
      * the (asset) arguments.
      * @param {object} [scope] - Scope object to use when calling the callback.
      * @example
-     * var asset = app.assets.find("My Asset");
+     * const asset = app.assets.find("My Asset");
      * asset.ready(function (asset) {
      *   // asset loaded
      * });
@@ -18602,7 +18734,7 @@ declare class Asset extends EventHandler {
      * Destroys the associated resource and marks asset as unloaded.
      *
      * @example
-     * var asset = app.assets.find("My Asset");
+     * const asset = app.assets.find("My Asset");
      * asset.unload();
      * // asset.resource is null
      */
@@ -18717,7 +18849,7 @@ declare class ResourceLoader {
      * @param {import('./handler.js').ResourceHandler} handler - An instance of a resource handler
      * supporting at least `load()` and `open()`.
      * @example
-     * var loader = new ResourceLoader();
+     * const loader = new ResourceLoader();
      * loader.addHandler("json", new pc.JsonHandler());
      */
     addHandler(type: string, handler: ResourceHandler): void;
@@ -18883,8 +19015,8 @@ declare class AssetRegistry extends EventHandler {
      * @event AssetRegistry#load:[id]
      * @param {Asset} asset - The asset that has just loaded.
      * @example
-     * var id = 123456;
-     * var asset = app.assets.get(id);
+     * const id = 123456;
+     * const asset = app.assets.get(id);
      * app.assets.on("load:" + id, function (asset) {
      *     console.log("asset loaded: " + asset.name);
      * });
@@ -18896,8 +19028,8 @@ declare class AssetRegistry extends EventHandler {
      * @event AssetRegistry#load:url:[url]
      * @param {Asset} asset - The asset that has just loaded.
      * @example
-     * var id = 123456;
-     * var asset = app.assets.get(id);
+     * const id = 123456;
+     * const asset = app.assets.get(id);
      * app.assets.on("load:url:" + asset.file.url, function (asset) {
      *     console.log("asset loaded: " + asset.name);
      * });
@@ -18919,7 +19051,7 @@ declare class AssetRegistry extends EventHandler {
      * @event AssetRegistry#add:[id]
      * @param {Asset} asset - The asset that was added.
      * @example
-     * var id = 123456;
+     * const id = 123456;
      * app.assets.on("add:" + id, function (asset) {
      *     console.log("Asset 123456 loaded");
      * });
@@ -18946,7 +19078,7 @@ declare class AssetRegistry extends EventHandler {
      * @event AssetRegistry#remove:[id]
      * @param {Asset} asset - The asset that was removed.
      * @example
-     * var id = 123456;
+     * const id = 123456;
      * app.assets.on("remove:" + id, function (asset) {
      *     console.log("Asset removed: " + asset.name);
      * });
@@ -18964,8 +19096,8 @@ declare class AssetRegistry extends EventHandler {
      * @param {string} err - The error message.
      * @param {Asset} asset - The asset that generated the error.
      * @example
-     * var id = 123456;
-     * var asset = app.assets.get(id);
+     * const id = 123456;
+     * const asset = app.assets.get(id);
      * app.assets.on("error", function (err, asset) {
      *     console.error(err);
      * });
@@ -18977,8 +19109,8 @@ declare class AssetRegistry extends EventHandler {
      * @event AssetRegistry#error:[id]
      * @param {Asset} asset - The asset that generated the error.
      * @example
-     * var id = 123456;
-     * var asset = app.assets.get(id);
+     * const id = 123456;
+     * const asset = app.assets.get(id);
      * app.assets.on("error:" + id, function (err, asset) {
      *     console.error(err);
      * });
@@ -18996,7 +19128,7 @@ declare class AssetRegistry extends EventHandler {
      *
      * @param {Asset} asset - The asset to add.
      * @example
-     * var asset = new pc.Asset("My Asset", "texture", {
+     * const asset = new pc.Asset("My Asset", "texture", {
      *     url: "../path/to/image.jpg"
      * });
      * app.assets.add(asset);
@@ -19008,7 +19140,7 @@ declare class AssetRegistry extends EventHandler {
      * @param {Asset} asset - The asset to remove.
      * @returns {boolean} True if the asset was successfully removed and false otherwise.
      * @example
-     * var asset = app.assets.get(100);
+     * const asset = app.assets.get(100);
      * app.assets.remove(asset);
      */
     remove(asset: Asset): boolean;
@@ -19018,7 +19150,7 @@ declare class AssetRegistry extends EventHandler {
      * @param {number} id - The id of the asset to get.
      * @returns {Asset} The asset.
      * @example
-     * var asset = app.assets.get(100);
+     * const asset = app.assets.get(100);
      */
     get(id: number): Asset;
     /**
@@ -19027,7 +19159,7 @@ declare class AssetRegistry extends EventHandler {
      * @param {string} url - The url of the asset to get.
      * @returns {Asset} The asset.
      * @example
-     * var asset = app.assets.getByUrl("../path/to/image.jpg");
+     * const asset = app.assets.getByUrl("../path/to/image.jpg");
      */
     getByUrl(url: string): Asset;
     /**
@@ -19037,11 +19169,11 @@ declare class AssetRegistry extends EventHandler {
      * @param {Asset} asset - The asset to load.
      * @example
      * // load some assets
-     * var assetsToLoad = [
+     * const assetsToLoad = [
      *     app.assets.find("My Asset"),
      *     app.assets.find("Another Asset")
      * ];
-     * var count = 0;
+     * let count = 0;
      * assetsToLoad.forEach(function (assetToLoad) {
      *     assetToLoad.ready(function (asset) {
      *         count++;
@@ -19063,7 +19195,7 @@ declare class AssetRegistry extends EventHandler {
      * asset), where err is null if no errors were encountered.
      * @example
      * app.assets.loadFromUrl("../path/to/texture.jpg", "texture", function (err, asset) {
-     *     var texture = asset.resource;
+     *     const texture = asset.resource;
      * });
      */
     loadFromUrl(url: string, type: string, callback: LoadAssetCallback): void;
@@ -19078,9 +19210,9 @@ declare class AssetRegistry extends EventHandler {
      * @param {LoadAssetCallback} callback - Function called when asset is loaded, passed (err,
      * asset), where err is null if no errors were encountered.
      * @example
-     * var file = magicallyAttainAFile();
+     * const file = magicallyAttainAFile();
      * app.assets.loadFromUrlAndFilename(URL.createObjectURL(file), "texture.png", "texture", function (err, asset) {
-     *     var texture = asset.resource;
+     *     const texture = asset.resource;
      * });
      */
     loadFromUrlAndFilename(url: string, filename: string, type: string, callback: LoadAssetCallback): void;
@@ -19095,7 +19227,7 @@ declare class AssetRegistry extends EventHandler {
      * @param {string} [type] - The type of the Assets to find.
      * @returns {Asset[]} A list of all Assets found.
      * @example
-     * var assets = app.assets.findAll("myTextureAsset", "texture");
+     * const assets = app.assets.findAll("myTextureAsset", "texture");
      * console.log("Found " + assets.length + " assets called " + name);
      */
     findAll(name: string, type?: string): Asset[];
@@ -19110,16 +19242,16 @@ declare class AssetRegistry extends EventHandler {
      * @param {...*} query - Name of a tag or array of tags.
      * @returns {Asset[]} A list of all Assets matched query.
      * @example
-     * var assets = app.assets.findByTag("level-1");
+     * const assets = app.assets.findByTag("level-1");
      * // returns all assets that tagged by `level-1`
      * @example
-     * var assets = app.assets.findByTag("level-1", "level-2");
+     * const assets = app.assets.findByTag("level-1", "level-2");
      * // returns all assets that tagged by `level-1` OR `level-2`
      * @example
-     * var assets = app.assets.findByTag(["level-1", "monster"]);
+     * const assets = app.assets.findByTag(["level-1", "monster"]);
      * // returns all assets that tagged by `level-1` AND `monster`
      * @example
-     * var assets = app.assets.findByTag(["level-1", "monster"], ["level-2", "monster"]);
+     * const assets = app.assets.findByTag(["level-1", "monster"], ["level-2", "monster"]);
      * // returns all assets that tagged by (`level-1` AND `monster`) OR (`level-2` AND `monster`)
      */
     findByTag(...args: any[]): Asset[];
@@ -19130,7 +19262,7 @@ declare class AssetRegistry extends EventHandler {
      * Return `true` to include an asset in the returned array.
      * @returns {Asset[]} A list of all Assets found.
      * @example
-     * var assets = app.assets.filter(function (asset) {
+     * const assets = app.assets.filter(function (asset) {
      *     return asset.name.indexOf('monster') !== -1;
      * });
      * console.log("Found " + assets.length + " assets, where names contains 'monster'");
@@ -19143,7 +19275,7 @@ declare class AssetRegistry extends EventHandler {
      * @param {string} [type] - The type of the Asset to find.
      * @returns {Asset|null} A single Asset or null if no Asset is found.
      * @example
-     * var asset = app.assets.find("myTextureAsset", "texture");
+     * const asset = app.assets.find("myTextureAsset", "texture");
      */
     find(name: string, type?: string): Asset | null;
 }
@@ -19338,6 +19470,70 @@ declare class FrameGraph {
 }
 
 /**
+ * Class responsible for management of shader passes, associated with a device.
+ *
+ * @ignore
+ */
+declare class ShaderPass {
+    /**
+     * Get access to the shader pass instance for the specified device.
+     *
+     * @param {import('./graphics-device.js').GraphicsDevice} device - The graphics device.
+     * @returns { ShaderPass } The shader pass instance for the specified device.
+     */
+    static get(device: any): ShaderPass;
+    /**
+     * Allocated shader passes, map of a shader pass name to info.
+     *
+     * @type {Map<string, ShaderPassInfo>}
+     */
+    passesNamed: Map<string, ShaderPassInfo>;
+    /**
+     * Allocated shader passes, indexed by their index.
+     *
+     * @type {Array<ShaderPassInfo>}
+     */
+    passesIndexed: Array<ShaderPassInfo>;
+    /** Next available index */
+    nextIndex: number;
+    /**
+     * Allocates a shader pass with the specified name and options.
+     *
+     * @param {string} name - A name of the shader pass.
+     * @param {object} options - Options for the shader pass, which are added as properties to the
+     * shader pass info.
+     * @returns {ShaderPassInfo} The allocated shader pass info.
+     */
+    allocate(name: string, options: object): ShaderPassInfo;
+    /**
+     * Return the shader pass info for the specified index.
+     *
+     * @param {number} index - The shader pass index.
+     * @returns {ShaderPassInfo} - The shader pass info.
+     */
+    getByIndex(index: number): ShaderPassInfo;
+    getByName(name: any): ShaderPassInfo;
+}
+/**
+ * Info about a shader pass. Shader pass is represented by a unique index and a name, and the
+ * index is used to access the shader required for the pass, from an array stored in the
+ * material or mesh instance.
+ *
+ * @ignore
+ */
+declare class ShaderPassInfo {
+    constructor(name: any, index: any, options?: {});
+    /** @type {number} */
+    index: number;
+    /** @type {string} */
+    name: string;
+    /** @type {string} */
+    shaderDefine: string;
+    initShaderDefines(): void;
+    shaderDefines: string;
+}
+
+/**
  * A frustum is a shape that defines the viewing space of a camera. It can be used to determine
  * visibility of points and bounding spheres. Typically, you would not create a Frustum shape
  * directly, but instead query {@link CameraComponent#frustum}.
@@ -19351,11 +19547,11 @@ declare class Frustum {
      * frustum.
      * @example
      * // Create a perspective projection matrix
-     * var projMat = pc.Mat4();
+     * const projMat = pc.Mat4();
      * projMat.setPerspective(45, 16 / 9, 1, 1000);
      *
      * // Create a frustum shape that is represented by the matrix
-     * var frustum = new pc.Frustum();
+     * const frustum = new pc.Frustum();
      * frustum.setFromMat4(projMat);
      */
     setFromMat4(matrix: Mat4): void;
@@ -19386,6 +19582,10 @@ declare class Frustum {
  * @ignore
  */
 declare class Camera {
+    /**
+     * @type {import('./shader-pass.js').ShaderPassInfo|null}
+     */
+    shaderPassInfo: ShaderPassInfo | null;
     _aspectRatio: number;
     _aspectRatioMode: number;
     _calculateProjection: any;
@@ -19622,6 +19822,13 @@ declare class ShadowRenderer {
      * shadow map atlas.
      */
     constructor(renderer: Renderer, lightTextureAtlas: LightTextureAtlas);
+    /**
+     * A cache of shadow passes. First index is looked up by light type, second by shadow type.
+     *
+     * @type {import('../shader-pass.js').ShaderPassInfo[][]}
+     * @private
+     */
+    private shadowPassCache;
     device: GraphicsDevice;
     /** @type {import('./renderer.js').Renderer} */
     renderer: Renderer;
@@ -19646,6 +19853,7 @@ declare class ShadowRenderer {
     setupRenderState(device: any, light: any): void;
     restoreRenderState(device: any): void;
     dispatchUniforms(light: any, shadowCam: any, lightRenderData: any, face: any): void;
+    getShadowPass(light: any): number;
     /**
      * @param {import('../mesh-instance.js').MeshInstance[]} visibleCasters - Visible mesh
      * instances.
@@ -19963,6 +20171,7 @@ declare class ForwardRenderer extends Renderer {
         drawCalls: any[];
         isNewMaterial: any[];
         lightMaskChanged: any[];
+        clear: () => void;
     };
     renderForwardInternal(camera: any, preparedCalls: any, sortedLights: any, pass: any, drawCallback: any, flipFaces: any): void;
     renderForward(camera: any, allDrawCalls: any, allDrawCallsCount: any, sortedLights: any, pass: any, cullingMask: any, drawCallback: any, layer: any, flipFaces: any): void;
@@ -20366,7 +20575,7 @@ declare class BundleRegistry {
      * error occurs. The callback expects the first argument to be the error message (if any) and
      * the second argument is the file blob URL.
      * @example
-     * var url = asset.getFileUrl().split('?')[0]; // get normalized asset URL
+     * const url = asset.getFileUrl().split('?')[0]; // get normalized asset URL
      * this.app.bundles.loadFile(url, function (err, blobUrl) {
      *     // do something with the blob URL
      * });
@@ -20903,8 +21112,8 @@ declare class I18n extends EventHandler {
      * locale.
      * @example
      * // With a defined dictionary of locales
-     * var availableLocales = { en: 'en-US', fr: 'fr-FR' };
-     * var locale = pc.I18n.getText('en-US', availableLocales);
+     * const availableLocales = { en: 'en-US', fr: 'fr-FR' };
+     * const locale = pc.I18n.getText('en-US', availableLocales);
      * // returns 'en'
      * @ignore
      */
@@ -20949,7 +21158,7 @@ declare class I18n extends EventHandler {
      * @returns {string} The locale found or if no locale is available returns the default en-US
      * locale.
      * @example
-     * var locale = this.app.i18n.getText('en-US');
+     * const locale = this.app.i18n.getText('en-US');
      */
     findAvailableLocale(desiredLocale: string): string;
     /**
@@ -20962,8 +21171,8 @@ declare class I18n extends EventHandler {
      * then it will return the en-US translation. If no translation exists for that key then it will
      * return the localization key.
      * @example
-     * var localized = this.app.i18n.getText('localization-key');
-     * var localizedFrench = this.app.i18n.getText('localization-key', 'fr-FR');
+     * const localized = this.app.i18n.getText('localization-key');
+     * const localizedFrench = this.app.i18n.getText('localization-key', 'fr-FR');
      */
     getText(key: string, locale?: string): string;
     /**
@@ -20979,7 +21188,7 @@ declare class I18n extends EventHandler {
      * will return the localization key.
      * @example
      * // manually replace {number} in the resulting translation with our number
-     * var localized = this.app.i18n.getPluralText('{number} apples', number).replace("{number}", number);
+     * const localized = this.app.i18n.getPluralText('{number} apples', number).replace("{number}", number);
      */
     getPluralText(key: string, n: number, locale?: string): string;
     /**
@@ -21190,7 +21399,7 @@ declare class SceneRegistry {
      * @param {LoadSceneDataCallback} callback - The function to call after loading,
      * passed (err, sceneItem) where err is null if no errors occurred.
      * @example
-     * var sceneItem = app.scenes.find("Scene Name");
+     * const sceneItem = app.scenes.find("Scene Name");
      * app.scenes.loadSceneData(sceneItem, function (err, sceneItem) {
      *     if (err) {
      *         // error
@@ -21204,7 +21413,7 @@ declare class SceneRegistry {
      * @param {SceneRegistryItem | string} sceneItem - The scene item (which can be found with
      * {@link SceneRegistry#find} or URL of the scene file. Usually this will be "scene_id.json".
      * @example
-     * var sceneItem = app.scenes.find("Scene Name");
+     * const sceneItem = app.scenes.find("Scene Name");
      * app.scenes.unloadSceneData(sceneItem);
      */
     unloadSceneData(sceneItem: SceneRegistryItem | string): void;
@@ -21218,10 +21427,10 @@ declare class SceneRegistry {
      * @param {LoadHierarchyCallback} callback - The function to call after loading,
      * passed (err, entity) where err is null if no errors occurred.
      * @example
-     * var sceneItem = app.scenes.find("Scene Name");
+     * const sceneItem = app.scenes.find("Scene Name");
      * app.scenes.loadSceneHierarchy(sceneItem, function (err, entity) {
      *     if (!err) {
-     *         var e = app.root.find("My New Entity");
+     *         const e = app.root.find("My New Entity");
      *     } else {
      *         // error
      *     }
@@ -21236,7 +21445,7 @@ declare class SceneRegistry {
      * @param {LoadSettingsCallback} callback - The function called after the settings
      * are applied. Passed (err) where err is null if no error occurred.
      * @example
-     * var sceneItem = app.scenes.find("Scene Name");
+     * const sceneItem = app.scenes.find("Scene Name");
      * app.scenes.loadSceneSettings(sceneItem, function (err) {
      *     if (!err) {
      *         // success
@@ -22289,10 +22498,10 @@ declare class SoundInstance extends EventHandler {
      * @param {AudioNode} [lastNode] - The last node that will be connected to the destination of the AudioContext.
      * If unspecified then the firstNode will be connected to the destination instead.
      * @example
-     * var context = app.systems.sound.context;
-     * var analyzer = context.createAnalyzer();
-     * var distortion = context.createWaveShaper();
-     * var filter = context.createBiquadFilter();
+     * const context = app.systems.sound.context;
+     * const analyzer = context.createAnalyzer();
+     * const distortion = context.createWaveShaper();
+     * const filter = context.createBiquadFilter();
      * analyzer.connect(distortion);
      * distortion.connect(filter);
      * instance.setExternalNodes(analyzer, filter);
@@ -22474,10 +22683,10 @@ declare class SoundSlot extends EventHandler {
      * the AudioContext. If unspecified then the firstNode will be connected to the destination
      * instead.
      * @example
-     * var context = app.systems.sound.context;
-     * var analyzer = context.createAnalyzer();
-     * var distortion = context.createWaveShaper();
-     * var filter = context.createBiquadFilter();
+     * const context = app.systems.sound.context;
+     * const analyzer = context.createAnalyzer();
+     * const distortion = context.createWaveShaper();
+     * const filter = context.createBiquadFilter();
      * analyzer.connect(distortion);
      * distortion.connect(filter);
      * slot.setExternalNodes(analyzer, filter);
@@ -22778,7 +22987,7 @@ declare class SoundComponent extends Component {
      * @returns {SoundSlot|null} The new slot or null if the slot already exists.
      * @example
      * // get an asset by id
-     * var asset = app.assets.get(10);
+     * const asset = app.assets.get(10);
      * // add a slot
      * this.entity.sound.addSlot('beep', {
      *     asset: asset
@@ -22864,7 +23073,7 @@ declare class SoundComponent extends Component {
      * or if the SoundComponent has no slot with the specified name.
      * @example
      * // get asset by id
-     * var asset = app.assets.get(10);
+     * const asset = app.assets.get(10);
      * // create a slot and play it
      * this.entity.sound.addSlot('beep', {
      *     asset: asset
@@ -23520,7 +23729,7 @@ declare class SortedLoopArray {
      * @param {string} args.sortBy - The name of the field that each element in the array is going
      * to be sorted by.
      * @example
-     * var array = new pc.SortedLoopArray({ sortBy: 'priority' });
+     * const array = new pc.SortedLoopArray({ sortBy: 'priority' });
      * array.insert(item); // adds item to the right slot based on item.priority
      * array.append(item); // adds item to the end of the array
      * array.remove(item); // removes item from array
@@ -23812,7 +24021,7 @@ declare class ScriptComponent extends Component {
      * @returns {import('../../script/script-type.js').ScriptType|null} If script is attached, the
      * instance is returned. Otherwise null is returned.
      * @example
-     * var controller = entity.script.get('playerController');
+     * const controller = entity.script.get('playerController');
      */
     get(nameOrType: string | typeof ScriptType): ScriptType | null;
     /**
@@ -24374,18 +24583,18 @@ declare class RigidBodyComponent extends Component {
      * @example
      * // Apply a force at the body's center
      * // Calculate a force vector pointing in the world space direction of the entity
-     * var force = this.entity.forward.clone().mulScalar(100);
+     * const force = this.entity.forward.clone().mulScalar(100);
      *
      * // Apply the force
      * this.entity.rigidbody.applyForce(force);
      * @example
      * // Apply a force at some relative offset from the body's center
      * // Calculate a force vector pointing in the world space direction of the entity
-     * var force = this.entity.forward.clone().mulScalar(100);
+     * const force = this.entity.forward.clone().mulScalar(100);
      *
      * // Calculate the world space relative offset
-     * var relativePos = new pc.Vec3();
-     * var childEntity = this.entity.findByName('Engine');
+     * const relativePos = new pc.Vec3();
+     * const childEntity = this.entity.findByName('Engine');
      * relativePos.sub2(childEntity.getPosition(), this.entity.getPosition());
      *
      * // Apply the force
@@ -24402,7 +24611,7 @@ declare class RigidBodyComponent extends Component {
      * @param {number} [z] - The z-component of the torque force in world-space.
      * @example
      * // Apply via vector
-     * var torque = new pc.Vec3(0, 10, 0);
+     * const torque = new pc.Vec3(0, 10, 0);
      * entity.rigidbody.applyTorque(torque);
      * @example
      * // Apply via numbers
@@ -24428,13 +24637,13 @@ declare class RigidBodyComponent extends Component {
      * local-space of the entity.
      * @example
      * // Apply an impulse along the world-space positive y-axis at the entity's position.
-     * var impulse = new pc.Vec3(0, 10, 0);
+     * const impulse = new pc.Vec3(0, 10, 0);
      * entity.rigidbody.applyImpulse(impulse);
      * @example
      * // Apply an impulse along the world-space positive y-axis at 1 unit down the positive
      * // z-axis of the entity's local-space.
-     * var impulse = new pc.Vec3(0, 10, 0);
-     * var relativePoint = new pc.Vec3(0, 0, 1);
+     * const impulse = new pc.Vec3(0, 10, 0);
+     * const relativePoint = new pc.Vec3(0, 0, 1);
      * entity.rigidbody.applyImpulse(impulse, relativePoint);
      * @example
      * // Apply an impulse along the world-space positive y-axis at the entity's position.
@@ -24456,7 +24665,7 @@ declare class RigidBodyComponent extends Component {
      * @param {number} [z] - The z-component of the torque impulse in world-space.
      * @example
      * // Apply via vector
-     * var torque = new pc.Vec3(0, 10, 0);
+     * const torque = new pc.Vec3(0, 10, 0);
      * entity.rigidbody.applyTorqueImpulse(torque);
      * @example
      * // Apply via numbers
@@ -24533,7 +24742,7 @@ declare class RigidBodyComponent extends Component {
      * entity.rigidbody.teleport(0, 0, 0);
      * @example
      * // Teleport the entity to world-space coordinate [1, 2, 3] and reset orientation
-     * var position = new pc.Vec3(1, 2, 3);
+     * const position = new pc.Vec3(1, 2, 3);
      * entity.rigidbody.teleport(position, pc.Vec3.ZERO);
      * @example
      * // Teleport the entity to world-space coordinate [1, 2, 3] and reset orientation
@@ -25505,7 +25714,7 @@ declare class Curve {
      * @param {number[]} [data] - An array of keys (pairs of numbers with the time first and value
      * second).
      * @example
-     * var curve = new pc.Curve([
+     * const curve = new pc.Curve([
      *     0, 0,        // At 0 time, value of 0
      *     0.33, 2,     // At 0.33 time, value of 2
      *     0.66, 2.6,   // At 0.66 time, value of 2.6
@@ -25610,7 +25819,7 @@ declare class CurveSet {
      * @param {Array<number[]>} curveKeys - An array of arrays of keys (pairs of numbers with the
      * time first and value second).
      * @example
-     * var curveSet = new pc.CurveSet([
+     * const curveSet = new pc.CurveSet([
      *     [
      *         0, 0,        // At 0 time, value of 0
      *         0.33, 2,     // At 0.33 time, value of 2
@@ -29220,12 +29429,12 @@ declare let app: any;
  *
  * MyScript.prototype.initialize = function() {
  *     // Every script instance has a property 'this.app' accessible in the initialize...
- *     var app = this.app;
+ *     const app = this.app;
  * };
  *
  * MyScript.prototype.update = function(dt) {
  *     // ...and update functions.
- *     var app = this.app;
+ *     const app = this.app;
  * };
  * ```
  *
@@ -29253,7 +29462,7 @@ declare class AppBase extends EventHandler {
      * this id. Otherwise current application will be returned.
      * @returns {AppBase|undefined} The running application, if any.
      * @example
-     * var app = pc.AppBase.getApplication();
+     * const app = pc.AppBase.getApplication();
      */
     static getApplication(id?: string): AppBase | undefined;
     /**
@@ -29262,8 +29471,8 @@ declare class AppBase extends EventHandler {
      * @param {HTMLCanvasElement} canvas - The canvas element.
      * @example
      * // Engine-only example: create the application manually
-     * var options = new AppOptions();
-     * var app = new pc.AppBase(canvas);
+     * const options = new AppOptions();
+     * const app = new pc.AppBase(canvas);
      * app.init(options);
      *
      * // Start the application's main loop
@@ -29402,7 +29611,7 @@ declare class AppBase extends EventHandler {
      * @type {Entity}
      * @example
      * // Return the first entity called 'Camera' in a depth-first search of the scene hierarchy
-     * var camera = this.app.root.findByName('Camera');
+     * const camera = this.app.root.findByName('Camera');
      */
     root: Entity;
     /**
@@ -29411,7 +29620,7 @@ declare class AppBase extends EventHandler {
      * @type {AssetRegistry}
      * @example
      * // Search the asset registry for all assets with the tag 'vehicle'
-     * var vehicleAssets = this.app.assets.findByTag('vehicle');
+     * const vehicleAssets = this.app.assets.findByTag('vehicle');
      */
     assets: AssetRegistry;
     /**
@@ -29446,7 +29655,7 @@ declare class AppBase extends EventHandler {
      * @type {SceneRegistry}
      * @example
      * // Search the scene registry for a item with the name 'racetrack1'
-     * var sceneItem = this.app.scenes.find('racetrack1');
+     * const sceneItem = this.app.scenes.find('racetrack1');
      *
      * // Load the scene using the item's url
      * this.app.scenes.loadScene(sceneItem.url);
@@ -29845,7 +30054,7 @@ declare class AppBase extends EventHandler {
      * @param {boolean} settings.render.ambientBake - Enable baking ambient light into lightmaps.
      * @param {number} settings.render.ambientBakeNumSamples - Number of samples to use when baking ambient light.
      * @param {number} settings.render.ambientBakeSpherePart - How much of the sphere to include when baking ambient light.
-     * @param {number} settings.render.ambientBakeOcclusionBrightness - Brighness of the baked ambient occlusion.
+     * @param {number} settings.render.ambientBakeOcclusionBrightness - Brightness of the baked ambient occlusion.
      * @param {number} settings.render.ambientBakeOcclusionContrast - Contrast of the baked ambient occlusion.
      * @param {number} settings.render.ambientLuminance - Lux (lm/m^2) value for ambient light intensity.
      *
@@ -29868,7 +30077,7 @@ declare class AppBase extends EventHandler {
      * Only lights with bakeDir=true will be used for generating the dominant light direction.
      * @example
      *
-     * var settings = {
+     * const settings = {
      *     physics: {
      *         gravity: [0, -9.8, 0]
      *     },
@@ -29969,19 +30178,19 @@ declare class AppBase extends EventHandler {
      * @param {Layer} [layer] - The layer to render the line into. Defaults to {@link LAYERID_IMMEDIATE}.
      * @example
      * // Render a 1-unit long white line
-     * var start = new pc.Vec3(0, 0, 0);
-     * var end = new pc.Vec3(1, 0, 0);
+     * const start = new pc.Vec3(0, 0, 0);
+     * const end = new pc.Vec3(1, 0, 0);
      * app.drawLine(start, end);
      * @example
      * // Render a 1-unit long red line which is not depth tested and renders on top of other geometry
-     * var start = new pc.Vec3(0, 0, 0);
-     * var end = new pc.Vec3(1, 0, 0);
+     * const start = new pc.Vec3(0, 0, 0);
+     * const end = new pc.Vec3(1, 0, 0);
      * app.drawLine(start, end, pc.Color.RED, false);
      * @example
      * // Render a 1-unit long white line into the world layer
-     * var start = new pc.Vec3(0, 0, 0);
-     * var end = new pc.Vec3(1, 0, 0);
-     * var worldLayer = app.scene.layers.getLayerById(pc.LAYERID_WORLD);
+     * const start = new pc.Vec3(0, 0, 0);
+     * const end = new pc.Vec3(1, 0, 0);
+     * const worldLayer = app.scene.layers.getLayerById(pc.LAYERID_WORLD);
      * app.drawLine(start, end, pc.Color.WHITE, true, worldLayer);
      */
     drawLine(start: Vec3, end: Vec3, color?: Color, depthTest?: boolean, layer?: Layer): void;
@@ -30001,12 +30210,12 @@ declare class AppBase extends EventHandler {
      * @param {Layer} [layer] - The layer to render the lines into. Defaults to {@link LAYERID_IMMEDIATE}.
      * @example
      * // Render a single line, with unique colors for each point
-     * var start = new pc.Vec3(0, 0, 0);
-     * var end = new pc.Vec3(1, 0, 0);
+     * const start = new pc.Vec3(0, 0, 0);
+     * const end = new pc.Vec3(1, 0, 0);
      * app.drawLines([start, end], [pc.Color.RED, pc.Color.WHITE]);
      * @example
      * // Render 2 discrete line segments
-     * var points = [
+     * const points = [
      *     // Line 1
      *     new pc.Vec3(0, 0, 0),
      *     new pc.Vec3(1, 0, 0),
@@ -30014,7 +30223,7 @@ declare class AppBase extends EventHandler {
      *     new pc.Vec3(1, 1, 0),
      *     new pc.Vec3(1, 1, 1)
      * ];
-     * var colors = [
+     * const colors = [
      *     // Line 1
      *     pc.Color.RED,
      *     pc.Color.YELLOW,
@@ -30039,7 +30248,7 @@ declare class AppBase extends EventHandler {
      * @param {Layer} [layer] - The layer to render the lines into. Defaults to {@link LAYERID_IMMEDIATE}.
      * @example
      * // Render 2 discrete line segments
-     * var points = [
+     * const points = [
      *     // Line 1
      *     0, 0, 0,
      *     1, 0, 0,
@@ -30047,7 +30256,7 @@ declare class AppBase extends EventHandler {
      *     1, 1, 0,
      *     1, 1, 1
      * ];
-     * var colors = [
+     * const colors = [
      *     // Line 1
      *     1, 0, 0, 1,  // red
      *     0, 1, 0, 1,  // green
@@ -30071,7 +30280,7 @@ declare class AppBase extends EventHandler {
      * @param {Layer} [layer] - The layer to render the sphere into. Defaults to {@link LAYERID_IMMEDIATE}.
      * @example
      * // Render a red wire sphere with radius of 1
-     * var center = new pc.Vec3(0, 0, 0);
+     * const center = new pc.Vec3(0, 0, 0);
      * app.drawWireSphere(center, 1.0, pc.Color.RED);
      * @ignore
      */
@@ -30087,8 +30296,8 @@ declare class AppBase extends EventHandler {
      * @param {Layer} [layer] - The layer to render the sphere into. Defaults to {@link LAYERID_IMMEDIATE}.
      * @example
      * // Render a red wire aligned box
-     * var min = new pc.Vec3(-1, -1, -1);
-     * var max = new pc.Vec3(1, 1, 1);
+     * const min = new pc.Vec3(-1, -1, -1);
+     * const max = new pc.Vec3(1, 1, 1);
      * app.drawWireAlignedBox(min, max, pc.Color.RED);
      * @ignore
      */
@@ -30208,7 +30417,7 @@ declare class ComponentSystem extends EventHandler {
      * @returns {import('./component.js').Component} Returns a Component of type defined by the
      * component system.
      * @example
-     * var entity = new pc.Entity(app);
+     * const entity = new pc.Entity(app);
      * app.systems.model.addComponent(entity, { type: 'box' });
      * // entity.model is now set to a pc.ModelComponent
      * @ignore
@@ -30338,7 +30547,7 @@ declare class Entity extends GraphNode {
      * @param {import('./app-base.js').AppBase} [app] - The application the entity belongs to,
      * default is the current application.
      * @example
-     * var entity = new pc.Entity();
+     * const entity = new pc.Entity();
      *
      * // Add a Component to the Entity
      * entity.addComponent("camera", {
@@ -30354,11 +30563,11 @@ declare class Entity extends GraphNode {
      * entity.translate(10, 0, 0);
      *
      * // Or translate it by setting its position directly
-     * var p = entity.getPosition();
+     * const p = entity.getPosition();
      * entity.setPosition(p.x + 10, p.y, p.z);
      *
      * // Change the entity's rotation in local space
-     * var e = entity.getLocalEulerAngles();
+     * const e = entity.getLocalEulerAngles();
      * entity.setLocalEulerAngles(e.x, e.y + 90, e.z);
      *
      * // Or use rotateLocal
@@ -30571,7 +30780,7 @@ declare class Entity extends GraphNode {
      * @returns {import('./components/component.js').Component|null} The new Component that was
      * attached to the entity or null if there was an error.
      * @example
-     * var entity = new pc.Entity();
+     * const entity = new pc.Entity();
      *
      * // Add a light component with default properties
      * entity.addComponent("light");
@@ -30588,7 +30797,7 @@ declare class Entity extends GraphNode {
      *
      * @param {string} type - The name of the Component type.
      * @example
-     * var entity = new pc.Entity();
+     * const entity = new pc.Entity();
      * entity.addComponent("light"); // add new light component
      *
      * entity.removeComponent("light"); // remove light component
@@ -30602,7 +30811,7 @@ declare class Entity extends GraphNode {
      * the entity or any of its descendants has one. Returns undefined otherwise.
      * @example
      * // Get the first found light component in the hierarchy tree that starts with this entity
-     * var light = entity.findComponent("light");
+     * const light = entity.findComponent("light");
      */
     findComponent(type: string): Component;
     /**
@@ -30613,7 +30822,7 @@ declare class Entity extends GraphNode {
      * in the entity or any of its descendants. Returns empty array if none found.
      * @example
      * // Get all light components in the hierarchy tree that starts with this entity
-     * var lights = entity.findComponents("light");
+     * const lights = entity.findComponents("light");
      */
     findComponents(type: string): Component[];
     /**
@@ -30645,7 +30854,7 @@ declare class Entity extends GraphNode {
      * recursively destroy all ancestor Entities.
      *
      * @example
-     * var firstChild = this.entity.children[0];
+     * const firstChild = this.entity.children[0];
      * firstChild.destroy(); // delete child, all components and remove from hierarchy
      */
     destroy(): void;
@@ -30655,7 +30864,7 @@ declare class Entity extends GraphNode {
      *
      * @returns {this} A new Entity which is a deep copy of the original.
      * @example
-     * var e = this.entity.clone();
+     * const e = this.entity.clone();
      *
      * // Add clone as a sibling to the original
      * this.entity.parent.addChild(e);
@@ -30678,10 +30887,10 @@ declare class Entity extends GraphNode {
  *
  * ```javascript
  * // CPU path
- * var depthSensing = app.xr.depthSensing;
+ * const depthSensing = app.xr.depthSensing;
  * if (depthSensing.available) {
  *     // get depth in the middle of the screen, value is in meters
- *     var depth = depthSensing.getDepth(depthSensing.width / 2, depthSensing.height / 2);
+ *     const depth = depthSensing.getDepth(depthSensing.width / 2, depthSensing.height / 2);
  * }
  * ```
  *
@@ -30837,7 +31046,7 @@ declare class XrDepthSensing extends EventHandler {
      * @returns {number|null} Depth in meters or null if depth information is currently not
      * available.
      * @example
-     * var depth = app.xr.depthSensing.getDepth(u, v);
+     * const depth = app.xr.depthSensing.getDepth(u, v);
      * if (depth !== null) {
      *     // depth in meters
      * }
@@ -30855,7 +31064,7 @@ declare class XrDepthSensing extends EventHandler {
      * @type {boolean}
      * @example
      * if (app.xr.depthSensing.available) {
-     *     var depth = app.xr.depthSensing.getDepth(x, y);
+     *     const depth = app.xr.depthSensing.getDepth(x, y);
      * }
      */
     get available(): boolean;
@@ -31389,15 +31598,15 @@ declare class XrPlane extends EventHandler {
      * @type {object[]}
      * @example
      * // prepare reusable objects
-     * var vecA = new pc.Vec3();
-     * var vecB = new pc.Vec3();
-     * var color = new pc.Color(1, 1, 1);
+     * const vecA = new pc.Vec3();
+     * const vecB = new pc.Vec3();
+     * const color = new pc.Color(1, 1, 1);
      *
      * // update Mat4 to plane position and rotation
      * transform.setTRS(plane.getPosition(), plane.getRotation(), pc.Vec3.ONE);
      *
      * // draw lines between points
-     * for (var i = 0; i < plane.points.length; i++) {
+     * for (let i = 0; i < plane.points.length; i++) {
      *     vecA.copy(plane.points[i]);
      *     vecB.copy(plane.points[(i + 1) % plane.points.length]);
      *
@@ -31577,7 +31786,7 @@ declare class XrInput extends EventHandler {
      * @param {XrInputSource} inputSource - Input source that triggered select event.
      * @param {object} evt - XRInputSourceEvent event data from WebXR API.
      * @example
-     * var ray = new pc.Ray();
+     * const ray = new pc.Ray();
      * app.xr.input.on('select', function (inputSource, evt) {
      *     ray.set(inputSource.getOrigin(), inputSource.getDirection());
      *     if (obj.intersectsRay(ray)) {
@@ -32244,7 +32453,7 @@ declare class XrManager extends EventHandler {
  *
  * ```javascript
  * // Add a pc.CameraComponent to an entity
- * var entity = new pc.Entity();
+ * const entity = new pc.Entity();
  * entity.addComponent('camera', {
  *     nearClip: 1,
  *     farClip: 100,
@@ -32252,7 +32461,7 @@ declare class XrManager extends EventHandler {
  * });
  *
  * // Get the pc.CameraComponent on an entity
- * var cameraComponent = entity.camera;
+ * const cameraComponent = entity.camera;
  *
  * // Update a property on a camera component
  * entity.camera.nearClip = 2;
@@ -32316,8 +32525,59 @@ declare class CameraComponent extends Component {
      * @private
      */
     private _disablePostEffectsLayer;
-    _camera: Camera;
+    /** @private */
+    private _camera;
     _postEffects: PostEffectQueue;
+    /**
+     * Sets the name of the shader pass the camera will use when rendering.
+     *
+     * @param {string} name - The name of the shader pass. Defaults to undefined, which is
+     * equivalent to {@link SHADERPASS_FORWARD}. Can be:
+     *
+     * - {@link SHADERPASS_FORWARD}
+     * - {@link SHADERPASS_ALBEDO}
+     * - {@link SHADERPASS_OPACITY}
+     * - {@link SHADERPASS_WORLDNORMAL}
+     * - {@link SHADERPASS_SPECULARITY}
+     * - {@link SHADERPASS_GLOSS}
+     * - {@link SHADERPASS_METALNESS}
+     * - {@link SHADERPASS_AO}
+     * - {@link SHADERPASS_EMISSION}
+     * - {@link SHADERPASS_LIGHTING}
+     * - {@link SHADERPASS_UV0}
+     *
+     * Additionally, a new name can be specified, which creates a new shader pass with the given
+     * name. The name provided can only use alphanumeric characters and underscores. When a shader
+     * is compiled for the new pass, a define is added to the shader. For example, if the name is
+     * 'custom_rendering', the define 'CUSTOM_RENDERING_PASS' is added to the shader, allowing the
+     * shader code to conditionally execute code only when that shader pass is active.
+     *
+     * Another instance where this approach may prove useful is when a camera needs to render a more
+     * cost-effective version of shaders, such as when creating a reflection texture. To accomplish
+     * this, a callback on the material that triggers during shader compilation can be used. This
+     * callback can modify the shader generation options specifically for this shader pass.
+     *
+     * ```javascript
+     * const shaderPassId = camera.setShaderPass('custom_rendering');
+     *
+     * material.onUpdateShader = function (options) {
+     *    if (options.pass === shaderPassId) {
+     *        options.litOptions.normalMapEnabled = false;
+     *        options.litOptions.useSpecular = false;
+     *    }
+     *    return options;
+     * };
+     * ```
+     *
+     * @returns {number} The id of the shader pass.
+     */
+    setShaderPass(name: string): number;
+    /**
+     * Shader pass name.
+     *
+     * @returns {string} The name of the shader pass, or undefined if no shader pass is set.
+     */
+    getShaderPass(): string;
     /**
      * Set camera aperture in f-stops, the default value is 16.0. Higher value means less exposure.
      *
@@ -32620,8 +32880,8 @@ declare class CameraComponent extends Component {
      * coordinate result.
      * @example
      * // Get the start and end points of a 3D ray fired from a screen click position
-     * var start = entity.camera.screenToWorld(clickX, clickY, entity.camera.nearClip);
-     * var end = entity.camera.screenToWorld(clickX, clickY, entity.camera.farClip);
+     * const start = entity.camera.screenToWorld(clickX, clickY, entity.camera.nearClip);
+     * const end = entity.camera.screenToWorld(clickX, clickY, entity.camera.farClip);
      *
      * // Use the ray coordinates to perform a raycast
      * app.systems.rigidbody.raycastFirst(start, end, function (result) {
@@ -32895,8 +33155,8 @@ declare function partitionSkin(model: any, materialMappings: any, boneLimit: any
  * @param {number[]} indices - An array of triangle indices.
  * @returns {number[]} An array of 3-dimensional vertex normals.
  * @example
- * var normals = pc.calculateNormals(positions, indices);
- * var mesh = pc.createMesh(graphicsDevice, positions, {
+ * const normals = pc.calculateNormals(positions, indices);
+ * const mesh = pc.createMesh(graphicsDevice, positions, {
  *     normals: normals,
  *     uvs: uvs,
  *     indices: indices
@@ -32913,8 +33173,8 @@ declare function calculateNormals(positions: number[], indices: number[]): numbe
  * @param {number[]} indices - An array of triangle indices.
  * @returns {number[]} An array of 3-dimensional vertex tangents.
  * @example
- * var tangents = pc.calculateTangents(positions, normals, uvs, indices);
- * var mesh = pc.createMesh(graphicsDevice, positions, {
+ * const tangents = pc.calculateTangents(positions, normals, uvs, indices);
+ * const mesh = pc.createMesh(graphicsDevice, positions, {
  *     normals: normals,
  *     tangents: tangents,
  *     uvs: uvs,
@@ -33066,7 +33326,7 @@ declare function createCylinder(device: GraphicsDevice, opts?: {
  * @returns {Mesh} A new Mesh constructed from the supplied vertex and triangle data.
  * @example
  * // Create a simple, indexed triangle (with texture coordinates and vertex normals)
- * var mesh = pc.createMesh(graphicsDevice, [0, 0, 0, 1, 0, 0, 0, 1, 0], {
+ * const mesh = pc.createMesh(graphicsDevice, [0, 0, 0, 1, 0, 0, 0, 1, 0], {
  *     normals: [0, 0, 1, 0, 0, 1, 0, 0, 1],
  *     uvs: [0, 0, 1, 0, 0, 1],
  *     indices: [0, 1, 2]
@@ -33211,10 +33471,10 @@ declare class Picker {
      * that are in the selection.
      * @example
      * // Get the selection at the point (10,20)
-     * var selection = picker.getSelection(10, 20);
+     * const selection = picker.getSelection(10, 20);
      * @example
      * // Get all models in rectangle with corners at (10,20) and (20,40)
-     * var selection = picker.getSelection(10, 20, 10, 20);
+     * const selection = picker.getSelection(10, 20, 10, 20);
      */
     getSelection(x: number, y: number, width?: number, height?: number): MeshInstance[];
     allocateRenderTarget(): void;
@@ -33488,7 +33748,7 @@ declare class Controller {
      * @param {Mouse} [options.mouse] - A Mouse object to use.
      * @param {import('./game-pads.js').GamePads} [options.gamepads] - A Gamepads object to use.
      * @example
-     * var c = new pc.Controller(document);
+     * const c = new pc.Controller(document);
      *
      * // Register the "fire" action and assign it to both the Enter key and the space bar.
      * c.registerKeys("fire", [pc.KEY_ENTER, pc.KEY_SPACE]);
@@ -33609,7 +33869,7 @@ declare class KeyboardEvent {
      * event.
      * @param {globalThis.KeyboardEvent} event - The original browser event that was fired.
      * @example
-     * var onKeyDown = function (e) {
+     * const onKeyDown = function (e) {
      *     if (e.key === pc.KEY_SPACE) {
      *         // space key pressed
      *     }
@@ -34075,6 +34335,8 @@ declare class WasmModule {
      * @param {string} [config.wasmUrl] - URL of the wasm script.
      * @param {string} [config.fallbackUrl] - URL of the fallback script to use when wasm modules
      * aren't supported.
+     * @param {number} [config.numWorkers] - For modules running on worker threads, the number of
+     * threads to use. Default value is based on module implementation.
      * @param {ModuleErrorCallback} [config.errorHandler] - Function to be called if the module fails
      * to download.
      */
@@ -34082,8 +34344,16 @@ declare class WasmModule {
         glueUrl?: string;
         wasmUrl?: string;
         fallbackUrl?: string;
+        numWorkers?: number;
         errorHandler?: ModuleErrorCallback;
     }): void;
+    /**
+     * Get a wasm module's configuration.
+     *
+     * @param {string} moduleName - Name of the module.
+     * @returns {object | undefined} The previously set configuration.
+     */
+    static getConfig(moduleName: string): object | undefined;
     /**
      * Get a wasm module instance. The instance will be created if necessary and returned
      * in the second parameter to callback.
@@ -34267,6 +34537,10 @@ declare class OrientedBox {
  * {@link DEVICETYPE_WEBGPU}, or leave it empty.
  * @param {boolean} [options.antialias] - Boolean that indicates whether or not to perform
  * anti-aliasing if possible. Defaults to true.
+ * @param {boolean} [options.depth=true] - Boolean that indicates that the drawing buffer is
+ * requested to have a depth buffer of at least 16 bits.
+ * @param {boolean} [options.stencil=true] - Boolean that indicates that the drawing buffer is
+ * requested to have a stencil buffer of at least 8 bits.
  * @param {string} [options.glslangUrl] - An url to glslang script, required if
  * {@link DEVICETYPE_WEBGPU} type is added to deviceTypes array. Not used for
  * {@link DEVICETYPE_WEBGL} device type creation.
@@ -34276,6 +34550,8 @@ declare class OrientedBox {
 declare function createGraphicsDevice(canvas: HTMLCanvasElement, options?: {
     deviceTypes?: string[];
     antialias?: boolean;
+    depth?: boolean;
+    stencil?: boolean;
     glslangUrl?: string;
     twgslUrl?: string;
 }): Promise<any>;
@@ -34291,7 +34567,7 @@ declare function createGraphicsDevice(canvas: HTMLCanvasElement, options?: {
  * 3. Create the shader using `TransformFeedback.createShader(device, vsCode, yourShaderName)`.
  * 4. Create/acquire the input vertex buffer. Can be any VertexBuffer, either manually created, or
  * from a Mesh.
- * 5. Create the TransformFeedback object: `var tf = new TransformFeedback(inputBuffer)`. This
+ * 5. Create the TransformFeedback object: `const tf = new TransformFeedback(inputBuffer)`. This
  * object will internally create an output buffer.
  * 6. Run the shader: `tf.process(shader)`. Shader will take the input buffer, process it and write
  * to the output buffer, then the input/output buffers will be automatically swapped, so you'll
@@ -34323,10 +34599,10 @@ declare function createGraphicsDevice(canvas: HTMLCanvasElement, options?: {
  * TransformExample.attributes.add('material', { type: 'asset', assetType: 'material' });
  *
  * TransformExample.prototype.initialize = function() {
- *     var device = this.app.graphicsDevice;
- *     var mesh = pc.createTorus(device, { tubeRadius: 0.01, ringRadius: 3 });
- *     var meshInstance = new pc.MeshInstance(mesh, this.material.resource);
- *     var entity = new pc.Entity();
+ *     const device = this.app.graphicsDevice;
+ *     const mesh = pc.createTorus(device, { tubeRadius: 0.01, ringRadius: 3 });
+ *     const meshInstance = new pc.MeshInstance(mesh, this.material.resource);
+ *     const entity = new pc.Entity();
  *     entity.addComponent('render', {
  *         type: 'asset',
  *         meshInstances: [meshInstance]
@@ -34335,7 +34611,7 @@ declare function createGraphicsDevice(canvas: HTMLCanvasElement, options?: {
  *
  *     // if webgl2 is not supported, transform-feedback is not available
  *     if (!device.webgl2) return;
- *     var inputBuffer = mesh.vertexBuffer;
+ *     const inputBuffer = mesh.vertexBuffer;
  *     this.tf = new pc.TransformFeedback(inputBuffer);
  *     this.shader = pc.TransformFeedback.createShader(device, this.shaderCode.resource, "tfMoveUp");
  * };
@@ -34588,7 +34864,7 @@ declare class WebglGraphicsDevice extends GraphicsDevice {
      * alpha buffer.
      * @param {boolean} [options.depth=true] - Boolean that indicates that the drawing buffer is
      * requested to have a depth buffer of at least 16 bits.
-     * @param {boolean} [options.stencil=false] - Boolean that indicates that the drawing buffer is
+     * @param {boolean} [options.stencil=true] - Boolean that indicates that the drawing buffer is
      * requested to have a stencil buffer of at least 8 bits.
      * @param {boolean} [options.antialias=true] - Boolean that indicates whether or not to perform
      * anti-aliasing if possible.
@@ -34614,6 +34890,8 @@ declare class WebglGraphicsDevice extends GraphicsDevice {
      * reduce the latency by desynchronizing the canvas paint cycle from the event loop.
      * @param {boolean} [options.xrCompatible] - Boolean that hints to the user agent to use a
      * compatible graphics adapter for an immersive XR device.
+     * @param {WebGLRenderingContext | WebGL2RenderingContext} [options.gl] - The rendering context
+     * to use. If not specified, a new context will be created.
      */
     constructor(canvas: HTMLCanvasElement, options?: {
         alpha?: boolean;
@@ -34627,6 +34905,7 @@ declare class WebglGraphicsDevice extends GraphicsDevice {
         preferWebGl2?: boolean;
         desynchronized?: boolean;
         xrCompatible?: boolean;
+        gl?: WebGLRenderingContext | WebGL2RenderingContext;
     });
     /**
      * The WebGL context managed by the graphics device. The type could also technically be
@@ -34761,20 +35040,19 @@ declare class WebglGraphicsDevice extends GraphicsDevice {
     supportsAreaLights: boolean;
     supportsTextureFetch: boolean;
     blendColor: Color;
-    cullMode: any;
     stencil: any;
     stencilFuncFront: any;
     stencilFuncBack: any;
-    stencilRefFront: number;
-    stencilRefBack: number;
-    stencilMaskFront: number;
-    stencilMaskBack: number;
+    stencilRefFront: any;
+    stencilRefBack: any;
+    stencilMaskFront: any;
+    stencilMaskBack: any;
     stencilFailFront: any;
     stencilFailBack: any;
-    stencilZfailFront: number;
-    stencilZfailBack: number;
-    stencilZpassFront: number;
-    stencilZpassBack: number;
+    stencilZfailFront: any;
+    stencilZfailBack: any;
+    stencilZpassFront: any;
+    stencilZpassBack: any;
     stencilWriteMaskFront: any;
     stencilWriteMaskBack: any;
     alphaToCoverage: any;
@@ -35077,142 +35355,13 @@ declare class WebglGraphicsDevice extends GraphicsDevice {
      * @ignore
      */
     setDepthBiasValues(constBias: number, slopeBias: number): void;
-    /**
-     * Enables or disables stencil test.
-     *
-     * @param {boolean} enable - True to enable stencil test and false to disable it.
-     */
-    setStencilTest(enable: boolean): void;
-    /**
-     * Configures stencil test for both front and back faces.
-     *
-     * @param {number} func - A comparison function that decides if the pixel should be written,
-     * based on the current stencil buffer value, reference value, and mask value. Can be:
-     *
-     * - {@link FUNC_NEVER}: never pass
-     * - {@link FUNC_LESS}: pass if (ref & mask) < (stencil & mask)
-     * - {@link FUNC_EQUAL}: pass if (ref & mask) == (stencil & mask)
-     * - {@link FUNC_LESSEQUAL}: pass if (ref & mask) <= (stencil & mask)
-     * - {@link FUNC_GREATER}: pass if (ref & mask) > (stencil & mask)
-     * - {@link FUNC_NOTEQUAL}: pass if (ref & mask) != (stencil & mask)
-     * - {@link FUNC_GREATEREQUAL}: pass if (ref & mask) >= (stencil & mask)
-     * - {@link FUNC_ALWAYS}: always pass
-     *
-     * @param {number} ref - Reference value used in comparison.
-     * @param {number} mask - Mask applied to stencil buffer value and reference value before
-     * comparison.
-     */
-    setStencilFunc(func: number, ref: number, mask: number): void;
-    /**
-     * Configures stencil test for front faces.
-     *
-     * @param {number} func - A comparison function that decides if the pixel should be written,
-     * based on the current stencil buffer value, reference value, and mask value. Can be:
-     *
-     * - {@link FUNC_NEVER}: never pass
-     * - {@link FUNC_LESS}: pass if (ref & mask) < (stencil & mask)
-     * - {@link FUNC_EQUAL}: pass if (ref & mask) == (stencil & mask)
-     * - {@link FUNC_LESSEQUAL}: pass if (ref & mask) <= (stencil & mask)
-     * - {@link FUNC_GREATER}: pass if (ref & mask) > (stencil & mask)
-     * - {@link FUNC_NOTEQUAL}: pass if (ref & mask) != (stencil & mask)
-     * - {@link FUNC_GREATEREQUAL}: pass if (ref & mask) >= (stencil & mask)
-     * - {@link FUNC_ALWAYS}: always pass
-     *
-     * @param {number} ref - Reference value used in comparison.
-     * @param {number} mask - Mask applied to stencil buffer value and reference value before comparison.
-     */
-    setStencilFuncFront(func: number, ref: number, mask: number): void;
-    /**
-     * Configures stencil test for back faces.
-     *
-     * @param {number} func - A comparison function that decides if the pixel should be written,
-     * based on the current stencil buffer value, reference value, and mask value. Can be:
-     *
-     * - {@link FUNC_NEVER}: never pass
-     * - {@link FUNC_LESS}: pass if (ref & mask) < (stencil & mask)
-     * - {@link FUNC_EQUAL}: pass if (ref & mask) == (stencil & mask)
-     * - {@link FUNC_LESSEQUAL}: pass if (ref & mask) <= (stencil & mask)
-     * - {@link FUNC_GREATER}: pass if (ref & mask) > (stencil & mask)
-     * - {@link FUNC_NOTEQUAL}: pass if (ref & mask) != (stencil & mask)
-     * - {@link FUNC_GREATEREQUAL}: pass if (ref & mask) >= (stencil & mask)
-     * - {@link FUNC_ALWAYS}: always pass
-     *
-     * @param {number} ref - Reference value used in comparison.
-     * @param {number} mask - Mask applied to stencil buffer value and reference value before comparison.
-     */
-    setStencilFuncBack(func: number, ref: number, mask: number): void;
-    /**
-     * Configures how stencil buffer values should be modified based on the result of depth/stencil
-     * tests. Works for both front and back faces.
-     *
-     * @param {number} fail - Action to take if stencil test is failed. Can be:
-     *
-     * - {@link STENCILOP_KEEP}: don't change the stencil buffer value
-     * - {@link STENCILOP_ZERO}: set value to zero
-     * - {@link STENCILOP_REPLACE}: replace value with the reference value (see {@link GraphicsDevice#setStencilFunc})
-     * - {@link STENCILOP_INCREMENT}: increment the value
-     * - {@link STENCILOP_INCREMENTWRAP}: increment the value, but wrap it to zero when it's larger
-     * than a maximum representable value
-     * - {@link STENCILOP_DECREMENT}: decrement the value
-     * - {@link STENCILOP_DECREMENTWRAP}: decrement the value, but wrap it to a maximum
-     * representable value, if the current value is 0
-     * - {@link STENCILOP_INVERT}: invert the value bitwise
-     *
-     * @param {number} zfail - Action to take if depth test is failed.  Accepts the same values as
-     * `fail`.
-     * @param {number} zpass - Action to take if both depth and stencil test are passed. Accepts
-     * the same values as `fail`.
-     * @param {number} writeMask - A bit mask applied to the reference value, when written.
-     */
-    setStencilOperation(fail: number, zfail: number, zpass: number, writeMask: number): void;
-    /**
-     * Configures how stencil buffer values should be modified based on the result of depth/stencil
-     * tests. Works for front faces.
-     *
-     * @param {number} fail - Action to take if stencil test is failed. Can be:
-     *
-     * - {@link STENCILOP_KEEP}: don't change the stencil buffer value
-     * - {@link STENCILOP_ZERO}: set value to zero
-     * - {@link STENCILOP_REPLACE}: replace value with the reference value (see {@link GraphicsDevice#setStencilFunc})
-     * - {@link STENCILOP_INCREMENT}: increment the value
-     * - {@link STENCILOP_INCREMENTWRAP}: increment the value, but wrap it to zero when it's larger
-     * than a maximum representable value
-     * - {@link STENCILOP_DECREMENT}: decrement the value
-     * - {@link STENCILOP_DECREMENTWRAP}: decrement the value, but wrap it to a maximum
-     * representable value, if the current value is 0
-     * - {@link STENCILOP_INVERT}: invert the value bitwise
-     *
-     * @param {number} zfail - Action to take if depth test is failed.  Accepts the same values as
-     * `fail`.
-     * @param {number} zpass - Action to take if both depth and stencil test are passed.  Accepts
-     * the same values as `fail`.
-     * @param {number} writeMask - A bit mask applied to the reference value, when written.
-     */
-    setStencilOperationFront(fail: number, zfail: number, zpass: number, writeMask: number): void;
-    /**
-     * Configures how stencil buffer values should be modified based on the result of depth/stencil
-     * tests. Works for back faces.
-     *
-     * @param {number} fail - Action to take if stencil test is failed. Can be:
-     *
-     * - {@link STENCILOP_KEEP}: don't change the stencil buffer value
-     * - {@link STENCILOP_ZERO}: set value to zero
-     * - {@link STENCILOP_REPLACE}: replace value with the reference value (see {@link GraphicsDevice#setStencilFunc})
-     * - {@link STENCILOP_INCREMENT}: increment the value
-     * - {@link STENCILOP_INCREMENTWRAP}: increment the value, but wrap it to zero when it's larger
-     * than a maximum representable value
-     * - {@link STENCILOP_DECREMENT}: decrement the value
-     * - {@link STENCILOP_DECREMENTWRAP}: decrement the value, but wrap it to a maximum
-     * representable value, if the current value is 0
-     * - {@link STENCILOP_INVERT}: invert the value bitwise
-     *
-     * @param {number} zfail - Action to take if depth test is failed. Accepts the same values as
-     * `fail`.
-     * @param {number} zpass - Action to take if both depth and stencil test are passed. Accepts
-     * the same values as `fail`.
-     * @param {number} writeMask - A bit mask applied to the reference value, when written.
-     */
-    setStencilOperationBack(fail: number, zfail: number, zpass: number, writeMask: number): void;
+    setStencilTest(enable: any): void;
+    setStencilFunc(func: any, ref: any, mask: any): void;
+    setStencilFuncFront(func: any, ref: any, mask: any): void;
+    setStencilFuncBack(func: any, ref: any, mask: any): void;
+    setStencilOperation(fail: any, zfail: any, zpass: any, writeMask: any): void;
+    setStencilOperationFront(fail: any, zfail: any, zpass: any, writeMask: any): void;
+    setStencilOperationBack(fail: any, zfail: any, zpass: any, writeMask: any): void;
     setBlendState(blendState: any): void;
     /**
      * Set the source and destination blending factors.
@@ -35224,27 +35373,10 @@ declare class WebglGraphicsDevice extends GraphicsDevice {
      * @ignore
      */
     setBlendColor(r: number, g: number, b: number, a: number): void;
+    setStencilState(stencilFront: any, stencilBack: any): void;
     setDepthState(depthState: any): void;
-    /**
-     * Controls how triangles are culled based on their face direction. The default cull mode is
-     * {@link CULLFACE_BACK}.
-     *
-     * @param {number} cullMode - The cull mode to set. Can be:
-     *
-     * - {@link CULLFACE_NONE}
-     * - {@link CULLFACE_BACK}
-     * - {@link CULLFACE_FRONT}
-     * - {@link CULLFACE_FRONTANDBACK}
-     */
-    setCullMode(cullMode: number): void;
+    setCullMode(cullMode: any): void;
     cullFace: any;
-    /**
-     * Gets the current cull mode.
-     *
-     * @returns {number} The current cull mode.
-     * @ignore
-     */
-    getCullMode(): number;
     /**
      * Sets the active shader to be used during subsequent draw calls.
      *
@@ -35331,12 +35463,12 @@ declare class WebgpuRenderPipeline {
      * @type {Map<string, object>}
      */
     cache: Map<string, object>;
-    get(primitive: any, vertexFormat0: any, vertexFormat1: any, shader: any, renderTarget: any, bindGroupFormats: any, blendState: any, depthState: any): any;
+    get(primitive: any, vertexFormat0: any, vertexFormat1: any, shader: any, renderTarget: any, bindGroupFormats: any, blendState: any, depthState: any, cullMode: any, stencilEnabled: any, stencilFront: any, stencilBack: any): any;
     /**
      * Generate a unique key for the render pipeline. Keep this function as lean as possible,
      * as it executes for each draw call.
      */
-    getKey(primitive: any, vertexFormat0: any, vertexFormat1: any, shader: any, renderTarget: any, bindGroupFormats: any, blendState: any, depthState: any): string;
+    getKey(primitive: any, vertexFormat0: any, vertexFormat1: any, shader: any, renderTarget: any, bindGroupFormats: any, blendState: any, depthState: any, cullMode: any, stencilEnabled: any, stencilFront: any, stencilBack: any): string;
     /**
      * @param {import('../bind-group-format.js').BindGroupFormat[]} bindGroupFormats - An array
      * of bind group formats.
@@ -35357,7 +35489,7 @@ declare class WebgpuRenderPipeline {
     };
     /** @private */
     private getDepthStencil;
-    create(primitiveTopology: any, shader: any, renderTarget: any, pipelineLayout: any, blendState: any, depthState: any, vertexBufferLayout: any): any;
+    create(primitiveTopology: any, shader: any, renderTarget: any, pipelineLayout: any, blendState: any, depthState: any, vertexBufferLayout: any, cullMode: any, stencilEnabled: any, stencilFront: any, stencilBack: any): any;
 }
 
 /**
@@ -35378,6 +35510,94 @@ declare class WebgpuClearRenderer {
     colorId: any;
     depthId: any;
     clear(device: any, renderTarget: any, options: any, defaultOptions: any): void;
+}
+
+/**
+ * A WebGPU implementation of the Texture.
+ *
+ * @ignore
+ */
+declare class WebgpuTexture {
+    constructor(texture: any);
+    /**
+     * @type {GPUTexture}
+     * @private
+     */
+    private gpuTexture;
+    /**
+     * @type {GPUTextureView}
+     * @private
+     */
+    private view;
+    /**
+     * An array of samplers, addressed by SAMPLETYPE_*** constant, allowing texture to be sampled
+     * using different samplers. Most textures are sampled as interpolated floats, but some can
+     * additionally be sampled using non-interpolated floats (raw data) or compare sampling
+     * (shadow maps).
+     *
+     * @type {GPUSampler[]}
+     * @private
+     */
+    private samplers;
+    /**
+     * @type {GPUTextureDescriptor}
+     * @private
+     */
+    private descr;
+    /**
+     * @type {GPUTextureFormat}
+     * @private
+     */
+    private format;
+    /** @type {import('../texture.js').Texture} */
+    texture: Texture;
+    create(device: any): void;
+    destroy(device: any): void;
+    /**
+     * @param {any} device - The Graphics Device.
+     * @returns {any} - Returns the view.
+     */
+    getView(device: any): any;
+    createView(viewDescr: any): any;
+    /**
+     * @param {any} device - The Graphics Device.
+     * @param {number} [sampleType] - A sample type for the sampler, SAMPLETYPE_*** constant. If not
+     * specified, the sampler type is based on the texture format / texture sampling type.
+     * @returns {any} - Returns the sampler.
+     */
+    getSampler(device: any, sampleType?: number): any;
+    loseContext(): void;
+    /**
+     * @param {import('./webgpu-graphics-device.js').WebgpuGraphicsDevice} device - The graphics
+     * device.
+     * @param {import('../texture.js').Texture} texture - The texture.
+     */
+    uploadImmediate(device: WebgpuGraphicsDevice, texture: Texture): void;
+    /**
+     * @param {import('./webgpu-graphics-device.js').WebgpuGraphicsDevice} device - The graphics
+     * device.
+     */
+    uploadData(device: WebgpuGraphicsDevice): void;
+    uploadTypedArrayData(wgpu: any, data: any): void;
+}
+
+/**
+ * A WebGPU helper class implementing texture mipmap generation.
+ *
+ * @ignore
+ */
+declare class WebgpuMipmapRenderer {
+    constructor(device: any);
+    /** @type {import('./webgpu-graphics-device.js').WebgpuGraphicsDevice} */
+    device: WebgpuGraphicsDevice;
+    shader: Shader;
+    minSampler: any;
+    /**
+     * Generates mipmaps for the specified WebGPU texture.
+     *
+     * @param {import('./webgpu-texture.js').WebgpuTexture} webgpuTexture - The texture to generate mipmaps for.
+     */
+    generate(webgpuTexture: WebgpuTexture): void;
 }
 
 /**
@@ -35533,75 +35753,6 @@ declare class WebgpuShader {
 }
 
 /**
- * A WebGPU implementation of the Texture.
- *
- * @ignore
- */
-declare class WebgpuTexture {
-    constructor(texture: any);
-    /**
-     * @type {GPUTexture}
-     * @private
-     */
-    private gpuTexture;
-    /**
-     * @type {GPUTextureView}
-     * @private
-     */
-    private view;
-    /**
-     * An array of samplers, addressed by SAMPLETYPE_*** constant, allowing texture to be sampled
-     * using different samplers. Most textures are sampled as interpolated floats, but some can
-     * additionally be sampled using non-interpolated floats (raw data) or compare sampling
-     * (shadow maps).
-     *
-     * @type {GPUSampler[]}
-     * @private
-     */
-    private samplers;
-    /**
-     * @type {GPUTextureDescriptor}
-     * @private
-     */
-    private descr;
-    /**
-     * @type {GPUTextureFormat}
-     * @private
-     */
-    private format;
-    /** @type {import('../texture.js').Texture} */
-    texture: Texture;
-    create(device: any): void;
-    destroy(device: any): void;
-    /**
-     * @param {any} device - The Graphics Device.
-     * @returns {any} - Returns the view.
-     */
-    getView(device: any): any;
-    createView(viewDescr: any): any;
-    /**
-     * @param {any} device - The Graphics Device.
-     * @param {number} [sampleType] - A sample type for the sampler, SAMPLETYPE_*** constant. If not
-     * specified, the sampler type is based on the texture format / texture sampling type.
-     * @returns {any} - Returns the sampler.
-     */
-    getSampler(device: any, sampleType?: number): any;
-    loseContext(): void;
-    /**
-     * @param {import('./webgpu-graphics-device.js').WebgpuGraphicsDevice} device - The graphics
-     * device.
-     * @param {import('../texture.js').Texture} texture - The texture.
-     */
-    uploadImmediate(device: WebgpuGraphicsDevice, texture: Texture): void;
-    /**
-     * @param {import('./webgpu-graphics-device.js').WebgpuGraphicsDevice} device - The graphics
-     * device.
-     */
-    uploadData(device: WebgpuGraphicsDevice): void;
-    uploadTypedArrayData(wgpu: any, data: any): void;
-}
-
-/**
  * A WebGPU implementation of the RenderTarget.
  *
  * @ignore
@@ -35738,6 +35889,12 @@ declare class WebgpuGraphicsDevice extends GraphicsDevice {
      */
     clearRenderer: WebgpuClearRenderer;
     /**
+     * Object responsible for mipmap generation.
+     *
+     * @type { WebgpuMipmapRenderer }
+     */
+    mipmapRenderer: WebgpuMipmapRenderer;
+    /**
      * Render pipeline currently set on the device.
      *
      * @type {GPURenderPipeline}
@@ -35829,13 +35986,15 @@ declare class WebgpuGraphicsDevice extends GraphicsDevice {
     setShader(shader: any): boolean;
     setBlendState(blendState: any): void;
     setDepthState(depthState: any): void;
+    setStencilState(stencilFront: any, stencilBack: any): void;
+    stencilRef: any;
     setBlendColor(r: any, g: any, b: any, a: any): void;
-    setDepthFunc(func: any): void;
-    setDepthTest(depthTest: any): void;
     setCullMode(cullMode: any): void;
-    getCullMode(): number;
     setAlphaToCoverage(state: any): void;
-    setDepthWrite(writeDepth: any): void;
+    /**
+     * Set up default values for the render pass encoder.
+     */
+    setupPassEncoderDefaults(): void;
     /**
      * Start a render pass.
      *
@@ -35854,9 +36013,6 @@ declare class WebgpuGraphicsDevice extends GraphicsDevice {
     clear(options: any): void;
     setDepthBias(on: any): void;
     setDepthBiasValues(constBias: any, slopeBias: any): void;
-    setStencilTest(enable: any): void;
-    setStencilFunc(func: any, ref: any, mask: any): void;
-    setStencilOperation(fail: any, zfail: any, zpass: any, writeMask: any): void;
     setViewport(x: any, y: any, w: any, h: any): void;
     setScissor(x: any, y: any, w: any, h: any): void;
     /**
@@ -36000,8 +36156,8 @@ declare class SkinBatchInstance extends SkinInstance {
  * Example:
  *
  * ```javascript
- * var = pc.createShaderFromCode(app.graphicsDevice, vertexShader, fragmentShader, `MyShader`);
- * var quad = new QuadRender(shader);
+ * const shader = pc.createShaderFromCode(app.graphicsDevice, vertexShader, fragmentShader, `MyShader`);
+ * const quad = new QuadRender(shader);
  * quad.render();
  * quad.destroy();
  * ```
@@ -36176,12 +36332,12 @@ declare namespace script {
  *
  * MyScript.prototype.initialize = function() {
  *     // Every script instance has a property 'this.app' accessible in the initialize...
- *     var app = this.app;
+ *     const app = this.app;
  * };
  *
  * MyScript.prototype.update = function(dt) {
  *     // ...and update functions.
- *     var app = this.app;
+ *     const app = this.app;
  * };
  * ```
  *
@@ -36213,7 +36369,7 @@ declare class Application extends AppBase {
      * @param {string[]} [options.scriptsOrder] - Scripts in order of loading first.
      * @example
      * // Engine-only example: create the application manually
-     * var app = new pc.Application(canvas, options);
+     * const app = new pc.Application(canvas, options);
      *
      * // Start the application's main loop
      * app.start();
@@ -36623,7 +36779,7 @@ declare class AssetReference {
      * unload(propertyName, parent, asset).
      * @param {object} [scope] - The scope to call the callbacks in.
      * @example
-     * var reference = new pc.AssetReference('textureAsset', this, this.app.assets, {
+     * const reference = new pc.AssetReference('textureAsset', this, this.app.assets, {
      *     load: this.onTextureAssetLoad,
      *     add: this.onTextureAssetAdd,
      *     remove: this.onTextureAssetRemove
@@ -36706,6 +36862,64 @@ declare class Bundle {
      */
     destroy(): void;
 }
+
+/**
+ * Initialize the Basis transcode worker.
+ *
+ * @param {object} [config] - The Basis configuration.
+ * @param {string} [config.glueUrl] - URL of glue script.
+ * @param {string} [config.wasmUrl] - URL of the wasm module.
+ * @param {string} [config.fallbackUrl] - URL of the fallback script to use when wasm modules
+ * aren't supported.
+ * @param {boolean} [config.lazyInit] - Wait for first transcode request before initializing Basis
+ * (default is false). Otherwise initialize Basis immediately.
+ * @param {number} [config.numWorkers] - Number of workers to use for transcoding (default is 1).
+ * While it is possible to improve transcode performance using multiple workers, this will likely
+ * depend on the runtime platform. For example, desktop will likely benefit from more workers
+ * compared to mobile. Also keep in mind that it takes time to initialize workers and increasing
+ * this value could impact application startup time. Make sure to test your application performance
+ * on all target platforms when changing this parameter.
+ * @param {boolean} [config.eagerWorkers] - Use eager workers (default is true). When enabled, jobs
+ * are assigned to workers immediately, independent of their work load. This can result in
+ * unbalanced workloads, however there is no delay between jobs. If disabled, new jobs are assigned
+ * to workers only when their previous job has completed. This will result in balanced workloads
+ * across workers, however workers can be idle for a short time between jobs.
+ * @param {string[]} [config.rgbPriority] - Array of texture compression formats in priority order
+ * for textures without alpha. The supported compressed formats are: 'astc', 'atc', 'dxt', 'etc1',
+ * 'etc2', 'pvr'.
+ * @param {string[]} [config.rgbaPriority] - Array of texture compression formats in priority order
+ * for textures with alpha. The supported compressed formats are: 'astc', 'atc', 'dxt', 'etc1',
+ * 'etc2', 'pvr'.
+ * @param {number} [config.maxRetries] - Number of http load retry attempts. Defaults to 5.
+ */
+declare function basisInitialize(config?: {
+    glueUrl?: string;
+    wasmUrl?: string;
+    fallbackUrl?: string;
+    lazyInit?: boolean;
+    numWorkers?: number;
+    eagerWorkers?: boolean;
+    rgbPriority?: string[];
+    rgbaPriority?: string[];
+    maxRetries?: number;
+}): void;
+
+/**
+ * Initialize the Draco mesh decoder.
+ *
+ * @param {object} [config] - The Draco decoder configuration.
+ * @param {string} [config.jsUrl] - URL of glue script.
+ * @param {string} [config.wasmUrl] - URL of the wasm module.
+ * @param {number} [config.numWorkers] - Number of workers to use for decoding (default is 1).
+ * @param {boolean} [config.lazyInit] - Wait for first decode request before initializing workers
+ * (default is false). Otherwise initialize workers immediately.
+ */
+declare function dracoInitialize(config?: {
+    jsUrl?: string;
+    wasmUrl?: string;
+    numWorkers?: number;
+    lazyInit?: boolean;
+}): void;
 
 
 /** @typedef {import('./handler.js').ResourceHandler} ResourceHandler */
@@ -37360,12 +37574,12 @@ declare const data: {};
  * @param {object} ex - The object that is merged with target.
  * @returns {object} The target object.
  * @example
- * var A = {
+ * const A = {
  *     a: function () {
  *         console.log(this.a);
  *     }
  * };
- * var B = {
+ * const B = {
  *     b: function () {
  *         console.log(this.b);
  *     }
@@ -37471,9 +37685,9 @@ declare class URI {
      *
      * @returns {object} The URI's query parameters converted to an Object.
      * @example
-     * var s = "http://example.com?a=1&b=2&c=3";
-     * var uri = new pc.URI(s);
-     * var q = uri.getQuery();
+     * const s = "http://example.com?a=1&b=2&c=3";
+     * const uri = new pc.URI(s);
+     * const q = uri.getQuery();
      * console.log(q.a); // logs "1"
      * console.log(q.b); // logs "2"
      * console.log(q.c); // logs "3"
@@ -37484,8 +37698,8 @@ declare class URI {
      *
      * @param {object} params - Key-Value pairs to encode into the query string.
      * @example
-     * var s = "http://example.com";
-     * var uri = new pc.URI(s);
+     * const s = "http://example.com";
+     * const uri = new pc.URI(s);
      * uri.setQuery({
      *     "a": 1,
      *     "b": 2
@@ -37855,67 +38069,6 @@ declare function createShaderFromCode(device: GraphicsDevice, vsCode: string, fs
     [x: string]: string;
 }, useTransformFeedback?: boolean): Shader;
 
-/**
- * Initialize the Basis transcode worker.
- *
- * @param {object} [config] - The Basis configuration.
- * @param {string} [config.glueUrl] - URL of glue script.
- * @param {string} [config.wasmUrl] - URL of the wasm module.
- * @param {string} [config.fallbackUrl] - URL of the fallback script to use when wasm modules
- * aren't supported.
- * @param {boolean} [config.lazyInit] - Wait for first transcode request before initializing Basis
- * (default is false). Otherwise initialize Basis immediately.
- * @param {number} [config.numWorkers] - Number of workers to use for transcoding (default is 1).
- * While it is possible to improve transcode performance using multiple workers, this will likely
- * depend on the runtime platform. For example, desktop will likely benefit from more workers
- * compared to mobile. Also keep in mind that it takes time to initialize workers and increasing
- * this value could impact application startup time. Make sure to test your application performance
- * on all target platforms when changing this parameter.
- * @param {boolean} [config.eagerWorkers] - Use eager workers (default is true). When enabled, jobs
- * are assigned to workers immediately, independent of their work load. This can result in
- * unbalanced workloads, however there is no delay between jobs. If disabled, new jobs are assigned
- * to workers only when their previous job has completed. This will result in balanced workloads
- * across workers, however workers can be idle for a short time between jobs.
- * @param {string[]} [config.rgbPriority] - Array of texture compression formats in priority order
- * for textures without alpha. The supported compressed formats are: 'astc', 'atc', 'dxt', 'etc1',
- * 'etc2', 'pvr'.
- * @param {string[]} [config.rgbaPriority] - Array of texture compression formats in priority order
- * for textures with alpha. The supported compressed formats are: 'astc', 'atc', 'dxt', 'etc1',
- * 'etc2', 'pvr'.
- * @param {number} [config.maxRetries] - Number of http load retry attempts. Defaults to 5.
- */
-declare function basisInitialize(config?: {
-    glueUrl?: string;
-    wasmUrl?: string;
-    fallbackUrl?: string;
-    lazyInit?: boolean;
-    numWorkers?: number;
-    eagerWorkers?: boolean;
-    rgbPriority?: string[];
-    rgbaPriority?: string[];
-    maxRetries?: number;
-}): void;
-/**
- * Enqueue a blob of basis data for transcoding.
- *
- * @param {import('../../platform/graphics/graphics-device.js').GraphicsDevice} device - The
- * graphics device.
- * @param {string} url - URL of the basis file.
- * @param {object} data - The file data to transcode.
- * @param {Function} callback - Callback function to receive transcode result.
- * @param {object} [options] - Options structure
- * @param {boolean} [options.isGGGR] - Indicates this is a GGGR swizzled texture. Under some
- * circumstances the texture will be unswizzled during transcoding.
- * @param {boolean} [options.isKTX2] - Indicates the image is KTX2 format. Otherwise
- * basis format is assumed.
- * @returns {boolean} True if the basis worker was initialized and false otherwise.
- * @ignore
- */
-declare function basisTranscode(device: GraphicsDevice, url: string, data: object, callback: Function, options?: {
-    isGGGR?: boolean;
-    isKTX2?: boolean;
-}): boolean;
-
 declare class GlbParser {
     static parseAsync(filename: any, urlBase: any, data: any, device: any, registry: any, options: any, callback: any): void;
     static parse(filename: any, data: any, device: any, options: any, callback: any): void;
@@ -37952,7 +38105,7 @@ declare class ContainerResource {
      * @example
      * // load a glb file and instantiate an entity with a model component based on it
      * app.assets.loadFromUrl("statue.glb", "container", function (err, asset) {
-     *     var entity = asset.resource.instantiateModelEntity({
+     *     const entity = asset.resource.instantiateModelEntity({
      *         castShadows: true
      *     });
      *     app.root.addChild(entity);
@@ -37969,13 +38122,13 @@ declare class ContainerResource {
      * @example
      * // load a glb file and instantiate an entity with a render component based on it
      * app.assets.loadFromUrl("statue.glb", "container", function (err, asset) {
-     *     var entity = asset.resource.instantiateRenderEntity({
+     *     const entity = asset.resource.instantiateRenderEntity({
      *         castShadows: true
      *     });
      *     app.root.addChild(entity);
      *
      *     // find all render components containing mesh instances, and change blend mode on their materials
-     *     var renders = entity.findComponents("render");
+     *     const renders = entity.findComponents("render");
      *     renders.forEach(function (render) {
      *         render.meshInstances.forEach(function (meshInstance) {
      *             meshInstance.material.blendType = pc.BLEND_MULTIPLICATIVE;
@@ -38001,11 +38154,11 @@ declare class ContainerResource {
      * @example
      * // load a glb file and instantiate an entity with a render component based on it
      * app.assets.loadFromUrl("statue.glb", "container", function (err, asset) {
-     *     var entity = asset.resource.instantiateRenderEntity({
+     *     const entity = asset.resource.instantiateRenderEntity({
      *         castShadows: true
      *     });
      *     app.root.addChild(entity);
-     *     var materialVariants = asset.resource.getMaterialVariants();
+     *     const materialVariants = asset.resource.getMaterialVariants();
      *     asset.resource.applyMaterialVariant(entity, materialVariants[0]);
      */
     applyMaterialVariant(entity: Entity, name?: string): void;
@@ -38021,14 +38174,14 @@ declare class ContainerResource {
      * @example
      * // load a glb file and instantiate an entity with a render component based on it
      * app.assets.loadFromUrl("statue.glb", "container", function (err, asset) {
-     *     var entity = asset.resource.instantiateRenderEntity({
+     *     const entity = asset.resource.instantiateRenderEntity({
      *         castShadows: true
      *     });
      *     app.root.addChild(entity);
-     *     var materialVariants = asset.resource.getMaterialVariants();
-     *     var renders = entity.findComponents("render");
-     *     for (var i = 0; i < renders.length; i++) {
-     *         var renderComponent = renders[i];
+     *     const materialVariants = asset.resource.getMaterialVariants();
+     *     const renders = entity.findComponents("render");
+     *     for (let i = 0; i < renders.length; i++) {
+     *         const renderComponent = renders[i];
      *         asset.resource.applyMaterialVariantInstances(renderComponent.meshInstances, materialVariants[0]);
      *     }
      */
@@ -38071,7 +38224,7 @@ declare class ContainerResource {
  * For example, to receive a texture preprocess callback:
  *
  * ```javascript
- * var containerAsset = new pc.Asset(filename, 'container', { url: url, filename: filename }, null, {
+ * const containerAsset = new pc.Asset(filename, 'container', { url: url, filename: filename }, null, {
  *     texture: {
  *         preprocess(gltfTexture) { console.log("texture preprocess"); }
  *     },
@@ -38151,10 +38304,10 @@ declare class ImgParser implements TextureParser {
     maxRetries: number;
     device: any;
     load(url: any, callback: any, asset: any): void;
-    open(url: any, data: any, device: any): Texture;
+    open(url: any, data: any, device: any, textureOptions?: {}): Texture;
     _loadImage(url: any, originalUrl: any, crossOrigin: any, callback: any): void;
     _loadImageBitmap(url: any, originalUrl: any, crossOrigin: any, callback: any): void;
-    _loadImageBitmapFromData(data: any, callback: any): void;
+    _loadImageBitmapFromBlob(blob: any, callback: any): void;
 }
 
 
@@ -38169,7 +38322,7 @@ declare class DdsParser implements TextureParser {
     constructor(registry: any);
     maxRetries: number;
     load(url: any, callback: any, asset: any): void;
-    open(url: any, data: any, device: any): Texture;
+    open(url: any, data: any, device: any, textureOptions?: {}): Texture;
 }
 
 
@@ -38183,7 +38336,7 @@ declare class KtxParser implements TextureParser {
     constructor(registry: any);
     maxRetries: number;
     load(url: any, callback: any, asset: any): void;
-    open(url: any, data: any, device: any): Texture;
+    open(url: any, data: any, device: any, textureOptions?: {}): Texture;
     parse(data: any): {
         format: any;
         width: number;
@@ -38205,7 +38358,7 @@ declare class Ktx2Parser implements TextureParser {
     maxRetries: number;
     device: any;
     load(url: any, callback: any, asset: any): void;
-    open(url: any, data: any, device: any): Texture;
+    open(url: any, data: any, device: any, textureOptions?: {}): Texture;
     parse(arraybuffer: any, url: any, callback: any, asset: any): any;
 }
 
@@ -38222,7 +38375,7 @@ declare class BasisParser implements TextureParser {
     device: any;
     maxRetries: number;
     load(url: any, callback: any, asset: any): void;
-    open(url: any, data: any, device: any): Texture;
+    open(url: any, data: any, device: any, textureOptions?: {}): Texture;
 }
 
 
@@ -38237,7 +38390,7 @@ declare class HdrParser implements TextureParser {
     constructor(registry: any);
     maxRetries: number;
     load(url: any, callback: any, asset: any): void;
-    open(url: any, data: any, device: any): Texture;
+    open(url: any, data: any, device: any, textureOptions?: {}): Texture;
     parse(data: any): {
         width: number;
         height: number;
@@ -38284,6 +38437,9 @@ declare class TextureHandler implements ResourceHandler {
     get maxRetries(): number;
     _getUrlWithoutParams(url: any): any;
     _getParser(url: any): any;
+    _getTextureOptions(asset: any): {
+        profilerHint: number;
+    };
     load(url: any, callback: any, asset: any): void;
     open(url: any, data: any, asset: any): any;
     patch(asset: any, assets: any): void;
@@ -38405,5 +38561,5 @@ declare function getReservedScriptNames(): Set<string>;
 
 declare const reservedAttributes: {};
 
-export { ABSOLUTE_URL, ACTION_GAMEPAD, ACTION_KEYBOARD, ACTION_MOUSE, ADDRESS_CLAMP_TO_EDGE, ADDRESS_MIRRORED_REPEAT, ADDRESS_REPEAT, ANIM_BLEND_1D, ANIM_BLEND_2D_CARTESIAN, ANIM_BLEND_2D_DIRECTIONAL, ANIM_BLEND_DIRECT, ANIM_CONTROL_STATES, ANIM_EQUAL_TO, ANIM_GREATER_THAN, ANIM_GREATER_THAN_EQUAL_TO, ANIM_INTERRUPTION_NEXT, ANIM_INTERRUPTION_NEXT_PREV, ANIM_INTERRUPTION_NONE, ANIM_INTERRUPTION_PREV, ANIM_INTERRUPTION_PREV_NEXT, ANIM_LAYER_ADDITIVE, ANIM_LAYER_OVERWRITE, ANIM_LESS_THAN, ANIM_LESS_THAN_EQUAL_TO, ANIM_NOT_EQUAL_TO, ANIM_PARAMETER_BOOLEAN, ANIM_PARAMETER_FLOAT, ANIM_PARAMETER_INTEGER, ANIM_PARAMETER_TRIGGER, ANIM_STATE_ANY, ANIM_STATE_END, ANIM_STATE_START, ASPECT_AUTO, ASPECT_MANUAL, ASSET_ANIMATION, ASSET_AUDIO, ASSET_CONTAINER, ASSET_CSS, ASSET_CUBEMAP, ASSET_HTML, ASSET_IMAGE, ASSET_JSON, ASSET_MATERIAL, ASSET_MODEL, ASSET_SCRIPT, ASSET_SHADER, ASSET_TEXT, ASSET_TEXTURE, ASSET_TEXTUREATLAS, AXIS_KEY, AXIS_MOUSE_X, AXIS_MOUSE_Y, AXIS_PAD_L_X, AXIS_PAD_L_Y, AXIS_PAD_R_X, AXIS_PAD_R_Y, AnimBinder, AnimClip, AnimClipHandler, AnimComponent, AnimComponentLayer, AnimComponentSystem, AnimController, AnimCurve, AnimData, AnimEvaluator, AnimEvents, AnimSnapshot, AnimStateGraph, AnimStateGraphHandler, AnimTarget, AnimTrack, Animation, AnimationComponent, AnimationComponentSystem, AnimationHandler, AppBase, AppOptions, Application, Asset, AssetListLoader, AssetReference, AssetRegistry, AudioHandler, AudioListenerComponent, AudioListenerComponentSystem, AudioSourceComponent, AudioSourceComponentSystem, BAKE_COLOR, BAKE_COLORDIR, BINDGROUP_MESH, BINDGROUP_VIEW, BLENDEQUATION_ADD, BLENDEQUATION_MAX, BLENDEQUATION_MIN, BLENDEQUATION_REVERSE_SUBTRACT, BLENDEQUATION_SUBTRACT, BLENDMODE_CONSTANT, BLENDMODE_CONSTANT_ALPHA, BLENDMODE_CONSTANT_COLOR, BLENDMODE_DST_ALPHA, BLENDMODE_DST_COLOR, BLENDMODE_ONE, BLENDMODE_ONE_MINUS_CONSTANT, BLENDMODE_ONE_MINUS_CONSTANT_ALPHA, BLENDMODE_ONE_MINUS_CONSTANT_COLOR, BLENDMODE_ONE_MINUS_DST_ALPHA, BLENDMODE_ONE_MINUS_DST_COLOR, BLENDMODE_ONE_MINUS_SRC_ALPHA, BLENDMODE_ONE_MINUS_SRC_COLOR, BLENDMODE_SRC_ALPHA, BLENDMODE_SRC_ALPHA_SATURATE, BLENDMODE_SRC_COLOR, BLENDMODE_ZERO, BLEND_ADDITIVE, BLEND_ADDITIVEALPHA, BLEND_MAX, BLEND_MIN, BLEND_MULTIPLICATIVE, BLEND_MULTIPLICATIVE2X, BLEND_NONE, BLEND_NORMAL, BLEND_PREMULTIPLIED, BLEND_SCREEN, BLEND_SUBTRACTIVE, BLUR_BOX, BLUR_GAUSSIAN, BODYFLAG_KINEMATIC_OBJECT, BODYFLAG_NORESPONSE_OBJECT, BODYFLAG_STATIC_OBJECT, BODYGROUP_DEFAULT, BODYGROUP_DYNAMIC, BODYGROUP_ENGINE_1, BODYGROUP_ENGINE_2, BODYGROUP_ENGINE_3, BODYGROUP_KINEMATIC, BODYGROUP_NONE, BODYGROUP_STATIC, BODYGROUP_TRIGGER, BODYGROUP_USER_1, BODYGROUP_USER_2, BODYGROUP_USER_3, BODYGROUP_USER_4, BODYGROUP_USER_5, BODYGROUP_USER_6, BODYGROUP_USER_7, BODYGROUP_USER_8, BODYMASK_ALL, BODYMASK_NONE, BODYMASK_NOT_STATIC, BODYMASK_NOT_STATIC_KINEMATIC, BODYMASK_STATIC, BODYSTATE_ACTIVE_TAG, BODYSTATE_DISABLE_DEACTIVATION, BODYSTATE_DISABLE_SIMULATION, BODYSTATE_ISLAND_SLEEPING, BODYSTATE_WANTS_DEACTIVATION, BODYTYPE_DYNAMIC, BODYTYPE_KINEMATIC, BODYTYPE_STATIC, BUFFER_DYNAMIC, BUFFER_GPUDYNAMIC, BUFFER_STATIC, BUFFER_STREAM, BUTTON_TRANSITION_MODE_SPRITE_CHANGE, BUTTON_TRANSITION_MODE_TINT, BasicMaterial, Batch, BatchGroup, BatchManager, BinaryHandler, BlendState, BoundingBox, BoundingSphere, Bundle, BundleHandler, BundleRegistry, ButtonComponent, ButtonComponentSystem, CHUNKAPI_1_51, CHUNKAPI_1_55, CHUNKAPI_1_56, CHUNKAPI_1_57, CHUNKAPI_1_58, CHUNKAPI_1_60, CHUNKAPI_1_62, CLEARFLAG_COLOR, CLEARFLAG_DEPTH, CLEARFLAG_STENCIL, COMPUPDATED_BLEND, COMPUPDATED_CAMERAS, COMPUPDATED_INSTANCES, COMPUPDATED_LIGHTS, CUBEFACE_NEGX, CUBEFACE_NEGY, CUBEFACE_NEGZ, CUBEFACE_POSX, CUBEFACE_POSY, CUBEFACE_POSZ, CUBEPROJ_BOX, CUBEPROJ_NONE, CULLFACE_BACK, CULLFACE_FRONT, CULLFACE_FRONTANDBACK, CULLFACE_NONE, CURVE_CARDINAL, CURVE_CATMULL, CURVE_LINEAR, CURVE_SMOOTHSTEP, CURVE_SPLINE, CURVE_STEP, Camera, CameraComponent, CameraComponentSystem, CanvasFont, CollisionComponent, CollisionComponentSystem, Color, Command, Component, ComponentSystem, ComponentSystemRegistry, ContactPoint, ContactResult, ContainerHandler, ContainerResource, ContextCreationError, Controller, CssHandler, CubemapHandler, Curve, CurveSet, DETAILMODE_ADD, DETAILMODE_MAX, DETAILMODE_MIN, DETAILMODE_MUL, DETAILMODE_OVERLAY, DETAILMODE_SCREEN, DEVICETYPE_WEBGL1, DEVICETYPE_WEBGL2, DEVICETYPE_WEBGPU, DISTANCE_EXPONENTIAL, DISTANCE_INVERSE, DISTANCE_LINEAR, DefaultAnimBinder, DepthState, ELEMENTTYPE_FLOAT32, ELEMENTTYPE_GROUP, ELEMENTTYPE_IMAGE, ELEMENTTYPE_INT16, ELEMENTTYPE_INT32, ELEMENTTYPE_INT8, ELEMENTTYPE_TEXT, ELEMENTTYPE_UINT16, ELEMENTTYPE_UINT32, ELEMENTTYPE_UINT8, EMITTERSHAPE_BOX, EMITTERSHAPE_SPHERE, EVENT_GAMEPADCONNECTED, EVENT_GAMEPADDISCONNECTED, EVENT_KEYDOWN, EVENT_KEYUP, EVENT_MOUSEDOWN, EVENT_MOUSEMOVE, EVENT_MOUSEUP, EVENT_MOUSEWHEEL, EVENT_SELECT, EVENT_SELECTEND, EVENT_SELECTSTART, EVENT_TOUCHCANCEL, EVENT_TOUCHEND, EVENT_TOUCHMOVE, EVENT_TOUCHSTART, ElementComponent, ElementComponentSystem, ElementDragHelper, ElementInput, ElementInputEvent, ElementMouseEvent, ElementSelectEvent, ElementTouchEvent, Entity, EntityReference, EnvLighting, EventHandler, FILLMODE_FILL_WINDOW, FILLMODE_KEEP_ASPECT, FILLMODE_NONE, FILTER_LINEAR, FILTER_LINEAR_MIPMAP_LINEAR, FILTER_LINEAR_MIPMAP_NEAREST, FILTER_NEAREST, FILTER_NEAREST_MIPMAP_LINEAR, FILTER_NEAREST_MIPMAP_NEAREST, FITMODE_CONTAIN, FITMODE_COVER, FITMODE_STRETCH, FITTING_BOTH, FITTING_NONE, FITTING_SHRINK, FITTING_STRETCH, FOG_EXP, FOG_EXP2, FOG_LINEAR, FOG_NONE, FONT_BITMAP, FONT_MSDF, FRESNEL_NONE, FRESNEL_SCHLICK, FUNC_ALWAYS, FUNC_EQUAL, FUNC_GREATER, FUNC_GREATEREQUAL, FUNC_LESS, FUNC_LESSEQUAL, FUNC_NEVER, FUNC_NOTEQUAL, FolderHandler, Font, FontHandler, ForwardRenderer, Frustum, GAMMA_NONE, GAMMA_SRGB, GAMMA_SRGBFAST, GAMMA_SRGBHDR, GamePads, GraphNode, GraphicsDevice, HierarchyHandler, HtmlHandler, Http, I18n, INDEXFORMAT_UINT16, INDEXFORMAT_UINT32, INDEXFORMAT_UINT8, INTERPOLATION_CUBIC, INTERPOLATION_LINEAR, INTERPOLATION_STEP, ImageElement, IndexBuffer, IndexedList, JointComponent, JointComponentSystem, JsonHandler, JsonStandardMaterialParser, KEY_0, KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7, KEY_8, KEY_9, KEY_A, KEY_ADD, KEY_ALT, KEY_B, KEY_BACKSPACE, KEY_BACK_SLASH, KEY_C, KEY_CAPS_LOCK, KEY_CLOSE_BRACKET, KEY_COMMA, KEY_CONTEXT_MENU, KEY_CONTROL, KEY_D, KEY_DECIMAL, KEY_DELETE, KEY_DIVIDE, KEY_DOWN, KEY_E, KEY_END, KEY_ENTER, KEY_EQUAL, KEY_ESCAPE, KEY_F, KEY_F1, KEY_F10, KEY_F11, KEY_F12, KEY_F2, KEY_F3, KEY_F4, KEY_F5, KEY_F6, KEY_F7, KEY_F8, KEY_F9, KEY_G, KEY_H, KEY_HOME, KEY_I, KEY_INSERT, KEY_J, KEY_K, KEY_L, KEY_LEFT, KEY_M, KEY_META, KEY_MULTIPLY, KEY_N, KEY_NUMPAD_0, KEY_NUMPAD_1, KEY_NUMPAD_2, KEY_NUMPAD_3, KEY_NUMPAD_4, KEY_NUMPAD_5, KEY_NUMPAD_6, KEY_NUMPAD_7, KEY_NUMPAD_8, KEY_NUMPAD_9, KEY_O, KEY_OPEN_BRACKET, KEY_P, KEY_PAGE_DOWN, KEY_PAGE_UP, KEY_PAUSE, KEY_PERIOD, KEY_PRINT_SCREEN, KEY_Q, KEY_R, KEY_RETURN, KEY_RIGHT, KEY_S, KEY_SEMICOLON, KEY_SEPARATOR, KEY_SHIFT, KEY_SLASH, KEY_SPACE, KEY_SUBTRACT, KEY_T, KEY_TAB, KEY_U, KEY_UP, KEY_V, KEY_W, KEY_WINDOWS, KEY_X, KEY_Y, KEY_Z, Key, Keyboard, KeyboardEvent, LAYERID_DEPTH, LAYERID_IMMEDIATE, LAYERID_SKYBOX, LAYERID_UI, LAYERID_WORLD, LAYER_FX, LAYER_GIZMO, LAYER_HUD, LAYER_WORLD, LIGHTFALLOFF_INVERSESQUARED, LIGHTFALLOFF_LINEAR, LIGHTSHAPE_DISK, LIGHTSHAPE_PUNCTUAL, LIGHTSHAPE_RECT, LIGHTSHAPE_SPHERE, LIGHTTYPE_COUNT, LIGHTTYPE_DIRECTIONAL, LIGHTTYPE_OMNI, LIGHTTYPE_POINT, LIGHTTYPE_SPOT, LINEBATCH_GIZMO, LINEBATCH_OVERLAY, LINEBATCH_WORLD, Layer, LayerComposition, LayoutCalculator, LayoutChildComponent, LayoutChildComponentSystem, LayoutGroupComponent, LayoutGroupComponentSystem, Light, LightComponent, LightComponentSystem, LightingParams, Lightmapper, LitOptions, LocalizedAsset, MASK_AFFECT_DYNAMIC, MASK_AFFECT_LIGHTMAPPED, MASK_BAKE, MOTION_FREE, MOTION_LIMITED, MOTION_LOCKED, MOUSEBUTTON_LEFT, MOUSEBUTTON_MIDDLE, MOUSEBUTTON_NONE, MOUSEBUTTON_RIGHT, Mat3, Mat4, Material, MaterialHandler, Mesh, MeshInstance, Model, ModelComponent, ModelComponentSystem, ModelHandler, Morph, MorphInstance, MorphTarget, Mouse, MouseEvent$1 as MouseEvent, Node$1 as Node, ORIENTATION_HORIZONTAL, ORIENTATION_VERTICAL, OrientedBox, PAD_1, PAD_2, PAD_3, PAD_4, PAD_DOWN, PAD_FACE_1, PAD_FACE_2, PAD_FACE_3, PAD_FACE_4, PAD_LEFT, PAD_L_SHOULDER_1, PAD_L_SHOULDER_2, PAD_L_STICK_BUTTON, PAD_L_STICK_X, PAD_L_STICK_Y, PAD_RIGHT, PAD_R_SHOULDER_1, PAD_R_SHOULDER_2, PAD_R_STICK_BUTTON, PAD_R_STICK_X, PAD_R_STICK_Y, PAD_SELECT, PAD_START, PAD_UP, PAD_VENDOR, PARTICLEMODE_CPU, PARTICLEMODE_GPU, PARTICLEORIENTATION_EMITTER, PARTICLEORIENTATION_SCREEN, PARTICLEORIENTATION_WORLD, PARTICLESORT_DISTANCE, PARTICLESORT_NEWER_FIRST, PARTICLESORT_NONE, PARTICLESORT_OLDER_FIRST, PIXELFORMAT_111110F, PIXELFORMAT_A8, PIXELFORMAT_ASTC_4x4, PIXELFORMAT_ATC_RGB, PIXELFORMAT_ATC_RGBA, PIXELFORMAT_BGRA8, PIXELFORMAT_DEPTH, PIXELFORMAT_DEPTHSTENCIL, PIXELFORMAT_DXT1, PIXELFORMAT_DXT3, PIXELFORMAT_DXT5, PIXELFORMAT_ETC1, PIXELFORMAT_ETC2_RGB, PIXELFORMAT_ETC2_RGBA, PIXELFORMAT_L8, PIXELFORMAT_L8_A8, PIXELFORMAT_LA8, PIXELFORMAT_PVRTC_2BPP_RGBA_1, PIXELFORMAT_PVRTC_2BPP_RGB_1, PIXELFORMAT_PVRTC_4BPP_RGBA_1, PIXELFORMAT_PVRTC_4BPP_RGB_1, PIXELFORMAT_R32F, PIXELFORMAT_R4_G4_B4_A4, PIXELFORMAT_R5_G5_B5_A1, PIXELFORMAT_R5_G6_B5, PIXELFORMAT_R8_G8_B8, PIXELFORMAT_R8_G8_B8_A8, PIXELFORMAT_RGB16F, PIXELFORMAT_RGB32F, PIXELFORMAT_RGB565, PIXELFORMAT_RGB8, PIXELFORMAT_RGBA16F, PIXELFORMAT_RGBA32F, PIXELFORMAT_RGBA4, PIXELFORMAT_RGBA5551, PIXELFORMAT_RGBA8, PIXELFORMAT_SRGB, PIXELFORMAT_SRGBA, PRIMITIVE_LINELOOP, PRIMITIVE_LINES, PRIMITIVE_LINESTRIP, PRIMITIVE_POINTS, PRIMITIVE_TRIANGLES, PRIMITIVE_TRIFAN, PRIMITIVE_TRISTRIP, PROJECTION_ORTHOGRAPHIC, PROJECTION_PERSPECTIVE, ParticleEmitter, ParticleSystemComponent, ParticleSystemComponentSystem, PhongMaterial, Picker, Plane, PostEffect$1 as PostEffect, PostEffectQueue, ProgramLibrary, QuadRender, Quat, RENDERSTYLE_POINTS, RENDERSTYLE_SOLID, RENDERSTYLE_WIREFRAME, RESOLUTION_AUTO, RESOLUTION_FIXED, RIGIDBODY_ACTIVE_TAG, RIGIDBODY_CF_KINEMATIC_OBJECT, RIGIDBODY_CF_NORESPONSE_OBJECT, RIGIDBODY_CF_STATIC_OBJECT, RIGIDBODY_DISABLE_DEACTIVATION, RIGIDBODY_DISABLE_SIMULATION, RIGIDBODY_ISLAND_SLEEPING, RIGIDBODY_TYPE_DYNAMIC, RIGIDBODY_TYPE_KINEMATIC, RIGIDBODY_TYPE_STATIC, RIGIDBODY_WANTS_DEACTIVATION, Ray, RaycastResult, ReadStream, RenderComponent, RenderComponentSystem, RenderHandler, RenderTarget, ResourceHandler, ResourceLoader, RigidBodyComponent, RigidBodyComponentSystem, SAMPLETYPE_DEPTH, SAMPLETYPE_FLOAT, SAMPLETYPE_UNFILTERABLE_FLOAT, SCALEMODE_BLEND, SCALEMODE_NONE, SCROLLBAR_VISIBILITY_SHOW_ALWAYS, SCROLLBAR_VISIBILITY_SHOW_WHEN_REQUIRED, SCROLL_MODE_BOUNCE, SCROLL_MODE_CLAMP, SCROLL_MODE_INFINITE, SEMANTIC_ATTR, SEMANTIC_ATTR0, SEMANTIC_ATTR1, SEMANTIC_ATTR10, SEMANTIC_ATTR11, SEMANTIC_ATTR12, SEMANTIC_ATTR13, SEMANTIC_ATTR14, SEMANTIC_ATTR15, SEMANTIC_ATTR2, SEMANTIC_ATTR3, SEMANTIC_ATTR4, SEMANTIC_ATTR5, SEMANTIC_ATTR6, SEMANTIC_ATTR7, SEMANTIC_ATTR8, SEMANTIC_ATTR9, SEMANTIC_BLENDINDICES, SEMANTIC_BLENDWEIGHT, SEMANTIC_COLOR, SEMANTIC_NORMAL, SEMANTIC_POSITION, SEMANTIC_TANGENT, SEMANTIC_TEXCOORD, SEMANTIC_TEXCOORD0, SEMANTIC_TEXCOORD1, SEMANTIC_TEXCOORD2, SEMANTIC_TEXCOORD3, SEMANTIC_TEXCOORD4, SEMANTIC_TEXCOORD5, SEMANTIC_TEXCOORD6, SEMANTIC_TEXCOORD7, SHADERDEF_DIRLM, SHADERDEF_INSTANCING, SHADERDEF_LM, SHADERDEF_LMAMBIENT, SHADERDEF_MORPH_NORMAL, SHADERDEF_MORPH_POSITION, SHADERDEF_MORPH_TEXTURE_BASED, SHADERDEF_NOSHADOW, SHADERDEF_SCREENSPACE, SHADERDEF_SKIN, SHADERDEF_TANGENTS, SHADERDEF_UV0, SHADERDEF_UV1, SHADERDEF_VCOLOR, SHADERLANGUAGE_GLSL, SHADERLANGUAGE_WGSL, SHADERSTAGE_COMPUTE, SHADERSTAGE_FRAGMENT, SHADERSTAGE_VERTEX, SHADERTAG_MATERIAL, SHADERTYPE_DEPTH, SHADERTYPE_FORWARD, SHADERTYPE_PICK, SHADERTYPE_SHADOW, SHADER_DEPTH, SHADER_FORWARD, SHADER_FORWARDHDR, SHADER_PICK, SHADER_SHADOW, SHADOWUPDATE_NONE, SHADOWUPDATE_REALTIME, SHADOWUPDATE_THISFRAME, SHADOW_COUNT, SHADOW_DEPTH, SHADOW_PCF1, SHADOW_PCF3, SHADOW_PCF5, SHADOW_VSM16, SHADOW_VSM32, SHADOW_VSM8, SORTKEY_DEPTH, SORTKEY_FORWARD, SORTMODE_BACK2FRONT, SORTMODE_CUSTOM, SORTMODE_FRONT2BACK, SORTMODE_MANUAL, SORTMODE_MATERIALMESH, SORTMODE_NONE, SPECOCC_AO, SPECOCC_GLOSSDEPENDENT, SPECOCC_NONE, SPECULAR_BLINN, SPECULAR_PHONG, SPRITETYPE_ANIMATED, SPRITETYPE_SIMPLE, SPRITE_RENDERMODE_SIMPLE, SPRITE_RENDERMODE_SLICED, SPRITE_RENDERMODE_TILED, STENCILOP_DECREMENT, STENCILOP_DECREMENTWRAP, STENCILOP_INCREMENT, STENCILOP_INCREMENTWRAP, STENCILOP_INVERT, STENCILOP_KEEP, STENCILOP_REPLACE, STENCILOP_ZERO, Scene, SceneHandler, SceneRegistry, SceneRegistryItem, SceneSettingsHandler, ScopeId, ScopeSpace, ScreenComponent, ScreenComponentSystem, ScriptAttributes, ScriptComponent, ScriptComponentSystem, ScriptHandler, ScriptLegacyComponent, ScriptLegacyComponentSystem, ScriptRegistry, ScriptType, ScrollViewComponent, ScrollViewComponentSystem, ScrollbarComponent, ScrollbarComponentSystem, Shader, ShaderHandler, SingleContactResult, Skeleton, Skin, SkinBatchInstance, SkinInstance, SortedLoopArray, Sound, SoundComponent, SoundComponentSystem, SoundInstance, SoundInstance3d, SoundManager, SoundSlot, Sprite, SpriteAnimationClip, SpriteComponent, SpriteComponentSystem, SpriteHandler, StandardMaterial, StandardMaterialOptions, StencilParameters, TEXHINT_ASSET, TEXHINT_LIGHTMAP, TEXHINT_NONE, TEXHINT_SHADOWMAP, TEXTUREDIMENSION_1D, TEXTUREDIMENSION_2D, TEXTUREDIMENSION_2D_ARRAY, TEXTUREDIMENSION_3D, TEXTUREDIMENSION_CUBE, TEXTUREDIMENSION_CUBE_ARRAY, TEXTURELOCK_READ, TEXTURELOCK_WRITE, TEXTUREPROJECTION_CUBE, TEXTUREPROJECTION_EQUIRECT, TEXTUREPROJECTION_NONE, TEXTUREPROJECTION_OCTAHEDRAL, TEXTURETYPE_DEFAULT, TEXTURETYPE_RGBE, TEXTURETYPE_RGBM, TEXTURETYPE_RGBP, TEXTURETYPE_SWIZZLEGGGR, TONEMAP_ACES, TONEMAP_ACES2, TONEMAP_FILMIC, TONEMAP_HEJL, TONEMAP_LINEAR, TRACEID_BINDGROUPFORMAT_ALLOC, TRACEID_BINDGROUP_ALLOC, TRACEID_PIPELINELAYOUT_ALLOC, TRACEID_RENDERPIPELINE_ALLOC, TRACEID_RENDER_ACTION, TRACEID_RENDER_FRAME, TRACEID_RENDER_FRAME_TIME, TRACEID_RENDER_PASS, TRACEID_RENDER_PASS_DETAIL, TRACEID_RENDER_TARGET_ALLOC, TRACEID_SHADER_ALLOC, TRACEID_SHADER_COMPILE, TRACEID_TEXTURE_ALLOC, TRACEID_VRAM_IB, TRACEID_VRAM_TEXTURE, TRACEID_VRAM_VB, TYPE_FLOAT32, TYPE_INT16, TYPE_INT32, TYPE_INT8, TYPE_UINT16, TYPE_UINT32, TYPE_UINT8, Tags, Template, TemplateHandler, TextElement, TextHandler, Texture, TextureAtlas, TextureAtlasHandler, TextureHandler, TextureParser, Touch$1 as Touch, TouchDevice, TouchEvent$1 as TouchEvent, Tracing, TransformFeedback, UNIFORMTYPE_BOOL, UNIFORMTYPE_BVEC2, UNIFORMTYPE_BVEC3, UNIFORMTYPE_BVEC4, UNIFORMTYPE_FLOAT, UNIFORMTYPE_FLOATARRAY, UNIFORMTYPE_INT, UNIFORMTYPE_IVEC2, UNIFORMTYPE_IVEC3, UNIFORMTYPE_IVEC4, UNIFORMTYPE_MAT2, UNIFORMTYPE_MAT3, UNIFORMTYPE_MAT4, UNIFORMTYPE_MAT4ARRAY, UNIFORMTYPE_TEXTURE2D, UNIFORMTYPE_TEXTURE2D_SHADOW, UNIFORMTYPE_TEXTURE3D, UNIFORMTYPE_TEXTURECUBE, UNIFORMTYPE_TEXTURECUBE_SHADOW, UNIFORMTYPE_VEC2, UNIFORMTYPE_VEC2ARRAY, UNIFORMTYPE_VEC3, UNIFORMTYPE_VEC3ARRAY, UNIFORMTYPE_VEC4, UNIFORMTYPE_VEC4ARRAY, UNIFORM_BUFFER_DEFAULT_SLOT_NAME, URI, UnsupportedBrowserError, VIEW_CENTER, VIEW_LEFT, VIEW_RIGHT, Vec2, Vec3, Vec4, VertexBuffer, VertexFormat, VertexIterator, WasmModule, WebglGraphicsDevice, WebgpuGraphicsDevice, WorldClusters, XRDEPTHSENSINGFORMAT_F32, XRDEPTHSENSINGFORMAT_L8A8, XRDEPTHSENSINGUSAGE_CPU, XRDEPTHSENSINGUSAGE_GPU, XRHAND_LEFT, XRHAND_NONE, XRHAND_RIGHT, XRPAD_A, XRPAD_B, XRPAD_SQUEEZE, XRPAD_STICK_BUTTON, XRPAD_STICK_X, XRPAD_STICK_Y, XRPAD_TOUCHPAD_BUTTON, XRPAD_TOUCHPAD_X, XRPAD_TOUCHPAD_Y, XRPAD_TRIGGER, XRSPACE_BOUNDEDFLOOR, XRSPACE_LOCAL, XRSPACE_LOCALFLOOR, XRSPACE_UNBOUNDED, XRSPACE_VIEWER, XRTARGETRAY_GAZE, XRTARGETRAY_POINTER, XRTARGETRAY_SCREEN, XRTRACKABLE_MESH, XRTRACKABLE_PLANE, XRTRACKABLE_POINT, XRTYPE_AR, XRTYPE_INLINE, XRTYPE_VR, XrDepthSensing, XrDomOverlay, XrHitTest, XrHitTestSource, XrImageTracking, XrInput, XrInputSource, XrLightEstimation, XrManager, XrPlane, XrPlaneDetection, XrTrackedImage, ZoneComponent, ZoneComponentSystem, anim, app, apps, asset, audio, basisInitialize, basisSetDownloadConfig, basisTranscode, bindGroupNames, calculateNormals, calculateTangents, common, config, createBox, createCapsule, createCone, createCylinder, createGraphicsDevice, createMesh, createPlane, createScript, createShader, createShaderFromCode, createSphere, createStyle, createTorus, createURI, data, drawFullscreenQuad, drawQuadWithShader, drawTexture, events, extend, getReservedScriptNames, getTouchTargetCoords, gfx, guid, http, inherits, input, isCompressedPixelFormat, log, makeArray, math, now, path, pixelFormatByteSizes, platform, posteffect, prefilterCubemap, programlib, registerScript, reprojectTexture, revision, scene, script, semanticToLocation, shFromCubemap, shaderChunks, shaderChunksLightmapper, shadowTypeToString, shape, string, time, type, typedArrayIndexFormats, typedArrayIndexFormatsByteSize, typedArrayToType, typedArrayTypes, typedArrayTypesByteSize, uniformTypeToName, version, vertexTypesNames };
+export { ABSOLUTE_URL, ACTION_GAMEPAD, ACTION_KEYBOARD, ACTION_MOUSE, ADDRESS_CLAMP_TO_EDGE, ADDRESS_MIRRORED_REPEAT, ADDRESS_REPEAT, ANIM_BLEND_1D, ANIM_BLEND_2D_CARTESIAN, ANIM_BLEND_2D_DIRECTIONAL, ANIM_BLEND_DIRECT, ANIM_CONTROL_STATES, ANIM_EQUAL_TO, ANIM_GREATER_THAN, ANIM_GREATER_THAN_EQUAL_TO, ANIM_INTERRUPTION_NEXT, ANIM_INTERRUPTION_NEXT_PREV, ANIM_INTERRUPTION_NONE, ANIM_INTERRUPTION_PREV, ANIM_INTERRUPTION_PREV_NEXT, ANIM_LAYER_ADDITIVE, ANIM_LAYER_OVERWRITE, ANIM_LESS_THAN, ANIM_LESS_THAN_EQUAL_TO, ANIM_NOT_EQUAL_TO, ANIM_PARAMETER_BOOLEAN, ANIM_PARAMETER_FLOAT, ANIM_PARAMETER_INTEGER, ANIM_PARAMETER_TRIGGER, ANIM_STATE_ANY, ANIM_STATE_END, ANIM_STATE_START, ASPECT_AUTO, ASPECT_MANUAL, ASSET_ANIMATION, ASSET_AUDIO, ASSET_CONTAINER, ASSET_CSS, ASSET_CUBEMAP, ASSET_HTML, ASSET_IMAGE, ASSET_JSON, ASSET_MATERIAL, ASSET_MODEL, ASSET_SCRIPT, ASSET_SHADER, ASSET_TEXT, ASSET_TEXTURE, ASSET_TEXTUREATLAS, AXIS_KEY, AXIS_MOUSE_X, AXIS_MOUSE_Y, AXIS_PAD_L_X, AXIS_PAD_L_Y, AXIS_PAD_R_X, AXIS_PAD_R_Y, AnimBinder, AnimClip, AnimClipHandler, AnimComponent, AnimComponentLayer, AnimComponentSystem, AnimController, AnimCurve, AnimData, AnimEvaluator, AnimEvents, AnimSnapshot, AnimStateGraph, AnimStateGraphHandler, AnimTarget, AnimTrack, Animation, AnimationComponent, AnimationComponentSystem, AnimationHandler, AppBase, AppOptions, Application, Asset, AssetListLoader, AssetReference, AssetRegistry, AudioHandler, AudioListenerComponent, AudioListenerComponentSystem, AudioSourceComponent, AudioSourceComponentSystem, BAKE_COLOR, BAKE_COLORDIR, BINDGROUP_MESH, BINDGROUP_VIEW, BLENDEQUATION_ADD, BLENDEQUATION_MAX, BLENDEQUATION_MIN, BLENDEQUATION_REVERSE_SUBTRACT, BLENDEQUATION_SUBTRACT, BLENDMODE_CONSTANT, BLENDMODE_CONSTANT_ALPHA, BLENDMODE_CONSTANT_COLOR, BLENDMODE_DST_ALPHA, BLENDMODE_DST_COLOR, BLENDMODE_ONE, BLENDMODE_ONE_MINUS_CONSTANT, BLENDMODE_ONE_MINUS_CONSTANT_ALPHA, BLENDMODE_ONE_MINUS_CONSTANT_COLOR, BLENDMODE_ONE_MINUS_DST_ALPHA, BLENDMODE_ONE_MINUS_DST_COLOR, BLENDMODE_ONE_MINUS_SRC_ALPHA, BLENDMODE_ONE_MINUS_SRC_COLOR, BLENDMODE_SRC_ALPHA, BLENDMODE_SRC_ALPHA_SATURATE, BLENDMODE_SRC_COLOR, BLENDMODE_ZERO, BLEND_ADDITIVE, BLEND_ADDITIVEALPHA, BLEND_MAX, BLEND_MIN, BLEND_MULTIPLICATIVE, BLEND_MULTIPLICATIVE2X, BLEND_NONE, BLEND_NORMAL, BLEND_PREMULTIPLIED, BLEND_SCREEN, BLEND_SUBTRACTIVE, BLUR_BOX, BLUR_GAUSSIAN, BODYFLAG_KINEMATIC_OBJECT, BODYFLAG_NORESPONSE_OBJECT, BODYFLAG_STATIC_OBJECT, BODYGROUP_DEFAULT, BODYGROUP_DYNAMIC, BODYGROUP_ENGINE_1, BODYGROUP_ENGINE_2, BODYGROUP_ENGINE_3, BODYGROUP_KINEMATIC, BODYGROUP_NONE, BODYGROUP_STATIC, BODYGROUP_TRIGGER, BODYGROUP_USER_1, BODYGROUP_USER_2, BODYGROUP_USER_3, BODYGROUP_USER_4, BODYGROUP_USER_5, BODYGROUP_USER_6, BODYGROUP_USER_7, BODYGROUP_USER_8, BODYMASK_ALL, BODYMASK_NONE, BODYMASK_NOT_STATIC, BODYMASK_NOT_STATIC_KINEMATIC, BODYMASK_STATIC, BODYSTATE_ACTIVE_TAG, BODYSTATE_DISABLE_DEACTIVATION, BODYSTATE_DISABLE_SIMULATION, BODYSTATE_ISLAND_SLEEPING, BODYSTATE_WANTS_DEACTIVATION, BODYTYPE_DYNAMIC, BODYTYPE_KINEMATIC, BODYTYPE_STATIC, BUFFER_DYNAMIC, BUFFER_GPUDYNAMIC, BUFFER_STATIC, BUFFER_STREAM, BUTTON_TRANSITION_MODE_SPRITE_CHANGE, BUTTON_TRANSITION_MODE_TINT, BasicMaterial, Batch, BatchGroup, BatchManager, BinaryHandler, BlendState, BoundingBox, BoundingSphere, Bundle, BundleHandler, BundleRegistry, ButtonComponent, ButtonComponentSystem, CHUNKAPI_1_51, CHUNKAPI_1_55, CHUNKAPI_1_56, CHUNKAPI_1_57, CHUNKAPI_1_58, CHUNKAPI_1_60, CHUNKAPI_1_62, CLEARFLAG_COLOR, CLEARFLAG_DEPTH, CLEARFLAG_STENCIL, COMPUPDATED_BLEND, COMPUPDATED_CAMERAS, COMPUPDATED_INSTANCES, COMPUPDATED_LIGHTS, CUBEFACE_NEGX, CUBEFACE_NEGY, CUBEFACE_NEGZ, CUBEFACE_POSX, CUBEFACE_POSY, CUBEFACE_POSZ, CUBEPROJ_BOX, CUBEPROJ_NONE, CULLFACE_BACK, CULLFACE_FRONT, CULLFACE_FRONTANDBACK, CULLFACE_NONE, CURVE_CARDINAL, CURVE_CATMULL, CURVE_LINEAR, CURVE_SMOOTHSTEP, CURVE_SPLINE, CURVE_STEP, Camera, CameraComponent, CameraComponentSystem, CanvasFont, CollisionComponent, CollisionComponentSystem, Color, Command, Component, ComponentSystem, ComponentSystemRegistry, ContactPoint, ContactResult, ContainerHandler, ContainerResource, ContextCreationError, Controller, CssHandler, CubemapHandler, Curve, CurveSet, DETAILMODE_ADD, DETAILMODE_MAX, DETAILMODE_MIN, DETAILMODE_MUL, DETAILMODE_OVERLAY, DETAILMODE_SCREEN, DEVICETYPE_WEBGL1, DEVICETYPE_WEBGL2, DEVICETYPE_WEBGPU, DISTANCE_EXPONENTIAL, DISTANCE_INVERSE, DISTANCE_LINEAR, DefaultAnimBinder, DepthState, ELEMENTTYPE_FLOAT32, ELEMENTTYPE_GROUP, ELEMENTTYPE_IMAGE, ELEMENTTYPE_INT16, ELEMENTTYPE_INT32, ELEMENTTYPE_INT8, ELEMENTTYPE_TEXT, ELEMENTTYPE_UINT16, ELEMENTTYPE_UINT32, ELEMENTTYPE_UINT8, EMITTERSHAPE_BOX, EMITTERSHAPE_SPHERE, EVENT_GAMEPADCONNECTED, EVENT_GAMEPADDISCONNECTED, EVENT_KEYDOWN, EVENT_KEYUP, EVENT_MOUSEDOWN, EVENT_MOUSEMOVE, EVENT_MOUSEUP, EVENT_MOUSEWHEEL, EVENT_SELECT, EVENT_SELECTEND, EVENT_SELECTSTART, EVENT_TOUCHCANCEL, EVENT_TOUCHEND, EVENT_TOUCHMOVE, EVENT_TOUCHSTART, ElementComponent, ElementComponentSystem, ElementDragHelper, ElementInput, ElementInputEvent, ElementMouseEvent, ElementSelectEvent, ElementTouchEvent, Entity, EntityReference, EnvLighting, EventHandler, FILLMODE_FILL_WINDOW, FILLMODE_KEEP_ASPECT, FILLMODE_NONE, FILTER_LINEAR, FILTER_LINEAR_MIPMAP_LINEAR, FILTER_LINEAR_MIPMAP_NEAREST, FILTER_NEAREST, FILTER_NEAREST_MIPMAP_LINEAR, FILTER_NEAREST_MIPMAP_NEAREST, FITMODE_CONTAIN, FITMODE_COVER, FITMODE_STRETCH, FITTING_BOTH, FITTING_NONE, FITTING_SHRINK, FITTING_STRETCH, FOG_EXP, FOG_EXP2, FOG_LINEAR, FOG_NONE, FONT_BITMAP, FONT_MSDF, FRESNEL_NONE, FRESNEL_SCHLICK, FUNC_ALWAYS, FUNC_EQUAL, FUNC_GREATER, FUNC_GREATEREQUAL, FUNC_LESS, FUNC_LESSEQUAL, FUNC_NEVER, FUNC_NOTEQUAL, FolderHandler, Font, FontHandler, ForwardRenderer, Frustum, GAMMA_NONE, GAMMA_SRGB, GAMMA_SRGBFAST, GAMMA_SRGBHDR, GamePads, GraphNode, GraphicsDevice, HierarchyHandler, HtmlHandler, Http, I18n, INDEXFORMAT_UINT16, INDEXFORMAT_UINT32, INDEXFORMAT_UINT8, INTERPOLATION_CUBIC, INTERPOLATION_LINEAR, INTERPOLATION_STEP, ImageElement, IndexBuffer, IndexedList, JointComponent, JointComponentSystem, JsonHandler, JsonStandardMaterialParser, KEY_0, KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7, KEY_8, KEY_9, KEY_A, KEY_ADD, KEY_ALT, KEY_B, KEY_BACKSPACE, KEY_BACK_SLASH, KEY_C, KEY_CAPS_LOCK, KEY_CLOSE_BRACKET, KEY_COMMA, KEY_CONTEXT_MENU, KEY_CONTROL, KEY_D, KEY_DECIMAL, KEY_DELETE, KEY_DIVIDE, KEY_DOWN, KEY_E, KEY_END, KEY_ENTER, KEY_EQUAL, KEY_ESCAPE, KEY_F, KEY_F1, KEY_F10, KEY_F11, KEY_F12, KEY_F2, KEY_F3, KEY_F4, KEY_F5, KEY_F6, KEY_F7, KEY_F8, KEY_F9, KEY_G, KEY_H, KEY_HOME, KEY_I, KEY_INSERT, KEY_J, KEY_K, KEY_L, KEY_LEFT, KEY_M, KEY_META, KEY_MULTIPLY, KEY_N, KEY_NUMPAD_0, KEY_NUMPAD_1, KEY_NUMPAD_2, KEY_NUMPAD_3, KEY_NUMPAD_4, KEY_NUMPAD_5, KEY_NUMPAD_6, KEY_NUMPAD_7, KEY_NUMPAD_8, KEY_NUMPAD_9, KEY_O, KEY_OPEN_BRACKET, KEY_P, KEY_PAGE_DOWN, KEY_PAGE_UP, KEY_PAUSE, KEY_PERIOD, KEY_PRINT_SCREEN, KEY_Q, KEY_R, KEY_RETURN, KEY_RIGHT, KEY_S, KEY_SEMICOLON, KEY_SEPARATOR, KEY_SHIFT, KEY_SLASH, KEY_SPACE, KEY_SUBTRACT, KEY_T, KEY_TAB, KEY_U, KEY_UP, KEY_V, KEY_W, KEY_WINDOWS, KEY_X, KEY_Y, KEY_Z, Key, Keyboard, KeyboardEvent, LAYERID_DEPTH, LAYERID_IMMEDIATE, LAYERID_SKYBOX, LAYERID_UI, LAYERID_WORLD, LAYER_FX, LAYER_GIZMO, LAYER_HUD, LAYER_WORLD, LIGHTFALLOFF_INVERSESQUARED, LIGHTFALLOFF_LINEAR, LIGHTSHAPE_DISK, LIGHTSHAPE_PUNCTUAL, LIGHTSHAPE_RECT, LIGHTSHAPE_SPHERE, LIGHTTYPE_COUNT, LIGHTTYPE_DIRECTIONAL, LIGHTTYPE_OMNI, LIGHTTYPE_POINT, LIGHTTYPE_SPOT, LINEBATCH_GIZMO, LINEBATCH_OVERLAY, LINEBATCH_WORLD, Layer, LayerComposition, LayoutCalculator, LayoutChildComponent, LayoutChildComponentSystem, LayoutGroupComponent, LayoutGroupComponentSystem, Light, LightComponent, LightComponentSystem, LightingParams, Lightmapper, LitOptions, LocalizedAsset, MASK_AFFECT_DYNAMIC, MASK_AFFECT_LIGHTMAPPED, MASK_BAKE, MOTION_FREE, MOTION_LIMITED, MOTION_LOCKED, MOUSEBUTTON_LEFT, MOUSEBUTTON_MIDDLE, MOUSEBUTTON_NONE, MOUSEBUTTON_RIGHT, Mat3, Mat4, Material, MaterialHandler, Mesh, MeshInstance, Model, ModelComponent, ModelComponentSystem, ModelHandler, Morph, MorphInstance, MorphTarget, Mouse, MouseEvent$1 as MouseEvent, Node$1 as Node, ORIENTATION_HORIZONTAL, ORIENTATION_VERTICAL, OrientedBox, PAD_1, PAD_2, PAD_3, PAD_4, PAD_DOWN, PAD_FACE_1, PAD_FACE_2, PAD_FACE_3, PAD_FACE_4, PAD_LEFT, PAD_L_SHOULDER_1, PAD_L_SHOULDER_2, PAD_L_STICK_BUTTON, PAD_L_STICK_X, PAD_L_STICK_Y, PAD_RIGHT, PAD_R_SHOULDER_1, PAD_R_SHOULDER_2, PAD_R_STICK_BUTTON, PAD_R_STICK_X, PAD_R_STICK_Y, PAD_SELECT, PAD_START, PAD_UP, PAD_VENDOR, PARTICLEMODE_CPU, PARTICLEMODE_GPU, PARTICLEORIENTATION_EMITTER, PARTICLEORIENTATION_SCREEN, PARTICLEORIENTATION_WORLD, PARTICLESORT_DISTANCE, PARTICLESORT_NEWER_FIRST, PARTICLESORT_NONE, PARTICLESORT_OLDER_FIRST, PIXELFORMAT_111110F, PIXELFORMAT_A8, PIXELFORMAT_ASTC_4x4, PIXELFORMAT_ATC_RGB, PIXELFORMAT_ATC_RGBA, PIXELFORMAT_BGRA8, PIXELFORMAT_DEPTH, PIXELFORMAT_DEPTHSTENCIL, PIXELFORMAT_DXT1, PIXELFORMAT_DXT3, PIXELFORMAT_DXT5, PIXELFORMAT_ETC1, PIXELFORMAT_ETC2_RGB, PIXELFORMAT_ETC2_RGBA, PIXELFORMAT_L8, PIXELFORMAT_L8_A8, PIXELFORMAT_LA8, PIXELFORMAT_PVRTC_2BPP_RGBA_1, PIXELFORMAT_PVRTC_2BPP_RGB_1, PIXELFORMAT_PVRTC_4BPP_RGBA_1, PIXELFORMAT_PVRTC_4BPP_RGB_1, PIXELFORMAT_R32F, PIXELFORMAT_R4_G4_B4_A4, PIXELFORMAT_R5_G5_B5_A1, PIXELFORMAT_R5_G6_B5, PIXELFORMAT_R8_G8_B8, PIXELFORMAT_R8_G8_B8_A8, PIXELFORMAT_RGB16F, PIXELFORMAT_RGB32F, PIXELFORMAT_RGB565, PIXELFORMAT_RGB8, PIXELFORMAT_RGBA16F, PIXELFORMAT_RGBA32F, PIXELFORMAT_RGBA4, PIXELFORMAT_RGBA5551, PIXELFORMAT_RGBA8, PIXELFORMAT_SRGB, PIXELFORMAT_SRGBA, PRIMITIVE_LINELOOP, PRIMITIVE_LINES, PRIMITIVE_LINESTRIP, PRIMITIVE_POINTS, PRIMITIVE_TRIANGLES, PRIMITIVE_TRIFAN, PRIMITIVE_TRISTRIP, PROJECTION_ORTHOGRAPHIC, PROJECTION_PERSPECTIVE, ParticleEmitter, ParticleSystemComponent, ParticleSystemComponentSystem, PhongMaterial, Picker, Plane, PostEffect$1 as PostEffect, PostEffectQueue, ProgramLibrary, QuadRender, Quat, RENDERSTYLE_POINTS, RENDERSTYLE_SOLID, RENDERSTYLE_WIREFRAME, RESOLUTION_AUTO, RESOLUTION_FIXED, RIGIDBODY_ACTIVE_TAG, RIGIDBODY_CF_KINEMATIC_OBJECT, RIGIDBODY_CF_NORESPONSE_OBJECT, RIGIDBODY_CF_STATIC_OBJECT, RIGIDBODY_DISABLE_DEACTIVATION, RIGIDBODY_DISABLE_SIMULATION, RIGIDBODY_ISLAND_SLEEPING, RIGIDBODY_TYPE_DYNAMIC, RIGIDBODY_TYPE_KINEMATIC, RIGIDBODY_TYPE_STATIC, RIGIDBODY_WANTS_DEACTIVATION, Ray, RaycastResult, ReadStream, RenderComponent, RenderComponentSystem, RenderHandler, RenderTarget, ResourceHandler, ResourceLoader, RigidBodyComponent, RigidBodyComponentSystem, SAMPLETYPE_DEPTH, SAMPLETYPE_FLOAT, SAMPLETYPE_UNFILTERABLE_FLOAT, SCALEMODE_BLEND, SCALEMODE_NONE, SCROLLBAR_VISIBILITY_SHOW_ALWAYS, SCROLLBAR_VISIBILITY_SHOW_WHEN_REQUIRED, SCROLL_MODE_BOUNCE, SCROLL_MODE_CLAMP, SCROLL_MODE_INFINITE, SEMANTIC_ATTR, SEMANTIC_ATTR0, SEMANTIC_ATTR1, SEMANTIC_ATTR10, SEMANTIC_ATTR11, SEMANTIC_ATTR12, SEMANTIC_ATTR13, SEMANTIC_ATTR14, SEMANTIC_ATTR15, SEMANTIC_ATTR2, SEMANTIC_ATTR3, SEMANTIC_ATTR4, SEMANTIC_ATTR5, SEMANTIC_ATTR6, SEMANTIC_ATTR7, SEMANTIC_ATTR8, SEMANTIC_ATTR9, SEMANTIC_BLENDINDICES, SEMANTIC_BLENDWEIGHT, SEMANTIC_COLOR, SEMANTIC_NORMAL, SEMANTIC_POSITION, SEMANTIC_TANGENT, SEMANTIC_TEXCOORD, SEMANTIC_TEXCOORD0, SEMANTIC_TEXCOORD1, SEMANTIC_TEXCOORD2, SEMANTIC_TEXCOORD3, SEMANTIC_TEXCOORD4, SEMANTIC_TEXCOORD5, SEMANTIC_TEXCOORD6, SEMANTIC_TEXCOORD7, SHADERDEF_DIRLM, SHADERDEF_INSTANCING, SHADERDEF_LM, SHADERDEF_LMAMBIENT, SHADERDEF_MORPH_NORMAL, SHADERDEF_MORPH_POSITION, SHADERDEF_MORPH_TEXTURE_BASED, SHADERDEF_NOSHADOW, SHADERDEF_SCREENSPACE, SHADERDEF_SKIN, SHADERDEF_TANGENTS, SHADERDEF_UV0, SHADERDEF_UV1, SHADERDEF_VCOLOR, SHADERLANGUAGE_GLSL, SHADERLANGUAGE_WGSL, SHADERPASS_ALBEDO, SHADERPASS_AO, SHADERPASS_EMISSION, SHADERPASS_FORWARD, SHADERPASS_GLOSS, SHADERPASS_LIGHTING, SHADERPASS_METALNESS, SHADERPASS_OPACITY, SHADERPASS_SPECULARITY, SHADERPASS_UV0, SHADERPASS_WORLDNORMAL, SHADERSTAGE_COMPUTE, SHADERSTAGE_FRAGMENT, SHADERSTAGE_VERTEX, SHADERTAG_MATERIAL, SHADER_DEPTH, SHADER_FORWARD, SHADER_FORWARDHDR, SHADER_PICK, SHADER_SHADOW, SHADOWUPDATE_NONE, SHADOWUPDATE_REALTIME, SHADOWUPDATE_THISFRAME, SHADOW_COUNT, SHADOW_DEPTH, SHADOW_PCF1, SHADOW_PCF3, SHADOW_PCF5, SHADOW_VSM16, SHADOW_VSM32, SHADOW_VSM8, SORTKEY_DEPTH, SORTKEY_FORWARD, SORTMODE_BACK2FRONT, SORTMODE_CUSTOM, SORTMODE_FRONT2BACK, SORTMODE_MANUAL, SORTMODE_MATERIALMESH, SORTMODE_NONE, SPECOCC_AO, SPECOCC_GLOSSDEPENDENT, SPECOCC_NONE, SPECULAR_BLINN, SPECULAR_PHONG, SPRITETYPE_ANIMATED, SPRITETYPE_SIMPLE, SPRITE_RENDERMODE_SIMPLE, SPRITE_RENDERMODE_SLICED, SPRITE_RENDERMODE_TILED, STENCILOP_DECREMENT, STENCILOP_DECREMENTWRAP, STENCILOP_INCREMENT, STENCILOP_INCREMENTWRAP, STENCILOP_INVERT, STENCILOP_KEEP, STENCILOP_REPLACE, STENCILOP_ZERO, Scene, SceneHandler, SceneRegistry, SceneRegistryItem, SceneSettingsHandler, ScopeId, ScopeSpace, ScreenComponent, ScreenComponentSystem, ScriptAttributes, ScriptComponent, ScriptComponentSystem, ScriptHandler, ScriptLegacyComponent, ScriptLegacyComponentSystem, ScriptRegistry, ScriptType, ScrollViewComponent, ScrollViewComponentSystem, ScrollbarComponent, ScrollbarComponentSystem, Shader, ShaderHandler, ShaderPass, SingleContactResult, Skeleton, Skin, SkinBatchInstance, SkinInstance, SortedLoopArray, Sound, SoundComponent, SoundComponentSystem, SoundInstance, SoundInstance3d, SoundManager, SoundSlot, Sprite, SpriteAnimationClip, SpriteComponent, SpriteComponentSystem, SpriteHandler, StandardMaterial, StandardMaterialOptions, StencilParameters, TEXHINT_ASSET, TEXHINT_LIGHTMAP, TEXHINT_NONE, TEXHINT_SHADOWMAP, TEXTUREDIMENSION_1D, TEXTUREDIMENSION_2D, TEXTUREDIMENSION_2D_ARRAY, TEXTUREDIMENSION_3D, TEXTUREDIMENSION_CUBE, TEXTUREDIMENSION_CUBE_ARRAY, TEXTURELOCK_READ, TEXTURELOCK_WRITE, TEXTUREPROJECTION_CUBE, TEXTUREPROJECTION_EQUIRECT, TEXTUREPROJECTION_NONE, TEXTUREPROJECTION_OCTAHEDRAL, TEXTURETYPE_DEFAULT, TEXTURETYPE_RGBE, TEXTURETYPE_RGBM, TEXTURETYPE_RGBP, TEXTURETYPE_SWIZZLEGGGR, TONEMAP_ACES, TONEMAP_ACES2, TONEMAP_FILMIC, TONEMAP_HEJL, TONEMAP_LINEAR, TRACEID_BINDGROUPFORMAT_ALLOC, TRACEID_BINDGROUP_ALLOC, TRACEID_PIPELINELAYOUT_ALLOC, TRACEID_RENDERPIPELINE_ALLOC, TRACEID_RENDER_ACTION, TRACEID_RENDER_FRAME, TRACEID_RENDER_FRAME_TIME, TRACEID_RENDER_PASS, TRACEID_RENDER_PASS_DETAIL, TRACEID_RENDER_TARGET_ALLOC, TRACEID_SHADER_ALLOC, TRACEID_SHADER_COMPILE, TRACEID_TEXTURE_ALLOC, TRACEID_VRAM_IB, TRACEID_VRAM_TEXTURE, TRACEID_VRAM_VB, TRACE_ID_ELEMENT, TYPE_FLOAT32, TYPE_INT16, TYPE_INT32, TYPE_INT8, TYPE_UINT16, TYPE_UINT32, TYPE_UINT8, Tags, Template, TemplateHandler, TextElement, TextHandler, Texture, TextureAtlas, TextureAtlasHandler, TextureHandler, TextureParser, Touch$1 as Touch, TouchDevice, TouchEvent$1 as TouchEvent, Tracing, TransformFeedback, UNIFORMTYPE_BOOL, UNIFORMTYPE_BVEC2, UNIFORMTYPE_BVEC3, UNIFORMTYPE_BVEC4, UNIFORMTYPE_FLOAT, UNIFORMTYPE_FLOATARRAY, UNIFORMTYPE_INT, UNIFORMTYPE_IVEC2, UNIFORMTYPE_IVEC3, UNIFORMTYPE_IVEC4, UNIFORMTYPE_MAT2, UNIFORMTYPE_MAT3, UNIFORMTYPE_MAT4, UNIFORMTYPE_MAT4ARRAY, UNIFORMTYPE_TEXTURE2D, UNIFORMTYPE_TEXTURE2D_SHADOW, UNIFORMTYPE_TEXTURE3D, UNIFORMTYPE_TEXTURECUBE, UNIFORMTYPE_TEXTURECUBE_SHADOW, UNIFORMTYPE_VEC2, UNIFORMTYPE_VEC2ARRAY, UNIFORMTYPE_VEC3, UNIFORMTYPE_VEC3ARRAY, UNIFORMTYPE_VEC4, UNIFORMTYPE_VEC4ARRAY, UNIFORM_BUFFER_DEFAULT_SLOT_NAME, URI, UnsupportedBrowserError, VIEW_CENTER, VIEW_LEFT, VIEW_RIGHT, Vec2, Vec3, Vec4, VertexBuffer, VertexFormat, VertexIterator, WasmModule, WebglGraphicsDevice, WebgpuGraphicsDevice, WorldClusters, XRDEPTHSENSINGFORMAT_F32, XRDEPTHSENSINGFORMAT_L8A8, XRDEPTHSENSINGUSAGE_CPU, XRDEPTHSENSINGUSAGE_GPU, XRHAND_LEFT, XRHAND_NONE, XRHAND_RIGHT, XRPAD_A, XRPAD_B, XRPAD_SQUEEZE, XRPAD_STICK_BUTTON, XRPAD_STICK_X, XRPAD_STICK_Y, XRPAD_TOUCHPAD_BUTTON, XRPAD_TOUCHPAD_X, XRPAD_TOUCHPAD_Y, XRPAD_TRIGGER, XRSPACE_BOUNDEDFLOOR, XRSPACE_LOCAL, XRSPACE_LOCALFLOOR, XRSPACE_UNBOUNDED, XRSPACE_VIEWER, XRTARGETRAY_GAZE, XRTARGETRAY_POINTER, XRTARGETRAY_SCREEN, XRTRACKABLE_MESH, XRTRACKABLE_PLANE, XRTRACKABLE_POINT, XRTYPE_AR, XRTYPE_INLINE, XRTYPE_VR, XrDepthSensing, XrDomOverlay, XrHitTest, XrHitTestSource, XrImageTracking, XrInput, XrInputSource, XrLightEstimation, XrManager, XrPlane, XrPlaneDetection, XrTrackedImage, ZoneComponent, ZoneComponentSystem, anim, app, apps, asset, audio, basisInitialize, basisSetDownloadConfig, bindGroupNames, calculateNormals, calculateTangents, common, config, createBox, createCapsule, createCone, createCylinder, createGraphicsDevice, createMesh, createPlane, createScript, createShader, createShaderFromCode, createSphere, createStyle, createTorus, createURI, data, dracoInitialize, drawFullscreenQuad, drawQuadWithShader, drawTexture, events, extend, getReservedScriptNames, getTouchTargetCoords, gfx, guid, http, inherits, input, isCompressedPixelFormat, log, makeArray, math, now, path, pixelFormatByteSizes, platform, posteffect, prefilterCubemap, programlib, registerScript, reprojectTexture, revision, scene, script, semanticToLocation, shFromCubemap, shaderChunks, shaderChunksLightmapper, shadowTypeToString, shape, string, time, type, typedArrayIndexFormats, typedArrayIndexFormatsByteSize, typedArrayToType, typedArrayTypes, typedArrayTypesByteSize, uniformTypeToName, version, vertexTypesNames };
 export as namespace pc;

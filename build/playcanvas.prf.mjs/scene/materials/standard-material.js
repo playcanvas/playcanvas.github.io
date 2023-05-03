@@ -1,8 +1,3 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 import '../../core/tracing.js';
 import { Color } from '../../core/math/color.js';
 import { math } from '../../core/math/math.js';
@@ -130,7 +125,9 @@ class StandardMaterial extends Material {
 			if (!this.sheenGlossMap || this.sheenGlossTint) {
 				this._setParameter('material_sheenGloss', this.sheenGloss);
 			}
-			if (this.refractionIndex !== 1.0 / 1.5) {
+			if (this.refractionIndex === 0.0) {
+				this._setParameter('material_f0', 1.0);
+			} else if (this.refractionIndex !== 1.0 / 1.5) {
 				const oneOverRefractionIndex = 1.0 / this.refractionIndex;
 				const f0 = (oneOverRefractionIndex - 1) / (oneOverRefractionIndex + 1);
 				this._setParameter('material_f0', f0 * f0);
@@ -227,7 +224,8 @@ class StandardMaterial extends Material {
 	}
 	getShaderVariant(device, scene, objDefs, staticLightList, pass, sortedLights, viewUniformFormat, viewBindGroupFormat, vertexFormat) {
 		this.updateEnvUniforms(device, scene);
-		const minimalOptions = pass === SHADER_DEPTH || pass === SHADER_PICK || ShaderPass.isShadow(pass);
+		const shaderPassInfo = ShaderPass.get(device).getByIndex(pass);
+		const minimalOptions = pass === SHADER_DEPTH || pass === SHADER_PICK || shaderPassInfo.isShadowPass;
 		let options = minimalOptions ? standard.optionsContextMin : standard.optionsContext;
 		if (minimalOptions) this.shaderOptBuilder.updateMinRef(options, scene, this, objDefs, staticLightList, pass, sortedLights);else this.shaderOptBuilder.updateRef(options, scene, this, objDefs, staticLightList, pass, sortedLights);
 		if (this.onUpdateShader) {

@@ -429,6 +429,14 @@ Object.defineProperties(Texture.prototype, {
 		get: function () {
 			return this.impl._glTexture;
 		}
+	},
+	autoMipmap: {
+		get: function () {
+			return this._mipmaps;
+		},
+		set: function (value) {
+			this._mipmaps = value;
+		}
 	}
 });
 GraphicsDevice.prototype.getProgramLibrary = function () {
@@ -498,6 +506,9 @@ GraphicsDevice.prototype.setDepthTest = function (test) {
 	_tempDepthState.copy(this.depthState);
 	_tempDepthState.test = test;
 	this.setDepthState(_tempDepthState);
+};
+GraphicsDevice.prototype.getCullMode = function () {
+	return this.cullMode;
 };
 const PhongMaterial = StandardMaterial;
 const scene = {
@@ -734,7 +745,7 @@ _defineAlias('lightVertexColor', 'lightMapVertexColor');
 _defineAlias('sheenGloss', 'sheenGlossiess');
 _defineAlias('clearCoatGloss', 'clearCostGlossiness');
 function _defineOption(name, newName) {
-	if (name !== 'chunks' && name !== '_pass') {
+	if (name !== 'chunks' && name !== '_pass' && name !== '_isForwardPass') {
 		Object.defineProperty(StandardMaterialOptions.prototype, name, {
 			get: function () {
 				return this.litOptions[newName || name];

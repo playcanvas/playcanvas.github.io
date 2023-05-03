@@ -1,8 +1,3 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 var clusteredLightCookiesPS = `
 vec3 _getCookieClustered(TEXTURE_ACCEPT(tex), vec2 uv, float intensity, bool isRgb, vec4 cookieChannel) {
 		vec4 pixel = mix(vec4(1.0), texture2DLodEXT(tex, uv, 0.0), intensity);

@@ -1,8 +1,9 @@
+import '../../../core/tracing.js';
 import { LAYERID_UI, LAYERID_DEPTH, ASPECT_AUTO } from '../../../scene/constants.js';
 import { Camera } from '../../../scene/camera.js';
+import { ShaderPass } from '../../../scene/shader-pass.js';
 import { Component } from '../component.js';
 import { PostEffectQueue } from './post-effect-queue.js';
-import '../../../core/tracing.js';
 
 class CameraComponent extends Component {
 	constructor(system, entity) {
@@ -19,6 +20,18 @@ class CameraComponent extends Component {
 		this._camera = new Camera();
 		this._camera.node = entity;
 		this._postEffects = new PostEffectQueue(system.app, this);
+	}
+	setShaderPass(name) {
+		const shaderPass = ShaderPass.get(this.system.app.graphicsDevice);
+		const shaderPassInfo = name ? shaderPass.allocate(name, {
+			isForward: true
+		}) : null;
+		this._camera.shaderPassInfo = shaderPassInfo;
+		return shaderPassInfo.index;
+	}
+	getShaderPass() {
+		var _this$_camera$shaderP;
+		return (_this$_camera$shaderP = this._camera.shaderPassInfo) == null ? void 0 : _this$_camera$shaderP.name;
 	}
 	set aperture(value) {
 		this._camera.aperture = value;

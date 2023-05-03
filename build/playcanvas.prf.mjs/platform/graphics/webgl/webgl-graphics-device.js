@@ -1,13 +1,8 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 import { setupVertexArrayObject } from '../../../polyfill/OESVertexArrayObject.js';
 import '../../../core/tracing.js';
 import { platform } from '../../../core/platform.js';
 import { Color } from '../../../core/math/color.js';
-import { DEVICETYPE_WEBGL2, DEVICETYPE_WEBGL1, PIXELFORMAT_RGBA8, PIXELFORMAT_RGB8, UNIFORMTYPE_BOOL, UNIFORMTYPE_INT, UNIFORMTYPE_FLOAT, UNIFORMTYPE_VEC2, UNIFORMTYPE_VEC3, UNIFORMTYPE_VEC4, UNIFORMTYPE_IVEC2, UNIFORMTYPE_IVEC3, UNIFORMTYPE_IVEC4, UNIFORMTYPE_BVEC2, UNIFORMTYPE_BVEC3, UNIFORMTYPE_BVEC4, UNIFORMTYPE_MAT2, UNIFORMTYPE_MAT3, UNIFORMTYPE_MAT4, UNIFORMTYPE_TEXTURE2D, UNIFORMTYPE_TEXTURECUBE, UNIFORMTYPE_TEXTURE2D_SHADOW, UNIFORMTYPE_TEXTURECUBE_SHADOW, UNIFORMTYPE_TEXTURE3D, UNIFORMTYPE_FLOATARRAY, UNIFORMTYPE_VEC2ARRAY, UNIFORMTYPE_VEC3ARRAY, UNIFORMTYPE_VEC4ARRAY, PIXELFORMAT_RGBA16F, PIXELFORMAT_RGBA32F, CULLFACE_BACK, FUNC_ALWAYS, STENCILOP_KEEP, ADDRESS_CLAMP_TO_EDGE, semanticToLocation, CLEARFLAG_COLOR, CLEARFLAG_DEPTH, CLEARFLAG_STENCIL, CULLFACE_NONE, PRIMITIVE_TRISTRIP, FILTER_NEAREST_MIPMAP_NEAREST, FILTER_NEAREST_MIPMAP_LINEAR, FILTER_NEAREST, FILTER_LINEAR_MIPMAP_NEAREST, FILTER_LINEAR_MIPMAP_LINEAR, FILTER_LINEAR } from '../constants.js';
+import { DEVICETYPE_WEBGL2, DEVICETYPE_WEBGL1, PIXELFORMAT_RGBA8, PIXELFORMAT_RGB8, UNIFORMTYPE_BOOL, UNIFORMTYPE_INT, UNIFORMTYPE_FLOAT, UNIFORMTYPE_VEC2, UNIFORMTYPE_VEC3, UNIFORMTYPE_VEC4, UNIFORMTYPE_IVEC2, UNIFORMTYPE_IVEC3, UNIFORMTYPE_IVEC4, UNIFORMTYPE_BVEC2, UNIFORMTYPE_BVEC3, UNIFORMTYPE_BVEC4, UNIFORMTYPE_MAT2, UNIFORMTYPE_MAT3, UNIFORMTYPE_MAT4, UNIFORMTYPE_TEXTURE2D, UNIFORMTYPE_TEXTURECUBE, UNIFORMTYPE_TEXTURE2D_SHADOW, UNIFORMTYPE_TEXTURECUBE_SHADOW, UNIFORMTYPE_TEXTURE3D, UNIFORMTYPE_FLOATARRAY, UNIFORMTYPE_VEC2ARRAY, UNIFORMTYPE_VEC3ARRAY, UNIFORMTYPE_VEC4ARRAY, PIXELFORMAT_RGBA16F, PIXELFORMAT_RGBA32F, FUNC_ALWAYS, STENCILOP_KEEP, ADDRESS_CLAMP_TO_EDGE, semanticToLocation, CLEARFLAG_COLOR, CLEARFLAG_DEPTH, CLEARFLAG_STENCIL, CULLFACE_NONE, PRIMITIVE_TRISTRIP, FILTER_NEAREST_MIPMAP_NEAREST, FILTER_NEAREST_MIPMAP_LINEAR, FILTER_NEAREST, FILTER_LINEAR_MIPMAP_NEAREST, FILTER_LINEAR_MIPMAP_LINEAR, FILTER_LINEAR } from '../constants.js';
 import { GraphicsDevice } from '../graphics-device.js';
 import { RenderTarget } from '../render-target.js';
 import { Texture } from '../texture.js';
@@ -20,6 +15,7 @@ import { ShaderUtils } from '../shader-utils.js';
 import { Shader } from '../shader.js';
 import { BlendState } from '../blend-state.js';
 import { DepthState } from '../depth-state.js';
+import { StencilParameters } from '../stencil-parameters.js';
 
 const invalidateAttachments = [];
 const _fullScreenQuadVS = `
@@ -65,6 +61,7 @@ function quadWithShader(device, target, shader) {
 	device.setCullMode(CULLFACE_NONE);
 	device.setBlendState(BlendState.DEFAULT);
 	device.setDepthState(DepthState.NODEPTH);
+	device.setStencilState(null, null);
 	device.setVertexBuffer(device.quadVertexBuffer, 0);
 	device.setShader(shader);
 	device.draw({
@@ -169,38 +166,12 @@ function testTextureFloatHighPrecision(device) {
 	shader2.destroy();
 	return f === 0;
 }
-function testImageBitmap(device) {
-	const pngBytes = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 13, 73, 72, 68, 82, 0, 0, 0, 1, 0, 0, 0, 1, 8, 6, 0, 0, 0, 31, 21, 196, 137, 0, 0, 0, 13, 73, 68, 65, 84, 120, 218, 99, 100, 100, 98, 182, 7, 0, 0, 89, 0, 71, 67, 133, 148, 237, 0, 0, 0, 0, 73, 69, 78, 68, 174, 66, 96, 130]);
-	return createImageBitmap(new Blob([pngBytes], {
-		type: 'image/png'
-	}), {
-		premultiplyAlpha: 'none'
-	}).then(image => {
-		const texture = new Texture(device, {
-			width: 1,
-			height: 1,
-			format: PIXELFORMAT_RGBA8,
-			mipmaps: false,
-			levels: [image]
-		});
-		const rt = new RenderTarget({
-			colorBuffer: texture,
-			depth: false
-		});
-		device.setFramebuffer(rt.impl._glFrameBuffer);
-		device.initRenderTarget(rt);
-		const data = new Uint8ClampedArray(4);
-		device.gl.readPixels(0, 0, 1, 1, device.gl.RGBA, device.gl.UNSIGNED_BYTE, data);
-		rt.destroy();
-		texture.destroy();
-		return data[0] === 1 && data[1] === 2 && data[2] === 3 && data[3] === 63;
-	}).catch(e => false);
-}
 class WebglGraphicsDevice extends GraphicsDevice {
 	constructor(canvas, options = {}) {
-		super(canvas);
+		super(canvas, options);
 		this.gl = void 0;
 		this.webgl2 = void 0;
+		options = this.initOptions;
 		this.defaultFramebuffer = null;
 		this.updateClientRect();
 		this.contextLost = false;
@@ -215,35 +186,36 @@ class WebglGraphicsDevice extends GraphicsDevice {
 			this.contextLost = false;
 			this.fire('devicerestored');
 		};
-		options.stencil = true;
-		if (!options.powerPreference) {
-			options.powerPreference = 'high-performance';
-		}
 		const ua = typeof navigator !== 'undefined' && navigator.userAgent;
 		this.forceDisableMultisampling = ua && ua.includes('AppleWebKit') && (ua.includes('15.4') || ua.includes('15_4'));
 		if (this.forceDisableMultisampling) {
 			options.antialias = false;
 		}
-		const preferWebGl2 = options.preferWebGl2 !== undefined ? options.preferWebGl2 : true;
-		const names = preferWebGl2 ? ["webgl2", "webgl", "experimental-webgl"] : ["webgl", "experimental-webgl"];
 		let gl = null;
-		for (let i = 0; i < names.length; i++) {
-			gl = canvas.getContext(names[i], options);
-			if (gl) {
-				this.webgl2 = names[i] === DEVICETYPE_WEBGL2;
-				this._deviceType = this.webgl2 ? DEVICETYPE_WEBGL2 : DEVICETYPE_WEBGL1;
-				break;
+		if (options.gl) {
+			gl = options.gl;
+		} else {
+			const preferWebGl2 = options.preferWebGl2 !== undefined ? options.preferWebGl2 : true;
+			const names = preferWebGl2 ? ["webgl2", "webgl", "experimental-webgl"] : ["webgl", "experimental-webgl"];
+			for (let i = 0; i < names.length; i++) {
+				gl = canvas.getContext(names[i], options);
+				if (gl) {
+					break;
+				}
 			}
 		}
-		this.gl = gl;
 		if (!gl) {
 			throw new Error("WebGL not supported");
 		}
+		this.gl = gl;
+		this.webgl2 = typeof WebGL2RenderingContext !== 'undefined' && gl instanceof WebGL2RenderingContext;
+		this._deviceType = this.webgl2 ? DEVICETYPE_WEBGL2 : DEVICETYPE_WEBGL1;
 		const alphaBits = gl.getParameter(gl.ALPHA_BITS);
 		this.framebufferFormat = alphaBits ? PIXELFORMAT_RGBA8 : PIXELFORMAT_RGB8;
 		const isChrome = platform.browser && !!window.chrome;
+		const isSafari = platform.browser && !!window.safari;
 		const isMac = platform.browser && navigator.appVersion.indexOf("Mac") !== -1;
-		this._tempEnableSafariTextureUnitWorkaround = platform.browser && !!window.safari;
+		this._tempEnableSafariTextureUnitWorkaround = isSafari;
 		this._tempMacChromeBlitFramebufferWorkaround = isMac && isChrome && !options.alpha;
 		if (!this.webgl2) {
 			setupVertexArrayObject(gl);
@@ -254,12 +226,7 @@ class WebglGraphicsDevice extends GraphicsDevice {
 		this.initializeCapabilities();
 		this.initializeRenderState();
 		this.initializeContextCaches();
-		this.supportsImageBitmap = null;
-		if (typeof ImageBitmap !== 'undefined') {
-			testImageBitmap(this).then(result => {
-				this.supportsImageBitmap = result;
-			});
-		}
+		this.supportsImageBitmap = !isSafari && typeof ImageBitmap !== 'undefined';
 		this.glAddress = [gl.REPEAT, gl.CLAMP_TO_EDGE, gl.MIRRORED_REPEAT];
 		this.glBlendEquation = [gl.FUNC_ADD, gl.FUNC_SUBTRACT, gl.FUNC_REVERSE_SUBTRACT, this.webgl2 ? gl.MIN : this.extBlendMinmax ? this.extBlendMinmax.MIN_EXT : gl.FUNC_ADD, this.webgl2 ? gl.MAX : this.extBlendMinmax ? this.extBlendMinmax.MAX_EXT : gl.FUNC_ADD];
 		this.glBlendFunctionColor = [gl.ZERO, gl.ONE, gl.SRC_COLOR, gl.ONE_MINUS_SRC_COLOR, gl.DST_COLOR, gl.ONE_MINUS_DST_COLOR, gl.SRC_ALPHA, gl.SRC_ALPHA_SATURATE, gl.ONE_MINUS_SRC_ALPHA, gl.DST_ALPHA, gl.ONE_MINUS_DST_ALPHA, gl.CONSTANT_COLOR, gl.ONE_MINUS_CONSTANT_COLOR];
@@ -578,7 +545,6 @@ class WebglGraphicsDevice extends GraphicsDevice {
 	initializeCapabilities() {
 		const gl = this.gl;
 		let ext;
-		const userAgent = typeof navigator !== 'undefined' ? navigator.userAgent : "";
 		this.maxPrecision = this.precision = this.getPrecision();
 		const contextAttribs = gl.getContextAttributes();
 		this.supportsMsaa = contextAttribs.antialias;
@@ -605,8 +571,8 @@ class WebglGraphicsDevice extends GraphicsDevice {
 		ext = this.extDebugRendererInfo;
 		this.unmaskedRenderer = ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : '';
 		this.unmaskedVendor = ext ? gl.getParameter(ext.UNMASKED_VENDOR_WEBGL) : '';
-		const samsungModelRegex = /SM-[a-zA-Z0-9]+/;
-		this.supportsGpuParticles = !(this.unmaskedVendor === 'ARM' && userAgent.match(samsungModelRegex));
+		const maliRendererRegex = /\bMali-G52+/;
+		this.supportsGpuParticles = !this.unmaskedRenderer.match(maliRendererRegex);
 		ext = this.extTextureFilterAnisotropic;
 		this.maxAnisotropy = ext ? gl.getParameter(ext.MAX_TEXTURE_MAX_ANISOTROPY_EXT) : 1;
 		this.samples = gl.getParameter(gl.SAMPLES);
@@ -626,7 +592,6 @@ class WebglGraphicsDevice extends GraphicsDevice {
 		gl.colorMask(true, true, true, true);
 		this.blendColor = new Color(0, 0, 0, 0);
 		gl.blendColor(0, 0, 0, 0);
-		this.cullMode = CULLFACE_BACK;
 		gl.enable(gl.CULL_FACE);
 		gl.cullFace(gl.BACK);
 		gl.enable(gl.DEPTH_TEST);
@@ -1266,8 +1231,7 @@ class WebglGraphicsDevice extends GraphicsDevice {
 	}
 	setStencilFunc(func, ref, mask) {
 		if (this.stencilFuncFront !== func || this.stencilRefFront !== ref || this.stencilMaskFront !== mask || this.stencilFuncBack !== func || this.stencilRefBack !== ref || this.stencilMaskBack !== mask) {
-			const gl = this.gl;
-			gl.stencilFunc(this.glComparison[func], ref, mask);
+			this.gl.stencilFunc(this.glComparison[func], ref, mask);
 			this.stencilFuncFront = this.stencilFuncBack = func;
 			this.stencilRefFront = this.stencilRefBack = ref;
 			this.stencilMaskFront = this.stencilMaskBack = mask;
@@ -1368,6 +1332,25 @@ class WebglGraphicsDevice extends GraphicsDevice {
 			c.set(r, g, b, a);
 		}
 	}
+	setStencilState(stencilFront, stencilBack) {
+		if (stencilFront || stencilBack) {
+			this.setStencilTest(true);
+			if (stencilFront === stencilBack) {
+				this.setStencilFunc(stencilFront.func, stencilFront.ref, stencilFront.readMask);
+				this.setStencilOperation(stencilFront.fail, stencilFront.zfail, stencilFront.zpass, stencilFront.writeMask);
+			} else {
+				var _stencilFront, _stencilBack;
+				(_stencilFront = stencilFront) != null ? _stencilFront : stencilFront = StencilParameters.DEFAULT;
+				this.setStencilFuncFront(stencilFront.func, stencilFront.ref, stencilFront.readMask);
+				this.setStencilOperationFront(stencilFront.fail, stencilFront.zfail, stencilFront.zpass, stencilFront.writeMask);
+				(_stencilBack = stencilBack) != null ? _stencilBack : stencilBack = StencilParameters.DEFAULT;
+				this.setStencilFuncBack(stencilBack.func, stencilBack.ref, stencilBack.readMask);
+				this.setStencilOperationBack(stencilBack.fail, stencilBack.zfail, stencilBack.zpass, stencilBack.writeMask);
+			}
+		} else {
+			this.setStencilTest(false);
+		}
+	}
 	setDepthState(depthState) {
 		const currentDepthState = this.depthState;
 		if (!currentDepthState.equals(depthState)) {
@@ -1413,9 +1396,6 @@ class WebglGraphicsDevice extends GraphicsDevice {
 			}
 			this.cullMode = cullMode;
 		}
-	}
-	getCullMode() {
-		return this.cullMode;
 	}
 	setShader(shader) {
 		if (shader !== this.shader) {

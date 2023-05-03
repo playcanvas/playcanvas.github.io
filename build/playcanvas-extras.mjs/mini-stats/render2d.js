@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e
+ * PlayCanvas Engine v1.63.0 revision 29d4ce307
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 import { VertexFormat, SEMANTIC_POSITION, TYPE_FLOAT32, SEMANTIC_TEXCOORD0, shaderChunks, VertexBuffer, BUFFER_STREAM, IndexBuffer, INDEXFORMAT_UINT16, BUFFER_STATIC, BlendState, BLENDEQUATION_ADD, BLENDMODE_SRC_ALPHA, BLENDMODE_ONE_MINUS_SRC_ALPHA, BLENDMODE_ONE, PRIMITIVE_TRIANGLES, CULLFACE_NONE, DepthState } from 'playcanvas';
@@ -91,6 +91,7 @@ class Render2d {
 		device.setCullMode(CULLFACE_NONE);
 		device.setBlendState(this.blendState);
 		device.setDepthState(DepthState.NODEPTH);
+		device.setStencilState(null, null);
 		device.setVertexBuffer(buffer, 0);
 		device.setIndexBuffer(this.indexBuffer);
 		device.setShader(this.shader);

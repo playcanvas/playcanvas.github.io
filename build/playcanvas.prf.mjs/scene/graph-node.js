@@ -1,8 +1,3 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 import { EventHandler } from '../core/event-handler.js';
 import { Tags } from '../core/tags.js';
 import '../core/tracing.js';
@@ -29,7 +24,7 @@ const up = new Vec3();
 class GraphNode extends EventHandler {
 	constructor(name = 'Untitled') {
 		super();
-		this.name = name;
+		this.name = void 0;
 		this.tags = new Tags(this);
 		this._labels = {};
 		this.localPosition = new Vec3();
@@ -42,7 +37,6 @@ class GraphNode extends EventHandler {
 		this._scale = null;
 		this.localTransform = new Mat4();
 		this._dirtyLocal = false;
-		this._wasDirty = false;
 		this._aabbVer = 0;
 		this._frozen = false;
 		this.worldTransform = new Mat4();
@@ -59,6 +53,7 @@ class GraphNode extends EventHandler {
 		this._enabled = true;
 		this._enabledInHierarchy = false;
 		this.scaleCompensation = false;
+		this.name = name;
 	}
 	get right() {
 		if (!this._right) {
@@ -372,7 +367,6 @@ class GraphNode extends EventHandler {
 	_dirtifyLocal() {
 		if (!this._dirtyLocal) {
 			this._dirtyLocal = true;
-			this._wasDirty = true;
 			if (!this._dirtyWorld) this._dirtifyWorld();
 		}
 	}

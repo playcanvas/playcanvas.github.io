@@ -1,5 +1,5 @@
-const version = '1.63.0-dev';
-const revision = '9f3635a4e';
+const version = '1.63.0';
+const revision = '29d4ce307';
 const config = {};
 const common = {};
 const apps = {};

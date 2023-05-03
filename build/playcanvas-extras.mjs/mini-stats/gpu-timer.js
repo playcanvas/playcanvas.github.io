@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e
+ * PlayCanvas Engine v1.63.0 revision 29d4ce307
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 class GpuTimer {

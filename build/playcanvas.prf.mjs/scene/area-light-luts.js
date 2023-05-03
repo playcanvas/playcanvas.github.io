@@ -1,8 +1,3 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 import { FloatPacking } from '../core/math/float-packing.js';
 import { Texture } from '../platform/graphics/texture.js';
 import { DeviceCache } from '../platform/graphics/device-cache.js';
@@ -23,6 +18,7 @@ const deviceCache = new DeviceCache();
 class AreaLightLuts {
 	static createTexture(device, format, size, postfix = '') {
 		const tex = new Texture(device, {
+			name: `AreaLightLUT${postfix}`,
 			width: size,
 			height: size,
 			format: format,
@@ -32,7 +28,7 @@ class AreaLightLuts {
 			magFilter: FILTER_LINEAR,
 			minFilter: FILTER_NEAREST,
 			anisotropy: 1,
-			name: `AreaLightLUT${postfix}`
+			mipmaps: false
 		});
 		return tex;
 	}

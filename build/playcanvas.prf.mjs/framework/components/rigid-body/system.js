@@ -1,8 +1,3 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 import { now } from '../../../core/time.js';
 import { ObjectPool } from '../../../core/object-pool.js';
 import '../../../core/tracing.js';
@@ -235,7 +230,7 @@ class RigidBodyComponentSystem extends ComponentSystem {
 			for (let i = 0; i < numHits; i++) {
 				const body = Ammo.castObject(collisionObjs.at(i), Ammo.btRigidBody);
 				if (body && body.entity) {
-					if (options.filterTags && !body.entity.has(...options.filterTags) || options.filterCallback && !options.filterCallback(body.entity)) {
+					if (options.filterTags && !body.entity.tags.has(...options.filterTags) || options.filterCallback && !options.filterCallback(body.entity)) {
 						continue;
 					}
 					const point = points.at(i);

@@ -18,6 +18,7 @@ const deviceCache = new DeviceCache();
 class AreaLightLuts {
 	static createTexture(device, format, size, postfix = '') {
 		const tex = new Texture(device, {
+			name: `AreaLightLUT${postfix}`,
 			width: size,
 			height: size,
 			format: format,
@@ -27,7 +28,7 @@ class AreaLightLuts {
 			magFilter: FILTER_LINEAR,
 			minFilter: FILTER_NEAREST,
 			anisotropy: 1,
-			name: `AreaLightLUT${postfix}`
+			mipmaps: false
 		});
 		return tex;
 	}

@@ -1,8 +1,3 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 import { EventHandler } from '../../../core/event-handler.js';
 import { math } from '../../../core/math/math.js';
 import { Asset } from '../../asset/asset.js';
@@ -150,9 +145,12 @@ class SpriteAnimationClip extends EventHandler {
 		}
 	}
 	_unbindSpriteAsset(asset) {
+		if (!asset) {
+			return;
+		}
 		asset.off('load', this._onSpriteAssetLoad, this);
 		asset.off('remove', this._onSpriteAssetRemove, this);
-		if (asset.resource && asset.resource.atlas) {
+		if (asset.resource && !asset.resource.atlas) {
 			this._component.system.app.assets.off('load:' + asset.data.textureAtlasAsset, this._onTextureAtlasLoad, this);
 		}
 	}
@@ -250,6 +248,10 @@ class SpriteAnimationClip extends EventHandler {
 		}
 	}
 	_destroy() {
+		if (this._spriteAsset) {
+			const assets = this._component.system.app.assets;
+			this._unbindSpriteAsset(assets.get(this._spriteAsset));
+		}
 		if (this._sprite) {
 			this.sprite = null;
 		}

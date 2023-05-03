@@ -1,8 +1,3 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 import { extend } from '../../core/core.js';
 import { now } from '../../core/time.js';
 import { path } from '../../core/path.js';
@@ -145,11 +140,12 @@ class Http {
 	}
 	_guessResponseType(url) {
 		const uri = new URI(url);
-		const ext = path.getExtension(uri.path);
+		const ext = path.getExtension(uri.path).toLowerCase();
 		if (Http.binaryExtensions.indexOf(ext) >= 0) {
 			return Http.ResponseType.ARRAY_BUFFER;
-		}
-		if (ext === '.xml') {
+		} else if (ext === '.json') {
+			return Http.ResponseType.JSON;
+		} else if (ext === '.xml') {
 			return Http.ResponseType.DOCUMENT;
 		}
 		return Http.ResponseType.TEXT;

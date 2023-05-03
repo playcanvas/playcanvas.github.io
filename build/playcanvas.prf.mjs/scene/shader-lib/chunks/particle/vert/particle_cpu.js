@@ -1,8 +1,3 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 var particle_cpuVS = `
 attribute vec4 particle_vertexData;   // XYZ = world pos, W = life
 attribute vec4 particle_vertexData2;  // X = angle, Y = scale, Z = alpha, W = velocity.x
@@ -35,7 +30,6 @@ uniform vec3 wrapBounds;
 uniform vec3 emitterScale;
 uniform vec3 faceTangent;
 uniform vec3 faceBinorm;
-uniform sampler2D texLifeAndSourcePosOUT;
 uniform highp sampler2D internalTex0;
 uniform highp sampler2D internalTex1;
 uniform highp sampler2D internalTex2;

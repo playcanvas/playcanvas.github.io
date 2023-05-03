@@ -1,8 +1,3 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 import '../../core/tracing.js';
 import { Vec4 } from '../../core/math/vec4.js';
 import { CULLFACE_NONE } from '../../platform/graphics/constants.js';
@@ -12,9 +7,9 @@ import { QuadRender } from './quad-render.js';
 
 const _tempRect = new Vec4();
 function drawQuadWithShader(device, target, shader, rect, scissorRect) {
-	const oldCullMode = device.getCullMode();
 	device.setCullMode(CULLFACE_NONE);
 	device.setDepthState(DepthState.NODEPTH);
+	device.setStencilState(null, null);
 	const quad = new QuadRender(shader);
 	if (!rect) {
 		rect = _tempRect;
@@ -36,7 +31,6 @@ function drawQuadWithShader(device, target, shader, rect, scissorRect) {
 	}
 	renderPass.render();
 	quad.destroy();
-	device.setCullMode(oldCullMode);
 }
 function drawTexture(device, texture, target, shader, rect, scissorRect) {
 	shader = shader || device.getCopyShader();

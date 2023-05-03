@@ -4,8 +4,7 @@ import { DEVICETYPE_WEBGL2, DEVICETYPE_WEBGL1, DEVICETYPE_WEBGPU } from './const
 import { WebglGraphicsDevice } from './webgl/webgl-graphics-device.js';
 
 function createGraphicsDevice(canvas, options = {}) {
-	var _options$antialias, _options$deviceTypes;
-	(_options$antialias = options.antialias) != null ? _options$antialias : options.antialias = true;
+	var _options$deviceTypes;
 	const deviceTypes = (_options$deviceTypes = options.deviceTypes) != null ? _options$deviceTypes : [];
 	if (!deviceTypes.includes(DEVICETYPE_WEBGL2)) {
 		deviceTypes.push(DEVICETYPE_WEBGL2);

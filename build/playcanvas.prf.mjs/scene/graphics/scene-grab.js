@@ -1,8 +1,3 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 import '../../core/tracing.js';
 import { FILTER_NEAREST, FILTER_LINEAR_MIPMAP_LINEAR, FILTER_LINEAR, ADDRESS_CLAMP_TO_EDGE, PIXELFORMAT_DEPTHSTENCIL, PIXELFORMAT_RGBA8 } from '../../platform/graphics/constants.js';
 import { RenderTarget } from '../../platform/graphics/render-target.js';
@@ -115,6 +110,7 @@ class SceneGrab {
 					const colorBuffer = this.colorRenderTarget.colorBuffer;
 					if (device.isWebGPU) {
 						device.copyRenderTarget(camera.renderTarget, this.colorRenderTarget, true, false);
+						device.mipmapRenderer.generate(this.colorRenderTarget.colorBuffer.impl);
 					} else {
 						device.copyRenderTarget(device.renderTarget, this.colorRenderTarget, true, false);
 						device.activeTexture(device.maxCombinedTextures - 1);

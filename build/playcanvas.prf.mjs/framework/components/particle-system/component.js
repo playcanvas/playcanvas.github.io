@@ -1,8 +1,3 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 import { LAYERID_DEPTH } from '../../../scene/constants.js';
 import { Mesh } from '../../../scene/mesh.js';
 import { ParticleEmitter } from '../../../scene/particle-system/particle-emitter.js';
@@ -420,6 +415,9 @@ class ParticleSystemComponent extends Component {
 					this.system.app.assets.load(asset);
 				}
 			}
+		}
+		if (this.system.app.graphicsDevice.disableParticleSystem) {
+			return;
 		}
 		if (!this.emitter) {
 			let mesh = data.mesh;

@@ -1,8 +1,3 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 import '../../../core/tracing.js';
 import { math } from '../../../core/math/math.js';
 import { Color } from '../../../core/math/color.js';
@@ -18,7 +13,7 @@ import { GraphNode } from '../../../scene/graph-node.js';
 import { Mesh } from '../../../scene/mesh.js';
 import { MeshInstance } from '../../../scene/mesh-instance.js';
 import { Model } from '../../../scene/model.js';
-import { StencilParameters } from '../../../scene/stencil-parameters.js';
+import { StencilParameters } from '../../../platform/graphics/stencil-parameters.js';
 import { FITMODE_STRETCH, FITMODE_CONTAIN, FITMODE_COVER } from './constants.js';
 import { Asset } from '../../asset/asset.js';
 
@@ -700,6 +695,12 @@ class ImageElement {
 			}
 		}
 		this._material = value;
+		if (this._materialAsset) {
+			const asset = this._system.app.assets.get(this._materialAsset);
+			if (!asset || asset.resource !== value) {
+				this.materialAsset = null;
+			}
+		}
 		if (value) {
 			this._renderable.setMaterial(value);
 			if (this._hasUserMaterial()) {
@@ -737,13 +738,17 @@ class ImageElement {
 			if (this._materialAsset) {
 				const asset = assets.get(this._materialAsset);
 				if (!asset) {
+					this._materialAsset = null;
 					this.material = null;
+					this._materialAsset = _id;
 					assets.on('add:' + this._materialAsset, this._onMaterialAdded, this);
 				} else {
 					this._bindMaterialAsset(asset);
 				}
 			} else {
+				this._materialAsset = null;
 				this.material = null;
+				this._materialAsset = _id;
 			}
 		}
 	}

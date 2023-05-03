@@ -1,8 +1,3 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 var clusteredLightPS = `
 uniform highp sampler2D clusterWorldTexture;
 uniform highp sampler2D lightsTexture8;
@@ -456,7 +451,7 @@ void evaluateLight(
 												getShadowCoordPerspZbufferNormalOffset(lightProjectionMatrix, shadowParams, geometricNormal);
 												
 												#if defined(CLUSTER_SHADOW_TYPE_PCF1)
-														float shadow = getShadowSpotClusteredPCF1(SHADOWMAP_PASS(shadowAtlasTexture), shadowParams);
+														float shadow = getShadowSpotClusteredPCF1(SHADOWMAP_PASS(shadowAtlasTexture), dShadowCoord, shadowParams);
 												#elif defined(CLUSTER_SHADOW_TYPE_PCF3)
 														float shadow = getShadowSpotClusteredPCF3(SHADOWMAP_PASS(shadowAtlasTexture), dShadowCoord, shadowParams);
 												#elif defined(CLUSTER_SHADOW_TYPE_PCF5)

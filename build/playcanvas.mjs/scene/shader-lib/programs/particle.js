@@ -20,8 +20,9 @@ const particle = {
 		return vshader;
 	},
 	createShaderDefinition: function (device, options) {
-		let fshader = '#define PARTICLE\n';
-		let vshader = "#define VERTEXSHADER\n";
+		const executionDefine = `#define PARTICLE_${options.useCpu ? 'CPU' : 'GPU'}\n`;
+		let fshader = '#define PARTICLE\n' + executionDefine;
+		let vshader = "#define VERTEXSHADER\n" + executionDefine;
 		if (options.mesh) vshader += "#define USE_MESH\n";
 		if (options.localSpace) vshader += "#define LOCAL_SPACE\n";
 		if (options.screenSpace) vshader += "#define SCREEN_SPACE\n";
@@ -100,6 +101,7 @@ const particle = {
 		}
 		fshader += shaderChunks.particle_endPS;
 		return ShaderUtils.createDefinition(device, {
+			name: 'ParticleShader',
 			vertexCode: vshader,
 			fragmentCode: fshader
 		});

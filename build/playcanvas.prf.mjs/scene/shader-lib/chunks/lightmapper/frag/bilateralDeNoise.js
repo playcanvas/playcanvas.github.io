@@ -1,8 +1,3 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 var bilateralDeNoisePS = `
 // bilateral filter, based on https://www.shadertoy.com/view/4dfGDH# and
 // http://people.csail.mit.edu/sparis/bf_course/course_notes.pdf

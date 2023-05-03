@@ -1,3 +1,4 @@
+import { extends as _extends } from '../../../_virtual/_rollupPluginBabelHelpers.js';
 import '../../../core/tracing.js';
 import { ReadStream } from '../../../core/read-stream.js';
 import { ADDRESS_REPEAT, ADDRESS_CLAMP_TO_EDGE, FILTER_NEAREST, PIXELFORMAT_RGBA8, TEXTURETYPE_RGBE } from '../../../platform/graphics/constants.js';
@@ -11,12 +12,12 @@ class HdrParser {
 	load(url, callback, asset) {
 		Asset.fetchArrayBuffer(url.load, callback, asset, this.maxRetries);
 	}
-	open(url, data, device) {
+	open(url, data, device, textureOptions = {}) {
 		const textureData = this.parse(data);
 		if (!textureData) {
 			return null;
 		}
-		const texture = new Texture(device, {
+		const texture = new Texture(device, _extends({
 			name: url,
 			addressU: ADDRESS_REPEAT,
 			addressV: ADDRESS_CLAMP_TO_EDGE,
@@ -28,7 +29,7 @@ class HdrParser {
 			format: PIXELFORMAT_RGBA8,
 			type: TEXTURETYPE_RGBE,
 			mipmaps: false
-		});
+		}, textureOptions));
 		texture.upload();
 		return texture;
 	}

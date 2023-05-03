@@ -1,8 +1,3 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 import alphaTestPS from './standard/frag/alphaTest.js';
 import ambientConstantPS from './lit/frag/ambientConstant.js';
 import ambientEnvPS from './lit/frag/ambientEnv.js';
@@ -32,6 +27,8 @@ import cookiePS from './lit/frag/cookie.js';
 import cubeMapProjectBoxPS from './lit/frag/cubeMapProjectBox.js';
 import cubeMapProjectNonePS from './lit/frag/cubeMapProjectNone.js';
 import cubeMapRotatePS from './lit/frag/cubeMapRotate.js';
+import debugOutputPS from './lit/frag/debug-output.js';
+import debugProcessFrontendPS from './lit/frag/debug-process-frontend.js';
 import decodePS from './common/frag/decode.js';
 import detailModesPS from './standard/frag/detailModes.js';
 import diffusePS from './standard/frag/diffuse.js';
@@ -231,6 +228,8 @@ const shaderChunks = {
 	cubeMapProjectBoxPS,
 	cubeMapProjectNonePS,
 	cubeMapRotatePS,
+	debugOutputPS,
+	debugProcessFrontendPS,
 	detailModesPS,
 	diffusePS,
 	diffuseDetailMapPS,

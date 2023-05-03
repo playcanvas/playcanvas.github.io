@@ -1,8 +1,3 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 import { Color } from '../core/math/color.js';
 import { Mat4 } from '../core/math/mat4.js';
 import { Vec3 } from '../core/math/vec3.js';
@@ -18,6 +13,7 @@ const _invViewProjMat = new Mat4();
 const _frustumPoints = [new Vec3(), new Vec3(), new Vec3(), new Vec3(), new Vec3(), new Vec3(), new Vec3(), new Vec3()];
 class Camera {
 	constructor() {
+		this.shaderPassInfo = void 0;
 		this._aspectRatio = 16 / 9;
 		this._aspectRatioMode = ASPECT_AUTO;
 		this._calculateProjection = null;
@@ -328,6 +324,7 @@ class Camera {
 		this.aperture = other.aperture;
 		this.shutter = other.shutter;
 		this.sensitivity = other.sensitivity;
+		this.shaderPassInfo = other.shaderPassInfo;
 		this._projMatDirty = true;
 		return this;
 	}

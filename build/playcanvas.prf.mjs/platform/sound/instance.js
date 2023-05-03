@@ -1,8 +1,3 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 import { EventHandler } from '../../core/event-handler.js';
 import { math } from '../../core/math/math.js';
 import { hasAudioContext } from '../audio/capabilities.js';
@@ -274,6 +269,7 @@ class SoundInstance extends EventHandler {
 		if (this._state !== STATE_PAUSED) {
 			return false;
 		}
+		let offset = this.currentTime;
 		this._state = STATE_PLAYING;
 		if (this._waitingContextSuspension) {
 			return true;
@@ -281,7 +277,6 @@ class SoundInstance extends EventHandler {
 		if (!this.source) {
 			this._createSource();
 		}
-		let offset = this.currentTime;
 		if (this._startOffset !== null) {
 			offset = capTime(this._startOffset, this.duration);
 			offset = capTime(this._startTime + offset, this._sound.duration);

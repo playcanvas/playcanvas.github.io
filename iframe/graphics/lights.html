@@ -51,6 +51,7 @@
 
 
 
+
     function controls(data) {
       return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/
       React.createElement(Panel, { headerText: "OMNI LIGHT [KEY_1]" }, /*#__PURE__*/
@@ -338,7 +339,7 @@
           });
         });
       });
-    } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'Graphics');_defineProperty(Example, "NAME", 'Lights');
+    } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'Graphics');_defineProperty(Example, "NAME", 'Lights');_defineProperty(Example, "WEBGPU_ENABLED", true);
         var example = new Example();
 
         var useTypeScript = window.top.localStorage.getItem('useTypeScript') === 'true';
@@ -473,7 +474,7 @@
                 } else if (arg === 'pcx') {
                     return pcx;
                 } else if (arg === 'deviceType') {
-                    if (false) {
+                    if (true) {
                         return window.top.preferredGraphicsDevice || 'webgpu';
                     } else if (['webgl1', 'webgl2'].includes(window.top.preferredGraphicsDevice)) {
                         return window.top.preferredGraphicsDevice;

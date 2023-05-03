@@ -106,7 +106,7 @@ class ParticleSystemComponentSystem extends ComponentSystem {
 				const data = component.data;
 				if (data.enabled && entity.enabled) {
 					const emitter = entity.particlesystem.emitter;
-					if (!emitter.meshInstance.visible) continue;
+					if (!(emitter != null && emitter.meshInstance.visible)) continue;
 					if (emitter.lighting) {
 						const layers = data.layers;
 						let lightCube;

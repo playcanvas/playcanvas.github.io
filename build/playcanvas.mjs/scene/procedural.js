@@ -1,6 +1,5 @@
 import { Vec2 } from '../core/math/vec2.js';
 import { Vec3 } from '../core/math/vec3.js';
-import '../core/tracing.js';
 import { SEMANTIC_TANGENT, SEMANTIC_BLENDINDICES, TYPE_UINT8, SEMANTIC_BLENDWEIGHT } from '../platform/graphics/constants.js';
 import { Mesh } from './mesh.js';
 
@@ -164,12 +163,13 @@ function createMesh(device, positions, opts) {
 	mesh.update();
 	return mesh;
 }
-function createTorus(device, opts) {
-	const rc = opts && opts.tubeRadius !== undefined ? opts.tubeRadius : 0.2;
-	const rt = opts && opts.ringRadius !== undefined ? opts.ringRadius : 0.3;
-	const segments = opts && opts.segments !== undefined ? opts.segments : 30;
-	const sides = opts && opts.sides !== undefined ? opts.sides : 20;
-	const calcTangents = opts && opts.calculateTangents !== undefined ? opts.calculateTangents : false;
+function createTorus(device, opts = {}) {
+	var _opts$tubeRadius, _opts$ringRadius, _opts$segments, _opts$sides, _opts$calculateTangen;
+	const rc = (_opts$tubeRadius = opts.tubeRadius) != null ? _opts$tubeRadius : 0.2;
+	const rt = (_opts$ringRadius = opts.ringRadius) != null ? _opts$ringRadius : 0.3;
+	const segments = (_opts$segments = opts.segments) != null ? _opts$segments : 30;
+	const sides = (_opts$sides = opts.sides) != null ? _opts$sides : 20;
+	const calcTangents = (_opts$calculateTangen = opts.calculateTangents) != null ? _opts$calculateTangen : false;
 	const positions = [];
 	const normals = [];
 	const uvs = [];
@@ -382,49 +382,52 @@ function _createConeData(baseRadius, peakRadius, height, heightSegments, capSegm
 		indices: indices
 	};
 }
-function createCylinder(device, opts) {
-	let radius = opts && (opts.radius || opts.baseRadius);
-	radius = radius !== undefined ? radius : 0.5;
-	const height = opts && opts.height !== undefined ? opts.height : 1.0;
-	const heightSegments = opts && opts.heightSegments !== undefined ? opts.heightSegments : 5;
-	const capSegments = opts && opts.capSegments !== undefined ? opts.capSegments : 20;
-	const calcTangents = opts && opts.calculateTangents !== undefined ? opts.calculateTangents : false;
+function createCylinder(device, opts = {}) {
+	var _opts$radius, _opts$height, _opts$heightSegments, _opts$capSegments, _opts$calculateTangen2;
+	const radius = (_opts$radius = opts.radius) != null ? _opts$radius : 0.5;
+	const height = (_opts$height = opts.height) != null ? _opts$height : 1;
+	const heightSegments = (_opts$heightSegments = opts.heightSegments) != null ? _opts$heightSegments : 5;
+	const capSegments = (_opts$capSegments = opts.capSegments) != null ? _opts$capSegments : 20;
+	const calcTangents = (_opts$calculateTangen2 = opts.calculateTangents) != null ? _opts$calculateTangen2 : false;
 	const options = _createConeData(radius, radius, height, heightSegments, capSegments, false);
 	if (calcTangents) {
 		options.tangents = calculateTangents(options.positions, options.normals, options.uvs, options.indices);
 	}
 	return createMesh(device, options.positions, options);
 }
-function createCapsule(device, opts) {
-	const radius = opts && opts.radius !== undefined ? opts.radius : 0.3;
-	const height = opts && opts.height !== undefined ? opts.height : 1.0;
-	const heightSegments = opts && opts.heightSegments !== undefined ? opts.heightSegments : 1;
-	const sides = opts && opts.sides !== undefined ? opts.sides : 20;
-	const calcTangents = opts && opts.calculateTangents !== undefined ? opts.calculateTangents : false;
+function createCapsule(device, opts = {}) {
+	var _opts$radius2, _opts$height2, _opts$heightSegments2, _opts$sides2, _opts$calculateTangen3;
+	const radius = (_opts$radius2 = opts.radius) != null ? _opts$radius2 : 0.3;
+	const height = (_opts$height2 = opts.height) != null ? _opts$height2 : 1;
+	const heightSegments = (_opts$heightSegments2 = opts.heightSegments) != null ? _opts$heightSegments2 : 1;
+	const sides = (_opts$sides2 = opts.sides) != null ? _opts$sides2 : 20;
+	const calcTangents = (_opts$calculateTangen3 = opts.calculateTangents) != null ? _opts$calculateTangen3 : false;
 	const options = _createConeData(radius, radius, height - 2 * radius, heightSegments, sides, true);
 	if (calcTangents) {
 		options.tangents = calculateTangents(options.positions, options.normals, options.uvs, options.indices);
 	}
 	return createMesh(device, options.positions, options);
 }
-function createCone(device, opts) {
-	const baseRadius = opts && opts.baseRadius !== undefined ? opts.baseRadius : 0.5;
-	const peakRadius = opts && opts.peakRadius !== undefined ? opts.peakRadius : 0.0;
-	const height = opts && opts.height !== undefined ? opts.height : 1.0;
-	const heightSegments = opts && opts.heightSegments !== undefined ? opts.heightSegments : 5;
-	const capSegments = opts && opts.capSegments !== undefined ? opts.capSegments : 18;
-	const calcTangents = opts && opts.calculateTangents !== undefined ? opts.calculateTangents : false;
+function createCone(device, opts = {}) {
+	var _opts$baseRadius, _opts$peakRadius, _opts$height3, _opts$heightSegments3, _opts$capSegments2, _opts$calculateTangen4;
+	const baseRadius = (_opts$baseRadius = opts.baseRadius) != null ? _opts$baseRadius : 0.5;
+	const peakRadius = (_opts$peakRadius = opts.peakRadius) != null ? _opts$peakRadius : 0;
+	const height = (_opts$height3 = opts.height) != null ? _opts$height3 : 1;
+	const heightSegments = (_opts$heightSegments3 = opts.heightSegments) != null ? _opts$heightSegments3 : 5;
+	const capSegments = (_opts$capSegments2 = opts.capSegments) != null ? _opts$capSegments2 : 18;
+	const calcTangents = (_opts$calculateTangen4 = opts.calculateTangents) != null ? _opts$calculateTangen4 : false;
 	const options = _createConeData(baseRadius, peakRadius, height, heightSegments, capSegments, false);
 	if (calcTangents) {
 		options.tangents = calculateTangents(options.positions, options.normals, options.uvs, options.indices);
 	}
 	return createMesh(device, options.positions, options);
 }
-function createSphere(device, opts) {
-	const radius = opts && opts.radius !== undefined ? opts.radius : 0.5;
-	const latitudeBands = opts && opts.latitudeBands !== undefined ? opts.latitudeBands : 16;
-	const longitudeBands = opts && opts.longitudeBands !== undefined ? opts.longitudeBands : 16;
-	const calcTangents = opts && opts.calculateTangents !== undefined ? opts.calculateTangents : false;
+function createSphere(device, opts = {}) {
+	var _opts$radius3, _opts$latitudeBands, _opts$longitudeBands, _opts$calculateTangen5;
+	const radius = (_opts$radius3 = opts.radius) != null ? _opts$radius3 : 0.5;
+	const latitudeBands = (_opts$latitudeBands = opts.latitudeBands) != null ? _opts$latitudeBands : 16;
+	const longitudeBands = (_opts$longitudeBands = opts.longitudeBands) != null ? _opts$longitudeBands : 16;
+	const calcTangents = (_opts$calculateTangen5 = opts.calculateTangents) != null ? _opts$calculateTangen5 : false;
 	const positions = [];
 	const normals = [];
 	const uvs = [];
@@ -466,11 +469,12 @@ function createSphere(device, opts) {
 	}
 	return createMesh(device, positions, options);
 }
-function createPlane(device, opts) {
-	const he = opts && opts.halfExtents !== undefined ? opts.halfExtents : new Vec2(0.5, 0.5);
-	const ws = opts && opts.widthSegments !== undefined ? opts.widthSegments : 5;
-	const ls = opts && opts.lengthSegments !== undefined ? opts.lengthSegments : 5;
-	const calcTangents = opts && opts.calculateTangents !== undefined ? opts.calculateTangents : false;
+function createPlane(device, opts = {}) {
+	var _opts$halfExtents, _opts$widthSegments, _opts$lengthSegments, _opts$calculateTangen6;
+	const he = (_opts$halfExtents = opts.halfExtents) != null ? _opts$halfExtents : new Vec2(0.5, 0.5);
+	const ws = (_opts$widthSegments = opts.widthSegments) != null ? _opts$widthSegments : 5;
+	const ls = (_opts$lengthSegments = opts.lengthSegments) != null ? _opts$lengthSegments : 5;
+	const calcTangents = (_opts$calculateTangen6 = opts.calculateTangents) != null ? _opts$calculateTangen6 : false;
 	const positions = [];
 	const normals = [];
 	const uvs = [];
@@ -504,12 +508,13 @@ function createPlane(device, opts) {
 	}
 	return createMesh(device, positions, options);
 }
-function createBox(device, opts) {
-	const he = opts && opts.halfExtents !== undefined ? opts.halfExtents : new Vec3(0.5, 0.5, 0.5);
-	const ws = opts && opts.widthSegments !== undefined ? opts.widthSegments : 1;
-	const ls = opts && opts.lengthSegments !== undefined ? opts.lengthSegments : 1;
-	const hs = opts && opts.heightSegments !== undefined ? opts.heightSegments : 1;
-	const calcTangents = opts && opts.calculateTangents !== undefined ? opts.calculateTangents : false;
+function createBox(device, opts = {}) {
+	var _opts$halfExtents2, _opts$widthSegments2, _opts$lengthSegments2, _opts$heightSegments4, _opts$calculateTangen7;
+	const he = (_opts$halfExtents2 = opts.halfExtents) != null ? _opts$halfExtents2 : new Vec3(0.5, 0.5, 0.5);
+	const ws = (_opts$widthSegments2 = opts.widthSegments) != null ? _opts$widthSegments2 : 1;
+	const ls = (_opts$lengthSegments2 = opts.lengthSegments) != null ? _opts$lengthSegments2 : 1;
+	const hs = (_opts$heightSegments4 = opts.heightSegments) != null ? _opts$heightSegments4 : 1;
+	const calcTangents = (_opts$calculateTangen7 = opts.calculateTangents) != null ? _opts$calculateTangen7 : false;
 	const corners = [new Vec3(-he.x, -he.y, he.z), new Vec3(he.x, -he.y, he.z), new Vec3(he.x, he.y, he.z), new Vec3(-he.x, he.y, he.z), new Vec3(he.x, -he.y, -he.z), new Vec3(-he.x, -he.y, -he.z), new Vec3(-he.x, he.y, -he.z), new Vec3(he.x, he.y, -he.z)];
 	const faceAxes = [[0, 1, 3], [4, 5, 7], [3, 2, 6], [1, 0, 4], [1, 4, 2], [5, 0, 6]];
 	const faceNormals = [[0, 0, 1], [0, 0, -1], [0, 1, 0], [0, -1, 0], [1, 0, 0], [-1, 0, 0]];
@@ -586,9 +591,7 @@ function getShapePrimitive(device, type) {
 		let mesh, area;
 		switch (type) {
 			case 'box':
-				mesh = createBox(device, {
-					halfExtents: new Vec3(0.5, 0.5, 0.5)
-				});
+				mesh = createBox(device);
 				area = {
 					x: 2,
 					y: 2,

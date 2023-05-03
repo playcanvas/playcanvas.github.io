@@ -1,8 +1,3 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 import '../../../core/tracing.js';
 import { PIXELFORMAT_DEPTHSTENCIL, SAMPLETYPE_DEPTH, SAMPLETYPE_UNFILTERABLE_FLOAT, PIXELFORMAT_RGBA32F, PIXELFORMAT_RGBA16F, pixelFormatByteSizes, PIXELFORMAT_A8, PIXELFORMAT_L8, PIXELFORMAT_LA8, PIXELFORMAT_RGB565, PIXELFORMAT_RGBA5551, PIXELFORMAT_RGBA4, PIXELFORMAT_RGB8, PIXELFORMAT_RGBA8, PIXELFORMAT_DXT1, PIXELFORMAT_DXT3, PIXELFORMAT_DXT5, PIXELFORMAT_RGB16F, PIXELFORMAT_RGB32F, PIXELFORMAT_R32F, PIXELFORMAT_DEPTH, PIXELFORMAT_111110F, PIXELFORMAT_SRGB, PIXELFORMAT_SRGBA, PIXELFORMAT_ETC1, PIXELFORMAT_ETC2_RGB, PIXELFORMAT_ETC2_RGBA, PIXELFORMAT_PVRTC_2BPP_RGB_1, PIXELFORMAT_PVRTC_2BPP_RGBA_1, PIXELFORMAT_PVRTC_4BPP_RGB_1, PIXELFORMAT_PVRTC_4BPP_RGBA_1, PIXELFORMAT_ASTC_4x4, PIXELFORMAT_ATC_RGB, PIXELFORMAT_ATC_RGBA, PIXELFORMAT_BGRA8, ADDRESS_REPEAT, ADDRESS_CLAMP_TO_EDGE, ADDRESS_MIRRORED_REPEAT } from '../constants.js';
 
@@ -57,6 +52,7 @@ class WebgpuTexture {
 	create(device) {
 		const texture = this.texture;
 		const wgpu = device.wgpu;
+		const mipLevelCount = texture.requiredMipLevels;
 		this.descr = {
 			size: {
 				width: texture.width,
@@ -64,7 +60,7 @@ class WebgpuTexture {
 				depthOrArrayLayers: texture.cubemap ? 6 : 1
 			},
 			format: this.format,
-			mipLevelCount: 1,
+			mipLevelCount: mipLevelCount,
 			sampleCount: 1,
 			dimension: texture.volume ? '3d' : '2d',
 			usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC
@@ -152,23 +148,60 @@ class WebgpuTexture {
 	}
 	uploadData(device) {
 		const texture = this.texture;
-		const wgpu = device.wgpu;
-		if (this.texture.cubemap) {
-			return;
+		if (texture._levels) {
+			const wgpu = device.wgpu;
+			let anyUploads = false;
+			const requiredMipLevels = texture.requiredMipLevels;
+			for (let mipLevel = 0; mipLevel < requiredMipLevels; mipLevel++) {
+				const mipObject = texture._levels[mipLevel];
+				if (mipObject) {
+					if (texture.cubemap) {
+						for (let face = 0; face < 6; face++) {
+							const faceSource = mipObject[face];
+							if (faceSource) {
+								if (this.isExternalImage(faceSource)) {
+									this.uploadExternalImage(device, faceSource, mipLevel, face);
+									anyUploads = true;
+								}
+							}
+						}
+					} else if (texture._volume) ; else {
+						if (this.isExternalImage(mipObject)) {
+							this.uploadExternalImage(device, mipObject, mipLevel, 0);
+							anyUploads = true;
+						} else if (ArrayBuffer.isView(mipObject)) {
+							this.uploadTypedArrayData(wgpu, mipObject);
+							anyUploads = true;
+						} else ;
+					}
+				}
+			}
+			if (anyUploads && texture.mipmaps) {
+				device.mipmapRenderer.generate(this);
+			}
 		}
-		const mipLevel = 0;
-		const mipObject = texture._levels[mipLevel];
-		if (mipObject) {
-			if (mipObject instanceof ImageBitmap) {
-				wgpu.queue.copyExternalImageToTexture({
-					source: mipObject
-				}, {
-					texture: this.gpuTexture
-				}, this.descr.size);
-			} else if (ArrayBuffer.isView(mipObject)) {
-				this.uploadTypedArrayData(wgpu, mipObject);
-			} else ;
-		}
+	}
+	isExternalImage(image) {
+		return image instanceof ImageBitmap || image instanceof HTMLVideoElement || image instanceof HTMLCanvasElement || image instanceof OffscreenCanvas;
+	}
+	uploadExternalImage(device, image, mipLevel, face) {
+		const src = {
+			source: image,
+			origin: [0, 0],
+			flipY: false
+		};
+		const dst = {
+			texture: this.gpuTexture,
+			mipLevel: mipLevel,
+			origin: [0, 0, face],
+			aspect: 'all'
+		};
+		const copySize = {
+			width: this.descr.size.width,
+			height: this.descr.size.height,
+			depthOrArrayLayers: 1
+		};
+		device.wgpu.queue.copyExternalImageToTexture(src, dst, copySize);
 	}
 	uploadTypedArrayData(wgpu, data) {
 		var _pixelFormatByteSizes;

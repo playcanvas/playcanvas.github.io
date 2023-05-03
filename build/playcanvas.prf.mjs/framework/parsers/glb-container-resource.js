@@ -1,8 +1,3 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 import '../../core/tracing.js';
 import { MeshInstance } from '../../scene/mesh-instance.js';
 import { Model } from '../../scene/model.js';
@@ -98,7 +93,7 @@ class GlbContainerResource {
 					if (gltfNode.hasOwnProperty('mesh')) {
 						const meshGroup = glb.renders[gltfNode.mesh].meshes;
 						renderAsset = this.renders[gltfNode.mesh];
-						for (var mi = 0; mi < meshGroup.length; mi++) {
+						for (let mi = 0; mi < meshGroup.length; mi++) {
 							const mesh = meshGroup[mi];
 							if (mesh) {
 								const cloneMi = createMeshInstance(root, entity, mesh, glb.materials, glb.meshDefaultMaterials, glb.skins, gltfNode);
@@ -226,7 +221,7 @@ class GlbContainerResource {
 				const gltfNode = glb.gltf.nodes[i];
 				if (gltfNode.hasOwnProperty('mesh')) {
 					const meshGroup = glb.renders[gltfNode.mesh].meshes;
-					for (var mi = 0; mi < meshGroup.length; mi++) {
+					for (let mi = 0; mi < meshGroup.length; mi++) {
 						const mesh = meshGroup[mi];
 						if (mesh) {
 							createMeshInstance(model, mesh, glb.skins, skinInstances, glb.materials, node, gltfNode);

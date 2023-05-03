@@ -1,50 +1,74 @@
 import '../core/tracing.js';
-import { SHADER_SHADOW, SHADOW_COUNT, LIGHTTYPE_COUNT, SHADERTYPE_SHADOW, SHADERTYPE_FORWARD, SHADER_PICK, SHADERTYPE_PICK, SHADER_DEPTH, SHADERTYPE_DEPTH, SHADER_FORWARDHDR, SHADER_FORWARD } from './constants.js';
+import { SHADER_DEPTH, SHADER_PICK, SHADER_FORWARD, SHADER_FORWARDHDR } from './constants.js';
+import { DeviceCache } from '../platform/graphics/device-cache.js';
 
+const shaderPassDeviceCache = new DeviceCache();
+class ShaderPassInfo {
+	constructor(name, index, options = {}) {
+		this.index = void 0;
+		this.name = void 0;
+		this.shaderDefine = void 0;
+		this.name = name;
+		this.index = index;
+		Object.assign(this, options);
+		this.initShaderDefines();
+	}
+	initShaderDefines() {
+		let keyword;
+		if (this.isShadow) {
+			keyword = 'SHADOW';
+		} else if (this.isForward) {
+			keyword = 'FORWARD';
+		} else if (this.index === SHADER_DEPTH) {
+			keyword = 'DEPTH';
+		} else if (this.index === SHADER_PICK) {
+			keyword = 'PICK';
+		}
+		const define1 = keyword ? `#define ${keyword}_PASS\n` : '';
+		const define2 = `#define ${this.name.toUpperCase()}_PASS\n`;
+		this.shaderDefines = define1 + define2;
+	}
+}
 class ShaderPass {
-	static getType(shaderPass) {
-		switch (shaderPass) {
-			case SHADER_FORWARD:
-			case SHADER_FORWARDHDR:
-				return SHADERTYPE_FORWARD;
-			case SHADER_DEPTH:
-				return SHADERTYPE_DEPTH;
-			case SHADER_PICK:
-				return SHADERTYPE_PICK;
-			default:
-				return shaderPass >= SHADER_SHADOW && shaderPass < SHADER_SHADOW + SHADOW_COUNT * LIGHTTYPE_COUNT ? SHADERTYPE_SHADOW : SHADERTYPE_FORWARD;
+	constructor() {
+		this.passesNamed = new Map();
+		this.passesIndexed = [];
+		this.nextIndex = 0;
+		const add = (name, index, options) => {
+			this.allocate(name, options);
+		};
+		add('forward', SHADER_FORWARD, {
+			isForward: true
+		});
+		add('forward_hdr', SHADER_FORWARDHDR, {
+			isForward: true
+		});
+		add('depth');
+		add('pick');
+		add('shadow');
+	}
+	static get(device) {
+		return shaderPassDeviceCache.get(device, () => {
+			return new ShaderPass();
+		});
+	}
+	allocate(name, options) {
+		let info = this.passesNamed.get(name);
+		if (info === undefined) {
+			info = new ShaderPassInfo(name, this.nextIndex, options);
+			this.passesNamed.set(info.name, info);
+			this.passesIndexed[info.index] = info;
+			this.nextIndex++;
 		}
+		return info;
 	}
-	static isForward(pass) {
-		return this.getType(pass) === SHADERTYPE_FORWARD;
+	getByIndex(index) {
+		const info = this.passesIndexed[index];
+		return info;
 	}
-	static isShadow(pass) {
-		return this.getType(pass) === SHADERTYPE_SHADOW;
-	}
-	static toLightType(pass) {
-		const shadowMode = pass - SHADER_SHADOW;
-		return Math.floor(shadowMode / SHADOW_COUNT);
-	}
-	static toShadowType(pass) {
-		const shadowMode = pass - SHADER_SHADOW;
-		const lightType = Math.floor(shadowMode / SHADOW_COUNT);
-		return shadowMode - lightType * SHADOW_COUNT;
-	}
-	static getShadow(lightType, shadowType) {
-		const shadowMode = shadowType + lightType * SHADOW_COUNT;
-		const pass = SHADER_SHADOW + shadowMode;
-		return pass;
-	}
-	static getPassShaderDefine(pass) {
-		if (pass === SHADER_PICK) {
-			return '#define PICK_PASS\n';
-		} else if (pass === SHADER_DEPTH) {
-			return '#define DEPTH_PASS\n';
-		} else if (ShaderPass.isShadow(pass)) {
-			return '#define SHADOW_PASS\n';
-		}
-		return '';
+	getByName(name) {
+		return this.passesNamed.get(name);
 	}
 }
 
-export { ShaderPass };
+export { ShaderPass, ShaderPassInfo };

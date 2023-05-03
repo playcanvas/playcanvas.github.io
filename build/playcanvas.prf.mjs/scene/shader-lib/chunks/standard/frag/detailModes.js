@@ -1,8 +1,3 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 var detailModesPS = `
 vec3 detailMode_mul(vec3 c1, vec3 c2) {
 		return c1 * c2;

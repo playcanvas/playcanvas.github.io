@@ -1,8 +1,3 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 import '../../core/tracing.js';
 import { CULLFACE_BACK, BLENDMODE_ONE, BLENDEQUATION_REVERSE_SUBTRACT, BLENDMODE_ZERO, BLENDEQUATION_ADD, BLENDMODE_SRC_ALPHA, BLENDMODE_ONE_MINUS_SRC_ALPHA, BLENDMODE_DST_COLOR, BLENDMODE_SRC_COLOR, BLENDMODE_ONE_MINUS_DST_COLOR, BLENDEQUATION_MIN, BLENDEQUATION_MAX } from '../../platform/graphics/constants.js';
 import { BlendState } from '../../platform/graphics/blend-state.js';
@@ -196,6 +191,7 @@ class Material {
 		return this._depthState.write;
 	}
 	copy(source) {
+		var _source$stencilFront;
 		this.name = source.name;
 		this._shader = source._shader;
 		this.alphaTest = source.alphaTest;
@@ -205,13 +201,9 @@ class Material {
 		this.cull = source.cull;
 		this.depthBias = source.depthBias;
 		this.slopeDepthBias = source.slopeDepthBias;
-		if (source.stencilFront) this.stencilFront = source.stencilFront.clone();
+		this.stencilFront = (_source$stencilFront = source.stencilFront) == null ? void 0 : _source$stencilFront.clone();
 		if (source.stencilBack) {
-			if (source.stencilFront === source.stencilBack) {
-				this.stencilBack = this.stencilFront;
-			} else {
-				this.stencilBack = source.stencilBack.clone();
-			}
+			this.stencilBack = source.stencilFront === source.stencilBack ? this.stencilFront : source.stencilBack.clone();
 		}
 		return this;
 	}

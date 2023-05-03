@@ -230,7 +230,7 @@ class RigidBodyComponentSystem extends ComponentSystem {
 			for (let i = 0; i < numHits; i++) {
 				const body = Ammo.castObject(collisionObjs.at(i), Ammo.btRigidBody);
 				if (body && body.entity) {
-					if (options.filterTags && !body.entity.has(...options.filterTags) || options.filterCallback && !options.filterCallback(body.entity)) {
+					if (options.filterTags && !body.entity.tags.has(...options.filterTags) || options.filterCallback && !options.filterCallback(body.entity)) {
 						continue;
 					}
 					const point = points.at(i);

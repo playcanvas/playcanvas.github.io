@@ -1,8 +1,4 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
+import { extends as _extends } from '../../../_virtual/_rollupPluginBabelHelpers.js';
 import '../../../core/tracing.js';
 import { ReadStream } from '../../../core/read-stream.js';
 import { TEXHINT_ASSET, ADDRESS_REPEAT, ADDRESS_CLAMP_TO_EDGE, FILTER_NEAREST, PIXELFORMAT_RGBA8, TEXTURETYPE_RGBE } from '../../../platform/graphics/constants.js';
@@ -16,12 +12,12 @@ class HdrParser {
 	load(url, callback, asset) {
 		Asset.fetchArrayBuffer(url.load, callback, asset, this.maxRetries);
 	}
-	open(url, data, device) {
+	open(url, data, device, textureOptions = {}) {
 		const textureData = this.parse(data);
 		if (!textureData) {
 			return null;
 		}
-		const texture = new Texture(device, {
+		const texture = new Texture(device, _extends({
 			name: url,
 			profilerHint: TEXHINT_ASSET,
 			addressU: ADDRESS_REPEAT,
@@ -34,7 +30,7 @@ class HdrParser {
 			format: PIXELFORMAT_RGBA8,
 			type: TEXTURETYPE_RGBE,
 			mipmaps: false
-		});
+		}, textureOptions));
 		texture.upload();
 		return texture;
 	}

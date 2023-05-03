@@ -7,9 +7,9 @@ import { QuadRender } from './quad-render.js';
 
 const _tempRect = new Vec4();
 function drawQuadWithShader(device, target, shader, rect, scissorRect) {
-	const oldCullMode = device.getCullMode();
 	device.setCullMode(CULLFACE_NONE);
 	device.setDepthState(DepthState.NODEPTH);
+	device.setStencilState(null, null);
 	const quad = new QuadRender(shader);
 	if (!rect) {
 		rect = _tempRect;
@@ -31,7 +31,6 @@ function drawQuadWithShader(device, target, shader, rect, scissorRect) {
 	}
 	renderPass.render();
 	quad.destroy();
-	device.setCullMode(oldCullMode);
 }
 function drawTexture(device, texture, target, shader, rect, scissorRect) {
 	shader = shader || device.getCopyShader();

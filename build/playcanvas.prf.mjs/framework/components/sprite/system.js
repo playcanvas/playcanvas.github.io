@@ -1,8 +1,3 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 import { Color } from '../../../core/math/color.js';
 import { PIXELFORMAT_RGBA8, CULLFACE_NONE } from '../../../platform/graphics/constants.js';
 import { Texture } from '../../../platform/graphics/texture.js';
@@ -110,9 +105,11 @@ class SpriteComponentSystem extends ComponentSystem {
 		}
 		if (data.color !== undefined) {
 			if (data.color instanceof Color) {
-				component.color.set(data.color.r, data.color.g, data.color.b, data.opacity !== undefined ? data.opacity : 1);
+				var _data$opacity;
+				component.color.set(data.color.r, data.color.g, data.color.b, (_data$opacity = data.opacity) != null ? _data$opacity : 1);
 			} else {
-				component.color.set(data.color[0], data.color[1], data.color[2], data.opacity !== undefined ? data.opacity : 1);
+				var _data$opacity2;
+				component.color.set(data.color[0], data.color[1], data.color[2], (_data$opacity2 = data.opacity) != null ? _data$opacity2 : 1);
 			}
 			component.color = component.color;
 		}

@@ -51,6 +51,7 @@
 
 
 
+
     function example(canvas, deviceType) {
 
       var assets = {
@@ -289,7 +290,7 @@
 
         });
       });
-    } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'User Interface');_defineProperty(Example, "NAME", 'Scroll View');
+    } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'User Interface');_defineProperty(Example, "NAME", 'Scroll View');_defineProperty(Example, "WEBGPU_ENABLED", true);
         var example = new Example();
 
         var useTypeScript = window.top.localStorage.getItem('useTypeScript') === 'true';
@@ -424,7 +425,7 @@
                 } else if (arg === 'pcx') {
                     return pcx;
                 } else if (arg === 'deviceType') {
-                    if (false) {
+                    if (true) {
                         return window.top.preferredGraphicsDevice || 'webgpu';
                     } else if (['webgl1', 'webgl2'].includes(window.top.preferredGraphicsDevice)) {
                         return window.top.preferredGraphicsDevice;

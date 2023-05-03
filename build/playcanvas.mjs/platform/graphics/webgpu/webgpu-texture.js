@@ -52,6 +52,7 @@ class WebgpuTexture {
 	create(device) {
 		const texture = this.texture;
 		const wgpu = device.wgpu;
+		const mipLevelCount = texture.requiredMipLevels;
 		this.descr = {
 			size: {
 				width: texture.width,
@@ -59,7 +60,7 @@ class WebgpuTexture {
 				depthOrArrayLayers: texture.cubemap ? 6 : 1
 			},
 			format: this.format,
-			mipLevelCount: 1,
+			mipLevelCount: mipLevelCount,
 			sampleCount: 1,
 			dimension: texture.volume ? '3d' : '2d',
 			usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC
@@ -147,23 +148,60 @@ class WebgpuTexture {
 	}
 	uploadData(device) {
 		const texture = this.texture;
-		const wgpu = device.wgpu;
-		if (this.texture.cubemap) {
-			return;
+		if (texture._levels) {
+			const wgpu = device.wgpu;
+			let anyUploads = false;
+			const requiredMipLevels = texture.requiredMipLevels;
+			for (let mipLevel = 0; mipLevel < requiredMipLevels; mipLevel++) {
+				const mipObject = texture._levels[mipLevel];
+				if (mipObject) {
+					if (texture.cubemap) {
+						for (let face = 0; face < 6; face++) {
+							const faceSource = mipObject[face];
+							if (faceSource) {
+								if (this.isExternalImage(faceSource)) {
+									this.uploadExternalImage(device, faceSource, mipLevel, face);
+									anyUploads = true;
+								}
+							}
+						}
+					} else if (texture._volume) ; else {
+						if (this.isExternalImage(mipObject)) {
+							this.uploadExternalImage(device, mipObject, mipLevel, 0);
+							anyUploads = true;
+						} else if (ArrayBuffer.isView(mipObject)) {
+							this.uploadTypedArrayData(wgpu, mipObject);
+							anyUploads = true;
+						} else ;
+					}
+				}
+			}
+			if (anyUploads && texture.mipmaps) {
+				device.mipmapRenderer.generate(this);
+			}
 		}
-		const mipLevel = 0;
-		const mipObject = texture._levels[mipLevel];
-		if (mipObject) {
-			if (mipObject instanceof ImageBitmap) {
-				wgpu.queue.copyExternalImageToTexture({
-					source: mipObject
-				}, {
-					texture: this.gpuTexture
-				}, this.descr.size);
-			} else if (ArrayBuffer.isView(mipObject)) {
-				this.uploadTypedArrayData(wgpu, mipObject);
-			} else ;
-		}
+	}
+	isExternalImage(image) {
+		return image instanceof ImageBitmap || image instanceof HTMLVideoElement || image instanceof HTMLCanvasElement || image instanceof OffscreenCanvas;
+	}
+	uploadExternalImage(device, image, mipLevel, face) {
+		const src = {
+			source: image,
+			origin: [0, 0],
+			flipY: false
+		};
+		const dst = {
+			texture: this.gpuTexture,
+			mipLevel: mipLevel,
+			origin: [0, 0, face],
+			aspect: 'all'
+		};
+		const copySize = {
+			width: this.descr.size.width,
+			height: this.descr.size.height,
+			depthOrArrayLayers: 1
+		};
+		device.wgpu.queue.copyExternalImageToTexture(src, dst, copySize);
 	}
 	uploadTypedArrayData(wgpu, data) {
 		var _pixelFormatByteSizes;

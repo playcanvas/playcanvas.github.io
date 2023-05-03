@@ -47,12 +47,34 @@
         window.top.dispatchEvent(event);
 
         // include the example class which contains the example function to execute and any assets to load
-        "use strict";function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}function _defineProperties(target, props) {for (var i = 0; i < props.length; i++) {var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);}}function _createClass(Constructor, protoProps, staticProps) {if (protoProps) _defineProperties(Constructor.prototype, protoProps);if (staticProps) _defineProperties(Constructor, staticProps);Object.defineProperty(Constructor, "prototype", { writable: false });return Constructor;}function _defineProperty(obj, key, value) {if (key in obj) {Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true });} else {obj[key] = value;}return obj;}var Example = /*#__PURE__*/function () {function Example() {_classCallCheck(this, Example);}_createClass(Example, [{ key: "example", value:
+        "use strict";function _classCallCheck(instance, Constructor) {if (!(instance instanceof Constructor)) {throw new TypeError("Cannot call a class as a function");}}function _defineProperties(target, props) {for (var i = 0; i < props.length; i++) {var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);}}function _createClass(Constructor, protoProps, staticProps) {if (protoProps) _defineProperties(Constructor.prototype, protoProps);if (staticProps) _defineProperties(Constructor, staticProps);Object.defineProperty(Constructor, "prototype", { writable: false });return Constructor;}function _defineProperty(obj, key, value) {if (key in obj) {Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true });} else {obj[key] = value;}return obj;}var Example = /*#__PURE__*/function () {function Example() {_classCallCheck(this, Example);}_createClass(Example, [{ key: "controls", value:
 
 
 
 
-    function example(canvas, deviceType) {
+    function controls(data) {
+      return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/
+      React.createElement(Panel, { headerText: "Debug Shader Rendering" }, /*#__PURE__*/
+      React.createElement(LabelGroup, { text: "Mode" }, /*#__PURE__*/
+      React.createElement(SelectInput, { binding: new BindingTwoWay(), link: { observer: data, path: 'settings.shaderPassName' }, type: "string", options: [
+        { v: pc.SHADERPASS_FORWARD, t: 'None' },
+        { v: pc.SHADERPASS_ALBEDO, t: 'Albedo' },
+        { v: pc.SHADERPASS_OPACITY, t: 'Opacity' },
+        { v: pc.SHADERPASS_WORLDNORMAL, t: 'World Normal' },
+        { v: pc.SHADERPASS_SPECULARITY, t: 'Specularity' },
+        { v: pc.SHADERPASS_GLOSS, t: 'Gloss' },
+        { v: pc.SHADERPASS_METALNESS, t: 'Metalness' },
+        { v: pc.SHADERPASS_AO, t: 'AO' },
+        { v: pc.SHADERPASS_EMISSION, t: 'Emission' },
+        { v: pc.SHADERPASS_LIGHTING, t: 'Lighting' },
+        { v: pc.SHADERPASS_UV0, t: 'UV0' }] }))));
+
+
+
+
+    } }, { key: "example", value:
+
+    function example(canvas, deviceType, data) {
 
       // set up and load draco module, as the glb we load is draco compressed
       pc.WasmModule.setConfig('DracoDecoderModule', {
@@ -66,7 +88,7 @@
       function demo() {
         var assets = {
           'script': new pc.Asset('script', 'script', { url: '/../../static/scripts/camera/orbit-camera.js' }),
-          'helipad': new pc.Asset('helipad-env-atlas', 'texture', { url: '/../../static/assets/cubemaps/helipad-env-atlas.png' }, { type: pc.TEXTURETYPE_RGBP }),
+          'helipad': new pc.Asset('helipad-env-atlas', 'texture', { url: '/../../static/assets/cubemaps/helipad-env-atlas.png' }, { type: pc.TEXTURETYPE_RGBP, mipmaps: false }),
           'board': new pc.Asset('statue', 'container', { url: '/../../static/assets/models/chess-board.glb' }) };
 
 
@@ -113,6 +135,10 @@
           assetListLoader.load(function () {
 
             app.start();
+
+            data.set('settings', {
+              shaderPassName: pc.SHADERPASS_FORWARD });
+
 
             // get the instance of the chess board and set up with render component
             var boardEntity = assets.board.resource.instantiateRenderEntity({
@@ -183,6 +209,11 @@
             app.scene.envAtlas = assets.helipad.resource;
             app.scene.toneMapping = pc.TONEMAP_ACES;
             app.scene.skyboxMip = 1;
+
+            // handle HUD changes - update the debug mode on the top camera
+            data.on('*:set', function (path, value) {
+              cameraTop.camera.setShaderPass(value);
+            });
 
             // update function called once per frame
             var time = 0;

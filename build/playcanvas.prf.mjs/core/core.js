@@ -1,10 +1,5 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
-const version = '1.63.0-dev';
-const revision = '9f3635a4e';
+const version = '1.63.0';
+const revision = '29d4ce307';
 const config = {};
 const common = {};
 const apps = {};

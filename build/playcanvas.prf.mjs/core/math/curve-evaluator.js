@@ -1,8 +1,3 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 import { CURVE_STEP, CURVE_LINEAR, CURVE_SMOOTHSTEP, CURVE_CATMULL, CURVE_CARDINAL, CURVE_SPLINE } from './constants.js';
 import { math } from './math.js';
 

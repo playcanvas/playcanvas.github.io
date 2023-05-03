@@ -565,6 +565,7 @@ class Lightmapper {
 		}
 		device.setBlendState(BlendState.DEFAULT);
 		device.setDepthState(DepthState.NODEPTH);
+		device.setStencilState(null, null);
 		for (let node = 0; node < bakeNodes.length; node++) {
 			const bakeNode = bakeNodes[node];
 			for (let pass = 0; pass < passCount; pass++) {

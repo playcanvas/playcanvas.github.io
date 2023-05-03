@@ -416,6 +416,9 @@ class ParticleSystemComponent extends Component {
 				}
 			}
 		}
+		if (this.system.app.graphicsDevice.disableParticleSystem) {
+			return;
+		}
 		if (!this.emitter) {
 			let mesh = data.mesh;
 			if (!(mesh instanceof Mesh)) mesh = null;

@@ -1,8 +1,3 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 var particle_initVS = `
 attribute vec4 particle_vertexData; // XYZ = particle position, W = particle ID + random factor
 #ifdef USE_MESH

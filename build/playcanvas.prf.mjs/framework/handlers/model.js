@@ -1,8 +1,3 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 import { path } from '../../core/path.js';
 import { Http, http } from '../../platform/net/http.js';
 import { getDefaultMaterial } from '../../scene/materials/default-material.js';
@@ -12,18 +7,19 @@ import { JsonModelParser } from '../parsers/json-model.js';
 class ModelHandler {
 	constructor(app) {
 		this.handlerType = "model";
-		this._device = app.graphicsDevice;
 		this._parsers = [];
-		this._defaultMaterial = getDefaultMaterial(this._device);
+		this.device = app.graphicsDevice;
+		this.assets = app.assets;
+		this.defaultMaterial = getDefaultMaterial(this.device);
 		this.maxRetries = 0;
-		this.addParser(new JsonModelParser(this._device, this._defaultMaterial), function (url, data) {
+		this.addParser(new JsonModelParser(this), function (url, data) {
 			return path.getExtension(url) === '.json';
 		});
-		this.addParser(new GlbModelParser(this._device, this._defaultMaterial), function (url, data) {
+		this.addParser(new GlbModelParser(this), function (url, data) {
 			return path.getExtension(url) === '.glb';
 		});
 	}
-	load(url, callback) {
+	load(url, callback, asset) {
 		if (typeof url === 'string') {
 			url = {
 				load: url,
@@ -53,7 +49,7 @@ class ModelHandler {
 							} else {
 								callback(null, parseResult);
 							}
-						});
+						}, asset);
 						return;
 					}
 				}

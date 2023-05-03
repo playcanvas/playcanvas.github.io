@@ -1,8 +1,3 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 import '../../core/tracing.js';
 import { now } from '../../core/time.js';
 import { Curve } from '../../core/math/curve.js';
@@ -20,7 +15,7 @@ import { Texture } from '../../platform/graphics/texture.js';
 import { VertexBuffer } from '../../platform/graphics/vertex-buffer.js';
 import { VertexFormat } from '../../platform/graphics/vertex-format.js';
 import { ShaderProcessorOptions } from '../../platform/graphics/shader-processor-options.js';
-import { EMITTERSHAPE_BOX, PARTICLESORT_NONE, PARTICLEORIENTATION_SCREEN, PARTICLEORIENTATION_WORLD, PARTICLEMODE_GPU, BLEND_NORMAL } from '../constants.js';
+import { EMITTERSHAPE_BOX, PARTICLESORT_NONE, SHADER_FORWARD, PARTICLEORIENTATION_SCREEN, PARTICLEORIENTATION_WORLD, PARTICLEMODE_GPU, BLEND_NORMAL } from '../constants.js';
 import { Mesh } from '../mesh.js';
 import { MeshInstance } from '../mesh-instance.js';
 import { Material } from '../materials/material.js';
@@ -659,6 +654,7 @@ class ParticleEmitter {
 			const inTools = this.emitter.inTools;
 			const processingOptions = new ShaderProcessorOptions(viewUniformFormat, viewBindGroupFormat);
 			const shader = programLib.getProgram('particle', {
+				pass: SHADER_FORWARD,
 				useCpu: this.emitter.useCpu,
 				normal: this.emitter.normalOption,
 				halflambert: this.emitter.halfLambert,

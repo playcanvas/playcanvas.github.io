@@ -88,12 +88,17 @@ class WebgpuRenderTarget {
 		const colorBuffer = renderTarget.colorBuffer;
 		let colorView = null;
 		if (colorBuffer) {
-			colorView = colorBuffer.impl.getView(device);
+			const mipLevelCount = 1;
 			if (colorBuffer.cubemap) {
 				colorView = colorBuffer.impl.createView({
 					dimension: '2d',
 					baseArrayLayer: renderTarget.face,
-					arrayLayerCount: 1
+					arrayLayerCount: 1,
+					mipLevelCount
+				});
+			} else {
+				colorView = colorBuffer.impl.createView({
+					mipLevelCount
 				});
 			}
 		}

@@ -145,7 +145,7 @@ class ShadowRendererDirectional {
 			}
 		});
 		renderPass.after = () => {
-			this.shadowRenderer.renderVms(light, camera);
+			this.shadowRenderer.renderVsm(light, camera);
 		};
 		this.shadowRenderer.setupRenderPass(renderPass, shadowCamera, allCascadesRendering);
 		frameGraph.addRenderPass(renderPass);

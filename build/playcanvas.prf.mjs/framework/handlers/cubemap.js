@@ -1,8 +1,3 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 import { ADDRESS_CLAMP_TO_EDGE, PIXELFORMAT_RGB8, PIXELFORMAT_RGBA8, TEXTURETYPE_RGBM, TEXTURETYPE_DEFAULT } from '../../platform/graphics/constants.js';
 import { Texture } from '../../platform/graphics/texture.js';
 import { Asset } from '../asset/asset.js';
@@ -95,6 +90,7 @@ class CubemapHandler {
 		const faceAssets = assets.slice(1);
 		if (!cubemapAsset.loaded || !this.cmpArrays(faceAssets, oldAssets.slice(1))) {
 			if (faceAssets.indexOf(null) === -1) {
+				var _assetData$mipmaps;
 				const faceTextures = faceAssets.map(function (asset) {
 					return asset.resource;
 				});
@@ -112,6 +108,7 @@ class CubemapHandler {
 					width: faceTextures[0].width,
 					height: faceTextures[0].height,
 					format: format === PIXELFORMAT_RGB8 ? PIXELFORMAT_RGBA8 : format,
+					mipmaps: (_assetData$mipmaps = assetData.mipmaps) != null ? _assetData$mipmaps : true,
 					levels: faceLevels,
 					minFilter: assetData.hasOwnProperty('minFilter') ? assetData.minFilter : faceTextures[0].minFilter,
 					magFilter: assetData.hasOwnProperty('magFilter') ? assetData.magFilter : faceTextures[0].magFilter,

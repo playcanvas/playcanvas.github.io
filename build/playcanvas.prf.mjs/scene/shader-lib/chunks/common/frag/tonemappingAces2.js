@@ -1,8 +1,3 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 var tonemappingAces2PS = `
 uniform float exposure;
 
@@ -29,7 +24,7 @@ vec3 RRTAndODTFit(vec3 v) {
 }
 
 vec3 toneMap(vec3 color) {
-		color *= exposure;
+		color *= exposure / 0.6;
 		color = color * ACESInputMat;
 
 		// Apply RRT and ODT

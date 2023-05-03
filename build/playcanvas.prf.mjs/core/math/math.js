@@ -1,8 +1,3 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 const math = {
 	DEG_TO_RAD: Math.PI / 180,
 	RAD_TO_DEG: 180 / Math.PI,

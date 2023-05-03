@@ -2,7 +2,7 @@ import '../../../core/tracing.js';
 import { BindGroupFormat, BindBufferFormat } from '../bind-group-format.js';
 import { UniformBufferFormat, UniformFormat } from '../uniform-buffer-format.js';
 import { BlendState } from '../blend-state.js';
-import { SHADERLANGUAGE_WGSL, UNIFORMTYPE_VEC4, UNIFORMTYPE_FLOAT, UNIFORM_BUFFER_DEFAULT_SLOT_NAME, SHADERSTAGE_VERTEX, SHADERSTAGE_FRAGMENT, CLEARFLAG_COLOR, CLEARFLAG_DEPTH, CLEARFLAG_STENCIL, BINDGROUP_MESH, PRIMITIVE_TRISTRIP } from '../constants.js';
+import { SHADERLANGUAGE_WGSL, UNIFORMTYPE_VEC4, UNIFORMTYPE_FLOAT, UNIFORM_BUFFER_DEFAULT_SLOT_NAME, SHADERSTAGE_VERTEX, SHADERSTAGE_FRAGMENT, CLEARFLAG_COLOR, CLEARFLAG_DEPTH, CLEARFLAG_STENCIL, CULLFACE_NONE, BINDGROUP_MESH, PRIMITIVE_TRISTRIP } from '../constants.js';
 import { Shader } from '../shader.js';
 import { BindGroup } from '../bind-group.js';
 import { UniformBuffer } from '../uniform-buffer.js';
@@ -83,6 +83,7 @@ class WebgpuClearRenderer {
 				device.setDepthState(DepthState.NODEPTH);
 			}
 			if (flags & CLEARFLAG_STENCIL && renderTarget.stencil) ;
+			device.setCullMode(CULLFACE_NONE);
 			device.setShader(this.shader);
 			const bindGroup = this.bindGroup;
 			if (bindGroup.defaultUniformBuffer) {

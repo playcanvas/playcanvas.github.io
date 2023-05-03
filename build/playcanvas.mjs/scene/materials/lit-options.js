@@ -6,6 +6,7 @@ class LitOptions {
 		this.hasTangents = false;
 		this.chunks = {};
 		this._pass = 0;
+		this._isForwardPass = false;
 		this.alphaTest = false;
 		this.forceFragmentPrecision = null;
 		this.blendType = BLEND_NONE;
@@ -81,6 +82,10 @@ class LitOptions {
 	set pass(p) {}
 	get pass() {
 		return this._pass;
+	}
+	set isForwardPass(p) {}
+	get isForwardPass() {
+		return this._isForwardPass;
 	}
 }
 

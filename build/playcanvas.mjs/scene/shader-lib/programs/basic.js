@@ -35,8 +35,9 @@ const basic = {
 		if (options.diffuseMap) {
 			attributes.vertex_texCoord0 = SEMANTIC_TEXCOORD0;
 		}
-		const shaderPassDefine = ShaderPass.getPassShaderDefine(options.pass);
-		let vshader = shaderPassDefine;
+		const shaderPassInfo = ShaderPass.get(device).getByIndex(options.pass);
+		const shaderPassDefines = shaderPassInfo.shaderDefines;
+		let vshader = shaderPassDefines;
 		vshader += shaderChunks.transformDeclVS;
 		if (options.skin) {
 			vshader += skinCode(device);
@@ -75,7 +76,7 @@ const basic = {
 			vshader += '    vUv0 = vertex_texCoord0;\n';
 		}
 		vshader += end();
-		let fshader = shaderPassDefine;
+		let fshader = shaderPassDefines;
 		if (options.vertexColors) {
 			fshader += 'varying vec4 vColor;\n';
 		} else {

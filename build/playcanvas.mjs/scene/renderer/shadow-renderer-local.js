@@ -82,19 +82,24 @@ class ShadowRendererLocal {
 			};
 		}
 	}
-	setupNonClusteredFaceRenderPass(frameGraph, light, face) {
+	setupNonClusteredFaceRenderPass(frameGraph, light, face, applyVsm) {
 		const shadowCamera = this.shadowRenderer.prepareFace(light, null, face);
 		const renderPass = new RenderPass(this.device, () => {
 			this.shadowRenderer.renderFace(light, null, face, false);
 		});
 		this.shadowRenderer.setupRenderPass(renderPass, shadowCamera, true);
+		if (applyVsm) {
+			renderPass.after = () => {
+				this.shadowRenderer.renderVsm(light, shadowCamera);
+			};
+		}
 		frameGraph.addRenderPass(renderPass);
 	}
 	buildNonClusteredRenderPasses(frameGraph, lightsSpot, lightsOmni) {
 		for (let i = 0; i < lightsSpot.length; i++) {
 			const light = lightsSpot[i];
 			if (this.shadowRenderer.needsShadowRendering(light)) {
-				this.setupNonClusteredFaceRenderPass(frameGraph, light, 0);
+				this.setupNonClusteredFaceRenderPass(frameGraph, light, 0, true);
 			}
 		}
 		for (let i = 0; i < lightsOmni.length; i++) {
@@ -102,7 +107,7 @@ class ShadowRendererLocal {
 			if (this.shadowRenderer.needsShadowRendering(light)) {
 				const faceCount = light.numShadowFaces;
 				for (let face = 0; face < faceCount; face++) {
-					this.setupNonClusteredFaceRenderPass(frameGraph, light, face);
+					this.setupNonClusteredFaceRenderPass(frameGraph, light, face, false);
 				}
 			}
 		}

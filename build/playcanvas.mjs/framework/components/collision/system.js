@@ -164,9 +164,10 @@ class CollisionSphereSystemImpl extends CollisionSystemImpl {
 }
 class CollisionCapsuleSystemImpl extends CollisionSystemImpl {
 	createPhysicalShape(entity, data) {
-		const axis = data.axis !== undefined ? data.axis : 1;
-		const radius = data.radius || 0.5;
-		const height = Math.max((data.height || 2) - 2 * radius, 0);
+		var _data$axis, _data$radius, _data$height;
+		const axis = (_data$axis = data.axis) != null ? _data$axis : 1;
+		const radius = (_data$radius = data.radius) != null ? _data$radius : 0.5;
+		const height = Math.max(((_data$height = data.height) != null ? _data$height : 2) - 2 * radius, 0);
 		let shape = null;
 		if (typeof Ammo !== 'undefined') {
 			switch (axis) {
@@ -186,9 +187,10 @@ class CollisionCapsuleSystemImpl extends CollisionSystemImpl {
 }
 class CollisionCylinderSystemImpl extends CollisionSystemImpl {
 	createPhysicalShape(entity, data) {
-		const axis = data.axis !== undefined ? data.axis : 1;
-		const radius = data.radius !== undefined ? data.radius : 0.5;
-		const height = data.height !== undefined ? data.height : 1;
+		var _data$axis2, _data$radius2, _data$height2;
+		const axis = (_data$axis2 = data.axis) != null ? _data$axis2 : 1;
+		const radius = (_data$radius2 = data.radius) != null ? _data$radius2 : 0.5;
+		const height = (_data$height2 = data.height) != null ? _data$height2 : 1;
 		let halfExtents = null;
 		let shape = null;
 		if (typeof Ammo !== 'undefined') {
@@ -213,9 +215,10 @@ class CollisionCylinderSystemImpl extends CollisionSystemImpl {
 }
 class CollisionConeSystemImpl extends CollisionSystemImpl {
 	createPhysicalShape(entity, data) {
-		const axis = data.axis !== undefined ? data.axis : 1;
-		const radius = data.radius !== undefined ? data.radius : 0.5;
-		const height = data.height !== undefined ? data.height : 1;
+		var _data$axis3, _data$radius3, _data$height3;
+		const axis = (_data$axis3 = data.axis) != null ? _data$axis3 : 1;
+		const radius = (_data$radius3 = data.radius) != null ? _data$radius3 : 0.5;
+		const height = (_data$height3 = data.height) != null ? _data$height3 : 1;
 		let shape = null;
 		if (typeof Ammo !== 'undefined') {
 			switch (axis) {

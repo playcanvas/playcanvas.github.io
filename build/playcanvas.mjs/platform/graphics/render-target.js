@@ -2,14 +2,10 @@ import '../../core/tracing.js';
 import { PIXELFORMAT_DEPTH, PIXELFORMAT_DEPTHSTENCIL } from './constants.js';
 import { GraphicsDevice } from './graphics-device.js';
 
-const defaultOptions = {
-	depth: true,
-	face: 0
-};
 let id = 0;
 class RenderTarget {
-	constructor(options) {
-		var _this$_colorBuffer, _this$_depthBuffer;
+	constructor(options = {}) {
+		var _options$face, _this$_colorBuffer, _this$_depthBuffer, _options$samples, _options$autoResolve, _options$flipY;
 		this.id = id++;
 		const _arg2 = arguments[1];
 		const _arg3 = arguments[2];
@@ -22,9 +18,8 @@ class RenderTarget {
 		if (this._colorBuffer) {
 			this._colorBuffer._isRenderTarget = true;
 		}
-		options = options !== undefined ? options : defaultOptions;
 		this._depthBuffer = options.depthBuffer;
-		this._face = options.face !== undefined ? options.face : 0;
+		this._face = (_options$face = options.face) != null ? _options$face : 0;
 		if (this._depthBuffer) {
 			const format = this._depthBuffer._format;
 			if (format === PIXELFORMAT_DEPTH) {
@@ -38,13 +33,20 @@ class RenderTarget {
 				this._stencil = false;
 			}
 		} else {
-			this._depth = options.depth !== undefined ? options.depth : true;
-			this._stencil = options.stencil !== undefined ? options.stencil : false;
+			var _options$depth, _options$stencil;
+			this._depth = (_options$depth = options.depth) != null ? _options$depth : true;
+			this._stencil = (_options$stencil = options.stencil) != null ? _options$stencil : false;
 		}
 		const device = ((_this$_colorBuffer = this._colorBuffer) == null ? void 0 : _this$_colorBuffer.device) || ((_this$_depthBuffer = this._depthBuffer) == null ? void 0 : _this$_depthBuffer.device) || options.graphicsDevice;
 		this._device = device;
-		this._samples = options.samples !== undefined ? Math.min(options.samples, this._device.maxSamples) : 1;
-		this.autoResolve = options.autoResolve !== undefined ? options.autoResolve : true;
+		const {
+			maxSamples
+		} = this._device;
+		this._samples = Math.min((_options$samples = options.samples) != null ? _options$samples : 1, maxSamples);
+		if (device.isWebGPU) {
+			this._samples = this._samples > 1 ? maxSamples : 1;
+		}
+		this.autoResolve = (_options$autoResolve = options.autoResolve) != null ? _options$autoResolve : true;
 		this.name = options.name;
 		if (!this.name) {
 			var _this$_colorBuffer2;
@@ -57,7 +59,7 @@ class RenderTarget {
 		if (!this.name) {
 			this.name = "Untitled";
 		}
-		this.flipY = !!options.flipY;
+		this.flipY = (_options$flipY = options.flipY) != null ? _options$flipY : false;
 		this.impl = device.createRenderTargetImpl(this);
 	}
 	destroy() {

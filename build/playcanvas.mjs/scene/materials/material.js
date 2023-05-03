@@ -191,6 +191,7 @@ class Material {
 		return this._depthState.write;
 	}
 	copy(source) {
+		var _source$stencilFront;
 		this.name = source.name;
 		this._shader = source._shader;
 		this.alphaTest = source.alphaTest;
@@ -200,13 +201,9 @@ class Material {
 		this.cull = source.cull;
 		this.depthBias = source.depthBias;
 		this.slopeDepthBias = source.slopeDepthBias;
-		if (source.stencilFront) this.stencilFront = source.stencilFront.clone();
+		this.stencilFront = (_source$stencilFront = source.stencilFront) == null ? void 0 : _source$stencilFront.clone();
 		if (source.stencilBack) {
-			if (source.stencilFront === source.stencilBack) {
-				this.stencilBack = this.stencilFront;
-			} else {
-				this.stencilBack = source.stencilBack.clone();
-			}
+			this.stencilBack = source.stencilFront === source.stencilBack ? this.stencilFront : source.stencilBack.clone();
 		}
 		return this;
 	}

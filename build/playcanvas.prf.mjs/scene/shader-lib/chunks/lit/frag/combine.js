@@ -1,8 +1,3 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 var combinePS = `
 vec3 combineColor(vec3 albedo, vec3 sheenSpecularity, float clearcoatSpecularity) {
 		vec3 ret = vec3(0);

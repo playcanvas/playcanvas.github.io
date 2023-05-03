@@ -3,6 +3,7 @@ import { LitOptions } from './lit-options.js';
 class StandardMaterialOptions {
 	constructor() {
 		this._pass = 0;
+		this._isForwardPass = false;
 		this.chunks = [];
 		this.forceUv1 = false;
 		this.ambientTint = false;
@@ -26,6 +27,13 @@ class StandardMaterialOptions {
 	}
 	get pass() {
 		return this._pass;
+	}
+	set isForwardPass(value) {
+		this._isForwardPass = value;
+		this.litOptions._isForwardPass = value;
+	}
+	get isForwardPass() {
+		return this._isForwardPass;
 	}
 }
 

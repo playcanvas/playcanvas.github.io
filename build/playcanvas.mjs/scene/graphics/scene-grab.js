@@ -110,6 +110,7 @@ class SceneGrab {
 					const colorBuffer = this.colorRenderTarget.colorBuffer;
 					if (device.isWebGPU) {
 						device.copyRenderTarget(camera.renderTarget, this.colorRenderTarget, true, false);
+						device.mipmapRenderer.generate(this.colorRenderTarget.colorBuffer.impl);
 					} else {
 						device.copyRenderTarget(device.renderTarget, this.colorRenderTarget, true, false);
 						device.activeTexture(device.maxCombinedTextures - 1);

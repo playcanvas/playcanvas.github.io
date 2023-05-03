@@ -1,8 +1,3 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 var floatUnpackingPS = `
 // float unpacking functionality, complimentary to float-packing.js
 float bytes2float2(vec2 data) {

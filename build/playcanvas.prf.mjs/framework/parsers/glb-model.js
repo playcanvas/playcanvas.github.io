@@ -1,18 +1,15 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 import { GlbContainerResource } from './glb-container-resource.js';
 import { GlbParser } from './glb-parser.js';
 
 class GlbModelParser {
-	constructor(device, defaultMaterial) {
-		this._device = device;
-		this._defaultMaterial = defaultMaterial;
+	constructor(modelHandler) {
+		this._device = modelHandler.device;
+		this._defaultMaterial = modelHandler.defaultMaterial;
+		this._assets = modelHandler.assets;
 	}
-	parse(data, callback) {
-		GlbParser.parse('filename.glb', data, this._device, null, (err, result) => {
+	parse(data, callback, asset) {
+		var _asset$options;
+		GlbParser.parse('filename.glb', '', data, this._device, this._assets, (_asset$options = asset == null ? void 0 : asset.options) != null ? _asset$options : {}, (err, result) => {
 			if (err) {
 				callback(err);
 			} else {

@@ -1,8 +1,3 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 var reflDirAnisoPS = `
 void getReflDir(vec3 worldNormal, vec3 viewDir, float gloss, mat3 tbn) {
 		float roughness = sqrt(1.0 - min(gloss, 1.0));

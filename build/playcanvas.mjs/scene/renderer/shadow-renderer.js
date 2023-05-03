@@ -58,6 +58,7 @@ function getDepthKey(meshInstance) {
 }
 class ShadowRenderer {
 	constructor(renderer, lightTextureAtlas) {
+		this.shadowPassCache = [];
 		this.device = renderer.device;
 		this.renderer = renderer;
 		this.lightTextureAtlas = lightTextureAtlas;
@@ -134,12 +135,14 @@ class ShadowRenderer {
 				this.polygonOffsetId.setValue(this.polygonOffset);
 			}
 		}
-		const useShadowSampler = isClustered ? light._isPcf && device.webgl2 : light._isPcf && device.webgl2 && light._type !== LIGHTTYPE_OMNI;
+		const gpuOrGl2 = device.webgl2 || device.isWebGPU;
+		const useShadowSampler = isClustered ? light._isPcf && gpuOrGl2 : light._isPcf && gpuOrGl2 && light._type !== LIGHTTYPE_OMNI;
 		device.setBlendState(useShadowSampler ? this.blendStateNoWrite : this.blendStateWrite);
 		device.setDepthState(DepthState.DEFAULT);
+		device.setStencilState(null, null);
 	}
 	restoreRenderState(device) {
-		if (device.webgl2) {
+		if (device.webgl2 || device.isWebGPU) {
 			device.setDepthBias(false);
 		} else if (device.extStandardDerivatives) {
 			this.polygonOffset[0] = 0;
@@ -164,12 +167,29 @@ class ShadowRenderer {
 			light._shadowMatrixPalette.set(lightRenderData.shadowMatrix.data, face * 16);
 		}
 	}
+	getShadowPass(light) {
+		var _this$shadowPassCache;
+		const lightType = light._type;
+		const shadowType = light._shadowType;
+		let shadowPassInfo = (_this$shadowPassCache = this.shadowPassCache[lightType]) == null ? void 0 : _this$shadowPassCache[shadowType];
+		if (!shadowPassInfo) {
+			const shadowPassName = `ShadowPass_${lightType}_${shadowType}`;
+			shadowPassInfo = ShaderPass.get(this.device).allocate(shadowPassName, {
+				isShadow: true,
+				lightType: lightType,
+				shadowType: shadowType
+			});
+			if (!this.shadowPassCache[lightType]) this.shadowPassCache[lightType] = [];
+			this.shadowPassCache[lightType][shadowType] = shadowPassInfo;
+		}
+		return shadowPassInfo.index;
+	}
 	submitCasters(visibleCasters, light) {
 		const device = this.device;
 		const renderer = this.renderer;
 		const scene = renderer.scene;
 		const passFlags = 1 << SHADER_SHADOW;
-		const shadowPass = ShaderPass.getShadow(light._type, light._shadowType);
+		const shadowPass = this.getShadowPass(light);
 		const count = visibleCasters.length;
 		for (let i = 0; i < count; i++) {
 			const meshInstance = visibleCasters[i];
@@ -271,10 +291,10 @@ class ShadowRenderer {
 				this.prepareFace(light, camera, face);
 				this.renderFace(light, camera, face, true, insideRenderPass);
 			}
-			this.renderVms(light, camera);
+			this.renderVsm(light, camera);
 		}
 	}
-	renderVms(light, camera) {
+	renderVsm(light, camera) {
 		if (light._isVsm && light._vsmBlurSize > 1) {
 			const isClustered = this.renderer.scene.clusteredLightingEnabled;
 			if (!isClustered || light._type === LIGHTTYPE_DIRECTIONAL) {

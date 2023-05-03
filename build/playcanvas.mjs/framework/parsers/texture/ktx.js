@@ -1,3 +1,4 @@
+import { extends as _extends } from '../../../_virtual/_rollupPluginBabelHelpers.js';
 import '../../../core/tracing.js';
 import { ADDRESS_CLAMP_TO_EDGE, ADDRESS_REPEAT, PIXELFORMAT_DXT1, PIXELFORMAT_DXT3, PIXELFORMAT_DXT5, PIXELFORMAT_ETC1, PIXELFORMAT_ETC2_RGB, PIXELFORMAT_ETC2_RGBA, PIXELFORMAT_PVRTC_4BPP_RGB_1, PIXELFORMAT_PVRTC_2BPP_RGB_1, PIXELFORMAT_PVRTC_4BPP_RGBA_1, PIXELFORMAT_PVRTC_2BPP_RGBA_1, PIXELFORMAT_RGB8, PIXELFORMAT_RGBA8, PIXELFORMAT_SRGB, PIXELFORMAT_SRGBA, PIXELFORMAT_111110F, PIXELFORMAT_RGB16F, PIXELFORMAT_RGBA16F } from '../../../platform/graphics/constants.js';
 import { Texture } from '../../../platform/graphics/texture.js';
@@ -33,12 +34,12 @@ class KtxParser {
 	load(url, callback, asset) {
 		Asset.fetchArrayBuffer(url.load, callback, asset, this.maxRetries);
 	}
-	open(url, data, device) {
+	open(url, data, device, textureOptions = {}) {
 		const textureData = this.parse(data);
 		if (!textureData) {
 			return null;
 		}
-		const texture = new Texture(device, {
+		const texture = new Texture(device, _extends({
 			name: url,
 			addressU: textureData.cubemap ? ADDRESS_CLAMP_TO_EDGE : ADDRESS_REPEAT,
 			addressV: textureData.cubemap ? ADDRESS_CLAMP_TO_EDGE : ADDRESS_REPEAT,
@@ -47,7 +48,7 @@ class KtxParser {
 			format: textureData.format,
 			cubemap: textureData.cubemap,
 			levels: textureData.levels
-		});
+		}, textureOptions));
 		texture.upload();
 		return texture;
 	}

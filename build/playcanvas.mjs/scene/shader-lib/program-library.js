@@ -79,8 +79,13 @@ class ProgramLibrary {
 		let processedShader = this.getCachedShader(totalKey);
 		if (!processedShader) {
 			const generatedShaderDef = this.generateShaderDefinition(generator, name, generationKey, options);
+			let passName = '';
+			if (options.pass !== undefined) {
+				const shaderPassInfo = ShaderPass.get(this._device).getByIndex(options.pass);
+				passName = `-${shaderPassInfo.name}`;
+			}
 			const shaderDefinition = {
-				name: `${generatedShaderDef.name}-processed`,
+				name: `${generatedShaderDef.name}${passName}-proc`,
 				attributes: generatedShaderDef.attributes,
 				vshader: generatedShaderDef.vshader,
 				fshader: generatedShaderDef.fshader,
@@ -145,7 +150,8 @@ class ProgramLibrary {
 		});
 	}
 	_getDefaultStdMatOptions(pass) {
-		return pass === SHADER_DEPTH || pass === SHADER_PICK || ShaderPass.isShadow(pass) ? this._defaultStdMatOptionMin : this._defaultStdMatOption;
+		const shaderPassInfo = ShaderPass.get(this._device).getByIndex(pass);
+		return pass === SHADER_DEPTH || pass === SHADER_PICK || shaderPassInfo.isShadow ? this._defaultStdMatOptionMin : this._defaultStdMatOption;
 	}
 	precompile(cache) {
 		if (cache) {

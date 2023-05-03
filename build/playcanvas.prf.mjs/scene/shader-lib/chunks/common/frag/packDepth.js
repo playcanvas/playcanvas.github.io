@@ -1,8 +1,3 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 var packDepthPS = `
 // Packing a float in GLSL with multiplication and mod
 // http://blog.gradientstudios.com/2012/08/23/shadow-map-improvement

@@ -1,3 +1,4 @@
+import { extends as _extends } from '../../../_virtual/_rollupPluginBabelHelpers.js';
 import '../../../core/tracing.js';
 import { PIXELFORMAT_RGB8, ADDRESS_CLAMP_TO_EDGE, ADDRESS_REPEAT, PIXELFORMAT_DXT1, PIXELFORMAT_DXT5, PIXELFORMAT_RGBA16F, PIXELFORMAT_RGBA32F, PIXELFORMAT_ETC1, PIXELFORMAT_PVRTC_2BPP_RGB_1, PIXELFORMAT_PVRTC_2BPP_RGBA_1, PIXELFORMAT_PVRTC_4BPP_RGB_1, PIXELFORMAT_PVRTC_4BPP_RGBA_1, PIXELFORMAT_RGBA8 } from '../../../platform/graphics/constants.js';
 import { Texture } from '../../../platform/graphics/texture.js';
@@ -10,7 +11,7 @@ class DdsParser {
 	load(url, callback, asset) {
 		Asset.fetchArrayBuffer(url.load, callback, asset, this.maxRetries);
 	}
-	open(url, data, device) {
+	open(url, data, device, textureOptions = {}) {
 		const header = new Uint32Array(data, 0, 128 / 4);
 		const width = header[4];
 		const height = header[3];
@@ -75,7 +76,7 @@ class DdsParser {
 			});
 			return texture;
 		}
-		texture = new Texture(device, {
+		texture = new Texture(device, _extends({
 			name: url,
 			addressU: isCubemap ? ADDRESS_CLAMP_TO_EDGE : ADDRESS_REPEAT,
 			addressV: isCubemap ? ADDRESS_CLAMP_TO_EDGE : ADDRESS_REPEAT,
@@ -84,7 +85,7 @@ class DdsParser {
 			format: format,
 			cubemap: isCubemap,
 			mipmaps: mips > 1
-		});
+		}, textureOptions));
 		let offset = 128;
 		const faces = isCubemap ? 6 : 1;
 		let mipSize;

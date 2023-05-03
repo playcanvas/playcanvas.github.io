@@ -1,8 +1,3 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 import { path } from '../../core/path.js';
 import { Quat } from '../../core/math/quat.js';
 import { Vec3 } from '../../core/math/vec3.js';
@@ -14,6 +9,8 @@ import { GlbParser } from '../parsers/glb-parser.js';
 class AnimationHandler {
 	constructor(app) {
 		this.handlerType = "animation";
+		this.device = app.graphicsDevice;
+		this.assets = app.assets;
 		this.maxRetries = 0;
 	}
 	load(url, callback, asset) {
@@ -39,7 +36,8 @@ class AnimationHandler {
 				callback(`Error loading animation resource: ${url.original} [${err}]`);
 			} else {
 				if (path.getExtension(url.original).toLowerCase() === '.glb') {
-					GlbParser.parse('filename.glb', response, null, null, (err, parseResult) => {
+					var _asset$options;
+					GlbParser.parse('filename.glb', '', response, this.device, this.assets, (_asset$options = asset == null ? void 0 : asset.options) != null ? _asset$options : {}, (err, parseResult) => {
 						if (err) {
 							callback(err);
 						} else {

@@ -1,8 +1,3 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 import { Mat4 } from '../../core/math/mat4.js';
 import { Vec3 } from '../../core/math/vec3.js';
 import { BoundingBox } from '../../core/shape/bounding-box.js';
@@ -41,9 +36,9 @@ const JSON_VERTEX_ELEMENT_TYPE = {
 	'float32': TYPE_FLOAT32
 };
 class JsonModelParser {
-	constructor(device, defaultMaterial) {
-		this._device = device;
-		this._defaultMaterial = defaultMaterial;
+	constructor(modelHandler) {
+		this._device = modelHandler.device;
+		this._defaultMaterial = modelHandler.defaultMaterial;
 	}
 	parse(data, callback) {
 		const modelData = data.model;

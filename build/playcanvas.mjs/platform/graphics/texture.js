@@ -1,85 +1,64 @@
 import '../../core/tracing.js';
 import { math } from '../../core/math/math.js';
-import { PIXELFORMAT_RGBA8, TEXTURETYPE_DEFAULT, TEXTUREPROJECTION_NONE, FILTER_LINEAR_MIPMAP_LINEAR, FILTER_LINEAR, ADDRESS_REPEAT, FUNC_LESS, TEXTURETYPE_RGBM, TEXTURETYPE_SWIZZLEGGGR, TEXTUREPROJECTION_CUBE, isCompressedPixelFormat, PIXELFORMAT_RGB16F, PIXELFORMAT_RGB32F, PIXELFORMAT_RGBA16F, PIXELFORMAT_RGBA32F, TEXTURETYPE_RGBP, TEXTURETYPE_RGBE, PIXELFORMAT_ETC1, PIXELFORMAT_ETC2_RGB, PIXELFORMAT_PVRTC_2BPP_RGB_1, PIXELFORMAT_PVRTC_2BPP_RGBA_1, PIXELFORMAT_PVRTC_4BPP_RGB_1, PIXELFORMAT_PVRTC_4BPP_RGBA_1, PIXELFORMAT_DXT1, PIXELFORMAT_ATC_RGB, PIXELFORMAT_ETC2_RGBA, PIXELFORMAT_DXT3, PIXELFORMAT_DXT5, PIXELFORMAT_ASTC_4x4, PIXELFORMAT_ATC_RGBA, pixelFormatByteSizes, TEXTURELOCK_WRITE, PIXELFORMAT_RGB8, PIXELFORMAT_RGBA4, PIXELFORMAT_RGBA5551, PIXELFORMAT_RGB565, PIXELFORMAT_LA8, PIXELFORMAT_L8, PIXELFORMAT_A8 } from './constants.js';
+import { PIXELFORMAT_RGBA8, isCompressedPixelFormat, FILTER_LINEAR_MIPMAP_LINEAR, FILTER_LINEAR, ADDRESS_REPEAT, FUNC_LESS, TEXTURETYPE_DEFAULT, TEXTURETYPE_RGBM, TEXTURETYPE_SWIZZLEGGGR, TEXTUREPROJECTION_NONE, TEXTUREPROJECTION_CUBE, PIXELFORMAT_RGB16F, PIXELFORMAT_RGB32F, PIXELFORMAT_RGBA16F, PIXELFORMAT_RGBA32F, TEXTURETYPE_RGBP, TEXTURETYPE_RGBE, PIXELFORMAT_ETC1, PIXELFORMAT_ETC2_RGB, PIXELFORMAT_PVRTC_2BPP_RGB_1, PIXELFORMAT_PVRTC_2BPP_RGBA_1, PIXELFORMAT_PVRTC_4BPP_RGB_1, PIXELFORMAT_PVRTC_4BPP_RGBA_1, PIXELFORMAT_DXT1, PIXELFORMAT_ATC_RGB, PIXELFORMAT_ETC2_RGBA, PIXELFORMAT_DXT3, PIXELFORMAT_DXT5, PIXELFORMAT_ASTC_4x4, PIXELFORMAT_ATC_RGBA, pixelFormatByteSizes, TEXTURELOCK_WRITE, PIXELFORMAT_RGB8, PIXELFORMAT_RGBA4, PIXELFORMAT_RGBA5551, PIXELFORMAT_RGB565, PIXELFORMAT_LA8, PIXELFORMAT_L8, PIXELFORMAT_A8 } from './constants.js';
 
 let _blockSizeTable = null;
 let id = 0;
 class Texture {
-	constructor(graphicsDevice, options) {
-		this.id = id++;
-		this.device = graphicsDevice;
-		this.name = null;
-		this._width = 4;
-		this._height = 4;
-		this._depth = 1;
-		this._format = PIXELFORMAT_RGBA8;
-		this.type = TEXTURETYPE_DEFAULT;
-		this.projection = TEXTUREPROJECTION_NONE;
-		this._cubemap = false;
-		this._volume = false;
-		this.fixCubemapSeams = false;
-		this._flipY = false;
-		this._premultiplyAlpha = false;
+	constructor(graphicsDevice, options = {}) {
+		var _options$name, _options$width, _options$height, _options$format, _options$cubemap, _options$fixCubemapSe, _options$flipY, _options$premultiplyA, _ref, _options$mipmaps, _options$minFilter, _options$magFilter, _options$anisotropy, _options$addressU, _options$addressV, _options$addressW, _options$compareOnRea, _options$compareFunc;
+		this.name = void 0;
 		this._isRenderTarget = false;
-		this._mipmaps = true;
-		this._minFilter = FILTER_LINEAR_MIPMAP_LINEAR;
-		this._magFilter = FILTER_LINEAR;
-		this._anisotropy = 1;
-		this._addressU = ADDRESS_REPEAT;
-		this._addressV = ADDRESS_REPEAT;
-		this._addressW = ADDRESS_REPEAT;
-		this._compareOnRead = false;
-		this._compareFunc = FUNC_LESS;
-		if (options !== undefined) {
-			if (options.name !== undefined) {
-				this.name = options.name;
-			}
-			this._width = options.width !== undefined ? options.width : this._width;
-			this._height = options.height !== undefined ? options.height : this._height;
-			this._format = options.format !== undefined ? options.format : this._format;
-			if (options.hasOwnProperty('type')) {
-				this.type = options.type;
-			} else if (options.hasOwnProperty('rgbm')) {
-				this.type = options.rgbm ? TEXTURETYPE_RGBM : TEXTURETYPE_DEFAULT;
-			} else if (options.hasOwnProperty('swizzleGGGR')) {
-				this.type = options.swizzleGGGR ? TEXTURETYPE_SWIZZLEGGGR : TEXTURETYPE_DEFAULT;
-			}
-			if (options.mipmaps !== undefined) {
-				this._mipmaps = options.mipmaps;
-			} else {
-				this._mipmaps = options.autoMipmap !== undefined ? options.autoMipmap : this._mipmaps;
-			}
-			this._levels = options.levels;
-			this._cubemap = options.cubemap !== undefined ? options.cubemap : this._cubemap;
-			this.fixCubemapSeams = options.fixCubemapSeams !== undefined ? options.fixCubemapSeams : this.fixCubemapSeams;
-			if (this._cubemap) {
-				this.projection = TEXTUREPROJECTION_CUBE;
-			} else if (options.projection && options.projection !== TEXTUREPROJECTION_CUBE) {
-				this.projection = options.projection;
-			}
-			this._minFilter = options.minFilter !== undefined ? options.minFilter : this._minFilter;
-			this._magFilter = options.magFilter !== undefined ? options.magFilter : this._magFilter;
-			this._anisotropy = options.anisotropy !== undefined ? options.anisotropy : this._anisotropy;
-			this._addressU = options.addressU !== undefined ? options.addressU : this._addressU;
-			this._addressV = options.addressV !== undefined ? options.addressV : this._addressV;
-			this._compareOnRead = options.compareOnRead !== undefined ? options.compareOnRead : this._compareOnRead;
-			this._compareFunc = options._compareFunc !== undefined ? options._compareFunc : this._compareFunc;
-			this._flipY = options.flipY !== undefined ? options.flipY : this._flipY;
-			this._premultiplyAlpha = options.premultiplyAlpha !== undefined ? options.premultiplyAlpha : this._premultiplyAlpha;
-			if (graphicsDevice.webgl2) {
-				this._depth = options.depth !== undefined ? options.depth : this._depth;
-				this._volume = options.volume !== undefined ? options.volume : this._volume;
-				this._addressW = options.addressW !== undefined ? options.addressW : this._addressW;
-			}
-		}
-		this._compressed = isCompressedPixelFormat(this._format);
+		this._gpuSize = 0;
+		this.id = id++;
 		this._invalid = false;
 		this._lockedLevel = -1;
+		this.device = graphicsDevice;
+		this.name = (_options$name = options.name) != null ? _options$name : null;
+		this._width = (_options$width = options.width) != null ? _options$width : 4;
+		this._height = (_options$height = options.height) != null ? _options$height : 4;
+		this._format = (_options$format = options.format) != null ? _options$format : PIXELFORMAT_RGBA8;
+		this._compressed = isCompressedPixelFormat(this._format);
+		if (graphicsDevice.webgl2) {
+			var _options$volume, _options$depth;
+			this._volume = (_options$volume = options.volume) != null ? _options$volume : false;
+			this._depth = (_options$depth = options.depth) != null ? _options$depth : 1;
+		} else {
+			this._volume = false;
+			this._depth = 1;
+		}
+		this._cubemap = (_options$cubemap = options.cubemap) != null ? _options$cubemap : false;
+		this.fixCubemapSeams = (_options$fixCubemapSe = options.fixCubemapSeams) != null ? _options$fixCubemapSe : false;
+		this._flipY = (_options$flipY = options.flipY) != null ? _options$flipY : false;
+		this._premultiplyAlpha = (_options$premultiplyA = options.premultiplyAlpha) != null ? _options$premultiplyA : false;
+		this._mipmaps = (_ref = (_options$mipmaps = options.mipmaps) != null ? _options$mipmaps : options.autoMipmap) != null ? _ref : true;
+		this._minFilter = (_options$minFilter = options.minFilter) != null ? _options$minFilter : FILTER_LINEAR_MIPMAP_LINEAR;
+		this._magFilter = (_options$magFilter = options.magFilter) != null ? _options$magFilter : FILTER_LINEAR;
+		this._anisotropy = (_options$anisotropy = options.anisotropy) != null ? _options$anisotropy : 1;
+		this._addressU = (_options$addressU = options.addressU) != null ? _options$addressU : ADDRESS_REPEAT;
+		this._addressV = (_options$addressV = options.addressV) != null ? _options$addressV : ADDRESS_REPEAT;
+		this._addressW = (_options$addressW = options.addressW) != null ? _options$addressW : ADDRESS_REPEAT;
+		this._compareOnRead = (_options$compareOnRea = options.compareOnRead) != null ? _options$compareOnRea : false;
+		this._compareFunc = (_options$compareFunc = options.compareFunc) != null ? _options$compareFunc : FUNC_LESS;
+		this.type = TEXTURETYPE_DEFAULT;
+		if (options.hasOwnProperty('type')) {
+			this.type = options.type;
+		} else if (options.hasOwnProperty('rgbm')) {
+			this.type = options.rgbm ? TEXTURETYPE_RGBM : TEXTURETYPE_DEFAULT;
+		} else if (options.hasOwnProperty('swizzleGGGR')) {
+			this.type = options.swizzleGGGR ? TEXTURETYPE_SWIZZLEGGGR : TEXTURETYPE_DEFAULT;
+		}
+		this.projection = TEXTUREPROJECTION_NONE;
+		if (this._cubemap) {
+			this.projection = TEXTUREPROJECTION_CUBE;
+		} else if (options.projection && options.projection !== TEXTUREPROJECTION_CUBE) {
+			this.projection = options.projection;
+		}
+		this._levels = options.levels;
 		if (!this._levels) {
 			this._levels = this._cubemap ? [[null, null, null, null, null, null]] : [null];
 		}
 		this.dirtyAll();
-		this._gpuSize = 0;
 		this.impl = graphicsDevice.createTextureImpl(this);
 		graphicsDevice.textures.push(this);
 	}
@@ -103,6 +82,9 @@ class Texture {
 	}
 	adjustVramSizeTracking(vram, size) {
 		vram.tex += size;
+	}
+	get requiredMipLevels() {
+		return this.mipmaps ? Math.floor(Math.log2(Math.max(this.width, this.height))) + 1 : 1;
 	}
 	set minFilter(v) {
 		if (this._minFilter !== v) {
@@ -180,15 +162,10 @@ class Texture {
 	get anisotropy() {
 		return this._anisotropy;
 	}
-	set autoMipmap(v) {
-		this._mipmaps = v;
-	}
-	get autoMipmap() {
-		return this._mipmaps;
-	}
 	set mipmaps(v) {
 		if (this._mipmaps !== v) {
 			this._mipmaps = v;
+			if (this.device.isWebGPU) ;
 			if (v) this._needsMipmapsUpload = true;
 		}
 	}

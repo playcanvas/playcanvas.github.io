@@ -1,8 +1,3 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 import { CULLFACE_FRONT } from '../platform/graphics/constants.js';
 import { ShaderProcessorOptions } from '../platform/graphics/shader-processor-options.js';
 import { SHADER_FORWARDHDR, GAMMA_SRGBHDR, GAMMA_NONE, TONEMAP_LINEAR, LAYERID_SKYBOX } from './constants.js';
@@ -18,21 +13,20 @@ class Sky {
 		this.meshInstance = void 0;
 		const material = new Material();
 		material.getShaderVariant = function (dev, sc, defs, staticLightList, pass, sortedLights, viewUniformFormat, viewBindGroupFormat) {
-			const options = texture.cubemap ? {
-				type: 'cubemap',
-				encoding: texture.encoding,
-				useIntensity: scene.skyboxIntensity !== 1 || scene.physicalUnits,
-				mip: texture.fixCubemapSeams ? scene.skyboxMip : 0,
-				fixSeams: texture.fixCubemapSeams,
-				gamma: pass === SHADER_FORWARDHDR ? scene.gammaCorrection ? GAMMA_SRGBHDR : GAMMA_NONE : scene.gammaCorrection,
-				toneMapping: pass === SHADER_FORWARDHDR ? TONEMAP_LINEAR : scene.toneMapping
-			} : {
-				type: 'envAtlas',
+			const options = {
+				pass: pass,
 				encoding: texture.encoding,
 				useIntensity: scene.skyboxIntensity !== 1 || scene.physicalUnits,
 				gamma: pass === SHADER_FORWARDHDR ? scene.gammaCorrection ? GAMMA_SRGBHDR : GAMMA_NONE : scene.gammaCorrection,
 				toneMapping: pass === SHADER_FORWARDHDR ? TONEMAP_LINEAR : scene.toneMapping
 			};
+			if (texture.cubemap) {
+				options.type = 'cubemap';
+				options.mip = texture.fixCubemapSeams ? scene.skyboxMip : 0;
+				options.fixSeams = texture.fixCubemapSeams;
+			} else {
+				options.type = 'envAtlas';
+			}
 			const processingOptions = new ShaderProcessorOptions(viewUniformFormat, viewBindGroupFormat);
 			const library = getProgramLibrary(device);
 			library.register('skybox', skybox);

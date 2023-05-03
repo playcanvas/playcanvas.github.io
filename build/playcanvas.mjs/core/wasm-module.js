@@ -96,6 +96,10 @@ class WasmModule {
 			Impl.initialize(moduleName, module);
 		}
 	}
+	static getConfig(moduleName) {
+		var _Impl$modules, _Impl$modules$moduleN;
+		return (_Impl$modules = Impl.modules) == null ? void 0 : (_Impl$modules$moduleN = _Impl$modules[moduleName]) == null ? void 0 : _Impl$modules$moduleN.config;
+	}
 	static getInstance(moduleName, callback) {
 		const module = Impl.getModule(moduleName);
 		if (module.instance) {

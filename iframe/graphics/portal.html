@@ -54,189 +54,218 @@
 
     function example(canvas, deviceType) {
 
-      // Create the application and start the update loop
-      var app = new pc.Application(canvas, {
-        keyboard: new pc.Keyboard(window) });
-
-
       var assets = {
-        'helipad.dds': new pc.Asset('helipad.dds', 'cubemap', { url: '/../../static/assets/cubemaps/helipad.dds' }, { type: pc.TEXTURETYPE_RGBM }),
+        'helipad': new pc.Asset('helipad-env-atlas', 'texture', { url: '/../../static/assets/cubemaps/helipad-env-atlas.png' }, { type: pc.TEXTURETYPE_RGBP, mipmaps: false }),
         'portal': new pc.Asset('portal', 'container', { url: '/../../static/assets/models/portal.glb' }),
         'statue': new pc.Asset('statue', 'container', { url: '/../../static/assets/models/statue.glb' }),
         'bitmoji': new pc.Asset('bitmoji', 'container', { url: '/../../static/assets/models/bitmoji.glb' }) };
 
 
-      var assetListLoader = new pc.AssetListLoader(Object.values(assets), app.assets);
-      assetListLoader.load(function () {
+      var gfxOptions = {
+        deviceTypes: [deviceType],
+        glslangUrl: '/../../static/lib/glslang/glslang.js',
+        twgslUrl: '/../../static/lib/twgsl/twgsl.js' };
+
+
+      pc.createGraphicsDevice(canvas, gfxOptions).then(function (device) {
+
+        var createOptions = new pc.AppOptions();
+        createOptions.graphicsDevice = device;
+
+        createOptions.componentSystems = [
+        // @ts-ignore
+        pc.RenderComponentSystem,
+        // @ts-ignore
+        pc.CameraComponentSystem,
+        // @ts-ignore
+        pc.LightComponentSystem,
+        // @ts-ignore
+        pc.ScriptComponentSystem];
+
+        createOptions.resourceHandlers = [
+        // @ts-ignore
+        pc.TextureHandler,
+        // @ts-ignore
+        pc.ContainerHandler,
+        // @ts-ignore
+        pc.ScriptHandler];
+
+
+        var app = new pc.AppBase(canvas);
+        app.init(createOptions);
 
         // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
         app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
         app.setCanvasResolution(pc.RESOLUTION_AUTO);
 
-        app.start();
+        var assetListLoader = new pc.AssetListLoader(Object.values(assets), app.assets);
+        assetListLoader.load(function () {
 
-        // set skybox - this DDS file was 'prefiltered' in the PlayCanvas Editor and then downloaded.
-        app.scene.setSkybox(assets["helipad.dds"].resources);
-        app.scene.toneMapping = pc.TONEMAP_ACES;
-        app.scene.skyboxMip = 1;
-        app.scene.skyboxIntensity = 0.7;
+          app.start();
 
-        ////////////////////////////////
-        // Script to rotate the scene //
-        ////////////////////////////////
-        var Rotator = pc.createScript('rotator');
+          // set skybox - this DDS file was 'prefiltered' in the PlayCanvas Editor and then downloaded.
+          app.scene.envAtlas = assets.helipad.resource;
+          app.scene.toneMapping = pc.TONEMAP_ACES;
+          app.scene.skyboxMip = 1;
+          app.scene.skyboxIntensity = 0.7;
 
-        var t = 0;
+          ////////////////////////////////
+          // Script to rotate the scene //
+          ////////////////////////////////
+          var Rotator = pc.createScript('rotator');
 
-        Rotator.prototype.update = function (dt) {
-          t += dt;
-          this.entity.setEulerAngles(0, Math.sin(t) * 40, 0);
-        };
+          var t = 0;
 
-        //////////////////////////////////////////////////
-        // Script to set up rendering the portal itself //
-        //////////////////////////////////////////////////
-        var Portal = pc.createScript('portal');
+          Rotator.prototype.update = function (dt) {
+            t += dt;
+            this.entity.setEulerAngles(0, Math.sin(t) * 40, 0);
+          };
 
-        // initialize code called once per entity
-        Portal.prototype.initialize = function () {
+          //////////////////////////////////////////////////
+          // Script to set up rendering the portal itself //
+          //////////////////////////////////////////////////
+          var Portal = pc.createScript('portal');
 
-          // increment value in stencil (from 0 to 1) for stencil geometry
-          var stencil = new pc.StencilParameters({
-            zpass: pc.STENCILOP_INCREMENT });
+          // initialize code called once per entity
+          Portal.prototype.initialize = function () {
 
-
-          // set the stencil and other parameters on all materials
-          var renders = this.entity.findComponents("render");
-          renders.forEach(function (render) {var _iterator = _createForOfIteratorHelper(
-            render.meshInstances),_step;try {for (_iterator.s(); !(_step = _iterator.n()).done;) {var meshInstance = _step.value;
-                var mat = meshInstance.material;
-                mat.stencilBack = mat.stencilFront = stencil;
-
-                // We only want to write to the stencil buffer
-                mat.depthWrite = false;
-                mat.redWrite = mat.greenWrite = mat.blueWrite = mat.alphaWrite = false;
-                mat.update();
-              }} catch (err) {_iterator.e(err);} finally {_iterator.f();}
-          });
-        };
-
-        /////////////////////////////////////////////////////////////////////////////
-        // Script to set stencil options for entities inside or outside the portal //
-        /////////////////////////////////////////////////////////////////////////////
-
-        var PortalGeometry = pc.createScript('portalGeometry');
-
-        PortalGeometry.attributes.add('inside', {
-          type: 'boolean',
-          "default": true,
-          title: 'True indicating the geometry is inside the portal, false for outside' });
+            // increment value in stencil (from 0 to 1) for stencil geometry
+            var stencil = new pc.StencilParameters({
+              zpass: pc.STENCILOP_INCREMENT });
 
 
-        PortalGeometry.prototype.initialize = function () {
+            // set the stencil and other parameters on all materials
+            var renders = this.entity.findComponents("render");
+            renders.forEach(function (render) {var _iterator = _createForOfIteratorHelper(
+              render.meshInstances),_step;try {for (_iterator.s(); !(_step = _iterator.n()).done;) {var meshInstance = _step.value;
+                  var mat = meshInstance.material;
+                  mat.stencilBack = mat.stencilFront = stencil;
 
-          // based on value in the stencil buffer (0 outside, 1 inside), either render
-          // the geometry when the value is equal, or not equal to zero.
-          var stencil = new pc.StencilParameters({
-            func: this.inside ? pc.FUNC_NOTEQUAL : pc.FUNC_EQUAL,
-            ref: 0 });
+                  // We only want to write to the stencil buffer
+                  mat.depthWrite = false;
+                  mat.redWrite = mat.greenWrite = mat.blueWrite = mat.alphaWrite = false;
+                  mat.update();
+                }} catch (err) {_iterator.e(err);} finally {_iterator.f();}
+            });
+          };
 
+          /////////////////////////////////////////////////////////////////////////////
+          // Script to set stencil options for entities inside or outside the portal //
+          /////////////////////////////////////////////////////////////////////////////
 
-          // set the stencil parameters on all materials
-          var renders = this.entity.findComponents("render");
-          renders.forEach(function (render) {var _iterator2 = _createForOfIteratorHelper(
-            render.meshInstances),_step2;try {for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {var meshInstance = _step2.value;
-                meshInstance.material.stencilBack = meshInstance.material.stencilFront = stencil;
-              }} catch (err) {_iterator2.e(err);} finally {_iterator2.f();}
-          });
-        };
+          var PortalGeometry = pc.createScript('portalGeometry');
 
-        /////////////////////////////////////////////////////////////////////////////
-
-        // find world layer - majority of objects render to this layer
-        var worldLayer = app.scene.layers.getLayerByName("World");
-
-        // find skybox layer - to enable it for the camera
-        var skyboxLayer = app.scene.layers.getLayerByName("Skybox");
-
-        // portal layer - this is where the portal geometry is written to the stencil
-        // buffer, and this needs to render first, so insert it before the world layer
-        var portalLayer = new pc.Layer({ name: "Portal" });
-        app.scene.layers.insert(portalLayer, 0);
-
-        // Create an Entity with a camera component
-        // this camera renders both world and portal layers
-        var camera = new pc.Entity();
-        camera.addComponent('camera', {
-          layers: [worldLayer.id, portalLayer.id, skyboxLayer.id] });
-
-        camera.setLocalPosition(7, 5.5, 7.1);
-        camera.setLocalEulerAngles(-27, 45, 0);
-        app.root.addChild(camera);
-
-        // Create an Entity with a directional light component
-        var light = new pc.Entity();
-        light.addComponent('light', {
-          type: 'directional',
-          color: new pc.Color(1, 1, 1) });
-
-        light.setEulerAngles(45, 35, 0);
-        app.root.addChild(light);
-
-        // Create a root for the graphical scene
-        var group = new pc.Entity();
-        group.addComponent('script');
-        group.script.create('rotator');
-        app.root.addChild(group);
-
-        // Create the portal entity - this plane is written to stencil buffer,
-        // which is then used to test for inside / outside. This needs to render
-        // before all elements requiring stencil buffer, so add to to a portalLayer.
-        // This is the plane that fills the inside of the portal geometry.
-        var portal = new pc.Entity("Portal");
-        portal.addComponent('render', {
-          type: 'plane',
-          material: new pc.StandardMaterial(),
-          layers: [portalLayer.id] });
-
-        portal.addComponent('script');
-        portal.script.create('portal'); // comment out this line to see the geometry
-        portal.setLocalPosition(0, 0.4, -0.3);
-        portal.setLocalEulerAngles(90, 0, 0);
-        portal.setLocalScale(3.7, 1, 6.7);
-        group.addChild(portal);
-
-        // Create the portal visual geometry
-        var portalEntity = assets.portal.resource.instantiateRenderEntity();
-        portalEntity.setLocalPosition(0, -3, 0);
-        portalEntity.setLocalScale(0.02, 0.02, 0.02);
-        group.addChild(portalEntity);
-
-        // Create a statue entity, whic is visible inside the portal only
-        var statue = assets.statue.resource.instantiateRenderEntity();
-        statue.addComponent('script');
-        statue.script.create('portalGeometry', {
-          attributes: {
-            inside: true } });
+          PortalGeometry.attributes.add('inside', {
+            type: 'boolean',
+            "default": true,
+            title: 'True indicating the geometry is inside the portal, false for outside' });
 
 
-        statue.setLocalPosition(0, -1, -2);
-        statue.setLocalScale(0.25, 0.25, 0.25);
-        group.addChild(statue);
+          PortalGeometry.prototype.initialize = function () {
 
-        // Create a bitmoji entity, whic is visible outside the portal only
-        var bitmoji = assets.bitmoji.resource.instantiateRenderEntity();
-        bitmoji.addComponent('script');
-        bitmoji.script.create('portalGeometry', {
-          attributes: {
-            inside: false } });
+            // based on value in the stencil buffer (0 outside, 1 inside), either render
+            // the geometry when the value is equal, or not equal to zero.
+            var stencil = new pc.StencilParameters({
+              func: this.inside ? pc.FUNC_NOTEQUAL : pc.FUNC_EQUAL,
+              ref: 0 });
 
 
-        bitmoji.setLocalPosition(0, -1, -2);
-        bitmoji.setLocalScale(2.5, 2.5, 2.5);
-        group.addChild(bitmoji);
+            // set the stencil parameters on all materials
+            var renders = this.entity.findComponents("render");
+            renders.forEach(function (render) {var _iterator2 = _createForOfIteratorHelper(
+              render.meshInstances),_step2;try {for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {var meshInstance = _step2.value;
+                  meshInstance.material.stencilBack = meshInstance.material.stencilFront = stencil;
+                }} catch (err) {_iterator2.e(err);} finally {_iterator2.f();}
+            });
+          };
+
+          /////////////////////////////////////////////////////////////////////////////
+
+          // find world layer - majority of objects render to this layer
+          var worldLayer = app.scene.layers.getLayerByName("World");
+
+          // find skybox layer - to enable it for the camera
+          var skyboxLayer = app.scene.layers.getLayerByName("Skybox");
+
+          // portal layer - this is where the portal geometry is written to the stencil
+          // buffer, and this needs to render first, so insert it before the world layer
+          var portalLayer = new pc.Layer({ name: "Portal" });
+          app.scene.layers.insert(portalLayer, 0);
+
+          // Create an Entity with a camera component
+          // this camera renders both world and portal layers
+          var camera = new pc.Entity();
+          camera.addComponent('camera', {
+            layers: [worldLayer.id, portalLayer.id, skyboxLayer.id] });
+
+          camera.setLocalPosition(7, 5.5, 7.1);
+          camera.setLocalEulerAngles(-27, 45, 0);
+          app.root.addChild(camera);
+
+          // Create an Entity with a directional light component
+          var light = new pc.Entity();
+          light.addComponent('light', {
+            type: 'directional',
+            color: new pc.Color(1, 1, 1) });
+
+          light.setEulerAngles(45, 35, 0);
+          app.root.addChild(light);
+
+          // Create a root for the graphical scene
+          var group = new pc.Entity();
+          group.addComponent('script');
+          group.script.create('rotator');
+          app.root.addChild(group);
+
+          // Create the portal entity - this plane is written to stencil buffer,
+          // which is then used to test for inside / outside. This needs to render
+          // before all elements requiring stencil buffer, so add to to a portalLayer.
+          // This is the plane that fills the inside of the portal geometry.
+          var portal = new pc.Entity("Portal");
+          portal.addComponent('render', {
+            type: 'plane',
+            material: new pc.StandardMaterial(),
+            layers: [portalLayer.id] });
+
+          portal.addComponent('script');
+          portal.script.create('portal'); // comment out this line to see the geometry
+          portal.setLocalPosition(0, 0.4, -0.3);
+          portal.setLocalEulerAngles(90, 0, 0);
+          portal.setLocalScale(3.7, 1, 6.7);
+          group.addChild(portal);
+
+          // Create the portal visual geometry
+          var portalEntity = assets.portal.resource.instantiateRenderEntity();
+          portalEntity.setLocalPosition(0, -3, 0);
+          portalEntity.setLocalScale(0.02, 0.02, 0.02);
+          group.addChild(portalEntity);
+
+          // Create a statue entity, whic is visible inside the portal only
+          var statue = assets.statue.resource.instantiateRenderEntity();
+          statue.addComponent('script');
+          statue.script.create('portalGeometry', {
+            attributes: {
+              inside: true } });
+
+
+          statue.setLocalPosition(0, -1, -2);
+          statue.setLocalScale(0.25, 0.25, 0.25);
+          group.addChild(statue);
+
+          // Create a bitmoji entity, whic is visible outside the portal only
+          var bitmoji = assets.bitmoji.resource.instantiateRenderEntity();
+          bitmoji.addComponent('script');
+          bitmoji.script.create('portalGeometry', {
+            attributes: {
+              inside: false } });
+
+
+          bitmoji.setLocalPosition(0, -1, -2);
+          bitmoji.setLocalScale(2.5, 2.5, 2.5);
+          group.addChild(bitmoji);
+        });
       });
-    } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'Graphics');_defineProperty(Example, "NAME", 'Portal');
+    } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'Graphics');_defineProperty(Example, "NAME", 'Portal');_defineProperty(Example, "WEBGPU_ENABLED", true);
         var example = new Example();
 
         var useTypeScript = window.top.localStorage.getItem('useTypeScript') === 'true';
@@ -371,7 +400,7 @@
                 } else if (arg === 'pcx') {
                     return pcx;
                 } else if (arg === 'deviceType') {
-                    if (false) {
+                    if (true) {
                         return window.top.preferredGraphicsDevice || 'webgpu';
                     } else if (['webgl1', 'webgl2'].includes(window.top.preferredGraphicsDevice)) {
                         return window.top.preferredGraphicsDevice;

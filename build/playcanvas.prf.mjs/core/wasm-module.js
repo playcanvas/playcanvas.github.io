@@ -1,8 +1,3 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 const cachedResult = func => {
 	const uninitToken = {};
 	let result = uninitToken;
@@ -100,6 +95,10 @@ class WasmModule {
 		if (module.callbacks.length > 0) {
 			Impl.initialize(moduleName, module);
 		}
+	}
+	static getConfig(moduleName) {
+		var _Impl$modules, _Impl$modules$moduleN;
+		return (_Impl$modules = Impl.modules) == null ? void 0 : (_Impl$modules$moduleN = _Impl$modules[moduleName]) == null ? void 0 : _Impl$modules$moduleN.config;
 	}
 	static getInstance(moduleName, callback) {
 		const module = Impl.getModule(moduleName);

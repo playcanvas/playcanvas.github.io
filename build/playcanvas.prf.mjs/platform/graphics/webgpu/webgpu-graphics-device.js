@@ -1,11 +1,6 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 import '../../../core/tracing.js';
 import { Vec2 } from '../../../core/math/vec2.js';
-import { DEVICETYPE_WEBGPU, PIXELFORMAT_RGBA32F, PIXELFORMAT_RGBA8, PIXELFORMAT_BGRA8, CULLFACE_BACK } from '../constants.js';
+import { DEVICETYPE_WEBGPU, PIXELFORMAT_RGBA32F, PIXELFORMAT_RGBA8, PIXELFORMAT_BGRA8 } from '../constants.js';
 import { GraphicsDevice } from '../graphics-device.js';
 import { RenderTarget } from '../render-target.js';
 import { WebgpuBindGroup } from './webgpu-bind-group.js';
@@ -18,24 +13,30 @@ import { WebgpuTexture } from './webgpu-texture.js';
 import { WebgpuUniformBuffer } from './webgpu-uniform-buffer.js';
 import { WebgpuVertexBuffer } from './webgpu-vertex-buffer.js';
 import { WebgpuClearRenderer } from './webgpu-clear-renderer.js';
+import { WebgpuMipmapRenderer } from './webgpu-mipmap-renderer.js';
+import { StencilParameters } from '../stencil-parameters.js';
 
 class WebgpuGraphicsDevice extends GraphicsDevice {
 	constructor(canvas, options = {}) {
-		super(canvas);
+		super(canvas, options);
 		this.frameBuffer = void 0;
 		this.renderPipeline = new WebgpuRenderPipeline(this);
 		this.clearRenderer = void 0;
+		this.mipmapRenderer = void 0;
 		this.pipeline = void 0;
 		this.bindGroupFormats = [];
 		this.commandEncoder = void 0;
+		options = this.initOptions;
 		this.isWebGPU = true;
 		this._deviceType = DEVICETYPE_WEBGPU;
 		this.samples = options.antialias ? 4 : 1;
+		this.setupPassEncoderDefaults();
 	}
 	destroy() {
 		super.destroy();
 	}
 	initDeviceCaps() {
+		this.disableParticleSystem = true;
 		const limits = this.gpuAdapter.limits;
 		this.precision = 'highp';
 		this.maxPrecision = 'highp';
@@ -51,6 +52,7 @@ class WebgpuGraphicsDevice extends GraphicsDevice {
 		this.supportsMorphTargetTexturesCore = true;
 		this.supportsAreaLights = true;
 		this.supportsDepthShadow = true;
+		this.supportsGpuParticles = false;
 		this.extUintElement = true;
 		this.extTextureFloat = true;
 		this.textureFloatRenderable = true;
@@ -117,15 +119,18 @@ class WebgpuGraphicsDevice extends GraphicsDevice {
 		this.gpuContext.configure(this.canvasConfig);
 		this.createFramebuffer();
 		this.clearRenderer = new WebgpuClearRenderer(this);
+		this.mipmapRenderer = new WebgpuMipmapRenderer(this);
 		this.postInit();
 		return this;
 	}
 	createFramebuffer() {
+		this.supportsStencil = this.initOptions.stencil;
 		this.frameBufferDimensions = new Vec2();
 		this.frameBuffer = new RenderTarget({
 			name: 'WebgpuFramebuffer',
 			graphicsDevice: this,
-			depth: true,
+			depth: this.initOptions.depth,
+			stencil: this.supportsStencil,
 			samples: this.samples
 		});
 	}
@@ -205,7 +210,7 @@ class WebgpuGraphicsDevice extends GraphicsDevice {
 					this.submitVertexBuffer(vb1, vbSlot);
 				}
 			}
-			const pipeline = this.renderPipeline.get(primitive, vb0 == null ? void 0 : vb0.format, vb1 == null ? void 0 : vb1.format, this.shader, this.renderTarget, this.bindGroupFormats, this.blendState, this.depthState);
+			const pipeline = this.renderPipeline.get(primitive, vb0 == null ? void 0 : vb0.format, vb1 == null ? void 0 : vb1.format, this.shader, this.renderTarget, this.bindGroupFormats, this.blendState, this.depthState, this.cullMode, this.stencilEnabled, this.stencilFront, this.stencilBack);
 			if (this.pipeline !== pipeline) {
 				this.pipeline = pipeline;
 				passEncoder.setPipeline(pipeline);
@@ -231,17 +236,30 @@ class WebgpuGraphicsDevice extends GraphicsDevice {
 	setDepthState(depthState) {
 		this.depthState.copy(depthState);
 	}
+	setStencilState(stencilFront, stencilBack) {
+		if (stencilFront || stencilBack) {
+			this.stencilEnabled = true;
+			this.stencilFront.copy(stencilFront != null ? stencilFront : StencilParameters.DEFAULT);
+			this.stencilBack.copy(stencilBack != null ? stencilBack : StencilParameters.DEFAULT);
+			const ref = this.stencilFront.ref;
+			if (this.stencilRef !== ref) {
+				this.stencilRef = ref;
+				this.passEncoder.setStencilReference(ref);
+			}
+		} else {
+			this.stencilEnabled = false;
+		}
+	}
 	setBlendColor(r, g, b, a) {}
-	setDepthFunc(func) {}
-	setDepthTest(depthTest) {}
-	setCullMode(cullMode) {}
-	getCullMode() {
-		return CULLFACE_BACK;
+	setCullMode(cullMode) {
+		this.cullMode = cullMode;
 	}
 	setAlphaToCoverage(state) {}
-	setDepthWrite(writeDepth) {}
 	initializeContextCaches() {
 		super.initializeContextCaches();
+	}
+	setupPassEncoderDefaults() {
+		this.stencilRef = 0;
 	}
 	startPass(renderPass) {
 		const rt = renderPass.renderTarget || this.frameBuffer;
@@ -254,6 +272,7 @@ class WebgpuGraphicsDevice extends GraphicsDevice {
 		this.commandEncoder = this.wgpu.createCommandEncoder();
 		this.pipeline = null;
 		this.passEncoder = this.commandEncoder.beginRenderPass(wrt.renderPassDescriptor);
+		this.setupPassEncoderDefaults();
 		const {
 			width,
 			height
@@ -269,6 +288,9 @@ class WebgpuGraphicsDevice extends GraphicsDevice {
 		this.commandEncoder = null;
 		this.bindGroupFormats.length = 0;
 		this.insideRenderPass = false;
+		if (renderPass.colorOps.mipmaps) {
+			this.mipmapRenderer.generate(renderPass.renderTarget.colorBuffer.impl);
+		}
 	}
 	clear(options) {
 		if (options.flags) {
@@ -283,9 +305,6 @@ class WebgpuGraphicsDevice extends GraphicsDevice {
 	}
 	setDepthBias(on) {}
 	setDepthBiasValues(constBias, slopeBias) {}
-	setStencilTest(enable) {}
-	setStencilFunc(func, ref, mask) {}
-	setStencilOperation(fail, zfail, zpass, writeMask) {}
 	setViewport(x, y, w, h) {
 		if (this.passEncoder) {
 			if (!this.renderTarget.flipY) {

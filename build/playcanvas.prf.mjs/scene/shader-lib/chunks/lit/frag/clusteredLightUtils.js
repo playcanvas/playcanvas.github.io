@@ -1,8 +1,3 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 var clusteredLightUtilsPS = `
 // Converts unnormalized direction vector to a cubemap face index [0..5] and uv coordinates within the face in [0..1] range.
 // Additionally offset to a tile in atlas within 3x3 subdivision is provided

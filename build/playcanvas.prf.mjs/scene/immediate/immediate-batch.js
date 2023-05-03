@@ -1,8 +1,3 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 import { Mat4 } from '../../core/math/mat4.js';
 import { PRIMITIVE_LINES } from '../../platform/graphics/constants.js';
 import { Mesh } from '../mesh.js';

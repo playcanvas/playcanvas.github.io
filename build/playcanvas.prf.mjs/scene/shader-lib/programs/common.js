@@ -1,8 +1,3 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 import { GAMMA_SRGB, GAMMA_SRGBFAST, GAMMA_SRGBHDR, TONEMAP_FILMIC, TONEMAP_LINEAR, TONEMAP_HEJL, TONEMAP_ACES, TONEMAP_ACES2 } from '../../constants.js';
 import { shaderChunks } from '../chunks/chunks.js';
 

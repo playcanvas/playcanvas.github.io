@@ -1,8 +1,3 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 import { Entity } from '../entity.js';
 import { CompressUtils } from '../../scene/compress/compress-utils.js';
 import { Decompress } from '../../scene/compress/decompress.js';
@@ -44,10 +39,11 @@ class SceneParser {
 		return parent;
 	}
 	_createEntity(data, compressed) {
+		var _data$enabled;
 		const entity = new Entity(data.name, this._app);
 		entity.setGuid(data.resource_id);
 		this._setPosRotScale(entity, data, compressed);
-		entity._enabled = data.enabled !== undefined ? data.enabled : true;
+		entity._enabled = (_data$enabled = data.enabled) != null ? _data$enabled : true;
 		if (this._isTemplate) {
 			entity._template = true;
 		} else {

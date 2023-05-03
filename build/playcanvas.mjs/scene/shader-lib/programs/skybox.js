@@ -28,6 +28,7 @@ const skybox = {
 			fshader += shaderChunks.skyboxEnvPS.replace(/\$DECODE/g, ChunkUtils.decodeFunc(options.encoding));
 		}
 		return ShaderUtils.createDefinition(device, {
+			name: 'SkyboxShader',
 			attributes: {
 				aPosition: SEMANTIC_POSITION
 			},

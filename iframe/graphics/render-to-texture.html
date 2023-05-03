@@ -51,6 +51,7 @@
 
 
 
+
     function example(canvas, deviceType) {
 
       // Overview:
@@ -63,7 +64,7 @@
       // - camera - this camera renders into main framebuffer, objects from World, Excluded and also Skybox layers
 
       var assets = {
-        helipad: new pc.Asset('helipad-env-atlas', 'texture', { url: '/../../static/assets/cubemaps/helipad-env-atlas.png' }, { type: pc.TEXTURETYPE_RGBP }),
+        helipad: new pc.Asset('helipad-env-atlas', 'texture', { url: '/../../static/assets/cubemaps/helipad-env-atlas.png' }, { type: pc.TEXTURETYPE_RGBP, mipmaps: false }),
         'script': new pc.Asset('script', 'script', { url: '/../../static/scripts/camera/orbit-camera.js' }) };
 
 
@@ -303,7 +304,7 @@
           });
         });
       });
-    } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'Graphics');_defineProperty(Example, "NAME", 'Render to Texture');
+    } }]);return Example;}();_defineProperty(Example, "CATEGORY", 'Graphics');_defineProperty(Example, "NAME", 'Render to Texture');_defineProperty(Example, "WEBGPU_ENABLED", true);
         var example = new Example();
 
         var useTypeScript = window.top.localStorage.getItem('useTypeScript') === 'true';
@@ -438,7 +439,7 @@
                 } else if (arg === 'pcx') {
                     return pcx;
                 } else if (arg === 'deviceType') {
-                    if (false) {
+                    if (true) {
                         return window.top.preferredGraphicsDevice || 'webgpu';
                     } else if (['webgl1', 'webgl2'].includes(window.top.preferredGraphicsDevice)) {
                         return window.top.preferredGraphicsDevice;

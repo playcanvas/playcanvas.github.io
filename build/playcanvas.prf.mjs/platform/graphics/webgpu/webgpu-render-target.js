@@ -1,8 +1,3 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 import '../../../core/tracing.js';
 
 class WebgpuRenderTarget {
@@ -93,12 +88,17 @@ class WebgpuRenderTarget {
 		const colorBuffer = renderTarget.colorBuffer;
 		let colorView = null;
 		if (colorBuffer) {
-			colorView = colorBuffer.impl.getView(device);
+			const mipLevelCount = 1;
 			if (colorBuffer.cubemap) {
 				colorView = colorBuffer.impl.createView({
 					dimension: '2d',
 					baseArrayLayer: renderTarget.face,
-					arrayLayerCount: 1
+					arrayLayerCount: 1,
+					mipLevelCount
+				});
+			} else {
+				colorView = colorBuffer.impl.createView({
+					mipLevelCount
 				});
 			}
 		}

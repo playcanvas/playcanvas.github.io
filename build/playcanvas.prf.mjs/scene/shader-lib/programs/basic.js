@@ -1,8 +1,3 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 import { SEMANTIC_POSITION, SEMANTIC_BLENDWEIGHT, SEMANTIC_BLENDINDICES, SEMANTIC_COLOR, SEMANTIC_TEXCOORD0 } from '../../../platform/graphics/constants.js';
 import { ShaderUtils } from '../../../platform/graphics/shader-utils.js';
 import { shaderChunks } from '../chunks/chunks.js';
@@ -40,8 +35,9 @@ const basic = {
 		if (options.diffuseMap) {
 			attributes.vertex_texCoord0 = SEMANTIC_TEXCOORD0;
 		}
-		const shaderPassDefine = ShaderPass.getPassShaderDefine(options.pass);
-		let vshader = shaderPassDefine;
+		const shaderPassInfo = ShaderPass.get(device).getByIndex(options.pass);
+		const shaderPassDefines = shaderPassInfo.shaderDefines;
+		let vshader = shaderPassDefines;
 		vshader += shaderChunks.transformDeclVS;
 		if (options.skin) {
 			vshader += skinCode(device);
@@ -80,7 +76,7 @@ const basic = {
 			vshader += '    vUv0 = vertex_texCoord0;\n';
 		}
 		vshader += end();
-		let fshader = shaderPassDefine;
+		let fshader = shaderPassDefines;
 		if (options.vertexColors) {
 			fshader += 'varying vec4 vColor;\n';
 		} else {

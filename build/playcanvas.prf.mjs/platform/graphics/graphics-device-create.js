@@ -1,16 +1,10 @@
-/**
- * @license
- * PlayCanvas Engine v1.63.0-dev revision 9f3635a4e (PROFILER)
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
- */
 import '../../core/tracing.js';
 import { WebgpuGraphicsDevice } from './webgpu/webgpu-graphics-device.js';
 import { DEVICETYPE_WEBGL2, DEVICETYPE_WEBGL1, DEVICETYPE_WEBGPU } from './constants.js';
 import { WebglGraphicsDevice } from './webgl/webgl-graphics-device.js';
 
 function createGraphicsDevice(canvas, options = {}) {
-	var _options$antialias, _options$deviceTypes;
-	(_options$antialias = options.antialias) != null ? _options$antialias : options.antialias = true;
+	var _options$deviceTypes;
 	const deviceTypes = (_options$deviceTypes = options.deviceTypes) != null ? _options$deviceTypes : [];
 	if (!deviceTypes.includes(DEVICETYPE_WEBGL2)) {
 		deviceTypes.push(DEVICETYPE_WEBGL2);
