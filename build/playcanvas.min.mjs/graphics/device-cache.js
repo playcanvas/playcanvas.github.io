@@ -1,1 +1,0 @@
-class e{constructor(){this._cache=new Map}get(e,t){return this._cache.has(e)||(this._cache.set(e,t()),e.on("destroy",(()=>{this.remove(e)}))),this._cache.get(e)}remove(e){var t;null==(t=this._cache.get(e))||t.destroy(),this._cache.delete(e)}}export{e as DeviceCache};

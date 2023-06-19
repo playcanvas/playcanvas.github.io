@@ -1,1 +1,0 @@
-var e="\nvec3 fixSeams(vec3 vec, float mipmapIndex) {\n    return vec;\n}\n\nvec3 fixSeams(vec3 vec) {\n    return vec;\n}\n\nvec3 fixSeamsStatic(vec3 vec, float invRecMipSize) {\n    return vec;\n}\n\nvec3 calcSeam(vec3 vec) {\n    return vec3(0);\n}\n\nvec3 applySeam(vec3 vec, vec3 seam, float scale) {\n    return vec;\n}\n";export{e as default};

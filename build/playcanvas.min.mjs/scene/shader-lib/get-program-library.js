@@ -1,1 +1,0 @@
-import"../../core/tracing.js";import{DeviceCache as t}from"../../platform/graphics/device-cache.js";const r=new t;function c(t){return r.get(t)}function e(t,c){r.get(t,(()=>c))}export{c as getProgramLibrary,e as setProgramLibrary};
