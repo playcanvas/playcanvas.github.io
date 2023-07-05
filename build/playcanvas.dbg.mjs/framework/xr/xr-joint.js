@@ -1,0 +1,210 @@
+import { platform } from '../../core/platform.js';
+import { Mat4 } from '../../core/math/mat4.js';
+import { Quat } from '../../core/math/quat.js';
+import { Vec3 } from '../../core/math/vec3.js';
+
+const tipJointIds = platform.browser && window.XRHand ? ['thumb-tip', 'index-finger-tip', 'middle-finger-tip', 'ring-finger-tip', 'pinky-finger-tip'] : [];
+const tipJointIdsIndex = {};
+for (let i = 0; i < tipJointIds.length; i++) {
+  tipJointIdsIndex[tipJointIds[i]] = true;
+}
+
+/**
+ * Represents the joint of a finger.
+ */
+class XrJoint {
+  /**
+   * Create an XrJoint instance.
+   *
+   * @param {number} index - Index of a joint within a finger.
+   * @param {string} id - Id of a joint based on WebXR Hand Input Specs.
+   * @param {import('./xr-hand.js').XrHand} hand - Hand that joint relates to.
+   * @param {import('./xr-finger.js').XrFinger|null} finger - Finger that joint is related to.
+   * Can be null in the case of the wrist joint.
+   * @hideconstructor
+   */
+  constructor(index, id, hand, finger = null) {
+    /**
+     * @type {number}
+     * @private
+     */
+    this._index = void 0;
+    /**
+     * @type {string}
+     * @private
+     */
+    this._id = void 0;
+    /**
+     * @type {import('./xr-hand.js').XrHand}
+     * @private
+     */
+    this._hand = void 0;
+    /**
+     * @type {import('./xr-finger.js').XrFinger}
+     * @private
+     */
+    this._finger = void 0;
+    /**
+     * @type {boolean}
+     * @private
+     */
+    this._wrist = void 0;
+    /**
+     * @type {boolean}
+     * @private
+     */
+    this._tip = void 0;
+    /**
+     * @type {number}
+     * @private
+     */
+    this._radius = null;
+    /**
+     * @type {Mat4}
+     * @private
+     */
+    this._localTransform = new Mat4();
+    /**
+     * @type {Mat4}
+     * @private
+     */
+    this._worldTransform = new Mat4();
+    /**
+     * @type {Vec3}
+     * @private
+     */
+    this._localPosition = new Vec3();
+    /**
+     * @type {Quat}
+     * @private
+     */
+    this._localRotation = new Quat();
+    /**
+     * @type {Vec3}
+     * @private
+     */
+    this._position = new Vec3();
+    /**
+     * @type {Quat}
+     * @private
+     */
+    this._rotation = new Quat();
+    /**
+     * @type {boolean}
+     * @private
+     */
+    this._dirtyLocal = true;
+    this._index = index;
+    this._id = id;
+    this._hand = hand;
+    this._finger = finger;
+    this._wrist = id === 'wrist';
+    this._tip = this._finger && !!tipJointIdsIndex[id];
+  }
+
+  /**
+   * @param {*} pose - XRJointPose of this joint.
+   * @ignore
+   */
+  update(pose) {
+    this._dirtyLocal = true;
+    this._radius = pose.radius;
+    this._localPosition.copy(pose.transform.position);
+    this._localRotation.copy(pose.transform.orientation);
+  }
+
+  /** @private */
+  _updateTransforms() {
+    if (this._dirtyLocal) {
+      this._dirtyLocal = false;
+      this._localTransform.setTRS(this._localPosition, this._localRotation, Vec3.ONE);
+    }
+    const manager = this._hand._manager;
+    const parent = manager.camera.parent;
+    if (parent) {
+      this._worldTransform.mul2(parent.getWorldTransform(), this._localTransform);
+    } else {
+      this._worldTransform.copy(this._localTransform);
+    }
+  }
+
+  /**
+   * Get the world space position of a joint.
+   *
+   * @returns {Vec3} The world space position of a joint.
+   */
+  getPosition() {
+    this._updateTransforms();
+    this._worldTransform.getTranslation(this._position);
+    return this._position;
+  }
+
+  /**
+   * Get the world space rotation of a joint.
+   *
+   * @returns {Quat} The world space rotation of a joint.
+   */
+  getRotation() {
+    this._updateTransforms();
+    this._rotation.setFromMat4(this._worldTransform);
+    return this._rotation;
+  }
+
+  /**
+   * Index of a joint within a finger, starting from 0 (root of a finger) all the way to tip of
+   * the finger.
+   *
+   * @type {number}
+   */
+  get index() {
+    return this._index;
+  }
+
+  /**
+   * Hand that joint relates to.
+   *
+   * @type {import('./xr-hand.js').XrHand}
+   */
+  get hand() {
+    return this._hand;
+  }
+
+  /**
+   * Finger that joint relates to.
+   *
+   * @type {import('./xr-finger.js').XrFinger|null}
+   */
+  get finger() {
+    return this._finger;
+  }
+
+  /**
+   * True if joint is a wrist.
+   *
+   * @type {boolean}
+   */
+  get wrist() {
+    return this._wrist;
+  }
+
+  /**
+   * True if joint is a tip of a finger.
+   *
+   * @type {boolean}
+   */
+  get tip() {
+    return this._tip;
+  }
+
+  /**
+   * The radius of a joint, which is a distance from joint to the edge of a skin.
+   *
+   * @type {number}
+   */
+  get radius() {
+    return this._radius || 0.005;
+  }
+}
+
+export { XrJoint };
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoieHItam9pbnQuanMiLCJzb3VyY2VzIjpbIi4uLy4uLy4uLy4uL3NyYy9mcmFtZXdvcmsveHIveHItam9pbnQuanMiXSwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IHsgcGxhdGZvcm0gfSBmcm9tICcuLi8uLi9jb3JlL3BsYXRmb3JtLmpzJztcbmltcG9ydCB7IE1hdDQgfSBmcm9tICcuLi8uLi9jb3JlL21hdGgvbWF0NC5qcyc7XG5pbXBvcnQgeyBRdWF0IH0gZnJvbSAnLi4vLi4vY29yZS9tYXRoL3F1YXQuanMnO1xuaW1wb3J0IHsgVmVjMyB9IGZyb20gJy4uLy4uL2NvcmUvbWF0aC92ZWMzLmpzJztcblxuY29uc3QgdGlwSm9pbnRJZHMgPSBwbGF0Zm9ybS5icm93c2VyICYmIHdpbmRvdy5YUkhhbmQgPyBbXG4gICAgJ3RodW1iLXRpcCcsXG4gICAgJ2luZGV4LWZpbmdlci10aXAnLFxuICAgICdtaWRkbGUtZmluZ2VyLXRpcCcsXG4gICAgJ3JpbmctZmluZ2VyLXRpcCcsXG4gICAgJ3Bpbmt5LWZpbmdlci10aXAnXG5dIDogW107XG5cbmNvbnN0IHRpcEpvaW50SWRzSW5kZXggPSB7fTtcblxuZm9yIChsZXQgaSA9IDA7IGkgPCB0aXBKb2ludElkcy5sZW5ndGg7IGkrKykge1xuICAgIHRpcEpvaW50SWRzSW5kZXhbdGlwSm9pbnRJZHNbaV1dID0gdHJ1ZTtcbn1cblxuLyoqXG4gKiBSZXByZXNlbnRzIHRoZSBqb2ludCBvZiBhIGZpbmdlci5cbiAqL1xuY2xhc3MgWHJKb2ludCB7XG4gICAgLyoqXG4gICAgICogQHR5cGUge251bWJlcn1cbiAgICAgKiBAcHJpdmF0ZVxuICAgICAqL1xuICAgIF9pbmRleDtcblxuICAgIC8qKlxuICAgICAqIEB0eXBlIHtzdHJpbmd9XG4gICAgICogQHByaXZhdGVcbiAgICAgKi9cbiAgICBfaWQ7XG5cbiAgICAvKipcbiAgICAgKiBAdHlwZSB7aW1wb3J0KCcuL3hyLWhhbmQuanMnKS5YckhhbmR9XG4gICAgICogQHByaXZhdGVcbiAgICAgKi9cbiAgICBfaGFuZDtcblxuICAgIC8qKlxuICAgICAqIEB0eXBlIHtpbXBvcnQoJy4veHItZmluZ2VyLmpzJykuWHJGaW5nZXJ9XG4gICAgICogQHByaXZhdGVcbiAgICAgKi9cbiAgICBfZmluZ2VyO1xuXG4gICAgLyoqXG4gICAgICogQHR5cGUge2Jvb2xlYW59XG4gICAgICogQHByaXZhdGVcbiAgICAgKi9cbiAgICBfd3Jpc3Q7XG5cbiAgICAvKipcbiAgICAgKiBAdHlwZSB7Ym9vbGVhbn1cbiAgICAgKiBAcHJpdmF0ZVxuICAgICAqL1xuICAgIF90aXA7XG5cbiAgICAvKipcbiAgICAgKiBAdHlwZSB7bnVtYmVyfVxuICAgICAqIEBwcml2YXRlXG4gICAgICovXG4gICAgX3JhZGl1cyA9IG51bGw7XG5cbiAgICAvKipcbiAgICAgKiBAdHlwZSB7TWF0NH1cbiAgICAgKiBAcHJpdmF0ZVxuICAgICAqL1xuICAgIF9sb2NhbFRyYW5zZm9ybSA9IG5ldyBNYXQ0KCk7XG5cbiAgICAvKipcbiAgICAgKiBAdHlwZSB7TWF0NH1cbiAgICAgKiBAcHJpdmF0ZVxuICAgICAqL1xuICAgIF93b3JsZFRyYW5zZm9ybSA9IG5ldyBNYXQ0KCk7XG5cbiAgICAvKipcbiAgICAgKiBAdHlwZSB7VmVjM31cbiAgICAgKiBAcHJpdmF0ZVxuICAgICAqL1xuICAgIF9sb2NhbFBvc2l0aW9uID0gbmV3IFZlYzMoKTtcblxuICAgIC8qKlxuICAgICAqIEB0eXBlIHtRdWF0fVxuICAgICAqIEBwcml2YXRlXG4gICAgICovXG4gICAgX2xvY2FsUm90YXRpb24gPSBuZXcgUXVhdCgpO1xuXG4gICAgLyoqXG4gICAgICogQHR5cGUge1ZlYzN9XG4gICAgICogQHByaXZhdGVcbiAgICAgKi9cbiAgICBfcG9zaXRpb24gPSBuZXcgVmVjMygpO1xuXG4gICAgLyoqXG4gICAgICogQHR5cGUge1F1YXR9XG4gICAgICogQHByaXZhdGVcbiAgICAgKi9cbiAgICBfcm90YXRpb24gPSBuZXcgUXVhdCgpO1xuXG4gICAgLyoqXG4gICAgICogQHR5cGUge2Jvb2xlYW59XG4gICAgICogQHByaXZhdGVcbiAgICAgKi9cbiAgICBfZGlydHlMb2NhbCA9IHRydWU7XG5cbiAgICAvKipcbiAgICAgKiBDcmVhdGUgYW4gWHJKb2ludCBpbnN0YW5jZS5cbiAgICAgKlxuICAgICAqIEBwYXJhbSB7bnVtYmVyfSBpbmRleCAtIEluZGV4IG9mIGEgam9pbnQgd2l0aGluIGEgZmluZ2VyLlxuICAgICAqIEBwYXJhbSB7c3RyaW5nfSBpZCAtIElkIG9mIGEgam9pbnQgYmFzZWQgb24gV2ViWFIgSGFuZCBJbnB1dCBTcGVjcy5cbiAgICAgKiBAcGFyYW0ge2ltcG9ydCgnLi94ci1oYW5kLmpzJykuWHJIYW5kfSBoYW5kIC0gSGFuZCB0aGF0IGpvaW50IHJlbGF0ZXMgdG8uXG4gICAgICogQHBhcmFtIHtpbXBvcnQoJy4veHItZmluZ2VyLmpzJykuWHJGaW5nZXJ8bnVsbH0gZmluZ2VyIC0gRmluZ2VyIHRoYXQgam9pbnQgaXMgcmVsYXRlZCB0by5cbiAgICAgKiBDYW4gYmUgbnVsbCBpbiB0aGUgY2FzZSBvZiB0aGUgd3Jpc3Qgam9pbnQuXG4gICAgICogQGhpZGVjb25zdHJ1Y3RvclxuICAgICAqL1xuICAgIGNvbnN0cnVjdG9yKGluZGV4LCBpZCwgaGFuZCwgZmluZ2VyID0gbnVsbCkge1xuICAgICAgICB0aGlzLl9pbmRleCA9IGluZGV4O1xuICAgICAgICB0aGlzLl9pZCA9IGlkO1xuICAgICAgICB0aGlzLl9oYW5kID0gaGFuZDtcbiAgICAgICAgdGhpcy5fZmluZ2VyID0gZmluZ2VyO1xuICAgICAgICB0aGlzLl93cmlzdCA9IGlkID09PSAnd3Jpc3QnO1xuICAgICAgICB0aGlzLl90aXAgPSB0aGlzLl9maW5nZXIgJiYgISF0aXBKb2ludElkc0luZGV4W2lkXTtcbiAgICB9XG5cbiAgICAvKipcbiAgICAgKiBAcGFyYW0geyp9IHBvc2UgLSBYUkpvaW50UG9zZSBvZiB0aGlzIGpvaW50LlxuICAgICAqIEBpZ25vcmVcbiAgICAgKi9cbiAgICB1cGRhdGUocG9zZSkge1xuICAgICAgICB0aGlzLl9kaXJ0eUxvY2FsID0gdHJ1ZTtcbiAgICAgICAgdGhpcy5fcmFkaXVzID0gcG9zZS5yYWRpdXM7XG4gICAgICAgIHRoaXMuX2xvY2FsUG9zaXRpb24uY29weShwb3NlLnRyYW5zZm9ybS5wb3NpdGlvbik7XG4gICAgICAgIHRoaXMuX2xvY2FsUm90YXRpb24uY29weShwb3NlLnRyYW5zZm9ybS5vcmllbnRhdGlvbik7XG4gICAgfVxuXG4gICAgLyoqIEBwcml2YXRlICovXG4gICAgX3VwZGF0ZVRyYW5zZm9ybXMoKSB7XG4gICAgICAgIGlmICh0aGlzLl9kaXJ0eUxvY2FsKSB7XG4gICAgICAgICAgICB0aGlzLl9kaXJ0eUxvY2FsID0gZmFsc2U7XG4gICAgICAgICAgICB0aGlzLl9sb2NhbFRyYW5zZm9ybS5zZXRUUlModGhpcy5fbG9jYWxQb3NpdGlvbiwgdGhpcy5fbG9jYWxSb3RhdGlvbiwgVmVjMy5PTkUpO1xuICAgICAgICB9XG5cbiAgICAgICAgY29uc3QgbWFuYWdlciA9IHRoaXMuX2hhbmQuX21hbmFnZXI7XG4gICAgICAgIGNvbnN0IHBhcmVudCA9IG1hbmFnZXIuY2FtZXJhLnBhcmVudDtcblxuICAgICAgICBpZiAocGFyZW50KSB7XG4gICAgICAgICAgICB0aGlzLl93b3JsZFRyYW5zZm9ybS5tdWwyKHBhcmVudC5nZXRXb3JsZFRyYW5zZm9ybSgpLCB0aGlzLl9sb2NhbFRyYW5zZm9ybSk7XG4gICAgICAgIH0gZWxzZSB7XG4gICAgICAgICAgICB0aGlzLl93b3JsZFRyYW5zZm9ybS5jb3B5KHRoaXMuX2xvY2FsVHJhbnNmb3JtKTtcbiAgICAgICAgfVxuICAgIH1cblxuICAgIC8qKlxuICAgICAqIEdldCB0aGUgd29ybGQgc3BhY2UgcG9zaXRpb24gb2YgYSBqb2ludC5cbiAgICAgKlxuICAgICAqIEByZXR1cm5zIHtWZWMzfSBUaGUgd29ybGQgc3BhY2UgcG9zaXRpb24gb2YgYSBqb2ludC5cbiAgICAgKi9cbiAgICBnZXRQb3NpdGlvbigpIHtcbiAgICAgICAgdGhpcy5fdXBkYXRlVHJhbnNmb3JtcygpO1xuICAgICAgICB0aGlzLl93b3JsZFRyYW5zZm9ybS5nZXRUcmFuc2xhdGlvbih0aGlzLl9wb3NpdGlvbik7XG4gICAgICAgIHJldHVybiB0aGlzLl9wb3NpdGlvbjtcbiAgICB9XG5cbiAgICAvKipcbiAgICAgKiBHZXQgdGhlIHdvcmxkIHNwYWNlIHJvdGF0aW9uIG9mIGEgam9pbnQuXG4gICAgICpcbiAgICAgKiBAcmV0dXJucyB7UXVhdH0gVGhlIHdvcmxkIHNwYWNlIHJvdGF0aW9uIG9mIGEgam9pbnQuXG4gICAgICovXG4gICAgZ2V0Um90YXRpb24oKSB7XG4gICAgICAgIHRoaXMuX3VwZGF0ZVRyYW5zZm9ybXMoKTtcbiAgICAgICAgdGhpcy5fcm90YXRpb24uc2V0RnJvbU1hdDQodGhpcy5fd29ybGRUcmFuc2Zvcm0pO1xuICAgICAgICByZXR1cm4gdGhpcy5fcm90YXRpb247XG4gICAgfVxuXG4gICAgLyoqXG4gICAgICogSW5kZXggb2YgYSBqb2ludCB3aXRoaW4gYSBmaW5nZXIsIHN0YXJ0aW5nIGZyb20gMCAocm9vdCBvZiBhIGZpbmdlcikgYWxsIHRoZSB3YXkgdG8gdGlwIG9mXG4gICAgICogdGhlIGZpbmdlci5cbiAgICAgKlxuICAgICAqIEB0eXBlIHtudW1iZXJ9XG4gICAgICovXG4gICAgZ2V0IGluZGV4KCkge1xuICAgICAgICByZXR1cm4gdGhpcy5faW5kZXg7XG4gICAgfVxuXG4gICAgLyoqXG4gICAgICogSGFuZCB0aGF0IGpvaW50IHJlbGF0ZXMgdG8uXG4gICAgICpcbiAgICAgKiBAdHlwZSB7aW1wb3J0KCcuL3hyLWhhbmQuanMnKS5YckhhbmR9XG4gICAgICovXG4gICAgZ2V0IGhhbmQoKSB7XG4gICAgICAgIHJldHVybiB0aGlzLl9oYW5kO1xuICAgIH1cblxuICAgIC8qKlxuICAgICAqIEZpbmdlciB0aGF0IGpvaW50IHJlbGF0ZXMgdG8uXG4gICAgICpcbiAgICAgKiBAdHlwZSB7aW1wb3J0KCcuL3hyLWZpbmdlci5qcycpLlhyRmluZ2VyfG51bGx9XG4gICAgICovXG4gICAgZ2V0IGZpbmdlcigpIHtcbiAgICAgICAgcmV0dXJuIHRoaXMuX2ZpbmdlcjtcbiAgICB9XG5cbiAgICAvKipcbiAgICAgKiBUcnVlIGlmIGpvaW50IGlzIGEgd3Jpc3QuXG4gICAgICpcbiAgICAgKiBAdHlwZSB7Ym9vbGVhbn1cbiAgICAgKi9cbiAgICBnZXQgd3Jpc3QoKSB7XG4gICAgICAgIHJldHVybiB0aGlzLl93cmlzdDtcbiAgICB9XG5cbiAgICAvKipcbiAgICAgKiBUcnVlIGlmIGpvaW50IGlzIGEgdGlwIG9mIGEgZmluZ2VyLlxuICAgICAqXG4gICAgICogQHR5cGUge2Jvb2xlYW59XG4gICAgICovXG4gICAgZ2V0IHRpcCgpIHtcbiAgICAgICAgcmV0dXJuIHRoaXMuX3RpcDtcbiAgICB9XG5cbiAgICAvKipcbiAgICAgKiBUaGUgcmFkaXVzIG9mIGEgam9pbnQsIHdoaWNoIGlzIGEgZGlzdGFuY2UgZnJvbSBqb2ludCB0byB0aGUgZWRnZSBvZiBhIHNraW4uXG4gICAgICpcbiAgICAgKiBAdHlwZSB7bnVtYmVyfVxuICAgICAqL1xuICAgIGdldCByYWRpdXMoKSB7XG4gICAgICAgIHJldHVybiB0aGlzLl9yYWRpdXMgfHwgMC4wMDU7XG4gICAgfVxufVxuXG5leHBvcnQgeyBYckpvaW50IH07XG4iXSwibmFtZXMiOlsidGlwSm9pbnRJZHMiLCJwbGF0Zm9ybSIsImJyb3dzZXIiLCJ3aW5kb3ciLCJYUkhhbmQiLCJ0aXBKb2ludElkc0luZGV4IiwiaSIsImxlbmd0aCIsIlhySm9pbnQiLCJjb25zdHJ1Y3RvciIsImluZGV4IiwiaWQiLCJoYW5kIiwiZmluZ2VyIiwiX2luZGV4IiwiX2lkIiwiX2hhbmQiLCJfZmluZ2VyIiwiX3dyaXN0IiwiX3RpcCIsIl9yYWRpdXMiLCJfbG9jYWxUcmFuc2Zvcm0iLCJNYXQ0IiwiX3dvcmxkVHJhbnNmb3JtIiwiX2xvY2FsUG9zaXRpb24iLCJWZWMzIiwiX2xvY2FsUm90YXRpb24iLCJRdWF0IiwiX3Bvc2l0aW9uIiwiX3JvdGF0aW9uIiwiX2RpcnR5TG9jYWwiLCJ1cGRhdGUiLCJwb3NlIiwicmFkaXVzIiwiY29weSIsInRyYW5zZm9ybSIsInBvc2l0aW9uIiwib3JpZW50YXRpb24iLCJfdXBkYXRlVHJhbnNmb3JtcyIsInNldFRSUyIsIk9ORSIsIm1hbmFnZXIiLCJfbWFuYWdlciIsInBhcmVudCIsImNhbWVyYSIsIm11bDIiLCJnZXRXb3JsZFRyYW5zZm9ybSIsImdldFBvc2l0aW9uIiwiZ2V0VHJhbnNsYXRpb24iLCJnZXRSb3RhdGlvbiIsInNldEZyb21NYXQ0Iiwid3Jpc3QiLCJ0aXAiXSwibWFwcGluZ3MiOiI7Ozs7O0FBS0EsTUFBTUEsV0FBVyxHQUFHQyxRQUFRLENBQUNDLE9BQU8sSUFBSUMsTUFBTSxDQUFDQyxNQUFNLEdBQUcsQ0FDcEQsV0FBVyxFQUNYLGtCQUFrQixFQUNsQixtQkFBbUIsRUFDbkIsaUJBQWlCLEVBQ2pCLGtCQUFrQixDQUNyQixHQUFHLEVBQUUsQ0FBQTtBQUVOLE1BQU1DLGdCQUFnQixHQUFHLEVBQUUsQ0FBQTtBQUUzQixLQUFLLElBQUlDLENBQUMsR0FBRyxDQUFDLEVBQUVBLENBQUMsR0FBR04sV0FBVyxDQUFDTyxNQUFNLEVBQUVELENBQUMsRUFBRSxFQUFFO0FBQ3pDRCxFQUFBQSxnQkFBZ0IsQ0FBQ0wsV0FBVyxDQUFDTSxDQUFDLENBQUMsQ0FBQyxHQUFHLElBQUksQ0FBQTtBQUMzQyxDQUFBOztBQUVBO0FBQ0E7QUFDQTtBQUNBLE1BQU1FLE9BQU8sQ0FBQztBQXFGVjtBQUNKO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtFQUNJQyxXQUFXQSxDQUFDQyxLQUFLLEVBQUVDLEVBQUUsRUFBRUMsSUFBSSxFQUFFQyxNQUFNLEdBQUcsSUFBSSxFQUFFO0FBOUY1QztBQUNKO0FBQ0E7QUFDQTtBQUhJLElBQUEsSUFBQSxDQUlBQyxNQUFNLEdBQUEsS0FBQSxDQUFB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

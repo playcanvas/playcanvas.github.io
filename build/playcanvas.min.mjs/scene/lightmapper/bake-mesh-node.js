@@ -1,0 +1,1 @@
+class s{constructor(s,t=null){this.node=s,this.component=s.render||s.model,t=t||this.component.meshInstances,this.store(),this.meshInstances=t,this.bounds=null,this.renderTargets=[]}store(){this.castShadows=this.component.castShadows}restore(){this.component.castShadows=this.castShadows}}export{s as BakeMeshNode};

@@ -1,0 +1,1 @@
+var r="\nfloat gammaCorrectInput(float color) {\n\t\treturn color;\n}\n\nvec3 gammaCorrectInput(vec3 color) {\n\t\treturn color;\n}\n\nvec4 gammaCorrectInput(vec4 color) {\n\t\treturn color;\n}\n\nvec3 gammaCorrectOutput(vec3 color) {\n\t\treturn color;\n}\n";export{r as default};

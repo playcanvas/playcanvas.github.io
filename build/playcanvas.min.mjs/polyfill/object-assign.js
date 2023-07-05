@@ -1,0 +1,1 @@
+"function"!=typeof Object.assign&&Object.defineProperty(Object,"assign",{value:function(e,n){if(null==e)throw new TypeError("Cannot convert undefined or null to object");for(var r=Object(e),t=1;t<arguments.length;t++){var o=arguments[t];if(null!=o)for(var l in o)Object.prototype.hasOwnProperty.call(o,l)&&(r[l]=o[l])}return r},writable:!0,configurable:!0});

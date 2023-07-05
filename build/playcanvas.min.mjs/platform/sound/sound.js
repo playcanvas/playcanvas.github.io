@@ -1,0 +1,1 @@
+class i{constructor(i){this.audio=void 0,this.buffer=void 0,i instanceof Audio?this.audio=i:this.buffer=i}get duration(){let i=0;return this.buffer?i=this.buffer.duration:this.audio&&(i=this.audio.duration),i||0}}export{i as Sound};

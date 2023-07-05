@@ -1,0 +1,1 @@
+var t="\nvoid readInput(float uv) {\n\t\tvec4 tex = texture2D(particleTexIN, vec2(uv, 0.25));\n\t\tvec4 tex2 = texture2D(particleTexIN, vec2(uv, 0.75));\n\n\t\tinPos = tex.xyz;\n\t\tinVel = tex2.xyz;\n\t\tinAngle = (tex.w < 0.0? -tex.w : tex.w) - 1000.0;\n\t\tinShow = tex.w >= 0.0;\n\t\tinLife = tex2.w;\n}\n";export{t as default};

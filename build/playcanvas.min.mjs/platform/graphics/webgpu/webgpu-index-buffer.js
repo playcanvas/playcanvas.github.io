@@ -1,0 +1,1 @@
+import"../../../core/debug.js";import{INDEXFORMAT_UINT16 as t}from"../constants.js";import{WebgpuBuffer as o}from"./webgpu-buffer.js";class r extends o{constructor(o){super(),this.format=null,this.format=o.format===t?"uint16":"uint32"}unlock(t){const o=t.device;super.unlock(o,t.usage,GPUBufferUsage.INDEX,t.storage)}}export{r as WebgpuIndexBuffer};

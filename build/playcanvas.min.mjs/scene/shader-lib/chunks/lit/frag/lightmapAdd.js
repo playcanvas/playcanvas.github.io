@@ -1,0 +1,1 @@
+var t="\nvoid addLightMap(\n\t\tvec3 lightmap, \n\t\tvec3 dir, \n\t\tvec3 worldNormal, \n\t\tvec3 viewDir, \n\t\tvec3 reflectionDir, \n\t\tfloat gloss, \n\t\tvec3 specularity, \n\t\tvec3 vertexNormal, \n\t\tmat3 tbn\n#if defined(LIT_IRIDESCENCE)\n\t\tvec3 iridescenceFresnel, \n\t\tIridescenceArgs iridescence\n#endif\n) {\n\t\tdDiffuseLight += lightmap;\n}\n";export{t as default};

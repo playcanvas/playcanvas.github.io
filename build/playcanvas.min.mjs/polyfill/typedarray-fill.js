@@ -1,0 +1,1 @@
+import{defineProtoFunc as r}from"./defineProtoFunc.js";const t=[Int8Array,Uint8Array,Uint8ClampedArray,Int16Array,Uint16Array,Int32Array,Uint32Array,Float32Array];for(const o of t)r(o,"fill",Array.prototype.fill),r(o,"join",Array.prototype.join);

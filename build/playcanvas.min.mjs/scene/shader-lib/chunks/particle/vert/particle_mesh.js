@@ -1,0 +1,1 @@
+var o="\n\t\tvec3 localPos = meshLocalPos;\n\t\tlocalPos.xy = rotate(localPos.xy, inAngle, rotMatrix);\n\t\tlocalPos.yz = rotate(localPos.yz, inAngle, rotMatrix);\n\n\t\tbillboard(particlePos, quadXY);\n";export{o as default};

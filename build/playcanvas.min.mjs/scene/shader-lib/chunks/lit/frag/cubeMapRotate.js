@@ -1,0 +1,1 @@
+var e="\n#ifdef CUBEMAP_ROTATION\nuniform mat3 cubeMapRotationMatrix;\n#endif\n\nvec3 cubeMapRotate(vec3 refDir) {\n#ifdef CUBEMAP_ROTATION\n\t\treturn refDir * cubeMapRotationMatrix;\n#else\n\t\treturn refDir;\n#endif\n}\n";export{e as default};

@@ -57,6 +57,7 @@
       React.createElement(Panel, { headerText: "Shadow Cascade Settings" }, /*#__PURE__*/
       React.createElement(LabelGroup, { text: "Filtering" }, /*#__PURE__*/
       React.createElement(SelectInput, { binding: new BindingTwoWay(), link: { observer: data, path: 'settings.light.shadowType' }, type: "number", options: [
+        { v: pc.SHADOW_PCF1, t: 'PCF1' },
         { v: pc.SHADOW_PCF3, t: 'PCF3' },
         { v: pc.SHADOW_PCF5, t: 'PCF5' },
         { v: pc.SHADOW_VSM8, t: 'VSM8' },
@@ -325,7 +326,7 @@
         }
 
         function loadEngine(callback) {
-            const enginePath = urlParams && urlParams.get('use_local_engine') || "/build/playcanvas.js";
+            const enginePath = urlParams && urlParams.get('use_local_engine') || "/build/playcanvas.dbg.js";
 
             loadScript(enginePath, () => {
                 window.top.pc = window.pc;

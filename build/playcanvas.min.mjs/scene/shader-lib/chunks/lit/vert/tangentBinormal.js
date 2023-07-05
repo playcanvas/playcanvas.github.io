@@ -1,0 +1,1 @@
+var n="\nvec3 getTangent() {\n\t\treturn normalize(dNormalMatrix * vertex_tangent.xyz);\n}\n\nvec3 getBinormal() {\n\t\treturn cross(vNormalW, vTangentW) * vertex_tangent.w;\n}\n";export{n as default};

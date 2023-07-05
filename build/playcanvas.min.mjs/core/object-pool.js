@@ -1,0 +1,1 @@
+class t{constructor(t,o){this._pool=[],this._count=0,this._constructor=t,this._resize(o)}_resize(t){if(t>this._pool.length)for(let o=this._pool.length;o<t;o++)this._pool[o]=new this._constructor}allocate(){return this._count>=this._pool.length&&this._resize(2*this._pool.length),this._pool[this._count++]}freeAll(){this._count=0}}export{t as ObjectPool};

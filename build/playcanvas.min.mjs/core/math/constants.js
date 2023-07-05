@@ -1,0 +1,1 @@
+const o=0,t=1,c=2,e=3,n=4,p=5;export{e as CURVE_CARDINAL,c as CURVE_CATMULL,o as CURVE_LINEAR,t as CURVE_SMOOTHSTEP,n as CURVE_SPLINE,p as CURVE_STEP};

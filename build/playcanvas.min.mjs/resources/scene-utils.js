@@ -1,0 +1,1 @@
+import{http as e}from"../net/http.js";const t={load:function(t,o,i){"string"==typeof t&&(t={load:t,original:t}),e.get(t.load,{retry:o>0,maxRetries:o},(function(e,o){if(e){let o="Error while loading scene JSON "+t.original;e.message?(o+=": "+e.message,e.stack&&(o+="\n"+e.stack)):o+=": "+e,i(o)}else i(e,o)}))}};export{t as SceneUtils};

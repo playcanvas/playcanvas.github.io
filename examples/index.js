@@ -4398,7 +4398,7 @@
                             range: 150,
                             shadowResolution: 2048,
                             shadowDistance: 100,
-                            lightSize: data.get('script.area.size'),
+                            penumbraSize: data.get('script.area.size'),
                             shadowType: data.get('script.area.shadowType'),
                             intensity: data.get('script.area.intensity'),
                             falloffMode: pc__namespace.LIGHTFALLOFF_INVERSESQUARED,
@@ -4431,7 +4431,7 @@
                             color: new pc__namespace.Color(1, 1, 1),
                             castShadows: true,
                             numCascades: 1,
-                            lightSize: data.get('script.directional.size'),
+                            penumbraSize: data.get('script.directional.size'),
                             shadowType: data.get('script.directional.shadowType'),
                             intensity: data.get('script.directional.intensity'),
                             shadowBias: 0.5,
@@ -4446,7 +4446,7 @@
                             type: "omni",
                             color: new pc__namespace.Color(1, 0.25, 0.25),
                             range: 25,
-                            lightSize: data.get('script.point.size'),
+                            penumbraSize: data.get('script.point.size'),
                             shadowType: data.get('script.point.shadowType'),
                             intensity: data.get('script.point.intensity'),
                             castShadows: true,
@@ -4500,7 +4500,7 @@
                                     brightMaterial.update();
                                     break;
                                 case 'script.area.size':
-                                    areaLight.light.lightSize = value;
+                                    areaLight.light.penumbraSize = value;
                                     break;
                                 case 'script.area.shadowType':
                                     areaLight.light.shadowType = parseInt(value);
@@ -4512,7 +4512,7 @@
                                     directionalLight.light.intensity = value;
                                     break;
                                 case 'script.directional.size':
-                                    directionalLight.light.lightSize = value;
+                                    directionalLight.light.penumbraSize = value;
                                     break;
                                 case 'script.directional.shadowType':
                                     directionalLight.light.shadowType = parseInt(value);
@@ -4524,7 +4524,7 @@
                                     lightOmni.light.intensity = value;
                                     break;
                                 case 'script.point.size':
-                                    lightOmni.light.lightSize = value;
+                                    lightOmni.light.penumbraSize = value;
                                     break;
                                 case 'script.point.shadowType':
                                     lightOmni.light.shadowType = parseInt(value);
@@ -4884,7 +4884,7 @@
                         // based on sofness toggle, set shader parameter
                         material.setParameter('uSoftening', data.get('data.softness') ? 50 : 1000);
                         // debug rendering of the deptht texture in the corner
-                        app.drawDepthTexture(0.7, -0.7, 0.5, 0.5);
+                        app.drawDepthTexture(0.7, -0.7, 0.5, -0.5);
                     });
                 });
             });
@@ -9702,7 +9702,7 @@
                         // display the depth texture if it was rendered
                         if (data.get('scripts.bokeh.enabled') || data.get('scripts.ssao.enabled')) {
                             // @ts-ignore engine-tsd
-                            app.drawDepthTexture(0.7, -0.7, 0.5, 0.5);
+                            app.drawDepthTexture(0.7, -0.7, 0.5, -0.5);
                         }
                     });
                     data.on('*:set', function (path, value) {

@@ -1,0 +1,1 @@
+import{SHADERSTAGE_VERTEX as t,SHADERSTAGE_FRAGMENT as a,SHADERSTAGE_COMPUTE as e}from"../constants.js";class r{static shaderStage(r){let s=0;return r&t&&(s|=GPUShaderStage.VERTEX),r&a&&(s|=GPUShaderStage.FRAGMENT),r&e&&(s|=GPUShaderStage.COMPUTE),s}}export{r as WebgpuUtils};

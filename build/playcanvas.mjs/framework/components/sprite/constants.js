@@ -1,0 +1,4 @@
+const SPRITETYPE_SIMPLE = 'simple';
+const SPRITETYPE_ANIMATED = 'animated';
+
+export { SPRITETYPE_ANIMATED, SPRITETYPE_SIMPLE };

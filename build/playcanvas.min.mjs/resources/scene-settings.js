@@ -1,0 +1,1 @@
+import{SceneUtils as s}from"./scene-utils.js";class t{constructor(s){this._app=s,this.maxRetries=0}load(t,e){s.load(t,this.maxRetries,e)}open(s,t){return t.settings}}export{t as SceneSettingsHandler};

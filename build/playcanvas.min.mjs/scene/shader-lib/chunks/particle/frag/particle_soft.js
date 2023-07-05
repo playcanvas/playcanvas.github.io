@@ -1,0 +1,1 @@
+var t="\n\t\tfloat depth = getLinearScreenDepth();\n\t\tfloat particleDepth = vDepth;\n\t\tfloat depthDiff = saturate(abs(particleDepth - depth) * softening);\n\t\ta *= depthDiff;\n";export{t as default};

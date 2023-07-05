@@ -1,0 +1,1 @@
+import{http as t}from"../../platform/net/http.js";class r{constructor(t){this.handlerType="html",this.maxRetries=0}load(r,e){"string"==typeof r&&(r={load:r,original:r}),t.get(r.load,{retry:this.maxRetries>0,maxRetries:this.maxRetries},(function(t,o){t?e(`Error loading html resource: ${r.original} [${t}]`):e(null,o)}))}open(t,r){return r}patch(t,r){}}export{r as HtmlHandler};

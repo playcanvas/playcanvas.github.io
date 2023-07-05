@@ -303,7 +303,7 @@
         }
 
         function loadEngine(callback) {
-            const enginePath = urlParams && urlParams.get('use_local_engine') || "/build/playcanvas.prf.js";
+            const enginePath = urlParams && urlParams.get('use_local_engine') || "/build/playcanvas.dbg.js";
 
             loadScript(enginePath, () => {
                 window.top.pc = window.pc;

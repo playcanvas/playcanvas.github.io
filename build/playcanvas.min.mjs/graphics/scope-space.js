@@ -1,0 +1,1 @@
+import{ScopeId as s}from"./scope-id.js";class e{constructor(s){this.name=s,this.variables=new Map}resolve(e){return this.variables.has(e)||this.variables.set(e,new s(e)),this.variables.get(e)}removeValue(s){for(const e in this.variables){const a=this.variables[e];a.value===s&&(a.value=null)}}}export{e as ScopeSpace};

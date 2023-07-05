@@ -14752,7 +14752,7 @@ var playcanvas = {exports: {}};
 
 /**
  * @license
- * PlayCanvas Engine v1.65.0-dev revision 7cf2b8233 (RELEASE)
+ * PlayCanvas Engine v1.64.3 revision 5a45c53b5 (RELEASE)
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 
@@ -15245,8 +15245,8 @@ var playcanvas = {exports: {}};
 		var TRACE_ID_ELEMENT = "Element";
 		var TRACEID_TEXTURES = 'Textures';
 
-		var version = '1.65.0-dev';
-		var revision = '7cf2b8233';
+		var version = '1.64.3';
+		var revision = '5a45c53b5';
 		var config = {};
 		var common = {};
 		var apps = {};
@@ -22244,12 +22244,31 @@ var playcanvas = {exports: {}};
 		var INVALID = /[><=|&+-]/g;
 		var Preprocessor = function () {
 			function Preprocessor() {}
-			Preprocessor.run = function run(source) {
+			Preprocessor.run = function run(source, stripUnusedColorAttachments) {
+				if (stripUnusedColorAttachments === void 0) {
+					stripUnusedColorAttachments = false;
+				}
 				source = source.replace(/\/\*[\s\S]*?\*\/|([^\\:]|^)\/\/.*$/gm, '$1');
 				source = source.split(/\r?\n/).map(function (line) {
 					return line.trimEnd();
 				}).join('\n');
-				source = this._preprocess(source);
+				var defines = new Map();
+				if (stripUnusedColorAttachments) {
+					var counts = new Map();
+					var regex = /(pcFragColor[1-8])\b/g;
+					var matches = source.match(regex);
+					matches == null ? void 0 : matches.forEach(function (match) {
+						var _counts$get;
+						var index = parseInt(match.charAt(match.length - 1), 10);
+						counts.set(index, ((_counts$get = counts.get(index)) != null ? _counts$get : 0) + 1);
+					});
+					counts.forEach(function (count, index) {
+						if (count === 1) {
+							defines.set("REMOVE_COLOR_ATTACHMENT_" + index, '');
+						}
+					});
+				}
+				source = this._preprocess(source, defines);
 				if (source !== null) {
 					source = source.split(/\r?\n/).map(function (line) {
 						return line.trim() === '' ? '' : line;
@@ -22258,11 +22277,13 @@ var playcanvas = {exports: {}};
 				}
 				return source;
 			};
-			Preprocessor._preprocess = function _preprocess(source) {
+			Preprocessor._preprocess = function _preprocess(source, defines) {
+				if (defines === void 0) {
+					defines = new Map();
+				}
 				var originalSource = source;
 				var stack = [];
 				var error = false;
-				var defines = new Map();
 				var match;
 				while ((match = KEYWORD.exec(source)) !== null) {
 					var keyword = match[1];
@@ -22412,7 +22433,7 @@ var playcanvas = {exports: {}};
 				this.definition = definition;
 				this.name = definition.name || 'Untitled';
 				definition.vshader = Preprocessor.run(definition.vshader);
-				definition.fshader = Preprocessor.run(definition.fshader);
+				definition.fshader = Preprocessor.run(definition.fshader, graphicsDevice.webgl2);
 				this.init();
 				this.impl = graphicsDevice.createShaderImpl(this);
 			}
@@ -22849,7 +22870,7 @@ var playcanvas = {exports: {}};
 			_proto.initWebGpu = function () {
 				var _initWebGpu = _asyncToGenerator(_regeneratorRuntime().mark(function _callee(glslangUrl, twgslUrl) {
 					var _this2 = this;
-					var loadScript, wasmPath, requiredFeatures, requireFeature, preferredCanvasFormat;
+					var loadScript, wasmPath, adapterOptions, requiredFeatures, requireFeature, deviceDescr, preferredCanvasFormat;
 					return _regeneratorRuntime().wrap(function _callee$(_context) {
 						while (1) switch (_context.prev = _context.next) {
 							case 0:
@@ -22888,9 +22909,12 @@ var playcanvas = {exports: {}};
 								return twgsl(wasmPath);
 							case 13:
 								this.twgsl = _context.sent;
-								_context.next = 16;
-								return window.navigator.gpu.requestAdapter();
-							case 16:
+								adapterOptions = {
+									powerPreference: this.initOptions.powerPreference !== 'default' ? this.initOptions.powerPreference : undefined
+								};
+								_context.next = 17;
+								return window.navigator.gpu.requestAdapter(adapterOptions);
+							case 17:
 								this.gpuAdapter = _context.sent;
 								requiredFeatures = [];
 								requireFeature = function requireFeature(feature) {
@@ -22904,12 +22928,16 @@ var playcanvas = {exports: {}};
 								this.extCompressedTextureS3TC = requireFeature('texture-compression-bc');
 								this.extCompressedTextureETC = requireFeature('texture-compression-etc2');
 								this.extCompressedTextureASTC = requireFeature('texture-compression-astc');
-								_context.next = 25;
-								return this.gpuAdapter.requestDevice({
+								deviceDescr = {
 									requiredFeatures: requiredFeatures,
-									requiredLimits: {}
-								});
-							case 25:
+									requiredLimits: {},
+									defaultQueue: {
+										label: 'Default Queue'
+									}
+								};
+								_context.next = 27;
+								return this.gpuAdapter.requestDevice(deviceDescr);
+							case 27:
 								this.wgpu = _context.sent;
 								this.initDeviceCaps();
 								this.setResolution(window.innerWidth, window.innerHeight);
@@ -22930,7 +22958,7 @@ var playcanvas = {exports: {}};
 								this.mipmapRenderer = new WebgpuMipmapRenderer(this);
 								this.postInit();
 								return _context.abrupt("return", this);
-							case 38:
+							case 40:
 							case "end":
 								return _context.stop();
 						}
@@ -24480,12 +24508,12 @@ var playcanvas = {exports: {}};
 				}
 			};
 			_proto2.init = function init(device, target) {
-				var _target$_colorBuffers, _target$_colorBuffers2;
+				var _target$_colorBuffers, _target$_colorBuffers2, _device$extDrawBuffer, _device$extDrawBuffer2;
 				var gl = device.gl;
 				this._glFrameBuffer = gl.createFramebuffer();
 				device.setFramebuffer(this._glFrameBuffer);
 				var colorBufferCount = (_target$_colorBuffers = (_target$_colorBuffers2 = target._colorBuffers) == null ? void 0 : _target$_colorBuffers2.length) != null ? _target$_colorBuffers : 0;
-				var attachmentBaseConstant = device.webgl2 ? gl.COLOR_ATTACHMENT0 : device.extDrawBuffers.COLOR_ATTACHMENT0_WEBGL;
+				var attachmentBaseConstant = device.webgl2 ? gl.COLOR_ATTACHMENT0 : (_device$extDrawBuffer = (_device$extDrawBuffer2 = device.extDrawBuffers) == null ? void 0 : _device$extDrawBuffer2.COLOR_ATTACHMENT0_WEBGL) != null ? _device$extDrawBuffer : gl.COLOR_ATTACHMENT0;
 				var buffers = [];
 				for (var i = 0; i < colorBufferCount; ++i) {
 					var colorBuffer = target.getColorBuffer(i);
@@ -24644,7 +24672,7 @@ var playcanvas = {exports: {}};
 
 		var gles2PS = "\n\n#define pcFragColor0 gl_FragData[0]\n\n#if COLOR_ATTACHMENT_1\n#define pcFragColor1 gl_FragData[1]\n#endif\n\n#if COLOR_ATTACHMENT_2\n#define pcFragColor2 gl_FragData[2]\n#endif\n\n#if COLOR_ATTACHMENT_3\n#define pcFragColor3 gl_FragData[3]\n#endif\n\n#if COLOR_ATTACHMENT_4\n#define pcFragColor4 gl_FragData[4]\n#endif\n\n#if COLOR_ATTACHMENT_5\n#define pcFragColor5 gl_FragData[5]\n#endif\n\n#if COLOR_ATTACHMENT_6\n#define pcFragColor6 gl_FragData[6]\n#endif\n\n#if COLOR_ATTACHMENT_7\n#define pcFragColor7 gl_FragData[7]\n#endif\n\n#define texture2DBias texture2D\n\n// pass / accept shadow map or texture as a function parameter, on webgl this is simply passed as is\n// but this is needed for WebGPU\n#define SHADOWMAP_PASS(name) name\n#define SHADOWMAP_ACCEPT(name) sampler2D name\n#define TEXTURE_PASS(name) name\n#define TEXTURE_ACCEPT(name) sampler2D name\n\n#ifndef SUPPORTS_TEXLOD\n\n    // fallback for lod instructions\n    #define texture2DLodEXT texture2D\n    #define texture2DProjLodEXT textureProj\n    #define textureCubeLodEXT textureCube\n    #define textureShadow texture2D\n\n#else\n\n    #define textureShadow(res, uv) texture2DGradEXT(res, uv, vec2(1, 1), vec2(1, 1))\n\n#endif\n\n#ifdef SUPPORTS_MRT\n    #define gl_FragColor pcFragColor0\n#endif\n\n";
 
-		var gles3PS = "\nlayout(location = 0) out highp vec4 pc_fragColor;\n\n#if COLOR_ATTACHMENT_1\nlayout(location = 1) out highp vec4 pc_fragColor1;\n#endif\n\n#if COLOR_ATTACHMENT_2\nlayout(location = 2) out highp vec4 pc_fragColor2;\n#endif\n\n#if COLOR_ATTACHMENT_3\nlayout(location = 3) out highp vec4 pc_fragColor3;\n#endif\n\n#if COLOR_ATTACHMENT_4\nlayout(location = 4) out highp vec4 pc_fragColor4;\n#endif\n\n#if COLOR_ATTACHMENT_5\nlayout(location = 5) out highp vec4 pc_fragColor5;\n#endif\n\n#if COLOR_ATTACHMENT_6\nlayout(location = 6) out highp vec4 pc_fragColor6;\n#endif\n\n#if COLOR_ATTACHMENT_7\nlayout(location = 7) out highp vec4 pc_fragColor7;\n#endif\n\n#define gl_FragColor pc_fragColor\n\n#define pcFragColor0 pc_fragColor\n#define pcFragColor1 pc_fragColor1\n#define pcFragColor2 pc_fragColor2\n#define pcFragColor3 pc_fragColor3\n#define pcFragColor4 pc_fragColor4\n#define pcFragColor5 pc_fragColor5\n#define pcFragColor6 pc_fragColor6\n#define pcFragColor7 pc_fragColor7\n\n#define varying in\n\n#define texture2D texture\n#define texture2DBias texture\n#define textureCube texture\n#define texture2DProj textureProj\n#define texture2DLodEXT textureLod\n#define texture2DProjLodEXT textureProjLod\n#define textureCubeLodEXT textureLod\n#define texture2DGradEXT textureGrad\n#define texture2DProjGradEXT textureProjGrad\n#define textureCubeGradEXT textureGrad\n\n// sample shadows using textureGrad to remove derivatives in the dynamic loops (which are used by\n// clustered lighting) - as DirectX shader compiler tries to unroll the loops and takes long time\n// to compile the shader. Using textureLod would be even better, but WebGl does not translate it to\n// lod instruction for DirectX correctly and uses SampleCmp instead of SampleCmpLevelZero or similar.\n#define textureShadow(res, uv) textureGrad(res, uv, vec2(1, 1), vec2(1, 1))\n\n// pass / accept shadow map or texture as a function parameter, on webgl this is simply passed as is\n// but this is needed for WebGPU\n#define SHADOWMAP_PASS(name) name\n#define SHADOWMAP_ACCEPT(name) sampler2DShadow name\n#define TEXTURE_PASS(name) name\n#define TEXTURE_ACCEPT(name) sampler2D name\n\n#define GL2\n#define SUPPORTS_TEXLOD\n#define SUPPORTS_MRT\n";
+		var gles3PS = "\nlayout(location = 0) out highp vec4 pc_fragColor;\n\n#ifndef REMOVE_COLOR_ATTACHMENT_1\n#if COLOR_ATTACHMENT_1\nlayout(location = 1) out highp vec4 pc_fragColor1;\n#endif\n#endif\n\n#ifndef REMOVE_COLOR_ATTACHMENT_2\n#if COLOR_ATTACHMENT_2\nlayout(location = 2) out highp vec4 pc_fragColor2;\n#endif\n#endif\n\n#ifndef REMOVE_COLOR_ATTACHMENT_3\n#if COLOR_ATTACHMENT_3\nlayout(location = 3) out highp vec4 pc_fragColor3;\n#endif\n#endif\n\n#ifndef REMOVE_COLOR_ATTACHMENT_4\n#if COLOR_ATTACHMENT_4\nlayout(location = 4) out highp vec4 pc_fragColor4;\n#endif\n#endif\n\n#ifndef REMOVE_COLOR_ATTACHMENT_5\n#if COLOR_ATTACHMENT_5\nlayout(location = 5) out highp vec4 pc_fragColor5;\n#endif\n#endif\n\n#ifndef REMOVE_COLOR_ATTACHMENT_6\n#if COLOR_ATTACHMENT_6\nlayout(location = 6) out highp vec4 pc_fragColor6;\n#endif\n#endif\n\n#ifndef REMOVE_COLOR_ATTACHMENT_7\n#if COLOR_ATTACHMENT_7\nlayout(location = 7) out highp vec4 pc_fragColor7;\n#endif\n#endif\n\n#define gl_FragColor pc_fragColor\n\n#define pcFragColor0 pc_fragColor\n#define pcFragColor1 pc_fragColor1\n#define pcFragColor2 pc_fragColor2\n#define pcFragColor3 pc_fragColor3\n#define pcFragColor4 pc_fragColor4\n#define pcFragColor5 pc_fragColor5\n#define pcFragColor6 pc_fragColor6\n#define pcFragColor7 pc_fragColor7\n\n#define varying in\n\n#define texture2D texture\n#define texture2DBias texture\n#define textureCube texture\n#define texture2DProj textureProj\n#define texture2DLodEXT textureLod\n#define texture2DProjLodEXT textureProjLod\n#define textureCubeLodEXT textureLod\n#define texture2DGradEXT textureGrad\n#define texture2DProjGradEXT textureProjGrad\n#define textureCubeGradEXT textureGrad\n\n// sample shadows using textureGrad to remove derivatives in the dynamic loops (which are used by\n// clustered lighting) - as DirectX shader compiler tries to unroll the loops and takes long time\n// to compile the shader. Using textureLod would be even better, but WebGl does not translate it to\n// lod instruction for DirectX correctly and uses SampleCmp instead of SampleCmpLevelZero or similar.\n#define textureShadow(res, uv) textureGrad(res, uv, vec2(1, 1), vec2(1, 1))\n\n// pass / accept shadow map or texture as a function parameter, on webgl this is simply passed as is\n// but this is needed for WebGPU\n#define SHADOWMAP_PASS(name) name\n#define SHADOWMAP_ACCEPT(name) sampler2DShadow name\n#define TEXTURE_PASS(name) name\n#define TEXTURE_ACCEPT(name) sampler2D name\n\n#define GL2\n#define SUPPORTS_TEXLOD\n#define SUPPORTS_MRT\n";
 
 		var gles3VS = "\n#define attribute in\n#define varying out\n#define texture2D texture\n#define GL2\n#define VERTEXSHADER\n";
 
@@ -31250,9 +31278,9 @@ var playcanvas = {exports: {}};
 
 		var clusteredLightCookiesPS = "\nvec3 _getCookieClustered(TEXTURE_ACCEPT(tex), vec2 uv, float intensity, bool isRgb, vec4 cookieChannel) {\n    vec4 pixel = mix(vec4(1.0), texture2DLodEXT(tex, uv, 0.0), intensity);\n    return isRgb == true ? pixel.rgb : vec3(dot(pixel, cookieChannel));\n}\n\n// getCookie2D for clustered lighting including channel selector\nvec3 getCookie2DClustered(TEXTURE_ACCEPT(tex), mat4 transform, vec3 worldPosition, float intensity, bool isRgb, vec4 cookieChannel) {\n    vec4 projPos = transform * vec4(worldPosition, 1.0);\n    return _getCookieClustered(TEXTURE_PASS(tex), projPos.xy / projPos.w, intensity, isRgb, cookieChannel);\n}\n\n// getCookie for clustered omni light with the cookie texture being stored in the cookie atlas\nvec3 getCookieCubeClustered(TEXTURE_ACCEPT(tex), vec3 dir, float intensity, bool isRgb, vec4 cookieChannel, float shadowTextureResolution, float shadowEdgePixels, vec3 omniAtlasViewport) {\n    vec2 uv = getCubemapAtlasCoordinates(omniAtlasViewport, shadowEdgePixels, shadowTextureResolution, dir);\n    return _getCookieClustered(TEXTURE_PASS(tex), uv, intensity, isRgb, cookieChannel);\n}\n";
 
-		var clusteredLightShadowsPS = "\n// Clustered Omni Sampling using atlas\n\n\nvoid _getShadowCoordPerspZbuffer(mat4 shadowMatrix, vec4 shadowParams, vec3 wPos) {\n    vec4 projPos = shadowMatrix * vec4(wPos, 1.0);\n    projPos.xyz /= projPos.w;\n    dShadowCoord = projPos.xyz;\n    // depth bias is already applied on render\n}\n\nvoid getShadowCoordPerspZbufferNormalOffset(mat4 shadowMatrix, vec4 shadowParams, vec3 normal) {\n    vec3 wPos = vPositionW + normal * shadowParams.y;\n    _getShadowCoordPerspZbuffer(shadowMatrix, shadowParams, wPos);\n}\n\nvoid normalOffsetPointShadow(vec4 shadowParams, vec3 lightPos, inout vec3 lightDir, vec3 lightDirNorm, vec3 normal) {\n    float distScale = length(lightDir);\n    vec3 wPos = vPositionW + normal * shadowParams.y * clamp(1.0 - dot(normal, -lightDirNorm), 0.0, 1.0) * distScale; //0.02\n    vec3 dir = wPos - lightPos;\n    lightDir = dir;\n}\n\n#ifdef GL2\n\n    #if defined(CLUSTER_SHADOW_TYPE_PCF1)\n\n    float getShadowOmniClusteredPCF1(SHADOWMAP_ACCEPT(shadowMap), vec4 shadowParams, vec3 omniAtlasViewport, float shadowEdgePixels, vec3 lightDir) {\n\n        float shadowTextureResolution = shadowParams.x;\n        vec2 uv = getCubemapAtlasCoordinates(omniAtlasViewport, shadowEdgePixels, shadowTextureResolution, lightDir);\n\n        float shadowZ = length(lightDir) * shadowParams.w + shadowParams.z;\n        return textureShadow(shadowMap, vec3(uv, shadowZ));\n    }\n\n    #endif\n\n    #if defined(CLUSTER_SHADOW_TYPE_PCF3)\n\n    float getShadowOmniClusteredPCF3(SHADOWMAP_ACCEPT(shadowMap), vec4 shadowParams, vec3 omniAtlasViewport, float shadowEdgePixels, vec3 lightDir) {\n\n        float shadowTextureResolution = shadowParams.x;\n        vec2 uv = getCubemapAtlasCoordinates(omniAtlasViewport, shadowEdgePixels, shadowTextureResolution, lightDir);\n\n        float shadowZ = length(lightDir) * shadowParams.w + shadowParams.z;\n        vec3 shadowCoord = vec3(uv, shadowZ);\n        return getShadowPCF3x3(SHADOWMAP_PASS(shadowMap), shadowCoord, shadowParams);\n    }\n\n    #endif\n\n    #if defined(CLUSTER_SHADOW_TYPE_PCF5)\n\n    float getShadowOmniClusteredPCF5(SHADOWMAP_ACCEPT(shadowMap), vec4 shadowParams, vec3 omniAtlasViewport, float shadowEdgePixels, vec3 lightDir) {\n\n        float shadowTextureResolution = shadowParams.x;\n        vec2 uv = getCubemapAtlasCoordinates(omniAtlasViewport, shadowEdgePixels, shadowTextureResolution, lightDir);\n\n        float shadowZ = length(lightDir) * shadowParams.w + shadowParams.z;\n        vec3 shadowCoord = vec3(uv, shadowZ);\n        return getShadowPCF5x5(SHADOWMAP_PASS(shadowMap), shadowCoord, shadowParams);\n    }\n\n    #endif\n\n#else\n\n    #if defined(CLUSTER_SHADOW_TYPE_PCF1)\n\n    float getShadowOmniClusteredPCF1(sampler2D shadowMap, vec4 shadowParams, vec3 omniAtlasViewport, float shadowEdgePixels, vec3 lightDir) {\n\n        float shadowTextureResolution = shadowParams.x;\n        vec2 uv = getCubemapAtlasCoordinates(omniAtlasViewport, shadowEdgePixels, shadowTextureResolution, lightDir);\n\n        // no filter shadow sampling\n        float depth = unpackFloat(textureShadow(shadowMap, uv));\n        float shadowZ = length(lightDir) * shadowParams.w + shadowParams.z;\n        return depth > shadowZ ? 1.0 : 0.0;\n    }\n\n    #endif\n\n    #if defined(CLUSTER_SHADOW_TYPE_PCF3)\n\n    float getShadowOmniClusteredPCF3(sampler2D shadowMap, vec4 shadowParams, vec3 omniAtlasViewport, float shadowEdgePixels, vec3 lightDir) {\n\n        float shadowTextureResolution = shadowParams.x;\n        vec2 uv = getCubemapAtlasCoordinates(omniAtlasViewport, shadowEdgePixels, shadowTextureResolution, lightDir);\n\n        // pcf3\n        float shadowZ = length(lightDir) * shadowParams.w + shadowParams.z;\n        vec3 shadowCoord = vec3(uv, shadowZ);\n        return getShadowPCF3x3(shadowMap, shadowCoord, shadowParams);\n    }\n\n    #endif\n\n    #if defined(CLUSTER_SHADOW_TYPE_PCF5)\n\n    // we don't have PCF5 implementation for webgl1, use PCF3\n    float getShadowOmniClusteredPCF5(sampler2D shadowMap, vec4 shadowParams, vec3 omniAtlasViewport, float shadowEdgePixels, vec3 lightDir) {\n\n        float shadowTextureResolution = shadowParams.x;\n        vec2 uv = getCubemapAtlasCoordinates(omniAtlasViewport, shadowEdgePixels, shadowTextureResolution, lightDir);\n\n        // pcf3\n        float shadowZ = length(lightDir) * shadowParams.w + shadowParams.z;\n        vec3 shadowCoord = vec3(uv, shadowZ);\n        return getShadowPCF3x3(shadowMap, shadowCoord, shadowParams);\n    }\n\n    #endif\n\n#endif\n\n\n// Clustered Spot Sampling using atlas\n\n#ifdef GL2\n\n    #if defined(CLUSTER_SHADOW_TYPE_PCF1)\n\n    float getShadowSpotClusteredPCF1(SHADOWMAP_ACCEPT(shadowMap), vec3 shadowCoord, vec4 shadowParams) {\n        return textureShadow(shadowMap, shadowCoord);\n    }\n\n    #endif\n\n    #if defined(CLUSTER_SHADOW_TYPE_PCF3)\n\n    float getShadowSpotClusteredPCF3(SHADOWMAP_ACCEPT(shadowMap), vec3 shadowCoord, vec4 shadowParams) {\n        return getShadowSpotPCF3x3(SHADOWMAP_PASS(shadowMap), shadowCoord, shadowParams);\n    }\n\n    #endif\n\n    #if defined(CLUSTER_SHADOW_TYPE_PCF5)\n\n    float getShadowSpotClusteredPCF5(SHADOWMAP_ACCEPT(shadowMap), vec3 shadowCoord, vec4 shadowParams) {\n        return getShadowPCF5x5(SHADOWMAP_PASS(shadowMap), shadowCoord, shadowParams);\n    }\n    #endif\n\n#else\n\n    #if defined(CLUSTER_SHADOW_TYPE_PCF1)\n\n    float getShadowSpotClusteredPCF1(sampler2D shadowMap, vec3 shadowCoord, vec4 shadowParams) {\n\n        float depth = unpackFloat(textureShadow(shadowMap, shadowCoord.xy));\n\n        return depth > shadowCoord.z ? 1.0 : 0.0;\n\n    }\n\n    #endif\n\n    #if defined(CLUSTER_SHADOW_TYPE_PCF3)\n\n    float getShadowSpotClusteredPCF3(sampler2D shadowMap, vec3 shadowCoord, vec4 shadowParams) {\n        return getShadowSpotPCF3x3(shadowMap, shadowCoord, shadowParams);\n    }\n\n    #endif\n\n    #if defined(CLUSTER_SHADOW_TYPE_PCF5)\n\n    // we don't have PCF5 implementation for webgl1, use PCF3\n    float getShadowSpotClusteredPCF5(sampler2D shadowMap, vec3 shadowCoord, vec4 shadowParams) {\n        return getShadowSpotPCF3x3(shadowMap, shadowCoord, shadowParams);\n    }\n\n    #endif\n\n#endif\n";
+		var clusteredLightShadowsPS = "\n// Clustered Omni Sampling using atlas\n\n\nvoid _getShadowCoordPerspZbuffer(mat4 shadowMatrix, vec4 shadowParams, vec3 wPos) {\n    vec4 projPos = shadowMatrix * vec4(wPos, 1.0);\n    projPos.xyz /= projPos.w;\n    dShadowCoord = projPos.xyz;\n    // depth bias is already applied on render\n}\n\nvoid getShadowCoordPerspZbufferNormalOffset(mat4 shadowMatrix, vec4 shadowParams, vec3 normal) {\n    vec3 wPos = vPositionW + normal * shadowParams.y;\n    _getShadowCoordPerspZbuffer(shadowMatrix, shadowParams, wPos);\n}\n\nvec3 normalOffsetPointShadow(vec4 shadowParams, vec3 lightPos, inout vec3 lightDir, vec3 lightDirNorm, vec3 normal) {\n    float distScale = length(lightDir);\n    vec3 wPos = vPositionW + normal * shadowParams.y * clamp(1.0 - dot(normal, -lightDirNorm), 0.0, 1.0) * distScale; //0.02\n    vec3 dir = wPos - lightPos;\n    return dir;\n}\n\n#ifdef GL2\n\n    #if defined(CLUSTER_SHADOW_TYPE_PCF1)\n\n    float getShadowOmniClusteredPCF1(SHADOWMAP_ACCEPT(shadowMap), vec4 shadowParams, vec3 omniAtlasViewport, float shadowEdgePixels, vec3 lightDir) {\n\n        float shadowTextureResolution = shadowParams.x;\n        vec2 uv = getCubemapAtlasCoordinates(omniAtlasViewport, shadowEdgePixels, shadowTextureResolution, lightDir);\n\n        float shadowZ = length(lightDir) * shadowParams.w + shadowParams.z;\n        return textureShadow(shadowMap, vec3(uv, shadowZ));\n    }\n\n    #endif\n\n    #if defined(CLUSTER_SHADOW_TYPE_PCF3)\n\n    float getShadowOmniClusteredPCF3(SHADOWMAP_ACCEPT(shadowMap), vec4 shadowParams, vec3 omniAtlasViewport, float shadowEdgePixels, vec3 lightDir) {\n\n        float shadowTextureResolution = shadowParams.x;\n        vec2 uv = getCubemapAtlasCoordinates(omniAtlasViewport, shadowEdgePixels, shadowTextureResolution, lightDir);\n\n        float shadowZ = length(lightDir) * shadowParams.w + shadowParams.z;\n        vec3 shadowCoord = vec3(uv, shadowZ);\n        return getShadowPCF3x3(SHADOWMAP_PASS(shadowMap), shadowCoord, shadowParams);\n    }\n\n    #endif\n\n    #if defined(CLUSTER_SHADOW_TYPE_PCF5)\n\n    float getShadowOmniClusteredPCF5(SHADOWMAP_ACCEPT(shadowMap), vec4 shadowParams, vec3 omniAtlasViewport, float shadowEdgePixels, vec3 lightDir) {\n\n        float shadowTextureResolution = shadowParams.x;\n        vec2 uv = getCubemapAtlasCoordinates(omniAtlasViewport, shadowEdgePixels, shadowTextureResolution, lightDir);\n\n        float shadowZ = length(lightDir) * shadowParams.w + shadowParams.z;\n        vec3 shadowCoord = vec3(uv, shadowZ);\n        return getShadowPCF5x5(SHADOWMAP_PASS(shadowMap), shadowCoord, shadowParams);\n    }\n\n    #endif\n\n#else\n\n    #if defined(CLUSTER_SHADOW_TYPE_PCF1)\n\n    float getShadowOmniClusteredPCF1(sampler2D shadowMap, vec4 shadowParams, vec3 omniAtlasViewport, float shadowEdgePixels, vec3 lightDir) {\n\n        float shadowTextureResolution = shadowParams.x;\n        vec2 uv = getCubemapAtlasCoordinates(omniAtlasViewport, shadowEdgePixels, shadowTextureResolution, lightDir);\n\n        // no filter shadow sampling\n        float depth = unpackFloat(textureShadow(shadowMap, uv));\n        float shadowZ = length(lightDir) * shadowParams.w + shadowParams.z;\n        return depth > shadowZ ? 1.0 : 0.0;\n    }\n\n    #endif\n\n    #if defined(CLUSTER_SHADOW_TYPE_PCF3)\n\n    float getShadowOmniClusteredPCF3(sampler2D shadowMap, vec4 shadowParams, vec3 omniAtlasViewport, float shadowEdgePixels, vec3 lightDir) {\n\n        float shadowTextureResolution = shadowParams.x;\n        vec2 uv = getCubemapAtlasCoordinates(omniAtlasViewport, shadowEdgePixels, shadowTextureResolution, lightDir);\n\n        // pcf3\n        float shadowZ = length(lightDir) * shadowParams.w + shadowParams.z;\n        vec3 shadowCoord = vec3(uv, shadowZ);\n        return getShadowPCF3x3(shadowMap, shadowCoord, shadowParams);\n    }\n\n    #endif\n\n    #if defined(CLUSTER_SHADOW_TYPE_PCF5)\n\n    // we don't have PCF5 implementation for webgl1, use PCF3\n    float getShadowOmniClusteredPCF5(sampler2D shadowMap, vec4 shadowParams, vec3 omniAtlasViewport, float shadowEdgePixels, vec3 lightDir) {\n\n        float shadowTextureResolution = shadowParams.x;\n        vec2 uv = getCubemapAtlasCoordinates(omniAtlasViewport, shadowEdgePixels, shadowTextureResolution, lightDir);\n\n        // pcf3\n        float shadowZ = length(lightDir) * shadowParams.w + shadowParams.z;\n        vec3 shadowCoord = vec3(uv, shadowZ);\n        return getShadowPCF3x3(shadowMap, shadowCoord, shadowParams);\n    }\n\n    #endif\n\n#endif\n\n\n// Clustered Spot Sampling using atlas\n\n#ifdef GL2\n\n    #if defined(CLUSTER_SHADOW_TYPE_PCF1)\n\n    float getShadowSpotClusteredPCF1(SHADOWMAP_ACCEPT(shadowMap), vec3 shadowCoord, vec4 shadowParams) {\n        return textureShadow(shadowMap, shadowCoord);\n    }\n\n    #endif\n\n    #if defined(CLUSTER_SHADOW_TYPE_PCF3)\n\n    float getShadowSpotClusteredPCF3(SHADOWMAP_ACCEPT(shadowMap), vec3 shadowCoord, vec4 shadowParams) {\n        return getShadowSpotPCF3x3(SHADOWMAP_PASS(shadowMap), shadowCoord, shadowParams);\n    }\n\n    #endif\n\n    #if defined(CLUSTER_SHADOW_TYPE_PCF5)\n\n    float getShadowSpotClusteredPCF5(SHADOWMAP_ACCEPT(shadowMap), vec3 shadowCoord, vec4 shadowParams) {\n        return getShadowPCF5x5(SHADOWMAP_PASS(shadowMap), shadowCoord, shadowParams);\n    }\n    #endif\n\n#else\n\n    #if defined(CLUSTER_SHADOW_TYPE_PCF1)\n\n    float getShadowSpotClusteredPCF1(sampler2D shadowMap, vec3 shadowCoord, vec4 shadowParams) {\n\n        float depth = unpackFloat(textureShadow(shadowMap, shadowCoord.xy));\n\n        return depth > shadowCoord.z ? 1.0 : 0.0;\n\n    }\n\n    #endif\n\n    #if defined(CLUSTER_SHADOW_TYPE_PCF3)\n\n    float getShadowSpotClusteredPCF3(sampler2D shadowMap, vec3 shadowCoord, vec4 shadowParams) {\n        return getShadowSpotPCF3x3(shadowMap, shadowCoord, shadowParams);\n    }\n\n    #endif\n\n    #if defined(CLUSTER_SHADOW_TYPE_PCF5)\n\n    // we don't have PCF5 implementation for webgl1, use PCF3\n    float getShadowSpotClusteredPCF5(sampler2D shadowMap, vec3 shadowCoord, vec4 shadowParams) {\n        return getShadowSpotPCF3x3(shadowMap, shadowCoord, shadowParams);\n    }\n\n    #endif\n\n#endif\n";
 
-		var clusteredLightPS = "\nuniform highp sampler2D clusterWorldTexture;\nuniform highp sampler2D lightsTexture8;\nuniform highp sampler2D lightsTextureFloat;\n\n// complex ifdef expression are not supported, handle it here\n// defined(CLUSTER_COOKIES) || defined(CLUSTER_SHADOWS)\n#if defined(CLUSTER_COOKIES)\n    #define CLUSTER_COOKIES_OR_SHADOWS\n#endif\n#if defined(CLUSTER_SHADOWS)\n    #define CLUSTER_COOKIES_OR_SHADOWS\n#endif\n\n#ifdef CLUSTER_SHADOWS\n    #ifdef GL2\n        // TODO: when VSM shadow is supported, it needs to use sampler2D in webgl2\n        uniform sampler2DShadow shadowAtlasTexture;\n    #else\n        uniform sampler2D shadowAtlasTexture;\n    #endif\n#endif\n\n#ifdef CLUSTER_COOKIES\n    uniform sampler2D cookieAtlasTexture;\n#endif\n\n#ifdef GL2\n    uniform int clusterMaxCells;\n#else\n    uniform float clusterMaxCells;\n    uniform vec4 lightsTextureInvSize;\n#endif\n\n// 1.0 if clustered lighting can be skipped (0 lights in the clusters)\nuniform float clusterSkip;\n\nuniform vec3 clusterCellsCountByBoundsSize;\nuniform vec3 clusterTextureSize;\nuniform vec3 clusterBoundsMin;\nuniform vec3 clusterBoundsDelta;\nuniform vec3 clusterCellsDot;\nuniform vec3 clusterCellsMax;\nuniform vec2 clusterCompressionLimit0;\nuniform vec2 shadowAtlasParams;\n\n// structure storing light properties of a clustered light\n// it's sorted to have all vectors aligned to 4 floats to limit padding\nstruct ClusterLightData {\n\n    // area light sizes / orientation\n    vec3 halfWidth;\n\n    // type of the light (spot or omni)\n    float lightType;\n\n    // area light sizes / orientation\n    vec3 halfHeight;\n\n    #ifdef GL2\n        // light index\n        int lightIndex;\n    #else\n        // v coordinate to look up the light textures - this is the same as lightIndex but in 0..1 range\n        float lightV;\n    #endif\n\n    // world space position\n    vec3 position;\n\n    // area light shape\n    float shape;\n\n    // world space direction (spot light only)\n    vec3 direction;\n\n    // light follow mode\n    float falloffMode;\n\n    // color\n    vec3 color;\n\n    // 0.0 if the light doesn't cast shadows\n    float shadowIntensity;\n\n    // atlas viewport for omni light shadow and cookie (.xy is offset to the viewport slot, .z is size of the face in the atlas)\n    vec3 omniAtlasViewport;\n\n    // range of the light\n    float range;\n\n    // channel mask - one of the channels has 1, the others are 0\n    vec4 cookieChannelMask;\n\n    // shadow bias values\n    float shadowBias;\n    float shadowNormalBias;\n\n    // spot light inner and outer angle cosine\n    float innerConeAngleCos;\n    float outerConeAngleCos;\n\n    // 1.0 if the light has a cookie texture\n    float cookie;\n\n    // 1.0 if cookie texture is rgb, otherwise it is using a single channel selectable by cookieChannelMask\n    float cookieRgb;\n\n    // intensity of the cookie\n    float cookieIntensity;\n\n    // light mask\n    float mask;\n};\n\n// Note: on some devices (tested on Pixel 3A XL), this matrix when stored inside the light struct has lower precision compared to\n// when stored outside, so we store it outside to avoid spot shadow flickering. This might need to be done to other / all members\n// of the structure if further similar issues are observed.\n\n// shadow (spot light only) / cookie projection matrix\nmat4 lightProjectionMatrix;\n\n// macros for light properties\n#define isClusteredLightCastShadow(light) ( light.shadowIntensity > 0.0 )\n#define isClusteredLightCookie(light) (light.cookie > 0.5 )\n#define isClusteredLightCookieRgb(light) (light.cookieRgb > 0.5 )\n#define isClusteredLightSpot(light) ( light.lightType > 0.5 )\n#define isClusteredLightFalloffLinear(light) ( light.falloffMode < 0.5 )\n\n// macros to test light shape\n// Note: Following functions need to be called serially in listed order as they do not test both '>' and '<'\n#define isClusteredLightArea(light) ( light.shape > 0.1 )\n#define isClusteredLightRect(light) ( light.shape < 0.3 )\n#define isClusteredLightDisk(light) ( light.shape < 0.6 )\n\n// macro to test light mask (mesh accepts dynamic vs lightmapped lights)\n#ifdef CLUSTER_MESH_DYNAMIC_LIGHTS\n    // accept lights marked as dynamic or both dynamic and lightmapped\n    #define acceptLightMask(light) ( light.mask < 0.75)\n#else\n    // accept lights marked as lightmapped or both dynamic and lightmapped\n    #define acceptLightMask(light) ( light.mask > 0.25)\n#endif\n\nvec4 decodeClusterLowRange4Vec4(vec4 d0, vec4 d1, vec4 d2, vec4 d3) {\n    return vec4(\n        bytes2floatRange4(d0, -2.0, 2.0),\n        bytes2floatRange4(d1, -2.0, 2.0),\n        bytes2floatRange4(d2, -2.0, 2.0),\n        bytes2floatRange4(d3, -2.0, 2.0)\n    );\n}\n\n#ifdef GL2\n\n    vec4 sampleLightsTexture8(const ClusterLightData clusterLightData, int index) {\n        return texelFetch(lightsTexture8, ivec2(index, clusterLightData.lightIndex), 0);\n    }\n\n    vec4 sampleLightTextureF(const ClusterLightData clusterLightData, int index) {\n        return texelFetch(lightsTextureFloat, ivec2(index, clusterLightData.lightIndex), 0);\n    }\n\n#else\n\n    vec4 sampleLightsTexture8(const ClusterLightData clusterLightData, float index) {\n        return texture2DLodEXT(lightsTexture8, vec2(index * lightsTextureInvSize.z, clusterLightData.lightV), 0.0);\n    }\n\n    vec4 sampleLightTextureF(const ClusterLightData clusterLightData, float index) {\n        return texture2DLodEXT(lightsTextureFloat, vec2(index * lightsTextureInvSize.x, clusterLightData.lightV), 0.0);\n    }\n\n#endif\n\nvoid decodeClusterLightCore(inout ClusterLightData clusterLightData, float lightIndex) {\n\n    // light index\n    #ifdef GL2\n        clusterLightData.lightIndex = int(lightIndex);\n    #else\n        clusterLightData.lightV = (lightIndex + 0.5) * lightsTextureInvSize.w;\n    #endif\n\n    // shared data from 8bit texture\n    vec4 lightInfo = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_FLAGS);\n    clusterLightData.lightType = lightInfo.x;\n    clusterLightData.shape = lightInfo.y;\n    clusterLightData.falloffMode = lightInfo.z;\n    clusterLightData.shadowIntensity = lightInfo.w;\n\n    // color\n    vec4 colorA = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_COLOR_A);\n    vec4 colorB = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_COLOR_B);\n    clusterLightData.color = vec3(bytes2float2(colorA.xy), bytes2float2(colorA.zw), bytes2float2(colorB.xy)) * clusterCompressionLimit0.y;\n\n    // cookie\n    clusterLightData.cookie = colorB.z;\n\n    // light mask\n    clusterLightData.mask = colorB.w;\n\n    #ifdef CLUSTER_TEXTURE_FLOAT\n\n        vec4 lightPosRange = sampleLightTextureF(clusterLightData, CLUSTER_TEXTURE_F_POSITION_RANGE);\n        clusterLightData.position = lightPosRange.xyz;\n        clusterLightData.range = lightPosRange.w;\n\n        // spot light direction\n        vec4 lightDir_Unused = sampleLightTextureF(clusterLightData, CLUSTER_TEXTURE_F_SPOT_DIRECTION);\n        clusterLightData.direction = lightDir_Unused.xyz;\n\n    #else   // 8bit\n\n        vec4 encPosX = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_POSITION_X);\n        vec4 encPosY = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_POSITION_Y);\n        vec4 encPosZ = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_POSITION_Z);\n        clusterLightData.position = vec3(bytes2float4(encPosX), bytes2float4(encPosY), bytes2float4(encPosZ)) * clusterBoundsDelta + clusterBoundsMin;\n\n        vec4 encRange = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_RANGE);\n        clusterLightData.range = bytes2float4(encRange) * clusterCompressionLimit0.x;\n\n        // spot light direction\n        vec4 encDirX = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_SPOT_DIRECTION_X);\n        vec4 encDirY = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_SPOT_DIRECTION_Y);\n        vec4 encDirZ = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_SPOT_DIRECTION_Z);\n        clusterLightData.direction = vec3(bytes2float4(encDirX), bytes2float4(encDirY), bytes2float4(encDirZ)) * 2.0 - 1.0;\n\n    #endif\n}\n\nvoid decodeClusterLightSpot(inout ClusterLightData clusterLightData) {\n\n    // spot light cos angles\n    vec4 coneAngle = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_SPOT_ANGLES);\n    clusterLightData.innerConeAngleCos = bytes2float2(coneAngle.xy) * 2.0 - 1.0;\n    clusterLightData.outerConeAngleCos = bytes2float2(coneAngle.zw) * 2.0 - 1.0;\n}\n\nvoid decodeClusterLightOmniAtlasViewport(inout ClusterLightData clusterLightData) {\n    #ifdef CLUSTER_TEXTURE_FLOAT\n        clusterLightData.omniAtlasViewport = sampleLightTextureF(clusterLightData, CLUSTER_TEXTURE_F_PROJ_MAT_0).xyz;\n    #else\n        vec4 viewportA = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_ATLAS_VIEWPORT_A);\n        vec4 viewportB = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_ATLAS_VIEWPORT_B);\n        clusterLightData.omniAtlasViewport = vec3(bytes2float2(viewportA.xy), bytes2float2(viewportA.zw), bytes2float2(viewportB.xy));\n    #endif\n}\n\nvoid decodeClusterLightAreaData(inout ClusterLightData clusterLightData) {\n    #ifdef CLUSTER_TEXTURE_FLOAT\n        clusterLightData.halfWidth = sampleLightTextureF(clusterLightData, CLUSTER_TEXTURE_F_AREA_DATA_WIDTH).xyz;\n        clusterLightData.halfHeight = sampleLightTextureF(clusterLightData, CLUSTER_TEXTURE_F_AREA_DATA_HEIGHT).xyz;\n    #else\n        vec4 areaWidthX = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_AREA_DATA_WIDTH_X);\n        vec4 areaWidthY = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_AREA_DATA_WIDTH_Y);\n        vec4 areaWidthZ = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_AREA_DATA_WIDTH_Z);\n        clusterLightData.halfWidth = vec3(mantissaExponent2Float(areaWidthX), mantissaExponent2Float(areaWidthY), mantissaExponent2Float(areaWidthZ));\n\n        vec4 areaHeightX = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_AREA_DATA_HEIGHT_X);\n        vec4 areaHeightY = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_AREA_DATA_HEIGHT_Y);\n        vec4 areaHeightZ = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_AREA_DATA_HEIGHT_Z);\n        clusterLightData.halfHeight = vec3(mantissaExponent2Float(areaHeightX), mantissaExponent2Float(areaHeightY), mantissaExponent2Float(areaHeightZ));\n    #endif\n}\n\nvoid decodeClusterLightProjectionMatrixData(inout ClusterLightData clusterLightData) {\n    \n    // shadow matrix\n    #ifdef CLUSTER_TEXTURE_FLOAT\n        vec4 m0 = sampleLightTextureF(clusterLightData, CLUSTER_TEXTURE_F_PROJ_MAT_0);\n        vec4 m1 = sampleLightTextureF(clusterLightData, CLUSTER_TEXTURE_F_PROJ_MAT_1);\n        vec4 m2 = sampleLightTextureF(clusterLightData, CLUSTER_TEXTURE_F_PROJ_MAT_2);\n        vec4 m3 = sampleLightTextureF(clusterLightData, CLUSTER_TEXTURE_F_PROJ_MAT_3);\n    #else\n        vec4 m00 = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_PROJ_MAT_00);\n        vec4 m01 = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_PROJ_MAT_01);\n        vec4 m02 = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_PROJ_MAT_02);\n        vec4 m03 = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_PROJ_MAT_03);\n        vec4 m0 = decodeClusterLowRange4Vec4(m00, m01, m02, m03);\n\n        vec4 m10 = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_PROJ_MAT_10);\n        vec4 m11 = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_PROJ_MAT_11);\n        vec4 m12 = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_PROJ_MAT_12);\n        vec4 m13 = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_PROJ_MAT_13);\n        vec4 m1 = decodeClusterLowRange4Vec4(m10, m11, m12, m13);\n\n        vec4 m20 = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_PROJ_MAT_20);\n        vec4 m21 = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_PROJ_MAT_21);\n        vec4 m22 = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_PROJ_MAT_22);\n        vec4 m23 = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_PROJ_MAT_23);\n        vec4 m2 = decodeClusterLowRange4Vec4(m20, m21, m22, m23);\n\n        vec4 m30 = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_PROJ_MAT_30);\n        vec4 m31 = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_PROJ_MAT_31);\n        vec4 m32 = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_PROJ_MAT_32);\n        vec4 m33 = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_PROJ_MAT_33);\n        vec4 m3 = vec4(mantissaExponent2Float(m30), mantissaExponent2Float(m31), mantissaExponent2Float(m32), mantissaExponent2Float(m33));\n    #endif\n    \n    lightProjectionMatrix = mat4(m0, m1, m2, m3);\n}\n\nvoid decodeClusterLightShadowData(inout ClusterLightData clusterLightData) {\n    \n    // shadow biases\n    vec4 biases = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_SHADOW_BIAS);\n    clusterLightData.shadowBias = bytes2floatRange2(biases.xy, -1.0, 20.0),\n    clusterLightData.shadowNormalBias = bytes2float2(biases.zw);\n}\n\nvoid decodeClusterLightCookieData(inout ClusterLightData clusterLightData) {\n\n    vec4 cookieA = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_COOKIE_A);\n    clusterLightData.cookieIntensity = cookieA.x;\n    clusterLightData.cookieRgb = cookieA.y;\n\n    clusterLightData.cookieChannelMask = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_COOKIE_B);\n}\n\nvoid evaluateLight(\n    ClusterLightData light, \n    vec3 worldNormal, \n    vec3 viewDir, \n    vec3 reflectionDir,\n#if defined(LIT_CLEARCOAT)\n    vec3 clearcoatReflectionDir,\n#endif\n    float gloss, \n    vec3 specularity, \n    vec3 geometricNormal, \n    mat3 tbn, \n#if defined(LIT_IRIDESCENCE)\n    vec3 iridescenceFresnel,\n#endif\n    ClearcoatArgs clearcoat, \n    SheenArgs sheen, \n    IridescenceArgs iridescence\n) {\n\n    vec3 cookieAttenuation = vec3(1.0);\n    float diffuseAttenuation = 1.0;\n    float falloffAttenuation = 1.0;\n\n    // evaluate omni part of the light\n    getLightDirPoint(light.position);\n\n    #ifdef CLUSTER_AREALIGHTS\n\n    // distance attenuation\n    if (isClusteredLightArea(light)) { // area light\n\n        // area lights\n        decodeClusterLightAreaData(light);\n\n        // handle light shape\n        if (isClusteredLightRect(light)) {\n            calcRectLightValues(light.position, light.halfWidth, light.halfHeight);\n        } else if (isClusteredLightDisk(light)) {\n            calcDiskLightValues(light.position, light.halfWidth, light.halfHeight);\n        } else { // sphere\n            calcSphereLightValues(light.position, light.halfWidth, light.halfHeight);\n        }\n\n        falloffAttenuation = getFalloffWindow(light.range, dLightDirW);\n\n    } else\n\n    #endif\n\n    {   // punctual light\n\n        if (isClusteredLightFalloffLinear(light))\n            falloffAttenuation = getFalloffLinear(light.range, dLightDirW);\n        else\n            falloffAttenuation = getFalloffInvSquared(light.range, dLightDirW);\n    }\n\n    if (falloffAttenuation > 0.00001) {\n\n        #ifdef CLUSTER_AREALIGHTS\n\n        if (isClusteredLightArea(light)) { // area light\n\n            // handle light shape\n            if (isClusteredLightRect(light)) {\n                diffuseAttenuation = getRectLightDiffuse(worldNormal, viewDir, dLightDirW, dLightDirNormW) * 16.0;\n            } else if (isClusteredLightDisk(light)) {\n                diffuseAttenuation = getDiskLightDiffuse(worldNormal, viewDir, dLightDirW, dLightDirNormW) * 16.0;\n            } else { // sphere\n                diffuseAttenuation = getSphereLightDiffuse(worldNormal, viewDir, dLightDirW, dLightDirNormW) * 16.0;\n            }\n\n        } else\n\n        #endif\n\n        {\n            falloffAttenuation *= getLightDiffuse(worldNormal, viewDir, dLightDirW, dLightDirNormW); \n        }\n\n        // spot light falloff\n        if (isClusteredLightSpot(light)) {\n            decodeClusterLightSpot(light);\n            falloffAttenuation *= getSpotEffect(light.direction, light.innerConeAngleCos, light.outerConeAngleCos, dLightDirNormW);\n        }\n\n        #if defined(CLUSTER_COOKIES_OR_SHADOWS)\n\n        if (falloffAttenuation > 0.00001) {\n\n            // shadow / cookie\n            if (isClusteredLightCastShadow(light) || isClusteredLightCookie(light)) {\n\n                // shared shadow / cookie data depends on light type\n                if (isClusteredLightSpot(light)) {\n                    decodeClusterLightProjectionMatrixData(light);\n                } else {\n                    decodeClusterLightOmniAtlasViewport(light);\n                }\n\n                float shadowTextureResolution = shadowAtlasParams.x;\n                float shadowEdgePixels = shadowAtlasParams.y;\n\n                #ifdef CLUSTER_COOKIES\n\n                // cookie\n                if (isClusteredLightCookie(light)) {\n                    decodeClusterLightCookieData(light);\n\n                    if (isClusteredLightSpot(light)) {\n                        cookieAttenuation = getCookie2DClustered(TEXTURE_PASS(cookieAtlasTexture), lightProjectionMatrix, vPositionW, light.cookieIntensity, isClusteredLightCookieRgb(light), light.cookieChannelMask);\n                    } else {\n                        cookieAttenuation = getCookieCubeClustered(TEXTURE_PASS(cookieAtlasTexture), dLightDirW, light.cookieIntensity, isClusteredLightCookieRgb(light), light.cookieChannelMask, shadowTextureResolution, shadowEdgePixels, light.omniAtlasViewport);\n                    }\n                }\n\n                #endif\n\n                #ifdef CLUSTER_SHADOWS\n\n                // shadow\n                if (isClusteredLightCastShadow(light)) {\n                    decodeClusterLightShadowData(light);\n\n                    vec4 shadowParams = vec4(shadowTextureResolution, light.shadowNormalBias, light.shadowBias, 1.0 / light.range);\n\n                    if (isClusteredLightSpot(light)) {\n\n                        // spot shadow\n                        getShadowCoordPerspZbufferNormalOffset(lightProjectionMatrix, shadowParams, geometricNormal);\n                        \n                        #if defined(CLUSTER_SHADOW_TYPE_PCF1)\n                            float shadow = getShadowSpotClusteredPCF1(SHADOWMAP_PASS(shadowAtlasTexture), dShadowCoord, shadowParams);\n                        #elif defined(CLUSTER_SHADOW_TYPE_PCF3)\n                            float shadow = getShadowSpotClusteredPCF3(SHADOWMAP_PASS(shadowAtlasTexture), dShadowCoord, shadowParams);\n                        #elif defined(CLUSTER_SHADOW_TYPE_PCF5)\n                            float shadow = getShadowSpotClusteredPCF5(SHADOWMAP_PASS(shadowAtlasTexture), dShadowCoord, shadowParams);\n                        #elif defined(CLUSTER_SHADOW_TYPE_PCSS)\n                            float shadow = getShadowSpotClusteredPCSS(SHADOWMAP_PASS(shadowAtlasTexture), dShadowCoord, shadowParams);\n                        #endif\n                        falloffAttenuation *= mix(1.0, shadow, light.shadowIntensity);\n\n                    } else {\n\n                        // omni shadow\n                        normalOffsetPointShadow(shadowParams, dLightPosW, dLightDirW, dLightDirNormW, geometricNormal);  // normalBias adjusted for distance\n\n                        #if defined(CLUSTER_SHADOW_TYPE_PCF1)\n                            float shadow = getShadowOmniClusteredPCF1(SHADOWMAP_PASS(shadowAtlasTexture), shadowParams, light.omniAtlasViewport, shadowEdgePixels, dLightDirW);\n                        #elif defined(CLUSTER_SHADOW_TYPE_PCF3)\n                            float shadow = getShadowOmniClusteredPCF3(SHADOWMAP_PASS(shadowAtlasTexture), shadowParams, light.omniAtlasViewport, shadowEdgePixels, dLightDirW);\n                        #elif defined(CLUSTER_SHADOW_TYPE_PCF5)\n                            float shadow = getShadowOmniClusteredPCF5(SHADOWMAP_PASS(shadowAtlasTexture), shadowParams, light.omniAtlasViewport, shadowEdgePixels, dLightDirW);\n                        #endif\n                        falloffAttenuation *= mix(1.0, shadow, light.shadowIntensity);\n                    }\n                }\n\n                #endif\n            }\n        }\n\n        #endif\n\n        // diffuse / specular / clearcoat\n        #ifdef CLUSTER_AREALIGHTS\n\n        if (isClusteredLightArea(light)) { // area light\n\n            // area light diffuse\n            {\n                vec3 areaDiffuse = (diffuseAttenuation * falloffAttenuation) * light.color * cookieAttenuation;\n\n                #if defined(LIT_SPECULAR)\n                    #if defined(LIT_CONSERVE_ENERGY)\n                        areaDiffuse = mix(areaDiffuse, vec3(0), dLTCSpecFres);\n                    #endif\n                #endif\n\n                // area light diffuse - it does not mix diffuse lighting into specular attenuation\n                dDiffuseLight += areaDiffuse;\n            }\n\n            // specular and clear coat are material settings and get included by a define based on the material\n            #ifdef LIT_SPECULAR\n\n                // area light specular\n                float areaLightSpecular;\n\n                if (isClusteredLightRect(light)) {\n                    areaLightSpecular = getRectLightSpecular(worldNormal, viewDir);\n                } else if (isClusteredLightDisk(light)) {\n                    areaLightSpecular = getDiskLightSpecular(worldNormal, viewDir);\n                } else { // sphere\n                    areaLightSpecular = getSphereLightSpecular(worldNormal, viewDir);\n                }\n\n                dSpecularLight += dLTCSpecFres * areaLightSpecular * falloffAttenuation * light.color * cookieAttenuation;\n\n                #ifdef LIT_CLEARCOAT\n\n                    // area light specular clear coat\n                    float areaLightSpecularCC;\n\n                    if (isClusteredLightRect(light)) {\n                        areaLightSpecularCC = getRectLightSpecular(clearcoat.worldNormal, viewDir);\n                    } else if (isClusteredLightDisk(light)) {\n                        areaLightSpecularCC = getDiskLightSpecular(clearcoat.worldNormal, viewDir);\n                    } else { // sphere\n                        areaLightSpecularCC = getSphereLightSpecular(clearcoat.worldNormal, viewDir);\n                    }\n\n                    ccSpecularLight += ccLTCSpecFres * areaLightSpecularCC * falloffAttenuation * light.color  * cookieAttenuation;\n\n                #endif\n\n            #endif\n\n        } else\n\n        #endif\n\n        {    // punctual light\n\n            // punctual light diffuse\n            {\n                vec3 punctualDiffuse = falloffAttenuation * light.color * cookieAttenuation;\n\n                #if defined(CLUSTER_AREALIGHTS)\n                #if defined(LIT_SPECULAR)\n                #if defined(LIT_CONSERVE_ENERGY)\n                    punctualDiffuse = mix(punctualDiffuse, vec3(0), specularity);\n                #endif\n                #endif\n                #endif\n\n                dDiffuseLight += punctualDiffuse;\n            }\n   \n            // specular and clear coat are material settings and get included by a define based on the material\n            #ifdef LIT_SPECULAR\n\n                vec3 halfDir = normalize(-dLightDirNormW + viewDir);\n                \n                // specular\n                #ifdef LIT_SPECULAR_FRESNEL\n                    dSpecularLight += \n                        getLightSpecular(halfDir, reflectionDir, worldNormal, viewDir, dLightDirNormW, gloss, tbn) * falloffAttenuation * light.color * cookieAttenuation * \n                        getFresnel(\n                            dot(viewDir, halfDir), \n                            gloss, \n                            specularity\n                        #if defined(LIT_IRIDESCENCE)\n                            , iridescenceFresnel,\n                            iridescence\n                        #endif\n                            );\n                #else\n                    dSpecularLight += getLightSpecular(halfDir, reflectionDir, worldNormal, viewDir, dLightDirNormW, gloss, tbn) * falloffAttenuation * light.color * cookieAttenuation * specularity;\n                #endif\n\n                #ifdef LIT_CLEARCOAT\n                    #ifdef LIT_SPECULAR_FRESNEL\n                        ccSpecularLight += getLightSpecular(halfDir, clearcoatReflectionDir, clearcoat.worldNormal, viewDir, dLightDirNormW, clearcoat.gloss, tbn) * falloffAttenuation * light.color * cookieAttenuation * getFresnelCC(dot(viewDir, halfDir));\n                    #else\n                        ccSpecularLight += getLightSpecular(halfDir, clearcoatReflectionDir, clearcoat.worldNormal, viewDir, dLightDirNormW, clearcoat.gloss, tbn) * falloffAttenuation * light.color * cookieAttenuation; \n                    #endif\n                #endif\n\n                #ifdef LIT_SHEEN\n                    sSpecularLight += getLightSpecularSheen(halfDir, worldNormal, viewDir, dLightDirNormW, sheen.gloss) * falloffAttenuation * light.color * cookieAttenuation;\n                #endif\n\n            #endif\n        }\n    }\n\n    // Write to global attenuation values (for lightmapper)\n    dAtten = falloffAttenuation;\n    dAttenD = diffuseAttenuation;\n    dAtten3 = cookieAttenuation;\n}\n\nvoid evaluateClusterLight(\n    float lightIndex, \n    vec3 worldNormal, \n    vec3 viewDir, \n    vec3 reflectionDir, \n#if defined(LIT_CLEARCOAT)\n    vec3 clearcoatReflectionDir,\n#endif\n    float gloss, \n    vec3 specularity, \n    vec3 geometricNormal, \n    mat3 tbn, \n#if defined(LIT_IRIDESCENCE)\n    vec3 iridescenceFresnel,\n#endif\n    ClearcoatArgs clearcoat, \n    SheenArgs sheen, \n    IridescenceArgs iridescence\n) {\n\n    // decode core light data from textures\n    ClusterLightData clusterLightData;\n    decodeClusterLightCore(clusterLightData, lightIndex);\n\n    // evaluate light if it uses accepted light mask\n    if (acceptLightMask(clusterLightData))\n        evaluateLight(\n            clusterLightData, \n            worldNormal, \n            viewDir, \n            reflectionDir, \n#if defined(LIT_CLEARCOAT)\n            clearcoatReflectionDir, \n#endif\n            gloss, \n            specularity, \n            geometricNormal, \n            tbn, \n#if defined(LIT_IRIDESCENCE)\n            iridescenceFresnel,\n#endif\n            clearcoat, \n            sheen, \n            iridescence\n        );\n}\n\nvoid addClusteredLights(\n    vec3 worldNormal, \n    vec3 viewDir, \n    vec3 reflectionDir, \n#if defined(LIT_CLEARCOAT)\n    vec3 clearcoatReflectionDir,\n#endif\n    float gloss, \n    vec3 specularity, \n    vec3 geometricNormal, \n    mat3 tbn, \n#if defined(LIT_IRIDESCENCE)\n    vec3 iridescenceFresnel,\n#endif\n    ClearcoatArgs clearcoat, \n    SheenArgs sheen, \n    IridescenceArgs iridescence\n) {\n\n    // skip lights if no lights at all\n    if (clusterSkip > 0.5)\n        return;\n\n    // world space position to 3d integer cell cordinates in the cluster structure\n    vec3 cellCoords = floor((vPositionW - clusterBoundsMin) * clusterCellsCountByBoundsSize);\n\n    // no lighting when cell coordinate is out of range\n    if (!(any(lessThan(cellCoords, vec3(0.0))) || any(greaterThanEqual(cellCoords, clusterCellsMax)))) {\n\n        // cell index (mapping from 3d cell coordinates to linear memory)\n        float cellIndex = dot(clusterCellsDot, cellCoords);\n\n        // convert cell index to uv coordinates\n        float clusterV = floor(cellIndex * clusterTextureSize.y);\n        float clusterU = cellIndex - (clusterV * clusterTextureSize.x);\n\n        #ifdef GL2\n\n            // loop over maximum number of light cells\n            for (int lightCellIndex = 0; lightCellIndex < clusterMaxCells; lightCellIndex++) {\n\n                // using a single channel texture with data in alpha channel\n                float lightIndex = texelFetch(clusterWorldTexture, ivec2(int(clusterU) + lightCellIndex, clusterV), 0).x;\n\n                if (lightIndex <= 0.0)\n                        return;\n\n                evaluateClusterLight(\n                    lightIndex * 255.0, \n                    worldNormal, \n                    viewDir, \n                    reflectionDir,\n#if defined(LIT_CLEARCOAT)\n                    clearcoatReflectionDir,\n#endif\n                    gloss, \n                    specularity, \n                    geometricNormal, \n                    tbn, \n#if defined(LIT_IRIDESCENCE)\n                    iridescenceFresnel,\n#endif\n                    clearcoat, \n                    sheen, \n                    iridescence\n                ); \n            }\n\n        #else\n\n            clusterV = (clusterV + 0.5) * clusterTextureSize.z;\n\n            // loop over maximum possible number of supported light cells\n            const float maxLightCells = 256.0;\n            for (float lightCellIndex = 0.5; lightCellIndex < maxLightCells; lightCellIndex++) {\n\n                float lightIndex = texture2DLodEXT(clusterWorldTexture, vec2(clusterTextureSize.y * (clusterU + lightCellIndex), clusterV), 0.0).x;\n\n                if (lightIndex <= 0.0)\n                    return;\n                \n                evaluateClusterLight(\n                    lightIndex * 255.0, \n                    worldNormal, \n                    viewDir, \n                    reflectionDir,\n#if defined(LIT_CLEARCOAT)\n                    clearcoatReflectionDir,\n#endif\n                    gloss, \n                    specularity, \n                    geometricNormal, \n                    tbn, \n#if defined(LIT_IRIDESCENCE)\n                    iridescenceFresnel,\n#endif\n                    clearcoat, \n                    sheen, \n                    iridescence\n                ); \n                // end of the cell array\n                if (lightCellIndex >= clusterMaxCells) {\n                    break;\n                }\n            }\n\n        #endif\n    }\n}\n";
+		var clusteredLightPS = "\nuniform highp sampler2D clusterWorldTexture;\nuniform highp sampler2D lightsTexture8;\nuniform highp sampler2D lightsTextureFloat;\n\n// complex ifdef expression are not supported, handle it here\n// defined(CLUSTER_COOKIES) || defined(CLUSTER_SHADOWS)\n#if defined(CLUSTER_COOKIES)\n    #define CLUSTER_COOKIES_OR_SHADOWS\n#endif\n#if defined(CLUSTER_SHADOWS)\n    #define CLUSTER_COOKIES_OR_SHADOWS\n#endif\n\n#ifdef CLUSTER_SHADOWS\n    #ifdef GL2\n        // TODO: when VSM shadow is supported, it needs to use sampler2D in webgl2\n        uniform sampler2DShadow shadowAtlasTexture;\n    #else\n        uniform sampler2D shadowAtlasTexture;\n    #endif\n#endif\n\n#ifdef CLUSTER_COOKIES\n    uniform sampler2D cookieAtlasTexture;\n#endif\n\n#ifdef GL2\n    uniform int clusterMaxCells;\n#else\n    uniform float clusterMaxCells;\n    uniform vec4 lightsTextureInvSize;\n#endif\n\n// 1.0 if clustered lighting can be skipped (0 lights in the clusters)\nuniform float clusterSkip;\n\nuniform vec3 clusterCellsCountByBoundsSize;\nuniform vec3 clusterTextureSize;\nuniform vec3 clusterBoundsMin;\nuniform vec3 clusterBoundsDelta;\nuniform vec3 clusterCellsDot;\nuniform vec3 clusterCellsMax;\nuniform vec2 clusterCompressionLimit0;\nuniform vec2 shadowAtlasParams;\n\n// structure storing light properties of a clustered light\n// it's sorted to have all vectors aligned to 4 floats to limit padding\nstruct ClusterLightData {\n\n    // area light sizes / orientation\n    vec3 halfWidth;\n\n    // type of the light (spot or omni)\n    float lightType;\n\n    // area light sizes / orientation\n    vec3 halfHeight;\n\n    #ifdef GL2\n        // light index\n        int lightIndex;\n    #else\n        // v coordinate to look up the light textures - this is the same as lightIndex but in 0..1 range\n        float lightV;\n    #endif\n\n    // world space position\n    vec3 position;\n\n    // area light shape\n    float shape;\n\n    // world space direction (spot light only)\n    vec3 direction;\n\n    // light follow mode\n    float falloffMode;\n\n    // color\n    vec3 color;\n\n    // 0.0 if the light doesn't cast shadows\n    float shadowIntensity;\n\n    // atlas viewport for omni light shadow and cookie (.xy is offset to the viewport slot, .z is size of the face in the atlas)\n    vec3 omniAtlasViewport;\n\n    // range of the light\n    float range;\n\n    // channel mask - one of the channels has 1, the others are 0\n    vec4 cookieChannelMask;\n\n    // shadow bias values\n    float shadowBias;\n    float shadowNormalBias;\n\n    // spot light inner and outer angle cosine\n    float innerConeAngleCos;\n    float outerConeAngleCos;\n\n    // 1.0 if the light has a cookie texture\n    float cookie;\n\n    // 1.0 if cookie texture is rgb, otherwise it is using a single channel selectable by cookieChannelMask\n    float cookieRgb;\n\n    // intensity of the cookie\n    float cookieIntensity;\n\n    // light mask\n    float mask;\n};\n\n// Note: on some devices (tested on Pixel 3A XL), this matrix when stored inside the light struct has lower precision compared to\n// when stored outside, so we store it outside to avoid spot shadow flickering. This might need to be done to other / all members\n// of the structure if further similar issues are observed.\n\n// shadow (spot light only) / cookie projection matrix\nmat4 lightProjectionMatrix;\n\n// macros for light properties\n#define isClusteredLightCastShadow(light) ( light.shadowIntensity > 0.0 )\n#define isClusteredLightCookie(light) (light.cookie > 0.5 )\n#define isClusteredLightCookieRgb(light) (light.cookieRgb > 0.5 )\n#define isClusteredLightSpot(light) ( light.lightType > 0.5 )\n#define isClusteredLightFalloffLinear(light) ( light.falloffMode < 0.5 )\n\n// macros to test light shape\n// Note: Following functions need to be called serially in listed order as they do not test both '>' and '<'\n#define isClusteredLightArea(light) ( light.shape > 0.1 )\n#define isClusteredLightRect(light) ( light.shape < 0.3 )\n#define isClusteredLightDisk(light) ( light.shape < 0.6 )\n\n// macro to test light mask (mesh accepts dynamic vs lightmapped lights)\n#ifdef CLUSTER_MESH_DYNAMIC_LIGHTS\n    // accept lights marked as dynamic or both dynamic and lightmapped\n    #define acceptLightMask(light) ( light.mask < 0.75)\n#else\n    // accept lights marked as lightmapped or both dynamic and lightmapped\n    #define acceptLightMask(light) ( light.mask > 0.25)\n#endif\n\nvec4 decodeClusterLowRange4Vec4(vec4 d0, vec4 d1, vec4 d2, vec4 d3) {\n    return vec4(\n        bytes2floatRange4(d0, -2.0, 2.0),\n        bytes2floatRange4(d1, -2.0, 2.0),\n        bytes2floatRange4(d2, -2.0, 2.0),\n        bytes2floatRange4(d3, -2.0, 2.0)\n    );\n}\n\n#ifdef GL2\n\n    vec4 sampleLightsTexture8(const ClusterLightData clusterLightData, int index) {\n        return texelFetch(lightsTexture8, ivec2(index, clusterLightData.lightIndex), 0);\n    }\n\n    vec4 sampleLightTextureF(const ClusterLightData clusterLightData, int index) {\n        return texelFetch(lightsTextureFloat, ivec2(index, clusterLightData.lightIndex), 0);\n    }\n\n#else\n\n    vec4 sampleLightsTexture8(const ClusterLightData clusterLightData, float index) {\n        return texture2DLodEXT(lightsTexture8, vec2(index * lightsTextureInvSize.z, clusterLightData.lightV), 0.0);\n    }\n\n    vec4 sampleLightTextureF(const ClusterLightData clusterLightData, float index) {\n        return texture2DLodEXT(lightsTextureFloat, vec2(index * lightsTextureInvSize.x, clusterLightData.lightV), 0.0);\n    }\n\n#endif\n\nvoid decodeClusterLightCore(inout ClusterLightData clusterLightData, float lightIndex) {\n\n    // light index\n    #ifdef GL2\n        clusterLightData.lightIndex = int(lightIndex);\n    #else\n        clusterLightData.lightV = (lightIndex + 0.5) * lightsTextureInvSize.w;\n    #endif\n\n    // shared data from 8bit texture\n    vec4 lightInfo = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_FLAGS);\n    clusterLightData.lightType = lightInfo.x;\n    clusterLightData.shape = lightInfo.y;\n    clusterLightData.falloffMode = lightInfo.z;\n    clusterLightData.shadowIntensity = lightInfo.w;\n\n    // color\n    vec4 colorA = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_COLOR_A);\n    vec4 colorB = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_COLOR_B);\n    clusterLightData.color = vec3(bytes2float2(colorA.xy), bytes2float2(colorA.zw), bytes2float2(colorB.xy)) * clusterCompressionLimit0.y;\n\n    // cookie\n    clusterLightData.cookie = colorB.z;\n\n    // light mask\n    clusterLightData.mask = colorB.w;\n\n    #ifdef CLUSTER_TEXTURE_FLOAT\n\n        vec4 lightPosRange = sampleLightTextureF(clusterLightData, CLUSTER_TEXTURE_F_POSITION_RANGE);\n        clusterLightData.position = lightPosRange.xyz;\n        clusterLightData.range = lightPosRange.w;\n\n        // spot light direction\n        vec4 lightDir_Unused = sampleLightTextureF(clusterLightData, CLUSTER_TEXTURE_F_SPOT_DIRECTION);\n        clusterLightData.direction = lightDir_Unused.xyz;\n\n    #else   // 8bit\n\n        vec4 encPosX = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_POSITION_X);\n        vec4 encPosY = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_POSITION_Y);\n        vec4 encPosZ = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_POSITION_Z);\n        clusterLightData.position = vec3(bytes2float4(encPosX), bytes2float4(encPosY), bytes2float4(encPosZ)) * clusterBoundsDelta + clusterBoundsMin;\n\n        vec4 encRange = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_RANGE);\n        clusterLightData.range = bytes2float4(encRange) * clusterCompressionLimit0.x;\n\n        // spot light direction\n        vec4 encDirX = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_SPOT_DIRECTION_X);\n        vec4 encDirY = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_SPOT_DIRECTION_Y);\n        vec4 encDirZ = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_SPOT_DIRECTION_Z);\n        clusterLightData.direction = vec3(bytes2float4(encDirX), bytes2float4(encDirY), bytes2float4(encDirZ)) * 2.0 - 1.0;\n\n    #endif\n}\n\nvoid decodeClusterLightSpot(inout ClusterLightData clusterLightData) {\n\n    // spot light cos angles\n    vec4 coneAngle = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_SPOT_ANGLES);\n    clusterLightData.innerConeAngleCos = bytes2float2(coneAngle.xy) * 2.0 - 1.0;\n    clusterLightData.outerConeAngleCos = bytes2float2(coneAngle.zw) * 2.0 - 1.0;\n}\n\nvoid decodeClusterLightOmniAtlasViewport(inout ClusterLightData clusterLightData) {\n    #ifdef CLUSTER_TEXTURE_FLOAT\n        clusterLightData.omniAtlasViewport = sampleLightTextureF(clusterLightData, CLUSTER_TEXTURE_F_PROJ_MAT_0).xyz;\n    #else\n        vec4 viewportA = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_ATLAS_VIEWPORT_A);\n        vec4 viewportB = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_ATLAS_VIEWPORT_B);\n        clusterLightData.omniAtlasViewport = vec3(bytes2float2(viewportA.xy), bytes2float2(viewportA.zw), bytes2float2(viewportB.xy));\n    #endif\n}\n\nvoid decodeClusterLightAreaData(inout ClusterLightData clusterLightData) {\n    #ifdef CLUSTER_TEXTURE_FLOAT\n        clusterLightData.halfWidth = sampleLightTextureF(clusterLightData, CLUSTER_TEXTURE_F_AREA_DATA_WIDTH).xyz;\n        clusterLightData.halfHeight = sampleLightTextureF(clusterLightData, CLUSTER_TEXTURE_F_AREA_DATA_HEIGHT).xyz;\n    #else\n        vec4 areaWidthX = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_AREA_DATA_WIDTH_X);\n        vec4 areaWidthY = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_AREA_DATA_WIDTH_Y);\n        vec4 areaWidthZ = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_AREA_DATA_WIDTH_Z);\n        clusterLightData.halfWidth = vec3(mantissaExponent2Float(areaWidthX), mantissaExponent2Float(areaWidthY), mantissaExponent2Float(areaWidthZ));\n\n        vec4 areaHeightX = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_AREA_DATA_HEIGHT_X);\n        vec4 areaHeightY = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_AREA_DATA_HEIGHT_Y);\n        vec4 areaHeightZ = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_AREA_DATA_HEIGHT_Z);\n        clusterLightData.halfHeight = vec3(mantissaExponent2Float(areaHeightX), mantissaExponent2Float(areaHeightY), mantissaExponent2Float(areaHeightZ));\n    #endif\n}\n\nvoid decodeClusterLightProjectionMatrixData(inout ClusterLightData clusterLightData) {\n    \n    // shadow matrix\n    #ifdef CLUSTER_TEXTURE_FLOAT\n        vec4 m0 = sampleLightTextureF(clusterLightData, CLUSTER_TEXTURE_F_PROJ_MAT_0);\n        vec4 m1 = sampleLightTextureF(clusterLightData, CLUSTER_TEXTURE_F_PROJ_MAT_1);\n        vec4 m2 = sampleLightTextureF(clusterLightData, CLUSTER_TEXTURE_F_PROJ_MAT_2);\n        vec4 m3 = sampleLightTextureF(clusterLightData, CLUSTER_TEXTURE_F_PROJ_MAT_3);\n    #else\n        vec4 m00 = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_PROJ_MAT_00);\n        vec4 m01 = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_PROJ_MAT_01);\n        vec4 m02 = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_PROJ_MAT_02);\n        vec4 m03 = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_PROJ_MAT_03);\n        vec4 m0 = decodeClusterLowRange4Vec4(m00, m01, m02, m03);\n\n        vec4 m10 = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_PROJ_MAT_10);\n        vec4 m11 = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_PROJ_MAT_11);\n        vec4 m12 = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_PROJ_MAT_12);\n        vec4 m13 = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_PROJ_MAT_13);\n        vec4 m1 = decodeClusterLowRange4Vec4(m10, m11, m12, m13);\n\n        vec4 m20 = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_PROJ_MAT_20);\n        vec4 m21 = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_PROJ_MAT_21);\n        vec4 m22 = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_PROJ_MAT_22);\n        vec4 m23 = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_PROJ_MAT_23);\n        vec4 m2 = decodeClusterLowRange4Vec4(m20, m21, m22, m23);\n\n        vec4 m30 = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_PROJ_MAT_30);\n        vec4 m31 = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_PROJ_MAT_31);\n        vec4 m32 = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_PROJ_MAT_32);\n        vec4 m33 = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_PROJ_MAT_33);\n        vec4 m3 = vec4(mantissaExponent2Float(m30), mantissaExponent2Float(m31), mantissaExponent2Float(m32), mantissaExponent2Float(m33));\n    #endif\n    \n    lightProjectionMatrix = mat4(m0, m1, m2, m3);\n}\n\nvoid decodeClusterLightShadowData(inout ClusterLightData clusterLightData) {\n    \n    // shadow biases\n    vec4 biases = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_SHADOW_BIAS);\n    clusterLightData.shadowBias = bytes2floatRange2(biases.xy, -1.0, 20.0),\n    clusterLightData.shadowNormalBias = bytes2float2(biases.zw);\n}\n\nvoid decodeClusterLightCookieData(inout ClusterLightData clusterLightData) {\n\n    vec4 cookieA = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_COOKIE_A);\n    clusterLightData.cookieIntensity = cookieA.x;\n    clusterLightData.cookieRgb = cookieA.y;\n\n    clusterLightData.cookieChannelMask = sampleLightsTexture8(clusterLightData, CLUSTER_TEXTURE_8_COOKIE_B);\n}\n\nvoid evaluateLight(\n    ClusterLightData light, \n    vec3 worldNormal, \n    vec3 viewDir, \n    vec3 reflectionDir,\n#if defined(LIT_CLEARCOAT)\n    vec3 clearcoatReflectionDir,\n#endif\n    float gloss, \n    vec3 specularity, \n    vec3 geometricNormal, \n    mat3 tbn, \n#if defined(LIT_IRIDESCENCE)\n    vec3 iridescenceFresnel,\n#endif\n    ClearcoatArgs clearcoat, \n    SheenArgs sheen, \n    IridescenceArgs iridescence\n) {\n\n    vec3 cookieAttenuation = vec3(1.0);\n    float diffuseAttenuation = 1.0;\n    float falloffAttenuation = 1.0;\n\n    // evaluate omni part of the light\n    getLightDirPoint(light.position);\n\n    #ifdef CLUSTER_AREALIGHTS\n\n    // distance attenuation\n    if (isClusteredLightArea(light)) { // area light\n\n        // area lights\n        decodeClusterLightAreaData(light);\n\n        // handle light shape\n        if (isClusteredLightRect(light)) {\n            calcRectLightValues(light.position, light.halfWidth, light.halfHeight);\n        } else if (isClusteredLightDisk(light)) {\n            calcDiskLightValues(light.position, light.halfWidth, light.halfHeight);\n        } else { // sphere\n            calcSphereLightValues(light.position, light.halfWidth, light.halfHeight);\n        }\n\n        falloffAttenuation = getFalloffWindow(light.range, dLightDirW);\n\n    } else\n\n    #endif\n\n    {   // punctual light\n\n        if (isClusteredLightFalloffLinear(light))\n            falloffAttenuation = getFalloffLinear(light.range, dLightDirW);\n        else\n            falloffAttenuation = getFalloffInvSquared(light.range, dLightDirW);\n    }\n\n    if (falloffAttenuation > 0.00001) {\n\n        #ifdef CLUSTER_AREALIGHTS\n\n        if (isClusteredLightArea(light)) { // area light\n\n            // handle light shape\n            if (isClusteredLightRect(light)) {\n                diffuseAttenuation = getRectLightDiffuse(worldNormal, viewDir, dLightDirW, dLightDirNormW) * 16.0;\n            } else if (isClusteredLightDisk(light)) {\n                diffuseAttenuation = getDiskLightDiffuse(worldNormal, viewDir, dLightDirW, dLightDirNormW) * 16.0;\n            } else { // sphere\n                diffuseAttenuation = getSphereLightDiffuse(worldNormal, viewDir, dLightDirW, dLightDirNormW) * 16.0;\n            }\n\n        } else\n\n        #endif\n\n        {\n            falloffAttenuation *= getLightDiffuse(worldNormal, viewDir, dLightDirW, dLightDirNormW); \n        }\n\n        // spot light falloff\n        if (isClusteredLightSpot(light)) {\n            decodeClusterLightSpot(light);\n            falloffAttenuation *= getSpotEffect(light.direction, light.innerConeAngleCos, light.outerConeAngleCos, dLightDirNormW);\n        }\n\n        #if defined(CLUSTER_COOKIES_OR_SHADOWS)\n\n        if (falloffAttenuation > 0.00001) {\n\n            // shadow / cookie\n            if (isClusteredLightCastShadow(light) || isClusteredLightCookie(light)) {\n\n                // shared shadow / cookie data depends on light type\n                if (isClusteredLightSpot(light)) {\n                    decodeClusterLightProjectionMatrixData(light);\n                } else {\n                    decodeClusterLightOmniAtlasViewport(light);\n                }\n\n                float shadowTextureResolution = shadowAtlasParams.x;\n                float shadowEdgePixels = shadowAtlasParams.y;\n\n                #ifdef CLUSTER_COOKIES\n\n                // cookie\n                if (isClusteredLightCookie(light)) {\n                    decodeClusterLightCookieData(light);\n\n                    if (isClusteredLightSpot(light)) {\n                        cookieAttenuation = getCookie2DClustered(TEXTURE_PASS(cookieAtlasTexture), lightProjectionMatrix, vPositionW, light.cookieIntensity, isClusteredLightCookieRgb(light), light.cookieChannelMask);\n                    } else {\n                        cookieAttenuation = getCookieCubeClustered(TEXTURE_PASS(cookieAtlasTexture), dLightDirW, light.cookieIntensity, isClusteredLightCookieRgb(light), light.cookieChannelMask, shadowTextureResolution, shadowEdgePixels, light.omniAtlasViewport);\n                    }\n                }\n\n                #endif\n\n                #ifdef CLUSTER_SHADOWS\n\n                // shadow\n                if (isClusteredLightCastShadow(light)) {\n                    decodeClusterLightShadowData(light);\n\n                    vec4 shadowParams = vec4(shadowTextureResolution, light.shadowNormalBias, light.shadowBias, 1.0 / light.range);\n\n                    if (isClusteredLightSpot(light)) {\n\n                        // spot shadow\n                        getShadowCoordPerspZbufferNormalOffset(lightProjectionMatrix, shadowParams, geometricNormal);\n                        \n                        #if defined(CLUSTER_SHADOW_TYPE_PCF1)\n                            float shadow = getShadowSpotClusteredPCF1(SHADOWMAP_PASS(shadowAtlasTexture), dShadowCoord, shadowParams);\n                        #elif defined(CLUSTER_SHADOW_TYPE_PCF3)\n                            float shadow = getShadowSpotClusteredPCF3(SHADOWMAP_PASS(shadowAtlasTexture), dShadowCoord, shadowParams);\n                        #elif defined(CLUSTER_SHADOW_TYPE_PCF5)\n                            float shadow = getShadowSpotClusteredPCF5(SHADOWMAP_PASS(shadowAtlasTexture), dShadowCoord, shadowParams);\n                        #elif defined(CLUSTER_SHADOW_TYPE_PCSS)\n                            float shadow = getShadowSpotClusteredPCSS(SHADOWMAP_PASS(shadowAtlasTexture), dShadowCoord, shadowParams);\n                        #endif\n                        falloffAttenuation *= mix(1.0, shadow, light.shadowIntensity);\n\n                    } else {\n\n                        // omni shadow\n                        vec3 dir = normalOffsetPointShadow(shadowParams, dLightPosW, dLightDirW, dLightDirNormW, geometricNormal);  // normalBias adjusted for distance\n\n                        #if defined(CLUSTER_SHADOW_TYPE_PCF1)\n                            float shadow = getShadowOmniClusteredPCF1(SHADOWMAP_PASS(shadowAtlasTexture), shadowParams, light.omniAtlasViewport, shadowEdgePixels, dir);\n                        #elif defined(CLUSTER_SHADOW_TYPE_PCF3)\n                            float shadow = getShadowOmniClusteredPCF3(SHADOWMAP_PASS(shadowAtlasTexture), shadowParams, light.omniAtlasViewport, shadowEdgePixels, dir);\n                        #elif defined(CLUSTER_SHADOW_TYPE_PCF5)\n                            float shadow = getShadowOmniClusteredPCF5(SHADOWMAP_PASS(shadowAtlasTexture), shadowParams, light.omniAtlasViewport, shadowEdgePixels, dir);\n                        #endif\n                        falloffAttenuation *= mix(1.0, shadow, light.shadowIntensity);\n                    }\n                }\n\n                #endif\n            }\n        }\n\n        #endif\n\n        // diffuse / specular / clearcoat\n        #ifdef CLUSTER_AREALIGHTS\n\n        if (isClusteredLightArea(light)) { // area light\n\n            // area light diffuse\n            {\n                vec3 areaDiffuse = (diffuseAttenuation * falloffAttenuation) * light.color * cookieAttenuation;\n\n                #if defined(LIT_SPECULAR)\n                    #if defined(LIT_CONSERVE_ENERGY)\n                        areaDiffuse = mix(areaDiffuse, vec3(0), dLTCSpecFres);\n                    #endif\n                #endif\n\n                // area light diffuse - it does not mix diffuse lighting into specular attenuation\n                dDiffuseLight += areaDiffuse;\n            }\n\n            // specular and clear coat are material settings and get included by a define based on the material\n            #ifdef LIT_SPECULAR\n\n                // area light specular\n                float areaLightSpecular;\n\n                if (isClusteredLightRect(light)) {\n                    areaLightSpecular = getRectLightSpecular(worldNormal, viewDir);\n                } else if (isClusteredLightDisk(light)) {\n                    areaLightSpecular = getDiskLightSpecular(worldNormal, viewDir);\n                } else { // sphere\n                    areaLightSpecular = getSphereLightSpecular(worldNormal, viewDir);\n                }\n\n                dSpecularLight += dLTCSpecFres * areaLightSpecular * falloffAttenuation * light.color * cookieAttenuation;\n\n                #ifdef LIT_CLEARCOAT\n\n                    // area light specular clear coat\n                    float areaLightSpecularCC;\n\n                    if (isClusteredLightRect(light)) {\n                        areaLightSpecularCC = getRectLightSpecular(clearcoat.worldNormal, viewDir);\n                    } else if (isClusteredLightDisk(light)) {\n                        areaLightSpecularCC = getDiskLightSpecular(clearcoat.worldNormal, viewDir);\n                    } else { // sphere\n                        areaLightSpecularCC = getSphereLightSpecular(clearcoat.worldNormal, viewDir);\n                    }\n\n                    ccSpecularLight += ccLTCSpecFres * areaLightSpecularCC * falloffAttenuation * light.color  * cookieAttenuation;\n\n                #endif\n\n            #endif\n\n        } else\n\n        #endif\n\n        {    // punctual light\n\n            // punctual light diffuse\n            {\n                vec3 punctualDiffuse = falloffAttenuation * light.color * cookieAttenuation;\n\n                #if defined(CLUSTER_AREALIGHTS)\n                #if defined(LIT_SPECULAR)\n                #if defined(LIT_CONSERVE_ENERGY)\n                    punctualDiffuse = mix(punctualDiffuse, vec3(0), specularity);\n                #endif\n                #endif\n                #endif\n\n                dDiffuseLight += punctualDiffuse;\n            }\n   \n            // specular and clear coat are material settings and get included by a define based on the material\n            #ifdef LIT_SPECULAR\n\n                vec3 halfDir = normalize(-dLightDirNormW + viewDir);\n                \n                // specular\n                #ifdef LIT_SPECULAR_FRESNEL\n                    dSpecularLight += \n                        getLightSpecular(halfDir, reflectionDir, worldNormal, viewDir, dLightDirNormW, gloss, tbn) * falloffAttenuation * light.color * cookieAttenuation * \n                        getFresnel(\n                            dot(viewDir, halfDir), \n                            gloss, \n                            specularity\n                        #if defined(LIT_IRIDESCENCE)\n                            , iridescenceFresnel,\n                            iridescence\n                        #endif\n                            );\n                #else\n                    dSpecularLight += getLightSpecular(halfDir, reflectionDir, worldNormal, viewDir, dLightDirNormW, gloss, tbn) * falloffAttenuation * light.color * cookieAttenuation * specularity;\n                #endif\n\n                #ifdef LIT_CLEARCOAT\n                    #ifdef LIT_SPECULAR_FRESNEL\n                        ccSpecularLight += getLightSpecular(halfDir, clearcoatReflectionDir, clearcoat.worldNormal, viewDir, dLightDirNormW, clearcoat.gloss, tbn) * falloffAttenuation * light.color * cookieAttenuation * getFresnelCC(dot(viewDir, halfDir));\n                    #else\n                        ccSpecularLight += getLightSpecular(halfDir, clearcoatReflectionDir, clearcoat.worldNormal, viewDir, dLightDirNormW, clearcoat.gloss, tbn) * falloffAttenuation * light.color * cookieAttenuation; \n                    #endif\n                #endif\n\n                #ifdef LIT_SHEEN\n                    sSpecularLight += getLightSpecularSheen(halfDir, worldNormal, viewDir, dLightDirNormW, sheen.gloss) * falloffAttenuation * light.color * cookieAttenuation;\n                #endif\n\n            #endif\n        }\n    }\n\n    // Write to global attenuation values (for lightmapper)\n    dAtten = falloffAttenuation;\n    dAttenD = diffuseAttenuation;\n    dAtten3 = cookieAttenuation;\n}\n\nvoid evaluateClusterLight(\n    float lightIndex, \n    vec3 worldNormal, \n    vec3 viewDir, \n    vec3 reflectionDir, \n#if defined(LIT_CLEARCOAT)\n    vec3 clearcoatReflectionDir,\n#endif\n    float gloss, \n    vec3 specularity, \n    vec3 geometricNormal, \n    mat3 tbn, \n#if defined(LIT_IRIDESCENCE)\n    vec3 iridescenceFresnel,\n#endif\n    ClearcoatArgs clearcoat, \n    SheenArgs sheen, \n    IridescenceArgs iridescence\n) {\n\n    // decode core light data from textures\n    ClusterLightData clusterLightData;\n    decodeClusterLightCore(clusterLightData, lightIndex);\n\n    // evaluate light if it uses accepted light mask\n    if (acceptLightMask(clusterLightData))\n        evaluateLight(\n            clusterLightData, \n            worldNormal, \n            viewDir, \n            reflectionDir, \n#if defined(LIT_CLEARCOAT)\n            clearcoatReflectionDir, \n#endif\n            gloss, \n            specularity, \n            geometricNormal, \n            tbn, \n#if defined(LIT_IRIDESCENCE)\n            iridescenceFresnel,\n#endif\n            clearcoat, \n            sheen, \n            iridescence\n        );\n}\n\nvoid addClusteredLights(\n    vec3 worldNormal, \n    vec3 viewDir, \n    vec3 reflectionDir, \n#if defined(LIT_CLEARCOAT)\n    vec3 clearcoatReflectionDir,\n#endif\n    float gloss, \n    vec3 specularity, \n    vec3 geometricNormal, \n    mat3 tbn, \n#if defined(LIT_IRIDESCENCE)\n    vec3 iridescenceFresnel,\n#endif\n    ClearcoatArgs clearcoat, \n    SheenArgs sheen, \n    IridescenceArgs iridescence\n) {\n\n    // skip lights if no lights at all\n    if (clusterSkip > 0.5)\n        return;\n\n    // world space position to 3d integer cell cordinates in the cluster structure\n    vec3 cellCoords = floor((vPositionW - clusterBoundsMin) * clusterCellsCountByBoundsSize);\n\n    // no lighting when cell coordinate is out of range\n    if (!(any(lessThan(cellCoords, vec3(0.0))) || any(greaterThanEqual(cellCoords, clusterCellsMax)))) {\n\n        // cell index (mapping from 3d cell coordinates to linear memory)\n        float cellIndex = dot(clusterCellsDot, cellCoords);\n\n        // convert cell index to uv coordinates\n        float clusterV = floor(cellIndex * clusterTextureSize.y);\n        float clusterU = cellIndex - (clusterV * clusterTextureSize.x);\n\n        #ifdef GL2\n\n            // loop over maximum number of light cells\n            for (int lightCellIndex = 0; lightCellIndex < clusterMaxCells; lightCellIndex++) {\n\n                // using a single channel texture with data in alpha channel\n                float lightIndex = texelFetch(clusterWorldTexture, ivec2(int(clusterU) + lightCellIndex, clusterV), 0).x;\n\n                if (lightIndex <= 0.0)\n                        return;\n\n                evaluateClusterLight(\n                    lightIndex * 255.0, \n                    worldNormal, \n                    viewDir, \n                    reflectionDir,\n#if defined(LIT_CLEARCOAT)\n                    clearcoatReflectionDir,\n#endif\n                    gloss, \n                    specularity, \n                    geometricNormal, \n                    tbn, \n#if defined(LIT_IRIDESCENCE)\n                    iridescenceFresnel,\n#endif\n                    clearcoat, \n                    sheen, \n                    iridescence\n                ); \n            }\n\n        #else\n\n            clusterV = (clusterV + 0.5) * clusterTextureSize.z;\n\n            // loop over maximum possible number of supported light cells\n            const float maxLightCells = 256.0;\n            for (float lightCellIndex = 0.5; lightCellIndex < maxLightCells; lightCellIndex++) {\n\n                float lightIndex = texture2DLodEXT(clusterWorldTexture, vec2(clusterTextureSize.y * (clusterU + lightCellIndex), clusterV), 0.0).x;\n\n                if (lightIndex <= 0.0)\n                    return;\n                \n                evaluateClusterLight(\n                    lightIndex * 255.0, \n                    worldNormal, \n                    viewDir, \n                    reflectionDir,\n#if defined(LIT_CLEARCOAT)\n                    clearcoatReflectionDir,\n#endif\n                    gloss, \n                    specularity, \n                    geometricNormal, \n                    tbn, \n#if defined(LIT_IRIDESCENCE)\n                    iridescenceFresnel,\n#endif\n                    clearcoat, \n                    sheen, \n                    iridescence\n                ); \n                // end of the cell array\n                if (lightCellIndex >= clusterMaxCells) {\n                    break;\n                }\n            }\n\n        #endif\n    }\n}\n";
 
 		var combinePS = "\nvec3 combineColor(vec3 albedo, vec3 sheenSpecularity, float clearcoatSpecularity) {\n    vec3 ret = vec3(0);\n#ifdef LIT_OLD_AMBIENT\n    ret += (dDiffuseLight - light_globalAmbient) * albedo + material_ambient * light_globalAmbient;\n#else\n    ret += albedo * dDiffuseLight;\n#endif\n#ifdef LIT_SPECULAR\n    ret += dSpecularLight;\n#endif\n#ifdef LIT_REFLECTIONS\n    ret += dReflection.rgb * dReflection.a;\n#endif\n\n#ifdef LIT_SHEEN\n    float sheenScaling = 1.0 - max(max(sheenSpecularity.r, sheenSpecularity.g), sheenSpecularity.b) * 0.157;\n    ret = ret * sheenScaling + (sSpecularLight + sReflection.rgb) * sheenSpecularity;\n#endif\n#ifdef LIT_CLEARCOAT\n    float clearCoatScaling = 1.0 - ccFresnel * clearcoatSpecularity;\n    ret = ret * clearCoatScaling + (ccSpecularLight + ccReflection.rgb) * clearcoatSpecularity;\n#endif\n\n    return ret;\n}\n";
 
@@ -31354,7 +31382,7 @@ var playcanvas = {exports: {}};
 
 		var linearizeDepthPS = "\n\n#ifndef LINEARIZE_DEPTH\n#define LINEARIZE_DEPTH\n\nfloat linearizeDepth(float z, vec4 cameraParams) {\n    if (cameraParams.w == 0.0)\n        return (cameraParams.z * cameraParams.y) / (cameraParams.y + z * (cameraParams.z - cameraParams.y));\n    else\n        return cameraParams.z + z * (cameraParams.y - cameraParams.z);\n}\n\n#ifndef CAMERAPLANES\n#define CAMERAPLANES\nuniform vec4 camera_params; // x: 1 / camera_far,      y: camera_far,     z: camera_near,        w: is_ortho\n#endif\n\n#ifdef GL2\nfloat linearizeDepth(float z) {\n    return linearizeDepth(z, camera_params);\n}\n#else\n#ifndef UNPACKFLOAT\n#define UNPACKFLOAT\nfloat unpackFloat(vec4 rgbaDepth) {\n    const vec4 bitShift = vec4(1.0 / (256.0 * 256.0 * 256.0), 1.0 / (256.0 * 256.0), 1.0 / 256.0, 1.0);\n    return dot(rgbaDepth, bitShift);\n}\n#endif\n#endif\n#endif\n";
 
-		var litShaderArgsPS = "\n\nstruct IridescenceArgs\n{\n    // Iridescence effect intensity, range [0..1]\n    float intensity;\n\n    // Thickness of the iridescent microfilm layer, value is in nanometers, range [0..1000]\n    float thickness;\n};\n\nstruct ClearcoatArgs\n{\n    // Intensity of the clearcoat layer, range [0..1]\n    float specularity;\n\n    // Glossiness of clearcoat layer, range [0..1]\n    float gloss;\n\n    // The normal used for the clearcoat layer\n    vec3 worldNormal;\n};\n\nstruct SheenArgs\n{\n    // Glossiness of the sheen layer, range [0..1]\n    float gloss;\n\n    // The color of the f0 specularity factor for the sheen layer\n    vec3 specularity;\n};\n\nstruct LitShaderArguments {\n    // Transparency\n    float opacity;\n\n    // Normal direction in world space\n    vec3 worldNormal;\n\n    // Surface albedo absorbance\n    vec3 albedo;\n\n    // Transmission factor (refraction), range [0..1]\n    float transmission;\n\n    // Uniform thickness of medium, used by transmission, range [0..inf]\n    float thickness;\n\n    // The f0 specularity factor\n    vec3 specularity;\n\n    // The microfacet glossiness factor, range [0..1]\n    float gloss;\n\n    // Surface metalness factor, range [0..1]\n    float metalness;\n\n    // Specularity intensity factor, range [0..1]\n    float specularityFactor;\n\n    // Ambient occlusion amount, range [0..1]\n    float ao;\n\n    // Emission color\n    vec3 emission;\n\n    // Light map color\n    vec3 lightmap;\n\n    // Light map direction\n    vec3 lightmapDir;\n\n    // Iridescence extension arguments\n    IridescenceArgs iridescence;\n\n    // Clearcoat extension arguments\n    ClearcoatArgs clearcoat;\n\n    // Sheen extension arguments\n    SheenArgs sheen;\n};\n";
+		var litShaderArgsPS = "\n\nstruct IridescenceArgs\n{\n    // Iridescence effect intensity, range [0..1]\n    float intensity;\n\n    // Thickness of the iridescent microfilm layer, value is in nanometers, range [0..1000]\n    float thickness;\n};\n\nstruct ClearcoatArgs\n{\n    // The normal used for the clearcoat layer\n    vec3 worldNormal;\n\n    // Intensity of the clearcoat layer, range [0..1]\n    float specularity;\n\n    // Glossiness of clearcoat layer, range [0..1]\n    float gloss;\n};\n\nstruct SheenArgs\n{\n    // The color of the f0 specularity factor for the sheen layer\n    vec3 specularity;\n\n    // Glossiness of the sheen layer, range [0..1]\n    float gloss;\n};\n\nstruct LitShaderArguments {\n    // Normal direction in world space\n    vec3 worldNormal;\n\n    // Transparency\n    float opacity;\n\n    // Surface albedo absorbance\n    vec3 albedo;\n\n    // Transmission factor (refraction), range [0..1]\n    float transmission;\n\n    // The f0 specularity factor\n    vec3 specularity;\n\n    // Uniform thickness of medium, used by transmission, range [0..inf]\n    float thickness;\n\n    // Emission color\n    vec3 emission;\n\n    // Ambient occlusion amount, range [0..1]\n    float ao;\n\n    // Light map color\n    vec3 lightmap;\n\n    // Specularity intensity factor, range [0..1]\n    float specularityFactor;\n\n    // Light map direction\n    vec3 lightmapDir;\n\n    // The microfacet glossiness factor, range [0..1]\n    float gloss;\n\n    // Iridescence extension arguments\n    IridescenceArgs iridescence;\n\n    // Clearcoat extension arguments\n    ClearcoatArgs clearcoat;\n\n    // Surface metalness factor, range [0..1]\n    float metalness;\n\n    // Sheen extension arguments\n    SheenArgs sheen;\n};\n";
 
 		var ltcPS = "\n// Real-Time Polygonal-Light Shading with Linearly Transformed Cosines\n// by Eric Heitz, Jonathan Dupuy, Stephen Hill and David Neubelt\n// code: https://github.com/selfshadow/ltc_code/\n\nmat3 transposeMat3( const in mat3 m ) {\n    mat3 tmp;\n    tmp[ 0 ] = vec3( m[ 0 ].x, m[ 1 ].x, m[ 2 ].x );\n    tmp[ 1 ] = vec3( m[ 0 ].y, m[ 1 ].y, m[ 2 ].y );\n    tmp[ 2 ] = vec3( m[ 0 ].z, m[ 1 ].z, m[ 2 ].z );\n    return tmp;\n}\n\nvec2 LTC_Uv( const in vec3 N, const in vec3 V, const in float roughness ) {\n    const float LUT_SIZE = 64.0;\n    const float LUT_SCALE = ( LUT_SIZE - 1.0 ) / LUT_SIZE;\n    const float LUT_BIAS = 0.5 / LUT_SIZE;\n    float dotNV = saturate( dot( N, V ) );\n    // texture parameterized by sqrt( GGX alpha ) and sqrt( 1 - cos( theta ) )\n    vec2 uv = vec2( roughness, sqrt( 1.0 - dotNV ) );\n    uv = uv * LUT_SCALE + LUT_BIAS;\n    return uv;\n}\n\nfloat LTC_ClippedSphereFormFactor( const in vec3 f ) {\n    // Real-Time Area Lighting: a Journey from Research to Production (p.102)\n    // An approximation of the form factor of a horizon-clipped rectangle.\n    float l = length( f );\n    return max( ( l * l + f.z ) / ( l + 1.0 ), 0.0 );\n}\n\nvec3 LTC_EdgeVectorFormFactor( const in vec3 v1, const in vec3 v2 ) {\n    float x = dot( v1, v2 );\n    float y = abs( x );\n    // rational polynomial approximation to theta / sin( theta ) / 2PI\n    float a = 0.8543985 + ( 0.4965155 + 0.0145206 * y ) * y;\n    float b = 3.4175940 + ( 4.1616724 + y ) * y;\n    float v = a / b;\n    float theta_sintheta = ( x > 0.0 ) ? v : 0.5 * inversesqrt( max( 1.0 - x * x, 1e-7 ) ) - v;\n    return cross( v1, v2 ) * theta_sintheta;\n}\n\nstruct Coords {\n    vec3 coord0;\n    vec3 coord1;\n    vec3 coord2;\n    vec3 coord3;\n};\n\nfloat LTC_EvaluateRect( const in vec3 N, const in vec3 V, const in vec3 P, const in mat3 mInv, const in Coords rectCoords) {\n    // bail if point is on back side of plane of light\n    // assumes ccw winding order of light vertices\n    vec3 v1 = rectCoords.coord1 - rectCoords.coord0;\n    vec3 v2 = rectCoords.coord3 - rectCoords.coord0;\n    \n    vec3 lightNormal = cross( v1, v2 );\n    // if( dot( lightNormal, P - rectCoords.coord0 ) < 0.0 ) return 0.0;\n    float factor = sign(-dot( lightNormal, P - rectCoords.coord0 ));\n\n    // construct orthonormal basis around N\n    vec3 T1, T2;\n    T1 = normalize( V - N * dot( V, N ) );\n    T2 =  factor * cross( N, T1 ); // negated from paper; possibly due to a different handedness of world coordinate system\n    // compute transform\n    mat3 mat = mInv * transposeMat3( mat3( T1, T2, N ) );\n    // transform rect\n    vec3 coords[ 4 ];\n    coords[ 0 ] = mat * ( rectCoords.coord0 - P );\n    coords[ 1 ] = mat * ( rectCoords.coord1 - P );\n    coords[ 2 ] = mat * ( rectCoords.coord2 - P );\n    coords[ 3 ] = mat * ( rectCoords.coord3 - P );\n    // project rect onto sphere\n    coords[ 0 ] = normalize( coords[ 0 ] );\n    coords[ 1 ] = normalize( coords[ 1 ] );\n    coords[ 2 ] = normalize( coords[ 2 ] );\n    coords[ 3 ] = normalize( coords[ 3 ] );\n    // calculate vector form factor\n    vec3 vectorFormFactor = vec3( 0.0 );\n    vectorFormFactor += LTC_EdgeVectorFormFactor( coords[ 0 ], coords[ 1 ] );\n    vectorFormFactor += LTC_EdgeVectorFormFactor( coords[ 1 ], coords[ 2 ] );\n    vectorFormFactor += LTC_EdgeVectorFormFactor( coords[ 2 ], coords[ 3 ] );\n    vectorFormFactor += LTC_EdgeVectorFormFactor( coords[ 3 ], coords[ 0 ] );\n    // adjust for horizon clipping\n    float result = LTC_ClippedSphereFormFactor( vectorFormFactor );\n\n    return result;\n}\n\nCoords dLTCCoords;\nCoords getLTCLightCoords(vec3 lightPos, vec3 halfWidth, vec3 halfHeight){\n    Coords coords;\n    coords.coord0 = lightPos + halfWidth - halfHeight;\n    coords.coord1 = lightPos - halfWidth - halfHeight;\n    coords.coord2 = lightPos - halfWidth + halfHeight;\n    coords.coord3 = lightPos + halfWidth + halfHeight;\n    return coords;\n}\n\nfloat dSphereRadius;\nCoords getSphereLightCoords(vec3 lightPos, vec3 halfWidth, vec3 halfHeight){\n    // used for simple sphere light falloff\n    // also, the code only handles a spherical light, it cannot be non-uniformly scaled in world space, and so we enforce it here\n    dSphereRadius = max(length(halfWidth), length(halfHeight));\n\n    // Billboard the 2d light quad to reflection vector, as it's used for specular. This allows us to use disk math for the sphere.\n    vec3 f = reflect(normalize(lightPos - view_position), vNormalW);\n    vec3 w = normalize(cross(f, halfHeight));\n    vec3 h = normalize(cross(f, w));\n\n    return getLTCLightCoords(lightPos, w * dSphereRadius, h * dSphereRadius);\n}\n\n// used for LTC LUT texture lookup\nvec2 dLTCUV;\n#ifdef LIT_CLEARCOAT\nvec2 ccLTCUV;\n#endif\nvec2 getLTCLightUV(float gloss, vec3 worldNormal, vec3 viewDir)\n{\n    float roughness = max((1.0 - gloss) * (1.0 - gloss), 0.001);\n    return LTC_Uv( worldNormal, viewDir, roughness );\n}\n\n//used for energy conservation and to modulate specular\nvec3 dLTCSpecFres;\n#ifdef LIT_CLEARCOAT\nvec3 ccLTCSpecFres;\n#endif\nvec3 getLTCLightSpecFres(vec2 uv, vec3 specularity)\n{\n    vec4 t2 = texture2DLodEXT(areaLightsLutTex2, uv, 0.0);\n\n    #ifdef AREA_R8_G8_B8_A8_LUTS\n    t2 *= vec4(0.693103,1,1,1);\n    t2 += vec4(0.306897,0,0,0);\n    #endif\n\n    return specularity * t2.x + ( vec3( 1.0 ) - specularity) * t2.y;\n}\n\nvoid calcLTCLightValues(float gloss, vec3 worldNormal, vec3 viewDir, vec3 specularity, float clearcoatGloss, vec3 clearcoatWorldNormal, float clearcoatSpecularity)\n{\n    dLTCUV = getLTCLightUV(gloss, worldNormal, viewDir);\n    dLTCSpecFres = getLTCLightSpecFres(dLTCUV, specularity); \n\n#ifdef LIT_CLEARCOAT\n    ccLTCUV = getLTCLightUV(clearcoatGloss, clearcoatWorldNormal, viewDir);\n    ccLTCSpecFres = getLTCLightSpecFres(ccLTCUV, vec3(clearcoatSpecularity));\n#endif\n}\n\nvoid calcRectLightValues(vec3 lightPos, vec3 halfWidth, vec3 halfHeight)\n{\n    dLTCCoords = getLTCLightCoords(lightPos, halfWidth, halfHeight);\n}\nvoid calcDiskLightValues(vec3 lightPos, vec3 halfWidth, vec3 halfHeight)\n{\n    calcRectLightValues(lightPos, halfWidth, halfHeight);\n}\nvoid calcSphereLightValues(vec3 lightPos, vec3 halfWidth, vec3 halfHeight)\n{\n    dLTCCoords = getSphereLightCoords(lightPos, halfWidth, halfHeight);\n}\n\n// An extended version of the implementation from\n// \"How to solve a cubic equation, revisited\"\n// http://momentsingraphics.de/?p=105\nvec3 SolveCubic(vec4 Coefficient)\n{\n    float pi = 3.14159;\n    // Normalize the polynomial\n    Coefficient.xyz /= Coefficient.w;\n    // Divide middle coefficients by three\n    Coefficient.yz /= 3.0;\n\n    float A = Coefficient.w;\n    float B = Coefficient.z;\n    float C = Coefficient.y;\n    float D = Coefficient.x;\n\n    // Compute the Hessian and the discriminant\n    vec3 Delta = vec3(\n        -Coefficient.z * Coefficient.z + Coefficient.y,\n        -Coefficient.y * Coefficient.z + Coefficient.x,\n        dot(vec2(Coefficient.z, -Coefficient.y), Coefficient.xy)\n    );\n\n    float Discriminant = dot(vec2(4.0 * Delta.x, -Delta.y), Delta.zy);\n\n    vec3 RootsA, RootsD;\n\n    vec2 xlc, xsc;\n\n    // Algorithm A\n    {\n        float A_a = 1.0;\n        float C_a = Delta.x;\n        float D_a = -2.0 * B * Delta.x + Delta.y;\n\n        // Take the cubic root of a normalized complex number\n        float Theta = atan(sqrt(Discriminant), -D_a) / 3.0;\n\n        float x_1a = 2.0 * sqrt(-C_a) * cos(Theta);\n        float x_3a = 2.0 * sqrt(-C_a) * cos(Theta + (2.0 / 3.0) * pi);\n\n        float xl;\n        if ((x_1a + x_3a) > 2.0 * B)\n            xl = x_1a;\n        else\n            xl = x_3a;\n\n        xlc = vec2(xl - B, A);\n    }\n\n    // Algorithm D\n    {\n        float A_d = D;\n        float C_d = Delta.z;\n        float D_d = -D * Delta.y + 2.0 * C * Delta.z;\n\n        // Take the cubic root of a normalized complex number\n        float Theta = atan(D * sqrt(Discriminant), -D_d) / 3.0;\n\n        float x_1d = 2.0 * sqrt(-C_d) * cos(Theta);\n        float x_3d = 2.0 * sqrt(-C_d) * cos(Theta + (2.0 / 3.0) * pi);\n\n        float xs;\n        if (x_1d + x_3d < 2.0 * C)\n            xs = x_1d;\n        else\n            xs = x_3d;\n\n        xsc = vec2(-D, xs + C);\n    }\n\n    float E =  xlc.y * xsc.y;\n    float F = -xlc.x * xsc.y - xlc.y * xsc.x;\n    float G =  xlc.x * xsc.x;\n\n    vec2 xmc = vec2(C * F - B * G, -B * F + C * E);\n\n    vec3 Root = vec3(xsc.x / xsc.y, xmc.x / xmc.y, xlc.x / xlc.y);\n\n    if (Root.x < Root.y && Root.x < Root.z)\n        Root.xyz = Root.yxz;\n    else if (Root.z < Root.x && Root.z < Root.y)\n        Root.xyz = Root.xzy;\n\n    return Root;\n}\n\nfloat LTC_EvaluateDisk(vec3 N, vec3 V, vec3 P, mat3 Minv, Coords points)\n{\n    // construct orthonormal basis around N\n    vec3 T1, T2;\n    T1 = normalize(V - N * dot(V, N));\n    T2 = cross(N, T1);\n\n    // rotate area light in (T1, T2, N) basis\n    //mat3 R = transpose(mat3(T1, T2, N));\n    mat3 R = transposeMat3( mat3( T1, T2, N ) );\n    // polygon (allocate 5 vertices for clipping)\n    vec3 L_[ 3 ];\n    L_[ 0 ] = R * ( points.coord0 - P );\n    L_[ 1 ] = R * ( points.coord1 - P );\n    L_[ 2 ] = R * ( points.coord2 - P );\n\n    vec3 Lo_i = vec3(0);\n\n    // init ellipse\n    vec3 C  = 0.5 * (L_[0] + L_[2]);\n    vec3 V1 = 0.5 * (L_[1] - L_[2]);\n    vec3 V2 = 0.5 * (L_[1] - L_[0]);\n\n    C  = Minv * C;\n    V1 = Minv * V1;\n    V2 = Minv * V2;\n\n    //if(dot(cross(V1, V2), C) > 0.0)\n    //    return 0.0;\n\n    // compute eigenvectors of ellipse\n    float a, b;\n    float d11 = dot(V1, V1);\n    float d22 = dot(V2, V2);\n    float d12 = dot(V1, V2);\n    if (abs(d12) / sqrt(d11 * d22) > 0.0001)\n    {\n        float tr = d11 + d22;\n        float det = -d12 * d12 + d11 * d22;\n\n        // use sqrt matrix to solve for eigenvalues\n        det = sqrt(det);\n        float u = 0.5 * sqrt(tr - 2.0 * det);\n        float v = 0.5 * sqrt(tr + 2.0 * det);\n        float e_max = (u + v) * (u + v);\n        float e_min = (u - v) * (u - v);\n\n        vec3 V1_, V2_;\n\n        if (d11 > d22)\n        {\n            V1_ = d12 * V1 + (e_max - d11) * V2;\n            V2_ = d12 * V1 + (e_min - d11) * V2;\n        }\n        else\n        {\n            V1_ = d12*V2 + (e_max - d22)*V1;\n            V2_ = d12*V2 + (e_min - d22)*V1;\n        }\n\n        a = 1.0 / e_max;\n        b = 1.0 / e_min;\n        V1 = normalize(V1_);\n        V2 = normalize(V2_);\n    }\n    else\n    {\n        a = 1.0 / dot(V1, V1);\n        b = 1.0 / dot(V2, V2);\n        V1 *= sqrt(a);\n        V2 *= sqrt(b);\n    }\n\n    vec3 V3 = cross(V1, V2);\n    if (dot(C, V3) < 0.0)\n        V3 *= -1.0;\n\n    float L  = dot(V3, C);\n    float x0 = dot(V1, C) / L;\n    float y0 = dot(V2, C) / L;\n\n    float E1 = inversesqrt(a);\n    float E2 = inversesqrt(b);\n\n    a *= L * L;\n    b *= L * L;\n\n    float c0 = a * b;\n    float c1 = a * b * (1.0 + x0 * x0 + y0 * y0) - a - b;\n    float c2 = 1.0 - a * (1.0 + x0 * x0) - b * (1.0 + y0 * y0);\n    float c3 = 1.0;\n\n    vec3 roots = SolveCubic(vec4(c0, c1, c2, c3));\n    float e1 = roots.x;\n    float e2 = roots.y;\n    float e3 = roots.z;\n\n    vec3 avgDir = vec3(a * x0 / (a - e2), b * y0 / (b - e2), 1.0);\n\n    mat3 rotate = mat3(V1, V2, V3);\n\n    avgDir = rotate * avgDir;\n    avgDir = normalize(avgDir);\n\n    float L1 = sqrt(-e2 / e3);\n    float L2 = sqrt(-e2 / e1);\n\n    float formFactor = L1 * L2 * inversesqrt((1.0 + L1 * L1) * (1.0 + L2 * L2));\n    \n    const float LUT_SIZE = 64.0;\n    const float LUT_SCALE = ( LUT_SIZE - 1.0 ) / LUT_SIZE;\n    const float LUT_BIAS = 0.5 / LUT_SIZE;\n\n    // use tabulated horizon-clipped sphere\n    vec2 uv = vec2(avgDir.z * 0.5 + 0.5, formFactor);\n    uv = uv*LUT_SCALE + LUT_BIAS;\n\n    float scale = texture2DLodEXT(areaLightsLutTex2, uv, 0.0).w;\n\n    return formFactor*scale;\n}\n\nfloat getRectLightDiffuse(vec3 worldNormal, vec3 viewDir, vec3 lightDir, vec3 lightDirNorm) {\n    return LTC_EvaluateRect( worldNormal, viewDir, vPositionW, mat3( 1.0 ), dLTCCoords );\n}\n\nfloat getDiskLightDiffuse(vec3 worldNormal, vec3 viewDir, vec3 lightDir, vec3 lightDirNorm) {\n    return LTC_EvaluateDisk( worldNormal, viewDir, vPositionW, mat3( 1.0 ), dLTCCoords );\n}\n\nfloat getSphereLightDiffuse(vec3 worldNormal, vec3 viewDir, vec3 lightDir, vec3 lightDirNorm) {\n    // NB: this could be improved further with distance based wrap lighting\n    float falloff = dSphereRadius / (dot(lightDir, lightDir) + dSphereRadius);\n    return getLightDiffuse(worldNormal, viewDir, lightDir, lightDirNorm) * falloff;\n}\n\nmat3 getLTCLightInvMat(vec2 uv)\n{\n    vec4 t1 = texture2DLodEXT(areaLightsLutTex1, uv, 0.0);\n\n    #ifdef AREA_R8_G8_B8_A8_LUTS\n    t1 *= vec4(1.001, 0.3239, 0.60437568, 1.0);\n    t1 += vec4(0.0, -0.2976, -0.01381, 0.0);\n    #endif\n\n    return mat3(\n        vec3( t1.x, 0, t1.y ),\n        vec3(    0, 1,    0 ),\n        vec3( t1.z, 0, t1.w )\n    );\n}\n\nfloat calcRectLightSpecular(vec3 worldNormal, vec3 viewDir, vec2 uv) {\n    mat3 mInv = getLTCLightInvMat(uv);\n    return LTC_EvaluateRect( worldNormal, viewDir, vPositionW, mInv, dLTCCoords );\n}\n\nfloat getRectLightSpecular(vec3 worldNormal, vec3 viewDir) {\n    return calcRectLightSpecular(worldNormal, viewDir, dLTCUV);\n}\n\nfloat calcDiskLightSpecular(vec3 worldNormal, vec3 viewDir, vec2 uv) {\n    mat3 mInv = getLTCLightInvMat(uv);\n    return LTC_EvaluateDisk( worldNormal, viewDir, vPositionW, mInv, dLTCCoords );\n}\n\nfloat getDiskLightSpecular(vec3 worldNormal, vec3 viewDir) {\n    return calcDiskLightSpecular(worldNormal, viewDir, dLTCUV);\n}\n\nfloat getSphereLightSpecular(vec3 worldNormal, vec3 viewDir) {\n    return calcDiskLightSpecular(worldNormal, viewDir, dLTCUV);\n}\n";
 
@@ -31512,11 +31540,11 @@ var playcanvas = {exports: {}};
 
 		var shadowEVSMnPS = "\nfloat VSM$(sampler2D tex, vec2 texCoords, float resolution, float Z, float vsmBias, float exponent) {\n    float pixelSize = 1.0 / resolution;\n    texCoords -= vec2(pixelSize);\n    vec3 s00 = texture2D(tex, texCoords).xyz;\n    vec3 s10 = texture2D(tex, texCoords + vec2(pixelSize, 0)).xyz;\n    vec3 s01 = texture2D(tex, texCoords + vec2(0, pixelSize)).xyz;\n    vec3 s11 = texture2D(tex, texCoords + vec2(pixelSize)).xyz;\n    vec2 fr = fract(texCoords * resolution);\n    vec3 h0 = mix(s00, s10, fr.x);\n    vec3 h1 = mix(s01, s11, fr.x);\n    vec3 moments = mix(h0, h1, fr.y);\n    return calculateEVSM(moments, Z, vsmBias, exponent);\n}\n\nfloat getShadowVSM$(sampler2D shadowMap, vec3 shadowCoord, vec4 shadowParams, float exponent, vec3 lightDir) {\n    return VSM$(shadowMap, shadowCoord.xy, shadowParams.x, shadowCoord.z, shadowParams.y, exponent);\n}\n\nfloat getShadowSpotVSM$(sampler2D shadowMap, vec3 shadowCoord, vec4 shadowParams, float exponent, vec3 lightDir) {\n    return VSM$(shadowMap, shadowCoord.xy, shadowParams.x, length(lightDir) * shadowParams.w + shadowParams.z, shadowParams.y, exponent);\n}\n";
 
-		var shadowPCSSPS = "\n\n/**\n * PCSS is a shadow sampling method that provides contact hardening soft shadows. \n * Based on: \n * - https://www.gamedev.net/tutorials/programming/graphics/effect-area-light-shadows-part-1-pcss-r4971/\n * - https://github.com/pboechat/PCSS \n */\n\n\n#define PCSS_SAMPLE_COUNT 16\nuniform float pcssDiskSamples[PCSS_SAMPLE_COUNT];\nuniform float pcssSphereSamples[PCSS_SAMPLE_COUNT];\n\nvec2 vogelDisk(int sampleIndex, float count, float phi, float r) {\n    const float GoldenAngle = 2.4;\n    float theta = float(sampleIndex) * GoldenAngle + phi;\n\n    float sine = sin(theta);\n    float cosine = cos(theta);\n    return vec2(r * cosine, r * sine);\n}\n\nvec3 vogelSphere(int sampleIndex, float count, float phi, float r) {\n    const float GoldenAngle = 2.4;\n    float theta = float(sampleIndex) * GoldenAngle + phi;\n\n    float weight = float(sampleIndex) / count;\n    return vec3(cos(theta) * r, weight, sin(theta) * r);\n}\n\nfloat gradientNoise(vec2 screenPos) {\n    vec3 magic = vec3(0.06711056, 0.00583715, 52.9829189);\n    return fract(magic.z * fract(dot(screenPos, magic.xy)));\n}\n\n#ifndef UNPACKFLOAT\n#define UNPACKFLOAT\nfloat unpackFloat(vec4 rgbaDepth) {\n    const vec4 bitShift = vec4(1.0 / (256.0 * 256.0 * 256.0), 1.0 / (256.0 * 256.0), 1.0 / 256.0, 1.0);\n    return dot(rgbaDepth, bitShift);\n}\n#endif\n\nfloat viewSpaceDepth(float depth, mat4 invProjection) {\n    float z = depth * 2.0 - 1.0;\n    vec4 clipSpace = vec4(0.0, 0.0, z, 1.0);\n    vec4 viewSpace = invProjection * clipSpace;\n    return viewSpace.z;\n}\n\n\nfloat PCSSBlockerDistance(TEXTURE_ACCEPT(shadowMap), vec2 sampleCoords[PCSS_SAMPLE_COUNT], vec2 shadowCoords, vec2 searchSize, float z) {\n\n    float blockers = 0.0;\n    float averageBlocker = 0.0;\n    for (int i = 0; i < PCSS_SAMPLE_COUNT; i++) {\n        vec2 offset = sampleCoords[i] * searchSize;\n        vec2 sampleUV = shadowCoords + offset;\n\n    #ifdef GL2\n        float blocker = textureLod(shadowMap, sampleUV, 0.0).r;\n    #else // GL1\n        float blocker = unpackFloat(texture2D(shadowMap, sampleUV));\n    #endif        \n        float isBlocking = step(blocker, z);\n        blockers += isBlocking;\n        averageBlocker += blocker * isBlocking;\n    }\n\n    if (blockers > 0.0)\n        return averageBlocker /= blockers;\n    return -1.0;\n}\n\nfloat PCSS(TEXTURE_ACCEPT(shadowMap), vec3 shadowCoords, vec4 cameraParams, float oneOverShadowMapSize, vec2 lightSize) {\n    float receiverDepth = linearizeDepth(shadowCoords.z, cameraParams);\n#ifndef GL2\n    // If using packed depth on GL1, we need to normalize to get the correct receiver depth\n    receiverDepth *= 1.0 / (cameraParams.y - cameraParams.z);\n#endif\n\n    vec2 samplePoints[PCSS_SAMPLE_COUNT];\n    float noise = gradientNoise( gl_FragCoord.xy ) * 2.0 * PI;\n    for (int i = 0; i < PCSS_SAMPLE_COUNT; i++) {\n        float pcssPresample = pcssDiskSamples[i];\n        samplePoints[i] = vogelDisk(i, float(PCSS_SAMPLE_COUNT), noise, pcssPresample);\n    }\n\n    // Calculate the ratio of FOV between 45.0 degrees (tan(45) == 1) and the FOV of the camera    \n    float fovRatioAtDepth = cameraParams.x;\n    float averageBlocker = PCSSBlockerDistance(TEXTURE_PASS(shadowMap), samplePoints, shadowCoords.xy, oneOverShadowMapSize * lightSize * fovRatioAtDepth, receiverDepth);\n    if (averageBlocker == -1.0) {\n        return 1.0;\n    } else {\n\n        vec2 filterRadius = ((receiverDepth - averageBlocker) / averageBlocker) * lightSize * oneOverShadowMapSize * fovRatioAtDepth;\n\n        float shadow = 0.0;\n\n        for (int i = 0; i < PCSS_SAMPLE_COUNT; i ++)\n        {\n            vec2 sampleUV = samplePoints[i] * filterRadius;\n            sampleUV = shadowCoords.xy + sampleUV;\n\n        #ifdef GL2\n            float depth = textureLod(shadowMap, sampleUV, 0.0).r;\n        #else // GL1\n            float depth = unpackFloat(texture2D(shadowMap, sampleUV));\n        #endif\n            shadow += step(receiverDepth, depth);\n        }\n        return shadow / float(PCSS_SAMPLE_COUNT);\n    } \n}\n\nfloat PCSSCubeBlockerDistance(samplerCube shadowMap, vec3 lightDirNorm, vec3 samplePoints[PCSS_SAMPLE_COUNT], float z, float lightSize) {\n    float blockers = 0.0;\n    float averageBlocker = 0.0;\n    for (int i = 0; i < PCSS_SAMPLE_COUNT; i++) {\n        vec3 sampleDir = lightDirNorm + samplePoints[i] * lightSize;\n        sampleDir = normalize(sampleDir);\n\n    #ifdef GL2\n        float blocker = textureCubeLodEXT(shadowMap, sampleDir, 0.0).r;\n    #else // GL1\n        float blocker = unpackFloat(textureCube(shadowMap, sampleDir));\n    #endif\n        float isBlocking = step(blocker, z);\n        blockers += isBlocking;\n        averageBlocker += blocker * isBlocking;\n    }\n\n    if (blockers > 0.0)\n        return averageBlocker /= float(blockers);\n    return -1.0;\n}\n\nfloat PCSSCube(samplerCube shadowMap, vec4 shadowParams, vec3 shadowCoords, vec4 cameraParams, float oneOverShadowMapSize, float lightSize, vec3 lightDir) {\n    \n    vec3 samplePoints[PCSS_SAMPLE_COUNT];\n    float noise = gradientNoise( gl_FragCoord.xy ) * 2.0 * PI;\n    for (int i = 0; i < PCSS_SAMPLE_COUNT; i++) {\n        float r = pcssSphereSamples[i];\n        samplePoints[i] = vogelSphere(i, float(PCSS_SAMPLE_COUNT), noise, r);\n    }\n\n    float receiverDepth = length(lightDir) * shadowParams.w + shadowParams.z;\n    vec3 lightDirNorm = normalize(lightDir);\n    \n    float averageBlocker = PCSSCubeBlockerDistance(shadowMap, lightDirNorm, samplePoints, receiverDepth, lightSize * oneOverShadowMapSize * 2.0);\n    if (averageBlocker == -1.0) {\n        return 1.0;\n    } else {\n\n        float filterRadius = ((receiverDepth - averageBlocker) / averageBlocker) * lightSize * oneOverShadowMapSize * 2.0;\n\n        float shadow = 0.0;\n        for (int i = 0; i < PCSS_SAMPLE_COUNT; i++)\n        {\n            vec3 offset = samplePoints[i] * filterRadius;\n            vec3 sampleDir = lightDirNorm + offset;\n            sampleDir = normalize(sampleDir);\n\n            #ifdef GL2\n                float depth = textureCubeLodEXT(shadowMap, sampleDir, 0.0).r;\n            #else // GL1\n                float depth = unpackFloat(textureCube(shadowMap, sampleDir));\n            #endif\n            shadow += step(receiverDepth, depth);\n        }\n        return shadow / float(PCSS_SAMPLE_COUNT);\n    }\n}\n\nfloat getShadowPointPCSS(samplerCube shadowMap, vec3 shadowCoord, vec4 shadowParams, vec4 cameraParams, vec2 lightSize, vec3 lightDir) {\n    return PCSSCube(shadowMap, shadowParams, shadowCoord, cameraParams, (1.0 / shadowParams.x), lightSize.x, lightDir);\n}\n\nfloat getShadowSpotPCSS(TEXTURE_ACCEPT(shadowMap), vec3 shadowCoord, vec4 shadowParams, vec4 cameraParams, vec2 lightSize, vec3 lightDir) {\n    return PCSS(TEXTURE_PASS(shadowMap), shadowCoord, cameraParams, (1.0 / shadowParams.x), lightSize);\n}\n\nfloat getShadowPCSS(TEXTURE_ACCEPT(shadowMap), vec3 shadowCoord, vec4 shadowParams, vec4 cameraParams, vec2 lightSize, vec3 lightDir) {\n    return PCSS(TEXTURE_PASS(shadowMap), shadowCoord, cameraParams, (1.0 / shadowParams.x), lightSize);\n}\n\n";
+		var shadowPCSSPS = "\n\n/**\n * PCSS is a shadow sampling method that provides contact hardening soft shadows. \n * Based on: \n * - https://www.gamedev.net/tutorials/programming/graphics/effect-area-light-shadows-part-1-pcss-r4971/\n * - https://github.com/pboechat/PCSS \n */\n\n\n#define PCSS_SAMPLE_COUNT 16\nuniform float pcssDiskSamples[PCSS_SAMPLE_COUNT];\nuniform float pcssSphereSamples[PCSS_SAMPLE_COUNT];\n\nvec2 vogelDisk(int sampleIndex, float count, float phi, float r) {\n    const float GoldenAngle = 2.4;\n    float theta = float(sampleIndex) * GoldenAngle + phi;\n\n    float sine = sin(theta);\n    float cosine = cos(theta);\n    return vec2(r * cosine, r * sine);\n}\n\nvec3 vogelSphere(int sampleIndex, float count, float phi, float r) {\n    const float GoldenAngle = 2.4;\n    float theta = float(sampleIndex) * GoldenAngle + phi;\n\n    float weight = float(sampleIndex) / count;\n    return vec3(cos(theta) * r, weight, sin(theta) * r);\n}\n\nfloat gradientNoise(vec2 screenPos) {\n    vec3 magic = vec3(0.06711056, 0.00583715, 52.9829189);\n    return fract(magic.z * fract(dot(screenPos, magic.xy)));\n}\n\n#ifndef UNPACKFLOAT\n#define UNPACKFLOAT\nfloat unpackFloat(vec4 rgbaDepth) {\n    const vec4 bitShift = vec4(1.0 / (256.0 * 256.0 * 256.0), 1.0 / (256.0 * 256.0), 1.0 / 256.0, 1.0);\n    return dot(rgbaDepth, bitShift);\n}\n#endif\n\nfloat viewSpaceDepth(float depth, mat4 invProjection) {\n    float z = depth * 2.0 - 1.0;\n    vec4 clipSpace = vec4(0.0, 0.0, z, 1.0);\n    vec4 viewSpace = invProjection * clipSpace;\n    return viewSpace.z;\n}\n\n\nfloat PCSSBlockerDistance(TEXTURE_ACCEPT(shadowMap), vec2 sampleCoords[PCSS_SAMPLE_COUNT], vec2 shadowCoords, vec2 searchSize, float z) {\n\n    float blockers = 0.0;\n    float averageBlocker = 0.0;\n    for (int i = 0; i < PCSS_SAMPLE_COUNT; i++) {\n        vec2 offset = sampleCoords[i] * searchSize;\n        vec2 sampleUV = shadowCoords + offset;\n\n    #ifdef GL2\n        float blocker = textureLod(shadowMap, sampleUV, 0.0).r;\n    #else // GL1\n        float blocker = unpackFloat(texture2D(shadowMap, sampleUV));\n    #endif        \n        float isBlocking = step(blocker, z);\n        blockers += isBlocking;\n        averageBlocker += blocker * isBlocking;\n    }\n\n    if (blockers > 0.0)\n        return averageBlocker /= blockers;\n    return -1.0;\n}\n\nfloat PCSS(TEXTURE_ACCEPT(shadowMap), vec3 shadowCoords, vec4 cameraParams, vec2 shadowSearchArea) {\n    float receiverDepth = linearizeDepth(shadowCoords.z, cameraParams);\n#ifndef GL2\n    // If using packed depth on GL1, we need to normalize to get the correct receiver depth\n    receiverDepth *= 1.0 / (cameraParams.y - cameraParams.z);\n#endif\n\n    vec2 samplePoints[PCSS_SAMPLE_COUNT];\n    float noise = gradientNoise( gl_FragCoord.xy ) * 2.0 * PI;\n    for (int i = 0; i < PCSS_SAMPLE_COUNT; i++) {\n        float pcssPresample = pcssDiskSamples[i];\n        samplePoints[i] = vogelDisk(i, float(PCSS_SAMPLE_COUNT), noise, pcssPresample);\n    }\n\n    float averageBlocker = PCSSBlockerDistance(TEXTURE_PASS(shadowMap), samplePoints, shadowCoords.xy, shadowSearchArea, receiverDepth);\n    if (averageBlocker == -1.0) {\n        return 1.0;\n    } else {\n\n        vec2 filterRadius = ((receiverDepth - averageBlocker) / averageBlocker) * shadowSearchArea * cameraParams.x;\n\n        float shadow = 0.0;\n\n        for (int i = 0; i < PCSS_SAMPLE_COUNT; i ++)\n        {\n            vec2 sampleUV = samplePoints[i] * filterRadius;\n            sampleUV = shadowCoords.xy + sampleUV;\n\n        #ifdef GL2\n            float depth = textureLod(shadowMap, sampleUV, 0.0).r;\n        #else // GL1\n            float depth = unpackFloat(texture2D(shadowMap, sampleUV));\n        #endif\n            shadow += step(receiverDepth, depth);\n        }\n        return shadow / float(PCSS_SAMPLE_COUNT);\n    } \n}\n\nfloat PCSSCubeBlockerDistance(samplerCube shadowMap, vec3 lightDirNorm, vec3 samplePoints[PCSS_SAMPLE_COUNT], float z, float shadowSearchArea) {\n    float blockers = 0.0;\n    float averageBlocker = 0.0;\n    for (int i = 0; i < PCSS_SAMPLE_COUNT; i++) {\n        vec3 sampleDir = lightDirNorm + samplePoints[i] * shadowSearchArea;\n        sampleDir = normalize(sampleDir);\n\n    #ifdef GL2\n        float blocker = textureCubeLodEXT(shadowMap, sampleDir, 0.0).r;\n    #else // GL1\n        float blocker = unpackFloat(textureCube(shadowMap, sampleDir));\n    #endif\n        float isBlocking = step(blocker, z);\n        blockers += isBlocking;\n        averageBlocker += blocker * isBlocking;\n    }\n\n    if (blockers > 0.0)\n        return averageBlocker /= float(blockers);\n    return -1.0;\n}\n\nfloat PCSSCube(samplerCube shadowMap, vec4 shadowParams, vec3 shadowCoords, vec4 cameraParams, float shadowSearchArea, vec3 lightDir) {\n    \n    vec3 samplePoints[PCSS_SAMPLE_COUNT];\n    float noise = gradientNoise( gl_FragCoord.xy ) * 2.0 * PI;\n    for (int i = 0; i < PCSS_SAMPLE_COUNT; i++) {\n        float r = pcssSphereSamples[i];\n        samplePoints[i] = vogelSphere(i, float(PCSS_SAMPLE_COUNT), noise, r);\n    }\n\n    float receiverDepth = length(lightDir) * shadowParams.w + shadowParams.z;\n    vec3 lightDirNorm = normalize(lightDir);\n    \n    float averageBlocker = PCSSCubeBlockerDistance(shadowMap, lightDirNorm, samplePoints, receiverDepth, shadowSearchArea);\n    if (averageBlocker == -1.0) {\n        return 1.0;\n    } else {\n\n        float filterRadius = ((receiverDepth - averageBlocker) / averageBlocker) * shadowSearchArea;\n\n        float shadow = 0.0;\n        for (int i = 0; i < PCSS_SAMPLE_COUNT; i++)\n        {\n            vec3 offset = samplePoints[i] * filterRadius;\n            vec3 sampleDir = lightDirNorm + offset;\n            sampleDir = normalize(sampleDir);\n\n            #ifdef GL2\n                float depth = textureCubeLodEXT(shadowMap, sampleDir, 0.0).r;\n            #else // GL1\n                float depth = unpackFloat(textureCube(shadowMap, sampleDir));\n            #endif\n            shadow += step(receiverDepth, depth);\n        }\n        return shadow / float(PCSS_SAMPLE_COUNT);\n    }\n}\n\nfloat getShadowPointPCSS(samplerCube shadowMap, vec3 shadowCoord, vec4 shadowParams, vec4 cameraParams, vec2 shadowSearchArea, vec3 lightDir) {\n    return PCSSCube(shadowMap, shadowParams, shadowCoord, cameraParams, shadowSearchArea.x, lightDir);\n}\n\nfloat getShadowSpotPCSS(TEXTURE_ACCEPT(shadowMap), vec3 shadowCoord, vec4 shadowParams, vec4 cameraParams, vec2 shadowSearchArea, vec3 lightDir) {\n    return PCSS(TEXTURE_PASS(shadowMap), shadowCoord, cameraParams, shadowSearchArea);\n}\n\nfloat getShadowPCSS(TEXTURE_ACCEPT(shadowMap), vec3 shadowCoord, vec4 shadowParams, vec4 cameraParams, vec2 shadowSearchArea, vec3 lightDir) {\n    return PCSS(TEXTURE_PASS(shadowMap), shadowCoord, cameraParams, shadowSearchArea);\n}\n\n";
 
 		var shadowSampleCoordPS = "\n\nvec3 getShadowSampleCoord$LIGHT(mat4 shadowTransform, vec4 shadowParams, vec3 worldPosition, vec3 lightPos, inout vec3 lightDir, vec3 lightDirNorm, vec3 normal) {\n\n    vec3 surfacePosition = worldPosition;\n\n#ifdef SHADOW_SAMPLE_POINT\n    #ifdef SHADOW_SAMPLE_NORMAL_OFFSET\n        float distScale = length(lightDir);\n        surfacePosition = worldPosition + normal * shadowParams.y * clamp(1.0 - dot(normal, -lightDirNorm), 0.0, 1.0) * distScale;\n        lightDir = surfacePosition - lightPos;\n        return lightDir;\n    #endif\n#else\n    #ifdef SHADOW_SAMPLE_SOURCE_ZBUFFER\n        #ifdef SHADOW_SAMPLE_NORMAL_OFFSET\n            surfacePosition = worldPosition + normal * shadowParams.y;\n        #endif\n    #else\n        #ifdef SHADOW_SAMPLE_NORMAL_OFFSET\n            #ifdef SHADOW_SAMPLE_ORTHO\n                float distScale = 1.0;\n            #else\n                float distScale = abs(dot(vPositionW - lightPos, lightDirNorm));\n            #endif\n            surfacePosition = worldPosition + normal * shadowParams.y * clamp(1.0 - dot(normal, -lightDirNorm), 0.0, 1.0) * distScale;\n        #endif\n    #endif\n\n    vec4 positionInShadowSpace = shadowTransform * vec4(surfacePosition, 1.0);\n    #ifdef SHADOW_SAMPLE_ORTHO\n        positionInShadowSpace.z = saturate(positionInShadowSpace.z) - 0.0001;\n    #else\n        #ifdef SHADOW_SAMPLE_SOURCE_ZBUFFER\n            positionInShadowSpace.xyz /= positionInShadowSpace.w;\n        #else\n            positionInShadowSpace.xy /= positionInShadowSpace.w;\n            positionInShadowSpace.z = length(lightDir) * shadowParams.w;\n        #endif\n    #endif\n\n    #ifdef SHADOW_SAMPLE_Z_BIAS\n        positionInShadowSpace.z += getShadowBias(shadowParams.x, shadowParams.z);\n    #endif\n    surfacePosition = positionInShadowSpace.xyz;\n#endif\n\n    return surfacePosition;\n}\n";
 
-		var shadowStandardPS = "\nvec3 lessThan2(vec3 a, vec3 b) {\n    return clamp((b - a)*1000.0, 0.0, 1.0); // softer version\n}\n\n#ifndef UNPACKFLOAT\n#define UNPACKFLOAT\n\n    #ifdef GL2\n        float unpackFloat(vec4 rgbaDepth) { return rgbaDepth.r; }\n    #else\n        float unpackFloat(vec4 rgbaDepth) {\n            const vec4 bitShift = vec4(1.0 / (256.0 * 256.0 * 256.0), 1.0 / (256.0 * 256.0), 1.0 / 256.0, 1.0);\n            return dot(rgbaDepth, bitShift);\n        }\n    #endif\n#endif\n\n// ----- Direct/Spot Sampling -----\n\n#ifdef GL2\n\nfloat _getShadowPCF3x3(SHADOWMAP_ACCEPT(shadowMap), vec3 shadowCoord, vec3 shadowParams) {\n    float z = shadowCoord.z;\n    vec2 uv = shadowCoord.xy * shadowParams.x; // 1 unit - 1 texel\n    float shadowMapSizeInv = 1.0 / shadowParams.x;\n    vec2 base_uv = floor(uv + 0.5);\n    float s = (uv.x + 0.5 - base_uv.x);\n    float t = (uv.y + 0.5 - base_uv.y);\n    base_uv -= vec2(0.5);\n    base_uv *= shadowMapSizeInv;\n\n    float sum = 0.0;\n\n    float uw0 = (3.0 - 2.0 * s);\n    float uw1 = (1.0 + 2.0 * s);\n\n    float u0 = (2.0 - s) / uw0 - 1.0;\n    float u1 = s / uw1 + 1.0;\n\n    float vw0 = (3.0 - 2.0 * t);\n    float vw1 = (1.0 + 2.0 * t);\n\n    float v0 = (2.0 - t) / vw0 - 1.0;\n    float v1 = t / vw1 + 1.0;\n\n    u0 = u0 * shadowMapSizeInv + base_uv.x;\n    v0 = v0 * shadowMapSizeInv + base_uv.y;\n\n    u1 = u1 * shadowMapSizeInv + base_uv.x;\n    v1 = v1 * shadowMapSizeInv + base_uv.y;\n\n    sum += uw0 * vw0 * textureShadow(shadowMap, vec3(u0, v0, z));\n    sum += uw1 * vw0 * textureShadow(shadowMap, vec3(u1, v0, z));\n    sum += uw0 * vw1 * textureShadow(shadowMap, vec3(u0, v1, z));\n    sum += uw1 * vw1 * textureShadow(shadowMap, vec3(u1, v1, z));\n\n    sum *= 1.0f / 16.0;\n    return sum;\n}\n\nfloat getShadowPCF3x3(SHADOWMAP_ACCEPT(shadowMap), vec3 shadowCoord, vec4 shadowParams) {\n    return _getShadowPCF3x3(SHADOWMAP_PASS(shadowMap), shadowCoord, shadowParams.xyz);\n}\n\nfloat getShadowSpotPCF3x3(SHADOWMAP_ACCEPT(shadowMap), vec3 shadowCoord, vec4 shadowParams) {\n    return _getShadowPCF3x3(SHADOWMAP_PASS(shadowMap), shadowCoord, shadowParams.xyz);\n}\n\nfloat getShadowPCF1x1(SHADOWMAP_ACCEPT(shadowMap), vec3 shadowCoord, vec4 shadowParams) {\n    return textureShadow(shadowMap, shadowCoord);\n}\n\nfloat getShadowSpotPCF1x1(SHADOWMAP_ACCEPT(shadowMap), vec3 shadowCoord, vec4 shadowParams) {\n    return textureShadow(shadowMap, shadowCoord);\n}\n\n#else // GL1\n\nfloat _xgetShadowPCF3x3(mat3 depthKernel, vec3 shadowCoord, sampler2D shadowMap, vec3 shadowParams) {\n    mat3 shadowKernel;\n    vec3 shadowZ = vec3(shadowCoord.z);\n    shadowKernel[0] = vec3(greaterThan(depthKernel[0], shadowZ));\n    shadowKernel[1] = vec3(greaterThan(depthKernel[1], shadowZ));\n    shadowKernel[2] = vec3(greaterThan(depthKernel[2], shadowZ));\n\n    vec2 fractionalCoord = fract( shadowCoord.xy * shadowParams.x );\n\n    shadowKernel[0] = mix(shadowKernel[0], shadowKernel[1], fractionalCoord.x);\n    shadowKernel[1] = mix(shadowKernel[1], shadowKernel[2], fractionalCoord.x);\n\n    vec4 shadowValues;\n    shadowValues.x = mix(shadowKernel[0][0], shadowKernel[0][1], fractionalCoord.y);\n    shadowValues.y = mix(shadowKernel[0][1], shadowKernel[0][2], fractionalCoord.y);\n    shadowValues.z = mix(shadowKernel[1][0], shadowKernel[1][1], fractionalCoord.y);\n    shadowValues.w = mix(shadowKernel[1][1], shadowKernel[1][2], fractionalCoord.y);\n\n    return dot( shadowValues, vec4( 1.0 ) ) * 0.25;\n}\n\nfloat _getShadowPCF3x3(sampler2D shadowMap, vec3 shadowCoord, vec3 shadowParams) {\n    float xoffset = 1.0 / shadowParams.x; // 1/shadow map width\n    float dx0 = -xoffset;\n    float dx1 = xoffset;\n\n    mat3 depthKernel;\n    depthKernel[0][0] = unpackFloat(textureShadow(shadowMap, shadowCoord.xy + vec2(dx0, dx0)));\n    depthKernel[0][1] = unpackFloat(textureShadow(shadowMap, shadowCoord.xy + vec2(dx0, 0.0)));\n    depthKernel[0][2] = unpackFloat(textureShadow(shadowMap, shadowCoord.xy + vec2(dx0, dx1)));\n    depthKernel[1][0] = unpackFloat(textureShadow(shadowMap, shadowCoord.xy + vec2(0.0, dx0)));\n    depthKernel[1][1] = unpackFloat(textureShadow(shadowMap, shadowCoord.xy));\n    depthKernel[1][2] = unpackFloat(textureShadow(shadowMap, shadowCoord.xy + vec2(0.0, dx1)));\n    depthKernel[2][0] = unpackFloat(textureShadow(shadowMap, shadowCoord.xy + vec2(dx1, dx0)));\n    depthKernel[2][1] = unpackFloat(textureShadow(shadowMap, shadowCoord.xy + vec2(dx1, 0.0)));\n    depthKernel[2][2] = unpackFloat(textureShadow(shadowMap, shadowCoord.xy + vec2(dx1, dx1)));\n\n    return _xgetShadowPCF3x3(depthKernel, shadowCoord, shadowMap, shadowParams);\n}\n\nfloat getShadowPCF3x3(sampler2D shadowMap, vec3 shadowCoord, vec4 shadowParams) {\n    return _getShadowPCF3x3(shadowMap, shadowCoord, shadowParams.xyz);\n}\n\nfloat getShadowSpotPCF3x3(sampler2D shadowMap, vec3 shadowCoord, vec4 shadowParams) {\n    return _getShadowPCF3x3(shadowMap, shadowCoord, shadowParams.xyz);\n}\n\nfloat _getShadowPCF1x1(sampler2D shadowMap, vec3 shadowCoord) {\n    float shadowSample = unpackFloat(textureShadow(shadowMap, shadowCoord.xy));\n    return shadowSample > shadowCoord.z ? 1.0 : 0.0;\n}\n\nfloat getShadowPCF1x1(sampler2D shadowMap, vec3 shadowCoord, vec4 shadowParams) {\n    return _getShadowPCF1x1(shadowMap, shadowCoord);\n}\n\nfloat getShadowSpotPCF1x1(sampler2D shadowMap, vec3 shadowCoord, vec4 shadowParams) {\n    return _getShadowPCF1x1(shadowMap, shadowCoord);\n}\n#endif\n\n\n// ----- Omni Sampling -----\n\n#ifndef WEBGPU\n\nfloat _getShadowPoint(samplerCube shadowMap, vec4 shadowParams, vec3 dir) {\n\n    vec3 tc = normalize(dir);\n    vec3 tcAbs = abs(tc);\n\n    vec4 dirX = vec4(1,0,0, tc.x);\n    vec4 dirY = vec4(0,1,0, tc.y);\n    float majorAxisLength = tc.z;\n    if ((tcAbs.x > tcAbs.y) && (tcAbs.x > tcAbs.z)) {\n        dirX = vec4(0,0,1, tc.z);\n        dirY = vec4(0,1,0, tc.y);\n        majorAxisLength = tc.x;\n    } else if ((tcAbs.y > tcAbs.x) && (tcAbs.y > tcAbs.z)) {\n        dirX = vec4(1,0,0, tc.x);\n        dirY = vec4(0,0,1, tc.z);\n        majorAxisLength = tc.y;\n    }\n\n    float shadowParamsInFaceSpace = ((1.0/shadowParams.x) * 2.0) * abs(majorAxisLength);\n\n    vec3 xoffset = (dirX.xyz * shadowParamsInFaceSpace);\n    vec3 yoffset = (dirY.xyz * shadowParamsInFaceSpace);\n    vec3 dx0 = -xoffset;\n    vec3 dy0 = -yoffset;\n    vec3 dx1 = xoffset;\n    vec3 dy1 = yoffset;\n\n    mat3 shadowKernel;\n    mat3 depthKernel;\n\n    depthKernel[0][0] = unpackFloat(textureCube(shadowMap, tc + dx0 + dy0));\n    depthKernel[0][1] = unpackFloat(textureCube(shadowMap, tc + dx0));\n    depthKernel[0][2] = unpackFloat(textureCube(shadowMap, tc + dx0 + dy1));\n    depthKernel[1][0] = unpackFloat(textureCube(shadowMap, tc + dy0));\n    depthKernel[1][1] = unpackFloat(textureCube(shadowMap, tc));\n    depthKernel[1][2] = unpackFloat(textureCube(shadowMap, tc + dy1));\n    depthKernel[2][0] = unpackFloat(textureCube(shadowMap, tc + dx1 + dy0));\n    depthKernel[2][1] = unpackFloat(textureCube(shadowMap, tc + dx1));\n    depthKernel[2][2] = unpackFloat(textureCube(shadowMap, tc + dx1 + dy1));\n\n    vec3 shadowZ = vec3(length(dir) * shadowParams.w + shadowParams.z);\n\n    shadowKernel[0] = vec3(lessThan2(depthKernel[0], shadowZ));\n    shadowKernel[1] = vec3(lessThan2(depthKernel[1], shadowZ));\n    shadowKernel[2] = vec3(lessThan2(depthKernel[2], shadowZ));\n\n    vec2 uv = (vec2(dirX.w, dirY.w) / abs(majorAxisLength)) * 0.5;\n\n    vec2 fractionalCoord = fract( uv * shadowParams.x );\n\n    shadowKernel[0] = mix(shadowKernel[0], shadowKernel[1], fractionalCoord.x);\n    shadowKernel[1] = mix(shadowKernel[1], shadowKernel[2], fractionalCoord.x);\n\n    vec4 shadowValues;\n    shadowValues.x = mix(shadowKernel[0][0], shadowKernel[0][1], fractionalCoord.y);\n    shadowValues.y = mix(shadowKernel[0][1], shadowKernel[0][2], fractionalCoord.y);\n    shadowValues.z = mix(shadowKernel[1][0], shadowKernel[1][1], fractionalCoord.y);\n    shadowValues.w = mix(shadowKernel[1][1], shadowKernel[1][2], fractionalCoord.y);\n\n    return 1.0 - dot( shadowValues, vec4( 1.0 ) ) * 0.25;\n}\n\nfloat getShadowPointPCF3x3(samplerCube shadowMap, vec3 shadowCoord, vec4 shadowParams, vec3 lightDir) {\n    return _getShadowPoint(shadowMap, shadowParams, lightDir);\n}\n\n#endif\n";
+		var shadowStandardPS = "\nvec3 lessThan2(vec3 a, vec3 b) {\n    return clamp((b - a)*1000.0, 0.0, 1.0); // softer version\n}\n\n#ifndef UNPACKFLOAT\n#define UNPACKFLOAT\n    float unpackFloat(vec4 rgbaDepth) {\n        const vec4 bitShift = vec4(1.0 / (256.0 * 256.0 * 256.0), 1.0 / (256.0 * 256.0), 1.0 / 256.0, 1.0);\n        return dot(rgbaDepth, bitShift);\n    }\n#endif\n\n// ----- Direct/Spot Sampling -----\n\n#ifdef GL2\n\nfloat _getShadowPCF3x3(SHADOWMAP_ACCEPT(shadowMap), vec3 shadowCoord, vec3 shadowParams) {\n    float z = shadowCoord.z;\n    vec2 uv = shadowCoord.xy * shadowParams.x; // 1 unit - 1 texel\n    float shadowMapSizeInv = 1.0 / shadowParams.x;\n    vec2 base_uv = floor(uv + 0.5);\n    float s = (uv.x + 0.5 - base_uv.x);\n    float t = (uv.y + 0.5 - base_uv.y);\n    base_uv -= vec2(0.5);\n    base_uv *= shadowMapSizeInv;\n\n    float sum = 0.0;\n\n    float uw0 = (3.0 - 2.0 * s);\n    float uw1 = (1.0 + 2.0 * s);\n\n    float u0 = (2.0 - s) / uw0 - 1.0;\n    float u1 = s / uw1 + 1.0;\n\n    float vw0 = (3.0 - 2.0 * t);\n    float vw1 = (1.0 + 2.0 * t);\n\n    float v0 = (2.0 - t) / vw0 - 1.0;\n    float v1 = t / vw1 + 1.0;\n\n    u0 = u0 * shadowMapSizeInv + base_uv.x;\n    v0 = v0 * shadowMapSizeInv + base_uv.y;\n\n    u1 = u1 * shadowMapSizeInv + base_uv.x;\n    v1 = v1 * shadowMapSizeInv + base_uv.y;\n\n    sum += uw0 * vw0 * textureShadow(shadowMap, vec3(u0, v0, z));\n    sum += uw1 * vw0 * textureShadow(shadowMap, vec3(u1, v0, z));\n    sum += uw0 * vw1 * textureShadow(shadowMap, vec3(u0, v1, z));\n    sum += uw1 * vw1 * textureShadow(shadowMap, vec3(u1, v1, z));\n\n    sum *= 1.0f / 16.0;\n    return sum;\n}\n\nfloat getShadowPCF3x3(SHADOWMAP_ACCEPT(shadowMap), vec3 shadowCoord, vec4 shadowParams) {\n    return _getShadowPCF3x3(SHADOWMAP_PASS(shadowMap), shadowCoord, shadowParams.xyz);\n}\n\nfloat getShadowSpotPCF3x3(SHADOWMAP_ACCEPT(shadowMap), vec3 shadowCoord, vec4 shadowParams) {\n    return _getShadowPCF3x3(SHADOWMAP_PASS(shadowMap), shadowCoord, shadowParams.xyz);\n}\n\nfloat getShadowPCF1x1(SHADOWMAP_ACCEPT(shadowMap), vec3 shadowCoord, vec4 shadowParams) {\n    return textureShadow(shadowMap, shadowCoord);\n}\n\nfloat getShadowSpotPCF1x1(SHADOWMAP_ACCEPT(shadowMap), vec3 shadowCoord, vec4 shadowParams) {\n    return textureShadow(shadowMap, shadowCoord);\n}\n\n#else // GL1\n\nfloat _xgetShadowPCF3x3(mat3 depthKernel, vec3 shadowCoord, sampler2D shadowMap, vec3 shadowParams) {\n    mat3 shadowKernel;\n    vec3 shadowZ = vec3(shadowCoord.z);\n    shadowKernel[0] = vec3(greaterThan(depthKernel[0], shadowZ));\n    shadowKernel[1] = vec3(greaterThan(depthKernel[1], shadowZ));\n    shadowKernel[2] = vec3(greaterThan(depthKernel[2], shadowZ));\n\n    vec2 fractionalCoord = fract( shadowCoord.xy * shadowParams.x );\n\n    shadowKernel[0] = mix(shadowKernel[0], shadowKernel[1], fractionalCoord.x);\n    shadowKernel[1] = mix(shadowKernel[1], shadowKernel[2], fractionalCoord.x);\n\n    vec4 shadowValues;\n    shadowValues.x = mix(shadowKernel[0][0], shadowKernel[0][1], fractionalCoord.y);\n    shadowValues.y = mix(shadowKernel[0][1], shadowKernel[0][2], fractionalCoord.y);\n    shadowValues.z = mix(shadowKernel[1][0], shadowKernel[1][1], fractionalCoord.y);\n    shadowValues.w = mix(shadowKernel[1][1], shadowKernel[1][2], fractionalCoord.y);\n\n    return dot( shadowValues, vec4( 1.0 ) ) * 0.25;\n}\n\nfloat _getShadowPCF3x3(sampler2D shadowMap, vec3 shadowCoord, vec3 shadowParams) {\n    float xoffset = 1.0 / shadowParams.x; // 1/shadow map width\n    float dx0 = -xoffset;\n    float dx1 = xoffset;\n\n    mat3 depthKernel;\n    depthKernel[0][0] = unpackFloat(textureShadow(shadowMap, shadowCoord.xy + vec2(dx0, dx0)));\n    depthKernel[0][1] = unpackFloat(textureShadow(shadowMap, shadowCoord.xy + vec2(dx0, 0.0)));\n    depthKernel[0][2] = unpackFloat(textureShadow(shadowMap, shadowCoord.xy + vec2(dx0, dx1)));\n    depthKernel[1][0] = unpackFloat(textureShadow(shadowMap, shadowCoord.xy + vec2(0.0, dx0)));\n    depthKernel[1][1] = unpackFloat(textureShadow(shadowMap, shadowCoord.xy));\n    depthKernel[1][2] = unpackFloat(textureShadow(shadowMap, shadowCoord.xy + vec2(0.0, dx1)));\n    depthKernel[2][0] = unpackFloat(textureShadow(shadowMap, shadowCoord.xy + vec2(dx1, dx0)));\n    depthKernel[2][1] = unpackFloat(textureShadow(shadowMap, shadowCoord.xy + vec2(dx1, 0.0)));\n    depthKernel[2][2] = unpackFloat(textureShadow(shadowMap, shadowCoord.xy + vec2(dx1, dx1)));\n\n    return _xgetShadowPCF3x3(depthKernel, shadowCoord, shadowMap, shadowParams);\n}\n\nfloat getShadowPCF3x3(sampler2D shadowMap, vec3 shadowCoord, vec4 shadowParams) {\n    return _getShadowPCF3x3(shadowMap, shadowCoord, shadowParams.xyz);\n}\n\nfloat getShadowSpotPCF3x3(sampler2D shadowMap, vec3 shadowCoord, vec4 shadowParams) {\n    return _getShadowPCF3x3(shadowMap, shadowCoord, shadowParams.xyz);\n}\n\nfloat _getShadowPCF1x1(sampler2D shadowMap, vec3 shadowCoord) {\n    float shadowSample = unpackFloat(textureShadow(shadowMap, shadowCoord.xy));\n    return shadowSample > shadowCoord.z ? 1.0 : 0.0;\n}\n\nfloat getShadowPCF1x1(sampler2D shadowMap, vec3 shadowCoord, vec4 shadowParams) {\n    return _getShadowPCF1x1(shadowMap, shadowCoord);\n}\n\nfloat getShadowSpotPCF1x1(sampler2D shadowMap, vec3 shadowCoord, vec4 shadowParams) {\n    return _getShadowPCF1x1(shadowMap, shadowCoord);\n}\n#endif\n\n\n// ----- Omni Sampling -----\n\n#ifndef WEBGPU\n\nfloat _getShadowPoint(samplerCube shadowMap, vec4 shadowParams, vec3 dir) {\n\n    vec3 tc = normalize(dir);\n    vec3 tcAbs = abs(tc);\n\n    vec4 dirX = vec4(1,0,0, tc.x);\n    vec4 dirY = vec4(0,1,0, tc.y);\n    float majorAxisLength = tc.z;\n    if ((tcAbs.x > tcAbs.y) && (tcAbs.x > tcAbs.z)) {\n        dirX = vec4(0,0,1, tc.z);\n        dirY = vec4(0,1,0, tc.y);\n        majorAxisLength = tc.x;\n    } else if ((tcAbs.y > tcAbs.x) && (tcAbs.y > tcAbs.z)) {\n        dirX = vec4(1,0,0, tc.x);\n        dirY = vec4(0,0,1, tc.z);\n        majorAxisLength = tc.y;\n    }\n\n    float shadowParamsInFaceSpace = ((1.0/shadowParams.x) * 2.0) * abs(majorAxisLength);\n\n    vec3 xoffset = (dirX.xyz * shadowParamsInFaceSpace);\n    vec3 yoffset = (dirY.xyz * shadowParamsInFaceSpace);\n    vec3 dx0 = -xoffset;\n    vec3 dy0 = -yoffset;\n    vec3 dx1 = xoffset;\n    vec3 dy1 = yoffset;\n\n    mat3 shadowKernel;\n    mat3 depthKernel;\n\n    depthKernel[0][0] = unpackFloat(textureCube(shadowMap, tc + dx0 + dy0));\n    depthKernel[0][1] = unpackFloat(textureCube(shadowMap, tc + dx0));\n    depthKernel[0][2] = unpackFloat(textureCube(shadowMap, tc + dx0 + dy1));\n    depthKernel[1][0] = unpackFloat(textureCube(shadowMap, tc + dy0));\n    depthKernel[1][1] = unpackFloat(textureCube(shadowMap, tc));\n    depthKernel[1][2] = unpackFloat(textureCube(shadowMap, tc + dy1));\n    depthKernel[2][0] = unpackFloat(textureCube(shadowMap, tc + dx1 + dy0));\n    depthKernel[2][1] = unpackFloat(textureCube(shadowMap, tc + dx1));\n    depthKernel[2][2] = unpackFloat(textureCube(shadowMap, tc + dx1 + dy1));\n\n    vec3 shadowZ = vec3(length(dir) * shadowParams.w + shadowParams.z);\n\n    shadowKernel[0] = vec3(lessThan2(depthKernel[0], shadowZ));\n    shadowKernel[1] = vec3(lessThan2(depthKernel[1], shadowZ));\n    shadowKernel[2] = vec3(lessThan2(depthKernel[2], shadowZ));\n\n    vec2 uv = (vec2(dirX.w, dirY.w) / abs(majorAxisLength)) * 0.5;\n\n    vec2 fractionalCoord = fract( uv * shadowParams.x );\n\n    shadowKernel[0] = mix(shadowKernel[0], shadowKernel[1], fractionalCoord.x);\n    shadowKernel[1] = mix(shadowKernel[1], shadowKernel[2], fractionalCoord.x);\n\n    vec4 shadowValues;\n    shadowValues.x = mix(shadowKernel[0][0], shadowKernel[0][1], fractionalCoord.y);\n    shadowValues.y = mix(shadowKernel[0][1], shadowKernel[0][2], fractionalCoord.y);\n    shadowValues.z = mix(shadowKernel[1][0], shadowKernel[1][1], fractionalCoord.y);\n    shadowValues.w = mix(shadowKernel[1][1], shadowKernel[1][2], fractionalCoord.y);\n\n    return 1.0 - dot( shadowValues, vec4( 1.0 ) ) * 0.25;\n}\n\nfloat getShadowPointPCF3x3(samplerCube shadowMap, vec3 shadowCoord, vec4 shadowParams, vec3 lightDir) {\n    return _getShadowPoint(shadowMap, shadowParams, lightDir);\n}\n\n#endif\n";
 
 		var shadowStandardGL2PS = "\nfloat _getShadowPCF5x5(SHADOWMAP_ACCEPT(shadowMap), vec3 shadowCoord, vec3 shadowParams) {\n    // http://the-witness.net/news/2013/09/shadow-mapping-summary-part-1/\n\n    float z = shadowCoord.z;\n    vec2 uv = shadowCoord.xy * shadowParams.x; // 1 unit - 1 texel\n    float shadowMapSizeInv = 1.0 / shadowParams.x;\n    vec2 base_uv = floor(uv + 0.5);\n    float s = (uv.x + 0.5 - base_uv.x);\n    float t = (uv.y + 0.5 - base_uv.y);\n    base_uv -= vec2(0.5);\n    base_uv *= shadowMapSizeInv;\n\n\n    float uw0 = (4.0 - 3.0 * s);\n    float uw1 = 7.0;\n    float uw2 = (1.0 + 3.0 * s);\n\n    float u0 = (3.0 - 2.0 * s) / uw0 - 2.0;\n    float u1 = (3.0 + s) / uw1;\n    float u2 = s / uw2 + 2.0;\n\n    float vw0 = (4.0 - 3.0 * t);\n    float vw1 = 7.0;\n    float vw2 = (1.0 + 3.0 * t);\n\n    float v0 = (3.0 - 2.0 * t) / vw0 - 2.0;\n    float v1 = (3.0 + t) / vw1;\n    float v2 = t / vw2 + 2.0;\n\n    float sum = 0.0;\n\n    u0 = u0 * shadowMapSizeInv + base_uv.x;\n    v0 = v0 * shadowMapSizeInv + base_uv.y;\n\n    u1 = u1 * shadowMapSizeInv + base_uv.x;\n    v1 = v1 * shadowMapSizeInv + base_uv.y;\n\n    u2 = u2 * shadowMapSizeInv + base_uv.x;\n    v2 = v2 * shadowMapSizeInv + base_uv.y;\n\n    sum += uw0 * vw0 * textureShadow(shadowMap, vec3(u0, v0, z));\n    sum += uw1 * vw0 * textureShadow(shadowMap, vec3(u1, v0, z));\n    sum += uw2 * vw0 * textureShadow(shadowMap, vec3(u2, v0, z));\n\n    sum += uw0 * vw1 * textureShadow(shadowMap, vec3(u0, v1, z));\n    sum += uw1 * vw1 * textureShadow(shadowMap, vec3(u1, v1, z));\n    sum += uw2 * vw1 * textureShadow(shadowMap, vec3(u2, v1, z));\n\n    sum += uw0 * vw2 * textureShadow(shadowMap, vec3(u0, v2, z));\n    sum += uw1 * vw2 * textureShadow(shadowMap, vec3(u1, v2, z));\n    sum += uw2 * vw2 * textureShadow(shadowMap, vec3(u2, v2, z));\n\n    sum *= 1.0f / 144.0;\n\n    sum = saturate(sum);\n\n    return sum;\n}\n\nfloat getShadowPCF5x5(SHADOWMAP_ACCEPT(shadowMap), vec3 shadowCoord, vec4 shadowParams) {\n    return _getShadowPCF5x5(SHADOWMAP_PASS(shadowMap), shadowCoord, shadowParams.xyz);\n}\n\nfloat getShadowSpotPCF5x5(SHADOWMAP_ACCEPT(shadowMap), vec3 shadowCoord, vec4 shadowParams) {\n    return _getShadowPCF5x5(SHADOWMAP_PASS(shadowMap), shadowCoord, shadowParams.xyz);\n}\n";
 
@@ -36581,6 +36609,7 @@ var playcanvas = {exports: {}};
 					}
 					shadowCamView$1.copy(shadowCamNode.getWorldTransform()).invert();
 					var depthRange = getDepthRange(shadowCamView$1, visibleSceneAabb.getMin(), visibleSceneAabb.getMax());
+					lightRenderData.depthRangeCompensation = (depthRange.max - depthRange.min) / light.shadowDistance;
 					shadowCamNode.translateLocal(0, 0, depthRange.max + 0.1);
 					shadowCam.farClip = depthRange.max - depthRange.min + 0.2;
 				}
@@ -38573,18 +38602,6 @@ var playcanvas = {exports: {}};
 				}
 				return result;
 			};
-			_proto._directionalShadowMapProjection = function _directionalShadowMapProjection(light, shadowMatArg, shadowParamArg, lightArgs, lightIndex, coordsFunctionName) {
-				var code = "";
-				var lightParams = lightArgs ? ", " + lightArgs : "";
-				var shadowCoordArgs = "(" + shadowMatArg + ", " + shadowParamArg + lightParams + ");";
-				if (light.numCascades > 1) {
-					code += "getShadowCascadeMatrix(light" + lightIndex + "_shadowMatrixPalette, light" + lightIndex + "_shadowCascadeDistances, light" + lightIndex + "_shadowCascadeCount);\n";
-					shadowCoordArgs = "(cascadeShadowMat, " + shadowParamArg + lightParams + ");\n";
-				}
-				code += coordsFunctionName + shadowCoordArgs;
-				code += "fadeShadow(light" + lightIndex + "_shadowCascadeDistances);\n";
-				return code;
-			};
 			_proto._getLightSourceShapeString = function _getLightSourceShapeString(shape) {
 				switch (shape) {
 					case LIGHTSHAPE_RECT:
@@ -38801,6 +38818,11 @@ var playcanvas = {exports: {}};
 				var varyings = this.varyings;
 				var lightType = this.shaderPassInfo.lightType;
 				var shadowType = this.shaderPassInfo.shadowType;
+				if (lightType !== LIGHTTYPE_DIRECTIONAL && options.clusteredLightingEnabled) {
+					if (shadowType === SHADOW_VSM8 || shadowType === SHADOW_VSM16 || shadowType === SHADOW_VSM32 || shadowType === SHADOW_PCSS) {
+						shadowType = SHADOW_PCF3;
+					}
+				}
 				var code = this._fsGetBeginCode();
 				if (device.extStandardDerivatives && !device.webgl2 && !device.isWebGPU) {
 					code += 'uniform vec2 polygonOffset;\n';
@@ -38822,7 +38844,9 @@ var playcanvas = {exports: {}};
 				code += this.varyingDefines;
 				code += this.frontendDecl;
 				code += this.frontendCode;
-				var usePackedDepth = !device.supportsDepthShadow && (shadowType === SHADOW_PCF1 || shadowType === SHADOW_PCF3 || shadowType === SHADOW_PCSS);
+				var mayPackDepth = shadowType === SHADOW_PCF1 || shadowType === SHADOW_PCF3 || shadowType === SHADOW_PCF5 || shadowType === SHADOW_PCSS;
+				var mustPackDepth = lightType === LIGHTTYPE_OMNI && shadowType !== SHADOW_PCSS && !options.clusteredLightingEnabled;
+				var usePackedDepth = mayPackDepth && !device.supportsDepthShadow || mustPackDepth;
 				if (usePackedDepth) {
 					code += chunks.packDepthPS;
 				} else if (shadowType === SHADOW_VSM8) {
@@ -38840,29 +38864,40 @@ var playcanvas = {exports: {}};
 				code += this.frontendFunc;
 				var isVsm = shadowType === SHADOW_VSM8 || shadowType === SHADOW_VSM16 || shadowType === SHADOW_VSM32;
 				var applySlopeScaleBias = !device.webgl2 && device.extStandardDerivatives && !device.isWebGPU;
-				var customDepth = isVsm && lightType !== LIGHTTYPE_DIRECTIONAL || lightType === LIGHTTYPE_OMNI;
-				if (customDepth) {
-					code += "    float depth = min(distance(view_position, vPositionW) / light_radius, 0.99999);\n";
-				} else if (shadowType === SHADOW_PCSS) {
-					code += "    float depth = linearizeDepth(gl_FragCoord.z, camera_params);\n";
-					if (usePackedDepth) {
-						code += "    depth *= 1.0 / (camera_params.y - camera_params.z);\n";
+				var needsLinearizedDepth = shadowType === SHADOW_PCSS;
+				var usePerspectiveDepth = lightType === LIGHTTYPE_DIRECTIONAL || !isVsm && lightType === LIGHTTYPE_SPOT;
+				var hasModifiedDepth = false;
+				if (usePerspectiveDepth) {
+					if (needsLinearizedDepth) {
+						code += "    float depth = linearizeDepth(gl_FragCoord.z, camera_params);\n";
+						hasModifiedDepth = true;
+					} else {
+						code += "    float depth = gl_FragCoord.z;\n";
 					}
 				} else {
-					code += "    float depth = gl_FragCoord.z;\n";
+					code += "    float depth = min(distance(view_position, vPositionW) / light_radius, 0.99999);\n";
+					hasModifiedDepth = true;
 				}
 				if (applySlopeScaleBias) {
 					code += "    float minValue = 2.3374370500153186e-10; //(1.0 / 255.0) / (256.0 * 256.0 * 256.0);\n";
 					code += "    depth += polygonOffset.x * max(abs(dFdx(depth)), abs(dFdy(depth))) + minValue * polygonOffset.y;\n";
+					hasModifiedDepth = true;
+				}
+				if (usePerspectiveDepth && needsLinearizedDepth && usePackedDepth) {
+					code += "    depth *= 1.0 / (camera_params.y - camera_params.z);\n";
+					hasModifiedDepth = true;
 				}
 				if (usePackedDepth) {
 					code += "    gl_FragColor = packFloat(depth);\n";
 				} else if (!isVsm) {
-					code += "    gl_FragColor = vec4(1.0);\n";
-					if (shadowType === SHADOW_PCSS || lightType === LIGHTTYPE_OMNI && !options.clusteeredLightingEnabled) {
-						code += "   gl_FragColor.r = depth;\n";
-					} else if (options.clusteredLightingEnabled && lightType === LIGHTTYPE_OMNI && device.supportsDepthShadow) {
-						code += "    gl_FragDepth = depth;\n";
+					var exportR32 = shadowType === SHADOW_PCSS;
+					if (exportR32) {
+						code += "    gl_FragColor.r = depth;\n";
+					} else {
+						if (hasModifiedDepth) {
+							code += "    gl_FragDepth = depth;\n";
+						}
+						code += "    gl_FragColor = vec4(1.0);\n";
 					}
 				} else if (shadowType === SHADOW_VSM8) {
 					code += "    gl_FragColor = vec4(encodeFloatRG(depth), encodeFloatRG(depth*depth));\n";
@@ -38932,7 +38967,7 @@ var playcanvas = {exports: {}};
 					var lightShape = hasAreaLights && light._shape ? light._shape : LIGHTSHAPE_PUNCTUAL;
 					decl.append("uniform vec3 light" + i + "_color;");
 					if (light._shadowType === SHADOW_PCSS && light.castShadows && !options.noShadow) {
-						decl.append("uniform float light" + i + "_size;");
+						decl.append("uniform float light" + i + "_shadowSearchArea;");
 						decl.append("uniform vec4 light" + i + "_cameraParams;");
 					}
 					if (lightType === LIGHTTYPE_DIRECTIONAL) {
@@ -39391,7 +39426,7 @@ var playcanvas = {exports: {}};
 									break;
 							}
 							if (shadowReadMode !== null) {
-								if (_light._normalOffsetBias) {
+								if (_light._normalOffsetBias && !_light._isVsm) {
 									func.append("#define SHADOW_SAMPLE_NORMAL_OFFSET");
 								}
 								if (_lightType === LIGHTTYPE_DIRECTIONAL) {
@@ -39410,25 +39445,23 @@ var playcanvas = {exports: {}};
 								func.append("#undef SHADOW_SAMPLE_SOURCE_ZBUFFER");
 								func.append("#undef SHADOW_SAMPLE_POINT");
 								var shadowMatrix = "light" + _i + "_shadowMatrix";
-								var hasCascades = false;
 								if (_lightType === LIGHTTYPE_DIRECTIONAL && _light.numCascades > 1) {
 									backend.append("    getShadowCascadeMatrix(light" + _i + "_shadowMatrixPalette, light" + _i + "_shadowCascadeDistances, light" + _i + "_shadowCascadeCount);");
 									shadowMatrix = "cascadeShadowMat";
-									hasCascades = true;
 								}
 								backend.append("    dShadowCoord = getShadowSampleCoord" + _i + "(" + shadowMatrix + ", light" + _i + "_shadowParams, vPositionW, dLightPosW, dLightDirW, dLightDirNormW, dVertexNormalW);");
-								if (hasCascades) {
+								if (_lightType === LIGHTTYPE_DIRECTIONAL) {
 									backend.append("    fadeShadow(light" + _i + "_shadowCascadeDistances);");
 								}
 								var shadowCoordArgs = "SHADOWMAP_PASS(light" + _i + "_shadowMap), dShadowCoord, light" + _i + "_shadowParams";
 								if (vsmShadows) {
 									shadowCoordArgs = shadowCoordArgs + ", " + evsmExp + ", dLightDirW";
 								} else if (pcssShadows) {
-									var lightSizeArg = "vec2(light" + _i + "_size)";
+									var penumbraSizeArg = "vec2(light" + _i + "_shadowSearchArea)";
 									if (_lightShape !== LIGHTSHAPE_PUNCTUAL) {
-										lightSizeArg = "vec2(length(light" + _i + "_halfWidth), length(light" + _i + "_halfHeight)) * light" + _i + "_size";
+										penumbraSizeArg = "vec2(length(light" + _i + "_halfWidth), length(light" + _i + "_halfHeight)) * light" + _i + "_shadowSearchArea";
 									}
-									shadowCoordArgs = shadowCoordArgs + ", light" + _i + "_cameraParams, " + lightSizeArg + ", dLightDirW";
+									shadowCoordArgs = shadowCoordArgs + ", light" + _i + "_cameraParams, " + penumbraSizeArg + ", dLightDirW";
 								}
 								if (_lightType === LIGHTTYPE_OMNI) {
 									shadowReadMode = "Point" + shadowReadMode;
@@ -41959,7 +41992,7 @@ var playcanvas = {exports: {}};
 				_this.lightCookieIntId = [];
 				_this.lightCookieMatrixId = [];
 				_this.lightCookieOffsetId = [];
-				_this.lightSizeId = [];
+				_this.lightShadowSearchAreaId = [];
 				_this.lightCameraParamsId = [];
 				_this.shadowMatrixPaletteId = [];
 				_this.shadowCascadeDistancesId = [];
@@ -42003,6 +42036,7 @@ var playcanvas = {exports: {}};
 				this.lightShadowMatrixId[i] = scope.resolve(light + '_shadowMatrix');
 				this.lightShadowParamsId[i] = scope.resolve(light + '_shadowParams');
 				this.lightShadowIntensity[i] = scope.resolve(light + '_shadowIntensity');
+				this.lightShadowSearchAreaId[i] = scope.resolve(light + '_shadowSearchArea');
 				this.lightRadiusId[i] = scope.resolve(light + '_radius');
 				this.lightPos[i] = new Float32Array(3);
 				this.lightPosId[i] = scope.resolve(light + '_position');
@@ -42016,7 +42050,6 @@ var playcanvas = {exports: {}};
 				this.lightCookieIntId[i] = scope.resolve(light + '_cookieIntensity');
 				this.lightCookieMatrixId[i] = scope.resolve(light + '_cookieMatrix');
 				this.lightCookieOffsetId[i] = scope.resolve(light + '_cookieOffset');
-				this.lightSizeId[i] = scope.resolve(light + '_size');
 				this.lightCameraParamsId[i] = scope.resolve(light + '_cameraParams');
 				this.shadowMatrixPaletteId[i] = scope.resolve(light + '_shadowMatrixPalette[0]');
 				this.shadowCascadeDistancesId[i] = scope.resolve(light + '_shadowCascadeDistances[0]');
@@ -42067,10 +42100,11 @@ var playcanvas = {exports: {}};
 						this.shadowCascadeDistancesId[cnt].setValue(directional._shadowCascadeDistances);
 						this.shadowCascadeCountId[cnt].setValue(directional.numCascades);
 						this.lightShadowIntensity[cnt].setValue(directional.shadowIntensity);
-						this.lightSizeId[cnt].setValue(directional.lightSize);
+						var pixelsPerMeter = 1.0 / (lightRenderData.shadowCamera.renderTarget.width / directional.penumbraSize);
+						this.lightShadowSearchAreaId[cnt].setValue(pixelsPerMeter);
 						var cameraParams = directional._shadowCameraParams;
 						cameraParams.length = 4;
-						cameraParams[0] = 2.0;
+						cameraParams[0] = lightRenderData.depthRangeCompensation;
 						cameraParams[1] = lightRenderData.shadowCamera._farClip;
 						cameraParams[2] = lightRenderData.shadowCamera._nearClip;
 						cameraParams[3] = 1;
@@ -42126,11 +42160,11 @@ var playcanvas = {exports: {}};
 					params[3] = 1.0 / omni.attenuationEnd;
 					this.lightShadowParamsId[cnt].setValue(params);
 					this.lightShadowIntensity[cnt].setValue(omni.shadowIntensity);
-					this.lightSizeId[cnt].setValue(omni.lightSize);
-					var fov = lightRenderData.shadowCamera._fov * Math.PI / 180.0;
+					var pixelsPerMeter = 1.0 / (lightRenderData.shadowCamera.renderTarget.width / omni.penumbraSize);
+					this.lightShadowSearchAreaId[cnt].setValue(pixelsPerMeter);
 					var cameraParams = omni._shadowCameraParams;
 					cameraParams.length = 4;
-					cameraParams[0] = 1.0 / Math.tan(fov / 2.0);
+					cameraParams[0] = 1;
 					cameraParams[1] = lightRenderData.shadowCamera._farClip;
 					cameraParams[2] = lightRenderData.shadowCamera._nearClip;
 					cameraParams[3] = 0;
@@ -42178,11 +42212,13 @@ var playcanvas = {exports: {}};
 					params[3] = 1.0 / spot.attenuationEnd;
 					this.lightShadowParamsId[cnt].setValue(params);
 					this.lightShadowIntensity[cnt].setValue(spot.shadowIntensity);
-					this.lightSizeId[cnt].setValue(spot.lightSize);
+					var pixelsPerMeter = 1.0 / (lightRenderData.shadowCamera.renderTarget.width / spot.penumbraSize);
 					var fov = lightRenderData.shadowCamera._fov * Math.PI / 180.0;
+					var fovRatio = 1.0 / Math.tan(fov / 2.0);
+					this.lightShadowSearchAreaId[cnt].setValue(pixelsPerMeter * fovRatio);
 					var cameraParams = spot._shadowCameraParams;
 					cameraParams.length = 4;
-					cameraParams[0] = 1.0 / Math.tan(fov / 2.0);
+					cameraParams[0] = 1;
 					cameraParams[1] = lightRenderData.shadowCamera._farClip;
 					cameraParams[2] = lightRenderData.shadowCamera._nearClip;
 					cameraParams[3] = 0;
@@ -42317,6 +42353,7 @@ var playcanvas = {exports: {}};
 				var scene = this.scene;
 				var passFlag = 1 << pass;
 				var flipFactor = flipFaces ? -1 : 1;
+				var clusteredLightingEnabled = this.scene.clusteredLightingEnabled;
 				var skipMaterial = false;
 				var preparedCallsCount = preparedCalls.drawCalls.length;
 				for (var i = 0; i < preparedCallsCount; i++) {
@@ -42338,7 +42375,9 @@ var playcanvas = {exports: {}};
 							material.setParameters(device);
 							if (lightMaskChanged) {
 								var usedDirLights = this.dispatchDirectLights(sortedLights[LIGHTTYPE_DIRECTIONAL], scene, lightMask, camera);
-								this.dispatchLocalLights(sortedLights, scene, lightMask, usedDirLights, drawCall._staticLightList);
+								if (!clusteredLightingEnabled) {
+									this.dispatchLocalLights(sortedLights, scene, lightMask, usedDirLights, drawCall._staticLightList);
+								}
 							}
 							this.alphaTestId.setValue(material.alphaTest);
 							device.setBlendState(material.blendState);
@@ -43390,6 +43429,7 @@ var playcanvas = {exports: {}};
 				this.shadowMatrix = new Mat4();
 				this.shadowViewport = new Vec4(0, 0, 1, 1);
 				this.shadowScissor = new Vec4(0, 0, 1, 1);
+				this.depthRangeCompensation = 0;
 				this.face = face;
 				this.visibleCasters = [];
 				this.viewBindGroups = [];
@@ -43478,7 +43518,7 @@ var playcanvas = {exports: {}};
 				this._normalOffsetBias = 0.0;
 				this.shadowUpdateMode = SHADOWUPDATE_REALTIME;
 				this.shadowUpdateOverrides = null;
-				this._lightSize = 1.0;
+				this._penumbraSize = 1.0;
 				this._isVsm = false;
 				this._isPcf = true;
 				this._cookieMatrix = null;
@@ -43564,7 +43604,7 @@ var playcanvas = {exports: {}};
 				clone.vsmBlurSize = this._vsmBlurSize;
 				clone.vsmBlurMode = this.vsmBlurMode;
 				clone.vsmBias = this.vsmBias;
-				clone.lightSize = this.lightSize;
+				clone.penumbraSize = this.penumbraSize;
 				clone.shadowUpdateMode = this.shadowUpdateMode;
 				clone.mask = this.mask;
 				if (this.shadowUpdateOverrides) {
@@ -43912,12 +43952,12 @@ var playcanvas = {exports: {}};
 					}
 				}
 			}, {
-				key: "lightSize",
+				key: "penumbraSize",
 				get: function get() {
-					return this._lightSize;
+					return this._penumbraSize;
 				},
 				set: function set(value) {
-					this._lightSize = value;
+					this._penumbraSize = value;
 				}
 			}, {
 				key: "intensity",
@@ -44473,24 +44513,18 @@ var playcanvas = {exports: {}};
 			return Model;
 		}();
 
-		var defaultOptions = {
-			preferHighPrecision: false
-		};
 		var Morph = function (_RefCountedObject) {
 			_inheritsLoose(Morph, _RefCountedObject);
-			function Morph(targets, graphicsDevice, options) {
+			function Morph(targets, graphicsDevice, _temp) {
 				var _this;
-				if (options === void 0) {
-					options = defaultOptions;
-				}
+				var _ref = _temp === void 0 ? {} : _temp,
+					_ref$preferHighPrecis = _ref.preferHighPrecision,
+					preferHighPrecision = _ref$preferHighPrecis === void 0 ? false : _ref$preferHighPrecis;
 				_this = _RefCountedObject.call(this) || this;
 				_this._aabb = void 0;
 				_this.preferHighPrecision = void 0;
 				_this.device = graphicsDevice || GraphicsDeviceAccess.get();
-				_this.preferHighPrecision = options.preferHighPrecision;
-				targets.forEach(function (target) {
-					return void 0;
-				});
+				_this.preferHighPrecision = preferHighPrecision;
 				_this._targets = targets.slice();
 				var device = _this.device;
 				if (device.supportsMorphTargetTexturesCore) {
@@ -46757,7 +46791,7 @@ var playcanvas = {exports: {}};
 				_this._gammaCorrection = GAMMA_SRGB;
 				_this._toneMapping = 0;
 				_this._skyboxCubeMap = null;
-				_this._prefilteredCubemaps = [null, null, null, null, null, null];
+				_this._prefilteredCubemaps = [];
 				_this._envAtlas = null;
 				_this._internalEnvAtlas = null;
 				_this._skyboxIntensity = 1;
@@ -46894,11 +46928,9 @@ var playcanvas = {exports: {}};
 				if (!cubemaps) {
 					this.skybox = null;
 					this.envAtlas = null;
-					this.prefilteredCubemaps = [null, null, null, null, null, null];
 				} else {
 					this.skybox = cubemaps[0] || null;
 					if (cubemaps[1] && !cubemaps[1].cubemap) {
-						this.prefilteredCubemaps = [null, null, null, null, null, null];
 						this.envAtlas = cubemaps[1];
 					} else {
 						this.prefilteredCubemaps = cubemaps.slice(1);
@@ -46958,11 +46990,16 @@ var playcanvas = {exports: {}};
 					if (value !== this._envAtlas) {
 						this._envAtlas = value;
 						if (value) {
-							value.addressU = ADDRESS_REPEAT;
+							value.addressU = ADDRESS_CLAMP_TO_EDGE;
 							value.addressV = ADDRESS_CLAMP_TO_EDGE;
 							value.minFilter = FILTER_LINEAR;
 							value.magFilter = FILTER_LINEAR;
 							value.mipmaps = false;
+						}
+						this._prefilteredCubemaps = [];
+						if (this._internalEnvAtlas) {
+							this._internalEnvAtlas.destroy();
+							this._internalEnvAtlas = null;
 						}
 						this._resetSky();
 					}
@@ -47026,34 +47063,29 @@ var playcanvas = {exports: {}};
 					return this._prefilteredCubemaps;
 				},
 				set: function set(value) {
-					var cubemaps = this._prefilteredCubemaps;
 					value = value || [];
-					var changed = false;
-					var complete = true;
-					for (var i = 0; i < 6; ++i) {
-						var v = value[i] || null;
-						if (cubemaps[i] !== v) {
-							cubemaps[i] = v;
-							changed = true;
-						}
-						complete = complete && !!cubemaps[i];
-					}
+					var cubemaps = this._prefilteredCubemaps;
+					var changed = cubemaps.length !== value.length || cubemaps.some(function (c, i) {
+						return c !== value[i];
+					});
 					if (changed) {
-						this._resetSky();
+						var complete = value.length === 6 && value.every(function (c) {
+							return !!c;
+						});
 						if (complete) {
-							this._internalEnvAtlas = EnvLighting.generatePrefilteredAtlas(cubemaps, {
+							this._internalEnvAtlas = EnvLighting.generatePrefilteredAtlas(value, {
 								target: this._internalEnvAtlas
 							});
-							if (!this._envAtlas) {
-								this.envAtlas = this._internalEnvAtlas;
+							this._envAtlas = this._internalEnvAtlas;
+						} else {
+							if (this._internalEnvAtlas) {
+								this._internalEnvAtlas.destroy();
+								this._internalEnvAtlas = null;
 							}
-						} else if (this._internalEnvAtlas) {
-							if (this._envAtlas === this._internalEnvAtlas) {
-								this.envAtlas = null;
-							}
-							this._internalEnvAtlas.destroy();
-							this._internalEnvAtlas = null;
+							this._envAtlas = null;
 						}
+						this._prefilteredCubemaps = value.slice();
+						this._resetSky();
 					}
 				}
 			}, {
@@ -48773,35 +48805,34 @@ var playcanvas = {exports: {}};
 			function AssetRegistry(loader) {
 				var _this;
 				_this = _EventHandler.call(this) || this;
-				_this._loader = loader;
-				_this._assets = [];
-				_this._cache = {};
-				_this._names = {};
+				_this._assets = new Set();
+				_this._idToAsset = new Map();
+				_this._urlToAsset = new Map();
 				_this._tags = new TagsCache('_id');
-				_this._urls = {};
 				_this.prefix = null;
+				_this._loader = loader;
 				return _this;
 			}
 			var _proto = AssetRegistry.prototype;
 			_proto.list = function list(filters) {
-				filters = filters || {};
-				return this._assets.filter(function (asset) {
-					var include = true;
-					if (filters.preload !== undefined) {
-						include = asset.preload === filters.preload;
-					}
-					return include;
-				});
+				if (filters === void 0) {
+					filters = {};
+				}
+				var assets = Array.from(this._assets);
+				if (filters.preload !== undefined) {
+					return assets.filter(function (asset) {
+						return asset.preload === filters.preload;
+					});
+				}
+				return assets;
 			};
 			_proto.add = function add(asset) {
-				var index = this._assets.push(asset) - 1;
-				var url;
-				this._cache[asset.id] = index;
-				if (!this._names[asset.name]) this._names[asset.name] = [];
-				this._names[asset.name].push(index);
-				if (asset.file) {
-					url = asset.file.url;
-					this._urls[url] = index;
+				var _asset$file, _asset$file2;
+				if (this._assets.has(asset)) return;
+				this._assets.add(asset);
+				this._idToAsset.set(asset.id, asset);
+				if ((_asset$file = asset.file) != null && _asset$file.url) {
+					this._urlToAsset.set(asset.file.url, asset);
 				}
 				asset.registry = this;
 				this._tags.addItem(asset);
@@ -48809,46 +48840,35 @@ var playcanvas = {exports: {}};
 				asset.tags.on('remove', this._onTagRemove, this);
 				this.fire('add', asset);
 				this.fire('add:' + asset.id, asset);
-				if (url) this.fire('add:url:' + url, asset);
+				if ((_asset$file2 = asset.file) != null && _asset$file2.url) {
+					this.fire('add:url:' + asset.file.url, asset);
+				}
 				if (asset.preload) this.load(asset);
 			};
 			_proto.remove = function remove(asset) {
-				var idx = this._cache[asset.id];
-				var url = asset.file ? asset.file.url : null;
-				if (idx !== undefined) {
-					this._assets.splice(idx, 1);
-					delete this._cache[asset.id];
-					this._names = {};
-					this._urls = [];
-					for (var i = 0, l = this._assets.length; i < l; i++) {
-						var a = this._assets[i];
-						this._cache[a.id] = i;
-						if (!this._names[a.name]) {
-							this._names[a.name] = [];
-						}
-						this._names[a.name].push(i);
-						if (a.file) {
-							this._urls[a.file.url] = i;
-						}
-					}
-					this._tags.removeItem(asset);
-					asset.tags.off('add', this._onTagAdd, this);
-					asset.tags.off('remove', this._onTagRemove, this);
-					asset.fire('remove', asset);
-					this.fire('remove', asset);
-					this.fire('remove:' + asset.id, asset);
-					if (url) this.fire('remove:url:' + url, asset);
-					return true;
+				var _asset$file3, _asset$file4;
+				if (!this._assets.has(asset)) return false;
+				this._assets.delete(asset);
+				this._idToAsset.delete(asset.id);
+				if ((_asset$file3 = asset.file) != null && _asset$file3.url) {
+					this._urlToAsset.delete(asset.file.url);
 				}
-				return false;
+				this._tags.removeItem(asset);
+				asset.tags.off('add', this._onTagAdd, this);
+				asset.tags.off('remove', this._onTagRemove, this);
+				asset.fire('remove', asset);
+				this.fire('remove', asset);
+				this.fire('remove:' + asset.id, asset);
+				if ((_asset$file4 = asset.file) != null && _asset$file4.url) {
+					this.fire('remove:url:' + asset.file.url, asset);
+				}
+				return true;
 			};
 			_proto.get = function get(id) {
-				var idx = this._cache[id];
-				return this._assets[idx];
+				return this._idToAsset.get(Number(id));
 			};
 			_proto.getByUrl = function getByUrl(url) {
-				var idx = this._urls[url];
-				return this._assets[idx];
+				return this._urlToAsset.get(url);
 			};
 			_proto.load = function load(asset) {
 				var _this2 = this;
@@ -49018,22 +49038,6 @@ var playcanvas = {exports: {}};
 					callback(null, textures);
 				}
 			};
-			_proto.findAll = function findAll(name, type) {
-				var _this6 = this;
-				var idxs = this._names[name];
-				if (idxs) {
-					var assets = idxs.map(function (idx) {
-						return _this6._assets[idx];
-					});
-					if (type) {
-						return assets.filter(function (asset) {
-							return asset.type === type;
-						});
-					}
-					return assets;
-				}
-				return [];
-			};
 			_proto._onTagAdd = function _onTagAdd(tag, asset) {
 				this._tags.add(tag, asset);
 			};
@@ -49044,13 +49048,20 @@ var playcanvas = {exports: {}};
 				return this._tags.find(arguments);
 			};
 			_proto.filter = function filter(callback) {
-				return this._assets.filter(function (asset) {
+				return Array.from(this._assets).filter(function (asset) {
 					return callback(asset);
 				});
 			};
 			_proto.find = function find(name, type) {
-				var asset = this.findAll(name, type);
-				return asset.length > 0 ? asset[0] : null;
+				var _Array$from$find;
+				return (_Array$from$find = Array.from(this._assets).find(function (asset) {
+					return asset.name === name && (!type || asset.type === type);
+				})) != null ? _Array$from$find : null;
+			};
+			_proto.findAll = function findAll(name, type) {
+				return Array.from(this._assets).filter(function (asset) {
+					return asset.name === name && (!type || asset.type === type);
+				});
 			};
 			return AssetRegistry;
 		}(EventHandler);
@@ -49648,6 +49659,9 @@ var playcanvas = {exports: {}};
 			_proto.getHandler = function getHandler(type) {
 				return this._handlers[type];
 			};
+			ResourceLoader.makeKey = function makeKey(url, type) {
+				return url + "-" + type;
+			};
 			_proto.load = function load(url, type, callback, asset) {
 				var handler = this._handlers[type];
 				if (!handler) {
@@ -49659,7 +49673,7 @@ var playcanvas = {exports: {}};
 					this._loadNull(handler, callback, asset);
 					return;
 				}
-				var key = url + type;
+				var key = ResourceLoader.makeKey(url, type);
 				if (this._cache[key] !== undefined) {
 					callback(null, this._cache[key]);
 				} else if (this._requests[key]) {
@@ -49722,7 +49736,11 @@ var playcanvas = {exports: {}};
 				handler.load(null, onLoad, asset);
 			};
 			_proto._onSuccess = function _onSuccess(key, result, extra) {
-				this._cache[key] = result;
+				if (result !== null) {
+					this._cache[key] = result;
+				} else {
+					delete this._cache[key];
+				}
 				for (var i = 0; i < this._requests[key].length; i++) {
 					this._requests[key][i](null, result, extra);
 				}
@@ -49756,11 +49774,13 @@ var playcanvas = {exports: {}};
 				}
 			};
 			_proto.clearCache = function clearCache(url, type) {
-				delete this._cache[url + type];
+				var key = ResourceLoader.makeKey(url, type);
+				delete this._cache[key];
 			};
 			_proto.getFromCache = function getFromCache(url, type) {
-				if (this._cache[url + type]) {
-					return this._cache[url + type];
+				var key = ResourceLoader.makeKey(url, type);
+				if (this._cache[key]) {
+					return this._cache[key];
 				}
 				return undefined;
 			};
@@ -51480,9 +51500,10 @@ var playcanvas = {exports: {}};
 				}
 				if (filterable === false && !this.graphicsDevice.isWebGPU) return;
 				var matrix = new Mat4();
-				matrix.setTRS(new Vec3(x, y, 0.0), Quat.IDENTITY, new Vec3(width, height, 0.0));
+				matrix.setTRS(new Vec3(x, y, 0.0), Quat.IDENTITY, new Vec3(width, -height, 0.0));
 				if (!material) {
 					material = new Material();
+					material.cull = CULLFACE_NONE;
 					material.setParameter("colorMap", texture);
 					material.shader = filterable ? this.scene.immediate.getTextureShader() : this.scene.immediate.getUnfilterableTextureShader();
 					material.update();
@@ -51494,6 +51515,7 @@ var playcanvas = {exports: {}};
 					layer = this.scene.defaultDrawLayer;
 				}
 				var material = new Material();
+				material.cull = CULLFACE_NONE;
 				material.shader = this.scene.immediate.getDepthTextureShader();
 				material.update();
 				this.drawTexture(x, y, width, height, null, material, layer);
@@ -52936,30 +52958,77 @@ var playcanvas = {exports: {}};
 				this.alignCursorToCurrentTime();
 			}
 			var _proto = AnimClip.prototype;
-			_proto.alignCursorToCurrentTime = function alignCursorToCurrentTime() {
-				this._eventCursor = 0;
-				while (this._track.events[this._eventCursor] && this._track.events[this._eventCursor].time < this.time) {
-					this._eventCursor++;
+			_proto.nextEventAheadOfTime = function nextEventAheadOfTime(time) {
+				if (!this.nextEvent) return false;
+				return this.isReverse ? this.nextEvent.time <= time : this.nextEvent.time >= time;
+			};
+			_proto.nextEventBehindTime = function nextEventBehindTime(time) {
+				if (!this.nextEvent) return false;
+				if (time === this.track.duration) {
+					return this.isReverse ? this.nextEvent.time >= time : this.nextEvent.time <= time;
+				}
+				return this.isReverse ? this.nextEvent.time > time : this.nextEvent.time < time;
+			};
+			_proto.resetEventCursor = function resetEventCursor() {
+				this._eventCursor = this.isReverse ? this._track.events.length - 1 : 0;
+			};
+			_proto.moveEventCursor = function moveEventCursor() {
+				this._eventCursor += this.isReverse ? -1 : 1;
+				if (this._eventCursor >= this.track.events.length) {
+					this._eventCursor = 0;
+				} else if (this._eventCursor < 0) {
+					this._eventCursor = this.track.events.length - 1;
 				}
 			};
+			_proto.clipFrameTime = function clipFrameTime(frameEndTime) {
+				var eventFrame = AnimClip.eventFrame;
+				eventFrame.start = 0;
+				eventFrame.end = frameEndTime;
+				eventFrame.residual = 0;
+				if (this.isReverse) {
+					if (frameEndTime < 0) {
+						eventFrame.start = this.track.duration;
+						eventFrame.end = 0;
+						eventFrame.residual = frameEndTime + this.track.duration;
+					}
+				} else {
+					if (frameEndTime > this.track.duration) {
+						eventFrame.start = 0;
+						eventFrame.end = this.track.duration;
+						eventFrame.residual = frameEndTime - this.track.duration;
+					}
+				}
+			};
+			_proto.alignCursorToCurrentTime = function alignCursorToCurrentTime() {
+				this.resetEventCursor();
+				while (this.nextEventBehindTime(this._time) && this._eventCursor !== this.eventCursorEnd) {
+					this.moveEventCursor();
+				}
+			};
+			_proto.fireNextEvent = function fireNextEvent() {
+				this._eventHandler.fire(this.nextEvent.name, _extends({
+					track: this.track
+				}, this.nextEvent));
+				this.moveEventCursor();
+			};
+			_proto.fireNextEventInFrame = function fireNextEventInFrame(frameStartTime, frameEndTime) {
+				if (this.nextEventAheadOfTime(frameStartTime) && this.nextEventBehindTime(frameEndTime)) {
+					this.fireNextEvent();
+					return true;
+				}
+				return false;
+			};
 			_proto.activeEventsForFrame = function activeEventsForFrame(frameStartTime, frameEndTime) {
-				if (frameStartTime === 0) {
-					this.eventCursor = 0;
+				var eventFrame = AnimClip.eventFrame;
+				this.clipFrameTime(frameEndTime);
+				var initialCursor = this.eventCursor;
+				while (this.fireNextEventInFrame(frameStartTime, eventFrame.end)) {
+					if (initialCursor === this.eventCursor) {
+						break;
+					}
 				}
-				var clippedFrameDuration;
-				if (frameEndTime > this.track.duration) {
-					clippedFrameDuration = frameEndTime - this.track.duration;
-					frameEndTime = this.track.duration;
-				}
-				while (this.track.events[this.eventCursor] && this.track.events[this.eventCursor].time >= frameStartTime && (frameEndTime === this.track.duration ? this.track.events[this.eventCursor].time <= frameEndTime : this.track.events[this.eventCursor].time < frameEndTime)) {
-					var event = this.track.events[this.eventCursor];
-					this._eventHandler.fire(event.name, _extends({
-						track: this.track
-					}, event));
-					this.eventCursor++;
-				}
-				if (Number.isFinite(clippedFrameDuration)) {
-					this.activeEventsForFrame(0, clippedFrameDuration);
+				if (this.loop && Math.abs(eventFrame.residual) > 0) {
+					this.activeEventsForFrame(eventFrame.start, eventFrame.residual);
 				}
 			};
 			_proto.progressForTime = function progressForTime(time) {
@@ -53054,7 +53123,11 @@ var playcanvas = {exports: {}};
 					return this._speed;
 				},
 				set: function set(speed) {
+					var signChanged = Math.sign(speed) !== Math.sign(this._speed);
 					this._speed = speed;
+					if (signChanged) {
+						this.alignCursorToCurrentTime();
+					}
 				}
 			}, {
 				key: "loop",
@@ -53088,9 +53161,29 @@ var playcanvas = {exports: {}};
 				set: function set(value) {
 					this._eventCursor = value;
 				}
+			}, {
+				key: "eventCursorEnd",
+				get: function get() {
+					return this.isReverse ? 0 : this._track.events.length - 1;
+				}
+			}, {
+				key: "nextEvent",
+				get: function get() {
+					return this._track.events[this._eventCursor];
+				}
+			}, {
+				key: "isReverse",
+				get: function get() {
+					return this._speed < 0;
+				}
 			}]);
 			return AnimClip;
 		}();
+		AnimClip.eventFrame = {
+			start: 0,
+			end: 0,
+			residual: 0
+		};
 
 		var ANIM_INTERRUPTION_NONE = 'NONE';
 		var ANIM_INTERRUPTION_PREV = 'PREV_STATE';
@@ -54984,6 +55077,8 @@ var playcanvas = {exports: {}};
 				this._findTransitionsBetweenStatesCache = {};
 				this._previousStateName = null;
 				this._activeStateName = ANIM_STATE_START;
+				this._activeStateDuration = 0.0;
+				this._activeStateDurationDirty = true;
 				this._playing = false;
 				this._activate = activate;
 				this._currTransitionTime = 1.0;
@@ -55102,7 +55197,11 @@ var playcanvas = {exports: {}};
 							progressBefore -= Math.floor(progressBefore);
 							progress -= Math.floor(progress);
 						}
-						if (!(transition.exitTime > progressBefore && transition.exitTime <= progress)) {
+						if (progress === progressBefore) {
+							if (progress !== transition.exitTime) {
+								return null;
+							}
+						} else if (!(transition.exitTime > progressBefore && transition.exitTime <= progress)) {
 							return null;
 						}
 					}
@@ -55124,6 +55223,7 @@ var playcanvas = {exports: {}};
 				var clip;
 				this.previousState = transition.from ? this.activeStateName : null;
 				this.activeState = transition.to;
+				this._activeStateDurationDirty = true;
 				for (var i = 0; i < transition.conditions.length; i++) {
 					var condition = transition.conditions[i];
 					var parameter = this._findParameter(condition.parameterName);
@@ -55234,6 +55334,7 @@ var playcanvas = {exports: {}};
 				if (!this._playing && this._activate && this.playable) {
 					this.play();
 				}
+				this._activeStateDurationDirty = true;
 			};
 			_proto.removeNodeAnimations = function removeNodeAnimations(nodeName) {
 				if (ANIM_CONTROL_STATES.indexOf(nodeName) !== -1) {
@@ -55276,8 +55377,14 @@ var playcanvas = {exports: {}};
 				var state;
 				var animation;
 				var clip;
-				this._timeInStateBefore = this._timeInState;
-				this._timeInState += dt * this.activeState.speed;
+				if (this.activeState.loop || this._timeInState < this.activeStateDuration) {
+					this._timeInStateBefore = this._timeInState;
+					this._timeInState += dt * this.activeState.speed;
+					if (!this.activeState.loop && this._timeInState > this.activeStateDuration) {
+						this._timeInState = this.activeStateDuration;
+						dt = this.activeStateDuration - this._timeInStateBefore;
+					}
+				}
 				var transition = this._findTransition(this._activeStateName);
 				if (transition) this.updateStateFromTransition(transition);
 				if (this._isTransitioning) {
@@ -55397,15 +55504,18 @@ var playcanvas = {exports: {}};
 			}, {
 				key: "activeStateDuration",
 				get: function get() {
-					if (this.activeStateName === ANIM_STATE_START || this.activeStateName === ANIM_STATE_END) return 0.0;
-					var maxDuration = 0.0;
-					for (var i = 0; i < this.activeStateAnimations.length; i++) {
-						var activeClip = this._animEvaluator.findClip(this.activeStateAnimations[i].name);
-						if (activeClip) {
-							maxDuration = Math.max(maxDuration, activeClip.track.duration);
+					if (this._activeStateDurationDirty) {
+						var maxDuration = 0.0;
+						for (var i = 0; i < this.activeStateAnimations.length; i++) {
+							var activeClip = this._animEvaluator.findClip(this.activeStateAnimations[i].name);
+							if (activeClip) {
+								maxDuration = Math.max(maxDuration, activeClip.track.duration);
+							}
 						}
+						this._activeStateDuration = maxDuration;
+						this._activeStateDurationDirty = false;
 					}
-					return maxDuration;
+					return this._activeStateDuration;
 				}
 			}, {
 				key: "activeStateCurrentTime",
@@ -72852,12 +72962,12 @@ var playcanvas = {exports: {}};
 					this.light.shadowUpdateOverrides = values;
 				}
 			}, {
-				key: "lightSize",
+				key: "penumbraSize",
 				get: function get() {
-					return this.light.lightSize;
+					return this.light.penumbraSize;
 				},
 				set: function set(value) {
-					this.light.lightSize = value;
+					this.light.penumbraSize = value;
 				}
 			}]);
 			return LightComponent;
@@ -73075,7 +73185,7 @@ var playcanvas = {exports: {}};
 					}
 				}
 			});
-			_lightProps.push("lightSize");
+			_lightProps.push("penumbraSize");
 			_lightPropsDefault.push(1);
 		}
 		_defineProps();
@@ -75052,7 +75162,7 @@ var playcanvas = {exports: {}};
 			return skin;
 		};
 		var createDracoMesh = function createDracoMesh(device, primitive, accessors, bufferViews, meshVariants, meshDefaultMaterials, promises) {
-			var _primitive$attributes, _primitive$extensions;
+			var _primitive$extensions;
 			var result = new Mesh(device);
 			result.aabb = getAccessorBoundingBox(accessors[primitive.attributes.POSITION]);
 			var vertexDesc = [];
@@ -75071,13 +75181,6 @@ var playcanvas = {exports: {}};
 					normalize: (_accessor$normalized = accessor.normalized) != null ? _accessor$normalized : semantic === SEMANTIC_COLOR && (componentType === TYPE_UINT8 || componentType === TYPE_UINT16)
 				});
 			}
-			if (!(primitive != null && (_primitive$attributes = primitive.attributes) != null && _primitive$attributes.NORMAL)) {
-				vertexDesc.push({
-					semantic: 'NORMAL',
-					components: 3,
-					type: TYPE_FLOAT32
-				});
-			}
 			promises.push(new Promise(function (resolve, reject) {
 				var dracoExt = primitive.extensions.KHR_draco_mesh_compression;
 				dracoDecode(bufferViews[dracoExt.bufferView].slice().buffer, function (err, decompressedData) {
@@ -75085,6 +75188,7 @@ var playcanvas = {exports: {}};
 						console.log(err);
 						reject(err);
 					} else {
+						var _primitive$attributes;
 						var order = {};
 						for (var _i3 = 0, _Object$entries2 = Object.entries(dracoExt.attributes); _i3 < _Object$entries2.length; _i3++) {
 							var _Object$entries2$_i = _Object$entries2[_i3],
@@ -75095,6 +75199,13 @@ var playcanvas = {exports: {}};
 						vertexDesc.sort(function (a, b) {
 							return order[a.semantic] - order[b.semantic];
 						});
+						if (!((_primitive$attributes = primitive.attributes) != null && _primitive$attributes.NORMAL)) {
+							vertexDesc.splice(1, 0, {
+								semantic: 'NORMAL',
+								components: 3,
+								type: TYPE_FLOAT32
+							});
+						}
 						var vertexFormat = new VertexFormat(device, vertexDesc);
 						var numVertices = decompressedData.vertices.byteLength / vertexFormat.size;
 						var indexFormat = numVertices <= 65535 ? INDEXFORMAT_UINT16 : INDEXFORMAT_UINT32;
@@ -86238,6 +86349,7 @@ var playcanvas = {exports: {}};
 		exports.TextureAtlasHandler = TextureAtlasHandler;
 		exports.TextureHandler = TextureHandler;
 		exports.TextureParser = TextureParser;
+		exports.TextureUtils = TextureUtils;
 		exports.Touch = Touch;
 		exports.TouchDevice = TouchDevice;
 		exports.TouchEvent = TouchEvent;
@@ -86414,7 +86526,7 @@ window.top.pc = window.pc;
 
 /**
  * @license
- * PlayCanvas Engine v1.65.0-dev revision 7cf2b8233
+ * PlayCanvas Engine v1.64.3 revision 5a45c53b5
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 
@@ -86473,7 +86585,7 @@ class CpuTimer {
 
 /**
  * @license
- * PlayCanvas Engine v1.65.0-dev revision 7cf2b8233
+ * PlayCanvas Engine v1.64.3 revision 5a45c53b5
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 class GpuTimer {
@@ -86562,7 +86674,7 @@ class GpuTimer {
 
 /**
  * @license
- * PlayCanvas Engine v1.65.0-dev revision 7cf2b8233
+ * PlayCanvas Engine v1.64.3 revision 5a45c53b5
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 class StatsTimer {
@@ -86592,7 +86704,7 @@ class StatsTimer {
 
 /**
  * @license
- * PlayCanvas Engine v1.65.0-dev revision 7cf2b8233
+ * PlayCanvas Engine v1.64.3 revision 5a45c53b5
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 class Graph {
@@ -86656,7 +86768,7 @@ class Graph {
 
 /**
  * @license
- * PlayCanvas Engine v1.65.0-dev revision 7cf2b8233
+ * PlayCanvas Engine v1.64.3 revision 5a45c53b5
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 class WordAtlas {
@@ -86736,7 +86848,7 @@ class WordAtlas {
 
 /**
  * @license
- * PlayCanvas Engine v1.65.0-dev revision 7cf2b8233
+ * PlayCanvas Engine v1.64.3 revision 5a45c53b5
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 
@@ -86857,7 +86969,7 @@ class Render2d {
 
 /**
  * @license
- * PlayCanvas Engine v1.65.0-dev revision 7cf2b8233
+ * PlayCanvas Engine v1.64.3 revision 5a45c53b5
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 
@@ -87101,7 +87213,7 @@ class MiniStats {
 
 /**
  * @license
- * PlayCanvas Engine v1.65.0-dev revision 7cf2b8233
+ * PlayCanvas Engine v1.64.3 revision 5a45c53b5
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 
@@ -87921,7 +88033,7 @@ function zipSync(data, opts) {
 
 /**
  * @license
- * PlayCanvas Engine v1.65.0-dev revision 7cf2b8233
+ * PlayCanvas Engine v1.64.3 revision 5a45c53b5
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 
@@ -88277,7 +88389,7 @@ ${inputs.join('\n')}
 
 /**
  * @license
- * PlayCanvas Engine v1.65.0-dev revision 7cf2b8233
+ * PlayCanvas Engine v1.64.3 revision 5a45c53b5
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 
@@ -88801,7 +88913,7 @@ class GltfExporter extends CoreExporter {
 
 /**
  * @license
- * PlayCanvas Engine v1.65.0-dev revision 7cf2b8233
+ * PlayCanvas Engine v1.64.3 revision 5a45c53b5
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 

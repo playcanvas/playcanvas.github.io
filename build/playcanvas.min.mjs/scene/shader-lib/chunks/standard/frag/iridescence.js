@@ -1,0 +1,1 @@
+var e="\n#ifdef MAPFLOAT\nuniform float material_iridescence;\n#endif\n\nvoid getIridescence() {\n\t\tfloat iridescence = 1.0;\n\n\t\t#ifdef MAPFLOAT\n\t\tiridescence *= material_iridescence;\n\t\t#endif\n\n\t\t#ifdef MAPTEXTURE\n\t\tiridescence *= texture2DBias($SAMPLER, $UV, textureBias).$CH;\n\t\t#endif\n\n\t\tdIridescence = iridescence; \n}\n";export{e as default};

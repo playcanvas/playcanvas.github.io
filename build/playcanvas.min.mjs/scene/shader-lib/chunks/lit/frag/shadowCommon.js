@@ -1,0 +1,1 @@
+var t="\nvoid normalOffsetPointShadow(vec4 shadowParams, vec3 lightPos, inout vec3 lightDir, vec3 lightDirNorm, vec3 normal) {\n\t\tfloat distScale = length(lightDir);\n\t\tvec3 wPos = vPositionW + normal * shadowParams.y * clamp(1.0 - dot(normal, -lightDirNorm), 0.0, 1.0) * distScale; //0.02\n\t\tvec3 dir = wPos - lightPos;\n\t\tlightDir = dir;\n}\n";export{t as default};

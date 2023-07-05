@@ -1,0 +1,1 @@
+var e="\n#ifdef DEBUG_LIGHTING_PASS\nlitShaderArgs.albedo = vec3(0.5);\n#endif\n\n#ifdef DEBUG_UV0_PASS\n#ifdef VARYING_VUV0\nlitShaderArgs.albedo = vec3(vUv0, 0);\n#else\nlitShaderArgs.albedo = vec3(0);\n#endif\n#endif\n";export{e as default};

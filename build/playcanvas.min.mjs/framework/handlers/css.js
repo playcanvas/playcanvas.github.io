@@ -1,0 +1,1 @@
+import{http as r}from"../../platform/net/http.js";class t{constructor(r){this.handlerType="css",this.maxRetries=0}load(t,e){"string"==typeof t&&(t={load:t,original:t}),r.get(t.load,{retry:this.maxRetries>0,maxRetries:this.maxRetries},(function(r,s){r?e(`Error loading css resource: ${t.original} [${r}]`):e(null,s)}))}open(r,t){return t}patch(r,t){}}export{t as CssHandler};

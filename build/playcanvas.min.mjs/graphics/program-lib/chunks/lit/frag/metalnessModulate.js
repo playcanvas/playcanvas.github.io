@@ -1,0 +1,1 @@
+var e="\n\nuniform float material_f0;\n\nvoid getMetalnessModulate() {\n    vec3 dielectricF0 = material_f0 * dSpecularity;\n    dSpecularity = mix(dielectricF0, dAlbedo, dMetalness);\n    dAlbedo *= 1.0 - dMetalness;\n}\n";export{e as default};

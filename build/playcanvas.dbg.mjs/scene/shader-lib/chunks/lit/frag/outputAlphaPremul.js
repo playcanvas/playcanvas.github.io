@@ -1,0 +1,7 @@
+var outputAlphaPremulPS = /* glsl */`
+gl_FragColor.rgb *= litShaderArgs.opacity;
+gl_FragColor.a = litShaderArgs.opacity;
+`;
+
+export { outputAlphaPremulPS as default };
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoib3V0cHV0QWxwaGFQcmVtdWwuanMiLCJzb3VyY2VzIjpbIi4uLy4uLy4uLy4uLy4uLy4uLy4uL3NyYy9zY2VuZS9zaGFkZXItbGliL2NodW5rcy9saXQvZnJhZy9vdXRwdXRBbHBoYVByZW11bC5qcyJdLCJzb3VyY2VzQ29udGVudCI6WyJleHBvcnQgZGVmYXVsdCAvKiBnbHNsICovYFxuZ2xfRnJhZ0NvbG9yLnJnYiAqPSBsaXRTaGFkZXJBcmdzLm9wYWNpdHk7XG5nbF9GcmFnQ29sb3IuYSA9IGxpdFNoYWRlckFyZ3Mub3BhY2l0eTtcbmA7XG4iXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IkFBQUEsMEJBQWUsVUFBVyxDQUFBO0FBQzFCO0FBQ0E7QUFDQSxDQUFDOzs7OyJ9

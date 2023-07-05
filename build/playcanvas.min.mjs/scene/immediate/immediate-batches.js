@@ -1,0 +1,1 @@
+import{ImmediateBatch as e}from"./immediate-batch.js";class t{constructor(e){this.device=e,this.map=new Map}getBatch(t,r){let i=this.map.get(t);return i||(i=new e(this.device,t,r),this.map.set(t,i)),i}onPreRender(e,t){this.map.forEach((r=>{r.onPreRender(e,t)}))}}export{t as ImmediateBatches};

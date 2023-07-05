@@ -1,0 +1,8 @@
+var aoDiffuseOccPS = /* glsl */`
+void occludeDiffuse(float ao) {
+    dDiffuseLight *= ao;
+}
+`;
+
+export { aoDiffuseOccPS as default };
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiYW9EaWZmdXNlT2NjLmpzIiwic291cmNlcyI6WyIuLi8uLi8uLi8uLi8uLi8uLi8uLi9zcmMvc2NlbmUvc2hhZGVyLWxpYi9jaHVua3MvbGl0L2ZyYWcvYW9EaWZmdXNlT2NjLmpzIl0sInNvdXJjZXNDb250ZW50IjpbImV4cG9ydCBkZWZhdWx0IC8qIGdsc2wgKi9gXG52b2lkIG9jY2x1ZGVEaWZmdXNlKGZsb2F0IGFvKSB7XG4gICAgZERpZmZ1c2VMaWdodCAqPSBhbztcbn1cbmA7XG4iXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IkFBQUEscUJBQWUsVUFBVyxDQUFBO0FBQzFCO0FBQ0E7QUFDQTtBQUNBLENBQUM7Ozs7In0=

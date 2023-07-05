@@ -1,0 +1,1 @@
+var e="\n// equirectangular helper functions\nconst float PI = 3.141592653589793;\n\nvec2 toSpherical(vec3 dir) {\n\t\treturn vec2(dir.xz == vec2(0.0) ? 0.0 : atan(dir.x, dir.z), asin(dir.y));\n}\n\nvec2 toSphericalUv(vec3 dir) {\n\t\tvec2 uv = toSpherical(dir) / vec2(PI * 2.0, PI) + 0.5;\n\t\treturn vec2(uv.x, 1.0 - uv.y);\n}\n";export{e as default};

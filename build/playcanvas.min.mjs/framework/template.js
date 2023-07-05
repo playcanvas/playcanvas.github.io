@@ -1,0 +1,1 @@
+import{SceneParser as t}from"./parsers/scene.js";class e{constructor(t,e){this._app=t,this._data=e,this._templateRoot=null}instantiate(){return this._templateRoot||this._parseTemplate(),this._templateRoot.clone()}_parseTemplate(){const e=new t(this._app,!0);this._templateRoot=e.parse(this._data)}}export{e as Template};

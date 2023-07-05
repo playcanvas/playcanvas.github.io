@@ -1,0 +1,8 @@
+var envConstPS = /* glsl */`
+vec3 processEnvironment(vec3 color) {
+    return color;
+}
+`;
+
+export { envConstPS as default };
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiZW52Q29uc3QuanMiLCJzb3VyY2VzIjpbIi4uLy4uLy4uLy4uLy4uLy4uLy4uL3NyYy9zY2VuZS9zaGFkZXItbGliL2NodW5rcy9jb21tb24vZnJhZy9lbnZDb25zdC5qcyJdLCJzb3VyY2VzQ29udGVudCI6WyJleHBvcnQgZGVmYXVsdCAvKiBnbHNsICovYFxudmVjMyBwcm9jZXNzRW52aXJvbm1lbnQodmVjMyBjb2xvcikge1xuICAgIHJldHVybiBjb2xvcjtcbn1cbmA7XG4iXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IkFBQUEsaUJBQWUsVUFBVyxDQUFBO0FBQzFCO0FBQ0E7QUFDQTtBQUNBLENBQUM7Ozs7In0=

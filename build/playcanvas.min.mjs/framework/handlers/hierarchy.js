@@ -1,0 +1,1 @@
+import{SceneParser as s}from"../parsers/scene.js";import{SceneUtils as e}from"./scene-utils.js";class r{constructor(s){this.handlerType="hierarchy",this._app=s,this.maxRetries=0}load(s,r){e.load(s,this.maxRetries,r)}open(e,r){this._app.systems.script.preloading=!0;const t=new s(this._app,!1).parse(r);return this._app.systems.script.preloading=!1,t}}export{r as HierarchyHandler};

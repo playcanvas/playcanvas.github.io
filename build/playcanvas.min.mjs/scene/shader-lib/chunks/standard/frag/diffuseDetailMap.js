@@ -1,0 +1,1 @@
+var e="\nvec3 addAlbedoDetail(vec3 albedo) {\n#ifdef MAPTEXTURE\n\t\tvec3 albedoDetail = $DECODE(texture2DBias($SAMPLER, $UV, textureBias)).$CH;\n\t\treturn detailMode_$DETAILMODE(albedo, albedoDetail);\n#else\n\t\treturn albedo;\n#endif\n}\n";export{e as default};

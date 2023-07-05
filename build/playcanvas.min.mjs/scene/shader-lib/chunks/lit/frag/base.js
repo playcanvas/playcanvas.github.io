@@ -1,0 +1,1 @@
+var n="\nuniform vec3 view_position;\n\nuniform vec3 light_globalAmbient;\n\nfloat square(float x) {\n\t\treturn x*x;\n}\n\nfloat saturate(float x) {\n\t\treturn clamp(x, 0.0, 1.0);\n}\n\nvec3 saturate(vec3 x) {\n\t\treturn clamp(x, vec3(0.0), vec3(1.0));\n}\n";export{n as default};

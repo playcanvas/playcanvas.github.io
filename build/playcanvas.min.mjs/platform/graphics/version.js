@@ -1,0 +1,1 @@
+class i{constructor(){this.globalId=0,this.revision=0}equals(i){return this.globalId===i.globalId&&this.revision===i.revision}copy(i){this.globalId=i.globalId,this.revision=i.revision}reset(){this.globalId=0,this.revision=0}}export{i as Version};

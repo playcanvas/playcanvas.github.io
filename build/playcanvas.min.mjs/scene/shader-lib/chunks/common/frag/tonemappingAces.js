@@ -1,0 +1,1 @@
+var t="\nuniform float exposure;\n\nvec3 toneMap(vec3 color) {\n\t\tfloat tA = 2.51;\n\t\tfloat tB = 0.03;\n\t\tfloat tC = 2.43;\n\t\tfloat tD = 0.59;\n\t\tfloat tE = 0.14;\n\t\tvec3 x = color * exposure;\n\t\treturn (x*(tA*x+tB))/(x*(tC*x+tD)+tE);\n}\n";export{t as default};

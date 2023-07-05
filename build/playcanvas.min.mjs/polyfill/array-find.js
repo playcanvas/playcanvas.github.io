@@ -1,0 +1,1 @@
+import{defineProtoFunc as r}from"./defineProtoFunc.js";r(Array,"find",(function(r){if(null==this)throw TypeError('"this" is null or not defined');var t=Object(this),i=t.length>>>0;if("function"!=typeof r)throw TypeError("predicate must be a function");for(var n=arguments[1],o=0;o<i;){var e=t[o];if(r.call(n,e,o,t))return e;o++}}));

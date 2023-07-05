@@ -1,0 +1,1 @@
+var n="\nattribute vec2 vertex_position;\n\nvarying vec2 vUv0;\n\nvoid main(void)\n{\n\t\tgl_Position = vec4(vertex_position, 0.5, 1.0);\n\t\tvUv0 = vertex_position.xy*0.5+0.5;\n}\n";export{n as default};

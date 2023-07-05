@@ -1,0 +1,1 @@
+const t="group",e="image",o="text",c="stretch",r="contain",n="cover";export{t as ELEMENTTYPE_GROUP,e as ELEMENTTYPE_IMAGE,o as ELEMENTTYPE_TEXT,r as FITMODE_CONTAIN,n as FITMODE_COVER,c as FITMODE_STRETCH};

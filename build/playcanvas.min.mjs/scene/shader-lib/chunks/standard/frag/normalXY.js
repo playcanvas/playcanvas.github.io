@@ -1,0 +1,1 @@
+var n="\nvec3 unpackNormal(vec4 nmap) {\n\t\tvec3 normal;\n\t\tnormal.xy = nmap.wy * 2.0 - 1.0;\n\t\tnormal.z = sqrt(1.0 - saturate(dot(normal.xy, normal.xy)));\n\t\treturn normal;\n}\n";export{n as default};

@@ -1,0 +1,1 @@
+import{_lightProps as o,_lightPropsDefault as t}from"./component.js";class c{constructor(){const c=o,n=t;for(let o=0;o<c.length;o++){const t=n[o];t&&t.clone?this[c[o]]=t.clone():this[c[o]]=t}}}export{c as LightComponentData};

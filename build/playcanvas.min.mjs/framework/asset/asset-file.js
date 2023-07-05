@@ -1,0 +1,1 @@
+class s{constructor(s="",t="",h=null,i=null,l=null,e=null){this.url=s,this.filename=t,this.hash=h,this.size=i,this.opt=l,this.contents=e}equals(s){return this.url===s.url&&this.filename===s.filename&&this.hash===s.hash&&this.size===s.size&&this.opt===s.opt&&this.contents===s.contents}}export{s as AssetFile};

@@ -1,0 +1,1 @@
+import"../../core/debug.js";import{DeviceCache as e}from"../../platform/graphics/device-cache.js";const t=new e;function o(e){return t.get(e)}function r(e,o){t.get(e,(()=>o))}export{o as getProgramLibrary,r as setProgramLibrary};

@@ -1,0 +1,88 @@
+import { Debug } from '../debug.js';
+import { Vec3 } from '../math/vec3.js';
+
+const tmpVecA = new Vec3();
+const tmpVecB = new Vec3();
+
+/**
+ * A bounding sphere is a volume for facilitating fast intersection testing.
+ */
+class BoundingSphere {
+  /**
+   * Creates a new BoundingSphere instance.
+   *
+   * @param {Vec3} [center] - The world space coordinate marking the center of the sphere. The
+   * constructor takes a reference of this parameter.
+   * @param {number} [radius] - The radius of the bounding sphere. Defaults to 0.5.
+   * @example
+   * // Create a new bounding sphere centered on the origin with a radius of 0.5
+   * const sphere = new pc.BoundingSphere();
+   */
+  constructor(center = new Vec3(), radius = 0.5) {
+    /**
+     * Center of sphere.
+     *
+     * @type {Vec3}
+     */
+    this.center = void 0;
+    /**
+     * The radius of the bounding sphere.
+     *
+     * @type {number}
+     */
+    this.radius = void 0;
+    Debug.assert(!Object.isFrozen(center), 'The constructor of \'BoundingSphere\' does not accept a constant (frozen) object as a \'center\' parameter');
+    this.center = center;
+    this.radius = radius;
+  }
+  containsPoint(point) {
+    const lenSq = tmpVecA.sub2(point, this.center).lengthSq();
+    const r = this.radius;
+    return lenSq < r * r;
+  }
+
+  /**
+   * Test if a ray intersects with the sphere.
+   *
+   * @param {import('./ray.js').Ray} ray - Ray to test against (direction must be normalized).
+   * @param {Vec3} [point] - If there is an intersection, the intersection point will be copied
+   * into here.
+   * @returns {boolean} True if there is an intersection.
+   */
+  intersectsRay(ray, point) {
+    const m = tmpVecA.copy(ray.origin).sub(this.center);
+    const b = m.dot(tmpVecB.copy(ray.direction).normalize());
+    const c = m.dot(m) - this.radius * this.radius;
+
+    // exit if ray's origin outside of sphere (c > 0) and ray pointing away from s (b > 0)
+    if (c > 0 && b > 0) return false;
+    const discr = b * b - c;
+    // a negative discriminant corresponds to ray missing sphere
+    if (discr < 0) return false;
+
+    // ray intersects sphere, compute smallest t value of intersection
+    const t = Math.abs(-b - Math.sqrt(discr));
+
+    // if t is negative, ray started inside sphere so clamp t to zero
+    if (point) point.copy(ray.direction).mulScalar(t).add(ray.origin);
+    return true;
+  }
+
+  /**
+   * Test if a Bounding Sphere is overlapping, enveloping, or inside this Bounding Sphere.
+   *
+   * @param {BoundingSphere} sphere - Bounding Sphere to test.
+   * @returns {boolean} True if the Bounding Sphere is overlapping, enveloping, or inside this Bounding Sphere and false otherwise.
+   */
+  intersectsBoundingSphere(sphere) {
+    tmpVecA.sub2(sphere.center, this.center);
+    const totalRadius = sphere.radius + this.radius;
+    if (tmpVecA.lengthSq() <= totalRadius * totalRadius) {
+      return true;
+    }
+    return false;
+  }
+}
+
+export { BoundingSphere };
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiYm91bmRpbmctc3BoZXJlLmpzIiwic291cmNlcyI6WyIuLi8uLi8uLi8uLi9zcmMvY29yZS9zaGFwZS9ib3VuZGluZy1zcGhlcmUuanMiXSwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IHsgRGVidWcgfSBmcm9tICcuLi9kZWJ1Zy5qcyc7XG5pbXBvcnQgeyBWZWMzIH0gZnJvbSAnLi4vbWF0aC92ZWMzLmpzJztcblxuY29uc3QgdG1wVmVjQSA9IG5ldyBWZWMzKCk7XG5jb25zdCB0bXBWZWNCID0gbmV3IFZlYzMoKTtcblxuLyoqXG4gKiBBIGJvdW5kaW5nIHNwaGVyZSBpcyBhIHZvbHVtZSBmb3IgZmFjaWxpdGF0aW5nIGZhc3QgaW50ZXJzZWN0aW9uIHRlc3RpbmcuXG4gKi9cbmNsYXNzIEJvdW5kaW5nU3BoZXJlIHtcbiAgICAvKipcbiAgICAgKiBDZW50ZXIgb2Ygc3BoZXJlLlxuICAgICAqXG4gICAgICogQHR5cGUge1ZlYzN9XG4gICAgICovXG4gICAgY2VudGVyO1xuXG4gICAgLyoqXG4gICAgICogVGhlIHJhZGl1cyBvZiB0aGUgYm91bmRpbmcgc3BoZXJlLlxuICAgICAqXG4gICAgICogQHR5cGUge251bWJlcn1cbiAgICAgKi9cbiAgICByYWRpdXM7XG5cbiAgICAvKipcbiAgICAgKiBDcmVhdGVzIGEgbmV3IEJvdW5kaW5nU3BoZXJlIGluc3RhbmNlLlxuICAgICAqXG4gICAgICogQHBhcmFtIHtWZWMzfSBbY2VudGVyXSAtIFRoZSB3b3JsZCBzcGFjZSBjb29yZGluYXRlIG1hcmtpbmcgdGhlIGNlbnRlciBvZiB0aGUgc3BoZXJlLiBUaGVcbiAgICAgKiBjb25zdHJ1Y3RvciB0YWtlcyBhIHJlZmVyZW5jZSBvZiB0aGlzIHBhcmFtZXRlci5cbiAgICAgKiBAcGFyYW0ge251bWJlcn0gW3JhZGl1c10gLSBUaGUgcmFkaXVzIG9mIHRoZSBib3VuZGluZyBzcGhlcmUuIERlZmF1bHRzIHRvIDAuNS5cbiAgICAgKiBAZXhhbXBsZVxuICAgICAqIC8vIENyZWF0ZSBhIG5ldyBib3VuZGluZyBzcGhlcmUgY2VudGVyZWQgb24gdGhlIG9yaWdpbiB3aXRoIGEgcmFkaXVzIG9mIDAuNVxuICAgICAqIGNvbnN0IHNwaGVyZSA9IG5ldyBwYy5Cb3VuZGluZ1NwaGVyZSgpO1xuICAgICAqL1xuICAgIGNvbnN0cnVjdG9yKGNlbnRlciA9IG5ldyBWZWMzKCksIHJhZGl1cyA9IDAuNSkge1xuICAgICAgICBEZWJ1Zy5hc3NlcnQoIU9iamVjdC5pc0Zyb3plbihjZW50ZXIpLCAnVGhlIGNvbnN0cnVjdG9yIG9mIFxcJ0JvdW5kaW5nU3BoZXJlXFwnIGRvZXMgbm90IGFjY2VwdCBhIGNvbnN0YW50IChmcm96ZW4pIG9iamVjdCBhcyBhIFxcJ2NlbnRlclxcJyBwYXJhbWV0ZXInKTtcblxuICAgICAgICB0aGlzLmNlbnRlciA9IGNlbnRlcjtcbiAgICAgICAgdGhpcy5yYWRpdXMgPSByYWRpdXM7XG4gICAgfVxuXG4gICAgY29udGFpbnNQb2ludChwb2ludCkge1xuICAgICAgICBjb25zdCBsZW5TcSA9IHRtcFZlY0Euc3ViMihwb2ludCwgdGhpcy5jZW50ZXIpLmxlbmd0aFNxKCk7XG4gICAgICAgIGNvbnN0IHIgPSB0aGlzLnJhZGl1cztcbiAgICAgICAgcmV0dXJuIGxlblNxIDwgciAqIHI7XG4gICAgfVxuXG4gICAgLyoqXG4gICAgICogVGVzdCBpZiBhIHJheSBpbnRlcnNlY3RzIHdpdGggdGhlIHNwaGVyZS5cbiAgICAgKlxuICAgICAqIEBwYXJhbSB7aW1wb3J0KCcuL3JheS5qcycpLlJheX0gcmF5IC0gUmF5IHRvIHRlc3QgYWdhaW5zdCAoZGlyZWN0aW9uIG11c3QgYmUgbm9ybWFsaXplZCkuXG4gICAgICogQHBhcmFtIHtWZWMzfSBbcG9pbnRdIC0gSWYgdGhlcmUgaXMgYW4gaW50ZXJzZWN0aW9uLCB0aGUgaW50ZXJzZWN0aW9uIHBvaW50IHdpbGwgYmUgY29waWVkXG4gICAgICogaW50byBoZXJlLlxuICAgICAqIEByZXR1cm5zIHtib29sZWFufSBUcnVlIGlmIHRoZXJlIGlzIGFuIGludGVyc2VjdGlvbi5cbiAgICAgKi9cbiAgICBpbnRlcnNlY3RzUmF5KHJheSwgcG9pbnQpIHtcbiAgICAgICAgY29uc3QgbSA9IHRtcFZlY0EuY29weShyYXkub3JpZ2luKS5zdWIodGhpcy5jZW50ZXIpO1xuICAgICAgICBjb25zdCBiID0gbS5kb3QodG1wVmVjQi5jb3B5KHJheS5kaXJlY3Rpb24pLm5vcm1hbGl6ZSgpKTtcbiAgICAgICAgY29uc3QgYyA9IG0uZG90KG0pIC0gdGhpcy5yYWRpdXMgKiB0aGlzLnJhZGl1cztcblxuICAgICAgICAvLyBleGl0IGlmIHJheSdzIG9yaWdpbiBvdXRzaWRlIG9mIHNwaGVyZSAoYyA+IDApIGFuZCByYXkgcG9pbnRpbmcgYXdheSBmcm9tIHMgKGIgPiAwKVxuICAgICAgICBpZiAoYyA+IDAgJiYgYiA+IDApXG4gICAgICAgICAgICByZXR1cm4gZmFsc2U7XG5cbiAgICAgICAgY29uc3QgZGlzY3IgPSBiICogYiAtIGM7XG4gICAgICAgIC8vIGEgbmVnYXRpdmUgZGlzY3JpbWluYW50IGNvcnJlc3BvbmRzIHRvIHJheSBtaXNzaW5nIHNwaGVyZVxuICAgICAgICBpZiAoZGlzY3IgPCAwKVxuICAgICAgICAgICAgcmV0dXJuIGZhbHNlO1xuXG4gICAgICAgIC8vIHJheSBpbnRlcnNlY3RzIHNwaGVyZSwgY29tcHV0ZSBzbWFsbGVzdCB0IHZhbHVlIG9mIGludGVyc2VjdGlvblxuICAgICAgICBjb25zdCB0ID0gTWF0aC5hYnMoLWIgLSBNYXRoLnNxcnQoZGlzY3IpKTtcblxuICAgICAgICAvLyBpZiB0IGlzIG5lZ2F0aXZlLCByYXkgc3RhcnRlZCBpbnNpZGUgc3BoZXJlIHNvIGNsYW1wIHQgdG8gemVyb1xuICAgICAgICBpZiAocG9pbnQpXG4gICAgICAgICAgICBwb2ludC5jb3B5KHJheS5kaXJlY3Rpb24pLm11bFNjYWxhcih0KS5hZGQocmF5Lm9yaWdpbik7XG5cbiAgICAgICAgcmV0dXJuIHRydWU7XG4gICAgfVxuXG4gICAgLyoqXG4gICAgICogVGVzdCBpZiBhIEJvdW5kaW5nIFNwaGVyZSBpcyBvdmVybGFwcGluZywgZW52ZWxvcGluZywgb3IgaW5zaWRlIHRoaXMgQm91bmRpbmcgU3BoZXJlLlxuICAgICAqXG4gICAgICogQHBhcmFtIHtCb3VuZGluZ1NwaGVyZX0gc3BoZXJlIC0gQm91bmRpbmcgU3BoZXJlIHRvIHRlc3QuXG4gICAgICogQHJldHVybnMge2Jvb2xlYW59IFRydWUgaWYgdGhlIEJvdW5kaW5nIFNwaGVyZSBpcyBvdmVybGFwcGluZywgZW52ZWxvcGluZywgb3IgaW5zaWRlIHRoaXMgQm91bmRpbmcgU3BoZXJlIGFuZCBmYWxzZSBvdGhlcndpc2UuXG4gICAgICovXG4gICAgaW50ZXJzZWN0c0JvdW5kaW5nU3BoZXJlKHNwaGVyZSkge1xuICAgICAgICB0bXBWZWNBLnN1YjIoc3BoZXJlLmNlbnRlciwgdGhpcy5jZW50ZXIpO1xuICAgICAgICBjb25zdCB0b3RhbFJhZGl1cyA9IHNwaGVyZS5yYWRpdXMgKyB0aGlzLnJhZGl1cztcbiAgICAgICAgaWYgKHRtcFZlY0EubGVuZ3RoU3EoKSA8PSB0b3RhbFJhZGl1cyAqIHRvdGFsUmFkaXVzKSB7XG4gICAgICAgICAgICByZXR1cm4gdHJ1ZTtcbiAgICAgICAgfVxuXG4gICAgICAgIHJldHVybiBmYWxzZTtcbiAgICB9XG59XG5cbmV4cG9ydCB7IEJvdW5kaW5nU3BoZXJlIH07XG4iXSwibmFtZXMiOlsidG1wVmVjQSIsIlZlYzMiLCJ0bXBWZWNCIiwiQm91bmRpbmdTcGhlcmUiLCJjb25zdHJ1Y3RvciIsImNlbnRlciIsInJhZGl1cyIsIkRlYnVnIiwiYXNzZXJ0IiwiT2JqZWN0IiwiaXNGcm96ZW4iLCJjb250YWluc1BvaW50IiwicG9pbnQiLCJsZW5TcSIsInN1YjIiLCJsZW5ndGhTcSIsInIiLCJpbnRlcnNlY3RzUmF5IiwicmF5IiwibSIsImNvcHkiLCJvcmlnaW4iLCJzdWIiLCJiIiwiZG90IiwiZGlyZWN0aW9uIiwibm9ybWFsaXplIiwiYyIsImRpc2NyIiwidCIsIk1hdGgiLCJhYnMiLCJzcXJ0IiwibXVsU2NhbGFyIiwiYWRkIiwiaW50ZXJzZWN0c0JvdW5kaW5nU3BoZXJlIiwic3BoZXJlIiwidG90YWxSYWRpdXMiXSwibWFwcGluZ3MiOiI7OztBQUdBLE1BQU1BLE9BQU8sR0FBRyxJQUFJQyxJQUFJLEVBQUUsQ0FBQTtBQUMxQixNQUFNQyxPQUFPLEdBQUcsSUFBSUQsSUFBSSxFQUFFLENBQUE7O0FBRTFCO0FBQ0E7QUFDQTtBQUNBLE1BQU1FLGNBQWMsQ0FBQztBQWVqQjtBQUNKO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtFQUNJQyxXQUFXQSxDQUFDQyxNQUFNLEdBQUcsSUFBSUosSUFBSSxFQUFFLEVBQUVLLE1BQU0sR0FBRyxHQUFHLEVBQUU7QUF4Qi9DO0FBQ0o7QUFDQTtBQUNBO0FBQ0E7QUFKSSxJQUFBLElBQUEsQ0FLQUQsTUFBTSxHQUFBLEtBQUEsQ0FBQSxDQUFBO0FBRU47QUFDSjtBQUNBO0FBQ0E7QUFDQTtBQUpJLElBQUEsSUFBQSxDQUtBQyxNQUFNLEdBQUEsS0FBQSxDQUFBLENBQUE7QUFhRkMsSUFBQUEsS0FBSyxDQUFDQyxNQUFNLENBQUMsQ0FBQ0MsTUFBTSxDQUFDQyxRQUFRLENBQUNMLE1BQU0sQ0FBQyxFQUFFLDRHQUE0RyxDQUFDLENBQUE7SUFFcEosSUFBSSxDQUFDQSxNQUFNLEdBQUdBLE1BQU0sQ0FBQTtJQUNwQixJQUFJLENBQUNDLE1BQU0sR0FBR0EsTUFBTSxDQUFBO0FBQ3hCLEdBQUE7RUFFQUssYUFBYUEsQ0FBQ0MsS0FBSyxFQUFFO0FBQ2pCLElBQUEsTUFBTUMsS0FBSyxHQUFHYixPQUFPLENBQUNjLElBQUksQ0FBQ0YsS0FBSyxFQUFFLElBQUksQ0FBQ1AsTUFBTSxDQUFDLENBQUNVLFFBQVEsRUFBRSxDQUFBO0FBQ3pELElBQUEsTUFBTUMsQ0FBQyxHQUFHLElBQUksQ0FBQ1YsTUFBTSxDQUFBO0FBQ3JCLElBQUEsT0FBT08sS0FBSyxHQUFHRyxDQUFDLEdBQUdBLENBQUMsQ0FBQTtBQUN4QixHQUFBOztBQUVBO0FBQ0o7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDSUMsRUFBQUEsYUFBYUEsQ0FBQ0MsR0FBRyxFQUFFTixLQUFLLEVBQUU7QUFDdEIsSUFBQSxNQUFNTyxDQUFDLEdBQUduQixPQUFPLENBQUNvQixJQUFJLENBQUNGLEdBQUcsQ0FBQ0csTUFBTSxDQUFDLENBQUNDLEdBQUcsQ0FBQyxJQUFJLENBQUNqQixNQUFNLENBQUMsQ0FBQTtBQUNuRCxJQUFBLE1BQU1rQixDQUFDLEdBQUdKLENBQUMsQ0FBQ0ssR0FBRyxDQUFDdEIsT0FBTyxDQUFDa0IsSUFBSSxDQUFDRixHQUFHLENBQUNPLFNBQVMsQ0FBQyxDQUFDQyxTQUFTLEVBQUUsQ0FBQyxDQUFBO0FBQ3hELElBQUEsTUFBTUMsQ0FBQyxHQUFHUixDQUFDLENBQUNLLEdBQUcsQ0FBQ0wsQ0FBQyxDQUFDLEdBQUcsSUFBSSxDQUFDYixNQUFNLEdBQUcsSUFBSSxDQUFDQSxNQUFNLENBQUE7O0FBRTlDO0lBQ0EsSUFBSXFCLENBQUMsR0FBRyxDQUFDLElBQUlKLENBQUMsR0FBRyxDQUFDLEVBQ2QsT0FBTyxLQUFLLENBQUE7QUFFaEIsSUFBQSxNQUFNSyxLQUFLLEdBQUdMLENBQUMsR0FBR0EsQ0FBQyxHQUFHSSxDQUFDLENBQUE7QUFDdkI7QUFDQSxJQUFBLElBQUlDLEtBQUssR0FBRyxDQUFDLEVBQ1QsT0FBTyxLQUFLLENBQUE7O0FBRWhCO0FBQ0EsSUFBQSxNQUFNQyxDQUFDLEdBQUdDLElBQUksQ0FBQ0MsR0FBRyxDQUFDLENBQUNSLENBQUMsR0FBR08sSUFBSSxDQUFDRSxJQUFJLENBQUNKLEtBQUssQ0FBQyxDQUFDLENBQUE7O0FBRXpDO0lBQ0EsSUFBSWhCLEtBQUssRUFDTEEsS0FBSyxDQUFDUSxJQUFJLENBQUNGLEdBQUcsQ0FBQ08sU0FBUyxDQUFDLENBQUNRLFNBQVMsQ0FBQ0osQ0FBQyxDQUFDLENBQUNLLEdBQUcsQ0FBQ2hCLEdBQUcsQ0FBQ0csTUFBTSxDQUFDLENBQUE7QUFFMUQsSUFBQSxPQUFPLElBQUksQ0FBQTtBQUNmLEdBQUE7O0FBRUE7QUFDSjtBQUNBO0FBQ0E7QUFDQTtBQUNBO0VBQ0ljLHdCQUF3QkEsQ0FBQ0MsTUFBTSxFQUFFO0lBQzdCcEMsT0FBTyxDQUFDYyxJQUFJLENBQUNzQixNQUFNLENBQUMvQixNQUFNLEVBQUUsSUFBSSxDQUFDQSxNQUFNLENBQUMsQ0FBQTtJQUN4QyxNQUFNZ0MsV0FBVyxHQUFHRCxNQUFNLENBQUM5QixNQUFNLEdBQUcsSUFBSSxDQUFDQSxNQUFNLENBQUE7SUFDL0MsSUFBSU4sT0FBTyxDQUFDZSxRQUFRLEVBQUUsSUFBSXNCLFdBQVcsR0FBR0EsV0FBVyxFQUFFO0FBQ2pELE1BQUEsT0FBTyxJQUFJLENBQUE7QUFDZixLQUFBO0FBRUEsSUFBQSxPQUFPLEtBQUssQ0FBQTtBQUNoQixHQUFBO0FBQ0o7Ozs7In0=

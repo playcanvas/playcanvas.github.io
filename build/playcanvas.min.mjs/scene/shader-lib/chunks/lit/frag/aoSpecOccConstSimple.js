@@ -1,0 +1,1 @@
+var t="\nvoid occludeSpecular(float gloss, float ao, vec3 worldNormal, vec3 viewDir) {\n\t\tdSpecularLight *= ao;\n\t\tdReflection *= ao;\n\n#ifdef LIT_SHEEN\n\t\tsSpecularLight *= ao;\n\t\tsReflection *= ao;\n#endif\n}\n";export{t as default};

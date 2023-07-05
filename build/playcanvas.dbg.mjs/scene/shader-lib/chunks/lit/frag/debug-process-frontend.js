@@ -1,0 +1,16 @@
+var debugProcessFrontendPS = /* glsl */`
+#ifdef DEBUG_LIGHTING_PASS
+litShaderArgs.albedo = vec3(0.5);
+#endif
+
+#ifdef DEBUG_UV0_PASS
+#ifdef VARYING_VUV0
+litShaderArgs.albedo = vec3(vUv0, 0);
+#else
+litShaderArgs.albedo = vec3(0);
+#endif
+#endif
+`;
+
+export { debugProcessFrontendPS as default };
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiZGVidWctcHJvY2Vzcy1mcm9udGVuZC5qcyIsInNvdXJjZXMiOlsiLi4vLi4vLi4vLi4vLi4vLi4vLi4vc3JjL3NjZW5lL3NoYWRlci1saWIvY2h1bmtzL2xpdC9mcmFnL2RlYnVnLXByb2Nlc3MtZnJvbnRlbmQuanMiXSwic291cmNlc0NvbnRlbnQiOlsiZXhwb3J0IGRlZmF1bHQgLyogZ2xzbCAqL2BcbiNpZmRlZiBERUJVR19MSUdIVElOR19QQVNTXG5saXRTaGFkZXJBcmdzLmFsYmVkbyA9IHZlYzMoMC41KTtcbiNlbmRpZlxuXG4jaWZkZWYgREVCVUdfVVYwX1BBU1NcbiNpZmRlZiBWQVJZSU5HX1ZVVjBcbmxpdFNoYWRlckFyZ3MuYWxiZWRvID0gdmVjMyh2VXYwLCAwKTtcbiNlbHNlXG5saXRTaGFkZXJBcmdzLmFsYmVkbyA9IHZlYzMoMCk7XG4jZW5kaWZcbiNlbmRpZlxuYDtcbiJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiQUFBQSw2QkFBZSxVQUFXLENBQUE7QUFDMUI7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBLENBQUM7Ozs7In0=

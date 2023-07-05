@@ -1,0 +1,1 @@
+var e="\n\nuniform float material_f0;\n\nvoid getMetalnessModulate(inout LitShaderArguments litShaderArgs) {\n\t\tvec3 dielectricF0 = material_f0 * litShaderArgs.specularity;\n\t\tlitShaderArgs.specularity = mix(dielectricF0, litShaderArgs.albedo, litShaderArgs.metalness);\n\t\tlitShaderArgs.albedo *= 1.0 - litShaderArgs.metalness;\n}\n";export{e as default};

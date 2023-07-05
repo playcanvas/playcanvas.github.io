@@ -1,0 +1,6 @@
+var particle_softVS = /* glsl */`
+    vDepth = getLinearDepth(localPos);
+`;
+
+export { particle_softVS as default };
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoicGFydGljbGVfc29mdC5qcyIsInNvdXJjZXMiOlsiLi4vLi4vLi4vLi4vLi4vLi4vLi4vc3JjL3NjZW5lL3NoYWRlci1saWIvY2h1bmtzL3BhcnRpY2xlL3ZlcnQvcGFydGljbGVfc29mdC5qcyJdLCJzb3VyY2VzQ29udGVudCI6WyJleHBvcnQgZGVmYXVsdCAvKiBnbHNsICovYFxuICAgIHZEZXB0aCA9IGdldExpbmVhckRlcHRoKGxvY2FsUG9zKTtcbmA7XG4iXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IkFBQUEsc0JBQWUsVUFBVyxDQUFBO0FBQzFCO0FBQ0EsQ0FBQzs7OzsifQ==

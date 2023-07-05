@@ -1,0 +1,1 @@
+const n={set:function(n,t,r,u=1){return n&~(u<<r)|t<<r},get:function(n,t,r=1){return n>>t&r},all:function(n,t,r=1){const u=r<<t;return(n&u)===u},any:function(n,t,r=1){return 0!=(n&r<<t)}};export{n as BitPacking};

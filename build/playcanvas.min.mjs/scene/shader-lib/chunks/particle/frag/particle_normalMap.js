@@ -1,0 +1,1 @@
+var a="\n\t\tvec3 normalMap = normalize(texture2D(normalMap, vec2(texCoordsAlphaLife.x, 1.0 - texCoordsAlphaLife.y)).xyz * 2.0 - 1.0);\n\t\tvec3 normal = ParticleMat * normalMap;\n";export{a as default};
