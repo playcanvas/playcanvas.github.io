@@ -113,6 +113,12 @@ declare const TRACEID_TEXTURES: string;
  * @type {string}
  */
 declare const TRACEID_RENDER_QUEUE: string;
+/**
+ * Logs the GPU timings.
+ *
+ * @type {string}
+ */
+declare const TRACEID_GPU_TIMINGS: string;
 
 /**
  * A linear interpolation scheme.
@@ -1215,6 +1221,7 @@ declare const CHUNKAPI_1_57: "1.57";
 declare const CHUNKAPI_1_58: "1.58";
 declare const CHUNKAPI_1_60: "1.60";
 declare const CHUNKAPI_1_62: "1.62";
+declare const CHUNKAPI_1_65: "1.65";
 
 declare const ACTION_MOUSE: "mouse";
 declare const ACTION_KEYBOARD: "keyboard";
@@ -3342,6 +3349,8 @@ declare const now: any;
 
 /**
  * 3-dimensional vector.
+ *
+ * @category Math
  */
 declare class Vec3 {
     /**
@@ -3818,6 +3827,8 @@ declare class Vec3 {
 
 /**
  * An infinite ray.
+ *
+ * @category Math
  */
 declare class Ray {
     /**
@@ -3873,6 +3884,8 @@ declare class Ray {
 
 /**
  * A bounding sphere is a volume for facilitating fast intersection testing.
+ *
+ * @category Math
  */
 declare class BoundingSphere {
     /**
@@ -3919,6 +3932,8 @@ declare class BoundingSphere {
 
 /**
  * A quaternion.
+ *
+ * @category Math
  */
 declare class Quat {
     /**
@@ -4243,6 +4258,8 @@ declare class Quat {
 
 /**
  * A 4-dimensional vector.
+ *
+ * @category Math
  */
 declare class Vec4 {
     /**
@@ -4644,6 +4661,8 @@ declare class Vec4 {
 
 /**
  * A 4x4 matrix.
+ *
+ * @category Math
  */
 declare class Mat4 {
     static _getPerspectiveHalfSize(halfSize: any, fov: any, aspect: any, znear: any, fovIsHorizontal: any): void;
@@ -5151,6 +5170,8 @@ declare class Mat4 {
 
 /**
  * Axis-Aligned Bounding Box.
+ *
+ * @category Math
  */
 declare class BoundingBox {
     /**
@@ -5290,6 +5311,8 @@ declare class BoundingBox {
 /**
  * An infinite plane. Internally it's represented in a parametric equation form:
  * ax + by + cz + distance = 0.
+ *
+ * @category Math
  */
 declare class Plane {
     /**
@@ -5408,6 +5431,7 @@ declare function tonemapCode(value: any, chunks: any): any;
  * @property {number} elements[].stride The number of total bytes that are between the start of one
  * vertex, and the start of the next.
  * @property {number} elements[].size The size of the attribute in bytes.
+ * @category Graphics
  */
 declare class VertexFormat {
     /**
@@ -5538,6 +5562,8 @@ declare class VertexFormat {
 /**
  * A vertex buffer is the mechanism via which the application specifies vertex data to the graphics
  * hardware.
+ *
+ * @category Graphics
  */
 declare class VertexBuffer {
     /**
@@ -5618,6 +5644,8 @@ declare class VertexBuffer {
  * can normally utilize less memory that unindexed primitives (if vertices are shared).
  *
  * Typically, index buffers are set on {@link Mesh} objects.
+ *
+ * @category Graphics
  */
 declare class IndexBuffer {
     /**
@@ -5748,6 +5776,8 @@ declare class VersionedObject {
 
 /**
  * The scope for a variable.
+ *
+ * @category Graphics
  */
 declare class ScopeId {
     /**
@@ -5782,6 +5812,8 @@ declare class ScopeId {
 /**
  * A texture is a container for texel data that can be utilized in a fragment shader. Typically,
  * the texel data represents an image that is mapped over geometry.
+ *
+ * @category Graphics
  */
 declare class Texture {
     /**
@@ -6315,6 +6347,8 @@ declare class BindGroupFormat {
 
 /**
  * The scope for variables.
+ *
+ * @category Graphics
  */
 declare class ScopeSpace {
     /**
@@ -6415,6 +6449,8 @@ declare class UniformBufferFormat {
  * the code is GLSL (or more specifically ESSL, the OpenGL ES Shading Language). The shader
  * definition also describes how the PlayCanvas engine should map vertex buffer elements onto the
  * attributes specified in the vertex shader code.
+ *
+ * @category Graphics
  */
 declare class Shader {
     /**
@@ -6430,7 +6466,7 @@ declare class Shader {
      * @param {Object<string, string>} [definition.attributes] - Object detailing the mapping of
      * vertex shader attribute names to semantics SEMANTIC_*. This enables the engine to match
      * vertex buffer data as inputs to the shader. When not specified, rendering without
-     * verex buffer is assumed.
+     * vertex buffer is assumed.
      * @param {string} definition.vshader - Vertex shader source (GLSL code).
      * @param {string} [definition.fshader] - Fragment shader source (GLSL code). Optional when
      * useTransformFeedback is specified.
@@ -6440,26 +6476,31 @@ declare class Shader {
      * fragment shaders. Defaults to {@link SHADERLANGUAGE_GLSL}.
      * @example
      * // Create a shader that renders primitives with a solid red color
+     *
+     * // Vertex shader
+     * const vshader = `
+     * attribute vec3 aPosition;
+     *
+     * void main(void) {
+     *     gl_Position = vec4(aPosition, 1.0);
+     * }
+     * `;
+     *
+     * // Fragment shader
+     * const fshader = `
+     * precision ${graphicsDevice.precision} float;
+     *
+     * void main(void) {
+     *     gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+     * }
+     * `;
+     *
      * const shaderDefinition = {
      *     attributes: {
      *         aPosition: pc.SEMANTIC_POSITION
      *     },
-     *     vshader: [
-     *         "attribute vec3 aPosition;",
-     *         "",
-     *         "void main(void)",
-     *         "{",
-     *         "    gl_Position = vec4(aPosition, 1.0);",
-     *         "}"
-     *     ].join("\n"),
-     *     fshader: [
-     *         "precision " + graphicsDevice.precision + " float;",
-     *         "",
-     *         "void main(void)",
-     *         "{",
-     *         "    gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);",
-     *         "}"
-     *     ].join("\n")
+     *     vshader,
+     *     fshader
      * };
      *
      * const shader = new pc.Shader(graphicsDevice, shaderDefinition);
@@ -6478,12 +6519,14 @@ declare class Shader {
      * Format of the uniform buffer for mesh bind group.
      *
      * @type {import('./uniform-buffer-format.js').UniformBufferFormat}
+     * @ignore
      */
     meshUniformBufferFormat: UniformBufferFormat;
     /**
      * Format of the bind group for the mesh bind group.
      *
      * @type {import('./bind-group-format.js').BindGroupFormat}
+     * @ignore
      */
     meshBindGroupFormat: BindGroupFormat;
     id: number;
@@ -6508,6 +6551,7 @@ declare class Shader {
     private init;
     ready: boolean;
     failed: boolean;
+    /** @ignore */
     get label(): string;
     /**
      * Frees resources associated with this shader.
@@ -6519,7 +6563,68 @@ declare class Shader {
      * @ignore
      */
     loseContext(): void;
+    /** @ignore */
     restoreContext(): void;
+}
+
+/**
+ * Base class of a simple GPU profiler.
+ */
+declare class GpuProfiler {
+    /**
+     * Profiling slots allocated for the current frame, storing the names of the slots.
+     *
+     * @type {string[]}
+     * @ignore
+     */
+    frameAllocations: string[];
+    /**
+     * Map of past frame allocations, indexed by renderVersion
+     *
+     * @type {Map<number, string[]>}
+     * @ignore
+     */
+    pastFrameAllocations: Map<number, string[]>;
+    /**
+     * The if enabled in the current frame.
+     * @ignore
+     */
+    _enabled: boolean;
+    /**
+     * The enable request for the next frame.
+     * @ignore
+     */
+    _enableRequest: boolean;
+    /**
+     * The time it took to render the last frame on GPU, or 0 if the profiler is not enabled
+     * @ignore
+     */
+    _frameTime: number;
+    loseContext(): void;
+    /**
+     * True to enable the profiler.
+     *
+     * @type {boolean}
+     */
+    set enabled(arg: boolean);
+    get enabled(): boolean;
+    processEnableRequest(): void;
+    request(renderVersion: any): void;
+    report(renderVersion: any, timings: any): void;
+    /**
+     * Allocate a slot for GPU timing during the frame. This slot is valid only for the current
+     * frame. This allows multiple timers to be used during the frame, each with a unique name.
+     * @param {string} name - The name of the slot.
+     * @returns {number} The assigned slot index.
+     * @ignore
+     */
+    getSlot(name: string): number;
+    /**
+     * Number of slots allocated during the frame.
+     *
+     * @ignore
+     */
+    get slotCount(): number;
 }
 
 /**
@@ -6646,6 +6751,8 @@ declare class UsedBuffer {
 
 /**
  * A render target is a rectangular rendering surface.
+ *
+ * @category Graphics
  */
 declare class RenderTarget {
     /**
@@ -6717,26 +6824,54 @@ declare class RenderTarget {
         samples?: number;
         stencil?: boolean;
     }, ...args: any[]);
-    /** @type {string} */
+    /**
+     * The name of the render target.
+     *
+     * @type {string}
+     */
     name: string;
-    /** @type {import('./graphics-device.js').GraphicsDevice} */
-    _device: GraphicsDevice;
-    /** @type {import('./texture.js').Texture} */
-    _colorBuffer: Texture;
-    /** @type {import('./texture.js').Texture[]} */
-    _colorBuffers: Texture[];
-    /** @type {import('./texture.js').Texture} */
-    _depthBuffer: Texture;
-    /** @type {boolean} */
-    _depth: boolean;
-    /** @type {boolean} */
-    _stencil: boolean;
-    /** @type {number} */
-    _samples: number;
+    /**
+     * @type {import('./graphics-device.js').GraphicsDevice}
+     * @private
+     */
+    private _device;
+    /**
+     * @type {import('./texture.js').Texture}
+     * @private
+     */
+    private _colorBuffer;
+    /**
+     * @type {import('./texture.js').Texture[]}
+     * @private
+     */
+    private _colorBuffers;
+    /**
+     * @type {import('./texture.js').Texture}
+     * @private
+     */
+    private _depthBuffer;
+    /**
+     * @type {boolean}
+     * @private
+     */
+    private _depth;
+    /**
+     * @type {boolean}
+     * @private
+     */
+    private _stencil;
+    /**
+     * @type {number}
+     * @private
+     */
+    private _samples;
     /** @type {boolean} */
     autoResolve: boolean;
-    /** @type {number} */
-    _face: number;
+    /**
+     * @type {number}
+     * @private
+     */
+    private _face;
     /** @type {boolean} */
     flipY: boolean;
     id: number;
@@ -6764,6 +6899,7 @@ declare class RenderTarget {
      * @ignore
      */
     init(): void;
+    /** @ignore */
     get initialized(): any;
     /**
      * Called when the device context was lost. It releases all context related resources.
@@ -7013,6 +7149,8 @@ declare class EventHandler {
  *
  * For the best performance, do not modify blend state after it has been created, but create
  * multiple blend states and assign them to the material or graphics device as needed.
+ *
+ * @category Graphics
  */
 declare class BlendState {
     /**
@@ -7150,6 +7288,8 @@ declare class BlendState {
  *
  * For the best performance, do not modify depth state after it has been created, but create
  * multiple depth states and assign them to the material or graphics device as needed.
+ *
+ * @category Graphics
  */
 declare class DepthState {
     /**
@@ -7248,6 +7388,8 @@ declare class DepthState {
 
 /**
  * Holds stencil test settings.
+ *
+ * @category Graphics
  */
 declare class StencilParameters {
     /**
@@ -7264,6 +7406,51 @@ declare class StencilParameters {
      */
     constructor(options?: object);
     /**
+     * @type {number}
+     * @private
+     */
+    private _func;
+    /**
+     * @type {number}
+     * @private
+     */
+    private _ref;
+    /**
+     * @type {number}
+     * @private
+     */
+    private _fail;
+    /**
+     * @type {number}
+     * @private
+     */
+    private _zfail;
+    /**
+     * @type {number}
+     * @private
+     */
+    private _zpass;
+    /**
+     * @type {number}
+     * @private
+     */
+    private _readMask;
+    /**
+     * @type {number}
+     * @private
+     */
+    private _writeMask;
+    /**
+     * @type {boolean}
+     * @private
+     */
+    private _dirty;
+    /**
+     * @type {number}
+     * @private
+     */
+    private _key;
+    /**
      * A comparison function that decides if the pixel should be written, based on the current
      * stencil buffer value, reference value, and mask value. Can be:
      *
@@ -7278,13 +7465,15 @@ declare class StencilParameters {
      *
      * @type {number}
      */
-    func: number;
+    set func(arg: number);
+    get func(): number;
     /**
      * Sets stencil test reference value used in comparisons.
      *
      * @type {number}
      */
-    ref: number;
+    set ref(arg: number);
+    get ref(): number;
     /**
      * Operation to perform if stencil test is failed. Can be:
      *
@@ -7301,33 +7490,39 @@ declare class StencilParameters {
      *
      * @type {number}
      */
-    fail: number;
+    set fail(arg: number);
+    get fail(): number;
     /**
      * Operation to perform if depth test is failed. Accepts the same values as `fail`.
      *
      * @type {number}
      */
-    zfail: number;
+    set zfail(arg: number);
+    get zfail(): number;
     /**
      * Operation to perform if both stencil and depth test are passed. Accepts the same values as
      * `fail`.
      *
      * @type {number}
      */
-    zpass: number;
+    set zpass(arg: number);
+    get zpass(): number;
     /**
      * Mask applied to stencil buffer value and reference value before comparison.
      *
      * @type {number}
      */
-    readMask: number;
+    set readMask(arg: number);
+    get readMask(): number;
     /**
      * A bit mask applied to the stencil value, when written.
      *
      * @type {number}
      */
-    writeMask: number;
-    get key(): string;
+    set writeMask(arg: number);
+    get writeMask(): number;
+    _evalKey(): void;
+    get key(): number;
     /**
      * Copies the contents of a source stencil parameters to this stencil parameters.
      *
@@ -7350,6 +7545,7 @@ declare class StencilParameters {
  * create a new graphics device against each.
  *
  * @augments EventHandler
+ * @category Graphics
  */
 declare class GraphicsDevice extends EventHandler {
     static EVENT_RESIZE: string;
@@ -7550,6 +7746,12 @@ declare class GraphicsDevice extends EventHandler {
      * @ignore
      */
     dynamicBuffers: DynamicBuffers;
+    /**
+     * The GPU profiler.
+     *
+     * @type {import('./gpu-profiler.js').GpuProfiler}
+     */
+    gpuProfiler: GpuProfiler;
     defaultClearOptions: {
         color: number[];
         depth: number;
@@ -7901,10 +8103,12 @@ declare function drawTexture(device: GraphicsDevice, texture: Texture, target?: 
 declare const shaderChunks: object;
 
 /**
- * The lit options determines how the lit-shader gets generated. It specifies a set of
+ * The lit shader options determines how the lit-shader gets generated. It specifies a set of
  * parameters which triggers different fragment and vertex shader generation in the backend.
+ *
+ * @category Graphics
  */
-declare class LitOptions {
+declare class LitShaderOptions {
     hasTangents: boolean;
     /**
      * Object containing custom shader chunks that will replace default ones.
@@ -7914,21 +8118,13 @@ declare class LitOptions {
     chunks: {
         [x: string]: string;
     };
-    _pass: number;
-    _isForwardPass: boolean;
+    pass: number;
     /**
      * Enable alpha testing. See {@link Material#alphaTest}.
      *
      * @type {boolean}
      */
     alphaTest: boolean;
-    /**
-     * Override fragment shader numeric precision. Can be "lowp", "mediump", "highp" or null to use
-     * default.
-     *
-     * @type {string}
-     */
-    forceFragmentPrecision: string;
     /**
      * The value of {@link Material#blendType}.
      *
@@ -7966,13 +8162,11 @@ declare class LitOptions {
     clusteredLightingAreaLightsEnabled: boolean;
     vertexColors: boolean;
     lightMapEnabled: boolean;
-    useLightMapVertexColors: boolean;
     dirLightMapEnabled: boolean;
-    heightMapEnabled: boolean;
-    normalMapEnabled: boolean;
-    clearCoatNormalMapEnabled: boolean;
-    aoMapEnabled: boolean;
-    useAoVertexColors: boolean;
+    useHeights: boolean;
+    useNormals: boolean;
+    useClearCoatNormals: boolean;
+    useAo: boolean;
     diffuseMapEnabled: boolean;
     useAmbientTint: boolean;
     /**
@@ -7982,10 +8176,6 @@ declare class LitOptions {
      */
     customFragmentShader: string;
     pixelSnap: boolean;
-    useClearCoatNormalMap: boolean;
-    useDiffuseMap: boolean;
-    useAoMap: boolean;
-    detailModes: number;
     /**
      * The value of {@link StandardMaterial#shadingModel}.
      *
@@ -8013,6 +8203,12 @@ declare class LitOptions {
      */
     twoSidedLighting: boolean;
     /**
+     * The value of {@link StandardMaterial#occludeDirect}.
+     *
+     * @type {boolean}
+     */
+    occludeDirect: boolean;
+    /**
      * The value of {@link StandardMaterial#occludeSpecular}.
      *
      * @type {number}
@@ -8026,7 +8222,7 @@ declare class LitOptions {
      */
     occludeSpecularFloat: boolean;
     useMsdf: boolean;
-    msdfTextAttribute: number;
+    msdfTextAttribute: boolean;
     /**
      * Enable alpha to coverage. See {@link Material#alphaToCoverage}.
      *
@@ -8046,12 +8242,6 @@ declare class LitOptions {
      */
     cubeMapProjection: number;
     /**
-     * The value of {@link StandardMaterial#occludeDirect}.
-     *
-     * @type {boolean}
-     */
-    occludeDirect: boolean;
-    /**
      * The value of {@link StandardMaterial#conserveEnergy}.
      *
      * @type {boolean}
@@ -8064,7 +8254,6 @@ declare class LitOptions {
      */
     useSpecular: boolean;
     useSpecularityFactor: boolean;
-    useSpecularColor: boolean;
     enableGGXSpecular: boolean;
     /**
      * The value of {@link StandardMaterial#fresnelModel}.
@@ -8147,22 +8336,15 @@ declare class LitOptions {
     lights: any[];
     noShadow: boolean;
     lightMaskDynamic: number;
-    set pass(arg: number);
-    get pass(): number;
-    set isForwardPass(arg: boolean);
-    get isForwardPass(): boolean;
 }
 
 /**
  * The standard material options define a set of options used to control the shader frontend shader
  * generation, such as textures, tints and multipliers.
+ *
+ * @category Graphics
  */
 declare class StandardMaterialOptions {
-    /** @private */
-    private _pass;
-    /** @private */
-    private _isForwardPass;
-    chunks: any[];
     /**
      * If UV1 (second set of texture coordinates) is required in the shader. Will be declared as
      * "vUv1" and passed to the fragment shader.
@@ -8238,17 +8420,13 @@ declare class StandardMaterialOptions {
      * @type {boolean}
      */
     clearCoatGlossInvert: boolean;
-    litOptions: LitOptions;
     /**
-     * Value of {@link Layer#shaderPass} of the Layer being rendered. Must be set to the same in
-     * {@link LitOptions#pass}.
+     * Storage for the options for lit the shader and material.
      *
-     * @type {number}
+     * @type {LitShaderOptions}
      */
-    set pass(arg: number);
+    litOptions: LitShaderOptions;
     get pass(): number;
-    set isForwardPass(arg: boolean);
-    get isForwardPass(): boolean;
 }
 
 /**
@@ -8328,6 +8506,8 @@ declare class WebglShaderInput {
 
 /**
  * A vertex iterator simplifies the process of writing vertex data to a vertex buffer.
+ *
+ * @category Graphics
  */
 declare class VertexIterator {
     /**
@@ -8410,6 +8590,8 @@ declare class VertexIterator {
 }
 /**
  * Helps with accessing a specific vertex attribute.
+ *
+ * @category Graphics
  */
 declare class VertexIteratorAccessor {
     /**
@@ -8515,6 +8697,8 @@ declare class VertexIteratorAccessor {
  * Base class for all post effects. Post effects take a a render target as input apply effects to
  * it and then render the result to an output render target or the screen if no output is
  * specified.
+ *
+ * @category Graphics
  */
 declare class PostEffect$1 {
     /**
@@ -8572,6 +8756,8 @@ declare class PostEffect$1 {
  * A skin contains data about the bones in a hierarchy that drive a skinned mesh animation.
  * Specifically, the skin stores the bone name and inverse bind matrix and for each bone. Inverse
  * bind matrices are instrumental in the mathematics of vertex skinning.
+ *
+ * @category Graphics
  */
 declare class Skin {
     /**
@@ -8687,6 +8873,8 @@ declare class RefCountedObject {
  * This allows greater flexibility, but is more complex to use. It allows more advanced setups, for
  * example sharing a Vertex or Index Buffer between multiple meshes. See {@link VertexBuffer},
  * {@link IndexBuffer} and {@link VertexFormat} for details.
+ *
+ * @category Graphics
  */
 declare class Mesh extends RefCountedObject {
     /**
@@ -9102,6 +9290,8 @@ declare class Tags extends EventHandler {
 
 /**
  * A 3x3 matrix.
+ *
+ * @category Math
  */
 declare class Mat3 {
     /**
@@ -9778,6 +9968,10 @@ declare class GraphNode extends EventHandler {
      */
     get worldScaleSign(): number;
     /**
+     * Remove graph node from current parent.
+     */
+    remove(): void;
+    /**
      * Remove graph node from current parent and add as child to new parent.
      *
      * @param {GraphNode} parent - New parent to attach graph node to.
@@ -10110,6 +10304,7 @@ declare class LightComponentData {
  * A Light Component is used to dynamically light the scene.
  *
  * @augments ComponentSystem
+ * @category Graphics
  */
 declare class LightComponentSystem extends ComponentSystem {
     id: string;
@@ -10123,6 +10318,8 @@ declare class LightComponentSystem extends ComponentSystem {
 
 /**
  * Representation of an RGBA color.
+ *
+ * @category Math
  */
 declare class Color {
     /**
@@ -10308,6 +10505,8 @@ declare class Color {
 
 /**
  * A 2-dimensional vector.
+ *
+ * @category Math
  */
 declare class Vec2 {
     /**
@@ -10894,6 +11093,7 @@ declare class Vec2 {
  * belong. Don't push/pop/splice or modify this array, if you want to change it - set a new one
  * instead.
  * @augments Component
+ * @category Graphics
  */
 declare class LightComponent extends Component {
     /**
@@ -11210,6 +11410,8 @@ declare class Light {
  * A Layer represents a renderable subset of the scene. It can contain a list of mesh instances,
  * lights and cameras, their render settings and also defines custom callbacks before, after or
  * during rendering. Layers are organized inside {@link LayerComposition} in a desired order.
+ *
+ * @category Graphics
  */
 declare class Layer {
     /**
@@ -11977,6 +12179,7 @@ declare class ClusterLight {
  * rendering order.
  *
  * @augments EventHandler
+ * @category Graphics
  */
 declare class LayerComposition extends EventHandler {
     /**
@@ -12197,6 +12400,8 @@ declare class Sky {
 /**
  * Lighting parameters, allow configuration of the global lighting parameters. For details see
  * [Clustered Lighting](https://developer.playcanvas.com/en/user-manual/graphics/lighting/clustered-lighting/).
+ *
+ * @category Graphics
  */
 declare class LightingParams {
     /**
@@ -12315,6 +12520,8 @@ declare class LightingParams {
 /**
  * A material determines how a particular mesh instance is rendered. It specifies the shader and
  * render state that is set before the mesh instance is submitted to the graphics device.
+ *
+ * @category Graphics
  */
 declare class Material {
     /**
@@ -12611,7 +12818,20 @@ declare class Material {
  * A BasicMaterial is for rendering unlit geometry, either using a constant color or a color map
  * modulated with a color.
  *
+ * ```javascript
+ * // Create a new Basic material
+ * const material = new pc.BasicMaterial();
+ *
+ * // Set the material to have a texture map that is multiplied by a red color
+ * material.color.set(1, 0, 0);
+ * material.colorMap = diffuseMap;
+ *
+ * // Notify the material that it has been modified
+ * material.update();
+ * ```
+ *
  * @augments Material
+ * @category Graphics
  */
 declare class BasicMaterial extends Material {
     /**
@@ -12620,6 +12840,7 @@ declare class BasicMaterial extends Material {
      * @type {Color}
      */
     color: Color;
+    /** @ignore */
     colorUniform: Float32Array;
     /**
      * The color map of the material (default is null). If specified, the color map is
@@ -12628,6 +12849,7 @@ declare class BasicMaterial extends Material {
      * @type {import('../../platform/graphics/texture.js').Texture|null}
      */
     colorMap: Texture | null;
+    /** @ignore */
     vertexColors: boolean;
     /**
      * Copy a `BasicMaterial`.
@@ -12636,6 +12858,12 @@ declare class BasicMaterial extends Material {
      * @returns {BasicMaterial} The destination material.
      */
     copy(source: BasicMaterial): BasicMaterial;
+    /**
+     * @param {import('../../platform/graphics/graphics-device.js').GraphicsDevice} device - The graphics device.
+     * @param {import('../scene.js').Scene} scene - The scene.
+     * @ignore
+     */
+    updateUniforms(device: GraphicsDevice, scene: Scene): void;
 }
 
 declare class Immediate {
@@ -12674,6 +12902,7 @@ declare class Immediate {
  * graphical objects, lights, and scene-wide properties.
  *
  * @augments EventHandler
+ * @category Graphics
  */
 declare class Scene extends EventHandler {
     /**
@@ -12847,6 +13076,7 @@ declare class Scene extends EventHandler {
     _skyboxIntensity: number;
     _skyboxLuminance: number;
     _skyboxMip: number;
+    _skyboxRotationShaderInclude: boolean;
     _skyboxRotation: Quat;
     _skyboxRotationMat3: Mat3;
     _skyboxRotationMat4: Mat4;
@@ -13107,6 +13337,8 @@ declare class Scene extends EventHandler {
  * A Morph Target (also known as Blend Shape) contains deformation data to apply to existing mesh.
  * Multiple morph targets can be blended together on a mesh. This is useful for effects that are
  * hard to achieve with conventional animation and skinning.
+ *
+ * @category Graphics
  */
 declare class MorphTarget {
     /**
@@ -13193,6 +13425,8 @@ declare class MorphTarget {
 
 /**
  * Contains a list of {@link MorphTarget}, a combined delta AABB and some associated data.
+ *
+ * @category Graphics
  */
 declare class Morph extends RefCountedObject {
     /**
@@ -13201,16 +13435,19 @@ declare class Morph extends RefCountedObject {
      * @param {import('./morph-target.js').MorphTarget[]} targets - A list of morph targets.
      * @param {import('../platform/graphics/graphics-device.js').GraphicsDevice} graphicsDevice -
      * The graphics device used to manage this morph target.
-     * @param {object} options - Object for passing optional arguments.
-     * @param {boolean} options.preferHighPrecision - True if high precision storage should be
+     * @param {object} [options] - Object for passing optional arguments.
+     * @param {boolean} [options.preferHighPrecision] - True if high precision storage should be
      * prefered. This is faster to create and allows higher precision, but takes more memory and
      * might be slower to render. Defaults to false.
      */
-    constructor(targets: MorphTarget[], graphicsDevice: GraphicsDevice, options?: {
-        preferHighPrecision: boolean;
+    constructor(targets: MorphTarget[], graphicsDevice: GraphicsDevice, { preferHighPrecision }?: {
+        preferHighPrecision?: boolean;
     });
-    /** @type {BoundingBox} */
-    _aabb: BoundingBox;
+    /**
+     * @type {BoundingBox}
+     * @private
+     */
+    private _aabb;
     /** @type {boolean} */
     preferHighPrecision: boolean;
     device: any;
@@ -13248,6 +13485,8 @@ declare class Morph extends RefCountedObject {
 /**
  * An instance of {@link Morph}. Contains weights to assign to every {@link MorphTarget}, manages
  * selection of active morph targets.
+ *
+ * @category Graphics
  */
 declare class MorphInstance {
     /**
@@ -13338,6 +13577,8 @@ declare class MorphInstance {
 /**
  * A skin instance is responsible for generating the matrix palette that is used to skin vertices
  * from object space to world space.
+ *
+ * @category Graphics
  */
 declare class SkinInstance {
     /**
@@ -13392,6 +13633,8 @@ declare class Command {
 /**
  * An instance of a {@link Mesh}. A single mesh can be referenced by many mesh instances that can
  * have different transforms and materials.
+ *
+ * @category Graphics
  */
 declare class MeshInstance {
     static lightmapParamNames: string[];
@@ -13585,6 +13828,7 @@ declare class MeshInstance {
      */
     getBindGroup(device: GraphicsDevice, pass: number): BindGroup;
     _layer: any;
+    _updateShaderDefs(shaderDefs: any): void;
     /**
      * In some circumstances mesh instances are sorted by a distance calculation to determine their
      * rendering order. Set this callback to override the default distance calculation, which gives
@@ -13706,6 +13950,8 @@ declare class InstancingData {
 
 /**
  * Holds mesh batching settings and a unique id. Created via {@link BatchManager#addGroup}.
+ *
+ * @category Graphics
  */
 declare class BatchGroup {
     static MODEL: string;
@@ -13768,6 +14014,8 @@ declare class BatchGroup {
 
 /**
  * Holds information about batched mesh instances. Created in {@link BatchManager#create}.
+ *
+ * @category Graphics
  */
 declare class Batch {
     /**
@@ -13815,6 +14063,8 @@ declare class Batch {
 
 /**
  * Glues many mesh instances into a single one for better performance.
+ *
+ * @category Graphics
  */
 declare class BatchManager {
     /**
@@ -14056,6 +14306,7 @@ declare class Listener {
  * global volume, suspend and resume.
  *
  * @augments EventHandler
+ * @category Sound
  */
 declare class SoundManager extends EventHandler {
     /**
@@ -14124,6 +14375,7 @@ declare class SoundManager extends EventHandler {
  * AR session.
  *
  * @augments EventHandler
+ * @category XR
  */
 declare class XrHitTestSource extends EventHandler {
     /**
@@ -14210,6 +14462,7 @@ export type XrHitTestStartCallback = (err: Error | null, hitTestSource: XrHitTes
  * representation of real world geometry by underlying AR system.
  *
  * @augments EventHandler
+ * @category XR
  */
 declare class XrHitTest extends EventHandler {
     /**
@@ -14393,6 +14646,8 @@ declare class XrHitTest extends EventHandler {
 
 /**
  * Represents finger with related joints and index.
+ *
+ * @category XR
  */
 declare class XrFinger {
     /**
@@ -14452,6 +14707,8 @@ declare class XrFinger {
 
 /**
  * Represents the joint of a finger.
+ *
+ * @category XR
  */
 declare class XrJoint {
     /**
@@ -14597,6 +14854,7 @@ declare class XrJoint {
  * Represents a hand with fingers and joints.
  *
  * @augments EventHandler
+ * @category XR
  */
 declare class XrHand extends EventHandler {
     /**
@@ -14714,6 +14972,7 @@ declare class XrHand extends EventHandler {
  * that operate on the viewer's pose.
  *
  * @augments EventHandler
+ * @category XR
  */
 declare class XrInputSource extends EventHandler {
     /**
@@ -15151,7 +15410,7 @@ export type UpdateShaderCallback = (options: StandardMaterialOptions) => Standar
  * @param {import('./standard-material-options.js').StandardMaterialOptions} options - An object with shader generator settings (based on current
  * material and scene properties), that you can change and then return. Properties of the object passed
  * into this function are documented in {@link StandardMaterial}. Also contains a member named litOptions
- * which holds some of the options only used by the lit shader backend {@link LitOptions}.
+ * which holds some of the options only used by the lit shader backend {@link LitShaderOptions}.
  * @returns {import('./standard-material-options.js').StandardMaterialOptions} Returned settings will be used by the shader.
  */
 /**
@@ -15485,10 +15744,10 @@ export type UpdateShaderCallback = (options: StandardMaterialOptions) => Standar
  * it'll be multiplied by vertex colors.
  * @property {string} opacityVertexColorChannel Vertex color channels to use for opacity. Can be
  * "r", "g", "b" or "a".
- * @property {boolean} opacityFadesSpecular used to specify whether specular and reflections are
+ * @property {boolean} opacityFadesSpecular Used to specify whether specular and reflections are
  * faded out using {@link StandardMaterial#opacity}. Default is true. When set to false use
  * {@link Material#alphaFade} to fade out materials.
- * @property {number} alphaFade used to fade out materials when
+ * @property {number} alphaFade Used to fade out materials when
  * {@link StandardMaterial#opacityFadesSpecular} is set to false.
  * @property {import('../../platform/graphics/texture.js').Texture|null} normalMap The main
  * (primary) normal map of the material (default is null). The texture must contains normalized,
@@ -15643,8 +15902,9 @@ export type UpdateShaderCallback = (options: StandardMaterialOptions) => Standar
  * assigned to the material, a reflection pass with simpler shaders and so on. These properties are
  * split into two sections, generic standard material options and lit options. Properties of the
  * standard material options are {@link StandardMaterialOptions} and the options for the lit options
- * are {@link LitOptions}.
+ * are {@link LitShaderOptions}.
  * @augments Material
+ * @category Graphics
  */
 declare class StandardMaterial extends Material {
     static TEXTURE_PARAMETERS: any[];
@@ -15721,6 +15981,9 @@ declare class StandardMaterial extends Material {
 
     set clearCoatBumpiness(arg: number);
     get clearCoatBumpiness(): number;
+
+    set clearCoatGlossInvert(arg: boolean);
+    get clearCoatGlossInvert(): boolean;
 
     set clearCoatGlossMap(arg: Texture|null);
     get clearCoatGlossMap(): Texture|null;
@@ -15887,11 +16150,17 @@ declare class StandardMaterial extends Material {
     set enableGGXSpecular(arg: boolean);
     get enableGGXSpecular(): boolean;
 
+    set envAtlas(arg: Texture|null);
+    get envAtlas(): Texture|null;
+
     set fresnelModel(arg: number);
     get fresnelModel(): number;
 
     set gloss(arg: number);
     get gloss(): number;
+
+    set glossInvert(arg: boolean);
+    get glossInvert(): boolean;
 
     set glossMap(arg: Texture|null);
     get glossMap(): Texture|null;
@@ -16226,6 +16495,7 @@ declare class StandardMaterial extends Material {
  * Manages creation of {@link ElementComponent}s.
  *
  * @augments ComponentSystem
+ * @category User Interface
  */
 declare class ElementComponentSystem extends ComponentSystem {
     id: string;
@@ -16264,6 +16534,8 @@ declare class ElementComponentSystem extends ComponentSystem {
 /**
  * A model is a graphical object that can be added to or removed from a scene. It contains a
  * hierarchy and any number of mesh instances.
+ *
+ * @category Graphics
  */
 declare class Model {
     /**
@@ -16657,6 +16929,7 @@ declare class TextElement {
  * texture. The TextureAtlas is referenced by {@link Sprite}s.
  *
  * @augments EventHandler
+ * @category Graphics
  */
 declare class TextureAtlas extends EventHandler {
     /**
@@ -16726,6 +16999,7 @@ declare class TextureAtlas extends EventHandler {
  * animation.
  *
  * @augments EventHandler
+ * @category Graphics
  */
 declare class Sprite extends EventHandler {
     /**
@@ -16953,6 +17227,8 @@ declare class CanvasFont extends EventHandler {
 
 /**
  * Represents the resource of a font asset.
+ *
+ * @category User Interface
  */
 declare class Font {
     /**
@@ -17076,15 +17352,15 @@ declare class Font {
  * override certain text styling properties on a per-character basis, the text can optionally
  * include markup tags contained within square brackets. Supported tags are:
  *
- * - `color` - override the element's `color` property. Examples:
- *   - `[color="#ff0000"]red text[/color]`
- *   - `[color="#00ff00"]green text[/color]`
- *   - `[color="#0000ff"]blue text[/color]`
- * - `outline` - override the element's `outlineColor` and `outlineThickness` properties. Example:
- *   - `[outline color="#ffffff" thickness="0.5"]text[/outline]`
- * - `shadow` - override the element's `shadowColor` and `shadowOffset` properties. Examples:
- *   - `[shadow color="#ffffff" offset="0.5"]text[/shadow]`
- *   - `[shadow color="#000000" offsetX="0.1" offsetY="0.2"]text[/shadow]`
+ * 1. `color` - override the element's `color` property. Examples:
+ * - `[color="#ff0000"]red text[/color]`
+ * - `[color="#00ff00"]green text[/color]`
+ * - `[color="#0000ff"]blue text[/color]`
+ * 2. `outline` - override the element's `outlineColor` and `outlineThickness` properties. Example:
+ * - `[outline color="#ffffff" thickness="0.5"]text[/outline]`
+ * 3. `shadow` - override the element's `shadowColor` and `shadowOffset` properties. Examples:
+ * - `[shadow color="#ffffff" offset="0.5"]text[/shadow]`
+ * - `[shadow color="#000000" offsetX="0.1" offsetY="0.2"]text[/shadow]`
  *
  * Note that markup tags are only processed if the text element's `enableMarkup` property is set to
  * true.
@@ -17122,6 +17398,7 @@ declare class Font {
  * @property {boolean} mask Switch Image Element into a mask. Masks do not render into the scene,
  * but instead limit child elements to only be rendered where this element is rendered.
  * @augments Component
+ * @category User Interface
  */
 declare class ElementComponent extends Component {
     /**
@@ -17356,12 +17633,36 @@ declare class ElementComponent extends Component {
      * @event ElementComponent#touchcancel
      * @param {import('../../input/element-input.js').ElementTouchEvent} event - The event.
      */
-    get _absLeft(): number;
-    get _absRight(): number;
-    get _absTop(): number;
-    get _absBottom(): number;
-    get _hasSplitAnchorsX(): boolean;
-    get _hasSplitAnchorsY(): boolean;
+    /**
+     * @type {number}
+     * @private
+     */
+    private get _absLeft();
+    /**
+     * @type {number}
+     * @private
+     */
+    private get _absRight();
+    /**
+     * @type {number}
+     * @private
+     */
+    private get _absTop();
+    /**
+     * @type {number}
+     * @private
+     */
+    private get _absBottom();
+    /**
+     * @type {boolean}
+     * @private
+     */
+    private get _hasSplitAnchorsX();
+    /**
+     * @type {boolean}
+     * @private
+     */
+    private get _hasSplitAnchorsY();
     get aabb(): any;
     /**
      * Specifies where the left, bottom, right and top edges of the component are anchored relative
@@ -17677,6 +17978,8 @@ declare class ElementComponent extends Component {
 /**
  * Handles mouse and touch events for {@link ElementComponent}s. When input events occur on an
  * ElementComponent this fires the appropriate events on the ElementComponent.
+ *
+ * @category User Interface
  */
 declare class ElementInput {
     static buildHitCorners(element: any, screenOrWorldCorners: any, scale: any): any;
@@ -17787,6 +18090,8 @@ declare class ElementInput {
 /**
  * Represents an input event fired on a {@link ElementComponent}. When an event is raised on an
  * ElementComponent it bubbles up to its parent ElementComponents unless we call stopPropagation().
+ *
+ * @category User Interface
  */
 declare class ElementInputEvent {
     /**
@@ -17829,6 +18134,7 @@ declare class ElementInputEvent {
  * Represents a Mouse event fired on a {@link ElementComponent}.
  *
  * @augments ElementInputEvent
+ * @category User Interface
  */
 declare class ElementMouseEvent extends ElementInputEvent {
     /**
@@ -17900,6 +18206,7 @@ declare class ElementMouseEvent extends ElementInputEvent {
  * Represents a XRInputSourceEvent fired on a {@link ElementComponent}.
  *
  * @augments ElementInputEvent
+ * @category User Interface
  */
 declare class ElementSelectEvent extends ElementInputEvent {
     /**
@@ -17925,6 +18232,7 @@ declare class ElementSelectEvent extends ElementInputEvent {
  * Represents a TouchEvent fired on a {@link ElementComponent}.
  *
  * @augments ElementInputEvent
+ * @category User Interface
  */
 declare class ElementTouchEvent extends ElementInputEvent {
     /**
@@ -17968,6 +18276,7 @@ declare class ElementTouchEvent extends ElementInputEvent {
  * Input handler for accessing GamePad input.
  *
  * @augments EventHandler
+ * @category Input
  */
 declare class GamePads extends EventHandler {
     /**
@@ -18160,6 +18469,8 @@ declare class GamePads extends EventHandler {
 }
 /**
  * A GamePad stores information about a gamepad from the Gamepad API.
+ *
+ * @category Input
  */
 declare class GamePad {
     /**
@@ -18390,6 +18701,8 @@ declare class GamePad {
 }
 /**
  * A GamePadButton stores information about a button from the Gamepad API.
+ *
+ * @category Input
  */
 declare class GamePadButton {
     /**
@@ -18450,6 +18763,7 @@ declare class GamePadButton {
  * touched. See also {@link Touch} and {@link TouchEvent}.
  *
  * @augments EventHandler
+ * @category Input
  */
 declare class TouchDevice extends EventHandler {
     /**
@@ -18493,6 +18807,7 @@ export type LockMouseCallback = () => any;
  * A Mouse Device, bound to a DOM Element.
  *
  * @augments EventHandler
+ * @category Input
  */
 declare class Mouse extends EventHandler {
     /**
@@ -18638,6 +18953,7 @@ declare class Mouse extends EventHandler {
  * that the Keyboard object must be attached to an Element before it can detect any key presses.
  *
  * @augments EventHandler
+ * @category Input
  */
 declare class Keyboard extends EventHandler {
     /**
@@ -18873,12 +19189,7 @@ declare class Asset extends EventHandler {
         crossOrigin?: 'anonymous' | 'use-credentials' | null;
     });
     _id: number;
-    /**
-     * The name of the asset.
-     *
-     * @type {string}
-     */
-    name: string;
+    _name: string;
     /**
      * The type of the asset. One of ["animation", "audio", "binary", "container", "cubemap",
      * "css", "font", "json", "html", "material", "model", "render", "script", "shader", "sprite",
@@ -18920,9 +19231,9 @@ declare class Asset extends EventHandler {
     /**
      * The asset registry that this Asset belongs to.
      *
-     * @type {import('./asset-registry.js').AssetRegistry}
+     * @type {import('./asset-registry.js').AssetRegistry|null}
      */
-    registry: AssetRegistry;
+    registry: AssetRegistry | null;
     /**
      * The file details or null if no file.
      *
@@ -18987,6 +19298,13 @@ declare class Asset extends EventHandler {
      */
     set id(arg: number);
     get id(): number;
+    /**
+     * The asset name.
+     *
+     * @type {string}
+     */
+    set name(arg: string);
+    get name(): string;
     /**
      * Optional JSON data that contains either the complete resource data. (e.g. in the case of a
      * material) or additional data (e.g. in the case of a model it contains mappings from mesh to
@@ -19289,17 +19607,6 @@ declare class ResourceLoader {
     destroy(): void;
 }
 
-declare class TagsCache {
-    constructor(key?: any);
-    _index: {};
-    _key: any;
-    addItem(item: any): void;
-    removeItem(item: any): void;
-    add(tag: any, item: any): void;
-    remove(tag: any, item: any): void;
-    find(args: any): any[];
-}
-
 /**
  * Callback used by {@link AssetRegistryfilter } to filter assets.
  */
@@ -19338,18 +19645,39 @@ declare class AssetRegistry extends EventHandler {
      * load the asset files.
      */
     constructor(loader: ResourceLoader);
-    _loader: ResourceLoader;
-    _assets: any[];
-    _cache: {};
-    _names: {};
-    _tags: TagsCache;
-    _urls: {};
+    /**
+     * @type {Set<Asset>}
+     * @private
+     */
+    private _assets;
+    /**
+     * @type {Map<number, Asset>}
+     * @private
+     */
+    private _idToAsset;
+    /**
+     * @type {Map<string, Asset>}
+     * @private
+     */
+    private _urlToAsset;
+    /**
+     * @type {Map<string, Set<Asset>>}
+     * @private
+     */
+    private _nameToAsset;
+    /**
+     * Index for looking up by tags.
+     *
+     * @private
+     */
+    private _tags;
     /**
      * A URL prefix that will be added to all asset loading requests.
      *
-     * @type {string}
+     * @type {string|null}
      */
-    prefix: string;
+    prefix: string | null;
+    _loader: ResourceLoader;
     /**
      * Fired when an asset completes loading.
      *
@@ -19473,7 +19801,7 @@ declare class AssetRegistry extends EventHandler {
      * @param {object} filters - Properties to filter on, currently supports: 'preload: true|false'.
      * @returns {Asset[]} The filtered list of assets.
      */
-    list(filters: object): Asset[];
+    list(filters?: object): Asset[];
     /**
      * Add an asset to the registry.
      *
@@ -19499,20 +19827,20 @@ declare class AssetRegistry extends EventHandler {
      * Retrieve an asset from the registry by its id field.
      *
      * @param {number} id - The id of the asset to get.
-     * @returns {Asset} The asset.
+     * @returns {Asset|undefined} The asset.
      * @example
      * const asset = app.assets.get(100);
      */
-    get(id: number): Asset;
+    get(id: number): Asset | undefined;
     /**
      * Retrieve an asset from the registry by its file's URL field.
      *
      * @param {string} url - The url of the asset to get.
-     * @returns {Asset} The asset.
+     * @returns {Asset|undefined} The asset.
      * @example
      * const asset = app.assets.getByUrl("../path/to/image.jpg");
      */
-    getByUrl(url: string): Asset;
+    getByUrl(url: string): Asset | undefined;
     /**
      * Load the asset's file from a remote source. Listen for "load" events on the asset to find
      * out when it is loaded.
@@ -19561,7 +19889,7 @@ declare class AssetRegistry extends EventHandler {
      * @param {LoadAssetCallback} callback - Function called when asset is loaded, passed (err,
      * asset), where err is null if no errors were encountered.
      * @example
-     * const file = magicallyAttainAFile();
+     * const file = magicallyObtainAFile();
      * app.assets.loadFromUrlAndFilename(URL.createObjectURL(file), "texture.png", "texture", function (err, asset) {
      *     const texture = asset.resource;
      * });
@@ -19571,19 +19899,9 @@ declare class AssetRegistry extends EventHandler {
     _loadModel(modelAsset: any, continuation: any): void;
     _loadMaterials(modelAsset: any, mapping: any, callback: any): void;
     _loadTextures(materialAsset: any, callback: any): void;
-    /**
-     * Return all Assets with the specified name and type found in the registry.
-     *
-     * @param {string} name - The name of the Assets to find.
-     * @param {string} [type] - The type of the Assets to find.
-     * @returns {Asset[]} A list of all Assets found.
-     * @example
-     * const assets = app.assets.findAll("myTextureAsset", "texture");
-     * console.log("Found " + assets.length + " assets called " + name);
-     */
-    findAll(name: string, type?: string): Asset[];
     _onTagAdd(tag: any, asset: any): void;
     _onTagRemove(tag: any, asset: any): void;
+    _onNameChange(asset: any, name: any, nameOld: any): void;
     /**
      * Return all Assets that satisfy the search query. Query can be simply a string, or comma
      * separated strings, to have inclusive results of assets that match at least one query. A
@@ -19613,10 +19931,8 @@ declare class AssetRegistry extends EventHandler {
      * Return `true` to include an asset in the returned array.
      * @returns {Asset[]} A list of all Assets found.
      * @example
-     * const assets = app.assets.filter(function (asset) {
-     *     return asset.name.indexOf('monster') !== -1;
-     * });
-     * console.log("Found " + assets.length + " assets, where names contains 'monster'");
+     * const assets = app.assets.filter(asset => asset.name.includes('monster'));
+     * console.log(`Found ${assets.length} assets with a name containing 'monster'`);
      */
     filter(callback: FilterAssetCallback): Asset[];
     /**
@@ -19629,6 +19945,17 @@ declare class AssetRegistry extends EventHandler {
      * const asset = app.assets.find("myTextureAsset", "texture");
      */
     find(name: string, type?: string): Asset | null;
+    /**
+     * Return all Assets with the specified name and type found in the registry.
+     *
+     * @param {string} name - The name of the Assets to find.
+     * @param {string} [type] - The type of the Assets to find.
+     * @returns {Asset[]} A list of all Assets found.
+     * @example
+     * const assets = app.assets.findAll('brick', 'texture');
+     * console.log(`Found ${assets.length} texture assets named 'brick'`);
+     */
+    findAll(name: string, type?: string): Asset[];
 }
 
 /**
@@ -19900,6 +20227,8 @@ declare class ShaderPassInfo {
  * A frustum is a shape that defines the viewing space of a camera. It can be used to determine
  * visibility of points and bounding spheres. Typically, you would not create a Frustum shape
  * directly, but instead query {@link CameraComponent#frustum}.
+ *
+ * @category Math
  */
 declare class Frustum {
     planes: any[];
@@ -20611,6 +20940,8 @@ declare class LightmapFilters {
 
 /**
  * The lightmapper is used to bake scene lights into textures.
+ *
+ * @category Graphics
  */
 declare class Lightmapper {
     /**
@@ -21339,7 +21670,6 @@ declare class ScriptType extends EventHandler {
      */
     set enabled(arg: boolean);
     get enabled(): boolean;
-
     /**
      * Called when script is about to run for the first time.
      */
@@ -21612,6 +21942,8 @@ declare class I18n extends EventHandler {
 
 /**
  * Item to be stored in the {@link SceneRegistry}.
+ *
+ * @category Graphics
  */
 declare class SceneRegistryItem {
     /**
@@ -21633,9 +21965,12 @@ declare class SceneRegistryItem {
      * @type {string}
      */
     url: string;
+    /** @ignore */
     data: any;
-    _loading: boolean;
-    _onLoadedCallbacks: any[];
+    /** @private */
+    private _loading;
+    /** @private */
+    private _onLoadedCallbacks;
     /**
      * Returns true if the scene data has loaded.
      *
@@ -21707,6 +22042,8 @@ export type LoadSceneDataCallback = (err: string | null, sceneItem?: SceneRegist
 /**
  * Container for storing and loading of scenes. An instance of the registry is created on the
  * {@link AppBase} object as {@link AppBase#scenes}.
+ *
+ * @category Graphics
  */
 declare class SceneRegistry {
     /**
@@ -21715,10 +22052,21 @@ declare class SceneRegistry {
      * @param {import('./app-base.js').AppBase} app - The application.
      */
     constructor(app: AppBase);
-    _app: AppBase;
-    _list: any[];
-    _index: {};
-    _urlIndex: {};
+    /**
+     * @type {import('./app-base.js').AppBase}
+     * @private
+     */
+    private _app;
+    /**
+     * @type {SceneRegistryItem[]}
+     * @private
+     */
+    private _list;
+    /** @private */
+    private _index;
+    /** @private */
+    private _urlIndex;
+    /** @ignore */
     destroy(): void;
     /**
      * Return the list of scene.
@@ -21730,7 +22078,7 @@ declare class SceneRegistry {
      * Add a new item to the scene registry.
      *
      * @param {string} name - The name of the scene.
-     * @param {string} url -  The url of the scene file.
+     * @param {string} url - The url of the scene file.
      * @returns {boolean} Returns true if the scene was successfully added to the registry, false otherwise.
      */
     add(name: string, url: string): boolean;
@@ -21756,7 +22104,19 @@ declare class SceneRegistry {
      * @param {string} name - The name of the scene.
      */
     remove(name: string): void;
-    _loadSceneData(sceneItem: any, storeInCache: any, callback: any): void;
+    /**
+     * Private function to load scene data with the option to cache. This allows us to retain
+     * expected behavior of loadSceneSettings and loadSceneHierarchy where they don't store loaded
+     * data which may be undesired behavior with projects that have many scenes.
+     *
+     * @param {SceneRegistryItem | string} sceneItem - The scene item (which can be found with
+     * {@link SceneRegistry#find}, URL of the scene file (e.g."scene_id.json") or name of the scene.
+     * @param {boolean} storeInCache - Whether to store the loaded data in the scene item.
+     * @param {LoadSceneDataCallback} callback - The function to call after loading,
+     * passed (err, sceneItem) where err is null if no errors occurred.
+     * @private
+     */
+    private _loadSceneData;
     /**
      * Loads and stores the scene data to reduce the number of the network requests when the same
      * scenes are loaded multiple times. Can also be used to load data before calling
@@ -22001,6 +22361,7 @@ declare class ZoneComponentSystem extends ComponentSystem {
  * Handles playing of sprite animations and loading of relevant sprite assets.
  *
  * @augments EventHandler
+ * @category Graphics
  */
 declare class SpriteAnimationClip extends EventHandler {
     /**
@@ -22146,6 +22507,7 @@ declare class SpriteAnimationClip extends EventHandler {
  * Enables an Entity to render a simple static sprite or sprite animations.
  *
  * @augments Component
+ * @category Graphics
  */
 declare class SpriteComponent extends Component {
     /**
@@ -22440,6 +22802,7 @@ declare class SpriteComponentData {
  * Manages creation of {@link SpriteComponent}s.
  *
  * @augments ComponentSystem
+ * @category Graphics
  */
 declare class SpriteComponentSystem extends ComponentSystem {
     id: string;
@@ -22464,6 +22827,8 @@ declare class SpriteComponentSystem extends ComponentSystem {
 
 /**
  * Represents the resource of an audio asset.
+ *
+ * @category Sound
  */
 declare class Sound {
     /**
@@ -22497,6 +22862,7 @@ declare class Sound {
  * A SoundInstance plays a {@link Sound}.
  *
  * @augments EventHandler
+ * @category Sound
  */
 declare class SoundInstance extends EventHandler {
     /**
@@ -22914,6 +23280,7 @@ declare class SoundInstance extends EventHandler {
  * The SoundSlot controls playback of an audio asset.
  *
  * @augments EventHandler
+ * @category Sound
  */
 declare class SoundSlot extends EventHandler {
     /**
@@ -23183,6 +23550,7 @@ declare class SoundSlot extends EventHandler {
  * The Sound Component controls playback of {@link Sound}s.
  *
  * @augments Component
+ * @category Sound
  */
 declare class SoundComponent extends Component {
     /**
@@ -23497,6 +23865,7 @@ declare class SoundComponentData {
  * Manages creation of {@link SoundComponent}s.
  *
  * @augments ComponentSystem
+ * @category Sound
  */
 declare class SoundComponentSystem extends ComponentSystem {
     id: string;
@@ -23718,6 +24087,7 @@ declare class EntityReference extends EventHandler {
  * Helper class that makes it easy to create Elements that can be dragged by the mouse or touch.
  *
  * @augments EventHandler
+ * @category User Interface
  */
 declare class ElementDragHelper extends EventHandler {
     /**
@@ -23753,7 +24123,11 @@ declare class ElementDragHelper extends EventHandler {
      * @event ElementDragHelper#drag:move
      * @param {Vec3} value - The current position.
      */
-    _toggleLifecycleListeners(onOrOff: any): void;
+    /**
+     * @param {'on'|'off'} onOrOff - Either 'on' or 'off'.
+     * @private
+     */
+    private _toggleLifecycleListeners;
     /**
      * @param {'on'|'off'} onOrOff - Either 'on' or 'off'.
      * @private
@@ -23828,6 +24202,7 @@ declare class ElementDragHelper extends EventHandler {
  * @property {import('../../entity.js').Entity} verticalScrollbarEntity The entity to be used as
  * the vertical scrollbar. This entity must have a Scrollbar component.
  * @augments Component
+ * @category User Interface
  */
 declare class ScrollViewComponent extends Component {
     /**
@@ -23974,6 +24349,7 @@ declare class ScrollViewComponentData {
  * Manages creation of {@link ScrollViewComponent}s.
  *
  * @augments ComponentSystem
+ * @category User Interface
  */
 declare class ScrollViewComponentSystem extends ComponentSystem {
     id: string;
@@ -24005,6 +24381,7 @@ declare class ScrollViewComponentSystem extends ComponentSystem {
  * @property {import('../../entity.js').Entity} handleEntity The entity to be used as the scrollbar
  * handle. This entity must have a Scrollbar component.
  * @augments Component
+ * @category User Interface
  */
 declare class ScrollbarComponent extends Component {
     /**
@@ -24071,6 +24448,7 @@ declare class ScrollbarComponentData {
  * Manages creation of {@link ScrollbarComponent}s.
  *
  * @augments ComponentSystem
+ * @category User Interface
  */
 declare class ScrollbarComponentSystem extends ComponentSystem {
     id: string;
@@ -24504,6 +24882,7 @@ declare class ScriptComponentSystem extends ComponentSystem {
  * positions in the ScreenComponent's space.
  *
  * @augments Component
+ * @category User Interface
  */
 declare class ScreenComponent extends Component {
     /**
@@ -24621,7 +25000,7 @@ declare class IndexedList {
     /**
      * Add a new item into the list with a index key.
      *
-     * @param {string} key -  Key used to look up item in index.
+     * @param {string} key - Key used to look up item in index.
      * @param {object} item - Item to be stored.
      */
     push(key: string, item: object): void;
@@ -24663,6 +25042,7 @@ declare class IndexedList {
  * Manages creation of {@link ScreenComponent}s.
  *
  * @augments ComponentSystem
+ * @category User Interface
  */
 declare class ScreenComponentSystem extends ComponentSystem {
     id: string;
@@ -24715,6 +25095,7 @@ declare class ScreenComponentSystem extends ComponentSystem {
  * - [Vehicle physics](http://playcanvas.github.io/#physics/vehicle)
  *
  * @augments Component
+ * @category Physics
  */
 declare class RigidBodyComponent extends Component {
     /**
@@ -25173,6 +25554,8 @@ declare class ObjectPool {
 
 /**
  * Object holding the result of a contact between two Entities.
+ *
+ * @category Physics
  */
 declare class ContactPoint {
     /**
@@ -25232,6 +25615,8 @@ declare class ContactPoint {
 }
 /**
  * Object holding the result of a contact between two Entities.
+ *
+ * @category Physics
  */
 declare class ContactResult {
     /**
@@ -25258,6 +25643,8 @@ declare class ContactResult {
 }
 /**
  * Object holding the result of a successful raycast hit.
+ *
+ * @category Physics
  */
 declare class RaycastResult {
     /**
@@ -25304,6 +25691,7 @@ declare class RaycastResult {
  * settings for your project.
  *
  * @augments ComponentSystem
+ * @category Physics
  */
 declare class RigidBodyComponentSystem extends ComponentSystem {
     /**
@@ -25375,12 +25763,12 @@ declare class RigidBodyComponentSystem extends ComponentSystem {
         forwardTime: number;
         lightClustersTime: number;
         lightClusters: number;
-        _timeToCountFrames: number; /**
+        _timeToCountFrames: number;
+        _fpsAccum: number; /**
          * The entity that was hit.
          *
          * @type {import('../../entity.js').Entity}
          */
-        _fpsAccum: number;
     };
     ComponentType: typeof RigidBodyComponent;
     DataType: typeof RigidBodyComponentData;
@@ -25533,6 +25921,8 @@ declare class RigidBodyComponentSystem extends ComponentSystem {
 }
 /**
  * Object holding the result of a contact between two rigid bodies.
+ *
+ * @category Physics
  */
 declare class SingleContactResult {
     /**
@@ -25602,6 +25992,7 @@ declare class SingleContactResult {
  * @property {import('../../entity.js').Entity} rootBone A reference to the entity to be used as
  * the root bone for any skinned meshes that are rendered by this component.
  * @augments Component
+ * @category Graphics
  */
 declare class RenderComponent extends Component {
     /**
@@ -25875,6 +26266,7 @@ declare class RenderComponentData {
  * cone etc.
  *
  * @augments ComponentSystem
+ * @category Graphics
  */
 declare class RenderComponentSystem extends ComponentSystem {
     id: string;
@@ -26076,6 +26468,8 @@ declare class ParticleEmitter {
 /**
  * A curve is a collection of keys (time/value pairs). The shape of the curve is defined by its
  * type that specifies an interpolation scheme for the keys.
+ *
+ * @category Math
  */
 declare class Curve {
     /**
@@ -26181,6 +26575,8 @@ declare class Curve {
 
 /**
  * A curve set is a collection of curves.
+ *
+ * @category Math
  */
 declare class CurveSet {
     /**
@@ -26443,6 +26839,7 @@ declare class CurveSet {
  * system should belong. Don't push/pop/splice or modify this array, if you want to change it - set
  * a new one instead.
  * @augments Component
+ * @category Graphics
  */
 declare class ParticleSystemComponent extends Component {
     /**
@@ -26785,6 +27182,7 @@ declare class ParticleSystemComponentData {
  * Allows an Entity to render a particle system.
  *
  * @augments ComponentSystem
+ * @category Graphics
  */
 declare class ParticleSystemComponentSystem extends ComponentSystem {
     id: string;
@@ -26822,6 +27220,7 @@ declare class ParticleSystemComponentSystem extends ComponentSystem {
  * model geometry in to the scene graph below the Entity.
  *
  * @augments Component
+ * @category Graphics
  */
 declare class ModelComponent extends Component {
     /**
@@ -27221,6 +27620,7 @@ declare class ModelComponentData {
  * cone etc.
  *
  * @augments ComponentSystem
+ * @category Graphics
  */
 declare class ModelComponentSystem extends ComponentSystem {
     id: string;
@@ -27238,6 +27638,7 @@ declare class ModelComponentSystem extends ComponentSystem {
  * according to configurable layout rules.
  *
  * @augments Component
+ * @category User Interface
  */
 declare class LayoutGroupComponent extends Component {
     /**
@@ -27390,6 +27791,7 @@ declare class LayoutGroupComponentData {
  * Manages creation of {@link LayoutGroupComponent}s.
  *
  * @augments ComponentSystem
+ * @category User Interface
  */
 declare class LayoutGroupComponentSystem extends ComponentSystem {
     id: string;
@@ -27410,6 +27812,7 @@ declare class LayoutGroupComponentSystem extends ComponentSystem {
  * {@link LayoutGroupComponent}.
  *
  * @augments Component
+ * @category User Interface
  */
 declare class LayoutChildComponent extends Component {
     /**
@@ -27498,6 +27901,7 @@ declare class LayoutChildComponentData {
  * Manages creation of {@link LayoutChildComponent}s.
  *
  * @augments ComponentSystem
+ * @category User Interface
  */
 declare class LayoutChildComponentSystem extends ComponentSystem {
     id: string;
@@ -27673,6 +28077,7 @@ declare class JointComponentSystem extends ComponentSystem {
  * @property {import('../../../scene/model.js').Model} model The model that is added to the scene
  * graph for the mesh collision volume.
  * @augments Component
+ * @category Physics
  */
 declare class CollisionComponent extends Component {
     /**
@@ -27866,6 +28271,7 @@ declare class CollisionComponentData {
  * Manages creation of {@link CollisionComponent}s.
  *
  * @augments ComponentSystem
+ * @category Physics
  */
 declare class CollisionComponentSystem extends ComponentSystem {
     id: string;
@@ -27899,6 +28305,7 @@ declare class CameraComponentData {
  * active cameras.
  *
  * @augments ComponentSystem
+ * @category Graphics
  */
 declare class CameraComponentSystem extends ComponentSystem {
     /**
@@ -27947,6 +28354,7 @@ declare class CameraComponentSystem extends ComponentSystem {
  * button image when the button is not interactive.
  * @property {number} inactiveSpriteFrame Frame to be used from the inactive sprite.
  * @augments Component
+ * @category User Interface
  */
 declare class ButtonComponent extends Component {
     /**
@@ -28086,6 +28494,7 @@ declare class ButtonComponentData {
  * Manages creation of {@link ButtonComponent}s.
  *
  * @augments ComponentSystem
+ * @category User Interface
  */
 declare class ButtonComponentSystem extends ComponentSystem {
     id: string;
@@ -28223,6 +28632,7 @@ declare class AudioSourceComponentSystem extends ComponentSystem {
  * correctly.
  *
  * @augments Component
+ * @category Sound
  */
 declare class AudioListenerComponent extends Component {
     /**
@@ -28245,6 +28655,7 @@ declare class AudioListenerComponentData {
  * Component System for adding and removing {@link AudioListenerComponent} objects to Entities.
  *
  * @augments ComponentSystem
+ * @category Sound
  */
 declare class AudioListenerComponentSystem extends ComponentSystem {
     id: string;
@@ -28260,6 +28671,8 @@ declare class AudioListenerComponentSystem extends ComponentSystem {
 /**
  * An animation is a sequence of keyframe arrays which map to the nodes of a skeletal hierarchy. It
  * controls how the nodes of the hierarchy are transformed over time.
+ *
+ * @category Animation
  */
 declare class Animation {
     /**
@@ -28305,6 +28718,8 @@ declare class Key {
 }
 /**
  * A animation node has a name and contains an array of keyframes.
+ *
+ * @category Animation
  */
 declare class Node$1 {
     _name: string;
@@ -28314,6 +28729,8 @@ declare class Node$1 {
 /**
  * Animation curve links an input data set to an output data set and defines the interpolation
  * method to use.
+ *
+ * @category Animation
  */
 declare class AnimCurve {
     /**
@@ -28362,6 +28779,8 @@ declare class AnimCurve {
 
 /**
  * Wraps a set of data used in animation.
+ *
+ * @category Animation
  */
 declare class AnimData {
     /**
@@ -28392,6 +28811,8 @@ declare class AnimData {
 /**
  * AnimEvents stores a sorted array of animation events which should fire sequentially during the
  * playback of an pc.AnimTrack.
+ *
+ * @category Animation
  */
 declare class AnimEvents {
     /**
@@ -28418,6 +28839,8 @@ declare class AnimEvents {
 /**
  * An AnimTrack stores the curve data necessary to animate a set of target nodes. It can be linked
  * to the nodes it should animate using the {@link AnimComponent#assignAnimation} method.
+ *
+ * @category Animation
  */
 declare class AnimTrack {
     /**
@@ -28755,6 +29178,8 @@ declare class AnimEvaluator {
 
 /**
  * Represents a skeleton used to play animations.
+ *
+ * @category Animation
  */
 declare class Skeleton {
     /**
@@ -28841,6 +29266,7 @@ declare class Skeleton {
  * The Animation Component allows an Entity to playback animations on models.
  *
  * @augments Component
+ * @category Animation
  */
 declare class AnimationComponent extends Component {
     /**
@@ -29034,6 +29460,7 @@ declare class AnimationComponentData {
  * The AnimationComponentSystem manages creating and deleting AnimationComponents.
  *
  * @augments ComponentSystem
+ * @category Animation
  */
 declare class AnimationComponentSystem extends ComponentSystem {
     id: string;
@@ -29079,6 +29506,8 @@ declare class AnimationComponentSystem extends ComponentSystem {
 
 /**
  * The Anim Component Layer allows managers a single layer of the animation state graph.
+ *
+ * @category Animation
  */
 declare class AnimComponentLayer {
     /**
@@ -29296,6 +29725,7 @@ declare class AnimComponentLayer {
  * The Anim Component allows an Entity to playback animations on models and entity properties.
  *
  * @augments Component
+ * @category Animation
  */
 declare class AnimComponent extends Component {
     /**
@@ -29595,6 +30025,7 @@ declare class AnimComponentData {
  * The AnimComponentSystem manages creating and deleting AnimComponents.
  *
  * @augments ComponentSystem
+ * @category Animation
  */
 declare class AnimComponentSystem extends ComponentSystem {
     id: string;
@@ -31330,6 +31761,7 @@ declare class Entity extends GraphNode {
  * ```
  *
  * @augments EventHandler
+ * @category XR
  */
 declare class XrDepthSensing extends EventHandler {
     /**
@@ -31562,6 +31994,8 @@ declare class XrDepthSensing extends EventHandler {
  *     evt.preventDefault();
  * });
  * ```
+ *
+ * @category XR
  */
 declare class XrDomOverlay {
     /**
@@ -31637,6 +32071,7 @@ declare class XrDomOverlay {
  * well as the position and rotation of the tracked image.
  *
  * @augments EventHandler
+ * @category XR
  */
 declare class XrTrackedImage extends EventHandler {
     /**
@@ -31788,6 +32223,7 @@ declare class XrTrackedImage extends EventHandler {
  * their estimated sizes.
  *
  * @augments EventHandler
+ * @category XR
  */
 declare class XrImageTracking extends EventHandler {
     /**
@@ -31890,6 +32326,8 @@ declare class XrImageTracking extends EventHandler {
 /**
  * Detected Plane instance that provides position, rotation and polygon points. Plane is a subject
  * to change during its lifetime.
+ *
+ * @category XR
  */
 declare class XrPlane extends EventHandler {
     /**
@@ -32032,6 +32470,8 @@ declare class XrPlane extends EventHandler {
  *     // new plane been added
  * });
  * ```
+ *
+ * @category XR
  */
 declare class XrPlaneDetection extends EventHandler {
     /**
@@ -32129,6 +32569,7 @@ declare class XrPlaneDetection extends EventHandler {
  * Provides access to input sources for WebXR.
  *
  * @augments EventHandler
+ * @category XR
  */
 declare class XrInput extends EventHandler {
     /**
@@ -32278,6 +32719,7 @@ declare class XrInput extends EventHandler {
  * directional light, its rotation, intensity and color.
  *
  * @augments EventHandler
+ * @category XR
  */
 declare class XrLightEstimation extends EventHandler {
     /**
@@ -32435,6 +32877,7 @@ export type XrErrorCallback = (err: Error | null) => any;
  * Manage and update XR session and its states.
  *
  * @augments EventHandler
+ * @category XR
  */
 declare class XrManager extends EventHandler {
     /**
@@ -32863,6 +33306,7 @@ declare class XrManager extends EventHandler {
  * ```
  *
  * @augments Component
+ * @category Graphics
  */
 declare class CameraComponent extends Component {
     /**
@@ -32926,6 +33370,30 @@ declare class CameraComponent extends Component {
     /**
      * Sets the name of the shader pass the camera will use when rendering.
      *
+     * In addition to existing names (see the parameter description), a new name can be specified,
+     * which creates a new shader pass with the given name. The name provided can only use
+     * alphanumeric characters and underscores. When a shader is compiled for the new pass, a define
+     * is added to the shader. For example, if the name is 'custom_rendering', the define
+     * 'CUSTOM_RENDERING_PASS' is added to the shader, allowing the shader code to conditionally
+     * execute code only when that shader pass is active.
+     *
+     * Another instance where this approach may prove useful is when a camera needs to render a more
+     * cost-effective version of shaders, such as when creating a reflection texture. To accomplish
+     * this, a callback on the material that triggers during shader compilation can be used. This
+     * callback can modify the shader generation options specifically for this shader pass.
+     *
+     * ```javascript
+     * const shaderPassId = camera.setShaderPass('custom_rendering');
+     *
+     * material.onUpdateShader = function (options) {
+     *     if (options.pass === shaderPassId) {
+     *         options.litOptions.normalMapEnabled = false;
+     *         options.litOptions.useSpecular = false;
+     *     }
+     *     return options;
+     * };
+     * ```
+     *
      * @param {string} name - The name of the shader pass. Defaults to undefined, which is
      * equivalent to {@link SHADERPASS_FORWARD}. Can be:
      *
@@ -32940,29 +33408,6 @@ declare class CameraComponent extends Component {
      * - {@link SHADERPASS_EMISSION}
      * - {@link SHADERPASS_LIGHTING}
      * - {@link SHADERPASS_UV0}
-     *
-     * Additionally, a new name can be specified, which creates a new shader pass with the given
-     * name. The name provided can only use alphanumeric characters and underscores. When a shader
-     * is compiled for the new pass, a define is added to the shader. For example, if the name is
-     * 'custom_rendering', the define 'CUSTOM_RENDERING_PASS' is added to the shader, allowing the
-     * shader code to conditionally execute code only when that shader pass is active.
-     *
-     * Another instance where this approach may prove useful is when a camera needs to render a more
-     * cost-effective version of shaders, such as when creating a reflection texture. To accomplish
-     * this, a callback on the material that triggers during shader compilation can be used. This
-     * callback can modify the shader generation options specifically for this shader pass.
-     *
-     * ```javascript
-     * const shaderPassId = camera.setShaderPass('custom_rendering');
-     *
-     * material.onUpdateShader = function (options) {
-     *    if (options.pass === shaderPassId) {
-     *        options.litOptions.normalMapEnabled = false;
-     *        options.litOptions.useSpecular = false;
-     *    }
-     *    return options;
-     * };
-     * ```
      *
      * @returns {number} The id of the shader pass.
      */
@@ -33432,6 +33877,8 @@ declare class CameraComponent extends Component {
 
 /**
  * Used to manage multiple post effects for a camera.
+ *
+ * @category Graphics
  */
 declare class PostEffectQueue {
     /**
@@ -33832,6 +34279,8 @@ declare function createTorus(device: GraphicsDevice, opts?: {
  * @property {number} height Height of the pick buffer in pixels (read-only).
  * @property {RenderTarget} renderTarget The render target used by the picker internally
  * (read-only).
+ *
+ * @category Graphics
  */
 declare class Picker {
     /**
@@ -34032,15 +34481,17 @@ declare class Channel3d extends Channel {
 
 /**
  * This function takes a browser Touch object and returns the coordinates of the touch relative to
- * the target element.
+ * the target DOM element.
  *
  * @param {globalThis.Touch} touch - The browser Touch object.
- * @returns {object} The coordinates of the touch relative to the touch.target element. In the
+ * @returns {object} The coordinates of the touch relative to the touch.target DOM element. In the
  * format \{x, y\}.
  */
 declare function getTouchTargetCoords(touch: globalThis.Touch): object;
 /**
  * A instance of a single point touch on a {@link TouchDevice}.
+ *
+ * @category Input
  */
 declare class Touch$1 {
     /**
@@ -34068,7 +34519,7 @@ declare class Touch$1 {
      */
     y: number;
     /**
-     * The target element of the touch event.
+     * The target DOM element of the touch event.
      *
      * @type {Element}
      */
@@ -34082,7 +34533,9 @@ declare class Touch$1 {
 }
 /**
  * A Event corresponding to touchstart, touchend, touchmove or touchcancel. TouchEvent wraps the
- * standard browser event and provides lists of {@link Touch} objects.
+ * standard browser DOM event and provides lists of {@link Touch} objects.
+ *
+ * @category Input
  */
 declare class TouchEvent$1 {
     /**
@@ -34094,7 +34547,7 @@ declare class TouchEvent$1 {
      */
     constructor(device: TouchDevice, event: globalThis.TouchEvent);
     /**
-     * The target Element that the event was fired from.
+     * The target DOM element that the event was fired from.
      *
      * @type {Element}
      */
@@ -34118,9 +34571,8 @@ declare class TouchEvent$1 {
      */
     changedTouches: Touch$1[];
     /**
-     * Get an event from one of the touch lists by the id. It is useful to access
-     * touches by their id so that you can be sure you are referencing the same
-     * touch.
+     * Get an event from one of the touch lists by the id. It is useful to access touches by their
+     * id so that you can be sure you are referencing the same touch.
      *
      * @param {number} id - The identifier of the touch.
      * @param {Touch[]|null} list - An array of touches to search.
@@ -34132,6 +34584,8 @@ declare class TouchEvent$1 {
 /**
  * A general input handler which handles both mouse and keyboard input assigned to named actions.
  * This allows you to define input handlers separately to defining keyboard/mouse configurations.
+ *
+ * @category Input
  */
 declare class Controller {
     /**
@@ -34255,6 +34709,8 @@ declare class Controller {
 /**
  * The KeyboardEvent is passed into all event callbacks from the {@link Keyboard}. It corresponds
  * to a key press or release.
+ *
+ * @category Input
  */
 declare class KeyboardEvent {
     /**
@@ -34295,6 +34751,8 @@ declare class KeyboardEvent {
 
 /**
  * MouseEvent object that is passed to events 'mousemove', 'mouseup', 'mousedown' and 'mousewheel'.
+ *
+ * @category Input
  */
 declare class MouseEvent$1 {
     /**
@@ -34539,6 +34997,7 @@ declare namespace posteffect {
     export { PostEffectQueue };
 }
 declare const PhongMaterial: typeof StandardMaterial;
+declare const LitOptions: typeof LitShaderOptions;
 declare namespace scene {
     export { partitionSkin };
     export namespace procedural {
@@ -34683,7 +35142,6 @@ declare namespace string {
     export { ASCII_UPPERCASE };
     export { ASCII_LETTERS };
     export function format(s: string, ...args: any[]): string;
-    export function toBool(s: string, strict?: boolean): boolean;
     export function getCodePoint(string: string, i?: number): number;
     export function getCodePoints(string: string): number[];
     export function getSymbols(string: string): string[];
@@ -34822,6 +35280,7 @@ declare class Tracing {
      * - {@link TRACEID_RENDERPIPELINE_ALLOC}
      * - {@link TRACEID_PIPELINELAYOUT_ALLOC}
      * - {@link TRACEID_TEXTURES}
+     * - {@link TRACEID_GPU_TIMINGS}
      *
      * @param {boolean} enabled - New enabled state for the channel.
      */
@@ -34857,6 +35316,8 @@ declare namespace math {
 
 /**
  * Oriented Box.
+ *
+ * @category Math
  */
 declare class OrientedBox {
     /**
@@ -34961,6 +35422,46 @@ declare function createGraphicsDevice(canvas: HTMLCanvasElement, options?: {
 }): Promise<any>;
 
 /**
+ * A class providing utility functions for textures.
+ *
+ * @ignore
+ */
+declare class TextureUtils {
+    /**
+     * Calculate the dimension of a texture at a specific mip level.
+     *
+     * @param {number} dimension - Texture dimension at level 0.
+     * @param {number} mipLevel - Mip level.
+     * @returns {number} The dimension of the texture at the specified mip level.
+     */
+    static calcLevelDimension(dimension: number, mipLevel: number): number;
+    /**
+     * Calculate the size in bytes of the texture level given its format and dimensions.
+     *
+     * @param {number} width - Texture's width.
+     * @param {number} height - Texture's height.
+     * @param {number} depth - Texture's depth.
+     * @param {number} format - Texture's pixel format PIXELFORMAT_***.
+     * @returns {number} The number of bytes of GPU memory required for the texture.
+     * @ignore
+     */
+    static calcLevelGpuSize(width: number, height: number, depth: number, format: number): number;
+    /**
+     * Calculate the GPU memory required for a texture.
+     *
+     * @param {number} width - Texture's width.
+     * @param {number} height - Texture's height.
+     * @param {number} depth - Texture's depth.
+     * @param {number} format - Texture's pixel format PIXELFORMAT_***.
+     * @param {boolean} mipmaps - True if the texture includes mipmaps, false otherwise.
+     * @param {boolean} cubemap - True is the texture is a cubemap, false otherwise.
+     * @returns {number} The number of bytes of GPU memory required for the texture.
+     * @ignore
+     */
+    static calcGpuSize(width: number, height: number, depth: number, format: number, mipmaps: boolean, cubemap: boolean): number;
+}
+
+/**
  * This object allows you to configure and use the transform feedback feature (WebGL2 only). How to
  * use:
  *
@@ -35025,6 +35526,8 @@ declare function createGraphicsDevice(canvas: HTMLCanvasElement, options?: {
  *     this.tf.process(this.shader);
  * };
  * ```
+ *
+ * @category Graphics
  */
 declare class TransformFeedback {
     /**
@@ -35281,6 +35784,7 @@ declare class FramebufferPair {
  * create a new graphics device against each.
  *
  * @augments GraphicsDevice
+ * @category Graphics
  */
 declare class WebglGraphicsDevice extends GraphicsDevice {
     /**
@@ -35404,6 +35908,7 @@ declare class WebglGraphicsDevice extends GraphicsDevice {
      */
     getPrecision(): string;
     getExtension(...args: any[]): ANGLE_instanced_arrays;
+    /** @ignore */
     get extDisjointTimerQuery(): ANGLE_instanced_arrays;
     _extDisjointTimerQuery: ANGLE_instanced_arrays;
     /**
@@ -35894,6 +36399,7 @@ declare class WebgpuVertexBufferLayout {
  */
 declare class WebgpuRenderPipeline {
     constructor(device: any);
+    lookupHashes: Uint32Array;
     /** @type {import('./webgpu-graphics-device.js').WebgpuGraphicsDevice} */
     device: WebgpuGraphicsDevice;
     /**
@@ -35905,15 +36411,11 @@ declare class WebgpuRenderPipeline {
     /**
      * The cache of render pipelines
      *
-     * @type {Map<string, object>}
+     * @type {Map<number, CacheEntry[]>}
      */
-    cache: Map<string, object>;
-    get(primitive: any, vertexFormat0: any, vertexFormat1: any, shader: any, renderTarget: any, bindGroupFormats: any, blendState: any, depthState: any, cullMode: any, stencilEnabled: any, stencilFront: any, stencilBack: any): any;
-    /**
-     * Generate a unique key for the render pipeline. Keep this function as lean as possible,
-     * as it executes for each draw call.
-     */
-    getKey(primitive: any, vertexFormat0: any, vertexFormat1: any, shader: any, renderTarget: any, bindGroupFormats: any, blendState: any, depthState: any, cullMode: any, stencilEnabled: any, stencilFront: any, stencilBack: any): string;
+    cache: Map<number, CacheEntry[]>;
+    /** @private */
+    private get;
     /**
      * @param {import('../bind-group-format.js').BindGroupFormat[]} bindGroupFormats - An array
      * of bind group formats.
@@ -35937,6 +36439,23 @@ declare class WebgpuRenderPipeline {
     create(primitiveTopology: any, shader: any, renderTarget: any, pipelineLayout: any, blendState: any, depthState: any, vertexBufferLayout: any, cullMode: any, stencilEnabled: any, stencilFront: any, stencilBack: any): any;
 }
 
+/** @ignore */
+declare class CacheEntry {
+    /**
+     * Render pipeline
+     *
+     * @type {GPURenderPipeline}
+     * @private
+     */
+    private pipeline;
+    /**
+     * The full array of hashes used to lookup the pipeline, used in case of hash collision.
+     *
+     * @type {Uint32Array}
+     */
+    hashes: Uint32Array;
+}
+
 /**
  * A WebGPU helper class implementing a viewport clear operation. When rendering to a texture,
  * the whole surface can be cleared using loadOp, but if only a viewport needs to be cleared, or if
@@ -35954,6 +36473,7 @@ declare class WebgpuClearRenderer {
     colorData: Float32Array;
     colorId: any;
     depthId: any;
+    destroy(): void;
     clear(device: any, renderTarget: any, options: any, defaultOptions: any): void;
 }
 
@@ -36040,6 +36560,7 @@ declare class WebgpuMipmapRenderer {
     device: WebgpuGraphicsDevice;
     shader: Shader;
     minSampler: any;
+    destroy(): void;
     /**
      * Generates mipmaps for the specified WebGPU texture.
      *
@@ -36061,9 +36582,9 @@ declare class WebgpuBindGroupFormat {
     /**
      * Unique key, used for caching
      *
-     * @type {string}
+     * @type {number}
      */
-    key: string;
+    key: number;
     descr: any;
     /**
      * @type {GPUBindGroupLayout}
@@ -36085,6 +36606,37 @@ declare class WebgpuBindGroupFormat {
      * @returns {any} Returns the bind group descriptor.
      */
     createDescriptor(bindGroupFormat: any): any;
+}
+
+/**
+ * A WebGPU helper class implementing custom resolve of multi-sampled textures.
+ *
+ * @ignore
+ */
+declare class WebgpuResolver {
+    constructor(device: any);
+    /** @type {import('./webgpu-graphics-device.js').WebgpuGraphicsDevice} */
+    device: WebgpuGraphicsDevice;
+    /**
+     * Cache of render pipelines for each texture format, to avoid their per frame creation.
+     *
+     * @type {Map<GPUTextureFormat, GPURenderPipeline>}
+     * @private
+     */
+    private pipelineCache;
+    shader: Shader;
+    destroy(): void;
+    /** @private */
+    private getPipeline;
+    /** @private */
+    private createPipeline;
+    /**
+     * @param {GPUCommandEncoder} commandEncoder - Command encoder to use for the resolve.
+     * @param {GPUTexture} sourceTexture - Source multi-sampled depth texture to resolve.
+     * @param {GPUTexture} destinationTexture - Destination depth texture to resolve to.
+     * @private
+     */
+    private resolveDepth;
 }
 
 /**
@@ -36216,9 +36768,9 @@ declare class WebgpuRenderTarget {
     /**
      * Unique key used by render pipeline creation
      *
-     * @type {string}
+     * @type {number}
      */
-    key: string;
+    key: number;
     /** @type {ColorAttachment[]} */
     colorAttachments: ColorAttachment[];
     /**
@@ -36399,6 +36951,7 @@ declare class WebgpuGraphicsDevice extends GraphicsDevice {
     isWebGPU: boolean;
     _deviceType: string;
     samples: number;
+    resolver: WebgpuResolver;
     initDeviceCaps(): void;
     disableParticleSystem: boolean;
     precision: string;
@@ -36438,10 +36991,11 @@ declare class WebgpuGraphicsDevice extends GraphicsDevice {
      * @private
      */
     private gpuAdapter;
-    floatFilterable: boolean;
-    extCompressedTextureS3TC: boolean;
-    extCompressedTextureETC: boolean;
-    extCompressedTextureASTC: boolean;
+    floatFilterable: any;
+    extCompressedTextureS3TC: any;
+    extCompressedTextureETC: any;
+    extCompressedTextureASTC: any;
+    supportsTimestampQuery: any;
     /**
      * @type {GPUDevice}
      * @private
@@ -36527,6 +37081,7 @@ declare class WebgpuGraphicsDevice extends GraphicsDevice {
  * A SoundInstance3d plays a {@link Sound} in 3D.
  *
  * @augments SoundInstance
+ * @category Sound
  */
 declare class SoundInstance3d extends SoundInstance {
     /**
@@ -36645,18 +37200,49 @@ declare class SkinBatchInstance extends SkinInstance {
 }
 
 /**
- * A custom material provides a custom front-end part of a lit material
+ * LitMaterial comprises a shader chunk implementing the material "front end" (the shader program
+ * providing the material surface properties like diffuse, opacity, normals etc) and a set of
+ * flags which control the material "back end" (the shader program calculating the lighting,
+ * shadows, reflections, fogging etc).
  *
- * @augments Material
+ * The front end and back end together form a complete PBR shader.
+ *
+ * @ignore
  */
-declare class CustomMaterial extends Material {
-    _litOptions: LitOptions;
-    _argumentsChunk: string;
-    set litOptions(arg: LitOptions);
-    get litOptions(): LitOptions;
-    set argumentsChunk(arg: string);
-    get argumentsChunk(): string;
-    _dirtyShader: boolean;
+declare class LitMaterial extends Material {
+    usedUvs: boolean[];
+    shaderChunk: string;
+    chunks: any;
+    useLighting: boolean;
+    useFog: boolean;
+    useGammaTonemap: boolean;
+    useSkybox: boolean;
+    shadingModel: number;
+    ambientSH: any;
+    pixelSnap: boolean;
+    nineSlicedMode: any;
+    fastTbn: boolean;
+    twoSidedLighting: boolean;
+    occludeDirect: boolean;
+    occludeSpecular: number;
+    occludeSpecularIntensity: number;
+    opacityFadesSpecular: boolean;
+    conserveEnergy: boolean;
+    ggxSpecular: boolean;
+    fresnelModel: number;
+    dynamicRefraction: boolean;
+    hasAo: boolean;
+    hasSpecular: boolean;
+    hasSpecularityFactor: boolean;
+    hasLighting: boolean;
+    hasHeights: boolean;
+    hasNormals: boolean;
+    hasSheen: boolean;
+    hasRefraction: boolean;
+    hasIrridescence: boolean;
+    hasMetalness: boolean;
+    hasClearCoat: boolean;
+    hasClearCoatNormals: boolean;
 }
 
 /**
@@ -36670,6 +37256,8 @@ declare class CustomMaterial extends Material {
  * quad.render();
  * quad.destroy();
  * ```
+ *
+ * @category Graphics
  */
 declare class QuadRender {
     /**
@@ -36825,6 +37413,12 @@ declare namespace shaderChunksLightmapper {
     export { _default as bilateralDeNoisePS };
 }
 
+declare class ChunkBuilder {
+    code: string;
+    append(...chunks: any[]): void;
+    prepend(...chunks: any[]): void;
+}
+
 declare namespace script {
     const legacy: boolean;
 }
@@ -36977,16 +37571,26 @@ declare class Template {
      * @param {object} data - Asset data from the database.
      */
     constructor(app: AppBase, data: object);
-    _app: AppBase;
-    _data: any;
-    _templateRoot: Entity;
+    /**
+     * @type {import('./app-base.js').AppBase}
+     * @private
+     */
+    private _app;
+    /** @private */
+    private _data;
+    /**
+     * @type {import('./entity.js').Entity|null}
+     * @private
+     */
+    private _templateRoot;
     /**
      * Create an instance of this template.
      *
      * @returns {import('./entity.js').Entity} The root entity of the created instance.
      */
     instantiate(): Entity;
-    _parseTemplate(): void;
+    /** @private */
+    private _parseTemplate;
 }
 
 /**
@@ -37179,6 +37783,8 @@ declare class AnimController {
  * entity.addComponent('anim');
  * entity.anim.loadStateGraph(animStateGraph);
  * ```
+ *
+ * @category Animation
  */
 declare class AnimStateGraph {
     /**
@@ -37482,6 +38088,7 @@ declare class AnimStateGraphHandler implements ResourceHandler {
  * Resource handler used for loading {@link Animation} resources.
  *
  * @implements {ResourceHandler}
+ * @category Animation
  */
 declare class AnimationHandler implements ResourceHandler {
     /** @hideconstructor */
@@ -37507,6 +38114,7 @@ declare class AnimationHandler implements ResourceHandler {
  * Resource handler used for loading {@link Sound} resources.
  *
  * @implements {ResourceHandler}
+ * @category Sound
  */
 declare class AudioHandler implements ResourceHandler {
     /**
@@ -37607,6 +38215,7 @@ declare class CssHandler {
  * Resource handler used for loading cubemap {@link Texture} resources.
  *
  * @implements {ResourceHandler}
+ * @category Graphics
  */
 declare class CubemapHandler implements ResourceHandler {
     /**
@@ -37652,6 +38261,7 @@ declare class FolderHandler {
  * Resource handler used for loading {@link Font} resources.
  *
  * @implements {ResourceHandler}
+ * @category User Interface
  */
 declare class FontHandler implements ResourceHandler {
     /**
@@ -37756,6 +38366,7 @@ declare class JsonStandardMaterialParser {
  * Resource handler used for loading {@link Material} resources.
  *
  * @implements {ResourceHandler}
+ * @category Graphics
  */
 declare class MaterialHandler implements ResourceHandler {
     /**
@@ -37813,6 +38424,7 @@ export type AddParserCallback = (url: string, data: object) => boolean;
  * Resource handler used for loading {@link Model} resources.
  *
  * @implements {ResourceHandler}
+ * @category Graphics
  */
 declare class ModelHandler implements ResourceHandler {
     /**
@@ -37888,6 +38500,7 @@ declare class Render extends EventHandler {
  * Resource handler used for loading {@link Render} resources.
  *
  * @implements {ResourceHandler}
+ * @category Graphics
  */
 declare class RenderHandler implements ResourceHandler {
     /**
@@ -37947,6 +38560,7 @@ declare class ScriptHandler implements ResourceHandler {
  * Resource handler used for loading {@link Scene} resources.
  *
  * @implements {ResourceHandler}
+ * @category Graphics
  */
 declare class SceneHandler implements ResourceHandler {
     /**
@@ -37996,6 +38610,7 @@ declare class ShaderHandler {
  * Resource handler used for loading {@link Sprite} resources.
  *
  * @implements {ResourceHandler}
+ * @category Graphics
  */
 declare class SpriteHandler implements ResourceHandler {
     /**
@@ -38054,6 +38669,7 @@ declare class TextHandler {
  * Resource handler used for loading {@link TextureAtlas} resources.
  *
  * @implements {ResourceHandler}
+ * @category Graphics
  */
 declare class TextureAtlasHandler implements ResourceHandler {
     /**
@@ -38107,6 +38723,10 @@ declare const data: {};
  * @ignore
  */
 declare function extend(target: object, ex: object): object;
+/**
+ * The engine revision number. This is the Git hash of the last commit made to the branch
+ * from which the engine was built.
+ */
 declare const revision: "$_CURRENT_SDK_REVISION";
 /**
  * Extended typeof() function, returns the type of the object.
@@ -38120,6 +38740,9 @@ declare function type(obj: object): string;
  * @name pc
  * @namespace
  * @description Root namespace for the PlayCanvas Engine.
+ */
+/**
+ * The engine version number. This is in semantic versioning format (MAJOR.MINOR.PATCH).
  */
 declare const version: "$_CURRENT_SDK_VERSION";
 
@@ -38605,6 +39228,7 @@ declare class GlbContainerParser {
  * @property {import('../asset/asset.js').Asset[]} materials An array of {@link Material} and/or {@link StandardMaterial} assets.
  * @property {import('../asset/asset.js').Asset[]} textures An array of the {@link Texture} assets.
  * @property {import('../asset/asset.js').Asset[]} animations An array of the {@link Animation} assets.
+ * @category Graphics
  */
 declare class ContainerResource {
     /**
@@ -38681,8 +39305,8 @@ declare class ContainerResource {
      *
      * @param {import('../../scene/mesh-instance').MeshInstance[]} instances - An array of mesh
      * instances.
-     * @param {string} [name] - The the name of the variant, as quered from getMaterialVariants,
-     * if null the variant will be reset to the default
+     * @param {string} [name] - The name of the variant, as queried by getMaterialVariants. If
+     * null, the variant will be reset to the default.
      * @example
      * // load a glb file and instantiate an entity with a render component based on it
      * app.assets.loadFromUrl("statue.glb", "container", function (err, asset) {
@@ -38707,28 +39331,24 @@ declare class ContainerResource {
  * the various resources at different stages of loading. The table below lists the resource types
  * and the corresponding supported process functions.
  *
- * ```
- * |---------------------------------------------------------------------|
- * |  resource   |  preprocess |   process   |processAsync | postprocess |
- * |-------------+-------------+-------------+-------------+-------------|
- * | global      |      x      |             |             |      x      |
- * | node        |      x      |      x      |             |      x      |
- * | light       |      x      |      x      |             |      x      |
- * | camera      |      x      |      x      |             |      x      |
- * | animation   |      x      |             |             |      x      |
- * | material    |      x      |      x      |             |      x      |
- * | image       |      x      |             |      x      |      x      |
- * | texture     |      x      |             |      x      |      x      |
- * | buffer      |      x      |             |      x      |      x      |
- * | bufferView  |      x      |             |      x      |      x      |
- * |---------------------------------------------------------------------|
- * ```
+ * | resource   | preprocess | process | processAsync | postprocess |
+ * | ---------- | :--------: | :-----: | :----------: | :---------: |
+ * | global     |      √     |         |              |      √      |
+ * | node       |      √     |    √    |              |      √      |
+ * | light      |      √     |    √    |              |      √      |
+ * | camera     |      √     |    √    |              |      √      |
+ * | animation  |      √     |         |              |      √      |
+ * | material   |      √     |    √    |              |      √      |
+ * | image      |      √     |         |      √       |      √      |
+ * | texture    |      √     |         |      √       |      √      |
+ * | buffer     |      √     |         |      √       |      √      |
+ * | bufferView |      √     |         |      √       |      √      |
  *
  * Additional options that can be passed for glTF files:
  * [options.morphPreserveData] - When true, the morph target keeps its data passed using the options,
  * allowing the clone operation.
  * [options.morphPreferHighPrecision] - When true, high precision storage for morph targets should
- * be prefered. This is faster to create and allows higher precision, but takes more memory and
+ * be preferred. This is faster to create and allows higher precision, but takes more memory and
  * might be slower to render. Defaults to false.
  * [options.skipMeshes] - When true, the meshes from the container are not created. This can be
  * useful if you only need access to textures or animations and similar.
@@ -38738,12 +39358,15 @@ declare class ContainerResource {
  * ```javascript
  * const containerAsset = new pc.Asset(filename, 'container', { url: url, filename: filename }, null, {
  *     texture: {
- *         preprocess(gltfTexture) { console.log("texture preprocess"); }
- *     },
+ *         preprocess: (gltfTexture) => {
+ *             console.log("texture preprocess");
+ *         }
+ *     }
  * });
  * ```
  *
  * @implements {ResourceHandler}
+ * @category Graphics
  */
 declare class ContainerHandler implements ResourceHandler {
     /**
@@ -38917,6 +39540,7 @@ declare class HdrParser implements TextureParser {
  * Resource handler used for loading 2D and 3D {@link Texture} resources.
  *
  * @implements {ResourceHandler}
+ * @category Graphics
  */
 declare class TextureHandler implements ResourceHandler {
     /**
@@ -38960,6 +39584,8 @@ declare class TextureHandler implements ResourceHandler {
  * @name TextureParser
  * @description Interface to a texture parser. Implementations of this interface handle the loading
  * and opening of texture assets.
+ *
+ * @category Graphics
  */
 declare class TextureParser {
     /**
@@ -39072,5 +39698,5 @@ declare function getReservedScriptNames(): Set<string>;
 
 declare const reservedAttributes: {};
 
-export { ABSOLUTE_URL, ACTION_GAMEPAD, ACTION_KEYBOARD, ACTION_MOUSE, ADDRESS_CLAMP_TO_EDGE, ADDRESS_MIRRORED_REPEAT, ADDRESS_REPEAT, ANIM_BLEND_1D, ANIM_BLEND_2D_CARTESIAN, ANIM_BLEND_2D_DIRECTIONAL, ANIM_BLEND_DIRECT, ANIM_CONTROL_STATES, ANIM_EQUAL_TO, ANIM_GREATER_THAN, ANIM_GREATER_THAN_EQUAL_TO, ANIM_INTERRUPTION_NEXT, ANIM_INTERRUPTION_NEXT_PREV, ANIM_INTERRUPTION_NONE, ANIM_INTERRUPTION_PREV, ANIM_INTERRUPTION_PREV_NEXT, ANIM_LAYER_ADDITIVE, ANIM_LAYER_OVERWRITE, ANIM_LESS_THAN, ANIM_LESS_THAN_EQUAL_TO, ANIM_NOT_EQUAL_TO, ANIM_PARAMETER_BOOLEAN, ANIM_PARAMETER_FLOAT, ANIM_PARAMETER_INTEGER, ANIM_PARAMETER_TRIGGER, ANIM_STATE_ANY, ANIM_STATE_END, ANIM_STATE_START, ASPECT_AUTO, ASPECT_MANUAL, ASSET_ANIMATION, ASSET_AUDIO, ASSET_CONTAINER, ASSET_CSS, ASSET_CUBEMAP, ASSET_HTML, ASSET_IMAGE, ASSET_JSON, ASSET_MATERIAL, ASSET_MODEL, ASSET_SCRIPT, ASSET_SHADER, ASSET_TEXT, ASSET_TEXTURE, ASSET_TEXTUREATLAS, AXIS_KEY, AXIS_MOUSE_X, AXIS_MOUSE_Y, AXIS_PAD_L_X, AXIS_PAD_L_Y, AXIS_PAD_R_X, AXIS_PAD_R_Y, AnimBinder, AnimClip, AnimClipHandler, AnimComponent, AnimComponentLayer, AnimComponentSystem, AnimController, AnimCurve, AnimData, AnimEvaluator, AnimEvents, AnimSnapshot, AnimStateGraph, AnimStateGraphHandler, AnimTarget, AnimTrack, Animation, AnimationComponent, AnimationComponentSystem, AnimationHandler, AppBase, AppOptions, Application, Asset, AssetListLoader, AssetReference, AssetRegistry, AudioHandler, AudioListenerComponent, AudioListenerComponentSystem, AudioSourceComponent, AudioSourceComponentSystem, BAKE_COLOR, BAKE_COLORDIR, BINDGROUP_MESH, BINDGROUP_VIEW, BLENDEQUATION_ADD, BLENDEQUATION_MAX, BLENDEQUATION_MIN, BLENDEQUATION_REVERSE_SUBTRACT, BLENDEQUATION_SUBTRACT, BLENDMODE_CONSTANT, BLENDMODE_CONSTANT_ALPHA, BLENDMODE_CONSTANT_COLOR, BLENDMODE_DST_ALPHA, BLENDMODE_DST_COLOR, BLENDMODE_ONE, BLENDMODE_ONE_MINUS_CONSTANT, BLENDMODE_ONE_MINUS_CONSTANT_ALPHA, BLENDMODE_ONE_MINUS_CONSTANT_COLOR, BLENDMODE_ONE_MINUS_DST_ALPHA, BLENDMODE_ONE_MINUS_DST_COLOR, BLENDMODE_ONE_MINUS_SRC_ALPHA, BLENDMODE_ONE_MINUS_SRC_COLOR, BLENDMODE_SRC_ALPHA, BLENDMODE_SRC_ALPHA_SATURATE, BLENDMODE_SRC_COLOR, BLENDMODE_ZERO, BLEND_ADDITIVE, BLEND_ADDITIVEALPHA, BLEND_MAX, BLEND_MIN, BLEND_MULTIPLICATIVE, BLEND_MULTIPLICATIVE2X, BLEND_NONE, BLEND_NORMAL, BLEND_PREMULTIPLIED, BLEND_SCREEN, BLEND_SUBTRACTIVE, BLUR_BOX, BLUR_GAUSSIAN, BODYFLAG_KINEMATIC_OBJECT, BODYFLAG_NORESPONSE_OBJECT, BODYFLAG_STATIC_OBJECT, BODYGROUP_DEFAULT, BODYGROUP_DYNAMIC, BODYGROUP_ENGINE_1, BODYGROUP_ENGINE_2, BODYGROUP_ENGINE_3, BODYGROUP_KINEMATIC, BODYGROUP_NONE, BODYGROUP_STATIC, BODYGROUP_TRIGGER, BODYGROUP_USER_1, BODYGROUP_USER_2, BODYGROUP_USER_3, BODYGROUP_USER_4, BODYGROUP_USER_5, BODYGROUP_USER_6, BODYGROUP_USER_7, BODYGROUP_USER_8, BODYMASK_ALL, BODYMASK_NONE, BODYMASK_NOT_STATIC, BODYMASK_NOT_STATIC_KINEMATIC, BODYMASK_STATIC, BODYSTATE_ACTIVE_TAG, BODYSTATE_DISABLE_DEACTIVATION, BODYSTATE_DISABLE_SIMULATION, BODYSTATE_ISLAND_SLEEPING, BODYSTATE_WANTS_DEACTIVATION, BODYTYPE_DYNAMIC, BODYTYPE_KINEMATIC, BODYTYPE_STATIC, BUFFER_DYNAMIC, BUFFER_GPUDYNAMIC, BUFFER_STATIC, BUFFER_STREAM, BUTTON_TRANSITION_MODE_SPRITE_CHANGE, BUTTON_TRANSITION_MODE_TINT, BasicMaterial, Batch, BatchGroup, BatchManager, BinaryHandler, BlendState, BoundingBox, BoundingSphere, Bundle, BundleHandler, BundleRegistry, ButtonComponent, ButtonComponentSystem, CHUNKAPI_1_51, CHUNKAPI_1_55, CHUNKAPI_1_56, CHUNKAPI_1_57, CHUNKAPI_1_58, CHUNKAPI_1_60, CHUNKAPI_1_62, CLEARFLAG_COLOR, CLEARFLAG_DEPTH, CLEARFLAG_STENCIL, COMPUPDATED_BLEND, COMPUPDATED_CAMERAS, COMPUPDATED_INSTANCES, COMPUPDATED_LIGHTS, CUBEFACE_NEGX, CUBEFACE_NEGY, CUBEFACE_NEGZ, CUBEFACE_POSX, CUBEFACE_POSY, CUBEFACE_POSZ, CUBEPROJ_BOX, CUBEPROJ_NONE, CULLFACE_BACK, CULLFACE_FRONT, CULLFACE_FRONTANDBACK, CULLFACE_NONE, CURVE_CARDINAL, CURVE_CATMULL, CURVE_LINEAR, CURVE_SMOOTHSTEP, CURVE_SPLINE, CURVE_STEP, Camera, CameraComponent, CameraComponentSystem, CanvasFont, CollisionComponent, CollisionComponentSystem, Color, Command, Component, ComponentSystem, ComponentSystemRegistry, ContactPoint, ContactResult, ContainerHandler, ContainerResource, ContextCreationError, Controller, CssHandler, CubemapHandler, Curve, CurveSet, CustomMaterial, DETAILMODE_ADD, DETAILMODE_MAX, DETAILMODE_MIN, DETAILMODE_MUL, DETAILMODE_OVERLAY, DETAILMODE_SCREEN, DEVICETYPE_WEBGL1, DEVICETYPE_WEBGL2, DEVICETYPE_WEBGPU, DISTANCE_EXPONENTIAL, DISTANCE_INVERSE, DISTANCE_LINEAR, DefaultAnimBinder, DepthState, ELEMENTTYPE_FLOAT32, ELEMENTTYPE_GROUP, ELEMENTTYPE_IMAGE, ELEMENTTYPE_INT16, ELEMENTTYPE_INT32, ELEMENTTYPE_INT8, ELEMENTTYPE_TEXT, ELEMENTTYPE_UINT16, ELEMENTTYPE_UINT32, ELEMENTTYPE_UINT8, EMITTERSHAPE_BOX, EMITTERSHAPE_SPHERE, EVENT_GAMEPADCONNECTED, EVENT_GAMEPADDISCONNECTED, EVENT_KEYDOWN, EVENT_KEYUP, EVENT_MOUSEDOWN, EVENT_MOUSEMOVE, EVENT_MOUSEUP, EVENT_MOUSEWHEEL, EVENT_SELECT, EVENT_SELECTEND, EVENT_SELECTSTART, EVENT_TOUCHCANCEL, EVENT_TOUCHEND, EVENT_TOUCHMOVE, EVENT_TOUCHSTART, ElementComponent, ElementComponentSystem, ElementDragHelper, ElementInput, ElementInputEvent, ElementMouseEvent, ElementSelectEvent, ElementTouchEvent, Entity, EntityReference, EnvLighting, EventHandler, FILLMODE_FILL_WINDOW, FILLMODE_KEEP_ASPECT, FILLMODE_NONE, FILTER_LINEAR, FILTER_LINEAR_MIPMAP_LINEAR, FILTER_LINEAR_MIPMAP_NEAREST, FILTER_NEAREST, FILTER_NEAREST_MIPMAP_LINEAR, FILTER_NEAREST_MIPMAP_NEAREST, FITMODE_CONTAIN, FITMODE_COVER, FITMODE_STRETCH, FITTING_BOTH, FITTING_NONE, FITTING_SHRINK, FITTING_STRETCH, FOG_EXP, FOG_EXP2, FOG_LINEAR, FOG_NONE, FONT_BITMAP, FONT_MSDF, FRESNEL_NONE, FRESNEL_SCHLICK, FUNC_ALWAYS, FUNC_EQUAL, FUNC_GREATER, FUNC_GREATEREQUAL, FUNC_LESS, FUNC_LESSEQUAL, FUNC_NEVER, FUNC_NOTEQUAL, FolderHandler, Font, FontHandler, ForwardRenderer, Frustum, GAMMA_NONE, GAMMA_SRGB, GAMMA_SRGBFAST, GAMMA_SRGBHDR, GamePads, GraphNode, GraphicsDevice, HierarchyHandler, HtmlHandler, Http, I18n, INDEXFORMAT_UINT16, INDEXFORMAT_UINT32, INDEXFORMAT_UINT8, INTERPOLATION_CUBIC, INTERPOLATION_LINEAR, INTERPOLATION_STEP, ImageElement, IndexBuffer, IndexedList, JointComponent, JointComponentSystem, JsonHandler, JsonStandardMaterialParser, KEY_0, KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7, KEY_8, KEY_9, KEY_A, KEY_ADD, KEY_ALT, KEY_B, KEY_BACKSPACE, KEY_BACK_SLASH, KEY_C, KEY_CAPS_LOCK, KEY_CLOSE_BRACKET, KEY_COMMA, KEY_CONTEXT_MENU, KEY_CONTROL, KEY_D, KEY_DECIMAL, KEY_DELETE, KEY_DIVIDE, KEY_DOWN, KEY_E, KEY_END, KEY_ENTER, KEY_EQUAL, KEY_ESCAPE, KEY_F, KEY_F1, KEY_F10, KEY_F11, KEY_F12, KEY_F2, KEY_F3, KEY_F4, KEY_F5, KEY_F6, KEY_F7, KEY_F8, KEY_F9, KEY_G, KEY_H, KEY_HOME, KEY_I, KEY_INSERT, KEY_J, KEY_K, KEY_L, KEY_LEFT, KEY_M, KEY_META, KEY_MULTIPLY, KEY_N, KEY_NUMPAD_0, KEY_NUMPAD_1, KEY_NUMPAD_2, KEY_NUMPAD_3, KEY_NUMPAD_4, KEY_NUMPAD_5, KEY_NUMPAD_6, KEY_NUMPAD_7, KEY_NUMPAD_8, KEY_NUMPAD_9, KEY_O, KEY_OPEN_BRACKET, KEY_P, KEY_PAGE_DOWN, KEY_PAGE_UP, KEY_PAUSE, KEY_PERIOD, KEY_PRINT_SCREEN, KEY_Q, KEY_R, KEY_RETURN, KEY_RIGHT, KEY_S, KEY_SEMICOLON, KEY_SEPARATOR, KEY_SHIFT, KEY_SLASH, KEY_SPACE, KEY_SUBTRACT, KEY_T, KEY_TAB, KEY_U, KEY_UP, KEY_V, KEY_W, KEY_WINDOWS, KEY_X, KEY_Y, KEY_Z, Key, Keyboard, KeyboardEvent, LAYERID_DEPTH, LAYERID_IMMEDIATE, LAYERID_SKYBOX, LAYERID_UI, LAYERID_WORLD, LAYER_FX, LAYER_GIZMO, LAYER_HUD, LAYER_WORLD, LIGHTFALLOFF_INVERSESQUARED, LIGHTFALLOFF_LINEAR, LIGHTSHAPE_DISK, LIGHTSHAPE_PUNCTUAL, LIGHTSHAPE_RECT, LIGHTSHAPE_SPHERE, LIGHTTYPE_COUNT, LIGHTTYPE_DIRECTIONAL, LIGHTTYPE_OMNI, LIGHTTYPE_POINT, LIGHTTYPE_SPOT, LINEBATCH_GIZMO, LINEBATCH_OVERLAY, LINEBATCH_WORLD, Layer, LayerComposition, LayoutCalculator, LayoutChildComponent, LayoutChildComponentSystem, LayoutGroupComponent, LayoutGroupComponentSystem, Light, LightComponent, LightComponentSystem, LightingParams, Lightmapper, LitOptions, LocalizedAsset, MASK_AFFECT_DYNAMIC, MASK_AFFECT_LIGHTMAPPED, MASK_BAKE, MOTION_FREE, MOTION_LIMITED, MOTION_LOCKED, MOUSEBUTTON_LEFT, MOUSEBUTTON_MIDDLE, MOUSEBUTTON_NONE, MOUSEBUTTON_RIGHT, Mat3, Mat4, Material, MaterialHandler, Mesh, MeshInstance, Model, ModelComponent, ModelComponentSystem, ModelHandler, Morph, MorphInstance, MorphTarget, Mouse, MouseEvent$1 as MouseEvent, Node$1 as Node, ORIENTATION_HORIZONTAL, ORIENTATION_VERTICAL, OrientedBox, PAD_1, PAD_2, PAD_3, PAD_4, PAD_DOWN, PAD_FACE_1, PAD_FACE_2, PAD_FACE_3, PAD_FACE_4, PAD_LEFT, PAD_L_SHOULDER_1, PAD_L_SHOULDER_2, PAD_L_STICK_BUTTON, PAD_L_STICK_X, PAD_L_STICK_Y, PAD_RIGHT, PAD_R_SHOULDER_1, PAD_R_SHOULDER_2, PAD_R_STICK_BUTTON, PAD_R_STICK_X, PAD_R_STICK_Y, PAD_SELECT, PAD_START, PAD_UP, PAD_VENDOR, PARTICLEMODE_CPU, PARTICLEMODE_GPU, PARTICLEORIENTATION_EMITTER, PARTICLEORIENTATION_SCREEN, PARTICLEORIENTATION_WORLD, PARTICLESORT_DISTANCE, PARTICLESORT_NEWER_FIRST, PARTICLESORT_NONE, PARTICLESORT_OLDER_FIRST, PIXELFORMAT_111110F, PIXELFORMAT_A8, PIXELFORMAT_ASTC_4x4, PIXELFORMAT_ATC_RGB, PIXELFORMAT_ATC_RGBA, PIXELFORMAT_BGRA8, PIXELFORMAT_DEPTH, PIXELFORMAT_DEPTHSTENCIL, PIXELFORMAT_DXT1, PIXELFORMAT_DXT3, PIXELFORMAT_DXT5, PIXELFORMAT_ETC1, PIXELFORMAT_ETC2_RGB, PIXELFORMAT_ETC2_RGBA, PIXELFORMAT_L8, PIXELFORMAT_L8_A8, PIXELFORMAT_LA8, PIXELFORMAT_PVRTC_2BPP_RGBA_1, PIXELFORMAT_PVRTC_2BPP_RGB_1, PIXELFORMAT_PVRTC_4BPP_RGBA_1, PIXELFORMAT_PVRTC_4BPP_RGB_1, PIXELFORMAT_R32F, PIXELFORMAT_R4_G4_B4_A4, PIXELFORMAT_R5_G5_B5_A1, PIXELFORMAT_R5_G6_B5, PIXELFORMAT_R8_G8_B8, PIXELFORMAT_R8_G8_B8_A8, PIXELFORMAT_RGB16F, PIXELFORMAT_RGB32F, PIXELFORMAT_RGB565, PIXELFORMAT_RGB8, PIXELFORMAT_RGBA16F, PIXELFORMAT_RGBA32F, PIXELFORMAT_RGBA4, PIXELFORMAT_RGBA5551, PIXELFORMAT_RGBA8, PIXELFORMAT_SRGB, PIXELFORMAT_SRGBA, PRIMITIVE_LINELOOP, PRIMITIVE_LINES, PRIMITIVE_LINESTRIP, PRIMITIVE_POINTS, PRIMITIVE_TRIANGLES, PRIMITIVE_TRIFAN, PRIMITIVE_TRISTRIP, PROJECTION_ORTHOGRAPHIC, PROJECTION_PERSPECTIVE, ParticleEmitter, ParticleSystemComponent, ParticleSystemComponentSystem, PhongMaterial, Picker, Plane, PostEffect$1 as PostEffect, PostEffectQueue, ProgramLibrary, QuadRender, Quat, RENDERSTYLE_POINTS, RENDERSTYLE_SOLID, RENDERSTYLE_WIREFRAME, RESOLUTION_AUTO, RESOLUTION_FIXED, RIGIDBODY_ACTIVE_TAG, RIGIDBODY_CF_KINEMATIC_OBJECT, RIGIDBODY_CF_NORESPONSE_OBJECT, RIGIDBODY_CF_STATIC_OBJECT, RIGIDBODY_DISABLE_DEACTIVATION, RIGIDBODY_DISABLE_SIMULATION, RIGIDBODY_ISLAND_SLEEPING, RIGIDBODY_TYPE_DYNAMIC, RIGIDBODY_TYPE_KINEMATIC, RIGIDBODY_TYPE_STATIC, RIGIDBODY_WANTS_DEACTIVATION, Ray, RaycastResult, ReadStream, RenderComponent, RenderComponentSystem, RenderHandler, RenderTarget, ResourceHandler, ResourceLoader, RigidBodyComponent, RigidBodyComponentSystem, SAMPLETYPE_DEPTH, SAMPLETYPE_FLOAT, SAMPLETYPE_UNFILTERABLE_FLOAT, SCALEMODE_BLEND, SCALEMODE_NONE, SCROLLBAR_VISIBILITY_SHOW_ALWAYS, SCROLLBAR_VISIBILITY_SHOW_WHEN_REQUIRED, SCROLL_MODE_BOUNCE, SCROLL_MODE_CLAMP, SCROLL_MODE_INFINITE, SEMANTIC_ATTR, SEMANTIC_ATTR0, SEMANTIC_ATTR1, SEMANTIC_ATTR10, SEMANTIC_ATTR11, SEMANTIC_ATTR12, SEMANTIC_ATTR13, SEMANTIC_ATTR14, SEMANTIC_ATTR15, SEMANTIC_ATTR2, SEMANTIC_ATTR3, SEMANTIC_ATTR4, SEMANTIC_ATTR5, SEMANTIC_ATTR6, SEMANTIC_ATTR7, SEMANTIC_ATTR8, SEMANTIC_ATTR9, SEMANTIC_BLENDINDICES, SEMANTIC_BLENDWEIGHT, SEMANTIC_COLOR, SEMANTIC_NORMAL, SEMANTIC_POSITION, SEMANTIC_TANGENT, SEMANTIC_TEXCOORD, SEMANTIC_TEXCOORD0, SEMANTIC_TEXCOORD1, SEMANTIC_TEXCOORD2, SEMANTIC_TEXCOORD3, SEMANTIC_TEXCOORD4, SEMANTIC_TEXCOORD5, SEMANTIC_TEXCOORD6, SEMANTIC_TEXCOORD7, SHADERDEF_DIRLM, SHADERDEF_INSTANCING, SHADERDEF_LM, SHADERDEF_LMAMBIENT, SHADERDEF_MORPH_NORMAL, SHADERDEF_MORPH_POSITION, SHADERDEF_MORPH_TEXTURE_BASED, SHADERDEF_NOSHADOW, SHADERDEF_SCREENSPACE, SHADERDEF_SKIN, SHADERDEF_TANGENTS, SHADERDEF_UV0, SHADERDEF_UV1, SHADERDEF_VCOLOR, SHADERLANGUAGE_GLSL, SHADERLANGUAGE_WGSL, SHADERPASS_ALBEDO, SHADERPASS_AO, SHADERPASS_EMISSION, SHADERPASS_FORWARD, SHADERPASS_GLOSS, SHADERPASS_LIGHTING, SHADERPASS_METALNESS, SHADERPASS_OPACITY, SHADERPASS_SPECULARITY, SHADERPASS_UV0, SHADERPASS_WORLDNORMAL, SHADERSTAGE_COMPUTE, SHADERSTAGE_FRAGMENT, SHADERSTAGE_VERTEX, SHADERTAG_MATERIAL, SHADER_DEPTH, SHADER_FORWARD, SHADER_FORWARDHDR, SHADER_PICK, SHADER_SHADOW, SHADOWUPDATE_NONE, SHADOWUPDATE_REALTIME, SHADOWUPDATE_THISFRAME, SHADOW_DEPTH, SHADOW_PCF1, SHADOW_PCF3, SHADOW_PCF5, SHADOW_PCSS, SHADOW_VSM16, SHADOW_VSM32, SHADOW_VSM8, SORTKEY_DEPTH, SORTKEY_FORWARD, SORTMODE_BACK2FRONT, SORTMODE_CUSTOM, SORTMODE_FRONT2BACK, SORTMODE_MANUAL, SORTMODE_MATERIALMESH, SORTMODE_NONE, SPECOCC_AO, SPECOCC_GLOSSDEPENDENT, SPECOCC_NONE, SPECULAR_BLINN, SPECULAR_PHONG, SPRITETYPE_ANIMATED, SPRITETYPE_SIMPLE, SPRITE_RENDERMODE_SIMPLE, SPRITE_RENDERMODE_SLICED, SPRITE_RENDERMODE_TILED, STENCILOP_DECREMENT, STENCILOP_DECREMENTWRAP, STENCILOP_INCREMENT, STENCILOP_INCREMENTWRAP, STENCILOP_INVERT, STENCILOP_KEEP, STENCILOP_REPLACE, STENCILOP_ZERO, Scene, SceneHandler, SceneRegistry, SceneRegistryItem, SceneSettingsHandler, ScopeId, ScopeSpace, ScreenComponent, ScreenComponentSystem, ScriptAttributes, ScriptComponent, ScriptComponentSystem, ScriptHandler, ScriptLegacyComponent, ScriptLegacyComponentSystem, ScriptRegistry, ScriptType, ScrollViewComponent, ScrollViewComponentSystem, ScrollbarComponent, ScrollbarComponentSystem, Shader, ShaderHandler, ShaderPass, SingleContactResult, Skeleton, Skin, SkinBatchInstance, SkinInstance, SortedLoopArray, Sound, SoundComponent, SoundComponentSystem, SoundInstance, SoundInstance3d, SoundManager, SoundSlot, Sprite, SpriteAnimationClip, SpriteComponent, SpriteComponentSystem, SpriteHandler, StandardMaterial, StandardMaterialOptions, StencilParameters, TEXHINT_ASSET, TEXHINT_LIGHTMAP, TEXHINT_NONE, TEXHINT_SHADOWMAP, TEXTUREDIMENSION_1D, TEXTUREDIMENSION_2D, TEXTUREDIMENSION_2D_ARRAY, TEXTUREDIMENSION_3D, TEXTUREDIMENSION_CUBE, TEXTUREDIMENSION_CUBE_ARRAY, TEXTURELOCK_READ, TEXTURELOCK_WRITE, TEXTUREPROJECTION_CUBE, TEXTUREPROJECTION_EQUIRECT, TEXTUREPROJECTION_NONE, TEXTUREPROJECTION_OCTAHEDRAL, TEXTURETYPE_DEFAULT, TEXTURETYPE_RGBE, TEXTURETYPE_RGBM, TEXTURETYPE_RGBP, TEXTURETYPE_SWIZZLEGGGR, TONEMAP_ACES, TONEMAP_ACES2, TONEMAP_FILMIC, TONEMAP_HEJL, TONEMAP_LINEAR, TRACEID_BINDGROUPFORMAT_ALLOC, TRACEID_BINDGROUP_ALLOC, TRACEID_PIPELINELAYOUT_ALLOC, TRACEID_RENDERPIPELINE_ALLOC, TRACEID_RENDER_ACTION, TRACEID_RENDER_FRAME, TRACEID_RENDER_FRAME_TIME, TRACEID_RENDER_PASS, TRACEID_RENDER_PASS_DETAIL, TRACEID_RENDER_QUEUE, TRACEID_RENDER_TARGET_ALLOC, TRACEID_SHADER_ALLOC, TRACEID_SHADER_COMPILE, TRACEID_TEXTURES, TRACEID_TEXTURE_ALLOC, TRACEID_VRAM_IB, TRACEID_VRAM_TEXTURE, TRACEID_VRAM_VB, TRACE_ID_ELEMENT, TYPE_FLOAT32, TYPE_INT16, TYPE_INT32, TYPE_INT8, TYPE_UINT16, TYPE_UINT32, TYPE_UINT8, Tags, Template, TemplateHandler, TextElement, TextHandler, Texture, TextureAtlas, TextureAtlasHandler, TextureHandler, TextureParser, Touch$1 as Touch, TouchDevice, TouchEvent$1 as TouchEvent, Tracing, TransformFeedback, UNIFORMTYPE_BOOL, UNIFORMTYPE_BVEC2, UNIFORMTYPE_BVEC3, UNIFORMTYPE_BVEC4, UNIFORMTYPE_FLOAT, UNIFORMTYPE_FLOATARRAY, UNIFORMTYPE_INT, UNIFORMTYPE_IVEC2, UNIFORMTYPE_IVEC3, UNIFORMTYPE_IVEC4, UNIFORMTYPE_MAT2, UNIFORMTYPE_MAT3, UNIFORMTYPE_MAT4, UNIFORMTYPE_MAT4ARRAY, UNIFORMTYPE_TEXTURE2D, UNIFORMTYPE_TEXTURE2D_SHADOW, UNIFORMTYPE_TEXTURE3D, UNIFORMTYPE_TEXTURECUBE, UNIFORMTYPE_TEXTURECUBE_SHADOW, UNIFORMTYPE_VEC2, UNIFORMTYPE_VEC2ARRAY, UNIFORMTYPE_VEC3, UNIFORMTYPE_VEC3ARRAY, UNIFORMTYPE_VEC4, UNIFORMTYPE_VEC4ARRAY, UNIFORM_BUFFER_DEFAULT_SLOT_NAME, URI, UnsupportedBrowserError, VIEW_CENTER, VIEW_LEFT, VIEW_RIGHT, Vec2, Vec3, Vec4, VertexBuffer, VertexFormat, VertexIterator, WasmModule, WebglGraphicsDevice, WebgpuGraphicsDevice, WorldClusters, XRDEPTHSENSINGFORMAT_F32, XRDEPTHSENSINGFORMAT_L8A8, XRDEPTHSENSINGUSAGE_CPU, XRDEPTHSENSINGUSAGE_GPU, XRHAND_LEFT, XRHAND_NONE, XRHAND_RIGHT, XRPAD_A, XRPAD_B, XRPAD_SQUEEZE, XRPAD_STICK_BUTTON, XRPAD_STICK_X, XRPAD_STICK_Y, XRPAD_TOUCHPAD_BUTTON, XRPAD_TOUCHPAD_X, XRPAD_TOUCHPAD_Y, XRPAD_TRIGGER, XRSPACE_BOUNDEDFLOOR, XRSPACE_LOCAL, XRSPACE_LOCALFLOOR, XRSPACE_UNBOUNDED, XRSPACE_VIEWER, XRTARGETRAY_GAZE, XRTARGETRAY_POINTER, XRTARGETRAY_SCREEN, XRTRACKABLE_MESH, XRTRACKABLE_PLANE, XRTRACKABLE_POINT, XRTYPE_AR, XRTYPE_INLINE, XRTYPE_VR, XrDepthSensing, XrDomOverlay, XrHitTest, XrHitTestSource, XrImageTracking, XrInput, XrInputSource, XrLightEstimation, XrManager, XrPlane, XrPlaneDetection, XrTrackedImage, ZoneComponent, ZoneComponentSystem, anim, app, apps, asset, audio, basisInitialize, basisSetDownloadConfig, bindGroupNames, calculateNormals, calculateTangents, common, config, createBox, createCapsule, createCone, createCylinder, createGraphicsDevice, createMesh, createPlane, createScript, createShader, createShaderFromCode, createSphere, createStyle, createTorus, createURI, data, dracoInitialize, drawFullscreenQuad, drawQuadWithShader, drawTexture, events, extend, getPixelFormatArrayType, getReservedScriptNames, getTouchTargetCoords, gfx, guid, http, inherits, input, isCompressedPixelFormat, log, makeArray, math, now, path, pixelFormatInfo, platform, posteffect, prefilterCubemap, programlib, registerScript, reprojectTexture, revision, scene, script, semanticToLocation, shFromCubemap, shaderChunks, shaderChunksLightmapper, shadowTypeToString, shape, string, time, type, typedArrayIndexFormats, typedArrayIndexFormatsByteSize, typedArrayToType, typedArrayTypes, typedArrayTypesByteSize, uniformTypeToName, version, vertexTypesNames };
+export { ABSOLUTE_URL, ACTION_GAMEPAD, ACTION_KEYBOARD, ACTION_MOUSE, ADDRESS_CLAMP_TO_EDGE, ADDRESS_MIRRORED_REPEAT, ADDRESS_REPEAT, ANIM_BLEND_1D, ANIM_BLEND_2D_CARTESIAN, ANIM_BLEND_2D_DIRECTIONAL, ANIM_BLEND_DIRECT, ANIM_CONTROL_STATES, ANIM_EQUAL_TO, ANIM_GREATER_THAN, ANIM_GREATER_THAN_EQUAL_TO, ANIM_INTERRUPTION_NEXT, ANIM_INTERRUPTION_NEXT_PREV, ANIM_INTERRUPTION_NONE, ANIM_INTERRUPTION_PREV, ANIM_INTERRUPTION_PREV_NEXT, ANIM_LAYER_ADDITIVE, ANIM_LAYER_OVERWRITE, ANIM_LESS_THAN, ANIM_LESS_THAN_EQUAL_TO, ANIM_NOT_EQUAL_TO, ANIM_PARAMETER_BOOLEAN, ANIM_PARAMETER_FLOAT, ANIM_PARAMETER_INTEGER, ANIM_PARAMETER_TRIGGER, ANIM_STATE_ANY, ANIM_STATE_END, ANIM_STATE_START, ASPECT_AUTO, ASPECT_MANUAL, ASSET_ANIMATION, ASSET_AUDIO, ASSET_CONTAINER, ASSET_CSS, ASSET_CUBEMAP, ASSET_HTML, ASSET_IMAGE, ASSET_JSON, ASSET_MATERIAL, ASSET_MODEL, ASSET_SCRIPT, ASSET_SHADER, ASSET_TEXT, ASSET_TEXTURE, ASSET_TEXTUREATLAS, AXIS_KEY, AXIS_MOUSE_X, AXIS_MOUSE_Y, AXIS_PAD_L_X, AXIS_PAD_L_Y, AXIS_PAD_R_X, AXIS_PAD_R_Y, AnimBinder, AnimClip, AnimClipHandler, AnimComponent, AnimComponentLayer, AnimComponentSystem, AnimController, AnimCurve, AnimData, AnimEvaluator, AnimEvents, AnimSnapshot, AnimStateGraph, AnimStateGraphHandler, AnimTarget, AnimTrack, Animation, AnimationComponent, AnimationComponentSystem, AnimationHandler, AppBase, AppOptions, Application, Asset, AssetListLoader, AssetReference, AssetRegistry, AudioHandler, AudioListenerComponent, AudioListenerComponentSystem, AudioSourceComponent, AudioSourceComponentSystem, BAKE_COLOR, BAKE_COLORDIR, BINDGROUP_MESH, BINDGROUP_VIEW, BLENDEQUATION_ADD, BLENDEQUATION_MAX, BLENDEQUATION_MIN, BLENDEQUATION_REVERSE_SUBTRACT, BLENDEQUATION_SUBTRACT, BLENDMODE_CONSTANT, BLENDMODE_CONSTANT_ALPHA, BLENDMODE_CONSTANT_COLOR, BLENDMODE_DST_ALPHA, BLENDMODE_DST_COLOR, BLENDMODE_ONE, BLENDMODE_ONE_MINUS_CONSTANT, BLENDMODE_ONE_MINUS_CONSTANT_ALPHA, BLENDMODE_ONE_MINUS_CONSTANT_COLOR, BLENDMODE_ONE_MINUS_DST_ALPHA, BLENDMODE_ONE_MINUS_DST_COLOR, BLENDMODE_ONE_MINUS_SRC_ALPHA, BLENDMODE_ONE_MINUS_SRC_COLOR, BLENDMODE_SRC_ALPHA, BLENDMODE_SRC_ALPHA_SATURATE, BLENDMODE_SRC_COLOR, BLENDMODE_ZERO, BLEND_ADDITIVE, BLEND_ADDITIVEALPHA, BLEND_MAX, BLEND_MIN, BLEND_MULTIPLICATIVE, BLEND_MULTIPLICATIVE2X, BLEND_NONE, BLEND_NORMAL, BLEND_PREMULTIPLIED, BLEND_SCREEN, BLEND_SUBTRACTIVE, BLUR_BOX, BLUR_GAUSSIAN, BODYFLAG_KINEMATIC_OBJECT, BODYFLAG_NORESPONSE_OBJECT, BODYFLAG_STATIC_OBJECT, BODYGROUP_DEFAULT, BODYGROUP_DYNAMIC, BODYGROUP_ENGINE_1, BODYGROUP_ENGINE_2, BODYGROUP_ENGINE_3, BODYGROUP_KINEMATIC, BODYGROUP_NONE, BODYGROUP_STATIC, BODYGROUP_TRIGGER, BODYGROUP_USER_1, BODYGROUP_USER_2, BODYGROUP_USER_3, BODYGROUP_USER_4, BODYGROUP_USER_5, BODYGROUP_USER_6, BODYGROUP_USER_7, BODYGROUP_USER_8, BODYMASK_ALL, BODYMASK_NONE, BODYMASK_NOT_STATIC, BODYMASK_NOT_STATIC_KINEMATIC, BODYMASK_STATIC, BODYSTATE_ACTIVE_TAG, BODYSTATE_DISABLE_DEACTIVATION, BODYSTATE_DISABLE_SIMULATION, BODYSTATE_ISLAND_SLEEPING, BODYSTATE_WANTS_DEACTIVATION, BODYTYPE_DYNAMIC, BODYTYPE_KINEMATIC, BODYTYPE_STATIC, BUFFER_DYNAMIC, BUFFER_GPUDYNAMIC, BUFFER_STATIC, BUFFER_STREAM, BUTTON_TRANSITION_MODE_SPRITE_CHANGE, BUTTON_TRANSITION_MODE_TINT, BasicMaterial, Batch, BatchGroup, BatchManager, BinaryHandler, BlendState, BoundingBox, BoundingSphere, Bundle, BundleHandler, BundleRegistry, ButtonComponent, ButtonComponentSystem, CHUNKAPI_1_51, CHUNKAPI_1_55, CHUNKAPI_1_56, CHUNKAPI_1_57, CHUNKAPI_1_58, CHUNKAPI_1_60, CHUNKAPI_1_62, CHUNKAPI_1_65, CLEARFLAG_COLOR, CLEARFLAG_DEPTH, CLEARFLAG_STENCIL, COMPUPDATED_BLEND, COMPUPDATED_CAMERAS, COMPUPDATED_INSTANCES, COMPUPDATED_LIGHTS, CUBEFACE_NEGX, CUBEFACE_NEGY, CUBEFACE_NEGZ, CUBEFACE_POSX, CUBEFACE_POSY, CUBEFACE_POSZ, CUBEPROJ_BOX, CUBEPROJ_NONE, CULLFACE_BACK, CULLFACE_FRONT, CULLFACE_FRONTANDBACK, CULLFACE_NONE, CURVE_CARDINAL, CURVE_CATMULL, CURVE_LINEAR, CURVE_SMOOTHSTEP, CURVE_SPLINE, CURVE_STEP, Camera, CameraComponent, CameraComponentSystem, CanvasFont, ChunkBuilder, CollisionComponent, CollisionComponentSystem, Color, Command, Component, ComponentSystem, ComponentSystemRegistry, ContactPoint, ContactResult, ContainerHandler, ContainerResource, ContextCreationError, Controller, CssHandler, CubemapHandler, Curve, CurveSet, DETAILMODE_ADD, DETAILMODE_MAX, DETAILMODE_MIN, DETAILMODE_MUL, DETAILMODE_OVERLAY, DETAILMODE_SCREEN, DEVICETYPE_WEBGL1, DEVICETYPE_WEBGL2, DEVICETYPE_WEBGPU, DISTANCE_EXPONENTIAL, DISTANCE_INVERSE, DISTANCE_LINEAR, DefaultAnimBinder, DepthState, ELEMENTTYPE_FLOAT32, ELEMENTTYPE_GROUP, ELEMENTTYPE_IMAGE, ELEMENTTYPE_INT16, ELEMENTTYPE_INT32, ELEMENTTYPE_INT8, ELEMENTTYPE_TEXT, ELEMENTTYPE_UINT16, ELEMENTTYPE_UINT32, ELEMENTTYPE_UINT8, EMITTERSHAPE_BOX, EMITTERSHAPE_SPHERE, EVENT_GAMEPADCONNECTED, EVENT_GAMEPADDISCONNECTED, EVENT_KEYDOWN, EVENT_KEYUP, EVENT_MOUSEDOWN, EVENT_MOUSEMOVE, EVENT_MOUSEUP, EVENT_MOUSEWHEEL, EVENT_SELECT, EVENT_SELECTEND, EVENT_SELECTSTART, EVENT_TOUCHCANCEL, EVENT_TOUCHEND, EVENT_TOUCHMOVE, EVENT_TOUCHSTART, ElementComponent, ElementComponentSystem, ElementDragHelper, ElementInput, ElementInputEvent, ElementMouseEvent, ElementSelectEvent, ElementTouchEvent, Entity, EntityReference, EnvLighting, EventHandler, FILLMODE_FILL_WINDOW, FILLMODE_KEEP_ASPECT, FILLMODE_NONE, FILTER_LINEAR, FILTER_LINEAR_MIPMAP_LINEAR, FILTER_LINEAR_MIPMAP_NEAREST, FILTER_NEAREST, FILTER_NEAREST_MIPMAP_LINEAR, FILTER_NEAREST_MIPMAP_NEAREST, FITMODE_CONTAIN, FITMODE_COVER, FITMODE_STRETCH, FITTING_BOTH, FITTING_NONE, FITTING_SHRINK, FITTING_STRETCH, FOG_EXP, FOG_EXP2, FOG_LINEAR, FOG_NONE, FONT_BITMAP, FONT_MSDF, FRESNEL_NONE, FRESNEL_SCHLICK, FUNC_ALWAYS, FUNC_EQUAL, FUNC_GREATER, FUNC_GREATEREQUAL, FUNC_LESS, FUNC_LESSEQUAL, FUNC_NEVER, FUNC_NOTEQUAL, FolderHandler, Font, FontHandler, ForwardRenderer, Frustum, GAMMA_NONE, GAMMA_SRGB, GAMMA_SRGBFAST, GAMMA_SRGBHDR, GamePads, GraphNode, GraphicsDevice, HierarchyHandler, HtmlHandler, Http, I18n, INDEXFORMAT_UINT16, INDEXFORMAT_UINT32, INDEXFORMAT_UINT8, INTERPOLATION_CUBIC, INTERPOLATION_LINEAR, INTERPOLATION_STEP, ImageElement, IndexBuffer, IndexedList, JointComponent, JointComponentSystem, JsonHandler, JsonStandardMaterialParser, KEY_0, KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7, KEY_8, KEY_9, KEY_A, KEY_ADD, KEY_ALT, KEY_B, KEY_BACKSPACE, KEY_BACK_SLASH, KEY_C, KEY_CAPS_LOCK, KEY_CLOSE_BRACKET, KEY_COMMA, KEY_CONTEXT_MENU, KEY_CONTROL, KEY_D, KEY_DECIMAL, KEY_DELETE, KEY_DIVIDE, KEY_DOWN, KEY_E, KEY_END, KEY_ENTER, KEY_EQUAL, KEY_ESCAPE, KEY_F, KEY_F1, KEY_F10, KEY_F11, KEY_F12, KEY_F2, KEY_F3, KEY_F4, KEY_F5, KEY_F6, KEY_F7, KEY_F8, KEY_F9, KEY_G, KEY_H, KEY_HOME, KEY_I, KEY_INSERT, KEY_J, KEY_K, KEY_L, KEY_LEFT, KEY_M, KEY_META, KEY_MULTIPLY, KEY_N, KEY_NUMPAD_0, KEY_NUMPAD_1, KEY_NUMPAD_2, KEY_NUMPAD_3, KEY_NUMPAD_4, KEY_NUMPAD_5, KEY_NUMPAD_6, KEY_NUMPAD_7, KEY_NUMPAD_8, KEY_NUMPAD_9, KEY_O, KEY_OPEN_BRACKET, KEY_P, KEY_PAGE_DOWN, KEY_PAGE_UP, KEY_PAUSE, KEY_PERIOD, KEY_PRINT_SCREEN, KEY_Q, KEY_R, KEY_RETURN, KEY_RIGHT, KEY_S, KEY_SEMICOLON, KEY_SEPARATOR, KEY_SHIFT, KEY_SLASH, KEY_SPACE, KEY_SUBTRACT, KEY_T, KEY_TAB, KEY_U, KEY_UP, KEY_V, KEY_W, KEY_WINDOWS, KEY_X, KEY_Y, KEY_Z, Key, Keyboard, KeyboardEvent, LAYERID_DEPTH, LAYERID_IMMEDIATE, LAYERID_SKYBOX, LAYERID_UI, LAYERID_WORLD, LAYER_FX, LAYER_GIZMO, LAYER_HUD, LAYER_WORLD, LIGHTFALLOFF_INVERSESQUARED, LIGHTFALLOFF_LINEAR, LIGHTSHAPE_DISK, LIGHTSHAPE_PUNCTUAL, LIGHTSHAPE_RECT, LIGHTSHAPE_SPHERE, LIGHTTYPE_COUNT, LIGHTTYPE_DIRECTIONAL, LIGHTTYPE_OMNI, LIGHTTYPE_POINT, LIGHTTYPE_SPOT, LINEBATCH_GIZMO, LINEBATCH_OVERLAY, LINEBATCH_WORLD, Layer, LayerComposition, LayoutCalculator, LayoutChildComponent, LayoutChildComponentSystem, LayoutGroupComponent, LayoutGroupComponentSystem, Light, LightComponent, LightComponentSystem, LightingParams, Lightmapper, LitMaterial, LitOptions, LitShaderOptions, LocalizedAsset, MASK_AFFECT_DYNAMIC, MASK_AFFECT_LIGHTMAPPED, MASK_BAKE, MOTION_FREE, MOTION_LIMITED, MOTION_LOCKED, MOUSEBUTTON_LEFT, MOUSEBUTTON_MIDDLE, MOUSEBUTTON_NONE, MOUSEBUTTON_RIGHT, Mat3, Mat4, Material, MaterialHandler, Mesh, MeshInstance, Model, ModelComponent, ModelComponentSystem, ModelHandler, Morph, MorphInstance, MorphTarget, Mouse, MouseEvent$1 as MouseEvent, Node$1 as Node, ORIENTATION_HORIZONTAL, ORIENTATION_VERTICAL, OrientedBox, PAD_1, PAD_2, PAD_3, PAD_4, PAD_DOWN, PAD_FACE_1, PAD_FACE_2, PAD_FACE_3, PAD_FACE_4, PAD_LEFT, PAD_L_SHOULDER_1, PAD_L_SHOULDER_2, PAD_L_STICK_BUTTON, PAD_L_STICK_X, PAD_L_STICK_Y, PAD_RIGHT, PAD_R_SHOULDER_1, PAD_R_SHOULDER_2, PAD_R_STICK_BUTTON, PAD_R_STICK_X, PAD_R_STICK_Y, PAD_SELECT, PAD_START, PAD_UP, PAD_VENDOR, PARTICLEMODE_CPU, PARTICLEMODE_GPU, PARTICLEORIENTATION_EMITTER, PARTICLEORIENTATION_SCREEN, PARTICLEORIENTATION_WORLD, PARTICLESORT_DISTANCE, PARTICLESORT_NEWER_FIRST, PARTICLESORT_NONE, PARTICLESORT_OLDER_FIRST, PIXELFORMAT_111110F, PIXELFORMAT_A8, PIXELFORMAT_ASTC_4x4, PIXELFORMAT_ATC_RGB, PIXELFORMAT_ATC_RGBA, PIXELFORMAT_BGRA8, PIXELFORMAT_DEPTH, PIXELFORMAT_DEPTHSTENCIL, PIXELFORMAT_DXT1, PIXELFORMAT_DXT3, PIXELFORMAT_DXT5, PIXELFORMAT_ETC1, PIXELFORMAT_ETC2_RGB, PIXELFORMAT_ETC2_RGBA, PIXELFORMAT_L8, PIXELFORMAT_L8_A8, PIXELFORMAT_LA8, PIXELFORMAT_PVRTC_2BPP_RGBA_1, PIXELFORMAT_PVRTC_2BPP_RGB_1, PIXELFORMAT_PVRTC_4BPP_RGBA_1, PIXELFORMAT_PVRTC_4BPP_RGB_1, PIXELFORMAT_R32F, PIXELFORMAT_R4_G4_B4_A4, PIXELFORMAT_R5_G5_B5_A1, PIXELFORMAT_R5_G6_B5, PIXELFORMAT_R8_G8_B8, PIXELFORMAT_R8_G8_B8_A8, PIXELFORMAT_RGB16F, PIXELFORMAT_RGB32F, PIXELFORMAT_RGB565, PIXELFORMAT_RGB8, PIXELFORMAT_RGBA16F, PIXELFORMAT_RGBA32F, PIXELFORMAT_RGBA4, PIXELFORMAT_RGBA5551, PIXELFORMAT_RGBA8, PIXELFORMAT_SRGB, PIXELFORMAT_SRGBA, PRIMITIVE_LINELOOP, PRIMITIVE_LINES, PRIMITIVE_LINESTRIP, PRIMITIVE_POINTS, PRIMITIVE_TRIANGLES, PRIMITIVE_TRIFAN, PRIMITIVE_TRISTRIP, PROJECTION_ORTHOGRAPHIC, PROJECTION_PERSPECTIVE, ParticleEmitter, ParticleSystemComponent, ParticleSystemComponentSystem, PhongMaterial, Picker, Plane, PostEffect$1 as PostEffect, PostEffectQueue, ProgramLibrary, QuadRender, Quat, RENDERSTYLE_POINTS, RENDERSTYLE_SOLID, RENDERSTYLE_WIREFRAME, RESOLUTION_AUTO, RESOLUTION_FIXED, RIGIDBODY_ACTIVE_TAG, RIGIDBODY_CF_KINEMATIC_OBJECT, RIGIDBODY_CF_NORESPONSE_OBJECT, RIGIDBODY_CF_STATIC_OBJECT, RIGIDBODY_DISABLE_DEACTIVATION, RIGIDBODY_DISABLE_SIMULATION, RIGIDBODY_ISLAND_SLEEPING, RIGIDBODY_TYPE_DYNAMIC, RIGIDBODY_TYPE_KINEMATIC, RIGIDBODY_TYPE_STATIC, RIGIDBODY_WANTS_DEACTIVATION, Ray, RaycastResult, ReadStream, RenderComponent, RenderComponentSystem, RenderHandler, RenderTarget, ResourceHandler, ResourceLoader, RigidBodyComponent, RigidBodyComponentSystem, SAMPLETYPE_DEPTH, SAMPLETYPE_FLOAT, SAMPLETYPE_UNFILTERABLE_FLOAT, SCALEMODE_BLEND, SCALEMODE_NONE, SCROLLBAR_VISIBILITY_SHOW_ALWAYS, SCROLLBAR_VISIBILITY_SHOW_WHEN_REQUIRED, SCROLL_MODE_BOUNCE, SCROLL_MODE_CLAMP, SCROLL_MODE_INFINITE, SEMANTIC_ATTR, SEMANTIC_ATTR0, SEMANTIC_ATTR1, SEMANTIC_ATTR10, SEMANTIC_ATTR11, SEMANTIC_ATTR12, SEMANTIC_ATTR13, SEMANTIC_ATTR14, SEMANTIC_ATTR15, SEMANTIC_ATTR2, SEMANTIC_ATTR3, SEMANTIC_ATTR4, SEMANTIC_ATTR5, SEMANTIC_ATTR6, SEMANTIC_ATTR7, SEMANTIC_ATTR8, SEMANTIC_ATTR9, SEMANTIC_BLENDINDICES, SEMANTIC_BLENDWEIGHT, SEMANTIC_COLOR, SEMANTIC_NORMAL, SEMANTIC_POSITION, SEMANTIC_TANGENT, SEMANTIC_TEXCOORD, SEMANTIC_TEXCOORD0, SEMANTIC_TEXCOORD1, SEMANTIC_TEXCOORD2, SEMANTIC_TEXCOORD3, SEMANTIC_TEXCOORD4, SEMANTIC_TEXCOORD5, SEMANTIC_TEXCOORD6, SEMANTIC_TEXCOORD7, SHADERDEF_DIRLM, SHADERDEF_INSTANCING, SHADERDEF_LM, SHADERDEF_LMAMBIENT, SHADERDEF_MORPH_NORMAL, SHADERDEF_MORPH_POSITION, SHADERDEF_MORPH_TEXTURE_BASED, SHADERDEF_NOSHADOW, SHADERDEF_SCREENSPACE, SHADERDEF_SKIN, SHADERDEF_TANGENTS, SHADERDEF_UV0, SHADERDEF_UV1, SHADERDEF_VCOLOR, SHADERLANGUAGE_GLSL, SHADERLANGUAGE_WGSL, SHADERPASS_ALBEDO, SHADERPASS_AO, SHADERPASS_EMISSION, SHADERPASS_FORWARD, SHADERPASS_GLOSS, SHADERPASS_LIGHTING, SHADERPASS_METALNESS, SHADERPASS_OPACITY, SHADERPASS_SPECULARITY, SHADERPASS_UV0, SHADERPASS_WORLDNORMAL, SHADERSTAGE_COMPUTE, SHADERSTAGE_FRAGMENT, SHADERSTAGE_VERTEX, SHADERTAG_MATERIAL, SHADER_DEPTH, SHADER_FORWARD, SHADER_FORWARDHDR, SHADER_PICK, SHADER_SHADOW, SHADOWUPDATE_NONE, SHADOWUPDATE_REALTIME, SHADOWUPDATE_THISFRAME, SHADOW_DEPTH, SHADOW_PCF1, SHADOW_PCF3, SHADOW_PCF5, SHADOW_PCSS, SHADOW_VSM16, SHADOW_VSM32, SHADOW_VSM8, SORTKEY_DEPTH, SORTKEY_FORWARD, SORTMODE_BACK2FRONT, SORTMODE_CUSTOM, SORTMODE_FRONT2BACK, SORTMODE_MANUAL, SORTMODE_MATERIALMESH, SORTMODE_NONE, SPECOCC_AO, SPECOCC_GLOSSDEPENDENT, SPECOCC_NONE, SPECULAR_BLINN, SPECULAR_PHONG, SPRITETYPE_ANIMATED, SPRITETYPE_SIMPLE, SPRITE_RENDERMODE_SIMPLE, SPRITE_RENDERMODE_SLICED, SPRITE_RENDERMODE_TILED, STENCILOP_DECREMENT, STENCILOP_DECREMENTWRAP, STENCILOP_INCREMENT, STENCILOP_INCREMENTWRAP, STENCILOP_INVERT, STENCILOP_KEEP, STENCILOP_REPLACE, STENCILOP_ZERO, Scene, SceneHandler, SceneRegistry, SceneRegistryItem, SceneSettingsHandler, ScopeId, ScopeSpace, ScreenComponent, ScreenComponentSystem, ScriptAttributes, ScriptComponent, ScriptComponentSystem, ScriptHandler, ScriptLegacyComponent, ScriptLegacyComponentSystem, ScriptRegistry, ScriptType, ScrollViewComponent, ScrollViewComponentSystem, ScrollbarComponent, ScrollbarComponentSystem, Shader, ShaderHandler, ShaderPass, SingleContactResult, Skeleton, Skin, SkinBatchInstance, SkinInstance, SortedLoopArray, Sound, SoundComponent, SoundComponentSystem, SoundInstance, SoundInstance3d, SoundManager, SoundSlot, Sprite, SpriteAnimationClip, SpriteComponent, SpriteComponentSystem, SpriteHandler, StandardMaterial, StandardMaterialOptions, StencilParameters, TEXHINT_ASSET, TEXHINT_LIGHTMAP, TEXHINT_NONE, TEXHINT_SHADOWMAP, TEXTUREDIMENSION_1D, TEXTUREDIMENSION_2D, TEXTUREDIMENSION_2D_ARRAY, TEXTUREDIMENSION_3D, TEXTUREDIMENSION_CUBE, TEXTUREDIMENSION_CUBE_ARRAY, TEXTURELOCK_READ, TEXTURELOCK_WRITE, TEXTUREPROJECTION_CUBE, TEXTUREPROJECTION_EQUIRECT, TEXTUREPROJECTION_NONE, TEXTUREPROJECTION_OCTAHEDRAL, TEXTURETYPE_DEFAULT, TEXTURETYPE_RGBE, TEXTURETYPE_RGBM, TEXTURETYPE_RGBP, TEXTURETYPE_SWIZZLEGGGR, TONEMAP_ACES, TONEMAP_ACES2, TONEMAP_FILMIC, TONEMAP_HEJL, TONEMAP_LINEAR, TRACEID_BINDGROUPFORMAT_ALLOC, TRACEID_BINDGROUP_ALLOC, TRACEID_GPU_TIMINGS, TRACEID_PIPELINELAYOUT_ALLOC, TRACEID_RENDERPIPELINE_ALLOC, TRACEID_RENDER_ACTION, TRACEID_RENDER_FRAME, TRACEID_RENDER_FRAME_TIME, TRACEID_RENDER_PASS, TRACEID_RENDER_PASS_DETAIL, TRACEID_RENDER_QUEUE, TRACEID_RENDER_TARGET_ALLOC, TRACEID_SHADER_ALLOC, TRACEID_SHADER_COMPILE, TRACEID_TEXTURES, TRACEID_TEXTURE_ALLOC, TRACEID_VRAM_IB, TRACEID_VRAM_TEXTURE, TRACEID_VRAM_VB, TRACE_ID_ELEMENT, TYPE_FLOAT32, TYPE_INT16, TYPE_INT32, TYPE_INT8, TYPE_UINT16, TYPE_UINT32, TYPE_UINT8, Tags, Template, TemplateHandler, TextElement, TextHandler, Texture, TextureAtlas, TextureAtlasHandler, TextureHandler, TextureParser, TextureUtils, Touch$1 as Touch, TouchDevice, TouchEvent$1 as TouchEvent, Tracing, TransformFeedback, UNIFORMTYPE_BOOL, UNIFORMTYPE_BVEC2, UNIFORMTYPE_BVEC3, UNIFORMTYPE_BVEC4, UNIFORMTYPE_FLOAT, UNIFORMTYPE_FLOATARRAY, UNIFORMTYPE_INT, UNIFORMTYPE_IVEC2, UNIFORMTYPE_IVEC3, UNIFORMTYPE_IVEC4, UNIFORMTYPE_MAT2, UNIFORMTYPE_MAT3, UNIFORMTYPE_MAT4, UNIFORMTYPE_MAT4ARRAY, UNIFORMTYPE_TEXTURE2D, UNIFORMTYPE_TEXTURE2D_SHADOW, UNIFORMTYPE_TEXTURE3D, UNIFORMTYPE_TEXTURECUBE, UNIFORMTYPE_TEXTURECUBE_SHADOW, UNIFORMTYPE_VEC2, UNIFORMTYPE_VEC2ARRAY, UNIFORMTYPE_VEC3, UNIFORMTYPE_VEC3ARRAY, UNIFORMTYPE_VEC4, UNIFORMTYPE_VEC4ARRAY, UNIFORM_BUFFER_DEFAULT_SLOT_NAME, URI, UnsupportedBrowserError, VIEW_CENTER, VIEW_LEFT, VIEW_RIGHT, Vec2, Vec3, Vec4, VertexBuffer, VertexFormat, VertexIterator, WasmModule, WebglGraphicsDevice, WebgpuGraphicsDevice, WorldClusters, XRDEPTHSENSINGFORMAT_F32, XRDEPTHSENSINGFORMAT_L8A8, XRDEPTHSENSINGUSAGE_CPU, XRDEPTHSENSINGUSAGE_GPU, XRHAND_LEFT, XRHAND_NONE, XRHAND_RIGHT, XRPAD_A, XRPAD_B, XRPAD_SQUEEZE, XRPAD_STICK_BUTTON, XRPAD_STICK_X, XRPAD_STICK_Y, XRPAD_TOUCHPAD_BUTTON, XRPAD_TOUCHPAD_X, XRPAD_TOUCHPAD_Y, XRPAD_TRIGGER, XRSPACE_BOUNDEDFLOOR, XRSPACE_LOCAL, XRSPACE_LOCALFLOOR, XRSPACE_UNBOUNDED, XRSPACE_VIEWER, XRTARGETRAY_GAZE, XRTARGETRAY_POINTER, XRTARGETRAY_SCREEN, XRTRACKABLE_MESH, XRTRACKABLE_PLANE, XRTRACKABLE_POINT, XRTYPE_AR, XRTYPE_INLINE, XRTYPE_VR, XrDepthSensing, XrDomOverlay, XrHitTest, XrHitTestSource, XrImageTracking, XrInput, XrInputSource, XrLightEstimation, XrManager, XrPlane, XrPlaneDetection, XrTrackedImage, ZoneComponent, ZoneComponentSystem, anim, app, apps, asset, audio, basisInitialize, basisSetDownloadConfig, bindGroupNames, calculateNormals, calculateTangents, common, config, createBox, createCapsule, createCone, createCylinder, createGraphicsDevice, createMesh, createPlane, createScript, createShader, createShaderFromCode, createSphere, createStyle, createTorus, createURI, data, dracoInitialize, drawFullscreenQuad, drawQuadWithShader, drawTexture, events, extend, getPixelFormatArrayType, getReservedScriptNames, getTouchTargetCoords, gfx, guid, http, inherits, input, isCompressedPixelFormat, log, makeArray, math, now, path, pixelFormatInfo, platform, posteffect, prefilterCubemap, programlib, registerScript, reprojectTexture, revision, scene, script, semanticToLocation, shFromCubemap, shaderChunks, shaderChunksLightmapper, shadowTypeToString, shape, string, time, type, typedArrayIndexFormats, typedArrayIndexFormatsByteSize, typedArrayToType, typedArrayTypes, typedArrayTypesByteSize, uniformTypeToName, version, vertexTypesNames };
 export as namespace pc;

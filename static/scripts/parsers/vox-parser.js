@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.64.3 revision 5a45c53b5
+ * PlayCanvas Engine v1.65.0 revision 14701d67f
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 (function (global, factory) {
@@ -44,6 +44,37 @@
 	  }
 	  return self;
 	}
+	function _unsupportedIterableToArray(o, minLen) {
+	  if (!o) return;
+	  if (typeof o === "string") return _arrayLikeToArray(o, minLen);
+	  var n = Object.prototype.toString.call(o).slice(8, -1);
+	  if (n === "Object" && o.constructor) n = o.constructor.name;
+	  if (n === "Map" || n === "Set") return Array.from(o);
+	  if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen);
+	}
+	function _arrayLikeToArray(arr, len) {
+	  if (len == null || len > arr.length) len = arr.length;
+	  for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i];
+	  return arr2;
+	}
+	function _createForOfIteratorHelperLoose(o, allowArrayLike) {
+	  var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"];
+	  if (it) return (it = it.call(o)).next.bind(it);
+	  if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") {
+	    if (it) o = it;
+	    var i = 0;
+	    return function () {
+	      if (i >= o.length) return {
+	        done: true
+	      };
+	      return {
+	        done: false,
+	        value: o[i++]
+	      };
+	    };
+	  }
+	  throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+	}
 	function _toPrimitive(input, hint) {
 	  if (typeof input !== "object" || input === null) return input;
 	  var prim = input[Symbol.toPrimitive];
@@ -61,47 +92,62 @@
 
 	var EventHandler = function () {
 		function EventHandler() {
-			this._callbacks = {};
-			this._callbackActive = {};
+			this._callbacks = new Map();
+			this._callbackActive = new Map();
 		}
 		var _proto = EventHandler.prototype;
 		_proto.initEventHandler = function initEventHandler() {
-			this._callbacks = {};
-			this._callbackActive = {};
+			this._callbacks = new Map();
+			this._callbackActive = new Map();
 		};
 		_proto._addCallback = function _addCallback(name, callback, scope, once) {
-			if (once === void 0) {
-				once = false;
-			}
 			if (!name || typeof name !== 'string' || !callback) return;
-			if (!this._callbacks[name]) this._callbacks[name] = [];
-			if (this._callbackActive[name] && this._callbackActive[name] === this._callbacks[name]) this._callbackActive[name] = this._callbackActive[name].slice();
-			this._callbacks[name].push({
+			if (!this._callbacks.has(name)) this._callbacks.set(name, []);
+			if (this._callbackActive.has(name)) {
+				var callbackActive = this._callbackActive.get(name);
+				if (callbackActive && callbackActive === this._callbacks.get(name)) {
+					this._callbackActive.set(name, callbackActive.slice());
+				}
+			}
+			this._callbacks.get(name).push({
 				callback: callback,
-				scope: scope || this,
+				scope: scope,
 				once: once
 			});
 		};
 		_proto.on = function on(name, callback, scope) {
+			if (scope === void 0) {
+				scope = this;
+			}
 			this._addCallback(name, callback, scope, false);
+			return this;
+		};
+		_proto.once = function once(name, callback, scope) {
+			if (scope === void 0) {
+				scope = this;
+			}
+			this._addCallback(name, callback, scope, true);
 			return this;
 		};
 		_proto.off = function off(name, callback, scope) {
 			if (name) {
-				if (this._callbackActive[name] && this._callbackActive[name] === this._callbacks[name]) this._callbackActive[name] = this._callbackActive[name].slice();
+				if (this._callbackActive.has(name) && this._callbackActive.get(name) === this._callbacks.get(name)) this._callbackActive.set(name, this._callbackActive.get(name).slice());
 			} else {
-				for (var key in this._callbackActive) {
-					if (!this._callbacks[key]) continue;
-					if (this._callbacks[key] !== this._callbackActive[key]) continue;
-					this._callbackActive[key] = this._callbackActive[key].slice();
+				for (var _iterator = _createForOfIteratorHelperLoose(this._callbackActive), _step; !(_step = _iterator()).done;) {
+					var _step$value = _step.value,
+						key = _step$value[0],
+						callbacks = _step$value[1];
+					if (!this._callbacks.has(key)) continue;
+					if (this._callbacks.get(key) !== callbacks) continue;
+					this._callbackActive.set(key, callbacks.slice());
 				}
 			}
 			if (!name) {
-				this._callbacks = {};
+				this._callbacks.clear();
 			} else if (!callback) {
-				if (this._callbacks[name]) this._callbacks[name] = [];
+				if (this._callbacks.has(name)) this._callbacks.delete(name);
 			} else {
-				var events = this._callbacks[name];
+				var events = this._callbacks.get(name);
 				if (!events) return this;
 				var count = events.length;
 				for (var i = 0; i < count; i++) {
@@ -110,39 +156,41 @@
 					events[i--] = events[--count];
 				}
 				events.length = count;
+				if (events.length === 0) this._callbacks.delete(name);
 			}
 			return this;
 		};
 		_proto.fire = function fire(name, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8) {
-			if (!name || !this._callbacks[name]) return this;
+			if (!name) return this;
+			var callbacksInitial = this._callbacks.get(name);
+			if (!callbacksInitial) return this;
 			var callbacks;
-			if (!this._callbackActive[name]) {
-				this._callbackActive[name] = this._callbacks[name];
-			} else {
-				if (this._callbackActive[name] === this._callbacks[name]) this._callbackActive[name] = this._callbackActive[name].slice();
-				callbacks = this._callbacks[name].slice();
+			if (!this._callbackActive.has(name)) {
+				this._callbackActive.set(name, callbacksInitial);
+			} else if (this._callbackActive.get(name) !== callbacksInitial) {
+				callbacks = callbacksInitial.slice();
 			}
-			for (var i = 0; (callbacks || this._callbackActive[name]) && i < (callbacks || this._callbackActive[name]).length; i++) {
-				var evt = (callbacks || this._callbackActive[name])[i];
+			for (var i = 0; (callbacks || this._callbackActive.get(name)) && i < (callbacks || this._callbackActive.get(name)).length; i++) {
+				var evt = (callbacks || this._callbackActive.get(name))[i];
 				evt.callback.call(evt.scope, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
 				if (evt.once) {
-					var existingCallback = this._callbacks[name];
+					var existingCallback = this._callbacks.get(name);
 					var ind = existingCallback ? existingCallback.indexOf(evt) : -1;
 					if (ind !== -1) {
-						if (this._callbackActive[name] === existingCallback) this._callbackActive[name] = this._callbackActive[name].slice();
-						this._callbacks[name].splice(ind, 1);
+						if (this._callbackActive.get(name) === existingCallback) this._callbackActive.set(name, this._callbackActive.get(name).slice());
+						var _callbacks = this._callbacks.get(name);
+						if (!_callbacks) continue;
+						_callbacks.splice(ind, 1);
+						if (_callbacks.length === 0) this._callbacks.delete(name);
 					}
 				}
 			}
-			if (!callbacks) this._callbackActive[name] = null;
-			return this;
-		};
-		_proto.once = function once(name, callback, scope) {
-			this._addCallback(name, callback, scope, true);
+			if (!callbacks) this._callbackActive.delete(name);
 			return this;
 		};
 		_proto.hasEvent = function hasEvent(name) {
-			return this._callbacks[name] && this._callbacks[name].length !== 0 || false;
+			var _this$_callbacks$get;
+			return !!((_this$_callbacks$get = this._callbacks.get(name)) != null && _this$_callbacks$get.length);
 		};
 		return EventHandler;
 	}();

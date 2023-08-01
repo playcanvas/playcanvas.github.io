@@ -1701,71 +1701,76 @@
     OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
     PERFORMANCE OF THIS SOFTWARE.
     ***************************************************************************** */
-    /* global Reflect, Promise */
+    /* global Reflect, Promise, SuppressedError, Symbol */
 
     var extendStatics = function(d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
-        return extendStatics(d, b);
+      extendStatics = Object.setPrototypeOf ||
+          ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+          function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+      return extendStatics(d, b);
     };
 
     function __extends(d, b) {
-        if (typeof b !== "function" && b !== null)
-            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+      if (typeof b !== "function" && b !== null)
+          throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+      extendStatics(d, b);
+      function __() { this.constructor = d; }
+      d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     }
 
     var __assign = function() {
-        __assign = Object.assign || function __assign(t) {
-            for (var s, i = 1, n = arguments.length; i < n; i++) {
-                s = arguments[i];
-                for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
-            }
-            return t;
-        };
-        return __assign.apply(this, arguments);
+      __assign = Object.assign || function __assign(t) {
+          for (var s, i = 1, n = arguments.length; i < n; i++) {
+              s = arguments[i];
+              for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+          }
+          return t;
+      };
+      return __assign.apply(this, arguments);
     };
 
     function __awaiter(thisArg, _arguments, P, generator) {
-        function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-        return new (P || (P = Promise))(function (resolve, reject) {
-            function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-            function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-            function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-            step((generator = generator.apply(thisArg, _arguments || [])).next());
-        });
+      function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+      return new (P || (P = Promise))(function (resolve, reject) {
+          function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+          function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+          function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+          step((generator = generator.apply(thisArg, _arguments || [])).next());
+      });
     }
 
     function __generator(thisArg, body) {
-        var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-        return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-        function verb(n) { return function (v) { return step([n, v]); }; }
-        function step(op) {
-            if (f) throw new TypeError("Generator is already executing.");
-            while (_) try {
-                if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-                if (y = 0, t) op = [op[0] & 2, t.value];
-                switch (op[0]) {
-                    case 0: case 1: t = op; break;
-                    case 4: _.label++; return { value: op[1], done: false };
-                    case 5: _.label++; y = op[1]; op = [0]; continue;
-                    case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                    default:
-                        if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                        if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                        if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                        if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                        if (t[2]) _.ops.pop();
-                        _.trys.pop(); continue;
-                }
-                op = body.call(thisArg, _);
-            } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-            if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-        }
+      var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+      return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+      function verb(n) { return function (v) { return step([n, v]); }; }
+      function step(op) {
+          if (f) throw new TypeError("Generator is already executing.");
+          while (g && (g = 0, op[0] && (_ = 0)), _) try {
+              if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+              if (y = 0, t) op = [op[0] & 2, t.value];
+              switch (op[0]) {
+                  case 0: case 1: t = op; break;
+                  case 4: _.label++; return { value: op[1], done: false };
+                  case 5: _.label++; y = op[1]; op = [0]; continue;
+                  case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                  default:
+                      if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                      if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                      if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                      if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                      if (t[2]) _.ops.pop();
+                      _.trys.pop(); continue;
+              }
+              op = body.call(thisArg, _);
+          } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+          if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+      }
     }
+
+    typeof SuppressedError === "function" ? SuppressedError : function (error, suppressed, message) {
+      var e = new Error(message);
+      return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
+    };
 
     var ScriptLoader = /** @class */ (function (_super) {
         __extends(ScriptLoader, _super);
@@ -2933,7 +2938,6 @@
             var assets = {
                 'script1': new pc__namespace.Asset('script', 'script', { url: '/static/scripts/camera/orbit-camera.js' }),
                 'script2': new pc__namespace.Asset('script', 'script', { url: '/static/scripts/utils/cubemap-renderer.js' }),
-                'batmobile': new pc__namespace.Asset('batmobile', 'container', { url: '/static/assets/models/batmobile-armored.glb' }),
                 'normal': new pc__namespace.Asset('normal', 'texture', { url: '/static/assets/textures/normal-map.png' })
             };
             var gfxOptions = {
@@ -3100,22 +3104,17 @@
                     createPrimitive("box", new pc__namespace.Vec3(0, 400, -50), new pc__namespace.Vec3(800, 20, 20), emissiveMaterial);
                     // screen
                     createPrimitive("box", new pc__namespace.Vec3(0, 200, 400), new pc__namespace.Vec3(500, 250, 5), screenMaterial);
-                    // batmobile
-                    var batmobileEntity = assets.batmobile.resource.instantiateRenderEntity({
+                    // shiny sphere
+                    var sphereEntity = new pc__namespace.Entity();
+                    sphereEntity.addComponent("render", {
+                        type: "sphere",
+                        material: sphereMaterial,
                         castShadows: false,
                         receiveShadows: false
                     });
-                    batmobileEntity.setLocalScale(100, 100, 100);
-                    batmobileEntity.rotateLocal(0, 0, 90);
-                    app.root.addChild(batmobileEntity);
-                    // apply shiny material to it
-                    var renders = batmobileEntity.findComponents('render');
-                    renders.forEach(function (render) {
-                        for (var i = 0; i < render.meshInstances.length; i++) {
-                            var meshInstance = render.meshInstances[i];
-                            meshInstance.material = sphereMaterial;
-                        }
-                    });
+                    sphereEntity.setLocalScale(300, 300, 300);
+                    sphereEntity.setLocalPosition(0, 150, 0);
+                    app.root.addChild(sphereEntity);
                     // create an omni light white orbits the room to avoid it being completely dark
                     var lightOmni = new pc__namespace.Entity();
                     lightOmni.addComponent("light", {
@@ -4259,7 +4258,7 @@
                     React__default["default"].createElement(react.LabelGroup, { text: 'Intensity' },
                         React__default["default"].createElement(react.SliderInput, { binding: new react.BindingTwoWay(), link: { observer: data, path: 'script.area.intensity' }, min: 0.0, max: 32.0 })),
                     React__default["default"].createElement(react.LabelGroup, { text: 'Softness' },
-                        React__default["default"].createElement(react.SliderInput, { binding: new react.BindingTwoWay(), link: { observer: data, path: 'script.area.size' }, min: 0.1, max: 35.0 })),
+                        React__default["default"].createElement(react.SliderInput, { binding: new react.BindingTwoWay(), link: { observer: data, path: 'script.area.size' }, min: 0.01, max: 32.0 })),
                     React__default["default"].createElement(react.LabelGroup, { text: 'Shadows' },
                         React__default["default"].createElement(react.SelectInput, { binding: new react.BindingTwoWay(), link: { observer: data, path: 'script.area.shadowType' }, options: [{ v: pc__namespace.SHADOW_PCSS, t: 'PCSS' }, { v: pc__namespace.SHADOW_PCF5, t: 'PCF' }] }))),
                 React__default["default"].createElement(react.Panel, { headerText: 'Point light' },
@@ -4268,7 +4267,7 @@
                     React__default["default"].createElement(react.LabelGroup, { text: 'Intensity' },
                         React__default["default"].createElement(react.SliderInput, { binding: new react.BindingTwoWay(), link: { observer: data, path: 'script.point.intensity' }, min: 0.0, max: 32.0 })),
                     React__default["default"].createElement(react.LabelGroup, { text: 'Softness' },
-                        React__default["default"].createElement(react.SliderInput, { binding: new react.BindingTwoWay(), link: { observer: data, path: 'script.point.size' }, min: 0.1, max: 35.0 })),
+                        React__default["default"].createElement(react.SliderInput, { binding: new react.BindingTwoWay(), link: { observer: data, path: 'script.point.size' }, min: 0.01, max: 32.0 })),
                     React__default["default"].createElement(react.LabelGroup, { text: 'Shadows' },
                         React__default["default"].createElement(react.SelectInput, { binding: new react.BindingTwoWay(), link: { observer: data, path: 'script.point.shadowType' }, options: [{ v: pc__namespace.SHADOW_PCSS, t: 'PCSS' }, { v: pc__namespace.SHADOW_PCF5, t: 'PCF' }] }))),
                 React__default["default"].createElement(react.Panel, { headerText: 'Directional light' },
@@ -4277,7 +4276,7 @@
                     React__default["default"].createElement(react.LabelGroup, { text: 'Intensity' },
                         React__default["default"].createElement(react.SliderInput, { binding: new react.BindingTwoWay(), link: { observer: data, path: 'script.directional.intensity' }, min: 0.0, max: 32.0 })),
                     React__default["default"].createElement(react.LabelGroup, { text: 'Softness' },
-                        React__default["default"].createElement(react.SliderInput, { binding: new react.BindingTwoWay(), link: { observer: data, path: 'script.directional.size' }, min: 0.1, max: 35.0 })),
+                        React__default["default"].createElement(react.SliderInput, { binding: new react.BindingTwoWay(), link: { observer: data, path: 'script.directional.size' }, min: 0.01, max: 32.0 })),
                     React__default["default"].createElement(react.LabelGroup, { text: 'Shadows' },
                         React__default["default"].createElement(react.SelectInput, { binding: new react.BindingTwoWay(), link: { observer: data, path: 'script.directional.shadowType' }, options: [{ v: pc__namespace.SHADOW_PCSS, t: 'PCSS' }, { v: pc__namespace.SHADOW_PCF5, t: 'PCF' }] }))),
                 React__default["default"].createElement(react.Panel, { headerText: 'Animate' },
@@ -4296,10 +4295,10 @@
             function demo() {
                 var assets = {
                     orbitCamera: new pc__namespace.Asset('script', 'script', { url: '/static/scripts/camera/orbit-camera.js' }),
-                    helipad: new pc__namespace.Asset('helipad-env-atlas', 'texture', { url: '/static/assets/cubemaps/helipad-env-atlas.png' }, { type: pc__namespace.TEXTURETYPE_RGBP }),
+                    helipad: new pc__namespace.Asset('helipad-env-atlas', 'texture', { url: '/static/assets/cubemaps/helipad-env-atlas.png' }, { type: pc__namespace.TEXTURETYPE_RGBP, mipmaps: false }),
                     cube: new pc__namespace.Asset('cube', 'container', { url: '/static/assets/models/playcanvas-cube.glb' }),
                     luts: new pc__namespace.Asset('luts', 'json', { url: '/static/assets/json/area-light-luts.json' }),
-                    asset: new pc__namespace.Asset('asset', 'container', { url: '/static/assets/models/old_tree.glb' })
+                    asset: new pc__namespace.Asset('asset', 'container', { url: '/static/assets/models/robot-arm.glb' })
                 };
                 var gfxOptions = {
                     deviceTypes: [deviceType],
@@ -4320,7 +4319,9 @@
                         // @ts-ignore
                         pc__namespace.LightComponentSystem,
                         // @ts-ignore
-                        pc__namespace.ScriptComponentSystem
+                        pc__namespace.ScriptComponentSystem,
+                        // @ts-ignore
+                        pc__namespace.AnimComponentSystem
                     ];
                     createOptions.resourceHandlers = [
                         // @ts-ignore
@@ -4330,7 +4331,11 @@
                         // @ts-ignore
                         pc__namespace.ScriptHandler,
                         // @ts-ignore
-                        pc__namespace.JsonHandler
+                        pc__namespace.JsonHandler,
+                        // @ts-ignore
+                        pc__namespace.AnimClipHandler,
+                        // @ts-ignore
+                        pc__namespace.AnimStateGraphHandler
                     ];
                     var app = new pc__namespace.AppBase(canvas);
                     app.init(createOptions);
@@ -4362,7 +4367,7 @@
                             material: planeMaterial
                         });
                         plane.setLocalScale(new pc__namespace.Vec3(100, 0, 100));
-                        plane.setLocalPosition(0, -1.0, 0);
+                        plane.setLocalPosition(0, 0, 0);
                         app.root.addChild(plane);
                         data.set('script', {
                             cycle: true,
@@ -4370,24 +4375,32 @@
                             area: {
                                 enabled: true,
                                 intensity: 16.0,
-                                size: 8,
+                                size: 2,
                                 shadowType: pc__namespace.SHADOW_PCSS
                             },
                             point: {
                                 enabled: true,
                                 intensity: 4.0,
-                                size: 8,
+                                size: 2,
                                 shadowType: pc__namespace.SHADOW_PCSS
                             },
                             directional: {
                                 enabled: true,
                                 intensity: 2.0,
-                                size: 20,
+                                size: 1,
                                 shadowType: pc__namespace.SHADOW_PCSS
                             }
                         });
                         var occluder = assets.asset.resource.instantiateRenderEntity();
+                        occluder.addComponent('anim', {
+                            activate: true
+                        });
+                        occluder.setLocalScale(3, 3, 3);
                         app.root.addChild(occluder);
+                        occluder.anim.assignAnimation('Idle', assets.asset.resource.animations[0].resource);
+                        occluder.anim.baseLayer.weight = 1.0;
+                        occluder.anim.speed = 0.1;
+                        //const animLayer = occluder.anim.addLayer('Idle', 1.0, )
                         app.scene.envAtlas = assets.helipad.resource;
                         var areaLight = new pc__namespace.Entity();
                         areaLight.addComponent("light", {
@@ -4437,7 +4450,7 @@
                             shadowBias: 0.5,
                             shadowDistance: 50,
                             normalOffsetBias: 0.1,
-                            shadowResolution: 2048
+                            shadowResolution: 8192
                         });
                         directionalLight.setEulerAngles(65, 35, 0);
                         app.root.addChild(directionalLight);
@@ -4552,14 +4565,18 @@
                                 areaLight.enabled = index === 0;
                                 directionalLight.enabled = index === 1;
                                 lightOmni.enabled = index === 2;
-                                areaLightElement.ui.enabled = false;
-                                pointLightElement.ui.enabled = false;
-                                directionalLightElement.ui.enabled = false;
+                                if (areaLightElement) {
+                                    areaLightElement.ui.enabled = false;
+                                    pointLightElement.ui.enabled = false;
+                                    directionalLightElement.ui.enabled = false;
+                                }
                             }
                             else {
-                                areaLightElement.ui.enabled = true;
-                                pointLightElement.ui.enabled = true;
-                                directionalLightElement.ui.enabled = true;
+                                if (areaLightElement) {
+                                    areaLightElement.ui.enabled = true;
+                                    pointLightElement.ui.enabled = true;
+                                    directionalLightElement.ui.enabled = true;
+                                }
                                 areaLight.enabled = data.get('script.area.enabled');
                                 directionalLight.enabled = data.get('script.directional.enabled');
                                 lightOmni.enabled = data.get('script.point.enabled');
@@ -4750,8 +4767,6 @@
                 deviceTypes: [deviceType],
                 glslangUrl: '/static/lib/glslang/glslang.js',
                 twgslUrl: '/static/lib/twgsl/twgsl.js',
-                // WebGPU does not currently support antialiased depth resolve, disable it till we implement a shader resolve solution
-                antialias: false
             };
             pc__namespace.createGraphicsDevice(canvas, gfxOptions).then(function (device) {
                 var createOptions = new pc__namespace.AppOptions();
@@ -4947,10 +4962,6 @@
                     camera.translate(0, 0, 10);
                     // create standard material and enable instancing on it
                     var material = new pc__namespace.StandardMaterial();
-                    material.onUpdateShader = function (options) {
-                        options.litOptions.useInstancing = true;
-                        return options;
-                    };
                     material.gloss = 0.6;
                     material.metalness = 0.7;
                     material.useMetalness = true;
@@ -7886,6 +7897,7 @@
         };
         ModelOutlineExample.CATEGORY = 'Graphics';
         ModelOutlineExample.NAME = 'Model Outline';
+        ModelOutlineExample.WEBGPU_ENABLED = true;
         return ModelOutlineExample;
     }());
 
@@ -8228,7 +8240,7 @@
                         name: "MRT",
                         colorBuffers: colorBuffers,
                         depth: true,
-                        flipY: true,
+                        flipY: !app.graphicsDevice.isWebGPU,
                         samples: 2
                     });
                     // Create texture camera, which renders entities in RTLayer into the texture
@@ -8294,7 +8306,7 @@
         MrtExample.FILES = {
             // shader chunk which outputs to multiple render targets
             // Note: gl_FragColor is not modified, and so the forward pass output is used for target 0
-            'output.frag': /* glsl */ "\n            #ifdef MYMRT_PASS\n                // output world normal to target 1\n                pcFragColor1 = vec4(litShaderArgs.worldNormal * 0.5 + 0.5, 1.0);\n\n                // output gloss to target 2\n                pcFragColor2 = vec4(vec3(litShaderArgs.gloss) , 1.0);\n            #endif\n        "
+            'output.frag': /* glsl */ "\n            #ifdef MYMRT_PASS\n                // output world normal to target 1\n                pcFragColor1 = vec4(litArgs_worldNormal * 0.5 + 0.5, 1.0);\n\n                // output gloss to target 2\n                pcFragColor2 = vec4(vec3(litArgs_gloss) , 1.0);\n            #endif\n        "
         };
         return MrtExample;
     }());
@@ -10332,7 +10344,7 @@
                         name: "RT",
                         colorBuffer: texture,
                         depth: true,
-                        flipY: true,
+                        flipY: !app.graphicsDevice.isWebGPU,
                         samples: 2
                     });
                     // create a layer for object that do not render into texture, add it right after the world layer
@@ -10434,6 +10446,9 @@
                                 textureCamera.camera.orthoHeight = 5;
                             }
                         }
+                        // debug draw the texture on the screen in the excludedLayer layer of the main camera
+                        // @ts-ignore engine-tsd
+                        app.drawTexture(0.7, -0.7, 0.5, 0.5, texture, null, excludedLayer);
                     });
                 });
             });
@@ -10563,8 +10578,6 @@
         ShaderCompileExample.prototype.example = function (canvas, deviceType) {
             // This example servers as a test framework for large shader compilation speed test. Enable tracking for it.
             pc__namespace.Tracing.set(pc__namespace.TRACEID_SHADER_COMPILE, true);
-            // Create the app and start the update loop
-            var app = new pc__namespace.Application(canvas, {});
             var assets = {
                 'color': new pc__namespace.Asset('color', 'texture', { url: '/static/assets/textures/seaside-rocks01-color.jpg' }),
                 'normal': new pc__namespace.Asset('normal', 'texture', { url: '/static/assets/textures/seaside-rocks01-normal.jpg' }),
@@ -10572,111 +10585,145 @@
                 'luts': new pc__namespace.Asset('luts', 'json', { url: '/static/assets/json/area-light-luts.json' }),
                 helipad: new pc__namespace.Asset('helipad-env-atlas', 'texture', { url: '/static/assets/cubemaps/helipad-env-atlas.png' }, { type: pc__namespace.TEXTURETYPE_RGBP, mipmaps: false }),
             };
-            var assetListLoader = new pc__namespace.AssetListLoader(Object.values(assets), app.assets);
-            assetListLoader.load(function () {
-                // helper function to create a primitive with shape type, position, scale, color
-                function createPrimitive(primitiveType, position, scale, color, assetManifest, id) {
-                    if (id === void 0) { id = false; }
-                    // create material of specified color
-                    var material = new pc__namespace.StandardMaterial();
-                    material.diffuse = color;
-                    material.gloss = 0.4;
-                    material.useMetalness = true;
-                    material.diffuseMap = assetManifest.color.resource;
-                    material.normalMap = assetManifest.normal.resource;
-                    material.glossMap = assetManifest.gloss.resource;
-                    material.metalness = 0.4;
-                    material.diffuseMapTiling.set(7, 7);
-                    material.normalMapTiling.set(7, 7);
-                    material.glossMapTiling.set(7, 7);
-                    // do a small update to a chunk to generate unique shader each time, to avoid any shader compilation caching
-                    if (id) {
-                        material.chunks.viewDirPS = "\n                        void getViewDir() {\n                            dViewDirW = normalize(view_position - vPositionW);\n                            dViewDirW.x += 0.00001 * ".concat(Math.random(), ";\n                        }\n                    ");
+            var gfxOptions = {
+                deviceTypes: [deviceType],
+                glslangUrl: '/static/lib/glslang/glslang.js',
+                twgslUrl: '/static/lib/twgsl/twgsl.js'
+            };
+            pc__namespace.createGraphicsDevice(canvas, gfxOptions).then(function (device) {
+                var createOptions = new pc__namespace.AppOptions();
+                createOptions.graphicsDevice = device;
+                createOptions.mouse = new pc__namespace.Mouse(document.body);
+                createOptions.touch = new pc__namespace.TouchDevice(document.body);
+                createOptions.keyboard = new pc__namespace.Keyboard(document.body);
+                createOptions.componentSystems = [
+                    // @ts-ignore
+                    pc__namespace.RenderComponentSystem,
+                    // @ts-ignore
+                    pc__namespace.CameraComponentSystem,
+                    // @ts-ignore
+                    pc__namespace.LightComponentSystem
+                ];
+                createOptions.resourceHandlers = [
+                    // @ts-ignore
+                    pc__namespace.TextureHandler,
+                    // @ts-ignore
+                    pc__namespace.ContainerHandler,
+                    // @ts-ignore
+                    pc__namespace.JsonHandler
+                ];
+                var app = new pc__namespace.AppBase(canvas);
+                app.init(createOptions);
+                // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
+                app.setCanvasFillMode(pc__namespace.FILLMODE_FILL_WINDOW);
+                app.setCanvasResolution(pc__namespace.RESOLUTION_AUTO);
+                var assetListLoader = new pc__namespace.AssetListLoader(Object.values(assets), app.assets);
+                assetListLoader.load(function () {
+                    app.start();
+                    // helper function to create a primitive with shape type, position, scale, color
+                    function createPrimitive(primitiveType, position, scale, color, assetManifest, id) {
+                        if (id === void 0) { id = false; }
+                        // create material of specified color
+                        var material = new pc__namespace.StandardMaterial();
+                        material.diffuse = color;
+                        material.gloss = 0.4;
+                        material.useMetalness = true;
+                        material.diffuseMap = assetManifest.color.resource;
+                        material.normalMap = assetManifest.normal.resource;
+                        material.glossMap = assetManifest.gloss.resource;
+                        material.metalness = 0.4;
+                        material.diffuseMapTiling.set(7, 7);
+                        material.normalMapTiling.set(7, 7);
+                        material.glossMapTiling.set(7, 7);
+                        // do a small update to a chunk to generate unique shader each time, to avoid any shader compilation caching
+                        if (id) {
+                            material.chunks.viewDirPS = "\n                            void getViewDir() {\n                                dViewDirW = normalize(view_position - vPositionW);\n                                dViewDirW.x += 0.00001 * ".concat(Math.random(), ";\n                            }\n                        ");
+                        }
+                        material.update();
+                        // create primitive
+                        var primitive = new pc__namespace.Entity();
+                        primitive.addComponent('render', {
+                            type: primitiveType,
+                            material: material
+                        });
+                        // set position and scale and add it to scene
+                        primitive.setLocalPosition(position);
+                        primitive.setLocalScale(scale);
+                        app.root.addChild(primitive);
+                        return primitive;
                     }
-                    material.update();
-                    // create primitive
-                    var primitive = new pc__namespace.Entity();
-                    primitive.addComponent('render', {
-                        type: primitiveType,
-                        material: material
+                    // enable area lights which are disabled by default for clustered lighting
+                    app.scene.lighting.areaLightsEnabled = true;
+                    // set the loaded area light LUT data
+                    var luts = assets.luts.resource;
+                    app.setAreaLightLuts(luts.LTC_MAT_1, luts.LTC_MAT_2);
+                    // set up some general scene rendering properties
+                    app.scene.toneMapping = pc__namespace.TONEMAP_ACES;
+                    // setup skydome
+                    app.scene.skyboxMip = 1;
+                    app.scene.skyboxIntensity = 0.7;
+                    app.scene.envAtlas = assets.helipad.resource;
+                    // create ground plane
+                    createPrimitive("plane", new pc__namespace.Vec3(0, 0, 0), new pc__namespace.Vec3(20, 20, 20), new pc__namespace.Color(0.3, 0.3, 0.3), assets);
+                    // Create the camera, which renders entities
+                    var camera = new pc__namespace.Entity();
+                    camera.addComponent("camera", {
+                        clearColor: new pc__namespace.Color(0.2, 0.2, 0.2),
+                        fov: 60,
+                        farClip: 100000
                     });
-                    // set position and scale and add it to scene
-                    primitive.setLocalPosition(position);
-                    primitive.setLocalScale(scale);
-                    app.root.addChild(primitive);
-                    return primitive;
-                }
-                app.start();
-                // enable area lights which are disabled by default for clustered lighting
-                app.scene.lighting.areaLightsEnabled = true;
-                // set the loaded area light LUT data
-                var luts = assets.luts.resource;
-                app.setAreaLightLuts(luts.LTC_MAT_1, luts.LTC_MAT_2);
-                // set up some general scene rendering properties
-                app.scene.toneMapping = pc__namespace.TONEMAP_ACES;
-                // setup skydome
-                app.scene.skyboxMip = 1;
-                app.scene.skyboxIntensity = 0.7;
-                app.scene.envAtlas = assets.helipad.resource;
-                // create ground plane
-                createPrimitive("plane", new pc__namespace.Vec3(0, 0, 0), new pc__namespace.Vec3(20, 20, 20), new pc__namespace.Color(0.3, 0.3, 0.3), assets);
-                // Create the camera, which renders entities
-                var camera = new pc__namespace.Entity();
-                camera.addComponent("camera", {
-                    clearColor: new pc__namespace.Color(0.2, 0.2, 0.2),
-                    fov: 60,
-                    farClip: 100000
-                });
-                app.root.addChild(camera);
-                camera.setLocalPosition(0, 15, 40);
-                camera.lookAt(0, 0, 0);
-                // generate a grid of spheres, each with a unique material / shader
-                for (var x = -10; x <= 10; x += 6) {
-                    for (var y = -10; y <= 10; y += 6) {
-                        var pos = new pc__namespace.Vec3(x, 0.6, y);
-                        var color = new pc__namespace.Color(0.3 + Math.random() * 0.7, 0.3 + Math.random() * 0.7, 0.3 + Math.random() * 0.7);
-                        createPrimitive("sphere", pos, new pc__namespace.Vec3(1, 1, 1), color, assets, true);
+                    app.root.addChild(camera);
+                    camera.setLocalPosition(0, 15, 40);
+                    camera.lookAt(0, 0, 0);
+                    // generate a grid of spheres, each with a unique material / shader
+                    for (var x = -10; x <= 10; x += 6) {
+                        for (var y = -10; y <= 10; y += 6) {
+                            var pos = new pc__namespace.Vec3(x, 0.6, y);
+                            var color = new pc__namespace.Color(0.3 + Math.random() * 0.7, 0.3 + Math.random() * 0.7, 0.3 + Math.random() * 0.7);
+                            createPrimitive("sphere", pos, new pc__namespace.Vec3(1, 1, 1), color, assets, true);
+                        }
                     }
-                }
-                // create some omni lights
-                var count = 10;
-                var lights = [];
-                for (var i = 0; i < count; i++) {
-                    var color = new pc__namespace.Color(Math.random(), Math.random(), Math.random(), 1);
-                    var light = new pc__namespace.Entity();
-                    light.addComponent("light", {
-                        type: "spot",
-                        color: color,
-                        intensity: 4,
-                        range: 16,
-                        castShadows: false
-                    });
-                    // attach a render component with a small cone to each light
-                    var material = new pc__namespace.StandardMaterial();
-                    material.emissive = color;
-                    material.update();
-                    light.addComponent('render', {
-                        type: "sphere",
-                        material: material
-                    });
-                    light.setLocalScale(0.5, 0.5, 0.5);
-                    app.root.addChild(light);
-                    lights.push(light);
-                }
-                // update things each frame
-                var time = 0;
-                app.on("update", function (dt) {
-                    time += dt;
-                    // orbit spot lights around
-                    lights.forEach(function (light, i) {
-                        var angle = (i / lights.length) * Math.PI * 2;
-                        light.setLocalPosition(8 * Math.sin(time + angle), 4, 8 * Math.cos(time + angle));
+                    // create some omni lights
+                    var count = 10;
+                    var lights = [];
+                    for (var i = 0; i < count; i++) {
+                        var color = new pc__namespace.Color(Math.random(), Math.random(), Math.random(), 1);
+                        var light = new pc__namespace.Entity();
+                        light.addComponent("light", {
+                            type: "spot",
+                            color: color,
+                            intensity: 4,
+                            range: 16,
+                            castShadows: false
+                        });
+                        // attach a render component with a small cone to each light
+                        var material = new pc__namespace.StandardMaterial();
+                        material.emissive = color;
+                        material.update();
+                        light.addComponent('render', {
+                            type: "sphere",
+                            material: material
+                        });
+                        light.setLocalScale(0.5, 0.5, 0.5);
+                        app.root.addChild(light);
+                        lights.push(light);
+                    }
+                    // update things each frame
+                    var time = 0;
+                    app.on("update", function (dt) {
+                        time += dt;
+                        // orbit spot lights around
+                        lights.forEach(function (light, i) {
+                            var angle = (i / lights.length) * Math.PI * 2;
+                            light.setLocalPosition(8 * Math.sin(time + angle), 4, 8 * Math.cos(time + angle));
+                        });
                     });
                 });
             });
         };
         ShaderCompileExample.CATEGORY = 'Graphics';
         ShaderCompileExample.NAME = 'Shader Compile';
+        ShaderCompileExample.WEBGPU_ENABLED = true;
         return ShaderCompileExample;
     }());
 
