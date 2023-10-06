@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.65.0 revision 14701d67f
+ * PlayCanvas Engine v1.66.0 revision e8f1b2869
  * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
  */
 (function (global, factory) {
@@ -90,6 +90,169 @@
 	  return typeof key === "symbol" ? key : String(key);
 	}
 
+	var Tracing = function () {
+		function Tracing() {}
+		Tracing.set = function set(channel, enabled) {
+			if (enabled === void 0) {
+				enabled = true;
+			}
+			if (enabled) {
+				Tracing._traceChannels.add(channel);
+			} else {
+				Tracing._traceChannels.delete(channel);
+			}
+		};
+		Tracing.get = function get(channel) {
+			return Tracing._traceChannels.has(channel);
+		};
+		return Tracing;
+	}();
+	Tracing._traceChannels = new Set();
+	Tracing.stack = false;
+
+	var Debug = function () {
+		function Debug() {}
+		Debug.deprecated = function deprecated(message) {
+			if (!Debug._loggedMessages.has(message)) {
+				Debug._loggedMessages.add(message);
+				console.warn('DEPRECATED: ' + message);
+			}
+		};
+		Debug.assertDeprecated = function assertDeprecated(assertion, message) {
+			if (!assertion) {
+				Debug.deprecated(message);
+			}
+		};
+		Debug.assert = function assert(assertion) {
+			if (!assertion) {
+				var _console;
+				for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+					args[_key - 1] = arguments[_key];
+				}
+				(_console = console).error.apply(_console, ['ASSERT FAILED: '].concat(args));
+			}
+		};
+		Debug.assertDestroyed = function assertDestroyed(object) {
+			if (object != null && object.__alreadyDestroyed) {
+				var _object$constructor;
+				var message = "[" + ((_object$constructor = object.constructor) == null ? void 0 : _object$constructor.name) + "] with name [" + object.name + "] has already been destroyed, and cannot be used.";
+				if (!Debug._loggedMessages.has(message)) {
+					Debug._loggedMessages.add(message);
+					console.error('ASSERT FAILED: ', message, object);
+				}
+			}
+		};
+		Debug.call = function call(func) {
+			func();
+		};
+		Debug.log = function log() {
+			var _console2;
+			(_console2 = console).log.apply(_console2, arguments);
+		};
+		Debug.logOnce = function logOnce(message) {
+			if (!Debug._loggedMessages.has(message)) {
+				var _console3;
+				Debug._loggedMessages.add(message);
+				for (var _len2 = arguments.length, args = new Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+					args[_key2 - 1] = arguments[_key2];
+				}
+				(_console3 = console).log.apply(_console3, [message].concat(args));
+			}
+		};
+		Debug.warn = function warn() {
+			var _console4;
+			(_console4 = console).warn.apply(_console4, arguments);
+		};
+		Debug.warnOnce = function warnOnce(message) {
+			if (!Debug._loggedMessages.has(message)) {
+				var _console5;
+				Debug._loggedMessages.add(message);
+				for (var _len3 = arguments.length, args = new Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
+					args[_key3 - 1] = arguments[_key3];
+				}
+				(_console5 = console).warn.apply(_console5, [message].concat(args));
+			}
+		};
+		Debug.error = function error() {
+			var _console6;
+			(_console6 = console).error.apply(_console6, arguments);
+		};
+		Debug.errorOnce = function errorOnce(message) {
+			if (!Debug._loggedMessages.has(message)) {
+				var _console7;
+				Debug._loggedMessages.add(message);
+				for (var _len4 = arguments.length, args = new Array(_len4 > 1 ? _len4 - 1 : 0), _key4 = 1; _key4 < _len4; _key4++) {
+					args[_key4 - 1] = arguments[_key4];
+				}
+				(_console7 = console).error.apply(_console7, [message].concat(args));
+			}
+		};
+		Debug.trace = function trace(channel) {
+			if (Tracing.get(channel)) {
+				var _console8;
+				for (var _len5 = arguments.length, args = new Array(_len5 > 1 ? _len5 - 1 : 0), _key5 = 1; _key5 < _len5; _key5++) {
+					args[_key5 - 1] = arguments[_key5];
+				}
+				(_console8 = console).groupCollapsed.apply(_console8, [channel.padEnd(20, ' ') + "|"].concat(args));
+				if (Tracing.stack) {
+					console.trace();
+				}
+				console.groupEnd();
+			}
+		};
+		return Debug;
+	}();
+	Debug._loggedMessages = new Set();
+
+	var EventHandle = function () {
+		function EventHandle(handler, name, callback, scope, once) {
+			if (once === void 0) {
+				once = false;
+			}
+			this.handler = void 0;
+			this.name = void 0;
+			this.callback = void 0;
+			this.scope = void 0;
+			this._once = void 0;
+			this._removed = false;
+			this.handler = handler;
+			this.name = name;
+			this.callback = callback;
+			this.scope = scope;
+			this._once = once;
+		}
+		var _proto = EventHandle.prototype;
+		_proto.off = function off() {
+			if (this._removed) return;
+			this.handler.off(this.name, this.callback, this.scope);
+		};
+		_proto.on = function on(name, callback, scope) {
+			if (scope === void 0) {
+				scope = this;
+			}
+			Debug.deprecated('Using chaining with EventHandler.on is deprecated, subscribe to an event from EventHandler directly instead.');
+			return this.handler._addCallback(name, callback, scope, false);
+		};
+		_proto.once = function once(name, callback, scope) {
+			if (scope === void 0) {
+				scope = this;
+			}
+			Debug.deprecated('Using chaning with EventHandler.once is deprecated, subscribe to an event from EventHandler directly instead.');
+			return this.handler._addCallback(name, callback, scope, true);
+		};
+		_createClass(EventHandle, [{
+			key: "removed",
+			get: function get() {
+				return this._removed;
+			},
+			set: function set(value) {
+				if (!value) return;
+				this._removed = true;
+			}
+		}]);
+		return EventHandle;
+	}();
+
 	var EventHandler = function () {
 		function EventHandler() {
 			this._callbacks = new Map();
@@ -101,7 +264,7 @@
 			this._callbackActive = new Map();
 		};
 		_proto._addCallback = function _addCallback(name, callback, scope, once) {
-			if (!name || typeof name !== 'string' || !callback) return;
+			if (!name || typeof name !== 'string' || !callback) console.warn("EventHandler: subscribing to an event (" + name + ") with missing arguments", callback);
 			if (!this._callbacks.has(name)) this._callbacks.set(name, []);
 			if (this._callbackActive.has(name)) {
 				var callbackActive = this._callbackActive.get(name);
@@ -109,25 +272,21 @@
 					this._callbackActive.set(name, callbackActive.slice());
 				}
 			}
-			this._callbacks.get(name).push({
-				callback: callback,
-				scope: scope,
-				once: once
-			});
+			var evt = new EventHandle(this, name, callback, scope, once);
+			this._callbacks.get(name).push(evt);
+			return evt;
 		};
 		_proto.on = function on(name, callback, scope) {
 			if (scope === void 0) {
 				scope = this;
 			}
-			this._addCallback(name, callback, scope, false);
-			return this;
+			return this._addCallback(name, callback, scope, false);
 		};
 		_proto.once = function once(name, callback, scope) {
 			if (scope === void 0) {
 				scope = this;
 			}
-			this._addCallback(name, callback, scope, true);
-			return this;
+			return this._addCallback(name, callback, scope, true);
 		};
 		_proto.off = function off(name, callback, scope) {
 			if (name) {
@@ -143,20 +302,32 @@
 				}
 			}
 			if (!name) {
+				for (var _iterator2 = _createForOfIteratorHelperLoose(this._callbacks.values()), _step2; !(_step2 = _iterator2()).done;) {
+					var _callbacks = _step2.value;
+					for (var i = 0; i < _callbacks.length; i++) {
+						_callbacks[i].removed = true;
+					}
+				}
 				this._callbacks.clear();
 			} else if (!callback) {
-				if (this._callbacks.has(name)) this._callbacks.delete(name);
-			} else {
-				var events = this._callbacks.get(name);
-				if (!events) return this;
-				var count = events.length;
-				for (var i = 0; i < count; i++) {
-					if (events[i].callback !== callback) continue;
-					if (scope && events[i].scope !== scope) continue;
-					events[i--] = events[--count];
+				var _callbacks2 = this._callbacks.get(name);
+				if (_callbacks2) {
+					for (var _i = 0; _i < _callbacks2.length; _i++) {
+						_callbacks2[_i].removed = true;
+					}
+					this._callbacks.delete(name);
 				}
-				events.length = count;
-				if (events.length === 0) this._callbacks.delete(name);
+			} else {
+				var _callbacks3 = this._callbacks.get(name);
+				if (!_callbacks3) return this;
+				for (var _i2 = 0; _i2 < _callbacks3.length; _i2++) {
+					if (_callbacks3[_i2].callback !== callback) continue;
+					if (scope && _callbacks3[_i2].scope !== scope) continue;
+					_callbacks3[_i2].removed = true;
+					_callbacks3.splice(_i2, 1);
+					_i2--;
+				}
+				if (_callbacks3.length === 0) this._callbacks.delete(name);
 			}
 			return this;
 		};
@@ -172,16 +343,18 @@
 			}
 			for (var i = 0; (callbacks || this._callbackActive.get(name)) && i < (callbacks || this._callbackActive.get(name)).length; i++) {
 				var evt = (callbacks || this._callbackActive.get(name))[i];
+				if (!evt.callback) continue;
 				evt.callback.call(evt.scope, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
-				if (evt.once) {
+				if (evt._once) {
 					var existingCallback = this._callbacks.get(name);
 					var ind = existingCallback ? existingCallback.indexOf(evt) : -1;
 					if (ind !== -1) {
 						if (this._callbackActive.get(name) === existingCallback) this._callbackActive.set(name, this._callbackActive.get(name).slice());
-						var _callbacks = this._callbacks.get(name);
-						if (!_callbacks) continue;
-						_callbacks.splice(ind, 1);
-						if (_callbacks.length === 0) this._callbacks.delete(name);
+						var _callbacks4 = this._callbacks.get(name);
+						if (!_callbacks4) continue;
+						_callbacks4[ind].removed = true;
+						_callbacks4.splice(ind, 1);
+						if (_callbacks4.length === 0) this._callbacks.delete(name);
 					}
 				}
 			}
@@ -352,6 +525,7 @@
 		}
 	};
 
+	var _class$3;
 	var Color = function () {
 		function Color(r, g, b, a) {
 			if (r === void 0) {
@@ -441,16 +615,18 @@
 		};
 		return Color;
 	}();
-	Color.BLACK = Object.freeze(new Color(0, 0, 0, 1));
-	Color.BLUE = Object.freeze(new Color(0, 0, 1, 1));
-	Color.CYAN = Object.freeze(new Color(0, 1, 1, 1));
-	Color.GRAY = Object.freeze(new Color(0.5, 0.5, 0.5, 1));
-	Color.GREEN = Object.freeze(new Color(0, 1, 0, 1));
-	Color.MAGENTA = Object.freeze(new Color(1, 0, 1, 1));
-	Color.RED = Object.freeze(new Color(1, 0, 0, 1));
-	Color.WHITE = Object.freeze(new Color(1, 1, 1, 1));
-	Color.YELLOW = Object.freeze(new Color(1, 1, 0, 1));
+	_class$3 = Color;
+	Color.BLACK = Object.freeze(new _class$3(0, 0, 0, 1));
+	Color.BLUE = Object.freeze(new _class$3(0, 0, 1, 1));
+	Color.CYAN = Object.freeze(new _class$3(0, 1, 1, 1));
+	Color.GRAY = Object.freeze(new _class$3(0.5, 0.5, 0.5, 1));
+	Color.GREEN = Object.freeze(new _class$3(0, 1, 0, 1));
+	Color.MAGENTA = Object.freeze(new _class$3(1, 0, 1, 1));
+	Color.RED = Object.freeze(new _class$3(1, 0, 0, 1));
+	Color.WHITE = Object.freeze(new _class$3(1, 1, 1, 1));
+	Color.YELLOW = Object.freeze(new _class$3(1, 1, 0, 1));
 
+	var _class$2;
 	var Vec2 = function () {
 		function Vec2(x, y) {
 			if (x === void 0) {
@@ -483,6 +659,11 @@
 		_proto.addScalar = function addScalar(scalar) {
 			this.x += scalar;
 			this.y += scalar;
+			return this;
+		};
+		_proto.addScaled = function addScaled(rhs, scalar) {
+			this.x += rhs.x * scalar;
+			this.y += rhs.y * scalar;
 			return this;
 		};
 		_proto.clone = function clone() {
@@ -523,6 +704,12 @@
 		_proto.equals = function equals(rhs) {
 			return this.x === rhs.x && this.y === rhs.y;
 		};
+		_proto.equalsApprox = function equalsApprox(rhs, epsilon) {
+			if (epsilon === void 0) {
+				epsilon = 1e-6;
+			}
+			return Math.abs(this.x - rhs.x) < epsilon && Math.abs(this.y - rhs.y) < epsilon;
+		};
 		_proto.length = function length() {
 			return Math.sqrt(this.x * this.x + this.y * this.y);
 		};
@@ -549,28 +736,53 @@
 			this.y *= scalar;
 			return this;
 		};
-		_proto.normalize = function normalize() {
-			var lengthSq = this.x * this.x + this.y * this.y;
+		_proto.normalize = function normalize(src) {
+			if (src === void 0) {
+				src = this;
+			}
+			var lengthSq = src.x * src.x + src.y * src.y;
 			if (lengthSq > 0) {
 				var invLength = 1 / Math.sqrt(lengthSq);
-				this.x *= invLength;
-				this.y *= invLength;
+				this.x = src.x * invLength;
+				this.y = src.y * invLength;
 			}
 			return this;
 		};
-		_proto.floor = function floor() {
-			this.x = Math.floor(this.x);
-			this.y = Math.floor(this.y);
+		_proto.rotate = function rotate(degrees) {
+			var angle = Math.atan2(this.x, this.y) + degrees * math.DEG_TO_RAD;
+			var len = Math.sqrt(this.x * this.x + this.y * this.y);
+			this.x = Math.sin(angle) * len;
+			this.y = Math.cos(angle) * len;
 			return this;
 		};
-		_proto.ceil = function ceil() {
-			this.x = Math.ceil(this.x);
-			this.y = Math.ceil(this.y);
+		_proto.angle = function angle() {
+			return Math.atan2(this.x, this.y) * math.RAD_TO_DEG;
+		};
+		_proto.angleTo = function angleTo(rhs) {
+			return Math.atan2(this.x * rhs.y + this.y * rhs.x, this.x * rhs.x + this.y * rhs.y) * math.RAD_TO_DEG;
+		};
+		_proto.floor = function floor(src) {
+			if (src === void 0) {
+				src = this;
+			}
+			this.x = Math.floor(src.x);
+			this.y = Math.floor(src.y);
 			return this;
 		};
-		_proto.round = function round() {
-			this.x = Math.round(this.x);
-			this.y = Math.round(this.y);
+		_proto.ceil = function ceil(src) {
+			if (src === void 0) {
+				src = this;
+			}
+			this.x = Math.ceil(src.x);
+			this.y = Math.ceil(src.y);
+			return this;
+		};
+		_proto.round = function round(src) {
+			if (src === void 0) {
+				src = this;
+			}
+			this.x = Math.round(src.x);
+			this.y = Math.round(src.y);
 			return this;
 		};
 		_proto.min = function min(rhs) {
@@ -611,13 +823,15 @@
 		};
 		return Vec2;
 	}();
-	Vec2.ZERO = Object.freeze(new Vec2(0, 0));
-	Vec2.ONE = Object.freeze(new Vec2(1, 1));
-	Vec2.UP = Object.freeze(new Vec2(0, 1));
-	Vec2.DOWN = Object.freeze(new Vec2(0, -1));
-	Vec2.RIGHT = Object.freeze(new Vec2(1, 0));
-	Vec2.LEFT = Object.freeze(new Vec2(-1, 0));
+	_class$2 = Vec2;
+	Vec2.ZERO = Object.freeze(new _class$2(0, 0));
+	Vec2.ONE = Object.freeze(new _class$2(1, 1));
+	Vec2.UP = Object.freeze(new _class$2(0, 1));
+	Vec2.DOWN = Object.freeze(new _class$2(0, -1));
+	Vec2.RIGHT = Object.freeze(new _class$2(1, 0));
+	Vec2.LEFT = Object.freeze(new _class$2(-1, 0));
 
+	var _class$1;
 	var Vec3 = function () {
 		function Vec3(x, y, z) {
 			if (x === void 0) {
@@ -659,6 +873,12 @@
 			this.x += scalar;
 			this.y += scalar;
 			this.z += scalar;
+			return this;
+		};
+		_proto.addScaled = function addScaled(rhs, scalar) {
+			this.x += rhs.x * scalar;
+			this.y += rhs.y * scalar;
+			this.z += rhs.z * scalar;
 			return this;
 		};
 		_proto.clone = function clone() {
@@ -713,6 +933,12 @@
 		_proto.equals = function equals(rhs) {
 			return this.x === rhs.x && this.y === rhs.y && this.z === rhs.z;
 		};
+		_proto.equalsApprox = function equalsApprox(rhs, epsilon) {
+			if (epsilon === void 0) {
+				epsilon = 1e-6;
+			}
+			return Math.abs(this.x - rhs.x) < epsilon && Math.abs(this.y - rhs.y) < epsilon && Math.abs(this.z - rhs.z) < epsilon;
+		};
 		_proto.length = function length() {
 			return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
 		};
@@ -743,32 +969,44 @@
 			this.z *= scalar;
 			return this;
 		};
-		_proto.normalize = function normalize() {
-			var lengthSq = this.x * this.x + this.y * this.y + this.z * this.z;
+		_proto.normalize = function normalize(src) {
+			if (src === void 0) {
+				src = this;
+			}
+			var lengthSq = src.x * src.x + src.y * src.y + src.z * src.z;
 			if (lengthSq > 0) {
 				var invLength = 1 / Math.sqrt(lengthSq);
-				this.x *= invLength;
-				this.y *= invLength;
-				this.z *= invLength;
+				this.x = src.x * invLength;
+				this.y = src.y * invLength;
+				this.z = src.z * invLength;
 			}
 			return this;
 		};
-		_proto.floor = function floor() {
-			this.x = Math.floor(this.x);
-			this.y = Math.floor(this.y);
-			this.z = Math.floor(this.z);
+		_proto.floor = function floor(src) {
+			if (src === void 0) {
+				src = this;
+			}
+			this.x = Math.floor(src.x);
+			this.y = Math.floor(src.y);
+			this.z = Math.floor(src.z);
 			return this;
 		};
-		_proto.ceil = function ceil() {
-			this.x = Math.ceil(this.x);
-			this.y = Math.ceil(this.y);
-			this.z = Math.ceil(this.z);
+		_proto.ceil = function ceil(src) {
+			if (src === void 0) {
+				src = this;
+			}
+			this.x = Math.ceil(src.x);
+			this.y = Math.ceil(src.y);
+			this.z = Math.ceil(src.z);
 			return this;
 		};
-		_proto.round = function round() {
-			this.x = Math.round(this.x);
-			this.y = Math.round(this.y);
-			this.z = Math.round(this.z);
+		_proto.round = function round(src) {
+			if (src === void 0) {
+				src = this;
+			}
+			this.x = Math.round(src.x);
+			this.y = Math.round(src.y);
+			this.z = Math.round(src.z);
 			return this;
 		};
 		_proto.min = function min(rhs) {
@@ -821,15 +1059,17 @@
 		};
 		return Vec3;
 	}();
-	Vec3.ZERO = Object.freeze(new Vec3(0, 0, 0));
-	Vec3.ONE = Object.freeze(new Vec3(1, 1, 1));
-	Vec3.UP = Object.freeze(new Vec3(0, 1, 0));
-	Vec3.DOWN = Object.freeze(new Vec3(0, -1, 0));
-	Vec3.RIGHT = Object.freeze(new Vec3(1, 0, 0));
-	Vec3.LEFT = Object.freeze(new Vec3(-1, 0, 0));
-	Vec3.FORWARD = Object.freeze(new Vec3(0, 0, -1));
-	Vec3.BACK = Object.freeze(new Vec3(0, 0, 1));
+	_class$1 = Vec3;
+	Vec3.ZERO = Object.freeze(new _class$1(0, 0, 0));
+	Vec3.ONE = Object.freeze(new _class$1(1, 1, 1));
+	Vec3.UP = Object.freeze(new _class$1(0, 1, 0));
+	Vec3.DOWN = Object.freeze(new _class$1(0, -1, 0));
+	Vec3.RIGHT = Object.freeze(new _class$1(1, 0, 0));
+	Vec3.LEFT = Object.freeze(new _class$1(-1, 0, 0));
+	Vec3.FORWARD = Object.freeze(new _class$1(0, 0, -1));
+	Vec3.BACK = Object.freeze(new _class$1(0, 0, 1));
 
+	var _class;
 	var Vec4 = function () {
 		function Vec4(x, y, z, w) {
 			if (x === void 0) {
@@ -882,6 +1122,13 @@
 			this.w += scalar;
 			return this;
 		};
+		_proto.addScaled = function addScaled(rhs, scalar) {
+			this.x += rhs.x * scalar;
+			this.y += rhs.y * scalar;
+			this.z += rhs.z * scalar;
+			this.w += rhs.w * scalar;
+			return this;
+		};
 		_proto.clone = function clone() {
 			var cstr = this.constructor;
 			return new cstr(this.x, this.y, this.z, this.w);
@@ -920,6 +1167,12 @@
 		_proto.equals = function equals(rhs) {
 			return this.x === rhs.x && this.y === rhs.y && this.z === rhs.z && this.w === rhs.w;
 		};
+		_proto.equalsApprox = function equalsApprox(rhs, epsilon) {
+			if (epsilon === void 0) {
+				epsilon = 1e-6;
+			}
+			return Math.abs(this.x - rhs.x) < epsilon && Math.abs(this.y - rhs.y) < epsilon && Math.abs(this.z - rhs.z) < epsilon && Math.abs(this.w - rhs.w) < epsilon;
+		};
 		_proto.length = function length() {
 			return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z + this.w * this.w);
 		};
@@ -954,36 +1207,48 @@
 			this.w *= scalar;
 			return this;
 		};
-		_proto.normalize = function normalize() {
-			var lengthSq = this.x * this.x + this.y * this.y + this.z * this.z + this.w * this.w;
+		_proto.normalize = function normalize(src) {
+			if (src === void 0) {
+				src = this;
+			}
+			var lengthSq = src.x * src.x + src.y * src.y + src.z * src.z + src.w * src.w;
 			if (lengthSq > 0) {
 				var invLength = 1 / Math.sqrt(lengthSq);
-				this.x *= invLength;
-				this.y *= invLength;
-				this.z *= invLength;
-				this.w *= invLength;
+				this.x = src.x * invLength;
+				this.y = src.y * invLength;
+				this.z = src.z * invLength;
+				this.w = src.w * invLength;
 			}
 			return this;
 		};
-		_proto.floor = function floor() {
-			this.x = Math.floor(this.x);
-			this.y = Math.floor(this.y);
-			this.z = Math.floor(this.z);
-			this.w = Math.floor(this.w);
+		_proto.floor = function floor(src) {
+			if (src === void 0) {
+				src = this;
+			}
+			this.x = Math.floor(src.x);
+			this.y = Math.floor(src.y);
+			this.z = Math.floor(src.z);
+			this.w = Math.floor(src.w);
 			return this;
 		};
-		_proto.ceil = function ceil() {
-			this.x = Math.ceil(this.x);
-			this.y = Math.ceil(this.y);
-			this.z = Math.ceil(this.z);
-			this.w = Math.ceil(this.w);
+		_proto.ceil = function ceil(src) {
+			if (src === void 0) {
+				src = this;
+			}
+			this.x = Math.ceil(src.x);
+			this.y = Math.ceil(src.y);
+			this.z = Math.ceil(src.z);
+			this.w = Math.ceil(src.w);
 			return this;
 		};
-		_proto.round = function round() {
-			this.x = Math.round(this.x);
-			this.y = Math.round(this.y);
-			this.z = Math.round(this.z);
-			this.w = Math.round(this.w);
+		_proto.round = function round(src) {
+			if (src === void 0) {
+				src = this;
+			}
+			this.x = Math.round(src.x);
+			this.y = Math.round(src.y);
+			this.z = Math.round(src.z);
+			this.w = Math.round(src.w);
 			return this;
 		};
 		_proto.min = function min(rhs) {
@@ -1033,8 +1298,9 @@
 		};
 		return Vec4;
 	}();
-	Vec4.ZERO = Object.freeze(new Vec4(0, 0, 0, 0));
-	Vec4.ONE = Object.freeze(new Vec4(1, 1, 1, 1));
+	_class = Vec4;
+	Vec4.ZERO = Object.freeze(new _class(0, 0, 0, 0));
+	Vec4.ONE = Object.freeze(new _class(1, 1, 1, 1));
 
 	var ComponentSystem = function (_EventHandler) {
 		_inheritsLoose(ComponentSystem, _EventHandler);

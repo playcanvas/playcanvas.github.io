@@ -1179,6 +1179,12 @@ declare const DEVICETYPE_WEBGL2: string;
  * @type {string}
  */
 declare const DEVICETYPE_WEBGPU: string;
+/**
+ * A Null device type.
+ *
+ * @type {string}
+ */
+declare const DEVICETYPE_NULL: string;
 declare const SHADERSTAGE_VERTEX: 1;
 declare const SHADERSTAGE_FRAGMENT: 2;
 declare const SHADERSTAGE_COMPUTE: 4;
@@ -2346,9 +2352,9 @@ declare const DETAILMODE_ADD: string;
 /**
  * Softer version of {@link DETAILMODE_ADD}.
  *
- * @name DETAILMODE_SCREEN
+ * @type {string}
  */
-declare const DETAILMODE_SCREEN: "screen";
+declare const DETAILMODE_SCREEN: string;
 /**
  * Multiplies or screens the colors, depending on the primary color.
  *
@@ -2659,10 +2665,6 @@ declare const SORTMODE_FRONT2BACK: number;
  * @ignore
  */
 declare const SORTMODE_CUSTOM: number;
-declare const COMPUPDATED_INSTANCES: 1;
-declare const COMPUPDATED_LIGHTS: 2;
-declare const COMPUPDATED_CAMERAS: 4;
-declare const COMPUPDATED_BLEND: 8;
 /**
  * Automatically set aspect ratio to current render target's width divided by height.
  *
@@ -3485,6 +3487,21 @@ declare class Vec3 {
      */
     addScalar(scalar: number): Vec3;
     /**
+     * Adds a 3-dimensional vector scaled by scalar value. Does not modify the vector being added.
+     *
+     * @param {Vec3} rhs - The vector to add to the specified vector.
+     * @param {number} scalar - The number to multiply the added vector with.
+     * @returns {Vec3} Self for chaining.
+     * @example
+     * const vec = new pc.Vec3(1, 2, 3);
+     *
+     * vec.addScaled(pc.Vec3.UP, 2);
+     *
+     * // Outputs [1, 4, 3]
+     * console.log("The result of the addition is: " + vec.toString());
+     */
+    addScaled(rhs: Vec3, scalar: number): Vec3;
+    /**
      * Returns an identical copy of the specified 3-dimensional vector.
      *
      * @returns {this} A 3-dimensional vector containing the result of the cloning.
@@ -3605,6 +3622,19 @@ declare class Vec3 {
      */
     equals(rhs: Vec3): boolean;
     /**
+     * Reports whether two vectors are equal using an absolute error tolerance.
+     *
+     * @param {Vec3} rhs - The vector to be compared against.
+     * @param {number} [epsilon] - The maximum difference between each component of the two
+     * vectors. Defaults to 1e-6.
+     * @returns {boolean} True if the vectors are equal and false otherwise.
+     * @example
+     * const a = new pc.Vec3();
+     * const b = new pc.Vec3();
+     * console.log("The two vectors are approximately " + (a.equalsApprox(b, 1e-9) ? "equal" : "different"));
+     */
+    equalsApprox(rhs: Vec3, epsilon?: number): boolean;
+    /**
      * Returns the magnitude of the specified 3-dimensional vector.
      *
      * @returns {number} The magnitude of the specified 3-dimensional vector.
@@ -3695,6 +3725,7 @@ declare class Vec3 {
      * Returns this 3-dimensional vector converted to a unit vector in place. If the vector has a
      * length of zero, the vector's elements will be set to zero.
      *
+     * @param {Vec3} [src] - The vector to normalize. If not set, the operation is done in place.
      * @returns {Vec3} Self for chaining.
      * @example
      * const v = new pc.Vec3(25, 0, 0);
@@ -3704,25 +3735,28 @@ declare class Vec3 {
      * // Outputs 1, 0, 0
      * console.log("The result of the vector normalization is: " + v.toString());
      */
-    normalize(): Vec3;
+    normalize(src?: Vec3): Vec3;
     /**
      * Each element is set to the largest integer less than or equal to its value.
      *
+     * @param {Vec3} [src] - The vector to floor. If not set, the operation is done in place.
      * @returns {Vec3} Self for chaining.
      */
-    floor(): Vec3;
+    floor(src?: Vec3): Vec3;
     /**
      * Each element is rounded up to the next largest integer.
      *
+     * @param {Vec3} [src] - The vector to ceil. If not set, the operation is done in place.
      * @returns {Vec3} Self for chaining.
      */
-    ceil(): Vec3;
+    ceil(src?: Vec3): Vec3;
     /**
      * Each element is rounded up or down to the nearest integer.
      *
+     * @param {Vec3} [src] - The vector to round. If not set, the operation is done in place.
      * @returns {Vec3} Self for chaining.
      */
-    round(): Vec3;
+    round(src?: Vec3): Vec3;
     /**
      * Each element is assigned a value from rhs parameter if it is smaller.
      *
@@ -3995,7 +4029,7 @@ declare class Quat {
      * console.log("The result of the cloning is: " + q.toString());
      */
     clone(): this;
-    conjugate(): Quat;
+    conjugate(src?: this): this;
     /**
      * Copies the contents of a source quaternion to a destination quaternion.
      *
@@ -4023,7 +4057,8 @@ declare class Quat {
      * Reports whether two quaternions are equal using an absolute error tolerance.
      *
      * @param {Quat} rhs - The quaternion to be compared against.
-     * @param {number} [epsilon=1e-6] - The maximum difference between each component of the two quaternions. Defaults to 1e-6.
+     * @param {number} [epsilon] - The maximum difference between each component of the two
+     * quaternions. Defaults to 1e-6.
      * @returns {boolean} True if the quaternions are equal and false otherwise.
      * @example
      * const a = new pc.Quat();
@@ -4060,6 +4095,7 @@ declare class Quat {
     /**
      * Generates the inverse of the specified quaternion.
      *
+     * @param {Quat} [src] - The quaternion to invert. If not set, the operation is done in place.
      * @returns {Quat} Self for chaining.
      * @example
      * // Create a quaternion rotated 180 degrees around the y-axis
@@ -4068,7 +4104,7 @@ declare class Quat {
      * // Invert in place
      * rot.invert();
      */
-    invert(): Quat;
+    invert(src?: Quat): Quat;
     /**
      * Returns the magnitude of the specified quaternion.
      *
@@ -4128,6 +4164,7 @@ declare class Quat {
     /**
      * Returns the specified quaternion converted in place to a unit quaternion.
      *
+     * @param {Quat} [src] - The quaternion to normalize. If not set, the operation is done in place.
      * @returns {Quat} The result of the normalization.
      * @example
      * const v = new pc.Quat(0, 0, 0, 5);
@@ -4137,7 +4174,7 @@ declare class Quat {
      * // Outputs 0, 0, 0, 1
      * console.log("The result of the vector normalization is: " + v.toString());
      */
-    normalize(): Quat;
+    normalize(src?: Quat): Quat;
     /**
      * Sets the specified quaternion to the supplied numerical values.
      *
@@ -4359,6 +4396,21 @@ declare class Vec4 {
      */
     addScalar(scalar: number): Vec4;
     /**
+     * Adds a 4-dimensional vector scaled by scalar value. Does not modify the vector being added.
+     *
+     * @param {Vec4} rhs - The vector to add to the specified vector.
+     * @param {number} scalar - The number to multiply the added vector with.
+     * @returns {Vec4} Self for chaining.
+     * @example
+     * const vec = new pc.Vec4(1, 2, 3, 4);
+     *
+     * vec.addScaled(pc.Vec4.ONE, 2);
+     *
+     * // Outputs [3, 4, 5, 6]
+     * console.log("The result of the addition is: " + vec.toString());
+     */
+    addScaled(rhs: Vec4, scalar: number): Vec4;
+    /**
      * Returns an identical copy of the specified 4-dimensional vector.
      *
      * @returns {this} A 4-dimensional vector containing the result of the cloning.
@@ -4453,6 +4505,19 @@ declare class Vec4 {
      */
     equals(rhs: Vec4): boolean;
     /**
+     * Reports whether two vectors are equal using an absolute error tolerance.
+     *
+     * @param {Vec4} rhs - The vector to be compared against.
+     * @param {number} [epsilon] - The maximum difference between each component of the two
+     * vectors. Defaults to 1e-6.
+     * @returns {boolean} True if the vectors are equal and false otherwise.
+     * @example
+     * const a = new pc.Vec4();
+     * const b = new pc.Vec4();
+     * console.log("The two vectors are approximately " + (a.equalsApprox(b, 1e-9) ? "equal" : "different"));
+     */
+    equalsApprox(rhs: Vec4, epsilon?: number): boolean;
+    /**
      * Returns the magnitude of the specified 4-dimensional vector.
      *
      * @returns {number} The magnitude of the specified 4-dimensional vector.
@@ -4543,6 +4608,7 @@ declare class Vec4 {
      * Returns this 4-dimensional vector converted to a unit vector in place. If the vector has a
      * length of zero, the vector's elements will be set to zero.
      *
+     * @param {Vec4} [src] - The vector to normalize. If not set, the operation is done in place.
      * @returns {Vec4} Self for chaining.
      * @example
      * const v = new pc.Vec4(25, 0, 0, 0);
@@ -4552,25 +4618,28 @@ declare class Vec4 {
      * // Outputs 1, 0, 0, 0
      * console.log("The result of the vector normalization is: " + v.toString());
      */
-    normalize(): Vec4;
+    normalize(src?: Vec4): Vec4;
     /**
      * Each element is set to the largest integer less than or equal to its value.
      *
+     * @param {Vec4} [src] - The vector to floor. If not set, the operation is done in place.
      * @returns {Vec4} Self for chaining.
      */
-    floor(): Vec4;
+    floor(src?: Vec4): Vec4;
     /**
      * Each element is rounded up to the next largest integer.
      *
+     * @param {Vec4} [src] - The vector to ceil. If not set, the operation is done in place.
      * @returns {Vec4} Self for chaining.
      */
-    ceil(): Vec4;
+    ceil(src?: Vec4): Vec4;
     /**
      * Each element is rounded up or down to the nearest integer.
      *
+     * @param {Vec4} [src] - The vector to round. If not set, the operation is done in place.
      * @returns {Vec4} Self for chaining.
      */
-    round(): Vec4;
+    round(src?: Vec4): Vec4;
     /**
      * Each element is assigned a value from rhs parameter if it is smaller.
      *
@@ -4909,8 +4978,8 @@ declare class Mat4 {
      * (width / height).
      * @param {number} znear - The near clip plane in eye coordinates.
      * @param {number} zfar - The far clip plane in eye coordinates.
-     * @param {boolean} [fovIsHorizontal=false] - Set to true to treat the fov as horizontal
-     * (x-axis) and false for vertical (y-axis). Defaults to false.
+     * @param {boolean} [fovIsHorizontal] - Set to true to treat the fov as horizontal (x-axis) and
+     * false for vertical (y-axis). Defaults to false.
      * @returns {Mat4} Self for chaining.
      * @example
      * // Create a 4x4 perspective projection matrix
@@ -5001,8 +5070,9 @@ declare class Mat4 {
      */
     setReflection(normal: Vec3, distance: number): Mat4;
     /**
-     * Sets the specified matrix to its inverse.
+     * Sets the matrix to the inverse of a source matrix.
      *
+     * @param {Mat4} [src] - The matrix to invert. If not set, the matrix is inverted in-place.
      * @returns {Mat4} Self for chaining.
      * @example
      * // Create a 4x4 rotation matrix of 180 degrees around the y-axis
@@ -5011,7 +5081,7 @@ declare class Mat4 {
      * // Invert in place
      * rot.invert();
      */
-    invert(): Mat4;
+    invert(src?: Mat4): Mat4;
     /**
      * Sets matrix data from an array.
      *
@@ -5046,8 +5116,9 @@ declare class Mat4 {
      */
     setTRS(t: Vec3, r: Quat, s: Vec3): Mat4;
     /**
-     * Sets the specified matrix to its transpose.
+     * Sets the matrix to the transpose of a source matrix.
      *
+     * @param {Mat4} [src] - The matrix to transpose. If not set, the matrix is transposed in-place.
      * @returns {Mat4} Self for chaining.
      * @example
      * const m = new pc.Mat4();
@@ -5055,8 +5126,7 @@ declare class Mat4 {
      * // Transpose in place
      * m.transpose();
      */
-    transpose(): Mat4;
-    invertTo3x3(res: any): Mat4;
+    transpose(src?: Mat4): Mat4;
     /**
      * Extracts the translational component from the specified 4x4 matrix.
      *
@@ -5380,12 +5450,14 @@ declare class Plane {
     clone(): this;
 }
 
-declare function begin(): string;
-declare function end(): string;
-declare function fogCode(value: any, chunks: any): any;
-declare function gammaCode(value: any, chunks: any): any;
-declare function skinCode(device: any, chunks: any): any;
-declare function tonemapCode(value: any, chunks: any): any;
+declare class ShaderGenerator {
+    static begin(): string;
+    static end(): string;
+    static skinCode(device: any, chunks: any): any;
+    static fogCode(value: any, chunks: any): any;
+    static gammaCode(value: any, chunks: any): any;
+    static tonemapCode(value: any, chunks: any): any;
+}
 
 /**
  * A vertex format is a descriptor that defines the layout of vertex data inside a
@@ -5448,6 +5520,7 @@ declare class VertexFormat {
      * @returns {VertexFormat} The default instancing vertex format.
      */
     static getDefaultInstancingFormat(graphicsDevice: GraphicsDevice): VertexFormat;
+    static isElementValid(graphicsDevice: any, elementDesc: any): boolean;
     /**
      * Create a new VertexFormat instance.
      *
@@ -5810,6 +5883,188 @@ declare class ScopeId {
 }
 
 /**
+ * Base class of a simple GPU profiler.
+ */
+declare class GpuProfiler {
+    /**
+     * Profiling slots allocated for the current frame, storing the names of the slots.
+     *
+     * @type {string[]}
+     * @ignore
+     */
+    frameAllocations: string[];
+    /**
+     * Map of past frame allocations, indexed by renderVersion
+     *
+     * @type {Map<number, string[]>}
+     * @ignore
+     */
+    pastFrameAllocations: Map<number, string[]>;
+    /**
+     * The if enabled in the current frame.
+     * @ignore
+     */
+    _enabled: boolean;
+    /**
+     * The enable request for the next frame.
+     * @ignore
+     */
+    _enableRequest: boolean;
+    /**
+     * The time it took to render the last frame on GPU, or 0 if the profiler is not enabled
+     * @ignore
+     */
+    _frameTime: number;
+    loseContext(): void;
+    /**
+     * True to enable the profiler.
+     *
+     * @type {boolean}
+     */
+    set enabled(arg: boolean);
+    get enabled(): boolean;
+    processEnableRequest(): void;
+    request(renderVersion: any): void;
+    report(renderVersion: any, timings: any): void;
+    /**
+     * Allocate a slot for GPU timing during the frame. This slot is valid only for the current
+     * frame. This allows multiple timers to be used during the frame, each with a unique name.
+     * @param {string} name - The name of the slot.
+     * @returns {number} The assigned slot index.
+     * @ignore
+     */
+    getSlot(name: string): number;
+    /**
+     * Number of slots allocated during the frame.
+     *
+     * @ignore
+     */
+    get slotCount(): number;
+}
+
+/**
+ * A base class representing a single per platform buffer.
+ *
+ * @ignore
+ */
+declare class DynamicBuffer {
+    constructor(device: any);
+    /** @type {import('./graphics-device.js').GraphicsDevice} */
+    device: GraphicsDevice;
+}
+/**
+ * The DynamicBuffers class provides a dynamic memory allocation system for uniform buffer data,
+ * particularly for non-persistent uniform buffers. This class utilizes a bump allocator to
+ * efficiently allocate aligned memory space from a set of large buffers managed internally. To
+ * utilize this system, the user writes data to CPU-accessible staging buffers. When submitting
+ * command buffers that require these buffers, the system automatically uploads the data to the GPU
+ * buffers. This approach ensures efficient memory management and smooth data transfer between the
+ * CPU and GPU.
+ *
+ * @ignore
+ */
+declare class DynamicBuffers {
+    /**
+     * Create the system of dynamic buffers.
+     *
+     * @param {import('./graphics-device.js').GraphicsDevice} device - The graphics device.
+     * @param {number} bufferSize - The size of the underlying large buffers.
+     * @param {number} bufferAlignment - Alignment of each allocation.
+     */
+    constructor(device: GraphicsDevice, bufferSize: number, bufferAlignment: number);
+    /**
+     * Allocation size of the underlying buffers.
+     *
+     * @type {number}
+     */
+    bufferSize: number;
+    /**
+     * Internally allocated gpu buffers.
+     *
+     * @type {DynamicBuffer[]}
+     */
+    gpuBuffers: DynamicBuffer[];
+    /**
+     * Internally allocated staging buffers (CPU writable)
+     *
+     * @type {DynamicBuffer[]}
+     */
+    stagingBuffers: DynamicBuffer[];
+    /**
+     * @type {UsedBuffer[]}
+     */
+    usedBuffers: UsedBuffer[];
+    /**
+     * @type {UsedBuffer}
+     */
+    activeBuffer: UsedBuffer;
+    device: GraphicsDevice;
+    bufferAlignment: number;
+    /**
+     * Destroy the system of dynamic buffers.
+     */
+    destroy(): void;
+    /**
+     * Allocate an aligned space of the given size from a dynamic buffer.
+     *
+     * @param {DynamicBufferAllocation} allocation - The allocation info to fill.
+     * @param {number} size - The size of the allocation.
+     */
+    alloc(allocation: DynamicBufferAllocation, size: number): void;
+    scheduleSubmit(): void;
+    submit(): void;
+}
+/**
+ * A container for storing the return values of an allocation function.
+ *
+ * @ignore
+ */
+declare class DynamicBufferAllocation {
+    /**
+     * The storage access to the allocated data in the staging buffer.
+     *
+     * @type {Int32Array}
+     */
+    storage: Int32Array;
+    /**
+     * The gpu buffer this allocation will be copied to.
+     *
+     * @type {DynamicBuffer}
+     */
+    gpuBuffer: DynamicBuffer;
+    /**
+     * Offset in the gpuBuffer where the data will be copied to.
+     *
+     * @type {number}
+     */
+    offset: number;
+}
+/**
+ * A container for storing the used areas of a pair of staging and gpu buffers.
+ *
+ * @ignore
+ */
+declare class UsedBuffer {
+    /** @type {DynamicBuffer} */
+    gpuBuffer: DynamicBuffer;
+    /** @type {DynamicBuffer} */
+    stagingBuffer: DynamicBuffer;
+    /**
+     * The beginning position of the used area that needs to be copied from staging to to the GPU
+     * buffer.
+     *
+     * @type {number}
+     */
+    offset: number;
+    /**
+     * Used byte size of the buffer, from the offset.
+     *
+     * @type {number}
+     */
+    size: number;
+}
+
+/**
  * A texture is a container for texel data that can be utilized in a fragment shader. Typically,
  * the texel data represents an image that is mapped over geometry.
  *
@@ -5915,7 +6170,7 @@ declare class Texture {
      * - {@link FUNC_NOTEQUAL}
      *
      * Defaults to {@link FUNC_LESS}.
-     * @param {Uint8Array[]} [options.levels] - Array of Uint8Array.
+     * @param {Uint8Array[]|HTMLCanvasElement[]|HTMLImageElement[]|HTMLVideoElement[]} [options.levels] - Array of Uint8Array or other supported browser interface.
      * @example
      * // Create a 8x8x24-bit texture
      * const texture = new pc.Texture(graphicsDevice, {
@@ -5958,7 +6213,7 @@ declare class Texture {
         premultiplyAlpha?: boolean;
         compareOnRead?: boolean;
         compareFunc?: number;
-        levels?: Uint8Array[];
+        levels?: Uint8Array[] | HTMLCanvasElement[] | HTMLImageElement[] | HTMLVideoElement[];
     });
     /**
      * The name of the texture.
@@ -6008,11 +6263,21 @@ declare class Texture {
     projection: string;
     impl: any;
     profilerHint: any;
-    _levels: Uint8Array[] | any[][];
+    _levels: Uint8Array[] | HTMLCanvasElement[] | HTMLImageElement[] | HTMLVideoElement[] | any[][];
     /**
      * Frees resources associated with this texture.
      */
     destroy(): void;
+    /**
+     * Resizes the texture. Only supported for render target textures, as it does not resize the
+     * existing content of the texture, but only the allocated buffer for rendering into.
+     *
+     * @param {number} width - The new width of the texture.
+     * @param {number} height - The new height of the texture.
+     * @param {number} [depth] - The new depth of the texture. Defaults to 1.
+     * @ignore
+     */
+    resize(width: number, height: number, depth?: number): void;
     /**
      * Called when the rendering context was lost. It releases all context related resources.
      *
@@ -6273,14 +6538,6 @@ declare class Texture {
      * @ignore
      */
     downloadAsync(): Promise<void>;
-    /**
-     * Generate an in-memory DDS representation of this texture. Only works on RGBA8 textures.
-     * Currently, only used by the Editor to write prefiltered cubemaps to DDS format.
-     *
-     * @returns {ArrayBuffer} Buffer containing the DDS data.
-     * @ignore
-     */
-    getDds(): ArrayBuffer;
 }
 
 /**
@@ -6568,188 +6825,6 @@ declare class Shader {
 }
 
 /**
- * Base class of a simple GPU profiler.
- */
-declare class GpuProfiler {
-    /**
-     * Profiling slots allocated for the current frame, storing the names of the slots.
-     *
-     * @type {string[]}
-     * @ignore
-     */
-    frameAllocations: string[];
-    /**
-     * Map of past frame allocations, indexed by renderVersion
-     *
-     * @type {Map<number, string[]>}
-     * @ignore
-     */
-    pastFrameAllocations: Map<number, string[]>;
-    /**
-     * The if enabled in the current frame.
-     * @ignore
-     */
-    _enabled: boolean;
-    /**
-     * The enable request for the next frame.
-     * @ignore
-     */
-    _enableRequest: boolean;
-    /**
-     * The time it took to render the last frame on GPU, or 0 if the profiler is not enabled
-     * @ignore
-     */
-    _frameTime: number;
-    loseContext(): void;
-    /**
-     * True to enable the profiler.
-     *
-     * @type {boolean}
-     */
-    set enabled(arg: boolean);
-    get enabled(): boolean;
-    processEnableRequest(): void;
-    request(renderVersion: any): void;
-    report(renderVersion: any, timings: any): void;
-    /**
-     * Allocate a slot for GPU timing during the frame. This slot is valid only for the current
-     * frame. This allows multiple timers to be used during the frame, each with a unique name.
-     * @param {string} name - The name of the slot.
-     * @returns {number} The assigned slot index.
-     * @ignore
-     */
-    getSlot(name: string): number;
-    /**
-     * Number of slots allocated during the frame.
-     *
-     * @ignore
-     */
-    get slotCount(): number;
-}
-
-/**
- * A base class representing a single per platform buffer.
- *
- * @ignore
- */
-declare class DynamicBuffer {
-    constructor(device: any);
-    /** @type {import('./graphics-device.js').GraphicsDevice} */
-    device: GraphicsDevice;
-}
-/**
- * The DynamicBuffers class provides a dynamic memory allocation system for uniform buffer data,
- * particularly for non-persistent uniform buffers. This class utilizes a bump allocator to
- * efficiently allocate aligned memory space from a set of large buffers managed internally. To
- * utilize this system, the user writes data to CPU-accessible staging buffers. When submitting
- * command buffers that require these buffers, the system automatically uploads the data to the GPU
- * buffers. This approach ensures efficient memory management and smooth data transfer between the
- * CPU and GPU.
- *
- * @ignore
- */
-declare class DynamicBuffers {
-    /**
-     * Create the system of dynamic buffers.
-     *
-     * @param {import('./graphics-device.js').GraphicsDevice} device - The graphics device.
-     * @param {number} bufferSize - The size of the underlying large buffers.
-     * @param {number} bufferAlignment - Alignment of each allocation.
-     */
-    constructor(device: GraphicsDevice, bufferSize: number, bufferAlignment: number);
-    /**
-     * Allocation size of the underlying buffers.
-     *
-     * @type {number}
-     */
-    bufferSize: number;
-    /**
-     * Internally allocated gpu buffers.
-     *
-     * @type {DynamicBuffer[]}
-     */
-    gpuBuffers: DynamicBuffer[];
-    /**
-     * Internally allocated staging buffers (CPU writable)
-     *
-     * @type {DynamicBuffer[]}
-     */
-    stagingBuffers: DynamicBuffer[];
-    /**
-     * @type {UsedBuffer[]}
-     */
-    usedBuffers: UsedBuffer[];
-    /**
-     * @type {UsedBuffer}
-     */
-    activeBuffer: UsedBuffer;
-    device: GraphicsDevice;
-    bufferAlignment: number;
-    /**
-     * Destroy the system of dynamic buffers.
-     */
-    destroy(): void;
-    /**
-     * Allocate an aligned space of the given size from a dynamic buffer.
-     *
-     * @param {DynamicBufferAllocation} allocation - The allocation info to fill.
-     * @param {number} size - The size of the allocation.
-     */
-    alloc(allocation: DynamicBufferAllocation, size: number): void;
-    scheduleSubmit(): void;
-    submit(): void;
-}
-/**
- * A container for storing the return values of an allocation function.
- *
- * @ignore
- */
-declare class DynamicBufferAllocation {
-    /**
-     * The storage access to the allocated data in the staging buffer.
-     *
-     * @type {Int32Array}
-     */
-    storage: Int32Array;
-    /**
-     * The gpu buffer this allocation will be copied to.
-     *
-     * @type {DynamicBuffer}
-     */
-    gpuBuffer: DynamicBuffer;
-    /**
-     * Offset in the gpuBuffer where the data will be copied to.
-     *
-     * @type {number}
-     */
-    offset: number;
-}
-/**
- * A container for storing the used areas of a pair of staging and gpu buffers.
- *
- * @ignore
- */
-declare class UsedBuffer {
-    /** @type {DynamicBuffer} */
-    gpuBuffer: DynamicBuffer;
-    /** @type {DynamicBuffer} */
-    stagingBuffer: DynamicBuffer;
-    /**
-     * The beginning position of the used area that needs to be copied from staging to to the GPU
-     * buffer.
-     *
-     * @type {number}
-     */
-    offset: number;
-    /**
-     * Used byte size of the buffer, from the offset.
-     *
-     * @type {number}
-     */
-    size: number;
-}
-
-/**
  * A render target is a rectangular rendering surface.
  *
  * @category Graphics
@@ -6787,8 +6862,8 @@ declare class RenderTarget {
      * @param {boolean} [options.flipY] - When set to true the image will be flipped in Y. Default
      * is false.
      * @param {string} [options.name] - The name of the render target.
-     * @param {number} [options.samples] - Number of hardware anti-aliasing samples (WebGL2 only).
-     * Default is 1.
+     * @param {number} [options.samples] - Number of hardware anti-aliasing samples (not supported
+     * on WebGL1). Default is 1.
      * @param {boolean} [options.stencil] - If set to true, depth buffer will include stencil.
      * Defaults to false. Ignored if depthBuffer is defined or depth is false.
      * @example
@@ -6892,6 +6967,14 @@ declare class RenderTarget {
      * @ignore
      */
     destroyTextureBuffers(): void;
+    /**
+     * Resizes the render target to the specified width and height. Internally this resizes all the
+     * assigned texture color and depth buffers.
+     *
+     * @param {number} width - The width of the render target in pixels.
+     * @param {number} height - The height of the render target in pixels.
+     */
+    resize(width: number, height: number): void;
     validateMrt(): void;
     /**
      * Initializes the resources associated with this render target.
@@ -6901,6 +6984,8 @@ declare class RenderTarget {
     init(): void;
     /** @ignore */
     get initialized(): any;
+    /** @ignore */
+    get device(): GraphicsDevice;
     /**
      * Called when the device context was lost. It releases all context related resources.
      *
@@ -6999,6 +7084,88 @@ declare class RenderTarget {
 }
 
 /**
+ * Event Handle that is created by {@link EventHandler} and can be used for easier event removal and management.
+ * @example
+ * const evt = obj.on('test', (a, b) => {
+ *     console.log(a + b);
+ * });
+ * obj.fire('test');
+ *
+ * evt.off(); // easy way to remove this event
+ * obj.fire('test'); // this will not trigger an event
+ * @example
+ * // store an array of event handles
+ * let events = [ ];
+ *
+ * events.push(objA.on('testA', () => { }));
+ * events.push(objB.on('testB', () => { }));
+ *
+ * // when needed, remove all events
+ * events.forEach((evt) => {
+ *     evt.off();
+ * });
+ * events = [ ];
+ */
+declare class EventHandle {
+    /**
+     * @param {import('./event-handler.js').EventHandler} handler - source object of the event.
+     * @param {string} name - Name of the event.
+     * @param {import('./event-handler.js').HandleEventCallback} callback - Function that is called when event is fired.
+     * @param {object} scope - Object that is used as `this` when event is fired.
+     * @param {boolean} [once] - If this is a single event and will be removed after event is fired.
+     */
+    constructor(handler: EventHandler, name: string, callback: HandleEventCallback, scope: object, once?: boolean);
+    /**
+     * @type {import('./event-handler.js').EventHandler}
+     * @private
+     */
+    private handler;
+    /**
+     * @type {string}
+     * @private
+     */
+    private name;
+    /**
+     * @type {import('./event-handler.js').HandleEventCallback}
+     * @ignore
+     */
+    callback: HandleEventCallback;
+    /**
+     * @type {object}
+     * @ignore
+     */
+    scope: object;
+    /**
+     * @type {boolean}
+     * @ignore
+     */
+    _once: boolean;
+    /**
+     * True if event has been removed.
+     * @type {boolean}
+     * @private
+     */
+    private _removed;
+    /**
+     * Remove this event from its handler.
+     */
+    off(): void;
+    on(name: any, callback: any, scope?: this): EventHandle;
+    once(name: any, callback: any, scope?: this): EventHandle;
+    /**
+     * Mark if event has been removed.
+     * @type {boolean}
+     * @internal
+     */
+    set removed(arg: boolean);
+    /**
+     * True if event has been removed.
+     * @type {boolean}
+     */
+    get removed(): boolean;
+}
+
+/**
  * Callback used by {@link EventHandler } functions. Note the callback is limited to 8 arguments.
  */
 export type HandleEventCallback = (arg1?: any, arg2?: any, arg3?: any, arg4?: any, arg5?: any, arg6?: any, arg7?: any, arg8?: any) => any;
@@ -7032,33 +7199,33 @@ export type HandleEventCallback = (arg1?: any, arg2?: any, arg3?: any, arg4?: an
  */
 declare class EventHandler {
     /**
-     * @type {object}
+     * @type {Map<string,Array<EventHandle>>}
      * @private
      */
     private _callbacks;
     /**
-     * @type {object}
+     * @type {Map<string,Array<EventHandle>>}
      * @private
      */
     private _callbackActive;
     /**
      * Reinitialize the event handler.
-     *
-     * @private
+     * @ignore
      */
-    private initEventHandler;
+    initEventHandler(): void;
     /**
      * Registers a new event handler.
      *
      * @param {string} name - Name of the event to bind the callback to.
      * @param {HandleEventCallback} callback - Function that is called when event is fired. Note
      * the callback is limited to 8 arguments.
-     * @param {object} [scope] - Object to use as 'this' when the event is fired, defaults to
+     * @param {object} scope - Object to use as 'this' when the event is fired, defaults to
      * current this.
-     * @param {boolean} [once=false] - If true, the callback will be unbound after being fired once.
-     * @private
+     * @param {boolean} once - If true, the callback will be unbound after being fired once.
+     * @returns {EventHandle} Created {@link EventHandle}.
+     * @ignore
      */
-    private _addCallback;
+    _addCallback(name: string, callback: HandleEventCallback, scope: object, once: boolean): EventHandle;
     /**
      * Attach an event handler to an event.
      *
@@ -7067,14 +7234,37 @@ declare class EventHandler {
      * the callback is limited to 8 arguments.
      * @param {object} [scope] - Object to use as 'this' when the event is fired, defaults to
      * current this.
-     * @returns {EventHandler} Self for chaining.
+     * @returns {EventHandle} Can be used for removing event in the future.
      * @example
      * obj.on('test', function (a, b) {
      *     console.log(a + b);
      * });
      * obj.fire('test', 1, 2); // prints 3 to the console
+     * @example
+     * const evt = obj.on('test', function (a, b) {
+     *     console.log(a + b);
+     * });
+     * // some time later
+     * evt.off();
      */
-    on(name: string, callback: HandleEventCallback, scope?: object): EventHandler;
+    on(name: string, callback: HandleEventCallback, scope?: object): EventHandle;
+    /**
+     * Attach an event handler to an event. This handler will be removed after being fired once.
+     *
+     * @param {string} name - Name of the event to bind the callback to.
+     * @param {HandleEventCallback} callback - Function that is called when event is fired. Note
+     * the callback is limited to 8 arguments.
+     * @param {object} [scope] - Object to use as 'this' when the event is fired, defaults to
+     * current this.
+     * @returns {EventHandle} - can be used for removing event in the future.
+     * @example
+     * obj.once('test', function (a, b) {
+     *     console.log(a + b);
+     * });
+     * obj.fire('test', 1, 2); // prints 3 to the console
+     * obj.fire('test', 1, 2); // not going to get handled
+     */
+    once(name: string, callback: HandleEventCallback, scope?: object): EventHandle;
     /**
      * Detach an event handler from an event. If callback is not provided then all callbacks are
      * unbound from the event, if scope is not provided then all events with the callback will be
@@ -7113,23 +7303,6 @@ declare class EventHandler {
      */
     fire(name: string, arg1?: any, arg2?: any, arg3?: any, arg4?: any, arg5?: any, arg6?: any, arg7?: any, arg8?: any): EventHandler;
     /**
-     * Attach an event handler to an event. This handler will be removed after being fired once.
-     *
-     * @param {string} name - Name of the event to bind the callback to.
-     * @param {HandleEventCallback} callback - Function that is called when event is fired. Note
-     * the callback is limited to 8 arguments.
-     * @param {object} [scope] - Object to use as 'this' when the event is fired, defaults to
-     * current this.
-     * @returns {EventHandler} Self for chaining.
-     * @example
-     * obj.once('test', function (a, b) {
-     *     console.log(a + b);
-     * });
-     * obj.fire('test', 1, 2); // prints 3 to the console
-     * obj.fire('test', 1, 2); // not going to get handled
-     */
-    once(name: string, callback: HandleEventCallback, scope?: object): EventHandler;
-    /**
      * Test if there are any handlers bound to an event name.
      *
      * @param {string} name - The name of the event to test.
@@ -7140,6 +7313,527 @@ declare class EventHandler {
      * obj.hasEvent('hello'); // returns false
      */
     hasEvent(name: string): boolean;
+}
+
+/**
+ * A 2-dimensional vector.
+ *
+ * @category Math
+ */
+declare class Vec2 {
+    /**
+     * Calculates the angle between two Vec2's in radians.
+     *
+     * @param {Vec2} lhs - The first vector operand for the calculation.
+     * @param {Vec2} rhs - The second vector operand for the calculation.
+     * @returns {number} The calculated angle in radians.
+     * @ignore
+     */
+    static angleRad(lhs: Vec2, rhs: Vec2): number;
+    /**
+     * A constant vector set to [0, 0].
+     *
+     * @type {Vec2}
+     * @readonly
+     */
+    static readonly ZERO: Vec2;
+    /**
+     * A constant vector set to [1, 1].
+     *
+     * @type {Vec2}
+     * @readonly
+     */
+    static readonly ONE: Vec2;
+    /**
+     * A constant vector set to [0, 1].
+     *
+     * @type {Vec2}
+     * @readonly
+     */
+    static readonly UP: Vec2;
+    /**
+     * A constant vector set to [0, -1].
+     *
+     * @type {Vec2}
+     * @readonly
+     */
+    static readonly DOWN: Vec2;
+    /**
+     * A constant vector set to [1, 0].
+     *
+     * @type {Vec2}
+     * @readonly
+     */
+    static readonly RIGHT: Vec2;
+    /**
+     * A constant vector set to [-1, 0].
+     *
+     * @type {Vec2}
+     * @readonly
+     */
+    static readonly LEFT: Vec2;
+    /**
+     * Create a new Vec2 instance.
+     *
+     * @param {number|number[]} [x] - The x value. Defaults to 0. If x is an array of length 2, the
+     * array will be used to populate all components.
+     * @param {number} [y] - The y value. Defaults to 0.
+     * @example
+     * const v = new pc.Vec2(1, 2);
+     */
+    constructor(x?: number | number[], y?: number);
+    /**
+     * The first component of the vector.
+     *
+     * @type {number}
+     */
+    x: number;
+    /**
+     * The second component of the vector.
+     *
+     * @type {number}
+     */
+    y: number;
+    /**
+     * Adds a 2-dimensional vector to another in place.
+     *
+     * @param {Vec2} rhs - The vector to add to the specified vector.
+     * @returns {Vec2} Self for chaining.
+     * @example
+     * const a = new pc.Vec2(10, 10);
+     * const b = new pc.Vec2(20, 20);
+     *
+     * a.add(b);
+     *
+     * // Outputs [30, 30]
+     * console.log("The result of the addition is: " + a.toString());
+     */
+    add(rhs: Vec2): Vec2;
+    /**
+     * Adds two 2-dimensional vectors together and returns the result.
+     *
+     * @param {Vec2} lhs - The first vector operand for the addition.
+     * @param {Vec2} rhs - The second vector operand for the addition.
+     * @returns {Vec2} Self for chaining.
+     * @example
+     * const a = new pc.Vec2(10, 10);
+     * const b = new pc.Vec2(20, 20);
+     * const r = new pc.Vec2();
+     *
+     * r.add2(a, b);
+     * // Outputs [30, 30]
+     *
+     * console.log("The result of the addition is: " + r.toString());
+     */
+    add2(lhs: Vec2, rhs: Vec2): Vec2;
+    /**
+     * Adds a number to each element of a vector.
+     *
+     * @param {number} scalar - The number to add.
+     * @returns {Vec2} Self for chaining.
+     * @example
+     * const vec = new pc.Vec2(3, 4);
+     *
+     * vec.addScalar(2);
+     *
+     * // Outputs [5, 6]
+     * console.log("The result of the addition is: " + vec.toString());
+     */
+    addScalar(scalar: number): Vec2;
+    /**
+     * Adds a 2-dimensional vector scaled by scalar value. Does not modify the vector being added.
+     *
+     * @param {Vec2} rhs - The vector to add to the specified vector.
+     * @param {number} scalar - The number to multiply the added vector with.
+     * @returns {Vec2} Self for chaining.
+     * @example
+     * const vec = new pc.Vec2(1, 2);
+     *
+     * vec.addScaled(pc.Vec2.UP, 2);
+     *
+     * // Outputs [1, 4]
+     * console.log("The result of the addition is: " + vec.toString());
+     */
+    addScaled(rhs: Vec2, scalar: number): Vec2;
+    /**
+     * Returns an identical copy of the specified 2-dimensional vector.
+     *
+     * @returns {this} A 2-dimensional vector containing the result of the cloning.
+     * @example
+     * const v = new pc.Vec2(10, 20);
+     * const vclone = v.clone();
+     * console.log("The result of the cloning is: " + vclone.toString());
+     */
+    clone(): this;
+    /**
+     * Copies the contents of a source 2-dimensional vector to a destination 2-dimensional vector.
+     *
+     * @param {Vec2} rhs - A vector to copy to the specified vector.
+     * @returns {Vec2} Self for chaining.
+     * @example
+     * const src = new pc.Vec2(10, 20);
+     * const dst = new pc.Vec2();
+     *
+     * dst.copy(src);
+     *
+     * console.log("The two vectors are " + (dst.equals(src) ? "equal" : "different"));
+     */
+    copy(rhs: Vec2): Vec2;
+    /**
+     * Returns the result of a cross product operation performed on the two specified 2-dimensional
+     * vectors.
+     *
+     * @param {Vec2} rhs - The second 2-dimensional vector operand of the cross product.
+     * @returns {number} The cross product of the two vectors.
+     * @example
+     * const right = new pc.Vec2(1, 0);
+     * const up = new pc.Vec2(0, 1);
+     * const crossProduct = right.cross(up);
+     *
+     * // Prints 1
+     * console.log("The result of the cross product is: " + crossProduct);
+     */
+    cross(rhs: Vec2): number;
+    /**
+     * Returns the distance between the two specified 2-dimensional vectors.
+     *
+     * @param {Vec2} rhs - The second 2-dimensional vector to test.
+     * @returns {number} The distance between the two vectors.
+     * @example
+     * const v1 = new pc.Vec2(5, 10);
+     * const v2 = new pc.Vec2(10, 20);
+     * const d = v1.distance(v2);
+     * console.log("The distance between v1 and v2 is: " + d);
+     */
+    distance(rhs: Vec2): number;
+    /**
+     * Divides a 2-dimensional vector by another in place.
+     *
+     * @param {Vec2} rhs - The vector to divide the specified vector by.
+     * @returns {Vec2} Self for chaining.
+     * @example
+     * const a = new pc.Vec2(4, 9);
+     * const b = new pc.Vec2(2, 3);
+     *
+     * a.div(b);
+     *
+     * // Outputs [2, 3]
+     * console.log("The result of the division is: " + a.toString());
+     */
+    div(rhs: Vec2): Vec2;
+    /**
+     * Divides one 2-dimensional vector by another and writes the result to the specified vector.
+     *
+     * @param {Vec2} lhs - The dividend vector (the vector being divided).
+     * @param {Vec2} rhs - The divisor vector (the vector dividing the dividend).
+     * @returns {Vec2} Self for chaining.
+     * @example
+     * const a = new pc.Vec2(4, 9);
+     * const b = new pc.Vec2(2, 3);
+     * const r = new pc.Vec2();
+     *
+     * r.div2(a, b);
+     * // Outputs [2, 3]
+     *
+     * console.log("The result of the division is: " + r.toString());
+     */
+    div2(lhs: Vec2, rhs: Vec2): Vec2;
+    /**
+     * Divides each element of a vector by a number.
+     *
+     * @param {number} scalar - The number to divide by.
+     * @returns {Vec2} Self for chaining.
+     * @example
+     * const vec = new pc.Vec2(3, 6);
+     *
+     * vec.divScalar(3);
+     *
+     * // Outputs [1, 2]
+     * console.log("The result of the division is: " + vec.toString());
+     */
+    divScalar(scalar: number): Vec2;
+    /**
+     * Returns the result of a dot product operation performed on the two specified 2-dimensional
+     * vectors.
+     *
+     * @param {Vec2} rhs - The second 2-dimensional vector operand of the dot product.
+     * @returns {number} The result of the dot product operation.
+     * @example
+     * const v1 = new pc.Vec2(5, 10);
+     * const v2 = new pc.Vec2(10, 20);
+     * const v1dotv2 = v1.dot(v2);
+     * console.log("The result of the dot product is: " + v1dotv2);
+     */
+    dot(rhs: Vec2): number;
+    /**
+     * Reports whether two vectors are equal.
+     *
+     * @param {Vec2} rhs - The vector to compare to the specified vector.
+     * @returns {boolean} True if the vectors are equal and false otherwise.
+     * @example
+     * const a = new pc.Vec2(1, 2);
+     * const b = new pc.Vec2(4, 5);
+     * console.log("The two vectors are " + (a.equals(b) ? "equal" : "different"));
+     */
+    equals(rhs: Vec2): boolean;
+    /**
+     * Reports whether two vectors are equal using an absolute error tolerance.
+     *
+     * @param {Vec2} rhs - The vector to be compared against.
+     * @param {number} [epsilon] - The maximum difference between each component of the two
+     * vectors. Defaults to 1e-6.
+     * @returns {boolean} True if the vectors are equal and false otherwise.
+     * @example
+     * const a = new pc.Vec2();
+     * const b = new pc.Vec2();
+     * console.log("The two vectors are approximately " + (a.equalsApprox(b, 1e-9) ? "equal" : "different"));
+     */
+    equalsApprox(rhs: Vec2, epsilon?: number): boolean;
+    /**
+     * Returns the magnitude of the specified 2-dimensional vector.
+     *
+     * @returns {number} The magnitude of the specified 2-dimensional vector.
+     * @example
+     * const vec = new pc.Vec2(3, 4);
+     * const len = vec.length();
+     * // Outputs 5
+     * console.log("The length of the vector is: " + len);
+     */
+    length(): number;
+    /**
+     * Returns the magnitude squared of the specified 2-dimensional vector.
+     *
+     * @returns {number} The magnitude of the specified 2-dimensional vector.
+     * @example
+     * const vec = new pc.Vec2(3, 4);
+     * const len = vec.lengthSq();
+     * // Outputs 25
+     * console.log("The length squared of the vector is: " + len);
+     */
+    lengthSq(): number;
+    /**
+     * Returns the result of a linear interpolation between two specified 2-dimensional vectors.
+     *
+     * @param {Vec2} lhs - The 2-dimensional to interpolate from.
+     * @param {Vec2} rhs - The 2-dimensional to interpolate to.
+     * @param {number} alpha - The value controlling the point of interpolation. Between 0 and 1,
+     * the linear interpolant will occur on a straight line between lhs and rhs. Outside of this
+     * range, the linear interpolant will occur on a ray extrapolated from this line.
+     * @returns {Vec2} Self for chaining.
+     * @example
+     * const a = new pc.Vec2(0, 0);
+     * const b = new pc.Vec2(10, 10);
+     * const r = new pc.Vec2();
+     *
+     * r.lerp(a, b, 0);   // r is equal to a
+     * r.lerp(a, b, 0.5); // r is 5, 5
+     * r.lerp(a, b, 1);   // r is equal to b
+     */
+    lerp(lhs: Vec2, rhs: Vec2, alpha: number): Vec2;
+    /**
+     * Multiplies a 2-dimensional vector to another in place.
+     *
+     * @param {Vec2} rhs - The 2-dimensional vector used as the second multiplicand of the operation.
+     * @returns {Vec2} Self for chaining.
+     * @example
+     * const a = new pc.Vec2(2, 3);
+     * const b = new pc.Vec2(4, 5);
+     *
+     * a.mul(b);
+     *
+     * // Outputs 8, 15
+     * console.log("The result of the multiplication is: " + a.toString());
+     */
+    mul(rhs: Vec2): Vec2;
+    /**
+     * Returns the result of multiplying the specified 2-dimensional vectors together.
+     *
+     * @param {Vec2} lhs - The 2-dimensional vector used as the first multiplicand of the operation.
+     * @param {Vec2} rhs - The 2-dimensional vector used as the second multiplicand of the operation.
+     * @returns {Vec2} Self for chaining.
+     * @example
+     * const a = new pc.Vec2(2, 3);
+     * const b = new pc.Vec2(4, 5);
+     * const r = new pc.Vec2();
+     *
+     * r.mul2(a, b);
+     *
+     * // Outputs 8, 15
+     * console.log("The result of the multiplication is: " + r.toString());
+     */
+    mul2(lhs: Vec2, rhs: Vec2): Vec2;
+    /**
+     * Multiplies each element of a vector by a number.
+     *
+     * @param {number} scalar - The number to multiply by.
+     * @returns {Vec2} Self for chaining.
+     * @example
+     * const vec = new pc.Vec2(3, 6);
+     *
+     * vec.mulScalar(3);
+     *
+     * // Outputs [9, 18]
+     * console.log("The result of the multiplication is: " + vec.toString());
+     */
+    mulScalar(scalar: number): Vec2;
+    /**
+     * Returns this 2-dimensional vector converted to a unit vector in place. If the vector has a
+     * length of zero, the vector's elements will be set to zero.
+     *
+     * @param {Vec2} [src] - The vector to normalize. If not set, the operation is done in place.
+     * @returns {Vec2} Self for chaining.
+     * @example
+     * const v = new pc.Vec2(25, 0);
+     *
+     * v.normalize();
+     *
+     * // Outputs 1, 0
+     * console.log("The result of the vector normalization is: " + v.toString());
+     */
+    normalize(src?: Vec2): Vec2;
+    /**
+     * Rotate a vector by an angle in degrees.
+     *
+     * @param {number} degrees - The number to degrees to rotate the vector by.
+     * @returns {Vec2} Self for chaining.
+     * @example
+     * const v = new pc.Vec2(0, 10);
+     *
+     * v.rotate(45); // rotates by 45 degrees
+     *
+     * // Outputs [7.071068.., 7.071068..]
+     * console.log("Vector after rotation is: " + v.toString());
+     */
+    rotate(degrees: number): Vec2;
+    /**
+     * Returns the angle in degrees of the specified 2-dimensional vector.
+     *
+     * @returns {number} The angle in degrees of the specified 2-dimensional vector.
+     * @example
+     * const v = new pc.Vec2(6, 0);
+     * const angle = v.angle();
+     * // Outputs 90..
+     * console.log("The angle of the vector is: " + angle);
+     */
+    angle(): number;
+    /**
+     * Returns the shortest Euler angle between two 2-dimensional vectors.
+     *
+     * @param {Vec2} rhs - The 2-dimensional vector to calculate angle to.
+     * @returns {number} The shortest angle in degrees between two 2-dimensional vectors.
+     * @example
+     * const a = new pc.Vec2(0, 10); // up
+     * const b = new pc.Vec2(1, -1); // down-right
+     * const angle = a.angleTo(b);
+     * // Outputs 135..
+     * console.log("The angle between vectors a and b: " + angle);
+     */
+    angleTo(rhs: Vec2): number;
+    /**
+     * Each element is set to the largest integer less than or equal to its value.
+     *
+     * @param {Vec2} [src] - The vector to floor. If not set, the operation is done in place.
+     * @returns {Vec2} Self for chaining.
+     */
+    floor(src?: Vec2): Vec2;
+    /**
+     * Each element is rounded up to the next largest integer.
+     *
+     * @param {Vec2} [src] - The vector to ceil. If not set, the operation is done in place.
+     * @returns {Vec2} Self for chaining.
+     */
+    ceil(src?: Vec2): Vec2;
+    /**
+     * Each element is rounded up or down to the nearest integer.
+     *
+     * @param {Vec2} [src] - The vector to round. If not set, the operation is done in place.
+     * @returns {Vec2} Self for chaining.
+     */
+    round(src?: Vec2): Vec2;
+    /**
+     * Each element is assigned a value from rhs parameter if it is smaller.
+     *
+     * @param {Vec2} rhs - The 2-dimensional vector used as the source of elements to compare to.
+     * @returns {Vec2} Self for chaining.
+     */
+    min(rhs: Vec2): Vec2;
+    /**
+     * Each element is assigned a value from rhs parameter if it is larger.
+     *
+     * @param {Vec2} rhs - The 2-dimensional vector used as the source of elements to compare to.
+     * @returns {Vec2} Self for chaining.
+     */
+    max(rhs: Vec2): Vec2;
+    /**
+     * Sets the specified 2-dimensional vector to the supplied numerical values.
+     *
+     * @param {number} x - The value to set on the first component of the vector.
+     * @param {number} y - The value to set on the second component of the vector.
+     * @returns {Vec2} Self for chaining.
+     * @example
+     * const v = new pc.Vec2();
+     * v.set(5, 10);
+     *
+     * // Outputs 5, 10
+     * console.log("The result of the vector set is: " + v.toString());
+     */
+    set(x: number, y: number): Vec2;
+    /**
+     * Subtracts a 2-dimensional vector from another in place.
+     *
+     * @param {Vec2} rhs - The vector to subtract from the specified vector.
+     * @returns {Vec2} Self for chaining.
+     * @example
+     * const a = new pc.Vec2(10, 10);
+     * const b = new pc.Vec2(20, 20);
+     *
+     * a.sub(b);
+     *
+     * // Outputs [-10, -10]
+     * console.log("The result of the subtraction is: " + a.toString());
+     */
+    sub(rhs: Vec2): Vec2;
+    /**
+     * Subtracts two 2-dimensional vectors from one another and returns the result.
+     *
+     * @param {Vec2} lhs - The first vector operand for the subtraction.
+     * @param {Vec2} rhs - The second vector operand for the subtraction.
+     * @returns {Vec2} Self for chaining.
+     * @example
+     * const a = new pc.Vec2(10, 10);
+     * const b = new pc.Vec2(20, 20);
+     * const r = new pc.Vec2();
+     *
+     * r.sub2(a, b);
+     *
+     * // Outputs [-10, -10]
+     * console.log("The result of the subtraction is: " + r.toString());
+     */
+    sub2(lhs: Vec2, rhs: Vec2): Vec2;
+    /**
+     * Subtracts a number from each element of a vector.
+     *
+     * @param {number} scalar - The number to subtract.
+     * @returns {Vec2} Self for chaining.
+     * @example
+     * const vec = new pc.Vec2(3, 4);
+     *
+     * vec.subScalar(2);
+     *
+     * // Outputs [1, 2]
+     * console.log("The result of the subtraction is: " + vec.toString());
+     */
+    subScalar(scalar: number): Vec2;
+    /**
+     * Converts the vector to string form.
+     *
+     * @returns {string} The vector in string form.
+     * @example
+     * const v = new pc.Vec2(20, 10);
+     * // Outputs [20, 10]
+     * console.log(v.toString());
+     */
+    toString(): string;
 }
 
 /**
@@ -7558,12 +8252,50 @@ declare class GraphicsDevice extends EventHandler {
      */
     readonly canvas: HTMLCanvasElement;
     /**
+     * The render target representing the main back-buffer.
+     *
+     * @type {import('./render-target.js').RenderTarget|null}
+     * @ignore
+     */
+    backBuffer: RenderTarget | null;
+    /**
+     * The dimensions of the back buffer.
+     *
+     * @ignore
+     */
+    backBufferSize: Vec2;
+    /**
+     * The pixel format of the back buffer. Typically PIXELFORMAT_RGBA8, PIXELFORMAT_BGRA8 or
+     * PIXELFORMAT_RGB8.
+     *
+     * @ignore
+     */
+    backBufferFormat: any;
+    /**
+     * True if the back buffer should use anti-aliasing.
+     */
+    backBufferAntialias: boolean;
+    /**
      * True if the deviceType is WebGPU
      *
      * @type {boolean}
      * @readonly
      */
     readonly isWebGPU: boolean;
+    /**
+     * True if the deviceType is WebGL1
+     *
+     * @type {boolean}
+     * @readonly
+     */
+    readonly isWebGL1: boolean;
+    /**
+     * True if the deviceType is WebGL2
+     *
+     * @type {boolean}
+     * @readonly
+     */
+    readonly isWebGL2: boolean;
     /**
      * The scope namespace for shader attributes and variables.
      *
@@ -7653,10 +8385,31 @@ declare class GraphicsDevice extends EventHandler {
     /**
      * Currently active render target.
      *
-     * @type {import('./render-target.js').RenderTarget}
+     * @type {import('./render-target.js').RenderTarget|null}
      * @ignore
      */
-    renderTarget: RenderTarget;
+    renderTarget: RenderTarget | null;
+    /**
+     * Array of objects that need to be re-initialized after a context restore event
+     *
+     * @type {import('./shader.js').Shader[]}
+     * @ignore
+     */
+    shaders: Shader[];
+    /**
+     * An array of currently created textures.
+     *
+     * @type {import('./texture.js').Texture[]}
+     * @ignore
+     */
+    textures: Texture[];
+    /**
+     * A set of currently created render targets.
+     *
+     * @type {Set<import('./render-target.js').RenderTarget>}
+     * @ignore
+     */
+    targets: Set<RenderTarget>;
     /**
      * A version number that is incremented every frame. This is used to detect if some object were
      * invalidated.
@@ -7702,6 +8455,13 @@ declare class GraphicsDevice extends EventHandler {
      * @readonly
      */
     readonly textureHalfFloatRenderable: boolean;
+    /**
+     * True if filtering can be applied when sampling float textures.
+     *
+     * @type {boolean}
+     * @readonly
+     */
+    readonly textureFloatFilterable: boolean;
     /**
      * A vertex buffer representing a quad.
      *
@@ -7759,16 +8519,8 @@ declare class GraphicsDevice extends EventHandler {
         flags: number;
     };
     initOptions: any;
-    _width: number;
-    _height: number;
     _maxPixelRatio: number;
-    /** @type {import('./shader.js').Shader[]} */
-    shaders: Shader[];
     buffers: any[];
-    /** @type {import('./texture.js').Texture[]} */
-    textures: Texture[];
-    /** @type {import('./render-target.js').RenderTarget[]} */
-    targets: RenderTarget[];
     _vram: {
         texShadow: number;
         texAsset: number;
@@ -7859,7 +8611,7 @@ declare class GraphicsDevice extends EventHandler {
      * Sets the specified render target on the device. If null is passed as a parameter, the back
      * buffer becomes the current target for all rendering operations.
      *
-     * @param {import('./render-target.js').RenderTarget} renderTarget - The render target to
+     * @param {import('./render-target.js').RenderTarget|null} renderTarget - The render target to
      * activate.
      * @example
      * // Set a render target to receive all rendering output
@@ -7868,7 +8620,7 @@ declare class GraphicsDevice extends EventHandler {
      * // Set the back buffer to receive all rendering output
      * device.setRenderTarget(null);
      */
-    setRenderTarget(renderTarget: RenderTarget): void;
+    setRenderTarget(renderTarget: RenderTarget | null): void;
     /**
      * Sets the current index buffer on the graphics device. On subsequent calls to
      * {@link GraphicsDevice#draw}, the specified index buffer will be used to provide index data
@@ -8065,7 +8817,7 @@ declare class ShaderUtils {
  *
  * @param {import('../../platform/graphics/graphics-device.js').GraphicsDevice} device - The graphics device used to draw
  * the quad.
- * @param {import('../../platform/graphics/render-target.js').RenderTarget|undefined} target - The destination render
+ * @param {import('../../platform/graphics/render-target.js').RenderTarget|null} target - The destination render
  * target. If undefined, target is the frame buffer.
  * @param {import('../../platform/graphics/shader.js').Shader} shader - The shader used for rendering the quad. Vertex
  * shader should contain `attribute vec2 vertex_position`.
@@ -8074,7 +8826,7 @@ declare class ShaderUtils {
  * @param {import('../../core/math/vec4.js').Vec4} [scissorRect] - The scissor rectangle of the
  * quad, in pixels. Defaults to fullscreen (`0, 0, target.width, target.height`).
  */
-declare function drawQuadWithShader(device: GraphicsDevice, target: RenderTarget | undefined, shader: Shader, rect?: Vec4, scissorRect?: Vec4, ...args: any[]): void;
+declare function drawQuadWithShader(device: GraphicsDevice, target: RenderTarget | null, shader: Shader, rect?: Vec4, scissorRect?: Vec4, ...args: any[]): void;
 /**
  * Draws a texture in screen-space. Mostly used by post-effects.
  *
@@ -8084,8 +8836,7 @@ declare function drawQuadWithShader(device: GraphicsDevice, target: RenderTarget
  * `uniform sampler2D * source` in shader.
  * @param {import('../../platform/graphics/render-target.js').RenderTarget} [target] - The destination render target.
  * Defaults to the frame buffer.
- * @param {import('../../platform/graphics/shader.js').Shader} [shader] - The shader used for rendering the texture.
- * Defaults to {@link GraphicsDevice#getCopyShader}.
+ * @param {import('../../platform/graphics/shader.js').Shader} [shader] - The optional custom shader used for rendering the texture.
  * @param {import('../../core/math/vec4.js').Vec4} [rect] - The viewport rectangle to use for the
  * texture, in pixels. Defaults to fullscreen (`0, 0, target.width, target.height`).
  * @param {import('../../core/math/vec4.js').Vec4} [scissorRect] - The scissor rectangle to use for
@@ -8094,11 +8845,9 @@ declare function drawQuadWithShader(device: GraphicsDevice, target: RenderTarget
 declare function drawTexture(device: GraphicsDevice, texture: Texture, target?: RenderTarget, shader?: Shader, rect?: Vec4, scissorRect?: Vec4, ...args: any[]): void;
 
 /**
- * @static
- * @readonly
+ * Object containing all default shader chunks used by shader generators.
+ *
  * @type {object}
- * @name shaderChunks
- * @description Object containing all default shader chunks used by shader generators.
  */
 declare const shaderChunks: object;
 
@@ -8336,6 +9085,14 @@ declare class LitShaderOptions {
     lights: any[];
     noShadow: boolean;
     lightMaskDynamic: number;
+    /**
+     * Object containing a map of user defined vertex attributes to attached shader semantics.
+     *
+     * @type {Object<string, string>}
+     */
+    userAttributes: {
+        [x: string]: string;
+    };
 }
 
 /**
@@ -8448,11 +9205,16 @@ declare class ProgramLibrary {
     /**
      * A cache of shader definitions before processing.
      *
-     * @type {Map<string, object>}
+     * @type {Map<number, object>}
      */
-    definitionsCache: Map<string, object>;
+    definitionsCache: Map<number, object>;
+    /**
+     * Named shader generators.
+     *
+     * @type {Map<string, import('./programs/shader-generator.js').ShaderGenerator>}
+     */
+    _generators: Map<string, ShaderGenerator>;
     _device: any;
-    _generators: {};
     _isClearingCache: boolean;
     _precached: boolean;
     _programsCollection: any[];
@@ -8462,10 +9224,20 @@ declare class ProgramLibrary {
     register(name: any, generator: any): void;
     unregister(name: any): void;
     isRegistered(name: any): boolean;
-    generateShaderDefinition(generator: any, name: any, key: any, options: any): any;
+    /**
+     * Returns a generated shader definition for the specified options. They key is used to cache the
+     * shader definition.
+     * @param {import('./programs/shader-generator.js').ShaderGenerator} generator - The generator
+     * to use.
+     * @param {string} name - The unique name of the shader generator.
+     * @param {number} key - A unique key representing the shader options.
+     * @param {object} options - The shader options.
+     * @returns {object} - The shader definition.
+     */
+    generateShaderDefinition(generator: ShaderGenerator, name: string, key: number, options: object): object;
     getCachedShader(key: any): Shader;
     setCachedShader(key: any, shader: any): void;
-    getProgram(name: any, options: any, processingOptions: any): Shader;
+    getProgram(name: any, options: any, processingOptions: any, userMaterialId: any): Shader;
     storeNewProgram(name: any, options: any): void;
     dumpPrograms(): void;
     clearCache(): void;
@@ -8742,14 +9514,14 @@ declare class PostEffect$1 {
     /**
      * Draw a screen-space rectangle in a render target, using a specified shader.
      *
-     * @param {import('../../platform/graphics/render-target.js').RenderTarget} target - The output
-     * render target.
-     * @param {import('../../platform/graphics/shader.js').Shader} shader - The shader to be used for
-     * drawing the rectangle.
+     * @param {import('../../platform/graphics/render-target.js').RenderTarget|null} target - The
+     * output render target.
+     * @param {import('../../platform/graphics/shader.js').Shader} shader - The shader to be used
+     * for drawing the rectangle.
      * @param {import('../../core/math/vec4.js').Vec4} [rect] - The normalized screen-space position
      * (rect.x, rect.y) and size (rect.z, rect.w) of the rectangle. Default is [0, 0, 1, 1].
      */
-    drawQuad(target: RenderTarget, shader: Shader, rect?: Vec4): void;
+    drawQuad(target: RenderTarget | null, shader: Shader, rect?: Vec4): void;
 }
 
 /**
@@ -8923,12 +9695,12 @@ declare class Mesh extends RefCountedObject {
      *
      * @type {Array.<{type: number, base: number, count: number, indexed: boolean|undefined}>}
      */
-    primitive: {
+    primitive: Array<{
         type: number;
         base: number;
         count: number;
         indexed: boolean | undefined;
-    }[];
+    }>;
     /**
      * The skin data (if any) that drives skinned mesh animations for this mesh.
      *
@@ -9176,6 +9948,247 @@ declare class GeometryData {
 }
 
 /**
+ * A Morph Target (also known as Blend Shape) contains deformation data to apply to existing mesh.
+ * Multiple morph targets can be blended together on a mesh. This is useful for effects that are
+ * hard to achieve with conventional animation and skinning.
+ *
+ * @category Graphics
+ */
+declare class MorphTarget {
+    /**
+     * Create a new MorphTarget instance.
+     *
+     * @param {object} options - Object for passing optional arguments.
+     * @param {ArrayBuffer} options.deltaPositions - An array of 3-dimensional vertex position
+     * offsets.
+     * @param {number} options.deltaPositionsType - A format to store position offsets inside
+     * {@link VertexBuffer}. Defaults to {@link TYPE_FLOAT32} if not provided.
+     * @param {ArrayBuffer} [options.deltaNormals] - An array of 3-dimensional vertex normal
+     * offsets.
+     * @param {number} options.deltaNormalsType - A format to store normal offsets inside
+     * {@link VertexBuffer}. Defaults to {@link TYPE_FLOAT32} if not provided.
+     * @param {string} [options.name] - Name.
+     * @param {BoundingBox} [options.aabb] - Bounding box. Will be automatically generated, if
+     * undefined.
+     * @param {number} [options.defaultWeight] - Default blend weight to use for this morph target.
+     * @param {boolean} [options.preserveData] - When true, the morph target keeps its data passed using the options,
+     * allowing the clone operation.
+     */
+    constructor(options: {
+        deltaPositions: ArrayBuffer;
+        deltaPositionsType: number;
+        deltaNormals?: ArrayBuffer;
+        deltaNormalsType: number;
+        name?: string;
+        aabb?: BoundingBox;
+        defaultWeight?: number;
+        preserveData?: boolean;
+    }, ...args: any[]);
+    /**
+     * A used flag. A morph target can be used / owned by the Morph class only one time.
+     *
+     * @type {boolean}
+     */
+    used: boolean;
+    options: {
+        deltaPositions: ArrayBuffer;
+        deltaPositionsType: number;
+        deltaNormals?: ArrayBuffer;
+        deltaNormalsType: number;
+        name?: string;
+        aabb?: BoundingBox;
+        defaultWeight?: number;
+        preserveData?: boolean;
+    };
+    _name: string;
+    _defaultWeight: number;
+    _aabb: BoundingBox;
+    deltaPositions: ArrayBuffer;
+    destroy(): void;
+    _vertexBufferPositions: VertexBuffer;
+    _vertexBufferNormals: VertexBuffer;
+    texturePositions: any;
+    textureNormals: any;
+    /**
+     * The name of the morph target.
+     *
+     * @type {string}
+     */
+    get name(): string;
+    /**
+     * The default weight of the morph target.
+     *
+     * @type {number}
+     */
+    get defaultWeight(): number;
+    get aabb(): BoundingBox;
+    get morphPositions(): boolean;
+    get morphNormals(): boolean;
+    /**
+     * Returns an identical copy of the specified morph target. This can only be used if the morph target
+     * was created with options.preserveData set to true.
+     *
+     * @returns {MorphTarget} A morph target instance containing the result of the cloning.
+     */
+    clone(): MorphTarget;
+    _postInit(): void;
+    _initVertexBuffers(graphicsDevice: any): void;
+    _createVertexBuffer(device: any, data: any, dataType?: number): VertexBuffer;
+    _setTexture(name: any, texture: any): void;
+}
+
+/**
+ * Contains a list of {@link MorphTarget}, a combined delta AABB and some associated data.
+ *
+ * @category Graphics
+ */
+declare class Morph extends RefCountedObject {
+    /**
+     * Create a new Morph instance.
+     *
+     * @param {import('./morph-target.js').MorphTarget[]} targets - A list of morph targets.
+     * @param {import('../platform/graphics/graphics-device.js').GraphicsDevice} graphicsDevice -
+     * The graphics device used to manage this morph target.
+     * @param {object} [options] - Object for passing optional arguments.
+     * @param {boolean} [options.preferHighPrecision] - True if high precision storage should be
+     * prefered. This is faster to create and allows higher precision, but takes more memory and
+     * might be slower to render. Defaults to false.
+     */
+    constructor(targets: MorphTarget[], graphicsDevice: GraphicsDevice, { preferHighPrecision }?: {
+        preferHighPrecision?: boolean;
+    });
+    /**
+     * @type {BoundingBox}
+     * @private
+     */
+    private _aabb;
+    /** @type {boolean} */
+    preferHighPrecision: boolean;
+    device: any;
+    _targets: MorphTarget[];
+    _renderTextureFormat: number;
+    _textureFormat: number;
+    _useTextureMorph: boolean;
+    get aabb(): BoundingBox;
+    get morphPositions(): boolean;
+    get morphNormals(): boolean;
+    get maxActiveTargets(): number;
+    get useTextureMorph(): boolean;
+    _init(): void;
+    _findSparseSet(deltaArrays: any, ids: any, usedDataIndices: any, floatRounding: any): number;
+    _initTextureBased(): boolean;
+    morphTextureWidth: number;
+    morphTextureHeight: number;
+    vertexBufferIds: VertexBuffer;
+    /**
+     * Frees video memory allocated by this object.
+     */
+    destroy(): void;
+    /**
+     * The array of morph targets.
+     *
+     * @type {import('./morph-target.js').MorphTarget[]}
+     */
+    get targets(): MorphTarget[];
+    _updateMorphFlags(): void;
+    _morphPositions: boolean;
+    _morphNormals: boolean;
+    _createTexture(name: any, format: any): Texture;
+}
+
+/**
+ * An instance of {@link Morph}. Contains weights to assign to every {@link MorphTarget}, manages
+ * selection of active morph targets.
+ *
+ * @category Graphics
+ */
+declare class MorphInstance {
+    /**
+     * Create a new MorphInstance instance.
+     *
+     * @param {import('./morph.js').Morph} morph - The {@link Morph} to instance.
+     */
+    constructor(morph: Morph);
+    /**
+     * The morph with its targets, which is being instanced.
+     *
+     * @type {import('./morph.js').Morph}
+     */
+    morph: Morph;
+    device: any;
+    _weights: any[];
+    _weightMap: Map<any, any>;
+    _activeTargets: any[];
+    shaderCache: {};
+    maxSubmitCount: any;
+    _shaderMorphWeights: Float32Array;
+    rtPositions: RenderTarget;
+    rtNormals: RenderTarget;
+    _textureParams: Float32Array;
+    morphFactor: any;
+    zeroTextures: boolean;
+    _shaderMorphWeightsA: Float32Array;
+    _shaderMorphWeightsB: Float32Array;
+    _activeVertexBuffers: any[];
+    /**
+     * Frees video memory allocated by this object.
+     */
+    destroy(): void;
+    shader: any;
+    texturePositions: any;
+    textureNormals: any;
+    /**
+     * Clones a MorphInstance. The returned clone uses the same {@link Morph} and weights are set
+     * to defaults.
+     *
+     * @returns {MorphInstance} A clone of the specified MorphInstance.
+     */
+    clone(): MorphInstance;
+    _getWeightIndex(key: any): any;
+    /**
+     * Gets current weight of the specified morph target.
+     *
+     * @param {string|number} key - An identifier for the morph target. Either the weight index or
+     * the weight name.
+     * @returns {number} Weight.
+     */
+    getWeight(key: string | number): number;
+    /**
+     * Sets weight of the specified morph target.
+     *
+     * @param {string|number} key - An identifier for the morph target. Either the weight index or
+     * the weight name.
+     * @param {number} weight - Weight.
+     */
+    setWeight(key: string | number, weight: number): void;
+    _dirty: boolean;
+    /**
+     * Generate fragment shader to blend a number of textures using specified weights.
+     *
+     * @param {number} numTextures - Number of textures to blend.
+     * @returns {string} Fragment shader.
+     * @private
+     */
+    private _getFragmentShader;
+    /**
+     * Create complete shader for texture based morphing.
+     *
+     * @param {number} count - Number of textures to blend.
+     * @returns {import('../platform/graphics/shader.js').Shader} Shader.
+     * @private
+     */
+    private _getShader;
+    _updateTextureRenderTarget(renderTarget: any, srcTextureName: any): void;
+    _updateTextureMorph(): void;
+    _updateVertexMorph(): void;
+    /**
+     * Selects active morph targets and prepares morph for rendering. Called automatically by
+     * renderer.
+     */
+    update(): void;
+}
+
+/**
  * Set of tag names. Tags are automatically available on {@link Entity} and {@link Asset} as `tags`
  * field.
  *
@@ -9388,6 +10401,7 @@ declare class Mat3 {
     /**
      * Generates the transpose of the specified 3x3 matrix.
      *
+     * @param {Mat3} [src] - The matrix to transpose. If not set, the matrix is transposed in-place.
      * @returns {Mat3} Self for chaining.
      * @example
      * const m = new pc.Mat3();
@@ -9395,7 +10409,7 @@ declare class Mat3 {
      * // Transpose in place
      * m.transpose();
      */
-    transpose(): Mat3;
+    transpose(src?: Mat3): Mat3;
     /**
      * Converts the specified 4x4 matrix to a Mat3.
      *
@@ -9403,6 +10417,15 @@ declare class Mat3 {
      * @returns {Mat3} Self for chaining.
      */
     setFromMat4(m: Mat4): Mat3;
+    /**
+     * Set the matrix to the inverse of the specified 4x4 matrix.
+     *
+     * @param {import('./mat4.js').Mat4} src - The 4x4 matrix to invert.
+     * @returns {Mat3} Self for chaining.
+     *
+     * @ignore
+     */
+    invertMat4(src: Mat4): Mat3;
     /**
      * Transforms a 3-dimensional vector by a 3x3 matrix.
      *
@@ -10204,9 +11227,9 @@ declare class GraphNode extends EventHandler {
      * @param {Vec3|number} [y] - If passing a 3D vector, this is the world-space up vector for look at
      * transform. Otherwise, it is the y-component of the world-space coordinate to look at.
      * @param {number} [z] - Z-component of the world-space coordinate to look at.
-     * @param {number} [ux=0] - X-component of the up vector for the look at transform.
-     * @param {number} [uy=1] - Y-component of the up vector for the look at transform.
-     * @param {number} [uz=0] - Z-component of the up vector for the look at transform.
+     * @param {number} [ux] - X-component of the up vector for the look at transform. Defaults to 0.
+     * @param {number} [uy] - Y-component of the up vector for the look at transform. Defaults to 1.
+     * @param {number} [uz] - Z-component of the up vector for the look at transform. Defaults to 0.
      * @example
      * // Look at another entity, using the (default) positive y-axis for up
      * const position = otherEntity.getPosition();
@@ -10295,6 +11318,46 @@ declare class GraphNode extends EventHandler {
      * this.entity.rotateLocal(r);
      */
     rotateLocal(x: Vec3 | number, y?: number, z?: number): void;
+}
+
+/**
+ * A skin instance is responsible for generating the matrix palette that is used to skin vertices
+ * from object space to world space.
+ *
+ * @category Graphics
+ */
+declare class SkinInstance {
+    /**
+     * Create a new SkinInstance instance.
+     *
+     * @param {import('./skin.js').Skin} skin - The skin that will provide the inverse bind pose
+     * matrices to generate the final matrix palette.
+     */
+    constructor(skin: Skin);
+    /**
+     * An array of nodes representing each bone in this skin instance.
+     *
+     * @type {import('./graph-node.js').GraphNode[]}
+     */
+    bones: GraphNode[];
+    _dirty: boolean;
+    _rootBone: any;
+    _skinUpdateIndex: number;
+    _updateBeforeCull: boolean;
+    set rootBone(arg: any);
+    get rootBone(): any;
+    init(device: any, numBones: any): void;
+    boneTexture: Texture;
+    matrixPalette: Uint8Array | Uint16Array | Float32Array;
+    destroy(): void;
+    resolve(rootBone: any, entity: any): void;
+    initSkin(skin: any): void;
+    skin: any;
+    matrices: any[];
+    uploadBones(device: any): void;
+    _updateMatrices(rootNode: any, skinUpdateIndex: any): void;
+    updateMatrices(rootNode: any, skinUpdateIndex: any): void;
+    updateMatrixPalette(rootNode: any, skinUpdateIndex: any): void;
 }
 
 declare class LightComponentData {
@@ -10501,457 +11564,6 @@ declare class Color {
      * console.log(c.toString());
      */
     toString(alpha: boolean): string;
-}
-
-/**
- * A 2-dimensional vector.
- *
- * @category Math
- */
-declare class Vec2 {
-    /**
-     * Calculates the angle between two Vec2's in radians.
-     *
-     * @param {Vec2} lhs - The first vector operand for the calculation.
-     * @param {Vec2} rhs - The second vector operand for the calculation.
-     * @returns {number} The calculated angle in radians.
-     * @ignore
-     */
-    static angleRad(lhs: Vec2, rhs: Vec2): number;
-    /**
-     * A constant vector set to [0, 0].
-     *
-     * @type {Vec2}
-     * @readonly
-     */
-    static readonly ZERO: Vec2;
-    /**
-     * A constant vector set to [1, 1].
-     *
-     * @type {Vec2}
-     * @readonly
-     */
-    static readonly ONE: Vec2;
-    /**
-     * A constant vector set to [0, 1].
-     *
-     * @type {Vec2}
-     * @readonly
-     */
-    static readonly UP: Vec2;
-    /**
-     * A constant vector set to [0, -1].
-     *
-     * @type {Vec2}
-     * @readonly
-     */
-    static readonly DOWN: Vec2;
-    /**
-     * A constant vector set to [1, 0].
-     *
-     * @type {Vec2}
-     * @readonly
-     */
-    static readonly RIGHT: Vec2;
-    /**
-     * A constant vector set to [-1, 0].
-     *
-     * @type {Vec2}
-     * @readonly
-     */
-    static readonly LEFT: Vec2;
-    /**
-     * Create a new Vec2 instance.
-     *
-     * @param {number|number[]} [x] - The x value. Defaults to 0. If x is an array of length 2, the
-     * array will be used to populate all components.
-     * @param {number} [y] - The y value. Defaults to 0.
-     * @example
-     * const v = new pc.Vec2(1, 2);
-     */
-    constructor(x?: number | number[], y?: number);
-    /**
-     * The first component of the vector.
-     *
-     * @type {number}
-     */
-    x: number;
-    /**
-     * The second component of the vector.
-     *
-     * @type {number}
-     */
-    y: number;
-    /**
-     * Adds a 2-dimensional vector to another in place.
-     *
-     * @param {Vec2} rhs - The vector to add to the specified vector.
-     * @returns {Vec2} Self for chaining.
-     * @example
-     * const a = new pc.Vec2(10, 10);
-     * const b = new pc.Vec2(20, 20);
-     *
-     * a.add(b);
-     *
-     * // Outputs [30, 30]
-     * console.log("The result of the addition is: " + a.toString());
-     */
-    add(rhs: Vec2): Vec2;
-    /**
-     * Adds two 2-dimensional vectors together and returns the result.
-     *
-     * @param {Vec2} lhs - The first vector operand for the addition.
-     * @param {Vec2} rhs - The second vector operand for the addition.
-     * @returns {Vec2} Self for chaining.
-     * @example
-     * const a = new pc.Vec2(10, 10);
-     * const b = new pc.Vec2(20, 20);
-     * const r = new pc.Vec2();
-     *
-     * r.add2(a, b);
-     * // Outputs [30, 30]
-     *
-     * console.log("The result of the addition is: " + r.toString());
-     */
-    add2(lhs: Vec2, rhs: Vec2): Vec2;
-    /**
-     * Adds a number to each element of a vector.
-     *
-     * @param {number} scalar - The number to add.
-     * @returns {Vec2} Self for chaining.
-     * @example
-     * const vec = new pc.Vec2(3, 4);
-     *
-     * vec.addScalar(2);
-     *
-     * // Outputs [5, 6]
-     * console.log("The result of the addition is: " + vec.toString());
-     */
-    addScalar(scalar: number): Vec2;
-    /**
-     * Returns an identical copy of the specified 2-dimensional vector.
-     *
-     * @returns {this} A 2-dimensional vector containing the result of the cloning.
-     * @example
-     * const v = new pc.Vec2(10, 20);
-     * const vclone = v.clone();
-     * console.log("The result of the cloning is: " + vclone.toString());
-     */
-    clone(): this;
-    /**
-     * Copies the contents of a source 2-dimensional vector to a destination 2-dimensional vector.
-     *
-     * @param {Vec2} rhs - A vector to copy to the specified vector.
-     * @returns {Vec2} Self for chaining.
-     * @example
-     * const src = new pc.Vec2(10, 20);
-     * const dst = new pc.Vec2();
-     *
-     * dst.copy(src);
-     *
-     * console.log("The two vectors are " + (dst.equals(src) ? "equal" : "different"));
-     */
-    copy(rhs: Vec2): Vec2;
-    /**
-     * Returns the result of a cross product operation performed on the two specified 2-dimensional
-     * vectors.
-     *
-     * @param {Vec2} rhs - The second 2-dimensional vector operand of the cross product.
-     * @returns {number} The cross product of the two vectors.
-     * @example
-     * const right = new pc.Vec2(1, 0);
-     * const up = new pc.Vec2(0, 1);
-     * const crossProduct = right.cross(up);
-     *
-     * // Prints 1
-     * console.log("The result of the cross product is: " + crossProduct);
-     */
-    cross(rhs: Vec2): number;
-    /**
-     * Returns the distance between the two specified 2-dimensional vectors.
-     *
-     * @param {Vec2} rhs - The second 2-dimensional vector to test.
-     * @returns {number} The distance between the two vectors.
-     * @example
-     * const v1 = new pc.Vec2(5, 10);
-     * const v2 = new pc.Vec2(10, 20);
-     * const d = v1.distance(v2);
-     * console.log("The distance between v1 and v2 is: " + d);
-     */
-    distance(rhs: Vec2): number;
-    /**
-     * Divides a 2-dimensional vector by another in place.
-     *
-     * @param {Vec2} rhs - The vector to divide the specified vector by.
-     * @returns {Vec2} Self for chaining.
-     * @example
-     * const a = new pc.Vec2(4, 9);
-     * const b = new pc.Vec2(2, 3);
-     *
-     * a.div(b);
-     *
-     * // Outputs [2, 3]
-     * console.log("The result of the division is: " + a.toString());
-     */
-    div(rhs: Vec2): Vec2;
-    /**
-     * Divides one 2-dimensional vector by another and writes the result to the specified vector.
-     *
-     * @param {Vec2} lhs - The dividend vector (the vector being divided).
-     * @param {Vec2} rhs - The divisor vector (the vector dividing the dividend).
-     * @returns {Vec2} Self for chaining.
-     * @example
-     * const a = new pc.Vec2(4, 9);
-     * const b = new pc.Vec2(2, 3);
-     * const r = new pc.Vec2();
-     *
-     * r.div2(a, b);
-     * // Outputs [2, 3]
-     *
-     * console.log("The result of the division is: " + r.toString());
-     */
-    div2(lhs: Vec2, rhs: Vec2): Vec2;
-    /**
-     * Divides each element of a vector by a number.
-     *
-     * @param {number} scalar - The number to divide by.
-     * @returns {Vec2} Self for chaining.
-     * @example
-     * const vec = new pc.Vec2(3, 6);
-     *
-     * vec.divScalar(3);
-     *
-     * // Outputs [1, 2]
-     * console.log("The result of the division is: " + vec.toString());
-     */
-    divScalar(scalar: number): Vec2;
-    /**
-     * Returns the result of a dot product operation performed on the two specified 2-dimensional
-     * vectors.
-     *
-     * @param {Vec2} rhs - The second 2-dimensional vector operand of the dot product.
-     * @returns {number} The result of the dot product operation.
-     * @example
-     * const v1 = new pc.Vec2(5, 10);
-     * const v2 = new pc.Vec2(10, 20);
-     * const v1dotv2 = v1.dot(v2);
-     * console.log("The result of the dot product is: " + v1dotv2);
-     */
-    dot(rhs: Vec2): number;
-    /**
-     * Reports whether two vectors are equal.
-     *
-     * @param {Vec2} rhs - The vector to compare to the specified vector.
-     * @returns {boolean} True if the vectors are equal and false otherwise.
-     * @example
-     * const a = new pc.Vec2(1, 2);
-     * const b = new pc.Vec2(4, 5);
-     * console.log("The two vectors are " + (a.equals(b) ? "equal" : "different"));
-     */
-    equals(rhs: Vec2): boolean;
-    /**
-     * Returns the magnitude of the specified 2-dimensional vector.
-     *
-     * @returns {number} The magnitude of the specified 2-dimensional vector.
-     * @example
-     * const vec = new pc.Vec2(3, 4);
-     * const len = vec.length();
-     * // Outputs 5
-     * console.log("The length of the vector is: " + len);
-     */
-    length(): number;
-    /**
-     * Returns the magnitude squared of the specified 2-dimensional vector.
-     *
-     * @returns {number} The magnitude of the specified 2-dimensional vector.
-     * @example
-     * const vec = new pc.Vec2(3, 4);
-     * const len = vec.lengthSq();
-     * // Outputs 25
-     * console.log("The length squared of the vector is: " + len);
-     */
-    lengthSq(): number;
-    /**
-     * Returns the result of a linear interpolation between two specified 2-dimensional vectors.
-     *
-     * @param {Vec2} lhs - The 2-dimensional to interpolate from.
-     * @param {Vec2} rhs - The 2-dimensional to interpolate to.
-     * @param {number} alpha - The value controlling the point of interpolation. Between 0 and 1,
-     * the linear interpolant will occur on a straight line between lhs and rhs. Outside of this
-     * range, the linear interpolant will occur on a ray extrapolated from this line.
-     * @returns {Vec2} Self for chaining.
-     * @example
-     * const a = new pc.Vec2(0, 0);
-     * const b = new pc.Vec2(10, 10);
-     * const r = new pc.Vec2();
-     *
-     * r.lerp(a, b, 0);   // r is equal to a
-     * r.lerp(a, b, 0.5); // r is 5, 5
-     * r.lerp(a, b, 1);   // r is equal to b
-     */
-    lerp(lhs: Vec2, rhs: Vec2, alpha: number): Vec2;
-    /**
-     * Multiplies a 2-dimensional vector to another in place.
-     *
-     * @param {Vec2} rhs - The 2-dimensional vector used as the second multiplicand of the operation.
-     * @returns {Vec2} Self for chaining.
-     * @example
-     * const a = new pc.Vec2(2, 3);
-     * const b = new pc.Vec2(4, 5);
-     *
-     * a.mul(b);
-     *
-     * // Outputs 8, 15
-     * console.log("The result of the multiplication is: " + a.toString());
-     */
-    mul(rhs: Vec2): Vec2;
-    /**
-     * Returns the result of multiplying the specified 2-dimensional vectors together.
-     *
-     * @param {Vec2} lhs - The 2-dimensional vector used as the first multiplicand of the operation.
-     * @param {Vec2} rhs - The 2-dimensional vector used as the second multiplicand of the operation.
-     * @returns {Vec2} Self for chaining.
-     * @example
-     * const a = new pc.Vec2(2, 3);
-     * const b = new pc.Vec2(4, 5);
-     * const r = new pc.Vec2();
-     *
-     * r.mul2(a, b);
-     *
-     * // Outputs 8, 15
-     * console.log("The result of the multiplication is: " + r.toString());
-     */
-    mul2(lhs: Vec2, rhs: Vec2): Vec2;
-    /**
-     * Multiplies each element of a vector by a number.
-     *
-     * @param {number} scalar - The number to multiply by.
-     * @returns {Vec2} Self for chaining.
-     * @example
-     * const vec = new pc.Vec2(3, 6);
-     *
-     * vec.mulScalar(3);
-     *
-     * // Outputs [9, 18]
-     * console.log("The result of the multiplication is: " + vec.toString());
-     */
-    mulScalar(scalar: number): Vec2;
-    /**
-     * Returns this 2-dimensional vector converted to a unit vector in place. If the vector has a
-     * length of zero, the vector's elements will be set to zero.
-     *
-     * @returns {Vec2} Self for chaining.
-     * @example
-     * const v = new pc.Vec2(25, 0);
-     *
-     * v.normalize();
-     *
-     * // Outputs 1, 0
-     * console.log("The result of the vector normalization is: " + v.toString());
-     */
-    normalize(): Vec2;
-    /**
-     * Each element is set to the largest integer less than or equal to its value.
-     *
-     * @returns {Vec2} Self for chaining.
-     */
-    floor(): Vec2;
-    /**
-     * Each element is rounded up to the next largest integer.
-     *
-     * @returns {Vec2} Self for chaining.
-     */
-    ceil(): Vec2;
-    /**
-     * Each element is rounded up or down to the nearest integer.
-     *
-     * @returns {Vec2} Self for chaining.
-     */
-    round(): Vec2;
-    /**
-     * Each element is assigned a value from rhs parameter if it is smaller.
-     *
-     * @param {Vec2} rhs - The 2-dimensional vector used as the source of elements to compare to.
-     * @returns {Vec2} Self for chaining.
-     */
-    min(rhs: Vec2): Vec2;
-    /**
-     * Each element is assigned a value from rhs parameter if it is larger.
-     *
-     * @param {Vec2} rhs - The 2-dimensional vector used as the source of elements to compare to.
-     * @returns {Vec2} Self for chaining.
-     */
-    max(rhs: Vec2): Vec2;
-    /**
-     * Sets the specified 2-dimensional vector to the supplied numerical values.
-     *
-     * @param {number} x - The value to set on the first component of the vector.
-     * @param {number} y - The value to set on the second component of the vector.
-     * @returns {Vec2} Self for chaining.
-     * @example
-     * const v = new pc.Vec2();
-     * v.set(5, 10);
-     *
-     * // Outputs 5, 10
-     * console.log("The result of the vector set is: " + v.toString());
-     */
-    set(x: number, y: number): Vec2;
-    /**
-     * Subtracts a 2-dimensional vector from another in place.
-     *
-     * @param {Vec2} rhs - The vector to subtract from the specified vector.
-     * @returns {Vec2} Self for chaining.
-     * @example
-     * const a = new pc.Vec2(10, 10);
-     * const b = new pc.Vec2(20, 20);
-     *
-     * a.sub(b);
-     *
-     * // Outputs [-10, -10]
-     * console.log("The result of the subtraction is: " + a.toString());
-     */
-    sub(rhs: Vec2): Vec2;
-    /**
-     * Subtracts two 2-dimensional vectors from one another and returns the result.
-     *
-     * @param {Vec2} lhs - The first vector operand for the subtraction.
-     * @param {Vec2} rhs - The second vector operand for the subtraction.
-     * @returns {Vec2} Self for chaining.
-     * @example
-     * const a = new pc.Vec2(10, 10);
-     * const b = new pc.Vec2(20, 20);
-     * const r = new pc.Vec2();
-     *
-     * r.sub2(a, b);
-     *
-     * // Outputs [-10, -10]
-     * console.log("The result of the subtraction is: " + r.toString());
-     */
-    sub2(lhs: Vec2, rhs: Vec2): Vec2;
-    /**
-     * Subtracts a number from each element of a vector.
-     *
-     * @param {number} scalar - The number to subtract.
-     * @returns {Vec2} Self for chaining.
-     * @example
-     * const vec = new pc.Vec2(3, 4);
-     *
-     * vec.subScalar(2);
-     *
-     * // Outputs [1, 2]
-     * console.log("The result of the subtraction is: " + vec.toString());
-     */
-    subScalar(scalar: number): Vec2;
-    /**
-     * Converts the vector to string form.
-     *
-     * @returns {string} The vector in string form.
-     * @example
-     * const v = new pc.Vec2(20, 10);
-     * // Outputs [20, 10]
-     * console.log(v.toString());
-     */
-    toString(): string;
 }
 
 /**
@@ -11261,6 +11873,12 @@ declare class Light {
      */
     static getLightUnitConversion(type: number, outerAngle?: number, innerAngle?: number): number;
     constructor(graphicsDevice: any);
+    /**
+     * The Layers the light is on.
+     *
+     * @type {Set<import('./layer.js').Layer>}
+     */
+    layers: Set<Layer>;
     device: any;
     id: number;
     _type: number;
@@ -11270,7 +11888,7 @@ declare class Light {
     _luminance: number;
     _castShadows: boolean;
     _enabled: boolean;
-    mask: number;
+    _mask: number;
     isStatic: boolean;
     key: number;
     bakeDir: boolean;
@@ -11327,15 +11945,18 @@ declare class Light {
     atlasVersion: number;
     atlasSlotIndex: number;
     atlasSlotUpdated: boolean;
-    _scene: any;
     _node: any;
     _renderData: any[];
     visibleThisFrame: boolean;
     maxScreenSize: number;
     destroy(): void;
     releaseRenderData(): void;
+    addLayer(layer: any): void;
+    removeLayer(layer: any): void;
     set shadowMap(arg: any);
     get shadowMap(): any;
+    set mask(arg: number);
+    get mask(): number;
     get numShadowFaces(): any;
     set type(arg: number);
     get type(): number;
@@ -11403,7 +12024,526 @@ declare class Light {
     _updateFinalColor(): void;
     setColor(...args: any[]): void;
     layersDirty(): void;
+    /**
+     * Updates a integer key for the light. The key is used to identify all shader related features
+     * of the light, and so needs to have all properties that modify the generated shader encoded.
+     * Properties without an effect on the shader (color, shadow intensity) should not be encoded.
+     */
     updateKey(): void;
+}
+
+/**
+ * A render pass represents a node in the frame graph, and encapsulates a system which
+ * renders to a render target using an execution callback.
+ *
+ * @ignore
+ */
+declare class RenderPass {
+    /**
+     * Creates an instance of the RenderPass.
+     *
+     * @param {import('../graphics/graphics-device.js').GraphicsDevice} graphicsDevice - The
+     * graphics device.
+     * @param {Function} [execute] - Custom function that is called to render the pass.
+     */
+    constructor(graphicsDevice: GraphicsDevice, execute?: Function);
+    /** @type {string} */
+    name: string;
+    /**
+     * The render target for this render pass:
+     *  - `undefined`: render pass does not render to any render target
+     *  - `null`: render pass renders to the backbuffer
+     *  - Otherwise, renders to the provided RT.
+     * @type {import('../graphics/render-target.js').RenderTarget|null|undefined}
+     */
+    renderTarget: RenderTarget | null | undefined;
+    /**
+     * Number of samples. 0 if no render target, otherwise number of samples from the render target,
+     * or the main framebuffer if render target is null.
+     *
+     * @type {number}
+     */
+    samples: number;
+    /**
+     * Array of color attachment operations. The first element corresponds to the color attachment
+     * 0, and so on.
+     *
+     * @type {Array<ColorAttachmentOps>}
+     */
+    colorArrayOps: Array<ColorAttachmentOps>;
+    /**
+     * Color attachment operations for the first color attachment.
+     *
+     * @type {ColorAttachmentOps}
+     */
+    get colorOps(): ColorAttachmentOps;
+    /** @type {DepthStencilAttachmentOps} */
+    depthStencilOps: DepthStencilAttachmentOps;
+    /**
+     * If true, this pass might use dynamically rendered cubemaps. Use for a case where rendering to cubemap
+     * faces is interleaved with rendering to shadows, to avoid generating cubemap mipmaps. This will likely
+     * be retired when render target dependency tracking gets implemented.
+     *
+     * @type {boolean}
+     */
+    requiresCubemaps: boolean;
+    /**
+     * True if the render pass uses the full viewport / scissor for rendering into the render target.
+     *
+     * @type {boolean}
+     */
+    fullSizeClearRect: boolean;
+    /**
+     * Custom function that is called to render the pass.
+     *
+     * @type {Function|undefined}
+     */
+    _execute: Function | undefined;
+    /**
+     * True if the render pass is enabled and execute function will be called. Note that before and
+     * after functions are called regardless of this flag.
+     */
+    executeEnabled: boolean;
+    /**
+     * Custom function that is called before the pass has started.
+     *
+     * @type {Function|undefined}
+     */
+    _before: Function | undefined;
+    /**
+     * Custom function that is called after the pass has fnished.
+     *
+     * @type {Function|undefined}
+     */
+    _after: Function | undefined;
+    device: GraphicsDevice;
+    destroy(): void;
+    /**
+     * @param {import('../graphics/render-target.js').RenderTarget|null} [renderTarget] - The render
+     * target to render into (output). This function should be called only for render passes which
+     * use render target, or passes which render directly into the default framebuffer, in which
+     * case a null or undefined render target is expected.
+     */
+    init(renderTarget?: RenderTarget | null): void;
+    before(): void;
+    execute(): void;
+    after(): void;
+    /**
+     * Mark render pass as clearing the full color buffer.
+     *
+     * @param {Color} color - The color to clear to.
+     */
+    setClearColor(color: Color): void;
+    /**
+     * Mark render pass as clearing the full depth buffer.
+     *
+     * @param {number} depthValue - The depth value to clear to.
+     */
+    setClearDepth(depthValue: number): void;
+    /**
+     * Mark render pass as clearing the full stencil buffer.
+     *
+     * @param {number} stencilValue - The stencil value to clear to.
+     */
+    setClearStencil(stencilValue: number): void;
+    /**
+     * Render the render pass
+     */
+    render(): void;
+    log(device: any, index: any): void;
+}
+declare class ColorAttachmentOps {
+    /**
+     * A color used to clear the color attachment when the clear is enabled.
+     */
+    clearValue: Color;
+    /**
+     * True if the attachment should be cleared before rendering, false to preserve
+     * the existing content.
+     */
+    clear: boolean;
+    /**
+     * True if the attachment needs to be stored after the render pass. False
+     * if it can be discarded.
+     * Note: This relates to the surface that is getting rendered to, and can be either
+     * single or multi-sampled. Further, if a multi-sampled surface is used, the resolve
+     * flag further specifies if this gets resolved to a single-sampled surface. This
+     * behavior matches the WebGPU specification.
+     *
+     * @type {boolean}
+     */
+    store: boolean;
+    /**
+     * True if the attachment needs to be resolved.
+     *
+     * @type {boolean}
+     */
+    resolve: boolean;
+    /**
+     * True if the attachment needs to have mipmaps generated.
+     *
+     * @type {boolean}
+     */
+    mipmaps: boolean;
+}
+declare class DepthStencilAttachmentOps {
+    /**
+     * A depth value used to clear the depth attachment when the clear is enabled.
+     */
+    clearDepthValue: number;
+    /**
+     * A stencil value used to clear the stencil attachment when the clear is enabled.
+     */
+    clearStencilValue: number;
+    /**
+     * True if the depth attachment should be cleared before rendering, false to preserve
+     * the existing content.
+     */
+    clearDepth: boolean;
+    /**
+     * True if the stencil attachment should be cleared before rendering, false to preserve
+     * the existing content.
+     */
+    clearStencil: boolean;
+    /**
+     * True if the depth attachment needs to be stored after the render pass. False
+     * if it can be discarded.
+     *
+     * @type {boolean}
+     */
+    storeDepth: boolean;
+    /**
+     * True if the stencil attachment needs to be stored after the render pass. False
+     * if it can be discarded.
+     *
+     * @type {boolean}
+     */
+    storeStencil: boolean;
+}
+
+/**
+ * Class responsible for management of shader passes, associated with a device.
+ *
+ * @ignore
+ */
+declare class ShaderPass {
+    /**
+     * Get access to the shader pass instance for the specified device.
+     *
+     * @param {import('../platform/graphics/graphics-device.js').GraphicsDevice} device - The
+     * graphics device.
+     * @returns { ShaderPass } The shader pass instance for the specified device.
+     */
+    static get(device: GraphicsDevice): ShaderPass;
+    /**
+     * Allocated shader passes, map of a shader pass name to info.
+     *
+     * @type {Map<string, ShaderPassInfo>}
+     */
+    passesNamed: Map<string, ShaderPassInfo>;
+    /**
+     * Allocated shader passes, indexed by their index.
+     *
+     * @type {Array<ShaderPassInfo>}
+     */
+    passesIndexed: Array<ShaderPassInfo>;
+    /** Next available index */
+    nextIndex: number;
+    /**
+     * Allocates a shader pass with the specified name and options.
+     *
+     * @param {string} name - A name of the shader pass.
+     * @param {object} options - Options for the shader pass, which are added as properties to the
+     * shader pass info.
+     * @returns {ShaderPassInfo} The allocated shader pass info.
+     */
+    allocate(name: string, options: object): ShaderPassInfo;
+    /**
+     * Return the shader pass info for the specified index.
+     *
+     * @param {number} index - The shader pass index.
+     * @returns {ShaderPassInfo} - The shader pass info.
+     */
+    getByIndex(index: number): ShaderPassInfo;
+    getByName(name: any): ShaderPassInfo;
+}
+/**
+ * Info about a shader pass. Shader pass is represented by a unique index and a name, and the
+ * index is used to access the shader required for the pass, from an array stored in the
+ * material or mesh instance.
+ *
+ * @ignore
+ */
+declare class ShaderPassInfo {
+    constructor(name: any, index: any, options?: {});
+    /** @type {number} */
+    index: number;
+    /** @type {string} */
+    name: string;
+    /** @type {string} */
+    shaderDefine: string;
+    initShaderDefines(): void;
+    shaderDefines: string;
+}
+
+/**
+ * A render pass implementing grab of a color buffer.
+ *
+ * TODO: implement mipmapped color buffer support for WebGL 1 as well, which requires
+ * the texture to be a power of two, by first downscaling the captured framebuffer
+ * texture to smaller power of 2 texture, and then generate mipmaps and use it for rendering
+ * TODO: or even better, implement blur filter to have smoother lower levels
+ *
+ * @ignore
+ */
+declare class RenderPassColorGrab extends RenderPass {
+    constructor(device: any, camera: any);
+    colorRenderTarget: any;
+    camera: any;
+    shouldReallocate(targetRT: any, sourceTexture: any, sourceFormat: any): boolean;
+    allocateRenderTarget(renderTarget: any, sourceRenderTarget: any, device: any, format: any): any;
+    releaseRenderTarget(rt: any): void;
+}
+
+/**
+ * A frustum is a shape that defines the viewing space of a camera. It can be used to determine
+ * visibility of points and bounding spheres. Typically, you would not create a Frustum shape
+ * directly, but instead query {@link CameraComponent#frustum}.
+ *
+ * @category Math
+ */
+declare class Frustum {
+    planes: any[];
+    /**
+     * Updates the frustum shape based on the supplied 4x4 matrix.
+     *
+     * @param {import('../math/mat4.js').Mat4} matrix - The matrix describing the shape of the
+     * frustum.
+     * @example
+     * // Create a perspective projection matrix
+     * const projMat = pc.Mat4();
+     * projMat.setPerspective(45, 16 / 9, 1, 1000);
+     *
+     * // Create a frustum shape that is represented by the matrix
+     * const frustum = new pc.Frustum();
+     * frustum.setFromMat4(projMat);
+     */
+    setFromMat4(matrix: Mat4): void;
+    /**
+     * Tests whether a point is inside the frustum. Note that points lying in a frustum plane are
+     * considered to be outside the frustum.
+     *
+     * @param {import('../math/vec3.js').Vec3} point - The point to test.
+     * @returns {boolean} True if the point is inside the frustum, false otherwise.
+     */
+    containsPoint(point: Vec3): boolean;
+    /**
+     * Tests whether a bounding sphere intersects the frustum. If the sphere is outside the
+     * frustum, zero is returned. If the sphere intersects the frustum, 1 is returned. If the
+     * sphere is completely inside the frustum, 2 is returned. Note that a sphere touching a
+     * frustum plane from the outside is considered to be outside the frustum.
+     *
+     * @param {import('./bounding-sphere.js').BoundingSphere} sphere - The sphere to test.
+     * @returns {number} 0 if the bounding sphere is outside the frustum, 1 if it intersects the
+     * frustum and 2 if it is contained by the frustum.
+     */
+    containsSphere(sphere: BoundingSphere): number;
+}
+
+/**
+ * A camera.
+ *
+ * @ignore
+ */
+declare class Camera {
+    /**
+     * @type {import('./shader-pass.js').ShaderPassInfo|null}
+     */
+    shaderPassInfo: ShaderPassInfo | null;
+    /**
+     * @type {RenderPassColorGrab|null}
+     */
+    renderPassColorGrab: RenderPassColorGrab | null;
+    /**
+     * @type {import('../platform/graphics/render-pass.js').RenderPass|null}
+     */
+    renderPassDepthGrab: RenderPass | null;
+    _aspectRatio: number;
+    _aspectRatioMode: number;
+    _calculateProjection: any;
+    _calculateTransform: any;
+    _clearColor: Color;
+    _clearColorBuffer: boolean;
+    _clearDepth: number;
+    _clearDepthBuffer: boolean;
+    _clearStencil: number;
+    _clearStencilBuffer: boolean;
+    _cullFaces: boolean;
+    _farClip: number;
+    _flipFaces: boolean;
+    _fov: number;
+    _frustumCulling: boolean;
+    _horizontalFov: boolean;
+    _layers: number[];
+    _layersSet: Set<number>;
+    _nearClip: number;
+    _node: any;
+    _orthoHeight: number;
+    _projection: number;
+    _rect: Vec4;
+    _renderTarget: any;
+    _scissorRect: Vec4;
+    _scissorRectClear: boolean;
+    _aperture: number;
+    _shutter: number;
+    _sensitivity: number;
+    _projMat: Mat4;
+    _projMatDirty: boolean;
+    _projMatSkybox: Mat4;
+    _viewMat: Mat4;
+    _viewMatDirty: boolean;
+    _viewProjMat: Mat4;
+    _viewProjMatDirty: boolean;
+    frustum: Frustum;
+    _xr: any;
+    _xrProperties: {
+        horizontalFov: boolean;
+        fov: number;
+        aspectRatio: number;
+        farClip: number;
+        nearClip: number;
+    };
+    destroy(): void;
+    /**
+     * True if the camera clears the full render target. (viewport / scissor are full size)
+     */
+    get fullSizeClearRect(): boolean;
+    set aspectRatio(arg: number);
+    get aspectRatio(): number;
+    set aspectRatioMode(arg: number);
+    get aspectRatioMode(): number;
+    set calculateProjection(arg: any);
+    get calculateProjection(): any;
+    set calculateTransform(arg: any);
+    get calculateTransform(): any;
+    set clearColor(arg: Color);
+    get clearColor(): Color;
+    set clearColorBuffer(arg: boolean);
+    get clearColorBuffer(): boolean;
+    set clearDepth(arg: number);
+    get clearDepth(): number;
+    set clearDepthBuffer(arg: boolean);
+    get clearDepthBuffer(): boolean;
+    set clearStencil(arg: number);
+    get clearStencil(): number;
+    set clearStencilBuffer(arg: boolean);
+    get clearStencilBuffer(): boolean;
+    set cullFaces(arg: boolean);
+    get cullFaces(): boolean;
+    set farClip(arg: number);
+    get farClip(): number;
+    set flipFaces(arg: boolean);
+    get flipFaces(): boolean;
+    set fov(arg: number);
+    get fov(): number;
+    set frustumCulling(arg: boolean);
+    get frustumCulling(): boolean;
+    set horizontalFov(arg: boolean);
+    get horizontalFov(): boolean;
+    set layers(arg: number[]);
+    get layers(): number[];
+    get layersSet(): Set<number>;
+    set nearClip(arg: number);
+    get nearClip(): number;
+    set node(arg: any);
+    get node(): any;
+    set orthoHeight(arg: number);
+    get orthoHeight(): number;
+    set projection(arg: number);
+    get projection(): number;
+    get projectionMatrix(): Mat4;
+    set rect(arg: Vec4);
+    get rect(): Vec4;
+    set renderTarget(arg: any);
+    get renderTarget(): any;
+    set scissorRect(arg: Vec4);
+    get scissorRect(): Vec4;
+    get viewMatrix(): Mat4;
+    set aperture(arg: number);
+    get aperture(): number;
+    set sensitivity(arg: number);
+    get sensitivity(): number;
+    set shutter(arg: number);
+    get shutter(): number;
+    set xr(arg: any);
+    get xr(): any;
+    /**
+     * Creates a duplicate of the camera.
+     *
+     * @returns {Camera} A cloned Camera.
+     */
+    clone(): Camera;
+    /**
+     * Copies one camera to another.
+     *
+     * @param {Camera} other - Camera to copy.
+     * @returns {Camera} Self for chaining.
+     */
+    copy(other: Camera): Camera;
+    _enableRenderPassColorGrab(device: any, enable: any): void;
+    _enableRenderPassDepthGrab(device: any, renderer: any, enable: any): void;
+    _updateViewProjMat(): void;
+    /**
+     * Convert a point from 3D world space to 2D canvas pixel space.
+     *
+     * @param {Vec3} worldCoord - The world space coordinate to transform.
+     * @param {number} cw - The width of PlayCanvas' canvas element.
+     * @param {number} ch - The height of PlayCanvas' canvas element.
+     * @param {Vec3} [screenCoord] - 3D vector to receive screen coordinate result.
+     * @returns {Vec3} The screen space coordinate.
+     */
+    worldToScreen(worldCoord: Vec3, cw: number, ch: number, screenCoord?: Vec3): Vec3;
+    /**
+     * Convert a point from 2D canvas pixel space to 3D world space.
+     *
+     * @param {number} x - X coordinate on PlayCanvas' canvas element.
+     * @param {number} y - Y coordinate on PlayCanvas' canvas element.
+     * @param {number} z - The distance from the camera in world space to create the new point.
+     * @param {number} cw - The width of PlayCanvas' canvas element.
+     * @param {number} ch - The height of PlayCanvas' canvas element.
+     * @param {Vec3} [worldCoord] - 3D vector to receive world coordinate result.
+     * @returns {Vec3} The world space coordinate.
+     */
+    screenToWorld(x: number, y: number, z: number, cw: number, ch: number, worldCoord?: Vec3): Vec3;
+    _evaluateProjectionMatrix(): void;
+    getProjectionMatrixSkybox(): Mat4;
+    getExposure(): number;
+    getScreenSize(sphere: any): number;
+    /**
+     * Returns an array of corners of the frustum of the camera in the local coordinate system of the camera.
+     *
+     * @param {number} [near] - Near distance for the frustum points. Defaults to the near clip distance of the camera.
+     * @param {number} [far] - Far distance for the frustum points. Defaults to the far clip distance of the camera.
+     * @returns {Vec3[]} - An array of corners, using a global storage space.
+     */
+    getFrustumCorners(near?: number, far?: number): Vec3[];
+    /**
+     * Sets XR camera properties that should be derived physical camera in {@link XrManager}.
+     *
+     * @param {object} [properties] - Properties object.
+     * @param {number} [properties.aspectRatio] - Aspect ratio.
+     * @param {number} [properties.farClip] - Far clip.
+     * @param {number} [properties.fov] - Field of view.
+     * @param {boolean} [properties.horizontalFov] - Enable horizontal field of view.
+     * @param {number} [properties.nearClip] - Near clip.
+     */
+    setXrProperties(properties?: {
+        aspectRatio?: number;
+        farClip?: number;
+        fov?: number;
+        horizontalFov?: boolean;
+        nearClip?: number;
+    }): void;
 }
 
 /**
@@ -11421,6 +12561,97 @@ declare class Layer {
      * same as properties of the Layer.
      */
     constructor(options?: object);
+    /**
+     * Mesh instances assigned to this layer.
+     *
+     * @type {import('./mesh-instance.js').MeshInstance[]}
+     * @ignore
+     */
+    meshInstances: MeshInstance[];
+    /**
+     * Mesh instances assigned to this layer, stored in a set.
+     *
+     * @type {Set<import('./mesh-instance.js').MeshInstance>}
+     * @ignore
+     */
+    meshInstancesSet: Set<MeshInstance>;
+    /**
+     * Shadow casting instances assigned to this layer.
+     *
+     * @type {import('./mesh-instance.js').MeshInstance[]}
+     * @ignore
+     */
+    shadowCasters: MeshInstance[];
+    /**
+     * Shadow casting instances assigned to this layer, stored in a set.
+     *
+     * @type {Set<import('./mesh-instance.js').MeshInstance>}
+     * @ignore
+     */
+    shadowCastersSet: Set<MeshInstance>;
+    /**
+     * Visible (culled) mesh instances assigned to this layer. Looked up by the Camera.
+     *
+     * @type {WeakMap<import('./camera.js').Camera, CulledInstances>}
+     * @private
+     */
+    private _visibleInstances;
+    /**
+     * All lights assigned to a layer.
+     *
+     * @type {import('./light.js').Light[]}
+     * @private
+     */
+    private _lights;
+    /**
+     * All lights assigned to a layer stored in a set.
+     *
+     * @type {Set<import('./light.js').Light>}
+     * @private
+     */
+    private _lightsSet;
+    /**
+     * Set of light used by clustered lighting (omni and spot, but no directional).
+     *
+     * @type {Set<import('./light.js').Light>}
+     * @private
+     */
+    private _clusteredLightsSet;
+    /**
+     * Lights separated by light type. Lights in the individual arrays are sorted by the key,
+     * to match their order in _lightIdHash, so that their order matches the order expected by the
+     * generated shader code.
+     *
+     * @type {import('./light.js').Light[][]}
+     * @private
+     */
+    private _splitLights;
+    /**
+     * True if _splitLights needs to be updated, which means if lights were added or removed from
+     * the layer, or their key changed.
+     *
+     * @type {boolean}
+     * @private
+     */
+    private _splitLightsDirty;
+    /**
+     * True if the objects rendered on the layer require light cube (emitters with lighting do).
+     *
+     * @type {boolean}
+     * @ignore
+     */
+    requiresLightCube: boolean;
+    /**
+     * @type {import('../framework/components/camera/component.js').CameraComponent[]}
+     * @ignore
+     */
+    cameras: CameraComponent[];
+    /**
+     * @type {Set<import('./camera.js').Camera>}
+     * @ignore
+     */
+    camerasSet: Set<Camera>;
+    _dirtyCameras: boolean;
     /**
      * A unique ID of the layer. Layer IDs are stored inside {@link ModelComponent#layers},
      * {@link RenderComponent#layers}, {@link CameraComponent#layers},
@@ -11490,14 +12721,6 @@ declare class Layer {
      * @type {number}
      */
     shaderPass: number;
-    /**
-     * Tells that this layer is simple and needs to just render a bunch of mesh instances
-     * without lighting, skinning and morphing (faster). Used for UI and Gizmo layers (the
-     * layer doesn't use lights, shadows, culling, etc).
-     *
-     * @type {boolean}
-     */
-    passThrough: boolean;
     /**
      * @type {boolean}
      * @private
@@ -11626,34 +12849,6 @@ declare class Layer {
      */
     layerReference: Layer;
     /**
-     * @type {InstanceList}
-     * @ignore
-     */
-    instances: InstanceList;
-    /**
-     * Visibility bit mask that interacts with {@link MeshInstance#mask}. Especially useful
-     * when combined with layerReference, allowing for the filtering of some objects, while
-     * sharing their list and culling.
-     *
-     * @type {number}
-     */
-    cullingMask: number;
-    /**
-     * @type {import('./mesh-instance.js').MeshInstance[]}
-     * @ignore
-     */
-    opaqueMeshInstances: MeshInstance[];
-    /**
-     * @type {import('./mesh-instance.js').MeshInstance[]}
-     * @ignore
-     */
-    transparentMeshInstances: MeshInstance[];
-    /**
-     * @type {import('./mesh-instance.js').MeshInstance[]}
-     * @ignore
-     */
-    shadowCasters: MeshInstance[];
-    /**
      * @type {Function|null}
      * @ignore
      */
@@ -11663,60 +12858,16 @@ declare class Layer {
      * @ignore
      */
     customCalculateSortValues: Function | null;
-    /**
-     * @type {import('./light.js').Light[]}
-     * @private
-     */
-    private _lights;
-    /**
-     * @type {Set<import('./light.js').Light>}
-     * @private
-     */
-    private _lightsSet;
-    /**
-     * Set of light used by clustered lighting (omni and spot, but no directional).
-     *
-     * @type {Set<import('./light.js').Light>}
-     * @private
-     */
-    private _clusteredLightsSet;
-    /**
-     * Lights separated by light type.
-     *
-     * @type {import('./light.js').Light[][]}
-     * @ignore
-     */
-    _splitLights: Light[][];
-    /**
-     * @type {import('../framework/components/camera/component.js').CameraComponent[]}
-     * @ignore
-     */
-    cameras: CameraComponent[];
-    _dirty: boolean;
-    _dirtyLights: boolean;
-    _dirtyCameras: boolean;
     _lightHash: number;
-    _staticLightHash: number;
-    _needsStaticPrepare: boolean;
-    _staticPrepareDone: boolean;
+    _lightHashDirty: boolean;
+    _lightIdHash: number;
+    _lightIdHashDirty: boolean;
     skipRenderAfter: number;
     _skipRenderCounter: number;
     _renderTime: number;
     _forwardDrawCalls: number;
     _shadowDrawCalls: number;
     _shaderVersion: number;
-    /**
-     * @type {Float32Array}
-     * @ignore
-     */
-    _lightCube: Float32Array;
-    /**
-     * True if the layer contains omni or spot lights
-     *
-     * @type {boolean}
-     * @ignore
-     */
-    get hasClusteredLights(): boolean;
     /**
      * Enable the layer. Disabled layers are skipped. Defaults to true.
      *
@@ -11746,6 +12897,13 @@ declare class Layer {
     set clearStencilBuffer(arg: boolean);
     get clearStencilBuffer(): boolean;
     /**
+     * True if the layer contains omni or spot lights
+     *
+     * @type {boolean}
+     * @ignore
+     */
+    get hasClusteredLights(): boolean;
+    /**
      * Returns lights used by clustered lighting in a set.
      *
      * @type {Set<import('./light.js').Light>}
@@ -11774,39 +12932,46 @@ declare class Layer {
     decrementCounter(): void;
     /**
      * Adds an array of mesh instances to this layer.
-     *1
      *
      * @param {import('./mesh-instance.js').MeshInstance[]} meshInstances - Array of
      * {@link MeshInstance}.
      * @param {boolean} [skipShadowCasters] - Set it to true if you don't want these mesh instances
-     * to cast shadows in this layer.
+     * to cast shadows in this layer. Defaults to false.
      */
     addMeshInstances(meshInstances: MeshInstance[], skipShadowCasters?: boolean): void;
-    /**
-     * Internal function to remove a mesh instance from an array.
-     *
-     * @param {import('./mesh-instance.js').MeshInstance} m - Mesh instance to remove.
-     * @param {import('./mesh-instance.js').MeshInstance[]} arr - Array of mesh instances to remove
-     * from.
-     * @private
-     */
-    private removeMeshInstanceFromArray;
     /**
      * Removes multiple mesh instances from this layer.
      *
      * @param {import('./mesh-instance.js').MeshInstance[]} meshInstances - Array of
      * {@link MeshInstance}. If they were added to this layer, they will be removed.
      * @param {boolean} [skipShadowCasters] - Set it to true if you want to still cast shadows from
-     * removed mesh instances or if they never did cast shadows before.
+     * removed mesh instances or if they never did cast shadows before. Defaults to false.
      */
     removeMeshInstances(meshInstances: MeshInstance[], skipShadowCasters?: boolean): void;
     /**
+     * Adds an array of mesh instances to this layer, but only as shadow casters (they will not be
+     * rendered anywhere, but only cast shadows on other objects).
+     *
+     * @param {import('./mesh-instance.js').MeshInstance[]} meshInstances - Array of
+     * {@link MeshInstance}.
+     */
+    addShadowCasters(meshInstances: MeshInstance[]): void;
+    /**
+     * Removes multiple mesh instances from the shadow casters list of this layer, meaning they
+     * will stop casting shadows.
+     *
+     * @param {import('./mesh-instance.js').MeshInstance[]} meshInstances - Array of
+     * {@link MeshInstance}. If they were added to this layer, they will be removed.
+     */
+    removeShadowCasters(meshInstances: MeshInstance[]): void;
+    /**
      * Removes all mesh instances from this layer.
      *
-     * @param {boolean} [skipShadowCasters] - Set it to true if you want to still cast shadows from
-     * removed mesh instances or if they never did cast shadows before.
+     * @param {boolean} [skipShadowCasters] - Set it to true if you want to continue the existing mesh
+     * instances to cast shadows. Defaults to false, which removes shadow casters as well.
      */
     clearMeshInstances(skipShadowCasters?: boolean): void;
+    markLightsDirty(): void;
     /**
      * Adds a light to this layer.
      *
@@ -11825,24 +12990,10 @@ declare class Layer {
      * Removes all lights from this layer.
      */
     clearLights(): void;
-    /**
-     * Adds an array of mesh instances to this layer, but only as shadow casters (they will not be
-     * rendered anywhere, but only cast shadows on other objects).
-     *
-     * @param {import('./mesh-instance.js').MeshInstance[]} meshInstances - Array of
-     * {@link MeshInstance}.
-     */
-    addShadowCasters(meshInstances: MeshInstance[]): void;
-    /**
-     * Removes multiple mesh instances from the shadow casters list of this layer, meaning they
-     * will stop casting shadows.
-     *
-     * @param {import('./mesh-instance.js').MeshInstance[]} meshInstances - Array of
-     * {@link MeshInstance}. If they were added to this layer, they will be removed.
-     */
-    removeShadowCasters(meshInstances: MeshInstance[]): void;
-    /** @private */
-    private _generateLightHash;
+    get splitLights(): Light[][];
+    evaluateLightHash(localLights: any, directionalLights: any, useIds: any): number;
+    getLightHash(isClustered: any): number;
+    getLightIdHash(): number;
     /**
      * Adds a camera to this layer.
      *
@@ -11870,22 +13021,34 @@ declare class Layer {
      */
     private _calculateSortDistances;
     /**
-     * @param {boolean} transparent - True if transparent sorting should be used.
-     * @param {import('./graph-node.js').GraphNode} cameraNode - Graph node that the camera is
-     * attached to.
-     * @param {number} cameraPass - Camera pass.
+     * Get access to culled mesh instances for the provided camera.
+     *
+     * @param {import('./camera.js').Camera} camera - The camera.
+     * @returns {CulledInstances} The culled mesh instances.
      * @ignore
      */
-    _sortVisible(transparent: boolean, cameraNode: GraphNode, cameraPass: number): void;
+    getCulledInstances(camera: Camera): CulledInstances;
+    /**
+     * @param {import('./camera.js').Camera} camera - The camera to sort the visible mesh instances
+     * for.
+     * @param {boolean} transparent - True if transparent sorting should be used.
+     * @ignore
+     */
+    sortVisible(camera: Camera, transparent: boolean): void;
 }
-declare class InstanceList {
-    opaqueMeshInstances: any[];
-    transparentMeshInstances: any[];
-    shadowCasters: any[];
-    visibleOpaque: any[];
-    visibleTransparent: any[];
-    prepare(index: any): void;
-    delete(index: any): void;
+declare class CulledInstances {
+    /**
+     * Visible opaque mesh instances.
+     *
+     * @type {import('./mesh-instance.js').MeshInstance[]}
+     */
+    opaque: MeshInstance[];
+    /**
+     * Visible transparent mesh instances.
+     *
+     * @type {import('./mesh-instance.js').MeshInstance[]}
+     */
+    transparent: MeshInstance[];
 }
 
 /**
@@ -12031,7 +13194,7 @@ declare class BindGroup {
  */
 declare class RenderAction {
     layerIndex: number;
-    cameraIndex: number;
+    layer: any;
     camera: any;
     /**
      * render target this render action renders to (taken from either camera or layer)
@@ -12046,132 +13209,17 @@ declare class RenderAction {
     triggerPostprocess: boolean;
     firstCameraUse: boolean;
     lastCameraUse: boolean;
-    directionalLightsSet: Set<any>;
     directionalLights: any[];
-    directionalLightsIndices: any[];
     /** @type {import('../../platform/graphics/bind-group.js').BindGroup[]} */
     viewBindGroups: BindGroup[];
     destroy(): void;
     get hasDirectionalShadowLights(): boolean;
-    reset(): void;
     /**
      * @param {import('./layer-composition.js').LayerComposition} layerComposition - The layer
      * composition.
      * @returns {boolean} - True if the layer / sublayer referenced by the render action is enabled
      */
     isLayerEnabled(layerComposition: LayerComposition): boolean;
-    collectDirectionalLights(cameraLayers: any, dirLights: any, allLights: any): void;
-}
-
-declare class LightsBuffer {
-    static FORMAT_FLOAT: number;
-    static FORMAT_8BIT: number;
-    static lightTextureFormat: number;
-    static useTexelFetch: boolean;
-    static shaderDefines: string;
-    static initShaderDefines(): void;
-    static buildShaderDefines(object: any, prefix: any): string;
-    static init(device: any): void;
-    static createTexture(device: any, width: any, height: any, format: any, name: any): Texture;
-    constructor(device: any);
-    device: any;
-    cookiesEnabled: boolean;
-    shadowsEnabled: boolean;
-    areaLightsEnabled: boolean;
-    maxLights: number;
-    lights8: Uint8ClampedArray;
-    lightsTexture8: Texture;
-    _lightsTexture8Id: any;
-    lightsFloat: Float32Array;
-    lightsTextureFloat: Texture;
-    _lightsTextureFloatId: any;
-    _lightsTextureInvSizeId: any;
-    _lightsTextureInvSizeData: Float32Array;
-    invMaxColorValue: number;
-    invMaxAttenuation: number;
-    boundsMin: Vec3;
-    boundsDelta: Vec3;
-    destroy(): void;
-    setCompressionRanges(maxAttenuation: any, maxColorValue: any): void;
-    setBounds(min: any, delta: any): void;
-    uploadTextures(): void;
-    updateUniforms(): void;
-    getSpotDirection(direction: any, spot: any): void;
-    getLightAreaSizes(light: any): Float32Array;
-    addLightDataFlags(data8: any, index: any, light: any, isSpot: any, castShadows: any, shadowIntensity: any): void;
-    addLightDataColor(data8: any, index: any, light: any, gammaCorrection: any, isCookie: any): void;
-    addLightDataSpotAngles(data8: any, index: any, light: any): void;
-    addLightDataShadowBias(data8: any, index: any, light: any): void;
-    addLightDataPositionRange(data8: any, index: any, light: any, pos: any): void;
-    addLightDataSpotDirection(data8: any, index: any, light: any): void;
-    addLightDataLightProjMatrix(data8: any, index: any, lightProjectionMatrix: any): void;
-    addLightDataCookies(data8: any, index: any, light: any): void;
-    addLightAtlasViewport(data8: any, index: any, atlasViewport: any): void;
-    addLightAreaSizes(data8: any, index: any, light: any): void;
-    addLightData(light: any, lightIndex: any, gammaCorrection: any): void;
-}
-
-declare class WorldClusters {
-    constructor(device: any);
-    /** @type {import('../../platform/graphics/texture.js').Texture} */
-    clusterTexture: Texture;
-    device: any;
-    name: string;
-    reportCount: number;
-    boundsMin: Vec3;
-    boundsMax: Vec3;
-    boundsDelta: Vec3;
-    _cells: Vec3;
-    _cellsLimit: Vec3;
-    set cells(arg: Vec3);
-    get cells(): Vec3;
-    set maxCellLightCount(arg: any);
-    get maxCellLightCount(): any;
-    _maxAttenuation: number;
-    _maxColorValue: number;
-    _usedLights: ClusterLight[];
-    lightsBuffer: LightsBuffer;
-    _maxCellLightCount: any;
-    _cellsDirty: boolean;
-    destroy(): void;
-    releaseClusterTexture(): void;
-    registerUniforms(device: any): void;
-    _clusterSkipId: any;
-    _clusterMaxCellsId: any;
-    _clusterWorldTextureId: any;
-    _clusterTextureSizeId: any;
-    _clusterTextureSizeData: Float32Array;
-    _clusterBoundsMinId: any;
-    _clusterBoundsMinData: Float32Array;
-    _clusterBoundsDeltaId: any;
-    _clusterBoundsDeltaData: Float32Array;
-    _clusterCellsCountByBoundsSizeId: any;
-    _clusterCellsCountByBoundsSizeData: Float32Array;
-    _clusterCellsDotId: any;
-    _clusterCellsDotData: Float32Array;
-    _clusterCellsMaxId: any;
-    _clusterCellsMaxData: Float32Array;
-    _clusterCompressionLimit0Id: any;
-    _clusterCompressionLimit0Data: Float32Array;
-    updateParams(lightingParams: any): void;
-    updateCells(): void;
-    clusters: Uint8ClampedArray;
-    counts: Int32Array;
-    uploadTextures(): void;
-    updateUniforms(): void;
-    evalLightCellMinMax(clusteredLight: any, min: any, max: any): void;
-    collectLights(lights: any): void;
-    evaluateBounds(): void;
-    evaluateCompressionLimits(gammaCorrection: any): void;
-    updateClusters(gammaCorrection: any): void;
-    update(lights: any, gammaCorrection: any, lightingParams: any): void;
-    activate(): void;
-}
-
-declare class ClusterLight {
-    light: any;
-    min: Vec3;
-    max: Vec3;
 }
 
 /**
@@ -12189,7 +13237,6 @@ declare class LayerComposition extends EventHandler {
      * "Untitled" if not specified.
      */
     constructor(name?: string);
-    name: string;
     /**
      * A read-only array of {@link Layer} sorted in the order they will be rendered.
      *
@@ -12197,10 +13244,25 @@ declare class LayerComposition extends EventHandler {
      */
     layerList: Layer[];
     /**
+     * A mapping of {@link Layer#id} to {@link Layer}.
+     *
+     * @type {Map<number, import('../layer.js').Layer>}
+     * @ignore
+     */
+    layerIdMap: Map<number, Layer>;
+    /**
+     * A mapping of {@link Layer#name} to {@link Layer}.
+     *
+     * @type {Map<string, import('../layer.js').Layer>}
+     * @ignore
+     */
+    layerNameMap: Map<string, Layer>;
+    /**
      * A read-only array of boolean values, matching {@link LayerComposition#layerList}. True means only
      * semi-transparent objects are rendered, and false means opaque.
      *
      * @type {boolean[]}
+     * @ignore
      */
     subLayerList: boolean[];
     /**
@@ -12210,18 +13272,6 @@ declare class LayerComposition extends EventHandler {
      * @type {boolean[]}
      */
     subLayerEnabled: boolean[];
-    _opaqueOrder: {};
-    _transparentOrder: {};
-    _dirty: boolean;
-    _dirtyBlend: boolean;
-    _dirtyLights: boolean;
-    _dirtyCameras: boolean;
-    _meshInstances: any[];
-    _meshInstancesSet: Set<any>;
-    _lights: any[];
-    _lightsMap: Map<any, any>;
-    _lightCompositionData: any[];
-    _splitLights: any[][];
     /**
      * A read-only array of {@link CameraComponent} that can be used during rendering. e.g.
      * Inside {@link Layer#onPreCull}, {@link Layer#onPostCull}, {@link Layer#onPreRender},
@@ -12231,23 +13281,26 @@ declare class LayerComposition extends EventHandler {
      */
     cameras: CameraComponent[];
     /**
+     * A mapping of {@link CameraComponent} to its index in {@link LayerComposition#cameras}.
+     *
+     * @type {Map<import('../../framework/components/camera/component.js').CameraComponent, number>}
+     * @ignore
+     */
+    camerasMap: Map<CameraComponent, number>;
+    /**
      * The actual rendering sequence, generated based on layers and cameras
      *
      * @type {RenderAction[]}
      * @ignore
      */
     _renderActions: RenderAction[];
-    _worldClusters: any[];
-    _emptyWorldClusters: WorldClusters;
+    name: string;
+    _opaqueOrder: {};
+    _transparentOrder: {};
+    _dirtyCameras: boolean;
     destroy(): void;
-    getEmptyWorldClusters(device: any): WorldClusters;
-    _splitLightsArray(target: any): void;
-    _update(device: any, clusteredLightingEnabled?: boolean): number;
-    updateShadowCasters(): void;
-    updateLights(): void;
-    findCompatibleCluster(layer: any, renderActionCount: any, emptyWorldClusters: any): any;
-    allocateLightClusters(device: any): void;
-    addRenderAction(renderActions: any, renderActionIndex: any, layer: any, layerIndex: any, cameraIndex: any, cameraFirstRenderAction: any, postProcessMarked: any): RenderAction;
+    _update(): void;
+    addRenderAction(renderActions: any, renderActionIndex: any, layer: any, layerIndex: any, camera: any, cameraFirstRenderAction: any, postProcessMarked: any): RenderAction;
     propagateRenderTarget(startIndex: any, fromCamera: any): void;
     _logRenderActions(): void;
     _isLayerAdded(layer: any): boolean;
@@ -12328,6 +13381,12 @@ declare class LayerComposition extends EventHandler {
      * @returns {number} The index of the semi-transparent part of the specified layer.
      */
     getTransparentIndex(layer: Layer): number;
+    /**
+     * Update maps of layer IDs and names to match the layer list.
+     *
+     * @private
+     */
+    private _updateLayerMaps;
     /**
      * Finds a layer inside this composition by its ID. Null is returned, if nothing is found.
      *
@@ -12546,8 +13605,23 @@ declare class Material {
      * @type {string}
      */
     name: string;
+    /**
+     * A unique id the user can assign to the material. The engine internally does not use this for
+     * anything, and the user can assign a value to this id for any purpose they like. Defaults to
+     * an empty string.
+     *
+     * @type {string}
+     */
+    userId: string;
     id: number;
-    variants: {};
+    /**
+     * The cache of shader variants generated for this material. The key represents the unique
+     * variant, the value is the shader.
+     *
+     * @type {Map<string, import('../../platform/graphics/shader.js').Shader>}
+     * @ignore
+     */
+    variants: Map<string, Shader>;
     parameters: {};
     /**
      * The alpha test reference value to control which fragments are written to the currently
@@ -12615,7 +13689,6 @@ declare class Material {
     slopeDepthBias: number;
     _shaderVersion: number;
     _scene: any;
-    _dirtyBlend: boolean;
     dirty: boolean;
     /**
      * If true, the red component of fragments generated by the shader of this material is written
@@ -12661,7 +13734,7 @@ declare class Material {
     set shader(arg: Shader);
     get shader(): Shader;
     get transparent(): boolean;
-    _markBlendDirty(): void;
+    _updateTransparency(): void;
     /**
      * Controls how fragment shader outputs are blended when being written to the currently active
      * render target. This overwrites blending type set using {@link Material#blendType}, and
@@ -12761,7 +13834,7 @@ declare class Material {
     clone(): this;
     _updateMeshInstanceKeys(): void;
     updateUniforms(device: any, scene: any): void;
-    getShaderVariant(device: any, scene: any, objDefs: any, staticLightList: any, pass: any, sortedLights: any, viewUniformFormat: any, viewBindGroupFormat: any, vertexFormat: any): Shader;
+    getShaderVariant(device: any, scene: any, objDefs: any, unused: any, pass: any, sortedLights: any, viewUniformFormat: any, viewBindGroupFormat: any, vertexFormat: any): Shader;
     /**
      * Applies any changes made to the material's properties.
      */
@@ -13086,28 +14159,15 @@ declare class Scene extends EventHandler {
     _lightmapFilterSmoothness: number;
     _clusteredLightingEnabled: boolean;
     _lightingParams: LightingParams;
+    updateShaders: boolean;
     _stats: {
         meshInstances: number;
         lights: number;
         dynamicLights: number;
         bakedLights: number;
-        lastStaticPrepareFullTime: number;
-        lastStaticPrepareSearchTime: number;
-        lastStaticPrepareWriteTime: number;
-        lastStaticPrepareTriAabbTime: number;
-        lastStaticPrepareCombineTime: number;
         updateShadersTime: number;
     };
-    /**
-     * This flag indicates changes were made to the scene which may require recompilation of
-     * shaders that reference global settings.
-     *
-     * @type {boolean}
-     * @ignore
-     */
-    updateShaders: boolean;
     _shaderVersion: number;
-    _statsUpdated: boolean;
     immediate: Immediate;
     /**
      * Fired when the skybox is set.
@@ -13176,15 +14236,6 @@ declare class Scene extends EventHandler {
      */
     set clusteredLightingEnabled(arg: boolean);
     get clusteredLightingEnabled(): boolean;
-    /**
-     * List of all active composition mesh instances. Only for backwards compatibility.
-     * TODO: BatchManager is using it - perhaps that could be refactored
-     *
-     * @type {import('./mesh-instance.js').MeshInstance[]}
-     * @private
-     */
-    set drawCalls(arg: any[]);
-    get drawCalls(): any[];
     /**
      * The environment lighting atlas.
      *
@@ -13299,6 +14350,7 @@ declare class Scene extends EventHandler {
      * - {@link TONEMAP_FILMIC}
      * - {@link TONEMAP_HEJL}
      * - {@link TONEMAP_ACES}
+     * - {@link TONEMAP_ACES2}
      *
      * Defaults to {@link TONEMAP_LINEAR}.
      *
@@ -13333,294 +14385,6 @@ declare class Scene extends EventHandler {
     get lightmapPixelFormat(): number;
 }
 
-/**
- * A Morph Target (also known as Blend Shape) contains deformation data to apply to existing mesh.
- * Multiple morph targets can be blended together on a mesh. This is useful for effects that are
- * hard to achieve with conventional animation and skinning.
- *
- * @category Graphics
- */
-declare class MorphTarget {
-    /**
-     * Create a new MorphTarget instance.
-     *
-     * @param {object} options - Object for passing optional arguments.
-     * @param {ArrayBuffer} options.deltaPositions - An array of 3-dimensional vertex position
-     * offsets.
-     * @param {number} options.deltaPositionsType - A format to store position offsets inside
-     * {@link VertexBuffer}. Defaults to {@link TYPE_FLOAT32} if not provided.
-     * @param {ArrayBuffer} [options.deltaNormals] - An array of 3-dimensional vertex normal
-     * offsets.
-     * @param {number} options.deltaNormalsType - A format to store normal offsets inside
-     * {@link VertexBuffer}. Defaults to {@link TYPE_FLOAT32} if not provided.
-     * @param {string} [options.name] - Name.
-     * @param {BoundingBox} [options.aabb] - Bounding box. Will be automatically generated, if
-     * undefined.
-     * @param {number} [options.defaultWeight] - Default blend weight to use for this morph target.
-     * @param {boolean} [options.preserveData] - When true, the morph target keeps its data passed using the options,
-     * allowing the clone operation.
-     */
-    constructor(options: {
-        deltaPositions: ArrayBuffer;
-        deltaPositionsType: number;
-        deltaNormals?: ArrayBuffer;
-        deltaNormalsType: number;
-        name?: string;
-        aabb?: BoundingBox;
-        defaultWeight?: number;
-        preserveData?: boolean;
-    }, ...args: any[]);
-    /**
-     * A used flag. A morph target can be used / owned by the Morph class only one time.
-     *
-     * @type {boolean}
-     */
-    used: boolean;
-    options: {
-        deltaPositions: ArrayBuffer;
-        deltaPositionsType: number;
-        deltaNormals?: ArrayBuffer;
-        deltaNormalsType: number;
-        name?: string;
-        aabb?: BoundingBox;
-        defaultWeight?: number;
-        preserveData?: boolean;
-    };
-    _name: string;
-    _defaultWeight: number;
-    _aabb: BoundingBox;
-    deltaPositions: ArrayBuffer;
-    destroy(): void;
-    _vertexBufferPositions: VertexBuffer;
-    _vertexBufferNormals: VertexBuffer;
-    texturePositions: any;
-    textureNormals: any;
-    /**
-     * The name of the morph target.
-     *
-     * @type {string}
-     */
-    get name(): string;
-    /**
-     * The default weight of the morph target.
-     *
-     * @type {number}
-     */
-    get defaultWeight(): number;
-    get aabb(): BoundingBox;
-    get morphPositions(): boolean;
-    get morphNormals(): boolean;
-    /**
-     * Returns an identical copy of the specified morph target. This can only be used if the morph target
-     * was created with options.preserveData set to true.
-     *
-     * @returns {MorphTarget} A morph target instance containing the result of the cloning.
-     */
-    clone(): MorphTarget;
-    _postInit(): void;
-    _initVertexBuffers(graphicsDevice: any): void;
-    _createVertexBuffer(device: any, data: any, dataType?: number): VertexBuffer;
-    _setTexture(name: any, texture: any): void;
-}
-
-/**
- * Contains a list of {@link MorphTarget}, a combined delta AABB and some associated data.
- *
- * @category Graphics
- */
-declare class Morph extends RefCountedObject {
-    /**
-     * Create a new Morph instance.
-     *
-     * @param {import('./morph-target.js').MorphTarget[]} targets - A list of morph targets.
-     * @param {import('../platform/graphics/graphics-device.js').GraphicsDevice} graphicsDevice -
-     * The graphics device used to manage this morph target.
-     * @param {object} [options] - Object for passing optional arguments.
-     * @param {boolean} [options.preferHighPrecision] - True if high precision storage should be
-     * prefered. This is faster to create and allows higher precision, but takes more memory and
-     * might be slower to render. Defaults to false.
-     */
-    constructor(targets: MorphTarget[], graphicsDevice: GraphicsDevice, { preferHighPrecision }?: {
-        preferHighPrecision?: boolean;
-    });
-    /**
-     * @type {BoundingBox}
-     * @private
-     */
-    private _aabb;
-    /** @type {boolean} */
-    preferHighPrecision: boolean;
-    device: any;
-    _targets: MorphTarget[];
-    _renderTextureFormat: number;
-    _textureFormat: number;
-    _useTextureMorph: boolean;
-    get aabb(): BoundingBox;
-    get morphPositions(): boolean;
-    get morphNormals(): boolean;
-    get maxActiveTargets(): number;
-    get useTextureMorph(): boolean;
-    _init(): void;
-    _findSparseSet(deltaArrays: any, ids: any, usedDataIndices: any, floatRounding: any): number;
-    _initTextureBased(): boolean;
-    morphTextureWidth: number;
-    morphTextureHeight: number;
-    vertexBufferIds: VertexBuffer;
-    /**
-     * Frees video memory allocated by this object.
-     */
-    destroy(): void;
-    /**
-     * The array of morph targets.
-     *
-     * @type {import('./morph-target.js').MorphTarget[]}
-     */
-    get targets(): MorphTarget[];
-    _updateMorphFlags(): void;
-    _morphPositions: boolean;
-    _morphNormals: boolean;
-    _createTexture(name: any, format: any): Texture;
-}
-
-/**
- * An instance of {@link Morph}. Contains weights to assign to every {@link MorphTarget}, manages
- * selection of active morph targets.
- *
- * @category Graphics
- */
-declare class MorphInstance {
-    /**
-     * Create a new MorphInstance instance.
-     *
-     * @param {import('./morph.js').Morph} morph - The {@link Morph} to instance.
-     */
-    constructor(morph: Morph);
-    /**
-     * The morph with its targets, which is being instanced.
-     *
-     * @type {import('./morph.js').Morph}
-     */
-    morph: Morph;
-    device: any;
-    _weights: any[];
-    _weightMap: Map<any, any>;
-    _activeTargets: any[];
-    shaderCache: {};
-    maxSubmitCount: any;
-    _shaderMorphWeights: Float32Array;
-    rtPositions: RenderTarget;
-    rtNormals: RenderTarget;
-    _textureParams: Float32Array;
-    morphFactor: any;
-    zeroTextures: boolean;
-    _shaderMorphWeightsA: Float32Array;
-    _shaderMorphWeightsB: Float32Array;
-    _activeVertexBuffers: any[];
-    /**
-     * Frees video memory allocated by this object.
-     */
-    destroy(): void;
-    shader: any;
-    texturePositions: any;
-    textureNormals: any;
-    /**
-     * Clones a MorphInstance. The returned clone uses the same {@link Morph} and weights are set
-     * to defaults.
-     *
-     * @returns {MorphInstance} A clone of the specified MorphInstance.
-     */
-    clone(): MorphInstance;
-    _getWeightIndex(key: any): any;
-    /**
-     * Gets current weight of the specified morph target.
-     *
-     * @param {string|number} key - An identifier for the morph target. Either the weight index or
-     * the weight name.
-     * @returns {number} Weight.
-     */
-    getWeight(key: string | number): number;
-    /**
-     * Sets weight of the specified morph target.
-     *
-     * @param {string|number} key - An identifier for the morph target. Either the weight index or
-     * the weight name.
-     * @param {number} weight - Weight.
-     */
-    setWeight(key: string | number, weight: number): void;
-    _dirty: boolean;
-    /**
-     * Generate fragment shader to blend a number of textures using specified weights.
-     *
-     * @param {number} numTextures - Number of textures to blend.
-     * @returns {string} Fragment shader.
-     * @private
-     */
-    private _getFragmentShader;
-    /**
-     * Create complete shader for texture based morphing.
-     *
-     * @param {number} count - Number of textures to blend.
-     * @returns {import('../platform/graphics/shader.js').Shader} Shader.
-     * @private
-     */
-    private _getShader;
-    _updateTextureRenderTarget(renderTarget: any, srcTextureName: any): void;
-    _updateTextureMorph(): void;
-    _updateVertexMorph(): void;
-    /**
-     * Selects active morph targets and prepares morph for rendering. Called automatically by
-     * renderer.
-     */
-    update(): void;
-}
-
-/**
- * A skin instance is responsible for generating the matrix palette that is used to skin vertices
- * from object space to world space.
- *
- * @category Graphics
- */
-declare class SkinInstance {
-    /**
-     * Create a new SkinInstance instance.
-     *
-     * @param {import('./skin.js').Skin} skin - The skin that will provide the inverse bind pose
-     * matrices to generate the final matrix palette.
-     */
-    constructor(skin: Skin);
-    /**
-     * An array of nodes representing each bone in this skin instance.
-     *
-     * @type {import('./graph-node.js').GraphNode[]}
-     */
-    bones: GraphNode[];
-    _dirty: boolean;
-    _rootBone: any;
-    _skinUpdateIndex: number;
-    _updateBeforeCull: boolean;
-    set rootBone(arg: any);
-    get rootBone(): any;
-    init(device: any, numBones: any): void;
-    boneTexture: Texture;
-    matrixPalette: Uint8Array | Uint16Array | Float32Array;
-    destroy(): void;
-    resolve(rootBone: any, entity: any): void;
-    initSkin(skin: any): void;
-    skin: any;
-    matrices: any[];
-    uploadBones(device: any): void;
-    _updateMatrices(rootNode: any, skinUpdateIndex: any): void;
-    updateMatrices(rootNode: any, skinUpdateIndex: any): void;
-    updateMatrixPalette(rootNode: any, skinUpdateIndex: any): void;
-}
-
-declare class Command {
-    constructor(layer: any, blendType: any, command: any);
-    _key: number[];
-    command: any;
-    set key(arg: number);
-    get key(): number;
-}
 /**
  * Callback used by {@link Layer} to calculate the "sort distance" for a {@link MeshInstance},
  * which determines its place in the render order.
@@ -13683,29 +14447,35 @@ declare class MeshInstance {
      */
     castShadow: boolean;
     /**
-     * @type {import('./materials/material.js').Material}
+     * True if the material of the mesh instance is transparent. Optimization to avoid accessing the
+     * material. Updated by the material instance itself.
+     *
+     * @ignore
+     */
+    transparent: boolean;
+    /**
+     * @type {import('./materials/material.js').Material|null}
      * @private
      */
     private _material;
     /**
-     * An array of shaders used by the mesh instance, indexed by the shader pass constant (SHADER_FORWARD..)
+     * An array of shader cache entries, indexed by the shader pass constant (SHADER_FORWARD..). The
+     * value stores all shaders and bind groups for the shader pass for various light combinations.
      *
-     * @type {Array<import('../platform/graphics/shader.js').Shader>}
-     * @ignore
+     * @type {Array<ShaderCacheEntry|null>}
+     * @private
      */
-    _shader: Array<Shader>;
+    private _shaderCache;
+    /** @ignore */
+    id: number;
     /**
-     * An array of bind groups, storing uniforms per pass. This has 1:1 relation with the _shades array,
-     * and is indexed by the shader pass constant as well.
+     * True if the mesh instance is pickable by the {@link Picker}. Defaults to true.
      *
-     * @type {Array<BindGroup>}
+     * @type {boolean}
      * @ignore
      */
-    _bindGroups: Array<BindGroup>;
+    pick: boolean;
     _key: number[];
-    isStatic: boolean;
-    _staticLightList: any;
-    _staticSource: any;
     /**
      * The graph node defining the transform for this instance.
      *
@@ -13721,7 +14491,6 @@ declare class MeshInstance {
     set material(arg: Material);
     get material(): Material;
     _shaderDefs: number;
-    _lightHash: number;
     set layer(arg: any);
     get layer(): any;
     /** @private */
@@ -13736,29 +14505,22 @@ declare class MeshInstance {
      * @type {boolean}
      */
     cull: boolean;
-    /**
-     * True if the mesh instance is pickable by the {@link Picker}. Defaults to true.
-     *
-     * @type {boolean}
-     * @ignore
-     */
-    pick: boolean;
     _updateAabb: boolean;
     _updateAabbFunc: any;
     _calculateSortDistance: any;
     /**
-     * @type {import('./skin-instance.js').SkinInstance}
+     * @type {import('./skin-instance.js').SkinInstance|null}
      * @private
      */
     private _skinInstance;
     /**
-     * @type {import('./morph-instance.js').MorphInstance}
+     * @type {import('./morph-instance.js').MorphInstance|null}
      * @private
      */
     private _morphInstance;
     instancingData: InstancingData;
     /**
-     * @type {BoundingBox}
+     * @type {BoundingBox|null}
      * @private
      */
     private _customAabb;
@@ -13813,20 +14575,27 @@ declare class MeshInstance {
     get mesh(): Mesh;
     _aabb: any;
     /**
-     * Clear the internal shader array.
+     * Clear the internal shader cache.
      *
      * @ignore
      */
     clearShaders(): void;
-    destroyBindGroups(): void;
     /**
-     * @param {import('../platform/graphics/graphics-device.js').GraphicsDevice} device - The
-     * graphics device.
-     * @param {number} pass - Shader pass number.
-     * @returns {BindGroup} - The mesh bind group.
+     * Returns the shader instance for the specified shader pass and light hash that is compatible
+     * with this mesh instance.
+     *
+     * @param {number} shaderPass - The shader pass index.
+     * @param {number} lightHash - The hash value of the lights that are affecting this mesh instance.
+     * @param {import('./scene.js').Scene} scene - The scene.
+     * @param {import('../platform/graphics/uniform-buffer-format.js').UniformBufferFormat} [viewUniformFormat] - The
+     * format of the view uniform buffer.
+     * @param {import('../platform/graphics/bind-group-format.js').BindGroupFormat} [viewBindGroupFormat] - The
+     * format of the view bind group.
+     * @param {any} [sortedLights] - Array of arrays of lights.
+     * @returns {ShaderInstance} - the shader instance.
      * @ignore
      */
-    getBindGroup(device: GraphicsDevice, pass: number): BindGroup;
+    getShaderInstance(shaderPass: number, lightHash: number, scene: Scene, viewUniformFormat?: UniformBufferFormat, viewBindGroupFormat?: BindGroupFormat, sortedLights?: any): ShaderInstance;
     _layer: any;
     _updateShaderDefs(shaderDefs: any): void;
     /**
@@ -13885,20 +14654,6 @@ declare class MeshInstance {
      * (usually world matrices). Pass null to turn off hardware instancing.
      */
     setInstancing(vertexBuffer: VertexBuffer | null): void;
-    /**
-     * Obtain a shader variant required to render the mesh instance within specified pass.
-     *
-     * @param {import('./scene.js').Scene} scene - The scene.
-     * @param {number} pass - The render pass.
-     * @param {any} staticLightList - List of static lights.
-     * @param {any} sortedLights - Array of arrays of lights.
-     * @param {import('../platform/graphics/uniform-buffer-format.js').UniformBufferFormat} viewUniformFormat - The
-     * format of the view uniform buffer.
-     * @param {import('../platform/graphics/bind-group-format.js').BindGroupFormat} viewBindGroupFormat - The
-     * format of the view bind group.
-     * @ignore
-     */
-    updatePassShader(scene: Scene, pass: number, staticLightList: any, sortedLights: any, viewUniformFormat: UniformBufferFormat, viewBindGroupFormat: BindGroupFormat): void;
     ensureMaterial(device: any): void;
     clearParameters(): void;
     getParameters(): {};
@@ -13946,6 +14701,34 @@ declare class InstancingData {
     /** @type {import('../platform/graphics/vertex-buffer.js').VertexBuffer|null} */
     vertexBuffer: VertexBuffer | null;
     count: number;
+}
+/**
+ * Internal helper class for storing the shader and related mesh bind group in the shader cache.
+ *
+ * @ignore
+ */
+declare class ShaderInstance {
+    /**
+     * A shader.
+     *
+     * @type {import('../platform/graphics/shader.js').Shader|undefined}
+     */
+    shader: Shader | undefined;
+    /**
+     * A bind group storing mesh uniforms for the shader.
+     *
+     * @type {BindGroup|null}
+     */
+    bindGroup: BindGroup | null;
+    /**
+     * Returns the mesh bind group for the shader.
+     *
+     * @param {import('../platform/graphics/graphics-device.js').GraphicsDevice} device - The
+     * graphics device.
+     * @returns {BindGroup} - The mesh bind group.
+     */
+    getBindGroup(device: GraphicsDevice): BindGroup;
+    destroy(): void;
 }
 
 /**
@@ -15387,15 +16170,15 @@ declare class ElementComponentData {
 
 declare class StandardMaterialOptionsBuilder {
     _mapXForms: any[];
-    updateMinRef(options: any, scene: any, stdMat: any, objDefs: any, staticLightList: any, pass: any, sortedLights: any): void;
-    updateRef(options: any, scene: any, stdMat: any, objDefs: any, staticLightList: any, pass: any, sortedLights: any): void;
+    updateMinRef(options: any, scene: any, stdMat: any, objDefs: any, pass: any, sortedLights: any): void;
+    updateRef(options: any, scene: any, stdMat: any, objDefs: any, pass: any, sortedLights: any): void;
     _updateSharedOptions(options: any, scene: any, stdMat: any, objDefs: any, pass: any): void;
     _updateUVOptions(options: any, stdMat: any, objDefs: any, minimalOptions: any): void;
     _updateTexOptions(options: any, stdMat: any, p: any, hasUv0: any, hasUv1: any, hasVcolor: any, minimalOptions: any, uniqueTextureMap: any): void;
     _updateMinOptions(options: any, stdMat: any): void;
     _updateMaterialOptions(options: any, stdMat: any): void;
     _updateEnvOptions(options: any, stdMat: any, scene: any): void;
-    _updateLightOptions(options: any, scene: any, stdMat: any, objDefs: any, sortedLights: any, staticLightList: any): void;
+    _updateLightOptions(options: any, scene: any, stdMat: any, objDefs: any, sortedLights: any): void;
     _getMapTransformID(xform: any, uv: any): any;
 }
 
@@ -15909,6 +16692,7 @@ export type UpdateShaderCallback = (options: StandardMaterialOptions) => Standar
 declare class StandardMaterial extends Material {
     static TEXTURE_PARAMETERS: any[];
     static CUBEMAP_PARAMETERS: any[];
+    userAttributes: Map<any, any>;
     _dirtyShader: boolean;
     _assetReferences: {};
     _activeParams: Set<any>;
@@ -16482,6 +17266,17 @@ declare class StandardMaterial extends Material {
      * @returns {StandardMaterial} The destination material.
      */
     copy(source: StandardMaterial): StandardMaterial;
+    /**
+     * Sets a vertex shader attribute on a material.
+     *
+     * @param {string} name - The name of the parameter to set.
+     * @param {string} semantic - Semantic to map the vertex data. Must match with the semantic set on vertex stream
+     * of the mesh.
+     * @example
+     * mesh.setVertexStream(pc.SEMANTIC_ATTR15, offset, 3);
+     * material.setAttribute('offset', pc.SEMANTIC_ATTR15);
+     */
+    setAttribute(name: string, semantic: string): void;
     _setParameter(name: any, value: any): void;
     _setParameters(parameters: any): void;
     _processParameters(paramsName: any): void;
@@ -17129,7 +17924,9 @@ declare class CanvasFont extends EventHandler {
     fontName: string;
     color: Color;
     padding: number;
-    textures: Texture[];
+    width: number;
+    height: number;
+    atlases: any[];
     chars: string;
     data: {};
     /**
@@ -17150,13 +17947,6 @@ declare class CanvasFont extends EventHandler {
      */
     destroy(): void;
     /**
-     * @param {HTMLCanvasElement} canvas - The canvas used to render the font.
-     * @param {string} clearColor - The color to clear the canvas with.
-     * @returns {CanvasRenderingContext2D} - A 2D rendering contxt.
-     * @private
-     */
-    private _getAndClearContext;
-    /**
      * @param {Color} color - The color to covert.
      * @param {boolean} alpha - Whether to include the alpha channel.
      * @returns {string} The hex string for the color.
@@ -17168,10 +17958,17 @@ declare class CanvasFont extends EventHandler {
      * @param {string} char - The character to render.
      * @param {number} x - The x position to render the character at.
      * @param {number} y - The y position to render the character at.
-     * @param {number} color - The color to render the character in.
+     * @param {string} color - The color to render the character in.
      * @ignore
      */
-    renderCharacter(context: CanvasRenderingContext2D, char: string, x: number, y: number, color: number): void;
+    renderCharacter(context: CanvasRenderingContext2D, char: string, x: number, y: number, color: string): void;
+    /**
+     * Return the atlas at the specified index.
+     *
+     * @param {number} index - The atlas index
+     * @private
+     */
+    private _getAtlas;
     /**
      * Renders an array of characters into one or more textures atlases.
      *
@@ -17223,6 +18020,7 @@ declare class CanvasFont extends EventHandler {
      * @private
      */
     private _getTextMetrics;
+    get textures(): any[];
 }
 
 /**
@@ -17892,7 +18690,7 @@ declare class ElementComponent extends Component {
      * @private
      */
     private _setLocalPosition;
-    _sync(): any;
+    _sync(): void;
     _dirtyLocal: boolean;
     _dirtyWorld: boolean;
     _onInsert(parent: any): void;
@@ -18564,7 +19362,7 @@ declare class GamePad {
      * @param {Gamepad} gamepad - The original Gamepad API gamepad.
      * @ignore
      */
-    update(gamepad: Gamepad): GamePad;
+    update(gamepad: Gamepad): this;
     /**
      * Update the map for this gamepad.
      *
@@ -19532,9 +20330,10 @@ declare class ResourceLoader {
      * Get a {@link ResourceHandler} for a resource type.
      *
      * @param {string} type - The name of the resource type that the handler is registered with.
-     * @returns {import('./handler.js').ResourceHandler} The registered handler.
+     * @returns {import('./handler.js').ResourceHandler|undefined} The registered handler, or
+     * undefined if the requested handler is not registered.
      */
-    getHandler(type: string): ResourceHandler;
+    getHandler(type: string): ResourceHandler | undefined;
     /**
      * Make a request for a resource from a remote URL. Parse the returned data using the handler
      * for the specified type. When loaded and parsed, use the callback to return an instance of
@@ -19959,180 +20758,6 @@ declare class AssetRegistry extends EventHandler {
 }
 
 /**
- * A render pass represents a node in the frame graph, and encapsulates a system which
- * renders to a render target using an execution callback.
- *
- * @ignore
- */
-declare class RenderPass {
-    /**
-     * Creates an instance of the RenderPass.
-     *
-     * @param {import('../graphics/graphics-device.js').GraphicsDevice} graphicsDevice - The
-     * graphics device.
-     * @param {Function} [execute] - Custom function that is called to render the pass.
-     */
-    constructor(graphicsDevice: GraphicsDevice, execute?: Function);
-    /** @type {string} */
-    name: string;
-    /** @type {import('../graphics/render-target.js').RenderTarget} */
-    renderTarget: RenderTarget;
-    /**
-     * Number of samples. 0 if no render target, otherwise number of samples from the render target,
-     * or the main framebuffer if render target is null.
-     *
-     * @type {number}
-     */
-    samples: number;
-    /**
-     * Array of color attachment operations. The first element corresponds to the color attachment
-     * 0, and so on.
-     *
-     * @type {Array<ColorAttachmentOps>}
-     */
-    colorArrayOps: Array<ColorAttachmentOps>;
-    /**
-     * Color attachment operations for the first color attachment.
-     *
-     * @type {ColorAttachmentOps}
-     */
-    get colorOps(): ColorAttachmentOps;
-    /** @type {DepthStencilAttachmentOps} */
-    depthStencilOps: DepthStencilAttachmentOps;
-    /**
-     * If true, this pass might use dynamically rendered cubemaps. Use for a case where rendering to cubemap
-     * faces is interleaved with rendering to shadows, to avoid generating cubemap mipmaps. This will likely
-     * be retired when render target dependency tracking gets implemented.
-     *
-     * @type {boolean}
-     */
-    requiresCubemaps: boolean;
-    /**
-     * True if the render pass uses the full viewport / scissor for rendering into the render target.
-     *
-     * @type {boolean}
-     */
-    fullSizeClearRect: boolean;
-    /**
-     * Custom function that is called to render the pass.
-     *
-     * @type {Function}
-     */
-    execute: Function;
-    /**
-     * Custom function that is called before the pass has started.
-     *
-     * @type {Function}
-     */
-    before: Function;
-    /**
-     * Custom function that is called after the pass has fnished.
-     *
-     * @type {Function}
-     */
-    after: Function;
-    device: GraphicsDevice;
-    /**
-     * @param {import('../graphics/render-target.js').RenderTarget} renderTarget - The render
-     * target to render into (output). This function should be called only for render passes which
-     * use render target, or passes which render directly into the default framebuffer, in which
-     * case a null or undefined render target is expected.
-     */
-    init(renderTarget: RenderTarget): void;
-    /**
-     * Mark render pass as clearing the full color buffer.
-     *
-     * @param {Color} color - The color to clear to.
-     */
-    setClearColor(color: Color): void;
-    /**
-     * Mark render pass as clearing the full depth buffer.
-     *
-     * @param {number} depthValue - The depth value to clear to.
-     */
-    setClearDepth(depthValue: number): void;
-    /**
-     * Mark render pass as clearing the full stencil buffer.
-     *
-     * @param {number} stencilValue - The stencil value to clear to.
-     */
-    setClearStencil(stencilValue: number): void;
-    /**
-     * Render the render pass
-     */
-    render(): void;
-    log(device: any, index: any): void;
-}
-declare class ColorAttachmentOps {
-    /**
-     * A color used to clear the color attachment when the clear is enabled.
-     */
-    clearValue: Color;
-    /**
-     * True if the attachment should be cleared before rendering, false to preserve
-     * the existing content.
-     */
-    clear: boolean;
-    /**
-     * True if the attachment needs to be stored after the render pass. False
-     * if it can be discarded.
-     * Note: This relates to the surface that is getting rendered to, and can be either
-     * single or multi-sampled. Further, if a multi-sampled surface is used, the resolve
-     * flag further specifies if this gets resolved to a single-sampled surface. This
-     * behavior matches the WebGPU specification.
-     *
-     * @type {boolean}
-     */
-    store: boolean;
-    /**
-     * True if the attachment needs to be resolved.
-     *
-     * @type {boolean}
-     */
-    resolve: boolean;
-    /**
-     * True if the attachment needs to have mipmaps generated.
-     *
-     * @type {boolean}
-     */
-    mipmaps: boolean;
-}
-declare class DepthStencilAttachmentOps {
-    /**
-     * A depth value used to clear the depth attachment when the clear is enabled.
-     */
-    clearDepthValue: number;
-    /**
-     * A stencil value used to clear the stencil attachment when the clear is enabled.
-     */
-    clearStencilValue: number;
-    /**
-     * True if the depth attachment should be cleared before rendering, false to preserve
-     * the existing content.
-     */
-    clearDepth: boolean;
-    /**
-     * True if the stencil attachment should be cleared before rendering, false to preserve
-     * the existing content.
-     */
-    clearStencil: boolean;
-    /**
-     * True if the depth attachment needs to be stored after the render pass. False
-     * if it can be discarded.
-     *
-     * @type {boolean}
-     */
-    storeDepth: boolean;
-    /**
-     * True if the stencil attachment needs to be stored after the render pass. False
-     * if it can be discarded.
-     *
-     * @type {boolean}
-     */
-    storeStencil: boolean;
-}
-
-/**
  * A frame graph represents a single rendering frame as a sequence of render passes.
  *
  * @ignore
@@ -20158,302 +20783,156 @@ declare class FrameGraph {
     render(device: any): void;
 }
 
-/**
- * Class responsible for management of shader passes, associated with a device.
- *
- * @ignore
- */
-declare class ShaderPass {
-    /**
-     * Get access to the shader pass instance for the specified device.
-     *
-     * @param {import('../platform/graphics/graphics-device.js').GraphicsDevice} device - The
-     * graphics device.
-     * @returns { ShaderPass } The shader pass instance for the specified device.
-     */
-    static get(device: GraphicsDevice): ShaderPass;
-    /**
-     * Allocated shader passes, map of a shader pass name to info.
-     *
-     * @type {Map<string, ShaderPassInfo>}
-     */
-    passesNamed: Map<string, ShaderPassInfo>;
-    /**
-     * Allocated shader passes, indexed by their index.
-     *
-     * @type {Array<ShaderPassInfo>}
-     */
-    passesIndexed: Array<ShaderPassInfo>;
-    /** Next available index */
-    nextIndex: number;
-    /**
-     * Allocates a shader pass with the specified name and options.
-     *
-     * @param {string} name - A name of the shader pass.
-     * @param {object} options - Options for the shader pass, which are added as properties to the
-     * shader pass info.
-     * @returns {ShaderPassInfo} The allocated shader pass info.
-     */
-    allocate(name: string, options: object): ShaderPassInfo;
-    /**
-     * Return the shader pass info for the specified index.
-     *
-     * @param {number} index - The shader pass index.
-     * @returns {ShaderPassInfo} - The shader pass info.
-     */
-    getByIndex(index: number): ShaderPassInfo;
-    getByName(name: any): ShaderPassInfo;
+declare class LightsBuffer {
+    static FORMAT_FLOAT: number;
+    static FORMAT_8BIT: number;
+    static lightTextureFormat: number;
+    static useTexelFetch: boolean;
+    static shaderDefines: string;
+    static initShaderDefines(): void;
+    static buildShaderDefines(object: any, prefix: any): string;
+    static init(device: any): void;
+    static createTexture(device: any, width: any, height: any, format: any, name: any): Texture;
+    constructor(device: any);
+    device: any;
+    cookiesEnabled: boolean;
+    shadowsEnabled: boolean;
+    areaLightsEnabled: boolean;
+    maxLights: number;
+    lights8: Uint8ClampedArray;
+    lightsTexture8: Texture;
+    _lightsTexture8Id: any;
+    lightsFloat: Float32Array;
+    lightsTextureFloat: Texture;
+    _lightsTextureFloatId: any;
+    _lightsTextureInvSizeId: any;
+    _lightsTextureInvSizeData: Float32Array;
+    invMaxColorValue: number;
+    invMaxAttenuation: number;
+    boundsMin: Vec3;
+    boundsDelta: Vec3;
+    destroy(): void;
+    setCompressionRanges(maxAttenuation: any, maxColorValue: any): void;
+    setBounds(min: any, delta: any): void;
+    uploadTextures(): void;
+    updateUniforms(): void;
+    getSpotDirection(direction: any, spot: any): void;
+    getLightAreaSizes(light: any): Float32Array;
+    addLightDataFlags(data8: any, index: any, light: any, isSpot: any, castShadows: any, shadowIntensity: any): void;
+    addLightDataColor(data8: any, index: any, light: any, gammaCorrection: any, isCookie: any): void;
+    addLightDataSpotAngles(data8: any, index: any, light: any): void;
+    addLightDataShadowBias(data8: any, index: any, light: any): void;
+    addLightDataPositionRange(data8: any, index: any, light: any, pos: any): void;
+    addLightDataSpotDirection(data8: any, index: any, light: any): void;
+    addLightDataLightProjMatrix(data8: any, index: any, lightProjectionMatrix: any): void;
+    addLightDataCookies(data8: any, index: any, light: any): void;
+    addLightAtlasViewport(data8: any, index: any, atlasViewport: any): void;
+    addLightAreaSizes(data8: any, index: any, light: any): void;
+    addLightData(light: any, lightIndex: any, gammaCorrection: any): void;
 }
-/**
- * Info about a shader pass. Shader pass is represented by a unique index and a name, and the
- * index is used to access the shader required for the pass, from an array stored in the
- * material or mesh instance.
- *
- * @ignore
- */
-declare class ShaderPassInfo {
-    constructor(name: any, index: any, options?: {});
-    /** @type {number} */
-    index: number;
-    /** @type {string} */
+
+declare class WorldClusters {
+    constructor(device: any);
+    /** @type {import('../../platform/graphics/texture.js').Texture} */
+    clusterTexture: Texture;
+    device: any;
     name: string;
-    /** @type {string} */
-    shaderDefine: string;
-    initShaderDefines(): void;
-    shaderDefines: string;
+    reportCount: number;
+    boundsMin: Vec3;
+    boundsMax: Vec3;
+    boundsDelta: Vec3;
+    _cells: Vec3;
+    _cellsLimit: Vec3;
+    set cells(arg: Vec3);
+    get cells(): Vec3;
+    set maxCellLightCount(arg: any);
+    get maxCellLightCount(): any;
+    _maxAttenuation: number;
+    _maxColorValue: number;
+    _usedLights: ClusterLight[];
+    lightsBuffer: LightsBuffer;
+    _maxCellLightCount: any;
+    _cellsDirty: boolean;
+    destroy(): void;
+    releaseClusterTexture(): void;
+    registerUniforms(device: any): void;
+    _clusterSkipId: any;
+    _clusterMaxCellsId: any;
+    _clusterWorldTextureId: any;
+    _clusterTextureSizeId: any;
+    _clusterTextureSizeData: Float32Array;
+    _clusterBoundsMinId: any;
+    _clusterBoundsMinData: Float32Array;
+    _clusterBoundsDeltaId: any;
+    _clusterBoundsDeltaData: Float32Array;
+    _clusterCellsCountByBoundsSizeId: any;
+    _clusterCellsCountByBoundsSizeData: Float32Array;
+    _clusterCellsDotId: any;
+    _clusterCellsDotData: Float32Array;
+    _clusterCellsMaxId: any;
+    _clusterCellsMaxData: Float32Array;
+    _clusterCompressionLimit0Id: any;
+    _clusterCompressionLimit0Data: Float32Array;
+    updateParams(lightingParams: any): void;
+    updateCells(): void;
+    clusters: Uint8ClampedArray;
+    counts: Int32Array;
+    uploadTextures(): void;
+    updateUniforms(): void;
+    evalLightCellMinMax(clusteredLight: any, min: any, max: any): void;
+    collectLights(lights: any): void;
+    evaluateBounds(): void;
+    evaluateCompressionLimits(gammaCorrection: any): void;
+    updateClusters(gammaCorrection: any): void;
+    update(lights: any, gammaCorrection: any, lightingParams: any): void;
+    activate(): void;
+}
+
+declare class ClusterLight {
+    light: any;
+    min: Vec3;
+    max: Vec3;
 }
 
 /**
- * A frustum is a shape that defines the viewing space of a camera. It can be used to determine
- * visibility of points and bounding spheres. Typically, you would not create a Frustum shape
- * directly, but instead query {@link CameraComponent#frustum}.
- *
- * @category Math
- */
-declare class Frustum {
-    planes: any[];
-    /**
-     * Updates the frustum shape based on the supplied 4x4 matrix.
-     *
-     * @param {import('../math/mat4.js').Mat4} matrix - The matrix describing the shape of the
-     * frustum.
-     * @example
-     * // Create a perspective projection matrix
-     * const projMat = pc.Mat4();
-     * projMat.setPerspective(45, 16 / 9, 1, 1000);
-     *
-     * // Create a frustum shape that is represented by the matrix
-     * const frustum = new pc.Frustum();
-     * frustum.setFromMat4(projMat);
-     */
-    setFromMat4(matrix: Mat4): void;
-    /**
-     * Tests whether a point is inside the frustum. Note that points lying in a frustum plane are
-     * considered to be outside the frustum.
-     *
-     * @param {import('../math/vec3.js').Vec3} point - The point to test.
-     * @returns {boolean} True if the point is inside the frustum, false otherwise.
-     */
-    containsPoint(point: Vec3): boolean;
-    /**
-     * Tests whether a bounding sphere intersects the frustum. If the sphere is outside the
-     * frustum, zero is returned. If the sphere intersects the frustum, 1 is returned. If the
-     * sphere is completely inside the frustum, 2 is returned. Note that a sphere touching a
-     * frustum plane from the outside is considered to be outside the frustum.
-     *
-     * @param {import('./bounding-sphere.js').BoundingSphere} sphere - The sphere to test.
-     * @returns {number} 0 if the bounding sphere is outside the frustum, 1 if it intersects the
-     * frustum and 2 if it is contained by the frustum.
-     */
-    containsSphere(sphere: BoundingSphere): number;
-}
-
-/**
- * A camera.
+ * A class managing instances of world clusters used by the renderer for layers with
+ * unique sets of clustered lights.
  *
  * @ignore
  */
-declare class Camera {
+declare class WorldClustersAllocator {
     /**
-     * @type {import('./shader-pass.js').ShaderPassInfo|null}
-     */
-    shaderPassInfo: ShaderPassInfo | null;
-    _aspectRatio: number;
-    _aspectRatioMode: number;
-    _calculateProjection: any;
-    _calculateTransform: any;
-    _clearColor: Color;
-    _clearColorBuffer: boolean;
-    _clearDepth: number;
-    _clearDepthBuffer: boolean;
-    _clearStencil: number;
-    _clearStencilBuffer: boolean;
-    _cullingMask: number;
-    _cullFaces: boolean;
-    _farClip: number;
-    _flipFaces: boolean;
-    _fov: number;
-    _frustumCulling: boolean;
-    _horizontalFov: boolean;
-    _layers: number[];
-    _layersSet: Set<number>;
-    _nearClip: number;
-    _node: any;
-    _orthoHeight: number;
-    _projection: number;
-    _rect: Vec4;
-    _renderTarget: any;
-    _scissorRect: Vec4;
-    _scissorRectClear: boolean;
-    _aperture: number;
-    _shutter: number;
-    _sensitivity: number;
-    _projMat: Mat4;
-    _projMatDirty: boolean;
-    _projMatSkybox: Mat4;
-    _viewMat: Mat4;
-    _viewMatDirty: boolean;
-    _viewProjMat: Mat4;
-    _viewProjMatDirty: boolean;
-    frustum: Frustum;
-    _xr: any;
-    _xrProperties: {
-        horizontalFov: boolean;
-        fov: number;
-        aspectRatio: number;
-        farClip: number;
-        nearClip: number;
-    };
-    /**
-     * True if the camera clears the full render target. (viewport / scissor are full size)
-     */
-    get fullSizeClearRect(): boolean;
-    set aspectRatio(arg: number);
-    get aspectRatio(): number;
-    set aspectRatioMode(arg: number);
-    get aspectRatioMode(): number;
-    set calculateProjection(arg: any);
-    get calculateProjection(): any;
-    set calculateTransform(arg: any);
-    get calculateTransform(): any;
-    set clearColor(arg: Color);
-    get clearColor(): Color;
-    set clearColorBuffer(arg: boolean);
-    get clearColorBuffer(): boolean;
-    set clearDepth(arg: number);
-    get clearDepth(): number;
-    set clearDepthBuffer(arg: boolean);
-    get clearDepthBuffer(): boolean;
-    set clearStencil(arg: number);
-    get clearStencil(): number;
-    set clearStencilBuffer(arg: boolean);
-    get clearStencilBuffer(): boolean;
-    set cullingMask(arg: number);
-    get cullingMask(): number;
-    set cullFaces(arg: boolean);
-    get cullFaces(): boolean;
-    set farClip(arg: number);
-    get farClip(): number;
-    set flipFaces(arg: boolean);
-    get flipFaces(): boolean;
-    set fov(arg: number);
-    get fov(): number;
-    set frustumCulling(arg: boolean);
-    get frustumCulling(): boolean;
-    set horizontalFov(arg: boolean);
-    get horizontalFov(): boolean;
-    set layers(arg: number[]);
-    get layers(): number[];
-    get layersSet(): Set<number>;
-    set nearClip(arg: number);
-    get nearClip(): number;
-    set node(arg: any);
-    get node(): any;
-    set orthoHeight(arg: number);
-    get orthoHeight(): number;
-    set projection(arg: number);
-    get projection(): number;
-    get projectionMatrix(): Mat4;
-    set rect(arg: Vec4);
-    get rect(): Vec4;
-    set renderTarget(arg: any);
-    get renderTarget(): any;
-    set scissorRect(arg: Vec4);
-    get scissorRect(): Vec4;
-    get viewMatrix(): Mat4;
-    set aperture(arg: number);
-    get aperture(): number;
-    set sensitivity(arg: number);
-    get sensitivity(): number;
-    set shutter(arg: number);
-    get shutter(): number;
-    set xr(arg: any);
-    get xr(): any;
-    /**
-     * Creates a duplicate of the camera.
+     * Create a new instance.
      *
-     * @returns {Camera} A cloned Camera.
+     * @param {import('../../platform/graphics/graphics-device.js').GraphicsDevice} graphicsDevice -
+     * The graphics device.
      */
-    clone(): Camera;
+    constructor(graphicsDevice: GraphicsDevice);
     /**
-     * Copies one camera to another.
+     * Empty cluster with no lights.
      *
-     * @param {Camera} other - Camera to copy.
-     * @returns {Camera} Self for chaining.
+     * @type {WorldClusters|null}
      */
-    copy(other: Camera): Camera;
-    _updateViewProjMat(): void;
+    _empty: WorldClusters | null;
     /**
-     * Convert a point from 3D world space to 2D canvas pixel space.
+     * All allocated clusters
      *
-     * @param {Vec3} worldCoord - The world space coordinate to transform.
-     * @param {number} cw - The width of PlayCanvas' canvas element.
-     * @param {number} ch - The height of PlayCanvas' canvas element.
-     * @param {Vec3} [screenCoord] - 3D vector to receive screen coordinate result.
-     * @returns {Vec3} The screen space coordinate.
+     * @type {WorldClusters[]}
      */
-    worldToScreen(worldCoord: Vec3, cw: number, ch: number, screenCoord?: Vec3): Vec3;
+    _allocated: WorldClusters[];
     /**
-     * Convert a point from 2D canvas pixel space to 3D world space.
+     * Render actions with all unique light clusters. The key is the hash of lights on a layer, the
+     * value is a render action with unique light clusters.
      *
-     * @param {number} x - X coordinate on PlayCanvas' canvas element.
-     * @param {number} y - Y coordinate on PlayCanvas' canvas element.
-     * @param {number} z - The distance from the camera in world space to create the new point.
-     * @param {number} cw - The width of PlayCanvas' canvas element.
-     * @param {number} ch - The height of PlayCanvas' canvas element.
-     * @param {Vec3} [worldCoord] - 3D vector to receive world coordinate result.
-     * @returns {Vec3} The world space coordinate.
+     * @type {Map<number, import('../composition/render-action.js').RenderAction>}
      */
-    screenToWorld(x: number, y: number, z: number, cw: number, ch: number, worldCoord?: Vec3): Vec3;
-    _evaluateProjectionMatrix(): void;
-    getProjectionMatrixSkybox(): Mat4;
-    getExposure(): number;
-    getScreenSize(sphere: any): number;
-    /**
-     * Returns an array of corners of the frustum of the camera in the local coordinate system of the camera.
-     *
-     * @param {number} [near] - Near distance for the frustum points. Defaults to the near clip distance of the camera.
-     * @param {number} [far] - Far distance for the frustum points. Defaults to the far clip distance of the camera.
-     * @returns {Vec3[]} - An array of corners, using a global storage space.
-     */
-    getFrustumCorners(near?: number, far?: number): Vec3[];
-    /**
-     * Sets XR camera properties that should be derived physical camera in {@link XrManager}.
-     *
-     * @param {object} [properties] - Properties object.
-     * @param {number} [properties.aspectRatio] - Aspect ratio.
-     * @param {number} [properties.farClip] - Far clip.
-     * @param {number} [properties.fov] - Field of view.
-     * @param {boolean} [properties.horizontalFov] - Enable horizontal field of view.
-     * @param {number} [properties.nearClip] - Near clip.
-     */
-    setXrProperties(properties?: {
-        aspectRatio?: number;
-        farClip?: number;
-        fov?: number;
-        horizontalFov?: boolean;
-        nearClip?: number;
-    }): void;
+    _clusters: Map<number, RenderAction>;
+    device: GraphicsDevice;
+    destroy(): void;
+    get count(): number;
+    get empty(): WorldClusters;
+    assign(renderActions: any): void;
+    update(renderActions: any, gammaCorrection: any, lighting: any): void;
 }
 
 declare class ShadowMap {
@@ -20496,10 +20975,10 @@ declare class LightTextureAtlas {
     _cookieAtlasTextureId: any;
     updateUniforms(): void;
     subdivide(numLights: any, lightingParams: any): void;
-    collectLights(spotLights: any, omniLights: any, lightingParams: any): any[];
+    collectLights(localLights: any, lightingParams: any): any[];
     setupSlot(light: any, rect: any): void;
     assignSlot(light: any, slotIndex: any, slotReassigned: any): void;
-    update(spotLights: any, omniLights: any, lightingParams: any): void;
+    update(localLights: any, lightingParams: any): void;
 }
 
 /**
@@ -20541,7 +21020,21 @@ declare class ShadowRenderer {
     viewBindGroupFormat: BindGroupFormat;
     blendStateWrite: BlendState;
     blendStateNoWrite: BlendState;
-    cullShadowCasters(meshInstances: any, visible: any, camera: any): void;
+    _cullShadowCastersInternal(meshInstances: any, visible: any, camera: any): void;
+    /**
+     * Culls the list of shadow casters used by the light by the camera, storing visible mesh
+     * instances in the specified array.
+     * @param {import('../composition/layer-composition.js').LayerComposition} comp - The layer
+     * composition used as a source of shadow casters, if those are not provided directly.
+     * @param {import('../light.js').Light} light - The light.
+     * @param {import('../mesh-instance.js').MeshInstance[]} visible - The array to store visible
+     * mesh instances in.
+     * @param {import('../camera.js').Camera} camera - The camera.
+     * @param {import('../mesh-instance.js').MeshInstance[]} [casters] - Optional array of mesh
+     * instances to use as casters.
+     * @ignore
+     */
+    cullShadowCasters(comp: LayerComposition, light: Light, visible: MeshInstance[], camera: Camera, casters?: MeshInstance[]): void;
     setupRenderState(device: any, light: any): void;
     restoreRenderState(device: any): void;
     dispatchUniforms(light: any, shadowCam: any, lightRenderData: any, face: any): void;
@@ -20577,19 +21070,19 @@ declare class ShadowRendererLocal {
     shadowRenderer: ShadowRenderer;
     /** @type {import('../../platform/graphics/graphics-device.js').GraphicsDevice} */
     device: GraphicsDevice;
-    cull(light: any, drawCalls: any): void;
+    cull(light: any, comp: any, casters?: any): void;
     prepareLights(shadowLights: any, lights: any): any;
     /**
      * Prepare render pass for rendering of shadows for local clustered lights. This is done inside
      * a single render pass, as all shadows are part of a single render target atlas.
      */
-    prepareClusteredRenderPass(renderPass: any, lightsSpot: any, lightsOmni: any): void;
+    prepareClusteredRenderPass(renderPass: any, localLights: any): void;
     setupNonClusteredFaceRenderPass(frameGraph: any, light: any, face: any, applyVsm: any): void;
     /**
      * Prepare render passes for rendering of shadows for local non-clustered lights. Each shadow face
      * is a separate render pass as it renders to a separate render target.
      */
-    buildNonClusteredRenderPasses(frameGraph: any, lightsSpot: any, lightsOmni: any): void;
+    buildNonClusteredRenderPasses(frameGraph: any, localLights: any): void;
 }
 
 /**
@@ -20603,36 +21096,100 @@ declare class ShadowRendererDirectional {
     shadowRenderer: ShadowRenderer;
     /** @type {import('../../platform/graphics/graphics-device.js').GraphicsDevice} */
     device: GraphicsDevice;
-    cull(light: any, drawCalls: any, camera: any): void;
+    cull(light: any, comp: any, camera: any, casters?: any): void;
     generateSplitDistances(light: any, nearDist: any, farDist: any): void;
     addLightRenderPasses(frameGraph: any, light: any, camera: any): void;
     /**
      * Builds a frame graph for rendering of directional shadows for the render action.
      *
      * @param {import('../frame-graph.js').FrameGraph} frameGraph - The frame-graph that is built.
-     * @param {import('../composition/render-action.js').RenderAction} renderAction - The render
-     * action.
+     * @param {import('../light.js').Light[]} directionalLights - The
+     * directional lights.
      * @param {import('../../framework/components/camera/component.js').CameraComponent} camera - The camera.
      */
-    buildFrameGraph(frameGraph: FrameGraph, renderAction: RenderAction, camera: CameraComponent): void;
+    buildFrameGraph(frameGraph: FrameGraph, directionalLights: Light[], camera: CameraComponent): void;
 }
 
-declare class CookieRenderer {
-    static createTexture(device: any, resolution: any): Texture;
-    static _invViewProjMatrices: any;
-    constructor(device: any, lightTextureAtlas: any);
-    device: any;
-    lightTextureAtlas: any;
-    blitShader2d: any;
-    blitShaderCube: any;
+/**
+ * An object that renders a quad using a {@link Shader}.
+ *
+ * Example:
+ *
+ * ```javascript
+ * const shader = pc.createShaderFromCode(app.graphicsDevice, vertexShader, fragmentShader, `MyShader`);
+ * const quad = new QuadRender(shader);
+ * quad.render();
+ * quad.destroy();
+ * ```
+ *
+ * @category Graphics
+ */
+declare class QuadRender {
+    /**
+     * Create a new QuadRender instance.
+     *
+     * @param {import('../../platform/graphics/shader.js').Shader} shader - The shader to be used to render the quad.
+     */
+    constructor(shader: Shader);
+    /**
+     * @type {UniformBuffer}
+     * @ignore
+     */
+    uniformBuffer: UniformBuffer;
+    /**
+     * @type {BindGroup}
+     * @ignore
+     */
+    bindGroup: BindGroup;
+    shader: Shader;
+    /**
+     * Destroys the resources associated with this instance.
+     */
+    destroy(): void;
+    /**
+     * Renders the quad. If the viewport is provided, the original viewport and scissor is restored
+     * after the rendering.
+     *
+     * @param {import('../../core/math/vec4.js').Vec4} [viewport] - The viewport rectangle of the
+     * quad, in pixels. The viewport is not changed if not provided.
+     * @param {import('../../core/math/vec4.js').Vec4} [scissor] - The scissor rectangle of the
+     * quad, in pixels. Used only if the viewport is provided.
+     */
+    render(viewport?: Vec4, scissor?: Vec4): void;
+}
+
+/**
+ * A render pass used to render cookie textures (both 2D and Cubemap) into the texture atlas.
+ *
+ * @ignore
+ */
+declare class RenderPassCookieRenderer extends RenderPass {
+    static create(renderTarget: any, cubeSlotsOffsets: any): RenderPassCookieRenderer;
+    constructor(device: any, cubeSlotsOffsets: any);
+    /** @type {QuadRender|null} */
+    _quadRenderer2D: QuadRender | null;
+    /** @type {QuadRender|null} */
+    _quadRendererCube: QuadRender | null;
+    _filteredLights: any[];
+    _cubeSlotsOffsets: any;
     blitTextureId: any;
     invViewProjId: any;
-    destroy(): void;
-    getShader(shader: any, fragment: any): any;
-    get shader2d(): any;
-    get shaderCube(): any;
+    update(lights: any): void;
+    filter(lights: any, filteredLights: any): void;
     initInvViewProjMatrices(): void;
-    render(light: any, renderTarget: any): void;
+    get quadRenderer2D(): QuadRender;
+    get quadRendererCube(): QuadRender;
+}
+
+/**
+ * A lighting cube represented by 6 colors, one per cube direction. Use for simple lighting on the
+ * particle system.
+ *
+ * @ignore
+ */
+declare class LightCube {
+    colors: Float32Array;
+    update(ambientLight: any, lights: any): void;
 }
 
 /**
@@ -20650,6 +21207,31 @@ declare class Renderer {
     constructor(graphicsDevice: GraphicsDevice);
     /** @type {boolean} */
     clustersDebugRendered: boolean;
+    /**
+     * A set of visible mesh instances which need further processing before being rendered, e.g.
+     * skinning or morphing. Extracted during culling.
+     *
+     * @type {Set<import('../mesh-instance.js').MeshInstance>}
+     * @private
+     */
+    private processingMeshInstances;
+    /**
+     * @type {WorldClustersAllocator}
+     * @ignore
+     */
+    worldClustersAllocator: WorldClustersAllocator;
+    /**
+     * A list of all unique lights in the layer composition.
+     *
+     * @type {import('../light.js').Light[]}
+     */
+    lights: Light[];
+    /**
+     * A list of all unique local lights (spot & omni) in the layer composition.
+     *
+     * @type {import('../light.js').Light[]}
+     */
+    localLights: Light[];
     device: GraphicsDevice;
     /** @type {import('../scene.js').Scene|null} */
     scene: Scene | null;
@@ -20658,7 +21240,7 @@ declare class Renderer {
     shadowRenderer: ShadowRenderer;
     _shadowRendererLocal: ShadowRendererLocal;
     _shadowRendererDirectional: ShadowRendererDirectional;
-    _cookieRenderer: CookieRenderer;
+    cookiesRenderPass: RenderPassCookieRenderer;
     viewUniformFormat: UniformBufferFormat;
     viewBindGroupFormat: BindGroupFormat;
     _skinTime: number;
@@ -20702,6 +21284,8 @@ declare class Renderer {
     morphPositionTex: ScopeId;
     morphNormalTex: ScopeId;
     morphTexParams: ScopeId;
+    lightCube: LightCube;
+    constantLightCube: ScopeId;
     destroy(): void;
     sortCompare(drawCallA: any, drawCallB: any): number;
     sortCompareMesh(drawCallA: any, drawCallB: any): number;
@@ -20721,11 +21305,11 @@ declare class Renderer {
      *
      * @param {import('../camera.js').Camera} camera - The camera supplying the value to clear to.
      * @param {boolean} [clearColor] - True if the color buffer should be cleared. Uses the value
-     * from the camra if not supplied.
+     * from the camera if not supplied.
      * @param {boolean} [clearDepth] - True if the depth buffer should be cleared. Uses the value
-     * from the camra if not supplied.
+     * from the camera if not supplied.
      * @param {boolean} [clearStencil] - True if the stencil buffer should be cleared. Uses the
-     * value from the camra if not supplied.
+     * value from the camera if not supplied.
      */
     clear(camera: Camera, clearColor?: boolean, clearDepth?: boolean, clearStencil?: boolean): void;
     setCamera(camera: any, target: any, clear: any, renderAction?: any): void;
@@ -20734,19 +21318,46 @@ declare class Renderer {
     updateCameraFrustum(camera: any): void;
     setBaseConstants(device: any, material: any): void;
     updateCpuSkinMatrices(drawCalls: any): void;
-    updateGpuSkinMatrices(drawCalls: any): void;
-    updateMorphing(drawCalls: any): void;
-    gpuUpdate(drawCalls: any): void;
+    /**
+     * Update skin matrices ahead of rendering.
+     *
+     * @param {import('../mesh-instance.js').MeshInstance[]|Set<import('../mesh-instance.js').MeshInstance>} drawCalls - MeshInstances
+     * containing skinInstance.
+     * @ignore
+     */
+    updateGpuSkinMatrices(drawCalls: MeshInstance[] | Set<MeshInstance>): void;
+    /**
+     * Update morphing ahead of rendering.
+     *
+     * @param {import('../mesh-instance.js').MeshInstance[]|Set<import('../mesh-instance.js').MeshInstance>} drawCalls - MeshInstances
+     * containing morphInstance.
+     * @ignore
+     */
+    updateMorphing(drawCalls: MeshInstance[] | Set<MeshInstance>): void;
+    /**
+     * Update draw calls ahead of rendering.
+     *
+     * @param {import('../mesh-instance.js').MeshInstance[]|Set<import('../mesh-instance.js').MeshInstance>} drawCalls - MeshInstances
+     * requiring updates.
+     * @ignore
+     */
+    gpuUpdate(drawCalls: MeshInstance[] | Set<MeshInstance>): void;
     setVertexBuffers(device: any, mesh: any): void;
     setMorphing(device: any, morphInstance: any): void;
     setSkinning(device: any, meshInstance: any): void;
     dispatchViewPos(position: any): void;
     initViewBindGroupFormat(isClustered: any): void;
     setupViewUniformBuffers(viewBindGroups: any, viewUniformFormat: any, viewBindGroupFormat: any, viewCount: any): void;
-    setupMeshUniformBuffers(meshInstance: any, pass: any): void;
+    setupMeshUniformBuffers(shaderInstance: any, meshInstance: any): void;
     drawInstance(device: any, meshInstance: any, mesh: any, style: any, normal: any): void;
     drawInstance2(device: any, meshInstance: any, mesh: any, style: any): void;
-    cull(camera: any, drawCalls: any, visibleList: any): number;
+    /**
+     * @param {import('../camera.js').Camera} camera - The camera used for culling.
+     * @param {import('../mesh-instance.js').MeshInstance[]} drawCalls - Draw calls to cull.
+     * @param {import('../layer.js').CulledInstances} culledInstances - Stores culled instances.
+     */
+    cull(camera: Camera, drawCalls: MeshInstance[], culledInstances: CulledInstances): void;
+    collectLights(comp: any): void;
     cullLights(camera: any, lights: any): void;
     /**
      * Shadow map culling for directional and visible local lights
@@ -20759,7 +21370,7 @@ declare class Renderer {
     cullShadowmaps(comp: LayerComposition): void;
     /**
      * visibility culling of lights, meshInstances, shadows casters
-     * Also applies meshInstance.visible and camera.cullingMask
+     * Also applies meshInstance.visible
      *
      * @param {import('../composition/layer-composition.js').LayerComposition} comp - The layer
      * composition.
@@ -20770,18 +21381,16 @@ declare class Renderer {
      * @param {boolean} onlyLitShaders - Limits the update to shaders affected by lighting.
      */
     updateShaders(drawCalls: MeshInstance[], onlyLitShaders: boolean): void;
-    renderCookies(lights: any): void;
     /**
      * @param {import('../composition/layer-composition.js').LayerComposition} comp - The layer
      * composition to update.
-     * @param {boolean} lightsChanged - True if lights of the composition has changed.
      */
-    beginFrame(comp: LayerComposition, lightsChanged: boolean): void;
+    beginFrame(comp: LayerComposition): void;
     /**
      * @param {import('../composition/layer-composition.js').LayerComposition} comp - The layer
      * composition.
      */
-    updateLightTextureAtlas(comp: LayerComposition): void;
+    updateLightTextureAtlas(): void;
     /**
      * @param {import('../composition/layer-composition.js').LayerComposition} comp - The layer
      * composition.
@@ -20793,10 +21402,9 @@ declare class Renderer {
      * @param {import('../composition/layer-composition.js').LayerComposition} comp - The layer
      * composition to update.
      * @param {boolean} clusteredLightingEnabled - True if clustered lighting is enabled.
-     * @returns {number} - Flags of what was updated
      * @ignore
      */
-    updateLayerComposition(comp: LayerComposition, clusteredLightingEnabled: boolean): number;
+    updateLayerComposition(comp: LayerComposition, clusteredLightingEnabled: boolean): void;
     frameUpdate(): void;
 }
 
@@ -20864,22 +21472,17 @@ declare class ForwardRenderer extends Renderer {
     setLTCPositionalLight(wtm: any, cnt: any): void;
     dispatchOmniLight(scene: any, scope: any, omni: any, cnt: any): void;
     dispatchSpotLight(scene: any, scope: any, spot: any, cnt: any): void;
-    dispatchLocalLights(sortedLights: any, scene: any, mask: any, usedDirLights: any, staticLightList: any): void;
-    renderForwardPrepareMaterials(camera: any, drawCalls: any, drawCallsCount: any, sortedLights: any, cullingMask: any, layer: any, pass: any): {
+    dispatchLocalLights(sortedLights: any, scene: any, mask: any, usedDirLights: any): void;
+    renderForwardPrepareMaterials(camera: any, drawCalls: any, sortedLights: any, layer: any, pass: any): {
         drawCalls: any[];
+        shaderInstances: any[];
         isNewMaterial: any[];
         lightMaskChanged: any[];
         clear: () => void;
     };
     renderForwardInternal(camera: any, preparedCalls: any, sortedLights: any, pass: any, drawCallback: any, flipFaces: any): void;
-    renderForward(camera: any, allDrawCalls: any, allDrawCallsCount: any, sortedLights: any, pass: any, cullingMask: any, drawCallback: any, layer: any, flipFaces: any): void;
+    renderForward(camera: any, allDrawCalls: any, sortedLights: any, pass: any, drawCallback: any, layer: any, flipFaces: any): void;
     setSceneConstants(): void;
-    /**
-     * @param {import('../composition/layer-composition.js').LayerComposition} comp - The layer
-     * composition.
-     * @param {number} compUpdatedFlags - Flags of what was updated.
-     */
-    updateLightStats(comp: LayerComposition, compUpdatedFlags: number): void;
     /**
      * Builds a frame graph for the rendering of the whole frame.
      *
@@ -20894,13 +21497,13 @@ declare class ForwardRenderer extends Renderer {
      * @param {import('../composition/layer-composition.js').LayerComposition} layerComposition - The
      * layer composition.
      */
-    addMainRenderPass(frameGraph: FrameGraph, layerComposition: LayerComposition, renderTarget: any, startIndex: any, endIndex: any, isGrabPass: any): void;
+    addMainRenderPass(frameGraph: FrameGraph, layerComposition: LayerComposition, renderTarget: any, startIndex: any, endIndex: any): void;
     /**
      * @param {import('../composition/layer-composition.js').LayerComposition} comp - The layer
      * composition.
      */
     update(comp: LayerComposition): void;
-    renderPassPostprocessing(renderAction: any, layerComposition: any): void;
+    renderPassPostprocessing(renderAction: any): void;
     /**
      * Render pass representing the layer composition's render actions in the specified range.
      *
@@ -20983,11 +21586,11 @@ declare class Lightmapper {
     };
     destroy(): void;
     blackTex: Texture;
+    camera: Camera;
     initBake(device: any): void;
     lightmapFilters: LightmapFilters;
     constantBakeDir: any;
     materials: any[];
-    camera: Camera;
     lightingParams: LightingParams;
     worldClusters: WorldClusters;
     finishBake(bakeNodes: any): void;
@@ -21018,7 +21621,6 @@ declare class Lightmapper {
     prepareLightsToBake(layerComposition: any, allLights: any, bakeLights: any): void;
     restoreLights(allLights: any): void;
     setupScene(): void;
-    revertStatic: boolean;
     restoreScene(): void;
     computeNodeBounds(meshInstances: any): BoundingBox;
     computeNodesBounds(nodes: any): void;
@@ -21028,7 +21630,7 @@ declare class Lightmapper {
     lightCameraPrepare(device: any, bakeLight: any): any;
     lightCameraPrepareAndCull(bakeLight: any, bakeNode: any, shadowCam: any, casterBounds: any): boolean;
     setupLightArray(lightArray: any, light: any): void;
-    renderShadowMap(shadowMapRendered: any, casters: any, bakeLight: any): boolean;
+    renderShadowMap(comp: any, shadowMapRendered: any, casters: any, bakeLight: any): boolean;
     postprocessTextures(device: any, bakeNodes: any, passCount: any): void;
     bakeInternal(passCount: any, bakeNodes: any, allNodes: any): void;
 }
@@ -22215,51 +22817,6 @@ declare class SceneRegistry {
 }
 
 /**
- * Internal class abstracting the access to the depth and color texture of the scene.
- * color frame buffer is copied to a texture
- * For webgl 2 devices, the depth buffer is copied to a texture
- * for webgl 1 devices, the scene's depth is rendered to a separate RGBA texture
- *
- * TODO: implement mipmapped color buffer support for WebGL 1 as well, which requires
- * the texture to be a power of two, by first downscaling the captured framebuffer
- * texture to smaller power of 2 texture, and then generate mipmaps and use it for rendering
- * TODO: or even better, implement blur filter to have smoother lower levels
- *
- * @ignore
- */
-declare class SceneGrab {
-    /**
-     * Returns true if the camera rendering scene grab textures requires a render pass to do it.
-     *
-     * @param {import('../../platform/graphics/graphics-device.js').GraphicsDevice} device - The
-     * graphics device used for rendering.
-     * @param {import('../../framework/components/camera/component.js').CameraComponent} camera - The camera that
-     * needs scene grab textures.
-     */
-    static requiresRenderPass(device: GraphicsDevice, camera: CameraComponent): boolean;
-    /**
-     * Create an instance of SceneGrab.
-     *
-     * @param {import('../../platform/graphics/graphics-device.js').GraphicsDevice} device - The
-     * graphics device.
-     * @param {import('../scene.js').Scene} scene - The scene.
-     */
-    constructor(device: GraphicsDevice, scene: Scene);
-    scene: Scene;
-    device: GraphicsDevice;
-    layer: Layer;
-    setupUniform(device: any, depth: any, buffer: any): void;
-    allocateTexture(device: any, source: any, name: any, format: any, isDepth: any, mipmaps: any): Texture;
-    getSourceColorFormat(texture: any): any;
-    shouldReallocate(targetRT: any, sourceTexture: any, testFormat: any): boolean;
-    allocateRenderTarget(renderTarget: any, sourceRenderTarget: any, device: any, format: any, isDepth: any, mipmaps: any, isDepthUniforms: any): any;
-    releaseRenderTarget(rt: any): void;
-    initMainPath(): void;
-    initFallbackPath(): void;
-    patch(layer: any): void;
-}
-
-/**
  * The ZoneComponent allows you to define an area in world space of certain size. This can be used
  * in various ways, such as affecting audio reverb when {@link AudioListenerComponent} is within
  * zone. Or create culling system with portals between zones to hide whole indoor sections for
@@ -22871,19 +23428,19 @@ declare class SoundInstance extends EventHandler {
      * @param {import('./manager.js').SoundManager} manager - The sound manager.
      * @param {import('./sound.js').Sound} sound - The sound to play.
      * @param {object} options - Options for the instance.
-     * @param {number} [options.volume=1] - The playback volume, between 0 and 1.
-     * @param {number} [options.pitch=1] - The relative pitch, default of 1, plays at normal pitch.
-     * @param {boolean} [options.loop=false] - Whether the sound should loop when it reaches the
-     * end or not.
-     * @param {number} [options.startTime=0] - The time from which the playback will start in
-     * seconds. Default is 0 to start at the beginning.
-     * @param {number} [options.duration=0] - The total time after the startTime in seconds when
-     * playback will stop or restart if loop is true.
-     * @param {Function} [options.onPlay=null] - Function called when the instance starts playing.
-     * @param {Function} [options.onPause=null] - Function called when the instance is paused.
-     * @param {Function} [options.onResume=null] - Function called when the instance is resumed.
-     * @param {Function} [options.onStop=null] - Function called when the instance is stopped.
-     * @param {Function} [options.onEnd=null] - Function called when the instance ends.
+     * @param {number} [options.volume] - The playback volume, between 0 and 1. Defaults to 1.
+     * @param {number} [options.pitch] - The relative pitch. Defaults to 1 (plays at normal pitch).
+     * @param {boolean} [options.loop] - Whether the sound should loop when it reaches the end or
+     * not. Defaults to false.
+     * @param {number} [options.startTime] - The time from which the playback will start in
+     * seconds. Default is 0 to start at the beginning. Defaults to 0.
+     * @param {number} [options.duration] - The total time after the startTime in seconds when
+     * playback will stop or restart if loop is true. Defaults to 0.
+     * @param {Function} [options.onPlay] - Function called when the instance starts playing.
+     * @param {Function} [options.onPause] - Function called when the instance is paused.
+     * @param {Function} [options.onResume] - Function called when the instance is resumed.
+     * @param {Function} [options.onStop] - Function called when the instance is stopped.
+     * @param {Function} [options.onEnd] - Function called when the instance ends.
      */
     constructor(manager: SoundManager, sound: Sound, options: {
         volume?: number;
@@ -23290,21 +23847,20 @@ declare class SoundSlot extends EventHandler {
      * slot.
      * @param {string} [name] - The name of the slot. Defaults to 'Untitled'.
      * @param {object} [options] - Settings for the slot.
-     * @param {number} [options.volume=1] - The playback volume, between 0 and 1.
-     * @param {number} [options.pitch=1] - The relative pitch, default of 1, plays at normal pitch.
-     * @param {boolean} [options.loop=false] - If true the sound will restart when it reaches the
-     * end.
-     * @param {number} [options.startTime=0] - The start time from which the sound will start
+     * @param {number} [options.volume] - The playback volume, between 0 and 1.
+     * @param {number} [options.pitch] - The relative pitch, default of 1, plays at normal pitch.
+     * @param {boolean} [options.loop] - If true the sound will restart when it reaches the end.
+     * @param {number} [options.startTime] - The start time from which the sound will start
      * playing.
-     * @param {number} [options.duration=null] - The duration of the sound that the slot will play
+     * @param {number} [options.duration] - The duration of the sound that the slot will play
      * starting from startTime.
-     * @param {boolean} [options.overlap=false] - If true then sounds played from slot will be
-     * played independently of each other. Otherwise the slot will first stop the current sound
-     * before starting the new one.
-     * @param {boolean} [options.autoPlay=false] - If true the slot will start playing as soon as
-     * its audio asset is loaded.
-     * @param {number} [options.asset=null] - The asset id of the audio asset that is going to be
-     * played by this slot.
+     * @param {boolean} [options.overlap] - If true then sounds played from slot will be played
+     * independently of each other. Otherwise the slot will first stop the current sound before
+     * starting the new one.
+     * @param {boolean} [options.autoPlay] - If true the slot will start playing as soon as its
+     * audio asset is loaded.
+     * @param {number} [options.asset] - The asset id of the audio asset that is going to be played
+     * by this slot.
      */
     constructor(component: SoundComponent, name?: string, options?: {
         volume?: number;
@@ -23709,19 +24265,21 @@ declare class SoundComponent extends Component {
      *
      * @param {string} name - The name of the slot.
      * @param {object} [options] - Settings for the slot.
-     * @param {number} [options.volume=1] - The playback volume, between 0 and 1.
-     * @param {number} [options.pitch=1] - The relative pitch, default of 1, plays at normal pitch.
-     * @param {boolean} [options.loop=false] - If true the sound will restart when it reaches the end.
-     * @param {number} [options.startTime=0] - The start time from which the sound will start playing.
-     * @param {number} [options.duration=null] - The duration of the sound that the slot will play
-     * starting from startTime.
-     * @param {boolean} [options.overlap=false] - If true then sounds played from slot will be
-     * played independently of each other. Otherwise the slot will first stop the current sound
-     * before starting the new one.
-     * @param {boolean} [options.autoPlay=false] - If true the slot will start playing as soon as
-     * its audio asset is loaded.
-     * @param {number} [options.asset=null] - The asset id of the audio asset that is going to be
-     * played by this slot.
+     * @param {number} [options.volume] - The playback volume, between 0 and 1. Defaults to 1.
+     * @param {number} [options.pitch] - The relative pitch. Defaults to 1 (plays at normal pitch).
+     * @param {boolean} [options.loop] - If true the sound will restart when it reaches the end.
+     * Defaults to false.
+     * @param {number} [options.startTime] - The start time from which the sound will start playing.
+     * Defaults to 0 to start at the beginning.
+     * @param {number} [options.duration] - The duration of the sound that the slot will play
+     * starting from startTime. Defaults to `null` which means play to end of the sound.
+     * @param {boolean} [options.overlap] - If true then sounds played from slot will be played
+     * independently of each other. Otherwise the slot will first stop the current sound before
+     * starting the new one. Defaults to false.
+     * @param {boolean} [options.autoPlay] - If true the slot will start playing as soon as its
+     * audio asset is loaded. Defaults to false.
+     * @param {number} [options.asset] - The asset id of the audio asset that is going to be played
+     * by this slot.
      * @returns {SoundSlot|null} The new slot or null if the slot already exists.
      * @example
      * // get an asset by id
@@ -26016,8 +26574,12 @@ declare class RenderComponent extends Component {
     private _lightmapped;
     /** @private */
     private _lightmapSizeMultiplier;
-    /** @private */
-    private _isStatic;
+    /**
+     * Mark meshes as non-movable (optimization).
+     *
+     * @type {boolean}
+     */
+    isStatic: boolean;
     /** @private */
     private _batchGroupId;
     /** @private */
@@ -26151,13 +26713,6 @@ declare class RenderComponent extends Component {
      */
     set lightmapSizeMultiplier(arg: number);
     get lightmapSizeMultiplier(): number;
-    /**
-     * Mark meshes as non-movable (optimization).
-     *
-     * @type {boolean}
-     */
-    set isStatic(arg: boolean);
-    get isStatic(): boolean;
     /**
      * An array of layer IDs ({@link Layer#id}) to which the meshes should belong. Don't push, pop,
      * splice or modify this array, if you want to change it - set a new one instead.
@@ -26349,12 +26904,9 @@ declare class ParticleEmitter {
     numParticles: any;
     _gpuUpdater: ParticleGPUUpdater;
     _cpuUpdater: ParticleCPUUpdater;
-    constantLightCube: any;
     emitterPosUniform: Float32Array;
     wrapBoundsUniform: Float32Array;
     emitterScaleUniform: Float32Array;
-    lightCube: Float32Array;
-    lightCubeDir: any[];
     animTilesParams: Float32Array;
     animParams: Float32Array;
     animIndexParams: Float32Array;
@@ -27288,10 +27840,11 @@ declare class ModelComponent extends Component {
      */
     private _lightmapSizeMultiplier;
     /**
+     * Mark meshes as non-movable (optimization).
+     *
      * @type {boolean}
-     * @private
      */
-    private _isStatic;
+    isStatic: boolean;
     /**
      * @type {number[]}
      * @private
@@ -27411,13 +27964,6 @@ declare class ModelComponent extends Component {
      */
     set lightmapSizeMultiplier(arg: number);
     get lightmapSizeMultiplier(): number;
-    /**
-     * Mark model as non-movable (optimization).
-     *
-     * @type {boolean}
-     */
-    set isStatic(arg: boolean);
-    get isStatic(): boolean;
     /**
      * An array of layer IDs ({@link Layer#id}) to which this model should belong. Don't push, pop,
      * splice or modify this array, if you want to change it - set a new one instead.
@@ -29171,9 +29717,10 @@ declare class AnimEvaluator {
      *
      * @param {number} deltaTime - The amount of time that has passed since the last update, in
      * seconds.
-     * @param {number} outputAnimation - Whether the evaluator should output the results of the update to the bound animation targets.
+     * @param {boolean} [outputAnimation] - Whether the evaluator should output the results of the
+     * update to the bound animation targets.
      */
-    update(deltaTime: number, outputAnimation?: number): void;
+    update(deltaTime: number, outputAnimation?: boolean): void;
 }
 
 /**
@@ -30250,7 +30797,13 @@ export type MakeTickCallback = (timestamp?: number, frame?: any) => any;
  *
  * @callback PreloadAppCallback
  */
-declare let app: any;
+/**
+ * Gets the current application, if any.
+ *
+ * @type {AppBase|null}
+ * @ignore
+ */
+declare let app: AppBase | null;
 /**
  * An Application represents and manages your PlayCanvas application. If you are developing using
  * the PlayCanvas Editor, the Application is created for you. You can access your Application
@@ -30278,14 +30831,7 @@ declare let app: any;
  * @augments EventHandler
  */
 declare class AppBase extends EventHandler {
-    /**
-     * @private
-     * @static
-     * @name app
-     * @type {AppBase|undefined}
-     * @description Gets the current application, if any.
-     */
-    private static _applications;
+    static _applications: {};
     /**
      * Get the current application. In the case where there are multiple running applications, the
      * function can get an application based on a supplied canvas id. This function is particularly
@@ -30496,7 +31042,6 @@ declare class AppBase extends EventHandler {
      */
     scenes: SceneRegistry;
     defaultLayerWorld: Layer;
-    sceneGrab: SceneGrab;
     defaultLayerDepth: Layer;
     defaultLayerSkybox: Layer;
     defaultLayerUi: Layer;
@@ -32864,6 +33409,205 @@ declare class XrLightEstimation extends EventHandler {
 }
 
 /**
+ * An anchor keeps track of a position and rotation that is fixed relative to the real world.
+ * This allows the application to adjust the location of the virtual objects placed in the
+ * scene in a way that helps with maintaining the illusion that the placed objects are really
+ * present in the user’s environment.
+ *
+ * @augments EventHandler
+ * @category XR
+ */
+declare class XrAnchor extends EventHandler {
+    /**
+     * @param {import('./xr-anchors.js').XrAnchors} anchors - Anchor manager.
+     * @param {object} xrAnchor - native XRAnchor object that is provided by WebXR API
+     * @hideconstructor
+     */
+    constructor(anchors: XrAnchors, xrAnchor: object);
+    /**
+     * @type {Vec3}
+     * @private
+     */
+    private _position;
+    /**
+     * @type {Quat}
+     * @private
+     */
+    private _rotation;
+    _anchors: XrAnchors;
+    _xrAnchor: any;
+    /**
+     * Fired when an {@link XrAnchor} is destroyed.
+     *
+     * @event XrAnchor#destroy
+     * @example
+     * // once anchor is destroyed
+     * anchor.once('destroy', function () {
+     *     // destroy its related entity
+     *     entity.destroy();
+     * });
+     */
+    /**
+     * Fired when an {@link XrAnchor}'s position and/or rotation is changed.
+     *
+     * @event XrAnchor#change
+     * @example
+     * anchor.on('change', function () {
+     *     // anchor has been updated
+     *     entity.setPosition(anchor.getPosition());
+     *     entity.setRotation(anchor.getRotation());
+     * });
+     */
+    /**
+     * Destroy an anchor.
+     */
+    destroy(): void;
+    /**
+     * @param {*} frame - XRFrame from requestAnimationFrame callback.
+     * @ignore
+     */
+    update(frame: any): void;
+    /**
+     * Get the world space position of an anchor.
+     *
+     * @returns {Vec3} The world space position of an anchor.
+     */
+    getPosition(): Vec3;
+    /**
+     * Get the world space rotation of an anchor.
+     *
+     * @returns {Quat} The world space rotation of an anchor.
+     */
+    getRotation(): Quat;
+}
+
+/**
+ * Callback used by {@link XrAnchorscreate }.
+ */
+type XrAnchorCreate = (err: Error | null, anchor: XrAnchor | null) => any;
+/**
+ * Callback used by {@link XrAnchors#create}.
+ *
+ * @callback XrAnchorCreate
+ * @param {Error|null} err - The Error object if failed to create an anchor or null.
+ * @param {XrAnchor|null} anchor - The anchor that is tracked against real world geometry.
+ */
+/**
+ * Anchors provide an ability to specify a point in the world that needs to be updated to
+ * correctly reflect the evolving understanding of the world by the underlying AR system,
+ * such that the anchor remains aligned with the same place in the physical world.
+ * Anchors tend to persist better relative to the real world, especially during a longer
+ * session with lots of movement.
+ *
+ * ```javascript
+ * app.xr.start(camera, pc.XRTYPE_AR, pc.XRSPACE_LOCALFLOOR, {
+ *     anchors: true
+ * });
+ * ```
+ * @augments EventHandler
+ * @category XR
+ */
+declare class XrAnchors extends EventHandler {
+    /**
+     * @param {import('./xr-manager.js').XrManager} manager - WebXR Manager.
+     * @hideconstructor
+     */
+    constructor(manager: XrManager);
+    /**
+     * @type {boolean}
+     * @private
+     */
+    private _supported;
+    /**
+     * List of anchor creation requests.
+     *
+     * @type {Array<object>}
+     * @private
+     */
+    private _creationQueue;
+    /**
+     * Index of XrAnchors, with XRAnchor (native handle) used as a key.
+     *
+     * @type {Map<XRAnchor,XrAnchor>}
+     * @ignore
+     */
+    _index: Map<XRAnchor, XrAnchor>;
+    /**
+     * @type {Array<XrAnchor>}
+     * @ignore
+     */
+    _list: Array<XrAnchor>;
+    /**
+     * Map of callbacks to XRAnchors so that we can call its callback once
+     * an anchor is updated with a pose for the first time.
+     *
+     * @type {Map<XrAnchor,XrAnchorCreate>}
+     * @private
+     */
+    private _callbacksAnchors;
+    manager: XrManager;
+    /**
+     * Fired when anchor failed to be created.
+     *
+     * @event XrAnchors#error
+     * @param {Error} error - Error object related to a failure of anchors.
+     */
+    /**
+     * Fired when a new {@link XrAnchor} is added.
+     *
+     * @event XrAnchors#add
+     * @param {XrAnchor} anchor - Anchor that has been added.
+     * @example
+     * app.xr.anchors.on('add', function (anchor) {
+     *     // new anchor is added
+     * });
+     */
+    /**
+     * Fired when an {@link XrAnchor} is destroyed.
+     *
+     * @event XrAnchors#destroy
+     * @param {XrAnchor} anchor - Anchor that has been destroyed.
+     * @example
+     * app.xr.anchors.on('destroy', function (anchor) {
+     *     // anchor that is destroyed
+     * });
+     */
+    /** @private */
+    private _onSessionEnd;
+    /**
+     * Create anchor with position, rotation and a callback.
+     *
+     * @param {import('../../core/math/vec3.js').Vec3} position - Position for an anchor.
+     * @param {import('../../core/math/quat.js').Quat} [rotation] - Rotation for an anchor.
+     * @param {XrAnchorCreate} [callback] - Callback to fire when anchor was created or failed to be created.
+     * @example
+     * app.xr.anchors.create(position, rotation, function (err, anchor) {
+     *     if (!err) {
+     *         // new anchor has been created
+     *     }
+     * });
+     */
+    create(position: Vec3, rotation?: Quat, callback?: XrAnchorCreate): void;
+    /**
+     * @param {*} frame - XRFrame from requestAnimationFrame callback.
+     * @ignore
+     */
+    update(frame: any): void;
+    /**
+     * True if Anchors are supported.
+     *
+     * @type {boolean}
+     */
+    get supported(): boolean;
+    /**
+     * List of available {@link XrAnchor}s.
+     *
+     * @type {Array<XrAnchor>}
+     */
+    get list(): XrAnchor[];
+}
+
+/**
  * Callback used by {@link XrManagerendXr } and {@link XrManagerstartXr }.
  */
 export type XrErrorCallback = (err: Error | null) => any;
@@ -32924,9 +33668,9 @@ declare class XrManager extends EventHandler {
     private _baseLayer;
     /**
      * @type {XRReferenceSpace|null}
-     * @private
+     * @ignore
      */
-    private _referenceSpace;
+    _referenceSpace: XRReferenceSpace | null;
     /**
      * Provides access to depth sensing capabilities.
      *
@@ -33020,6 +33764,7 @@ declare class XrManager extends EventHandler {
      * @private
      */
     private _height;
+    anchors: XrAnchors;
     /**
      * Fired when availability of specific XR type is changed.
      *
@@ -33122,6 +33867,8 @@ declare class XrManager extends EventHandler {
      * @param {object} [options] - Object with additional options for XR session initialization.
      * @param {string[]} [options.optionalFeatures] - Optional features for XRSession start. It is
      * used for getting access to additional WebXR spec extensions.
+     * @param {boolean} [options.anchors] - Set to true to attempt to enable
+     * {@link XrAnchors}.
      * @param {boolean} [options.imageTracking] - Set to true to attempt to enable
      * {@link XrImageTracking}.
      * @param {boolean} [options.planeDetection] - Set to true to attempt to enable
@@ -33146,12 +33893,15 @@ declare class XrManager extends EventHandler {
      * @example
      * button.on('click', function () {
      *     app.xr.start(camera, pc.XRTYPE_AR, pc.XRSPACE_LOCALFLOOR, {
+     *         anchors: true,
+     *         imageTracking: true,
      *         depthSensing: { }
      *     });
      * });
      */
     start(camera: CameraComponent, type: string, spaceType: string, options?: {
         optionalFeatures?: string[];
+        anchors?: boolean;
         imageTracking?: boolean;
         planeDetection?: boolean;
         callback?: XrErrorCallback;
@@ -33769,20 +34519,20 @@ declare class CameraComponent extends Component {
     /**
      * Calculates aspect ratio value for a given render target.
      *
-     * @param {import('../../../platform/graphics/render-target.js').RenderTarget} [rt] - Optional
+     * @param {import('../../../platform/graphics/render-target.js').RenderTarget|null} [rt] - Optional
      * render target. If unspecified, the backbuffer is used.
      * @returns {number} The aspect ratio of the render target (or backbuffer).
      */
-    calculateAspectRatio(rt?: RenderTarget): number;
+    calculateAspectRatio(rt?: RenderTarget | null): number;
     /**
      * Prepare the camera for frame rendering.
      *
-     * @param {import('../../../platform/graphics/render-target.js').RenderTarget} rt - Render
+     * @param {import('../../../platform/graphics/render-target.js').RenderTarget|null} rt - Render
      * target to which rendering will be performed. Will affect camera's aspect ratio, if
      * aspectRatioMode is {@link ASPECT_AUTO}.
      * @ignore
      */
-    frameUpdate(rt: RenderTarget): void;
+    frameUpdate(rt: RenderTarget | null): void;
     /**
      * Attempt to start XR session with this camera.
      *
@@ -33819,6 +34569,7 @@ declare class CameraComponent extends Component {
      * @param {import('../../xr/xr-manager.js').XrErrorCallback} [options.callback] - Optional
      * callback function called once the session is started. The callback has one argument Error -
      * it is null if the XR session started successfully.
+     * @param {boolean} [options.anchors] - Optional boolean to attempt to enable {@link XrAnchors}.
      * @param {object} [options.depthSensing] - Optional object with depth sensing parameters to
      * attempt to enable {@link XrDepthSensing}.
      * @param {string} [options.depthSensing.usagePreference] - Optional usage preference for depth
@@ -33846,6 +34597,7 @@ declare class CameraComponent extends Component {
         imageTracking?: boolean;
         planeDetection?: boolean;
         callback?: XrErrorCallback;
+        anchors?: boolean;
         depthSensing?: {
             usagePreference?: string;
             dataFormatPreference?: string;
@@ -34273,6 +35025,22 @@ declare function createTorus(device: GraphicsDevice, opts?: {
 }): Mesh;
 
 /**
+ * A render pass implementing rendering of mesh instances into a pick buffer.
+ *
+ * @ignore
+ */
+declare class RenderPassPicker extends RenderPass {
+    constructor(device: any, renderer: any);
+    pickColor: Float32Array;
+    renderer: any;
+    update(camera: any, scene: any, layers: any, mapping: any): void;
+    camera: any;
+    scene: any;
+    layers: any;
+    mapping: any;
+}
+
+/**
  * Picker object used to select mesh instances from screen coordinates.
  *
  * @property {number} width Width of the pick buffer in pixels (read-only).
@@ -34293,14 +35061,10 @@ declare class Picker {
      */
     constructor(app: AppBase, width: number, height: number);
     renderTarget: any;
-    app: AppBase;
+    mapping: Map<any, any>;
+    renderer: ForwardRenderer;
     device: GraphicsDevice;
-    pickColor: Float32Array;
-    mapping: any[];
-    cameraEntity: Entity;
-    layer: Layer;
-    layerComp: LayerComposition;
-    clearDepthCommand: Command;
+    renderPass: RenderPassPicker;
     width: number;
     height: number;
     /**
@@ -34323,7 +35087,6 @@ declare class Picker {
     getSelection(x: number, y: number, width?: number, height?: number): MeshInstance[];
     allocateRenderTarget(): void;
     releaseRenderTarget(): void;
-    initLayerComposition(): void;
     /**
      * Primes the pick buffer with a rendering of the specified models from the point of view of
      * the supplied camera. Once the pick buffer has been prepared, {@link Picker#getSelection} can
@@ -34337,7 +35100,6 @@ declare class Picker {
      * @param {Layer[]} [layers] - Layers from which objects will be picked. If not supplied, all layers of the specified camera will be used.
      */
     prepare(camera: CameraComponent, scene: Scene, layers?: Layer[]): void;
-    updateCamera(srcCamera: any): void;
     /**
      * Sets the resolution of the pick buffer. The pick buffer resolution does not need to match
      * the resolution of the corresponding frame buffer use for general rendering of the 3D scene.
@@ -34365,10 +35127,10 @@ declare class Channel {
      * @param {import('../sound/manager.js').SoundManager} manager - The SoundManager instance.
      * @param {import('../sound/sound.js').Sound} sound - The sound to playback.
      * @param {object} [options] - Optional options object.
-     * @param {number} [options.volume=1] - The playback volume, between 0 and 1.
-     * @param {number} [options.pitch=1] - The relative pitch, default of 1, plays at normal pitch.
-     * @param {boolean} [options.loop=false] - Whether the sound should loop when it reaches the
-     * end or not.
+     * @param {number} [options.volume] - The playback volume, between 0 and 1. Defaults to 1.
+     * @param {number} [options.pitch] - The relative pitch. Defaults to 1 (plays at normal pitch).
+     * @param {boolean} [options.loop] - Whether the sound should loop when it reaches the
+     * end or not. Defaults to false.
      */
     constructor(manager: SoundManager, sound: Sound, options?: {
         volume?: number;
@@ -34903,15 +35665,15 @@ declare const BLENDMODE_ONE_MINUS_CONSTANT_COLOR: number;
 declare const BLENDMODE_CONSTANT_ALPHA: number;
 declare const BLENDMODE_ONE_MINUS_CONSTANT_ALPHA: number;
 declare namespace programlib {
-    export { begin };
-    export const dummyFragmentCode: typeof ShaderUtils.dummyFragmentCode;
-    export { end };
-    export { fogCode };
-    export { gammaCode };
-    export const precisionCode: typeof ShaderUtils.precisionCode;
-    export { skinCode };
-    export { tonemapCode };
-    export const versionCode: typeof ShaderUtils.versionCode;
+    let begin: typeof ShaderGenerator.begin;
+    let dummyFragmentCode: typeof ShaderUtils.dummyFragmentCode;
+    let end: typeof ShaderGenerator.end;
+    let fogCode: typeof ShaderGenerator.fogCode;
+    let gammaCode: typeof ShaderGenerator.gammaCode;
+    let precisionCode: typeof ShaderUtils.precisionCode;
+    let skinCode: typeof ShaderGenerator.skinCode;
+    let tonemapCode: typeof ShaderGenerator.tonemapCode;
+    let versionCode: typeof ShaderUtils.versionCode;
 }
 declare namespace gfx {
     export { ADDRESS_CLAMP_TO_EDGE };
@@ -35012,7 +35774,6 @@ declare namespace scene {
         export { createBox };
     }
     export { BasicMaterial };
-    export { Command };
     export { ForwardRenderer };
     export { GraphNode };
     export { Material };
@@ -35044,16 +35805,16 @@ declare namespace audio {
     export { Sound };
 }
 declare namespace asset {
-    const ASSET_ANIMATION: string;
-    const ASSET_AUDIO: string;
-    const ASSET_IMAGE: string;
-    const ASSET_JSON: string;
-    const ASSET_MODEL: string;
-    const ASSET_MATERIAL: string;
-    const ASSET_TEXT: string;
-    const ASSET_TEXTURE: string;
-    const ASSET_CUBEMAP: string;
-    const ASSET_SCRIPT: string;
+    let ASSET_ANIMATION: string;
+    let ASSET_AUDIO: string;
+    let ASSET_IMAGE: string;
+    let ASSET_JSON: string;
+    let ASSET_MODEL: string;
+    let ASSET_MATERIAL: string;
+    let ASSET_TEXT: string;
+    let ASSET_TEXTURE: string;
+    let ASSET_CUBEMAP: string;
+    let ASSET_SCRIPT: string;
 }
 declare namespace input {
     export { getTouchTargetCoords };
@@ -35090,12 +35851,12 @@ declare class Timer {
 
 declare namespace events {
     function attach(target: any): any;
-    const _addCallback: (name: string, callback: HandleEventCallback, scope?: any, once?: boolean) => void;
-    const on: (name: string, callback: HandleEventCallback, scope?: any) => EventHandler;
-    const off: (name?: string, callback?: HandleEventCallback, scope?: any) => EventHandler;
-    const fire: (name: string, arg1?: any, arg2?: any, arg3?: any, arg4?: any, arg5?: any, arg6?: any, arg7?: any, arg8?: any) => EventHandler;
-    const once: (name: string, callback: HandleEventCallback, scope?: any) => EventHandler;
-    const hasEvent: (name: string) => boolean;
+    let _addCallback: (name: string, callback: HandleEventCallback, scope: any, once: boolean) => EventHandle;
+    let on: (name: string, callback: HandleEventCallback, scope?: any) => EventHandle;
+    let off: (name?: string, callback?: HandleEventCallback, scope?: any) => EventHandler;
+    let fire: (name: string, arg1?: any, arg2?: any, arg3?: any, arg4?: any, arg5?: any, arg6?: any, arg7?: any, arg8?: any) => EventHandler;
+    let once: (name: string, callback: HandleEventCallback, scope?: any) => EventHandle;
+    let hasEvent: (name: string) => boolean;
 }
 
 declare namespace guid {
@@ -35103,7 +35864,7 @@ declare namespace guid {
 }
 
 declare namespace path {
-    const delimiter: string;
+    let delimiter: string;
     function join(...args: string[]): string;
     function normalize(pathname: string): string;
     function split(pathname: string): string[];
@@ -35116,12 +35877,12 @@ declare namespace path {
 
 declare namespace platform {
     export { environment };
-    export const global: object;
-    export const browser: boolean;
-    export const desktop: boolean;
-    export const mobile: boolean;
-    export const ios: boolean;
-    export const android: boolean;
+    export let global: object;
+    export let browser: boolean;
+    export let desktop: boolean;
+    export let mobile: boolean;
+    export let ios: boolean;
+    export let android: boolean;
     export { xbox };
     export { gamepads };
     export { touch };
@@ -35295,8 +36056,8 @@ declare class Tracing {
 }
 
 declare namespace math {
-    const DEG_TO_RAD: number;
-    const RAD_TO_DEG: number;
+    let DEG_TO_RAD: number;
+    let RAD_TO_DEG: number;
     function clamp(value: number, min: number, max: number): number;
     function intToBytes24(i: number): number[];
     function intToBytes32(i: number): number[];
@@ -35390,24 +36151,25 @@ declare class OrientedBox {
  * {@link DEVICETYPE_WEBGPU}, or leave it empty.
  * @param {boolean} [options.antialias] - Boolean that indicates whether or not to perform
  * anti-aliasing if possible. Defaults to true.
- * @param {boolean} [options.depth=true] - Boolean that indicates that the drawing buffer is
- * requested to have a depth buffer of at least 16 bits.
- * @param {boolean} [options.stencil=true] - Boolean that indicates that the drawing buffer is
- * requested to have a stencil buffer of at least 8 bits.
+ * @param {boolean} [options.depth] - Boolean that indicates that the drawing buffer is
+ * requested to have a depth buffer of at least 16 bits. Defaults to true.
+ * @param {boolean} [options.stencil] - Boolean that indicates that the drawing buffer is
+ * requested to have a stencil buffer of at least 8 bits. Defaults to true.
  * @param {string} [options.glslangUrl] - The URL to the glslang script. Required if the
  * {@link DEVICETYPE_WEBGPU} type is added to deviceTypes array. Not used for
  * {@link DEVICETYPE_WEBGL1} or {@link DEVICETYPE_WEBGL2} device type creation.
  * @param {string} [options.twgslUrl] - An url to twgsl script, required if glslangUrl was specified.
  * @param {boolean} [options.xrCompatible] - Boolean that hints to the user agent to use a
  * compatible graphics adapter for an immersive XR device.
- * @param {'default'|'high-performance'|'low-power'} [options.powerPreference='default'] - A
- * hint indicating what configuration of GPU would be selected. Possible values are:
+ * @param {'default'|'high-performance'|'low-power'} [options.powerPreference] - A hint indicating
+ * what configuration of GPU would be selected. Possible values are:
  *
  * - 'default': Let the user agent decide which GPU configuration is most suitable. This is the
  * default value.
  * - 'high-performance': Prioritizes rendering performance over power consumption.
  * - 'low-power': Prioritizes power saving over rendering performance.
  *
+ * Defaults to 'default'.
  * @returns {Promise} - Promise object representing the created graphics device.
  */
 declare function createGraphicsDevice(canvas: HTMLCanvasElement, options?: {
@@ -35465,7 +36227,7 @@ declare class TextureUtils {
  * This object allows you to configure and use the transform feedback feature (WebGL2 only). How to
  * use:
  *
- * 1. First, check that you're on WebGL2, by looking at the `app.graphicsDevice.webgl2`` value.
+ * 1. First, check that you're on WebGL2, by looking at the `app.graphicsDevice.isWebGL2`` value.
  * 2. Define the outputs in your vertex shader. The syntax is `out vec3 out_vertex_position`,
  * note that there must be out_ in the name. You can then simply assign values to these outputs in
  * VS. The order and size of shader outputs must match the output buffer layout.
@@ -35515,14 +36277,14 @@ declare class TextureUtils {
  *     app.root.addChild(entity);
  *
  *     // if webgl2 is not supported, transform-feedback is not available
- *     if (!device.webgl2) return;
+ *     if (!device.isWebGL2) return;
  *     const inputBuffer = mesh.vertexBuffer;
  *     this.tf = new pc.TransformFeedback(inputBuffer);
  *     this.shader = pc.TransformFeedback.createShader(device, this.shaderCode.resource, "tfMoveUp");
  * };
  *
  * TransformExample.prototype.update = function(dt) {
- *     if (!this.app.graphicsDevice.webgl2) return;
+ *     if (!this.app.graphicsDevice.isWebGL2) return;
  *     this.tf.process(this.shader);
  * };
  * ```
@@ -35749,6 +36511,13 @@ declare class WebglRenderTarget {
     colorMrtFramebuffers: FramebufferPair[];
     _glMsaaColorBuffers: any[];
     _glMsaaDepthBuffer: any;
+    /**
+     * The supplied single-sampled framebuffer for rendering. Undefined represents no supplied
+     * framebuffer. Null represents the default framebuffer. A value represents a user-supplied
+     * framebuffer.
+     */
+    suppliedColorFramebuffer: any;
+    _isInitialized: boolean;
     destroy(device: any): void;
     get initialized(): boolean;
     init(device: any, target: any): void;
@@ -35792,34 +36561,37 @@ declare class WebglGraphicsDevice extends GraphicsDevice {
      *
      * @param {HTMLCanvasElement} canvas - The canvas to which the graphics device will render.
      * @param {object} [options] - Options passed when creating the WebGL context.
-     * @param {boolean} [options.alpha=true] - Boolean that indicates if the canvas contains an
-     * alpha buffer.
-     * @param {boolean} [options.depth=true] - Boolean that indicates that the drawing buffer is
-     * requested to have a depth buffer of at least 16 bits.
-     * @param {boolean} [options.stencil=true] - Boolean that indicates that the drawing buffer is
-     * requested to have a stencil buffer of at least 8 bits.
-     * @param {boolean} [options.antialias=true] - Boolean that indicates whether or not to perform
-     * anti-aliasing if possible.
-     * @param {boolean} [options.premultipliedAlpha=true] - Boolean that indicates that the page
+     * @param {boolean} [options.alpha] - Boolean that indicates if the canvas contains an
+     * alpha buffer. Defaults to true.
+     * @param {boolean} [options.depth] - Boolean that indicates that the drawing buffer is
+     * requested to have a depth buffer of at least 16 bits. Defaults to true.
+     * @param {boolean} [options.stencil] - Boolean that indicates that the drawing buffer is
+     * requested to have a stencil buffer of at least 8 bits. Defaults to true.
+     * @param {boolean} [options.antialias] - Boolean that indicates whether or not to perform
+     * anti-aliasing if possible. Defaults to true.
+     * @param {boolean} [options.premultipliedAlpha] - Boolean that indicates that the page
      * compositor will assume the drawing buffer contains colors with pre-multiplied alpha.
-     * @param {boolean} [options.preserveDrawingBuffer=false] - If the value is true the buffers
-     * will not be cleared and will preserve their values until cleared or overwritten by the
-     * author.
-     * @param {'default'|'high-performance'|'low-power'} [options.powerPreference='default'] - A
-     * hint to the user agent indicating what configuration of GPU is suitable for the WebGL
-     * context. Possible values are:
+     * Defaults to true.
+     * @param {boolean} [options.preserveDrawingBuffer] - If the value is true the buffers will not
+     * be cleared and will preserve their values until cleared or overwritten by the author.
+     * Defaults to false.
+     * @param {'default'|'high-performance'|'low-power'} [options.powerPreference] - A hint to the
+     * user agent indicating what configuration of GPU is suitable for the WebGL context. Possible
+     * values are:
      *
      * - 'default': Let the user agent decide which GPU configuration is most suitable. This is the
      * default value.
      * - 'high-performance': Prioritizes rendering performance over power consumption.
      * - 'low-power': Prioritizes power saving over rendering performance.
      *
-     * @param {boolean} [options.failIfMajorPerformanceCaveat=false] - Boolean that indicates if a
+     * Defaults to 'default'.
+     * @param {boolean} [options.failIfMajorPerformanceCaveat] - Boolean that indicates if a
      * context will be created if the system performance is low or if no hardware GPU is available.
-     * @param {boolean} [options.preferWebGl2=true] - Boolean that indicates if a WebGl2 context
-     * should be preferred.
-     * @param {boolean} [options.desynchronized=false] - Boolean that hints the user agent to
-     * reduce the latency by desynchronizing the canvas paint cycle from the event loop.
+     * Defaults to false.
+     * @param {boolean} [options.preferWebGl2] - Boolean that indicates if a WebGl2 context should
+     * be preferred. Defaults to true.
+     * @param {boolean} [options.desynchronized] - Boolean that hints the user agent to reduce the
+     * latency by desynchronizing the canvas paint cycle from the event loop. Defaults to false.
      * @param {boolean} [options.xrCompatible] - Boolean that hints to the user agent to use a
      * compatible graphics adapter for an immersive XR device.
      * @param {WebGLRenderingContext | WebGL2RenderingContext} [options.gl] - The rendering context
@@ -35850,20 +36622,27 @@ declare class WebglGraphicsDevice extends GraphicsDevice {
      */
     gl: WebGL2RenderingContext;
     /**
-     * True if the WebGL context of this device is using the WebGL 2.0 API. If false, WebGL 1.0 is
-     * being used.
+     * WebGLFramebuffer object that represents the backbuffer of the device for a rendering frame.
+     * When null, this is a framebuffer created when the device was created, otherwise it is a
+     * framebuffer supplied by the XR session.
      *
-     * @type {boolean}
      * @ignore
      */
-    webgl2: boolean;
-    defaultFramebuffer: any;
+    _defaultFramebuffer: any;
+    /**
+     * True if the default framebuffer has changed since the last frame.
+     *
+     * @ignore
+     */
+    _defaultFramebufferChanged: boolean;
     contextLost: boolean;
     _contextLostHandler: (event: any) => void;
     _contextRestoredHandler: () => void;
     forceDisableMultisampling: boolean;
+    isWebGL2: boolean;
+    isWebGL1: boolean;
     _deviceType: string;
-    framebufferFormat: number;
+    backBufferFormat: number;
     _tempEnableSafariTextureUnitWorkaround: boolean;
     _tempMacChromeBlitFramebufferWorkaround: boolean;
     supportsImageBitmap: boolean;
@@ -35891,6 +36670,8 @@ declare class WebglGraphicsDevice extends GraphicsDevice {
     _textureFloatHighPrecision: boolean;
     _textureHalfFloatUpdatable: boolean;
     areaLightLutFormat: number;
+    createBackbuffer(frameBuffer: any): void;
+    updateBackbuffer(): void;
     createVertexBufferImpl(vertexBuffer: any, format: any): WebglVertexBuffer;
     createIndexBufferImpl(indexBuffer: any): WebglIndexBuffer;
     createShaderImpl(shader: any): WebglShader;
@@ -35950,11 +36731,7 @@ declare class WebglGraphicsDevice extends GraphicsDevice {
      */
     initializeCapabilities(): void;
     maxPrecision: string;
-    precision: string;
     supportsMsaa: boolean;
-    supportsInstancing: boolean;
-    maxTextureSize: number;
-    maxCubeMapSize: number;
     maxRenderBufferSize: any;
     maxTextures: any;
     maxCombinedTextures: any;
@@ -35962,15 +36739,9 @@ declare class WebglGraphicsDevice extends GraphicsDevice {
     vertexUniformsCount: any;
     fragmentUniformsCount: any;
     maxDrawBuffers: any;
-    maxColorAttachments: number;
-    maxVolumeSize: number;
-    supportsMrt: boolean;
-    supportsVolumeTextures: boolean;
     unmaskedRenderer: any;
     unmaskedVendor: any;
     supportsGpuParticles: boolean;
-    maxAnisotropy: number;
-    samples: number;
     maxSamples: any;
     supportsAreaLights: boolean;
     supportsTextureFetch: boolean;
@@ -36032,7 +36803,6 @@ declare class WebglGraphicsDevice extends GraphicsDevice {
      * @param {number} h - The height of the viewport in pixels.
      */
     setViewport(x: number, y: number, w: number, h: number): void;
-    vx: any;
     /**
      * Set the active scissor rectangle on the specified device.
      *
@@ -36042,7 +36812,6 @@ declare class WebglGraphicsDevice extends GraphicsDevice {
      * @param {number} h - The height of the scissor rectangle in pixels.
      */
     setScissor(x: number, y: number, w: number, h: number): void;
-    sx: any;
     /**
      * Binds the specified framebuffer object.
      *
@@ -36060,7 +36829,6 @@ declare class WebglGraphicsDevice extends GraphicsDevice {
      * @returns {boolean} True if the copy was successful, false otherwise.
      */
     copyRenderTarget(source?: RenderTarget, dest?: RenderTarget, color?: boolean, depth?: boolean): boolean;
-    renderTarget: any;
     /**
      * Get copy shader for efficient rendering of fullscreen-quad with texture.
      *
@@ -36084,6 +36852,8 @@ declare class WebglGraphicsDevice extends GraphicsDevice {
      * @ignore
      */
     endPass(renderPass: RenderPass): void;
+    set defaultFramebuffer(arg: any);
+    get defaultFramebuffer(): any;
     /**
      * Marks the beginning of a block of rendering. Internally, this function binds the render
      * target currently set on the device. This function should be matched with a call to
@@ -36178,7 +36948,7 @@ declare class WebglGraphicsDevice extends GraphicsDevice {
      * call.
      * @param {boolean} [primitive.indexed] - True to interpret the primitive as indexed, thereby
      * using the currently set index buffer and false otherwise.
-     * @param {number} [numInstances=1] - The number of instances to render when using
+     * @param {number} [numInstances] - The number of instances to render when using
      * ANGLE_instanced_arrays. Defaults to 1.
      * @param {boolean} [keepBuffers] - Optionally keep the current set of vertex / index buffers /
      * VAO. This is used when rendering of multiple views, for example under WebXR.
@@ -36202,10 +36972,10 @@ declare class WebglGraphicsDevice extends GraphicsDevice {
      *
      * @param {object} [options] - Optional options object that controls the behavior of the clear
      * operation defined as follows:
-     * @param {number[]} [options.color] - The color to clear the color buffer to in the range 0.0
-     * to 1.0 for each component.
-     * @param {number} [options.depth=1] - The depth value to clear the depth buffer to in the
-     * range 0.0 to 1.0.
+     * @param {number[]} [options.color] - The color to clear the color buffer to in the range 0 to
+     * 1 for each component.
+     * @param {number} [options.depth] - The depth value to clear the depth buffer to in the
+     * range 0 to 1. Defaults to 1.
      * @param {number} [options.flags] - The buffers to clear (the types being color, depth and
      * stencil). Can be any bitwise combination of:
      *
@@ -36213,9 +36983,10 @@ declare class WebglGraphicsDevice extends GraphicsDevice {
      * - {@link CLEARFLAG_DEPTH}
      * - {@link CLEARFLAG_STENCIL}
      *
-     * @param {number} [options.stencil=0] - The stencil value to clear the stencil buffer to. Defaults to 0.
+     * @param {number} [options.stencil] - The stencil value to clear the stencil buffer to.
+     * Defaults to 0.
      * @example
-     * // Clear color buffer to black and depth buffer to 1.0
+     * // Clear color buffer to black and depth buffer to 1
      * device.clear();
      *
      * // Clear just the color buffer to red
@@ -36352,7 +37123,6 @@ declare class WebglGraphicsDevice extends GraphicsDevice {
      * @ignore
      */
     clearVertexArrayObjectCache(): void;
-    resizeCanvas(width: any, height: any): void;
     /**
      * Check if high precision floating-point textures are supported.
      *
@@ -36895,12 +37665,6 @@ declare class WebgpuBindGroup {
 declare class WebgpuGraphicsDevice extends GraphicsDevice {
     constructor(canvas: any, options?: {});
     /**
-     * The render target representing the main framebuffer.
-     *
-     * @type {RenderTarget}
-     */
-    frameBuffer: RenderTarget;
-    /**
      * Object responsible for caching and creation of render pipelines.
      */
     renderPipeline: WebgpuRenderPipeline;
@@ -36948,50 +37712,37 @@ declare class WebgpuGraphicsDevice extends GraphicsDevice {
      * @private
      */
     private limits;
+    backBufferAntialias: any;
     isWebGPU: boolean;
     _deviceType: string;
-    samples: number;
     resolver: WebgpuResolver;
     initDeviceCaps(): void;
     disableParticleSystem: boolean;
-    precision: string;
     maxPrecision: string;
     maxSamples: number;
     maxTextures: number;
-    maxTextureSize: number;
-    maxCubeMapSize: number;
-    maxVolumeSize: number;
-    maxColorAttachments: number;
-    maxAnisotropy: number;
-    supportsInstancing: boolean;
-    supportsVolumeTextures: boolean;
     supportsBoneTextures: boolean;
     supportsMorphTargetTexturesCore: boolean;
     supportsAreaLights: boolean;
     supportsDepthShadow: boolean;
     supportsGpuParticles: boolean;
-    supportsMrt: boolean;
     extUintElement: boolean;
     extTextureFloat: boolean;
-    textureFloatRenderable: boolean;
     extTextureHalfFloat: boolean;
-    textureHalfFloatRenderable: boolean;
     textureHalfFloatUpdatable: boolean;
-    boneLimit: number;
     supportsImageBitmap: boolean;
     extStandardDerivatives: boolean;
     extBlendMinmax: boolean;
     areaLightLutFormat: number;
     supportsTextureFetch: boolean;
-    initWebGpu(glslangUrl: any, twgslUrl: any): Promise<WebgpuGraphicsDevice>;
-    glslang: any;
+    initWebGpu(glslangUrl: any, twgslUrl: any): Promise<this>;
     twgsl: any;
+    glslang: any;
     /**
      * @type {GPUAdapter}
      * @private
      */
     private gpuAdapter;
-    floatFilterable: any;
     extCompressedTextureS3TC: any;
     extCompressedTextureETC: any;
     extCompressedTextureASTC: any;
@@ -37002,7 +37753,6 @@ declare class WebgpuGraphicsDevice extends GraphicsDevice {
      */
     private wgpu;
     gpuContext: RenderingContext;
-    framebufferFormat: number;
     /**
      * Configuration of the main colorframebuffer we obtain using getCurrentTexture
      *
@@ -37010,10 +37760,7 @@ declare class WebgpuGraphicsDevice extends GraphicsDevice {
      * @private
      */
     private canvasConfig;
-    dynamicBuffers: any;
-    createFramebuffer(): void;
-    frameBufferDimensions: Vec2;
-    resizeCanvas(width: any, height: any): void;
+    createBackbuffer(): void;
     createUniformBufferImpl(uniformBuffer: any): WebgpuUniformBuffer;
     createVertexBufferImpl(vertexBuffer: any, format: any): WebgpuVertexBuffer;
     createIndexBufferImpl(indexBuffer: any): WebgpuIndexBuffer;
@@ -37041,6 +37788,7 @@ declare class WebgpuGraphicsDevice extends GraphicsDevice {
      * Set up default values for the render pass encoder.
      */
     setupPassEncoderDefaults(): void;
+    _uploadDirtyTextures(): void;
     /**
      * Start a render pass.
      *
@@ -37078,6 +37826,108 @@ declare class WebgpuGraphicsDevice extends GraphicsDevice {
 }
 
 /**
+ * A Null implementation of the VertexBuffer.
+ *
+ * @ignore
+ */
+declare class NullVertexBuffer {
+    destroy(device: any): void;
+    unlock(vertexBuffer: any): void;
+}
+
+/**
+ * A Null implementation of the IndexBuffer.
+ *
+ * @ignore
+ */
+declare class NullIndexBuffer {
+    unlock(indexBuffer: any): void;
+}
+
+/**
+ * A Null implementation of the Shader.
+ *
+ * @ignore
+ */
+declare class NullShader {
+    destroy(shader: any): void;
+    loseContext(): void;
+    restoreContext(device: any, shader: any): void;
+}
+
+/**
+ * A NULL implementation of the Texture.
+ *
+ * @ignore
+ */
+declare class NullTexture {
+    destroy(device: any): void;
+    propertyChanged(flag: any): void;
+    loseContext(): void;
+}
+
+/**
+ * A Null implementation of the RenderTarget.
+ *
+ * @ignore
+ */
+declare class NullRenderTarget {
+    destroy(device: any): void;
+    init(device: any, renderTarget: any): void;
+    loseContext(): void;
+    resolve(device: any, target: any, color: any, depth: any): void;
+}
+
+declare class NullGraphicsDevice extends GraphicsDevice {
+    constructor(canvas: any, options?: {});
+    isNull: boolean;
+    _deviceType: string;
+    samples: number;
+    initDeviceCaps(): void;
+    disableParticleSystem: boolean;
+    maxPrecision: string;
+    maxSamples: number;
+    maxTextures: number;
+    supportsBoneTextures: boolean;
+    supportsMorphTargetTexturesCore: boolean;
+    supportsAreaLights: boolean;
+    supportsDepthShadow: boolean;
+    supportsGpuParticles: boolean;
+    extUintElement: boolean;
+    extTextureFloat: boolean;
+    extTextureHalfFloat: boolean;
+    textureHalfFloatUpdatable: boolean;
+    supportsImageBitmap: boolean;
+    extStandardDerivatives: boolean;
+    extBlendMinmax: boolean;
+    areaLightLutFormat: number;
+    supportsTextureFetch: boolean;
+    createVertexBufferImpl(vertexBuffer: any, format: any): NullVertexBuffer;
+    createIndexBufferImpl(indexBuffer: any): NullIndexBuffer;
+    createShaderImpl(shader: any): NullShader;
+    createTextureImpl(texture: any): NullTexture;
+    createRenderTargetImpl(renderTarget: any): NullRenderTarget;
+    draw(primitive: any, numInstances: number, keepBuffers: any): void;
+    setShader(shader: any): boolean;
+    setBlendState(blendState: any): void;
+    setDepthState(depthState: any): void;
+    setStencilState(stencilFront: any, stencilBack: any): void;
+    setBlendColor(r: any, g: any, b: any, a: any): void;
+    setCullMode(cullMode: any): void;
+    setAlphaToCoverage(state: any): void;
+    startPass(renderPass: any): void;
+    endPass(renderPass: any): void;
+    clear(options: any): void;
+    setDepthBias(on: any): void;
+    setDepthBiasValues(constBias: any, slopeBias: any): void;
+    setViewport(x: any, y: any, w: any, h: any): void;
+    setScissor(x: any, y: any, w: any, h: any): void;
+    copyRenderTarget(source: any, dest: any, color: any, depth: any): boolean;
+    pushMarker(name: any): void;
+    popMarker(): void;
+}
+
+/**
  * A SoundInstance3d plays a {@link Sound} in 3D.
  *
  * @augments SoundInstance
@@ -37090,29 +37940,30 @@ declare class SoundInstance3d extends SoundInstance {
      * @param {import('./manager.js').SoundManager} manager - The sound manager.
      * @param {import('./sound.js').Sound} sound - The sound to play.
      * @param {object} options - Options for the instance.
-     * @param {number} [options.volume=1] - The playback volume, between 0 and 1.
-     * @param {number} [options.pitch=1] - The relative pitch, default of 1, plays at normal pitch.
-     * @param {boolean} [options.loop=false] - Whether the sound should loop when it reaches the
-     * end or not.
-     * @param {number} [options.startTime=0] - The time from which the playback will start. Default
+     * @param {number} [options.volume] - The playback volume, between 0 and 1. Defaults to 1.
+     * @param {number} [options.pitch] - The relative pitch. Defaults to 1 (plays at normal pitch).
+     * @param {boolean} [options.loop] - Whether the sound should loop when it reaches the end or
+     * not. Defaults to false.
+     * @param {number} [options.startTime] - The time from which the playback will start. Default
      * is 0 to start at the beginning.
-     * @param {number} [options.duration=null] - The total time after the startTime when playback
-     * will stop or restart if loop is true.
-     * @param {Vec3} [options.position=null] - The position of the sound in 3D space.
-     * @param {string} [options.distanceModel=DISTANCE_LINEAR] - Determines which algorithm to use
-     * to reduce the volume of the audio as it moves away from the listener. Can be:
+     * @param {number} [options.duration] - The total time after the startTime when playback will
+     * stop or restart if loop is true.
+     * @param {Vec3} [options.position] - The position of the sound in 3D space.
+     * @param {string} [options.distanceModel] - Determines which algorithm to use to reduce the
+     * volume of the audio as it moves away from the listener. Can be:
      *
      * - {@link DISTANCE_LINEAR}
      * - {@link DISTANCE_INVERSE}
      * - {@link DISTANCE_EXPONENTIAL}
      *
-     * Default is {@link DISTANCE_LINEAR}.
-     * @param {number} [options.refDistance=1] - The reference distance for reducing volume as the
-     * sound source moves further from the listener.
-     * @param {number} [options.maxDistance=10000] - The maximum distance from the listener at which
+     * Defaults to {@link DISTANCE_LINEAR}.
+     * @param {number} [options.refDistance] - The reference distance for reducing volume as the
+     * sound source moves further from the listener. Defaults to 1.
+     * @param {number} [options.maxDistance] - The maximum distance from the listener at which
      * audio falloff stops. Note the volume of the audio is not 0 after this distance, but just
-     * doesn't fall off anymore.
-     * @param {number} [options.rollOffFactor=1] - The factor used in the falloff equation.
+     * doesn't fall off anymore. Defaults to 10000.
+     * @param {number} [options.rollOffFactor] - The factor used in the falloff equation. Defaults
+     * to 1.
      */
     constructor(manager: SoundManager, sound: Sound, options?: {
         volume?: number;
@@ -37246,54 +38097,6 @@ declare class LitMaterial extends Material {
 }
 
 /**
- * An object that renders a quad using a {@link Shader}.
- *
- * Example:
- *
- * ```javascript
- * const shader = pc.createShaderFromCode(app.graphicsDevice, vertexShader, fragmentShader, `MyShader`);
- * const quad = new QuadRender(shader);
- * quad.render();
- * quad.destroy();
- * ```
- *
- * @category Graphics
- */
-declare class QuadRender {
-    /**
-     * Create a new QuadRender instance.
-     *
-     * @param {import('../../platform/graphics/shader.js').Shader} shader - The shader to be used to render the quad.
-     */
-    constructor(shader: Shader);
-    /**
-     * @type {UniformBuffer}
-     * @ignore
-     */
-    uniformBuffer: UniformBuffer;
-    /**
-     * @type {BindGroup}
-     * @ignore
-     */
-    bindGroup: BindGroup;
-    shader: Shader;
-    /**
-     * Destroys the resources associated with this instance.
-     */
-    destroy(): void;
-    /**
-     * Renders the quad. If the viewport is provided, the original viewport and scissor is restored
-     * after the rendering.
-     *
-     * @param {import('../../core/math/vec4.js').Vec4} [viewport] - The viewport rectangle of the
-     * quad, in pixels. The viewport is not changed if not provided.
-     * @param {import('../../core/math/vec4.js').Vec4} [scissor] - The scissor rectangle of the
-     * quad, in pixels. Used only if the viewport is provided.
-     */
-    render(viewport?: Vec4, scissor?: Vec4): void;
-}
-
-/**
  * Helper functions to support prefiltering lighting data.
  *
  * @ignore
@@ -37420,7 +38223,7 @@ declare class ChunkBuilder {
 }
 
 declare namespace script {
-    const legacy: boolean;
+    let legacy: boolean;
 }
 
 /**
@@ -38548,6 +39351,7 @@ declare class ScriptHandler implements ResourceHandler {
     _app: AppBase;
     _scripts: {};
     _cache: {};
+    clearCache(): void;
     load(url: any, callback: any): void;
     open(url: any, data: any): any;
     patch(asset: any, assets: any): void;
@@ -39698,5 +40502,5 @@ declare function getReservedScriptNames(): Set<string>;
 
 declare const reservedAttributes: {};
 
-export { ABSOLUTE_URL, ACTION_GAMEPAD, ACTION_KEYBOARD, ACTION_MOUSE, ADDRESS_CLAMP_TO_EDGE, ADDRESS_MIRRORED_REPEAT, ADDRESS_REPEAT, ANIM_BLEND_1D, ANIM_BLEND_2D_CARTESIAN, ANIM_BLEND_2D_DIRECTIONAL, ANIM_BLEND_DIRECT, ANIM_CONTROL_STATES, ANIM_EQUAL_TO, ANIM_GREATER_THAN, ANIM_GREATER_THAN_EQUAL_TO, ANIM_INTERRUPTION_NEXT, ANIM_INTERRUPTION_NEXT_PREV, ANIM_INTERRUPTION_NONE, ANIM_INTERRUPTION_PREV, ANIM_INTERRUPTION_PREV_NEXT, ANIM_LAYER_ADDITIVE, ANIM_LAYER_OVERWRITE, ANIM_LESS_THAN, ANIM_LESS_THAN_EQUAL_TO, ANIM_NOT_EQUAL_TO, ANIM_PARAMETER_BOOLEAN, ANIM_PARAMETER_FLOAT, ANIM_PARAMETER_INTEGER, ANIM_PARAMETER_TRIGGER, ANIM_STATE_ANY, ANIM_STATE_END, ANIM_STATE_START, ASPECT_AUTO, ASPECT_MANUAL, ASSET_ANIMATION, ASSET_AUDIO, ASSET_CONTAINER, ASSET_CSS, ASSET_CUBEMAP, ASSET_HTML, ASSET_IMAGE, ASSET_JSON, ASSET_MATERIAL, ASSET_MODEL, ASSET_SCRIPT, ASSET_SHADER, ASSET_TEXT, ASSET_TEXTURE, ASSET_TEXTUREATLAS, AXIS_KEY, AXIS_MOUSE_X, AXIS_MOUSE_Y, AXIS_PAD_L_X, AXIS_PAD_L_Y, AXIS_PAD_R_X, AXIS_PAD_R_Y, AnimBinder, AnimClip, AnimClipHandler, AnimComponent, AnimComponentLayer, AnimComponentSystem, AnimController, AnimCurve, AnimData, AnimEvaluator, AnimEvents, AnimSnapshot, AnimStateGraph, AnimStateGraphHandler, AnimTarget, AnimTrack, Animation, AnimationComponent, AnimationComponentSystem, AnimationHandler, AppBase, AppOptions, Application, Asset, AssetListLoader, AssetReference, AssetRegistry, AudioHandler, AudioListenerComponent, AudioListenerComponentSystem, AudioSourceComponent, AudioSourceComponentSystem, BAKE_COLOR, BAKE_COLORDIR, BINDGROUP_MESH, BINDGROUP_VIEW, BLENDEQUATION_ADD, BLENDEQUATION_MAX, BLENDEQUATION_MIN, BLENDEQUATION_REVERSE_SUBTRACT, BLENDEQUATION_SUBTRACT, BLENDMODE_CONSTANT, BLENDMODE_CONSTANT_ALPHA, BLENDMODE_CONSTANT_COLOR, BLENDMODE_DST_ALPHA, BLENDMODE_DST_COLOR, BLENDMODE_ONE, BLENDMODE_ONE_MINUS_CONSTANT, BLENDMODE_ONE_MINUS_CONSTANT_ALPHA, BLENDMODE_ONE_MINUS_CONSTANT_COLOR, BLENDMODE_ONE_MINUS_DST_ALPHA, BLENDMODE_ONE_MINUS_DST_COLOR, BLENDMODE_ONE_MINUS_SRC_ALPHA, BLENDMODE_ONE_MINUS_SRC_COLOR, BLENDMODE_SRC_ALPHA, BLENDMODE_SRC_ALPHA_SATURATE, BLENDMODE_SRC_COLOR, BLENDMODE_ZERO, BLEND_ADDITIVE, BLEND_ADDITIVEALPHA, BLEND_MAX, BLEND_MIN, BLEND_MULTIPLICATIVE, BLEND_MULTIPLICATIVE2X, BLEND_NONE, BLEND_NORMAL, BLEND_PREMULTIPLIED, BLEND_SCREEN, BLEND_SUBTRACTIVE, BLUR_BOX, BLUR_GAUSSIAN, BODYFLAG_KINEMATIC_OBJECT, BODYFLAG_NORESPONSE_OBJECT, BODYFLAG_STATIC_OBJECT, BODYGROUP_DEFAULT, BODYGROUP_DYNAMIC, BODYGROUP_ENGINE_1, BODYGROUP_ENGINE_2, BODYGROUP_ENGINE_3, BODYGROUP_KINEMATIC, BODYGROUP_NONE, BODYGROUP_STATIC, BODYGROUP_TRIGGER, BODYGROUP_USER_1, BODYGROUP_USER_2, BODYGROUP_USER_3, BODYGROUP_USER_4, BODYGROUP_USER_5, BODYGROUP_USER_6, BODYGROUP_USER_7, BODYGROUP_USER_8, BODYMASK_ALL, BODYMASK_NONE, BODYMASK_NOT_STATIC, BODYMASK_NOT_STATIC_KINEMATIC, BODYMASK_STATIC, BODYSTATE_ACTIVE_TAG, BODYSTATE_DISABLE_DEACTIVATION, BODYSTATE_DISABLE_SIMULATION, BODYSTATE_ISLAND_SLEEPING, BODYSTATE_WANTS_DEACTIVATION, BODYTYPE_DYNAMIC, BODYTYPE_KINEMATIC, BODYTYPE_STATIC, BUFFER_DYNAMIC, BUFFER_GPUDYNAMIC, BUFFER_STATIC, BUFFER_STREAM, BUTTON_TRANSITION_MODE_SPRITE_CHANGE, BUTTON_TRANSITION_MODE_TINT, BasicMaterial, Batch, BatchGroup, BatchManager, BinaryHandler, BlendState, BoundingBox, BoundingSphere, Bundle, BundleHandler, BundleRegistry, ButtonComponent, ButtonComponentSystem, CHUNKAPI_1_51, CHUNKAPI_1_55, CHUNKAPI_1_56, CHUNKAPI_1_57, CHUNKAPI_1_58, CHUNKAPI_1_60, CHUNKAPI_1_62, CHUNKAPI_1_65, CLEARFLAG_COLOR, CLEARFLAG_DEPTH, CLEARFLAG_STENCIL, COMPUPDATED_BLEND, COMPUPDATED_CAMERAS, COMPUPDATED_INSTANCES, COMPUPDATED_LIGHTS, CUBEFACE_NEGX, CUBEFACE_NEGY, CUBEFACE_NEGZ, CUBEFACE_POSX, CUBEFACE_POSY, CUBEFACE_POSZ, CUBEPROJ_BOX, CUBEPROJ_NONE, CULLFACE_BACK, CULLFACE_FRONT, CULLFACE_FRONTANDBACK, CULLFACE_NONE, CURVE_CARDINAL, CURVE_CATMULL, CURVE_LINEAR, CURVE_SMOOTHSTEP, CURVE_SPLINE, CURVE_STEP, Camera, CameraComponent, CameraComponentSystem, CanvasFont, ChunkBuilder, CollisionComponent, CollisionComponentSystem, Color, Command, Component, ComponentSystem, ComponentSystemRegistry, ContactPoint, ContactResult, ContainerHandler, ContainerResource, ContextCreationError, Controller, CssHandler, CubemapHandler, Curve, CurveSet, DETAILMODE_ADD, DETAILMODE_MAX, DETAILMODE_MIN, DETAILMODE_MUL, DETAILMODE_OVERLAY, DETAILMODE_SCREEN, DEVICETYPE_WEBGL1, DEVICETYPE_WEBGL2, DEVICETYPE_WEBGPU, DISTANCE_EXPONENTIAL, DISTANCE_INVERSE, DISTANCE_LINEAR, DefaultAnimBinder, DepthState, ELEMENTTYPE_FLOAT32, ELEMENTTYPE_GROUP, ELEMENTTYPE_IMAGE, ELEMENTTYPE_INT16, ELEMENTTYPE_INT32, ELEMENTTYPE_INT8, ELEMENTTYPE_TEXT, ELEMENTTYPE_UINT16, ELEMENTTYPE_UINT32, ELEMENTTYPE_UINT8, EMITTERSHAPE_BOX, EMITTERSHAPE_SPHERE, EVENT_GAMEPADCONNECTED, EVENT_GAMEPADDISCONNECTED, EVENT_KEYDOWN, EVENT_KEYUP, EVENT_MOUSEDOWN, EVENT_MOUSEMOVE, EVENT_MOUSEUP, EVENT_MOUSEWHEEL, EVENT_SELECT, EVENT_SELECTEND, EVENT_SELECTSTART, EVENT_TOUCHCANCEL, EVENT_TOUCHEND, EVENT_TOUCHMOVE, EVENT_TOUCHSTART, ElementComponent, ElementComponentSystem, ElementDragHelper, ElementInput, ElementInputEvent, ElementMouseEvent, ElementSelectEvent, ElementTouchEvent, Entity, EntityReference, EnvLighting, EventHandler, FILLMODE_FILL_WINDOW, FILLMODE_KEEP_ASPECT, FILLMODE_NONE, FILTER_LINEAR, FILTER_LINEAR_MIPMAP_LINEAR, FILTER_LINEAR_MIPMAP_NEAREST, FILTER_NEAREST, FILTER_NEAREST_MIPMAP_LINEAR, FILTER_NEAREST_MIPMAP_NEAREST, FITMODE_CONTAIN, FITMODE_COVER, FITMODE_STRETCH, FITTING_BOTH, FITTING_NONE, FITTING_SHRINK, FITTING_STRETCH, FOG_EXP, FOG_EXP2, FOG_LINEAR, FOG_NONE, FONT_BITMAP, FONT_MSDF, FRESNEL_NONE, FRESNEL_SCHLICK, FUNC_ALWAYS, FUNC_EQUAL, FUNC_GREATER, FUNC_GREATEREQUAL, FUNC_LESS, FUNC_LESSEQUAL, FUNC_NEVER, FUNC_NOTEQUAL, FolderHandler, Font, FontHandler, ForwardRenderer, Frustum, GAMMA_NONE, GAMMA_SRGB, GAMMA_SRGBFAST, GAMMA_SRGBHDR, GamePads, GraphNode, GraphicsDevice, HierarchyHandler, HtmlHandler, Http, I18n, INDEXFORMAT_UINT16, INDEXFORMAT_UINT32, INDEXFORMAT_UINT8, INTERPOLATION_CUBIC, INTERPOLATION_LINEAR, INTERPOLATION_STEP, ImageElement, IndexBuffer, IndexedList, JointComponent, JointComponentSystem, JsonHandler, JsonStandardMaterialParser, KEY_0, KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7, KEY_8, KEY_9, KEY_A, KEY_ADD, KEY_ALT, KEY_B, KEY_BACKSPACE, KEY_BACK_SLASH, KEY_C, KEY_CAPS_LOCK, KEY_CLOSE_BRACKET, KEY_COMMA, KEY_CONTEXT_MENU, KEY_CONTROL, KEY_D, KEY_DECIMAL, KEY_DELETE, KEY_DIVIDE, KEY_DOWN, KEY_E, KEY_END, KEY_ENTER, KEY_EQUAL, KEY_ESCAPE, KEY_F, KEY_F1, KEY_F10, KEY_F11, KEY_F12, KEY_F2, KEY_F3, KEY_F4, KEY_F5, KEY_F6, KEY_F7, KEY_F8, KEY_F9, KEY_G, KEY_H, KEY_HOME, KEY_I, KEY_INSERT, KEY_J, KEY_K, KEY_L, KEY_LEFT, KEY_M, KEY_META, KEY_MULTIPLY, KEY_N, KEY_NUMPAD_0, KEY_NUMPAD_1, KEY_NUMPAD_2, KEY_NUMPAD_3, KEY_NUMPAD_4, KEY_NUMPAD_5, KEY_NUMPAD_6, KEY_NUMPAD_7, KEY_NUMPAD_8, KEY_NUMPAD_9, KEY_O, KEY_OPEN_BRACKET, KEY_P, KEY_PAGE_DOWN, KEY_PAGE_UP, KEY_PAUSE, KEY_PERIOD, KEY_PRINT_SCREEN, KEY_Q, KEY_R, KEY_RETURN, KEY_RIGHT, KEY_S, KEY_SEMICOLON, KEY_SEPARATOR, KEY_SHIFT, KEY_SLASH, KEY_SPACE, KEY_SUBTRACT, KEY_T, KEY_TAB, KEY_U, KEY_UP, KEY_V, KEY_W, KEY_WINDOWS, KEY_X, KEY_Y, KEY_Z, Key, Keyboard, KeyboardEvent, LAYERID_DEPTH, LAYERID_IMMEDIATE, LAYERID_SKYBOX, LAYERID_UI, LAYERID_WORLD, LAYER_FX, LAYER_GIZMO, LAYER_HUD, LAYER_WORLD, LIGHTFALLOFF_INVERSESQUARED, LIGHTFALLOFF_LINEAR, LIGHTSHAPE_DISK, LIGHTSHAPE_PUNCTUAL, LIGHTSHAPE_RECT, LIGHTSHAPE_SPHERE, LIGHTTYPE_COUNT, LIGHTTYPE_DIRECTIONAL, LIGHTTYPE_OMNI, LIGHTTYPE_POINT, LIGHTTYPE_SPOT, LINEBATCH_GIZMO, LINEBATCH_OVERLAY, LINEBATCH_WORLD, Layer, LayerComposition, LayoutCalculator, LayoutChildComponent, LayoutChildComponentSystem, LayoutGroupComponent, LayoutGroupComponentSystem, Light, LightComponent, LightComponentSystem, LightingParams, Lightmapper, LitMaterial, LitOptions, LitShaderOptions, LocalizedAsset, MASK_AFFECT_DYNAMIC, MASK_AFFECT_LIGHTMAPPED, MASK_BAKE, MOTION_FREE, MOTION_LIMITED, MOTION_LOCKED, MOUSEBUTTON_LEFT, MOUSEBUTTON_MIDDLE, MOUSEBUTTON_NONE, MOUSEBUTTON_RIGHT, Mat3, Mat4, Material, MaterialHandler, Mesh, MeshInstance, Model, ModelComponent, ModelComponentSystem, ModelHandler, Morph, MorphInstance, MorphTarget, Mouse, MouseEvent$1 as MouseEvent, Node$1 as Node, ORIENTATION_HORIZONTAL, ORIENTATION_VERTICAL, OrientedBox, PAD_1, PAD_2, PAD_3, PAD_4, PAD_DOWN, PAD_FACE_1, PAD_FACE_2, PAD_FACE_3, PAD_FACE_4, PAD_LEFT, PAD_L_SHOULDER_1, PAD_L_SHOULDER_2, PAD_L_STICK_BUTTON, PAD_L_STICK_X, PAD_L_STICK_Y, PAD_RIGHT, PAD_R_SHOULDER_1, PAD_R_SHOULDER_2, PAD_R_STICK_BUTTON, PAD_R_STICK_X, PAD_R_STICK_Y, PAD_SELECT, PAD_START, PAD_UP, PAD_VENDOR, PARTICLEMODE_CPU, PARTICLEMODE_GPU, PARTICLEORIENTATION_EMITTER, PARTICLEORIENTATION_SCREEN, PARTICLEORIENTATION_WORLD, PARTICLESORT_DISTANCE, PARTICLESORT_NEWER_FIRST, PARTICLESORT_NONE, PARTICLESORT_OLDER_FIRST, PIXELFORMAT_111110F, PIXELFORMAT_A8, PIXELFORMAT_ASTC_4x4, PIXELFORMAT_ATC_RGB, PIXELFORMAT_ATC_RGBA, PIXELFORMAT_BGRA8, PIXELFORMAT_DEPTH, PIXELFORMAT_DEPTHSTENCIL, PIXELFORMAT_DXT1, PIXELFORMAT_DXT3, PIXELFORMAT_DXT5, PIXELFORMAT_ETC1, PIXELFORMAT_ETC2_RGB, PIXELFORMAT_ETC2_RGBA, PIXELFORMAT_L8, PIXELFORMAT_L8_A8, PIXELFORMAT_LA8, PIXELFORMAT_PVRTC_2BPP_RGBA_1, PIXELFORMAT_PVRTC_2BPP_RGB_1, PIXELFORMAT_PVRTC_4BPP_RGBA_1, PIXELFORMAT_PVRTC_4BPP_RGB_1, PIXELFORMAT_R32F, PIXELFORMAT_R4_G4_B4_A4, PIXELFORMAT_R5_G5_B5_A1, PIXELFORMAT_R5_G6_B5, PIXELFORMAT_R8_G8_B8, PIXELFORMAT_R8_G8_B8_A8, PIXELFORMAT_RGB16F, PIXELFORMAT_RGB32F, PIXELFORMAT_RGB565, PIXELFORMAT_RGB8, PIXELFORMAT_RGBA16F, PIXELFORMAT_RGBA32F, PIXELFORMAT_RGBA4, PIXELFORMAT_RGBA5551, PIXELFORMAT_RGBA8, PIXELFORMAT_SRGB, PIXELFORMAT_SRGBA, PRIMITIVE_LINELOOP, PRIMITIVE_LINES, PRIMITIVE_LINESTRIP, PRIMITIVE_POINTS, PRIMITIVE_TRIANGLES, PRIMITIVE_TRIFAN, PRIMITIVE_TRISTRIP, PROJECTION_ORTHOGRAPHIC, PROJECTION_PERSPECTIVE, ParticleEmitter, ParticleSystemComponent, ParticleSystemComponentSystem, PhongMaterial, Picker, Plane, PostEffect$1 as PostEffect, PostEffectQueue, ProgramLibrary, QuadRender, Quat, RENDERSTYLE_POINTS, RENDERSTYLE_SOLID, RENDERSTYLE_WIREFRAME, RESOLUTION_AUTO, RESOLUTION_FIXED, RIGIDBODY_ACTIVE_TAG, RIGIDBODY_CF_KINEMATIC_OBJECT, RIGIDBODY_CF_NORESPONSE_OBJECT, RIGIDBODY_CF_STATIC_OBJECT, RIGIDBODY_DISABLE_DEACTIVATION, RIGIDBODY_DISABLE_SIMULATION, RIGIDBODY_ISLAND_SLEEPING, RIGIDBODY_TYPE_DYNAMIC, RIGIDBODY_TYPE_KINEMATIC, RIGIDBODY_TYPE_STATIC, RIGIDBODY_WANTS_DEACTIVATION, Ray, RaycastResult, ReadStream, RenderComponent, RenderComponentSystem, RenderHandler, RenderTarget, ResourceHandler, ResourceLoader, RigidBodyComponent, RigidBodyComponentSystem, SAMPLETYPE_DEPTH, SAMPLETYPE_FLOAT, SAMPLETYPE_UNFILTERABLE_FLOAT, SCALEMODE_BLEND, SCALEMODE_NONE, SCROLLBAR_VISIBILITY_SHOW_ALWAYS, SCROLLBAR_VISIBILITY_SHOW_WHEN_REQUIRED, SCROLL_MODE_BOUNCE, SCROLL_MODE_CLAMP, SCROLL_MODE_INFINITE, SEMANTIC_ATTR, SEMANTIC_ATTR0, SEMANTIC_ATTR1, SEMANTIC_ATTR10, SEMANTIC_ATTR11, SEMANTIC_ATTR12, SEMANTIC_ATTR13, SEMANTIC_ATTR14, SEMANTIC_ATTR15, SEMANTIC_ATTR2, SEMANTIC_ATTR3, SEMANTIC_ATTR4, SEMANTIC_ATTR5, SEMANTIC_ATTR6, SEMANTIC_ATTR7, SEMANTIC_ATTR8, SEMANTIC_ATTR9, SEMANTIC_BLENDINDICES, SEMANTIC_BLENDWEIGHT, SEMANTIC_COLOR, SEMANTIC_NORMAL, SEMANTIC_POSITION, SEMANTIC_TANGENT, SEMANTIC_TEXCOORD, SEMANTIC_TEXCOORD0, SEMANTIC_TEXCOORD1, SEMANTIC_TEXCOORD2, SEMANTIC_TEXCOORD3, SEMANTIC_TEXCOORD4, SEMANTIC_TEXCOORD5, SEMANTIC_TEXCOORD6, SEMANTIC_TEXCOORD7, SHADERDEF_DIRLM, SHADERDEF_INSTANCING, SHADERDEF_LM, SHADERDEF_LMAMBIENT, SHADERDEF_MORPH_NORMAL, SHADERDEF_MORPH_POSITION, SHADERDEF_MORPH_TEXTURE_BASED, SHADERDEF_NOSHADOW, SHADERDEF_SCREENSPACE, SHADERDEF_SKIN, SHADERDEF_TANGENTS, SHADERDEF_UV0, SHADERDEF_UV1, SHADERDEF_VCOLOR, SHADERLANGUAGE_GLSL, SHADERLANGUAGE_WGSL, SHADERPASS_ALBEDO, SHADERPASS_AO, SHADERPASS_EMISSION, SHADERPASS_FORWARD, SHADERPASS_GLOSS, SHADERPASS_LIGHTING, SHADERPASS_METALNESS, SHADERPASS_OPACITY, SHADERPASS_SPECULARITY, SHADERPASS_UV0, SHADERPASS_WORLDNORMAL, SHADERSTAGE_COMPUTE, SHADERSTAGE_FRAGMENT, SHADERSTAGE_VERTEX, SHADERTAG_MATERIAL, SHADER_DEPTH, SHADER_FORWARD, SHADER_FORWARDHDR, SHADER_PICK, SHADER_SHADOW, SHADOWUPDATE_NONE, SHADOWUPDATE_REALTIME, SHADOWUPDATE_THISFRAME, SHADOW_DEPTH, SHADOW_PCF1, SHADOW_PCF3, SHADOW_PCF5, SHADOW_PCSS, SHADOW_VSM16, SHADOW_VSM32, SHADOW_VSM8, SORTKEY_DEPTH, SORTKEY_FORWARD, SORTMODE_BACK2FRONT, SORTMODE_CUSTOM, SORTMODE_FRONT2BACK, SORTMODE_MANUAL, SORTMODE_MATERIALMESH, SORTMODE_NONE, SPECOCC_AO, SPECOCC_GLOSSDEPENDENT, SPECOCC_NONE, SPECULAR_BLINN, SPECULAR_PHONG, SPRITETYPE_ANIMATED, SPRITETYPE_SIMPLE, SPRITE_RENDERMODE_SIMPLE, SPRITE_RENDERMODE_SLICED, SPRITE_RENDERMODE_TILED, STENCILOP_DECREMENT, STENCILOP_DECREMENTWRAP, STENCILOP_INCREMENT, STENCILOP_INCREMENTWRAP, STENCILOP_INVERT, STENCILOP_KEEP, STENCILOP_REPLACE, STENCILOP_ZERO, Scene, SceneHandler, SceneRegistry, SceneRegistryItem, SceneSettingsHandler, ScopeId, ScopeSpace, ScreenComponent, ScreenComponentSystem, ScriptAttributes, ScriptComponent, ScriptComponentSystem, ScriptHandler, ScriptLegacyComponent, ScriptLegacyComponentSystem, ScriptRegistry, ScriptType, ScrollViewComponent, ScrollViewComponentSystem, ScrollbarComponent, ScrollbarComponentSystem, Shader, ShaderHandler, ShaderPass, SingleContactResult, Skeleton, Skin, SkinBatchInstance, SkinInstance, SortedLoopArray, Sound, SoundComponent, SoundComponentSystem, SoundInstance, SoundInstance3d, SoundManager, SoundSlot, Sprite, SpriteAnimationClip, SpriteComponent, SpriteComponentSystem, SpriteHandler, StandardMaterial, StandardMaterialOptions, StencilParameters, TEXHINT_ASSET, TEXHINT_LIGHTMAP, TEXHINT_NONE, TEXHINT_SHADOWMAP, TEXTUREDIMENSION_1D, TEXTUREDIMENSION_2D, TEXTUREDIMENSION_2D_ARRAY, TEXTUREDIMENSION_3D, TEXTUREDIMENSION_CUBE, TEXTUREDIMENSION_CUBE_ARRAY, TEXTURELOCK_READ, TEXTURELOCK_WRITE, TEXTUREPROJECTION_CUBE, TEXTUREPROJECTION_EQUIRECT, TEXTUREPROJECTION_NONE, TEXTUREPROJECTION_OCTAHEDRAL, TEXTURETYPE_DEFAULT, TEXTURETYPE_RGBE, TEXTURETYPE_RGBM, TEXTURETYPE_RGBP, TEXTURETYPE_SWIZZLEGGGR, TONEMAP_ACES, TONEMAP_ACES2, TONEMAP_FILMIC, TONEMAP_HEJL, TONEMAP_LINEAR, TRACEID_BINDGROUPFORMAT_ALLOC, TRACEID_BINDGROUP_ALLOC, TRACEID_GPU_TIMINGS, TRACEID_PIPELINELAYOUT_ALLOC, TRACEID_RENDERPIPELINE_ALLOC, TRACEID_RENDER_ACTION, TRACEID_RENDER_FRAME, TRACEID_RENDER_FRAME_TIME, TRACEID_RENDER_PASS, TRACEID_RENDER_PASS_DETAIL, TRACEID_RENDER_QUEUE, TRACEID_RENDER_TARGET_ALLOC, TRACEID_SHADER_ALLOC, TRACEID_SHADER_COMPILE, TRACEID_TEXTURES, TRACEID_TEXTURE_ALLOC, TRACEID_VRAM_IB, TRACEID_VRAM_TEXTURE, TRACEID_VRAM_VB, TRACE_ID_ELEMENT, TYPE_FLOAT32, TYPE_INT16, TYPE_INT32, TYPE_INT8, TYPE_UINT16, TYPE_UINT32, TYPE_UINT8, Tags, Template, TemplateHandler, TextElement, TextHandler, Texture, TextureAtlas, TextureAtlasHandler, TextureHandler, TextureParser, TextureUtils, Touch$1 as Touch, TouchDevice, TouchEvent$1 as TouchEvent, Tracing, TransformFeedback, UNIFORMTYPE_BOOL, UNIFORMTYPE_BVEC2, UNIFORMTYPE_BVEC3, UNIFORMTYPE_BVEC4, UNIFORMTYPE_FLOAT, UNIFORMTYPE_FLOATARRAY, UNIFORMTYPE_INT, UNIFORMTYPE_IVEC2, UNIFORMTYPE_IVEC3, UNIFORMTYPE_IVEC4, UNIFORMTYPE_MAT2, UNIFORMTYPE_MAT3, UNIFORMTYPE_MAT4, UNIFORMTYPE_MAT4ARRAY, UNIFORMTYPE_TEXTURE2D, UNIFORMTYPE_TEXTURE2D_SHADOW, UNIFORMTYPE_TEXTURE3D, UNIFORMTYPE_TEXTURECUBE, UNIFORMTYPE_TEXTURECUBE_SHADOW, UNIFORMTYPE_VEC2, UNIFORMTYPE_VEC2ARRAY, UNIFORMTYPE_VEC3, UNIFORMTYPE_VEC3ARRAY, UNIFORMTYPE_VEC4, UNIFORMTYPE_VEC4ARRAY, UNIFORM_BUFFER_DEFAULT_SLOT_NAME, URI, UnsupportedBrowserError, VIEW_CENTER, VIEW_LEFT, VIEW_RIGHT, Vec2, Vec3, Vec4, VertexBuffer, VertexFormat, VertexIterator, WasmModule, WebglGraphicsDevice, WebgpuGraphicsDevice, WorldClusters, XRDEPTHSENSINGFORMAT_F32, XRDEPTHSENSINGFORMAT_L8A8, XRDEPTHSENSINGUSAGE_CPU, XRDEPTHSENSINGUSAGE_GPU, XRHAND_LEFT, XRHAND_NONE, XRHAND_RIGHT, XRPAD_A, XRPAD_B, XRPAD_SQUEEZE, XRPAD_STICK_BUTTON, XRPAD_STICK_X, XRPAD_STICK_Y, XRPAD_TOUCHPAD_BUTTON, XRPAD_TOUCHPAD_X, XRPAD_TOUCHPAD_Y, XRPAD_TRIGGER, XRSPACE_BOUNDEDFLOOR, XRSPACE_LOCAL, XRSPACE_LOCALFLOOR, XRSPACE_UNBOUNDED, XRSPACE_VIEWER, XRTARGETRAY_GAZE, XRTARGETRAY_POINTER, XRTARGETRAY_SCREEN, XRTRACKABLE_MESH, XRTRACKABLE_PLANE, XRTRACKABLE_POINT, XRTYPE_AR, XRTYPE_INLINE, XRTYPE_VR, XrDepthSensing, XrDomOverlay, XrHitTest, XrHitTestSource, XrImageTracking, XrInput, XrInputSource, XrLightEstimation, XrManager, XrPlane, XrPlaneDetection, XrTrackedImage, ZoneComponent, ZoneComponentSystem, anim, app, apps, asset, audio, basisInitialize, basisSetDownloadConfig, bindGroupNames, calculateNormals, calculateTangents, common, config, createBox, createCapsule, createCone, createCylinder, createGraphicsDevice, createMesh, createPlane, createScript, createShader, createShaderFromCode, createSphere, createStyle, createTorus, createURI, data, dracoInitialize, drawFullscreenQuad, drawQuadWithShader, drawTexture, events, extend, getPixelFormatArrayType, getReservedScriptNames, getTouchTargetCoords, gfx, guid, http, inherits, input, isCompressedPixelFormat, log, makeArray, math, now, path, pixelFormatInfo, platform, posteffect, prefilterCubemap, programlib, registerScript, reprojectTexture, revision, scene, script, semanticToLocation, shFromCubemap, shaderChunks, shaderChunksLightmapper, shadowTypeToString, shape, string, time, type, typedArrayIndexFormats, typedArrayIndexFormatsByteSize, typedArrayToType, typedArrayTypes, typedArrayTypesByteSize, uniformTypeToName, version, vertexTypesNames };
+export { ABSOLUTE_URL, ACTION_GAMEPAD, ACTION_KEYBOARD, ACTION_MOUSE, ADDRESS_CLAMP_TO_EDGE, ADDRESS_MIRRORED_REPEAT, ADDRESS_REPEAT, ANIM_BLEND_1D, ANIM_BLEND_2D_CARTESIAN, ANIM_BLEND_2D_DIRECTIONAL, ANIM_BLEND_DIRECT, ANIM_CONTROL_STATES, ANIM_EQUAL_TO, ANIM_GREATER_THAN, ANIM_GREATER_THAN_EQUAL_TO, ANIM_INTERRUPTION_NEXT, ANIM_INTERRUPTION_NEXT_PREV, ANIM_INTERRUPTION_NONE, ANIM_INTERRUPTION_PREV, ANIM_INTERRUPTION_PREV_NEXT, ANIM_LAYER_ADDITIVE, ANIM_LAYER_OVERWRITE, ANIM_LESS_THAN, ANIM_LESS_THAN_EQUAL_TO, ANIM_NOT_EQUAL_TO, ANIM_PARAMETER_BOOLEAN, ANIM_PARAMETER_FLOAT, ANIM_PARAMETER_INTEGER, ANIM_PARAMETER_TRIGGER, ANIM_STATE_ANY, ANIM_STATE_END, ANIM_STATE_START, ASPECT_AUTO, ASPECT_MANUAL, ASSET_ANIMATION, ASSET_AUDIO, ASSET_CONTAINER, ASSET_CSS, ASSET_CUBEMAP, ASSET_HTML, ASSET_IMAGE, ASSET_JSON, ASSET_MATERIAL, ASSET_MODEL, ASSET_SCRIPT, ASSET_SHADER, ASSET_TEXT, ASSET_TEXTURE, ASSET_TEXTUREATLAS, AXIS_KEY, AXIS_MOUSE_X, AXIS_MOUSE_Y, AXIS_PAD_L_X, AXIS_PAD_L_Y, AXIS_PAD_R_X, AXIS_PAD_R_Y, AnimBinder, AnimClip, AnimClipHandler, AnimComponent, AnimComponentLayer, AnimComponentSystem, AnimController, AnimCurve, AnimData, AnimEvaluator, AnimEvents, AnimSnapshot, AnimStateGraph, AnimStateGraphHandler, AnimTarget, AnimTrack, Animation, AnimationComponent, AnimationComponentSystem, AnimationHandler, AppBase, AppOptions, Application, Asset, AssetListLoader, AssetReference, AssetRegistry, AudioHandler, AudioListenerComponent, AudioListenerComponentSystem, AudioSourceComponent, AudioSourceComponentSystem, BAKE_COLOR, BAKE_COLORDIR, BINDGROUP_MESH, BINDGROUP_VIEW, BLENDEQUATION_ADD, BLENDEQUATION_MAX, BLENDEQUATION_MIN, BLENDEQUATION_REVERSE_SUBTRACT, BLENDEQUATION_SUBTRACT, BLENDMODE_CONSTANT, BLENDMODE_CONSTANT_ALPHA, BLENDMODE_CONSTANT_COLOR, BLENDMODE_DST_ALPHA, BLENDMODE_DST_COLOR, BLENDMODE_ONE, BLENDMODE_ONE_MINUS_CONSTANT, BLENDMODE_ONE_MINUS_CONSTANT_ALPHA, BLENDMODE_ONE_MINUS_CONSTANT_COLOR, BLENDMODE_ONE_MINUS_DST_ALPHA, BLENDMODE_ONE_MINUS_DST_COLOR, BLENDMODE_ONE_MINUS_SRC_ALPHA, BLENDMODE_ONE_MINUS_SRC_COLOR, BLENDMODE_SRC_ALPHA, BLENDMODE_SRC_ALPHA_SATURATE, BLENDMODE_SRC_COLOR, BLENDMODE_ZERO, BLEND_ADDITIVE, BLEND_ADDITIVEALPHA, BLEND_MAX, BLEND_MIN, BLEND_MULTIPLICATIVE, BLEND_MULTIPLICATIVE2X, BLEND_NONE, BLEND_NORMAL, BLEND_PREMULTIPLIED, BLEND_SCREEN, BLEND_SUBTRACTIVE, BLUR_BOX, BLUR_GAUSSIAN, BODYFLAG_KINEMATIC_OBJECT, BODYFLAG_NORESPONSE_OBJECT, BODYFLAG_STATIC_OBJECT, BODYGROUP_DEFAULT, BODYGROUP_DYNAMIC, BODYGROUP_ENGINE_1, BODYGROUP_ENGINE_2, BODYGROUP_ENGINE_3, BODYGROUP_KINEMATIC, BODYGROUP_NONE, BODYGROUP_STATIC, BODYGROUP_TRIGGER, BODYGROUP_USER_1, BODYGROUP_USER_2, BODYGROUP_USER_3, BODYGROUP_USER_4, BODYGROUP_USER_5, BODYGROUP_USER_6, BODYGROUP_USER_7, BODYGROUP_USER_8, BODYMASK_ALL, BODYMASK_NONE, BODYMASK_NOT_STATIC, BODYMASK_NOT_STATIC_KINEMATIC, BODYMASK_STATIC, BODYSTATE_ACTIVE_TAG, BODYSTATE_DISABLE_DEACTIVATION, BODYSTATE_DISABLE_SIMULATION, BODYSTATE_ISLAND_SLEEPING, BODYSTATE_WANTS_DEACTIVATION, BODYTYPE_DYNAMIC, BODYTYPE_KINEMATIC, BODYTYPE_STATIC, BUFFER_DYNAMIC, BUFFER_GPUDYNAMIC, BUFFER_STATIC, BUFFER_STREAM, BUTTON_TRANSITION_MODE_SPRITE_CHANGE, BUTTON_TRANSITION_MODE_TINT, BasicMaterial, Batch, BatchGroup, BatchManager, BinaryHandler, BlendState, BoundingBox, BoundingSphere, Bundle, BundleHandler, BundleRegistry, ButtonComponent, ButtonComponentSystem, CHUNKAPI_1_51, CHUNKAPI_1_55, CHUNKAPI_1_56, CHUNKAPI_1_57, CHUNKAPI_1_58, CHUNKAPI_1_60, CHUNKAPI_1_62, CHUNKAPI_1_65, CLEARFLAG_COLOR, CLEARFLAG_DEPTH, CLEARFLAG_STENCIL, CUBEFACE_NEGX, CUBEFACE_NEGY, CUBEFACE_NEGZ, CUBEFACE_POSX, CUBEFACE_POSY, CUBEFACE_POSZ, CUBEPROJ_BOX, CUBEPROJ_NONE, CULLFACE_BACK, CULLFACE_FRONT, CULLFACE_FRONTANDBACK, CULLFACE_NONE, CURVE_CARDINAL, CURVE_CATMULL, CURVE_LINEAR, CURVE_SMOOTHSTEP, CURVE_SPLINE, CURVE_STEP, Camera, CameraComponent, CameraComponentSystem, CanvasFont, ChunkBuilder, CollisionComponent, CollisionComponentSystem, Color, Component, ComponentSystem, ComponentSystemRegistry, ContactPoint, ContactResult, ContainerHandler, ContainerResource, ContextCreationError, Controller, CssHandler, CubemapHandler, Curve, CurveSet, DETAILMODE_ADD, DETAILMODE_MAX, DETAILMODE_MIN, DETAILMODE_MUL, DETAILMODE_OVERLAY, DETAILMODE_SCREEN, DEVICETYPE_NULL, DEVICETYPE_WEBGL1, DEVICETYPE_WEBGL2, DEVICETYPE_WEBGPU, DISTANCE_EXPONENTIAL, DISTANCE_INVERSE, DISTANCE_LINEAR, DefaultAnimBinder, DepthState, ELEMENTTYPE_FLOAT32, ELEMENTTYPE_GROUP, ELEMENTTYPE_IMAGE, ELEMENTTYPE_INT16, ELEMENTTYPE_INT32, ELEMENTTYPE_INT8, ELEMENTTYPE_TEXT, ELEMENTTYPE_UINT16, ELEMENTTYPE_UINT32, ELEMENTTYPE_UINT8, EMITTERSHAPE_BOX, EMITTERSHAPE_SPHERE, EVENT_GAMEPADCONNECTED, EVENT_GAMEPADDISCONNECTED, EVENT_KEYDOWN, EVENT_KEYUP, EVENT_MOUSEDOWN, EVENT_MOUSEMOVE, EVENT_MOUSEUP, EVENT_MOUSEWHEEL, EVENT_SELECT, EVENT_SELECTEND, EVENT_SELECTSTART, EVENT_TOUCHCANCEL, EVENT_TOUCHEND, EVENT_TOUCHMOVE, EVENT_TOUCHSTART, ElementComponent, ElementComponentSystem, ElementDragHelper, ElementInput, ElementInputEvent, ElementMouseEvent, ElementSelectEvent, ElementTouchEvent, Entity, EntityReference, EnvLighting, EventHandler, FILLMODE_FILL_WINDOW, FILLMODE_KEEP_ASPECT, FILLMODE_NONE, FILTER_LINEAR, FILTER_LINEAR_MIPMAP_LINEAR, FILTER_LINEAR_MIPMAP_NEAREST, FILTER_NEAREST, FILTER_NEAREST_MIPMAP_LINEAR, FILTER_NEAREST_MIPMAP_NEAREST, FITMODE_CONTAIN, FITMODE_COVER, FITMODE_STRETCH, FITTING_BOTH, FITTING_NONE, FITTING_SHRINK, FITTING_STRETCH, FOG_EXP, FOG_EXP2, FOG_LINEAR, FOG_NONE, FONT_BITMAP, FONT_MSDF, FRESNEL_NONE, FRESNEL_SCHLICK, FUNC_ALWAYS, FUNC_EQUAL, FUNC_GREATER, FUNC_GREATEREQUAL, FUNC_LESS, FUNC_LESSEQUAL, FUNC_NEVER, FUNC_NOTEQUAL, FolderHandler, Font, FontHandler, ForwardRenderer, Frustum, GAMMA_NONE, GAMMA_SRGB, GAMMA_SRGBFAST, GAMMA_SRGBHDR, GamePads, GraphNode, GraphicsDevice, HierarchyHandler, HtmlHandler, Http, I18n, INDEXFORMAT_UINT16, INDEXFORMAT_UINT32, INDEXFORMAT_UINT8, INTERPOLATION_CUBIC, INTERPOLATION_LINEAR, INTERPOLATION_STEP, ImageElement, IndexBuffer, IndexedList, JointComponent, JointComponentSystem, JsonHandler, JsonStandardMaterialParser, KEY_0, KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7, KEY_8, KEY_9, KEY_A, KEY_ADD, KEY_ALT, KEY_B, KEY_BACKSPACE, KEY_BACK_SLASH, KEY_C, KEY_CAPS_LOCK, KEY_CLOSE_BRACKET, KEY_COMMA, KEY_CONTEXT_MENU, KEY_CONTROL, KEY_D, KEY_DECIMAL, KEY_DELETE, KEY_DIVIDE, KEY_DOWN, KEY_E, KEY_END, KEY_ENTER, KEY_EQUAL, KEY_ESCAPE, KEY_F, KEY_F1, KEY_F10, KEY_F11, KEY_F12, KEY_F2, KEY_F3, KEY_F4, KEY_F5, KEY_F6, KEY_F7, KEY_F8, KEY_F9, KEY_G, KEY_H, KEY_HOME, KEY_I, KEY_INSERT, KEY_J, KEY_K, KEY_L, KEY_LEFT, KEY_M, KEY_META, KEY_MULTIPLY, KEY_N, KEY_NUMPAD_0, KEY_NUMPAD_1, KEY_NUMPAD_2, KEY_NUMPAD_3, KEY_NUMPAD_4, KEY_NUMPAD_5, KEY_NUMPAD_6, KEY_NUMPAD_7, KEY_NUMPAD_8, KEY_NUMPAD_9, KEY_O, KEY_OPEN_BRACKET, KEY_P, KEY_PAGE_DOWN, KEY_PAGE_UP, KEY_PAUSE, KEY_PERIOD, KEY_PRINT_SCREEN, KEY_Q, KEY_R, KEY_RETURN, KEY_RIGHT, KEY_S, KEY_SEMICOLON, KEY_SEPARATOR, KEY_SHIFT, KEY_SLASH, KEY_SPACE, KEY_SUBTRACT, KEY_T, KEY_TAB, KEY_U, KEY_UP, KEY_V, KEY_W, KEY_WINDOWS, KEY_X, KEY_Y, KEY_Z, Key, Keyboard, KeyboardEvent, LAYERID_DEPTH, LAYERID_IMMEDIATE, LAYERID_SKYBOX, LAYERID_UI, LAYERID_WORLD, LAYER_FX, LAYER_GIZMO, LAYER_HUD, LAYER_WORLD, LIGHTFALLOFF_INVERSESQUARED, LIGHTFALLOFF_LINEAR, LIGHTSHAPE_DISK, LIGHTSHAPE_PUNCTUAL, LIGHTSHAPE_RECT, LIGHTSHAPE_SPHERE, LIGHTTYPE_COUNT, LIGHTTYPE_DIRECTIONAL, LIGHTTYPE_OMNI, LIGHTTYPE_POINT, LIGHTTYPE_SPOT, LINEBATCH_GIZMO, LINEBATCH_OVERLAY, LINEBATCH_WORLD, Layer, LayerComposition, LayoutCalculator, LayoutChildComponent, LayoutChildComponentSystem, LayoutGroupComponent, LayoutGroupComponentSystem, Light, LightComponent, LightComponentSystem, LightingParams, Lightmapper, LitMaterial, LitOptions, LitShaderOptions, LocalizedAsset, MASK_AFFECT_DYNAMIC, MASK_AFFECT_LIGHTMAPPED, MASK_BAKE, MOTION_FREE, MOTION_LIMITED, MOTION_LOCKED, MOUSEBUTTON_LEFT, MOUSEBUTTON_MIDDLE, MOUSEBUTTON_NONE, MOUSEBUTTON_RIGHT, Mat3, Mat4, Material, MaterialHandler, Mesh, MeshInstance, Model, ModelComponent, ModelComponentSystem, ModelHandler, Morph, MorphInstance, MorphTarget, Mouse, MouseEvent$1 as MouseEvent, Node$1 as Node, NullGraphicsDevice, ORIENTATION_HORIZONTAL, ORIENTATION_VERTICAL, OrientedBox, PAD_1, PAD_2, PAD_3, PAD_4, PAD_DOWN, PAD_FACE_1, PAD_FACE_2, PAD_FACE_3, PAD_FACE_4, PAD_LEFT, PAD_L_SHOULDER_1, PAD_L_SHOULDER_2, PAD_L_STICK_BUTTON, PAD_L_STICK_X, PAD_L_STICK_Y, PAD_RIGHT, PAD_R_SHOULDER_1, PAD_R_SHOULDER_2, PAD_R_STICK_BUTTON, PAD_R_STICK_X, PAD_R_STICK_Y, PAD_SELECT, PAD_START, PAD_UP, PAD_VENDOR, PARTICLEMODE_CPU, PARTICLEMODE_GPU, PARTICLEORIENTATION_EMITTER, PARTICLEORIENTATION_SCREEN, PARTICLEORIENTATION_WORLD, PARTICLESORT_DISTANCE, PARTICLESORT_NEWER_FIRST, PARTICLESORT_NONE, PARTICLESORT_OLDER_FIRST, PIXELFORMAT_111110F, PIXELFORMAT_A8, PIXELFORMAT_ASTC_4x4, PIXELFORMAT_ATC_RGB, PIXELFORMAT_ATC_RGBA, PIXELFORMAT_BGRA8, PIXELFORMAT_DEPTH, PIXELFORMAT_DEPTHSTENCIL, PIXELFORMAT_DXT1, PIXELFORMAT_DXT3, PIXELFORMAT_DXT5, PIXELFORMAT_ETC1, PIXELFORMAT_ETC2_RGB, PIXELFORMAT_ETC2_RGBA, PIXELFORMAT_L8, PIXELFORMAT_L8_A8, PIXELFORMAT_LA8, PIXELFORMAT_PVRTC_2BPP_RGBA_1, PIXELFORMAT_PVRTC_2BPP_RGB_1, PIXELFORMAT_PVRTC_4BPP_RGBA_1, PIXELFORMAT_PVRTC_4BPP_RGB_1, PIXELFORMAT_R32F, PIXELFORMAT_R4_G4_B4_A4, PIXELFORMAT_R5_G5_B5_A1, PIXELFORMAT_R5_G6_B5, PIXELFORMAT_R8_G8_B8, PIXELFORMAT_R8_G8_B8_A8, PIXELFORMAT_RGB16F, PIXELFORMAT_RGB32F, PIXELFORMAT_RGB565, PIXELFORMAT_RGB8, PIXELFORMAT_RGBA16F, PIXELFORMAT_RGBA32F, PIXELFORMAT_RGBA4, PIXELFORMAT_RGBA5551, PIXELFORMAT_RGBA8, PIXELFORMAT_SRGB, PIXELFORMAT_SRGBA, PRIMITIVE_LINELOOP, PRIMITIVE_LINES, PRIMITIVE_LINESTRIP, PRIMITIVE_POINTS, PRIMITIVE_TRIANGLES, PRIMITIVE_TRIFAN, PRIMITIVE_TRISTRIP, PROJECTION_ORTHOGRAPHIC, PROJECTION_PERSPECTIVE, ParticleEmitter, ParticleSystemComponent, ParticleSystemComponentSystem, PhongMaterial, Picker, Plane, PostEffect$1 as PostEffect, PostEffectQueue, ProgramLibrary, QuadRender, Quat, RENDERSTYLE_POINTS, RENDERSTYLE_SOLID, RENDERSTYLE_WIREFRAME, RESOLUTION_AUTO, RESOLUTION_FIXED, RIGIDBODY_ACTIVE_TAG, RIGIDBODY_CF_KINEMATIC_OBJECT, RIGIDBODY_CF_NORESPONSE_OBJECT, RIGIDBODY_CF_STATIC_OBJECT, RIGIDBODY_DISABLE_DEACTIVATION, RIGIDBODY_DISABLE_SIMULATION, RIGIDBODY_ISLAND_SLEEPING, RIGIDBODY_TYPE_DYNAMIC, RIGIDBODY_TYPE_KINEMATIC, RIGIDBODY_TYPE_STATIC, RIGIDBODY_WANTS_DEACTIVATION, Ray, RaycastResult, ReadStream, RenderComponent, RenderComponentSystem, RenderHandler, RenderTarget, type ResourceHandler, ResourceLoader, RigidBodyComponent, RigidBodyComponentSystem, SAMPLETYPE_DEPTH, SAMPLETYPE_FLOAT, SAMPLETYPE_UNFILTERABLE_FLOAT, SCALEMODE_BLEND, SCALEMODE_NONE, SCROLLBAR_VISIBILITY_SHOW_ALWAYS, SCROLLBAR_VISIBILITY_SHOW_WHEN_REQUIRED, SCROLL_MODE_BOUNCE, SCROLL_MODE_CLAMP, SCROLL_MODE_INFINITE, SEMANTIC_ATTR, SEMANTIC_ATTR0, SEMANTIC_ATTR1, SEMANTIC_ATTR10, SEMANTIC_ATTR11, SEMANTIC_ATTR12, SEMANTIC_ATTR13, SEMANTIC_ATTR14, SEMANTIC_ATTR15, SEMANTIC_ATTR2, SEMANTIC_ATTR3, SEMANTIC_ATTR4, SEMANTIC_ATTR5, SEMANTIC_ATTR6, SEMANTIC_ATTR7, SEMANTIC_ATTR8, SEMANTIC_ATTR9, SEMANTIC_BLENDINDICES, SEMANTIC_BLENDWEIGHT, SEMANTIC_COLOR, SEMANTIC_NORMAL, SEMANTIC_POSITION, SEMANTIC_TANGENT, SEMANTIC_TEXCOORD, SEMANTIC_TEXCOORD0, SEMANTIC_TEXCOORD1, SEMANTIC_TEXCOORD2, SEMANTIC_TEXCOORD3, SEMANTIC_TEXCOORD4, SEMANTIC_TEXCOORD5, SEMANTIC_TEXCOORD6, SEMANTIC_TEXCOORD7, SHADERDEF_DIRLM, SHADERDEF_INSTANCING, SHADERDEF_LM, SHADERDEF_LMAMBIENT, SHADERDEF_MORPH_NORMAL, SHADERDEF_MORPH_POSITION, SHADERDEF_MORPH_TEXTURE_BASED, SHADERDEF_NOSHADOW, SHADERDEF_SCREENSPACE, SHADERDEF_SKIN, SHADERDEF_TANGENTS, SHADERDEF_UV0, SHADERDEF_UV1, SHADERDEF_VCOLOR, SHADERLANGUAGE_GLSL, SHADERLANGUAGE_WGSL, SHADERPASS_ALBEDO, SHADERPASS_AO, SHADERPASS_EMISSION, SHADERPASS_FORWARD, SHADERPASS_GLOSS, SHADERPASS_LIGHTING, SHADERPASS_METALNESS, SHADERPASS_OPACITY, SHADERPASS_SPECULARITY, SHADERPASS_UV0, SHADERPASS_WORLDNORMAL, SHADERSTAGE_COMPUTE, SHADERSTAGE_FRAGMENT, SHADERSTAGE_VERTEX, SHADERTAG_MATERIAL, SHADER_DEPTH, SHADER_FORWARD, SHADER_FORWARDHDR, SHADER_PICK, SHADER_SHADOW, SHADOWUPDATE_NONE, SHADOWUPDATE_REALTIME, SHADOWUPDATE_THISFRAME, SHADOW_DEPTH, SHADOW_PCF1, SHADOW_PCF3, SHADOW_PCF5, SHADOW_PCSS, SHADOW_VSM16, SHADOW_VSM32, SHADOW_VSM8, SORTKEY_DEPTH, SORTKEY_FORWARD, SORTMODE_BACK2FRONT, SORTMODE_CUSTOM, SORTMODE_FRONT2BACK, SORTMODE_MANUAL, SORTMODE_MATERIALMESH, SORTMODE_NONE, SPECOCC_AO, SPECOCC_GLOSSDEPENDENT, SPECOCC_NONE, SPECULAR_BLINN, SPECULAR_PHONG, SPRITETYPE_ANIMATED, SPRITETYPE_SIMPLE, SPRITE_RENDERMODE_SIMPLE, SPRITE_RENDERMODE_SLICED, SPRITE_RENDERMODE_TILED, STENCILOP_DECREMENT, STENCILOP_DECREMENTWRAP, STENCILOP_INCREMENT, STENCILOP_INCREMENTWRAP, STENCILOP_INVERT, STENCILOP_KEEP, STENCILOP_REPLACE, STENCILOP_ZERO, Scene, SceneHandler, SceneRegistry, SceneRegistryItem, SceneSettingsHandler, ScopeId, ScopeSpace, ScreenComponent, ScreenComponentSystem, ScriptAttributes, ScriptComponent, ScriptComponentSystem, ScriptHandler, ScriptLegacyComponent, ScriptLegacyComponentSystem, ScriptRegistry, ScriptType, ScrollViewComponent, ScrollViewComponentSystem, ScrollbarComponent, ScrollbarComponentSystem, Shader, ShaderHandler, ShaderPass, SingleContactResult, Skeleton, Skin, SkinBatchInstance, SkinInstance, SortedLoopArray, Sound, SoundComponent, SoundComponentSystem, SoundInstance, SoundInstance3d, SoundManager, SoundSlot, Sprite, SpriteAnimationClip, SpriteComponent, SpriteComponentSystem, SpriteHandler, StandardMaterial, StandardMaterialOptions, StencilParameters, TEXHINT_ASSET, TEXHINT_LIGHTMAP, TEXHINT_NONE, TEXHINT_SHADOWMAP, TEXTUREDIMENSION_1D, TEXTUREDIMENSION_2D, TEXTUREDIMENSION_2D_ARRAY, TEXTUREDIMENSION_3D, TEXTUREDIMENSION_CUBE, TEXTUREDIMENSION_CUBE_ARRAY, TEXTURELOCK_READ, TEXTURELOCK_WRITE, TEXTUREPROJECTION_CUBE, TEXTUREPROJECTION_EQUIRECT, TEXTUREPROJECTION_NONE, TEXTUREPROJECTION_OCTAHEDRAL, TEXTURETYPE_DEFAULT, TEXTURETYPE_RGBE, TEXTURETYPE_RGBM, TEXTURETYPE_RGBP, TEXTURETYPE_SWIZZLEGGGR, TONEMAP_ACES, TONEMAP_ACES2, TONEMAP_FILMIC, TONEMAP_HEJL, TONEMAP_LINEAR, TRACEID_BINDGROUPFORMAT_ALLOC, TRACEID_BINDGROUP_ALLOC, TRACEID_GPU_TIMINGS, TRACEID_PIPELINELAYOUT_ALLOC, TRACEID_RENDERPIPELINE_ALLOC, TRACEID_RENDER_ACTION, TRACEID_RENDER_FRAME, TRACEID_RENDER_FRAME_TIME, TRACEID_RENDER_PASS, TRACEID_RENDER_PASS_DETAIL, TRACEID_RENDER_QUEUE, TRACEID_RENDER_TARGET_ALLOC, TRACEID_SHADER_ALLOC, TRACEID_SHADER_COMPILE, TRACEID_TEXTURES, TRACEID_TEXTURE_ALLOC, TRACEID_VRAM_IB, TRACEID_VRAM_TEXTURE, TRACEID_VRAM_VB, TRACE_ID_ELEMENT, TYPE_FLOAT32, TYPE_INT16, TYPE_INT32, TYPE_INT8, TYPE_UINT16, TYPE_UINT32, TYPE_UINT8, Tags, Template, TemplateHandler, TextElement, TextHandler, Texture, TextureAtlas, TextureAtlasHandler, TextureHandler, TextureParser, TextureUtils, Touch$1 as Touch, TouchDevice, TouchEvent$1 as TouchEvent, Tracing, TransformFeedback, UNIFORMTYPE_BOOL, UNIFORMTYPE_BVEC2, UNIFORMTYPE_BVEC3, UNIFORMTYPE_BVEC4, UNIFORMTYPE_FLOAT, UNIFORMTYPE_FLOATARRAY, UNIFORMTYPE_INT, UNIFORMTYPE_IVEC2, UNIFORMTYPE_IVEC3, UNIFORMTYPE_IVEC4, UNIFORMTYPE_MAT2, UNIFORMTYPE_MAT3, UNIFORMTYPE_MAT4, UNIFORMTYPE_MAT4ARRAY, UNIFORMTYPE_TEXTURE2D, UNIFORMTYPE_TEXTURE2D_SHADOW, UNIFORMTYPE_TEXTURE3D, UNIFORMTYPE_TEXTURECUBE, UNIFORMTYPE_TEXTURECUBE_SHADOW, UNIFORMTYPE_VEC2, UNIFORMTYPE_VEC2ARRAY, UNIFORMTYPE_VEC3, UNIFORMTYPE_VEC3ARRAY, UNIFORMTYPE_VEC4, UNIFORMTYPE_VEC4ARRAY, UNIFORM_BUFFER_DEFAULT_SLOT_NAME, URI, UnsupportedBrowserError, VIEW_CENTER, VIEW_LEFT, VIEW_RIGHT, Vec2, Vec3, Vec4, VertexBuffer, VertexFormat, VertexIterator, WasmModule, WebglGraphicsDevice, WebgpuGraphicsDevice, WorldClusters, XRDEPTHSENSINGFORMAT_F32, XRDEPTHSENSINGFORMAT_L8A8, XRDEPTHSENSINGUSAGE_CPU, XRDEPTHSENSINGUSAGE_GPU, XRHAND_LEFT, XRHAND_NONE, XRHAND_RIGHT, XRPAD_A, XRPAD_B, XRPAD_SQUEEZE, XRPAD_STICK_BUTTON, XRPAD_STICK_X, XRPAD_STICK_Y, XRPAD_TOUCHPAD_BUTTON, XRPAD_TOUCHPAD_X, XRPAD_TOUCHPAD_Y, XRPAD_TRIGGER, XRSPACE_BOUNDEDFLOOR, XRSPACE_LOCAL, XRSPACE_LOCALFLOOR, XRSPACE_UNBOUNDED, XRSPACE_VIEWER, XRTARGETRAY_GAZE, XRTARGETRAY_POINTER, XRTARGETRAY_SCREEN, XRTRACKABLE_MESH, XRTRACKABLE_PLANE, XRTRACKABLE_POINT, XRTYPE_AR, XRTYPE_INLINE, XRTYPE_VR, XrAnchor, XrAnchors, XrDepthSensing, XrDomOverlay, XrHitTest, XrHitTestSource, XrImageTracking, XrInput, XrInputSource, XrLightEstimation, XrManager, XrPlane, XrPlaneDetection, XrTrackedImage, ZoneComponent, ZoneComponentSystem, anim, app, apps, asset, audio, basisInitialize, basisSetDownloadConfig, bindGroupNames, calculateNormals, calculateTangents, common, config, createBox, createCapsule, createCone, createCylinder, createGraphicsDevice, createMesh, createPlane, createScript, createShader, createShaderFromCode, createSphere, createStyle, createTorus, createURI, data, dracoInitialize, drawFullscreenQuad, drawQuadWithShader, drawTexture, events, extend, getPixelFormatArrayType, getReservedScriptNames, getTouchTargetCoords, gfx, guid, http, inherits, input, isCompressedPixelFormat, log, makeArray, math, now, path, pixelFormatInfo, platform, posteffect, prefilterCubemap, programlib, registerScript, reprojectTexture, revision, scene, script, semanticToLocation, shFromCubemap, shaderChunks, shaderChunksLightmapper, shadowTypeToString, shape, string, time, type, typedArrayIndexFormats, typedArrayIndexFormatsByteSize, typedArrayToType, typedArrayTypes, typedArrayTypesByteSize, uniformTypeToName, version, vertexTypesNames };
 export as namespace pc;

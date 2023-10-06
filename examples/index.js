@@ -1356,7 +1356,7 @@
                     'walkAnim': new pc__namespace.Asset('walkAnim', 'container', { url: '/static/assets/animations/bitmoji/walk.glb' }),
                     'jogAnim': new pc__namespace.Asset('jogAnim', 'container', { url: '/static/assets/animations/bitmoji/run.glb' }),
                     'jumpAnim': new pc__namespace.Asset('jumpAnim', 'container', { url: '/static/assets/animations/bitmoji/jump-flip.glb' }),
-                    helipad: new pc__namespace.Asset('helipad-env-atlas', 'texture', { url: '/static/assets/cubemaps/helipad-env-atlas.png' }, { type: pc__namespace.TEXTURETYPE_RGBP, mipmaps: false }),
+                    helipad: new pc__namespace.Asset('helipad-env-atlas', 'texture', { url: '/static/assets/cubemaps/helipad-env-atlas.png' }, { type: pc__namespace.TEXTURETYPE_RGBP, mipmaps: false })
                 };
                 var gfxOptions = {
                     deviceTypes: [deviceType],
@@ -2404,7 +2404,7 @@
             var _this = this;
             var assets = {
                 'bloom': new pc__namespace.Asset('bloom', 'script', { url: '/static/scripts/posteffects/posteffect-bloom.js' }),
-                helipad: new pc__namespace.Asset('helipad-env-atlas', 'texture', { url: '/static/assets/cubemaps/helipad-env-atlas.png' }, { type: pc__namespace.TEXTURETYPE_RGBP, mipmaps: false }),
+                helipad: new pc__namespace.Asset('helipad-env-atlas', 'texture', { url: '/static/assets/cubemaps/helipad-env-atlas.png' }, { type: pc__namespace.TEXTURETYPE_RGBP, mipmaps: false })
             };
             var gfxOptions = {
                 deviceTypes: [deviceType],
@@ -2518,6 +2518,9 @@
                     }
                     // array of highlighted materials
                     var highlights = [];
+                    // the layers picker renders
+                    var worldLayer = app.scene.layers.getLayerByName("World");
+                    var pickerLayers = [worldLayer];
                     // update each frame
                     var time = 0;
                     app.on("update", function (dt) {
@@ -2536,7 +2539,7 @@
                         // Make sure the picker is the right size, and prepare it, which renders meshes into its render target
                         if (picker) {
                             picker.resize(canvas.clientWidth * pickerScale, canvas.clientHeight * pickerScale);
-                            picker.prepare(camera.camera, app.scene);
+                            picker.prepare(camera.camera, app.scene, pickerLayers);
                         }
                         // areas we want to sample - two larger rectangles, one small square, and one pixel at a mouse position
                         // assign them different highlight colors as well
@@ -2791,6 +2794,7 @@
         };
         AssetViewerExample.CATEGORY = 'Graphics';
         AssetViewerExample.NAME = 'Asset Viewer';
+        AssetViewerExample.WEBGPU_ENABLED = true;
         return AssetViewerExample;
     }());
 
@@ -2983,11 +2987,12 @@
                         bumpiness: 0.2,
                         reflectivity: 0.5
                     });
+                    // get existing layers
+                    var worldLayer = app.scene.layers.getLayerByName("World");
+                    var uiLayer = app.scene.layers.getLayerByName("UI");
                     // create a layer for object that do not render into reflection cubemap
                     var excludedLayer = new pc__namespace.Layer({ name: "Excluded" });
-                    app.scene.layers.push(excludedLayer);
-                    // get world layer
-                    var worldLayer = app.scene.layers.getLayerByName("World");
+                    app.scene.layers.insert(excludedLayer, app.scene.layers.getTransparentIndex(worldLayer) + 1);
                     // create an envAtlas texture, which will hold a prefiltered lighting generated from the cubemap.
                     // This represents a reflection prefiltered for different levels of roughness
                     var envAtlas = new pc__namespace.Texture(app.graphicsDevice, {
@@ -3136,10 +3141,10 @@
                     lightOmni.setLocalScale(20, 20, 20);
                     app.root.addChild(lightOmni);
                     // create an Entity with a camera component
-                    var camera = new pc__namespace.Entity();
+                    var camera = new pc__namespace.Entity("MainCamera");
                     camera.addComponent("camera", {
                         fov: 100,
-                        layers: [worldLayer.id, excludedLayer.id],
+                        layers: [worldLayer.id, excludedLayer.id, uiLayer.id],
                         farClip: 1500
                     });
                     camera.setLocalPosition(270, 90, -260);
@@ -3156,7 +3161,7 @@
                     camera.script.create("orbitCameraInputTouch");
                     app.root.addChild(camera);
                     // create a probe object with cubemapRenderer script which takes care of rendering dynamic cubemap
-                    var probe = new pc__namespace.Entity();
+                    var probe = new pc__namespace.Entity('probeCamera');
                     probe.addComponent('script');
                     // add camera component to the probe - this defines camera properties for cubemap rendering
                     probe.addComponent('camera', {
@@ -3916,8 +3921,10 @@
         ClusteredSpotShadowsExample.prototype.controls = function (data) {
             return React__default["default"].createElement(React__default["default"].Fragment, null,
                 React__default["default"].createElement(react.Panel, { headerText: 'Atlas' },
-                    React__default["default"].createElement(react.LabelGroup, { text: 'Resolution' },
+                    React__default["default"].createElement(react.LabelGroup, { text: 'Shadow Res' },
                         React__default["default"].createElement(react.SliderInput, { binding: new react.BindingTwoWay(), link: { observer: data, path: 'settings.shadowAtlasResolution' }, min: 256, max: 4096, precision: 0 })),
+                    React__default["default"].createElement(react.LabelGroup, { text: 'Cookie Res' },
+                        React__default["default"].createElement(react.SliderInput, { binding: new react.BindingTwoWay(), link: { observer: data, path: 'settings.cookieAtlasResolution' }, min: 128, max: 4096, precision: 0 })),
                     React__default["default"].createElement(react.LabelGroup, { text: 'Split' },
                         React__default["default"].createElement(react.SelectInput, { binding: new react.BindingTwoWay(), link: { observer: data, path: 'settings.atlasSplit' }, type: "number", options: [
                                 { v: 0, t: 'Automatic' },
@@ -3994,6 +4001,7 @@
                     app.start();
                     data.set('settings', {
                         shadowAtlasResolution: 1024,
+                        cookieAtlasResolution: 1024,
                         shadowType: pc__namespace.SHADOW_PCF3,
                         shadowsEnabled: true,
                         cookiesEnabled: true,
@@ -4023,7 +4031,7 @@
                     lighting.cookiesEnabled = data.get('settings.cookiesEnabled');
                     // resolution of the shadow and cookie atlas
                     lighting.shadowAtlasResolution = data.get('settings.shadowAtlasResolution');
-                    lighting.cookieAtlasResolution = 1500;
+                    lighting.cookieAtlasResolution = data.get('settings.cookieAtlasResolution');
                     var splitOptions = [
                         null,
                         [2, 1, 1, 2, 1],
@@ -4400,7 +4408,7 @@
                         occluder.anim.assignAnimation('Idle', assets.asset.resource.animations[0].resource);
                         occluder.anim.baseLayer.weight = 1.0;
                         occluder.anim.speed = 0.1;
-                        //const animLayer = occluder.anim.addLayer('Idle', 1.0, )
+                        // const animLayer = occluder.anim.addLayer('Idle', 1.0, )
                         app.scene.envAtlas = assets.helipad.resource;
                         var areaLight = new pc__namespace.Entity();
                         areaLight.addComponent("light", {
@@ -4766,7 +4774,7 @@
             var gfxOptions = {
                 deviceTypes: [deviceType],
                 glslangUrl: '/static/lib/glslang/glslang.js',
-                twgslUrl: '/static/lib/twgsl/twgsl.js',
+                twgslUrl: '/static/lib/twgsl/twgsl.js'
             };
             pc__namespace.createGraphicsDevice(canvas, gfxOptions).then(function (device) {
                 var createOptions = new pc__namespace.AppOptions();
@@ -4868,7 +4876,6 @@
                     material.shader = shader;
                     material.setParameter('uTexture', assets.texture.resource);
                     material.depthWrite = false;
-                    material.depthWrite = false;
                     material.blendType = pc__namespace.BLEND_NORMAL;
                     material.update();
                     // create a subdivided plane mesh, to allow for vertex animation by the shader
@@ -4967,13 +4974,13 @@
                     material.useMetalness = true;
                     material.update();
                     // Create a Entity with a cylinder render component and the instancing material
-                    var box = new pc__namespace.Entity("InstancingEntity");
-                    box.addComponent("render", {
+                    var cylinder = new pc__namespace.Entity("InstancingEntity");
+                    cylinder.addComponent("render", {
                         material: material,
                         type: "cylinder"
                     });
-                    // add the box entity to the hierarchy
-                    app.root.addChild(box);
+                    // add the cylinder entity to the hierarchy
+                    app.root.addChild(cylinder);
                     if (app.graphicsDevice.supportsInstancing) {
                         // number of instances to render
                         var instanceCount = 1000;
@@ -4997,9 +5004,9 @@
                         }
                         // create static vertex buffer containing the matrices
                         var vertexBuffer = new pc__namespace.VertexBuffer(app.graphicsDevice, pc__namespace.VertexFormat.getDefaultInstancingFormat(app.graphicsDevice), instanceCount, pc__namespace.BUFFER_STATIC, matrices);
-                        // initialize instancing using the vertex buffer on meshInstance of the created box
-                        var boxMeshInst = box.render.meshInstances[0];
-                        boxMeshInst.setInstancing(vertexBuffer);
+                        // initialize instancing using the vertex buffer on meshInstance of the created cylinder
+                        var cylinderMeshInst = cylinder.render.meshInstances[0];
+                        cylinderMeshInst.setInstancing(vertexBuffer);
                     }
                     // Set an update function on the app's update event
                     var angle = 0;
@@ -5339,7 +5346,9 @@
                     var lightDirectional = new pc__namespace.Entity("Directional");
                     lightDirectional.addComponent("light", {
                         type: "directional",
-                        affectDynamic: true,
+                        // disable to not have shadow map updated every frame,
+                        // as the scene does not have dynamically lit objects
+                        affectDynamic: false,
                         affectLightmapped: true,
                         castShadows: true,
                         normalOffsetBias: 0.05,
@@ -7128,7 +7137,7 @@
                             colorsUpdated = true;
                         }
                         // fade out all vertex colors once a second
-                        if (Math.round(time) != Math.round(previousTime)) {
+                        if (Math.round(time) !== Math.round(previousTime)) {
                             for (var i = 0; i < colors.length; i++)
                                 colors[i] -= 2;
                             // colors were updated
@@ -7829,8 +7838,9 @@
                     // create a layer for rendering to texture, and add it to the beginning of layers to render into it first
                     var outlineLayer = new pc__namespace.Layer({ name: "OutlineLayer" });
                     app.scene.layers.insert(outlineLayer, 0);
-                    // get world layer
+                    // get existing layers
                     var worldLayer = app.scene.layers.getLayerByName("World");
+                    var uiLayer = app.scene.layers.getLayerByName("UI");
                     // create ground plane and 3 primitives, visible in both layers
                     createPrimitive("plane", new pc__namespace.Vec3(0, 0, 0), new pc__namespace.Vec3(20, 20, 20), new pc__namespace.Color(0.3, 0.5, 0.3), [worldLayer.id]);
                     createPrimitive("sphere", new pc__namespace.Vec3(-2, 1, 0), new pc__namespace.Vec3(2, 2, 2), new pc__namespace.Color(1, 0, 0), [worldLayer.id]);
@@ -7840,7 +7850,7 @@
                     var camera = new pc__namespace.Entity();
                     camera.addComponent("camera", {
                         clearColor: new pc__namespace.Color(0.2, 0.2, 0.4),
-                        layers: [worldLayer.id]
+                        layers: [worldLayer.id, uiLayer.id]
                     });
                     camera.translate(0, 20, 25);
                     camera.lookAt(pc__namespace.Vec3.ZERO);
@@ -8064,22 +8074,32 @@
                         data.set('settings', {
                             shaderPassName: pc__namespace.SHADERPASS_FORWARD
                         });
+                        // get few existing layers and create a new layer for the spot light
+                        var worldLayer = app.scene.layers.getLayerByName("World");
+                        var skyboxLayer = app.scene.layers.getLayerByName("Skybox");
+                        var spotLightLayer = new pc__namespace.Layer({ name: "SpotLightLayer" });
+                        app.scene.layers.insert(spotLightLayer, 0);
                         // get the instance of the chess board and set up with render component
                         var boardEntity = assets.board.resource.instantiateRenderEntity({
                             castShadows: true,
-                            receiveShadows: true
+                            receiveShadows: true,
+                            // add it to both layers with lights, as we want it to lit by directional light and spot light,
+                            // depending on the camera
+                            layers: [worldLayer.id, spotLightLayer.id]
                         });
                         app.root.addChild(boardEntity);
-                        // Create left camera
+                        // Create left camera, using default layers (including the World)
                         var cameraLeft = new pc__namespace.Entity('LeftCamera');
                         cameraLeft.addComponent("camera", {
                             farClip: 500,
                             rect: new pc__namespace.Vec4(0, 0, 0.5, 0.5)
                         });
                         app.root.addChild(cameraLeft);
-                        // Create right orthographic camera
+                        // Create right orthographic camera, using spot light layer and skybox layer,
+                        // so that it receives the light from the spot light but not from the directional light
                         var cameraRight = new pc__namespace.Entity('RightCamera');
                         cameraRight.addComponent("camera", {
+                            layers: [spotLightLayer.id, skyboxLayer.id],
                             farClip: 500,
                             rect: new pc__namespace.Vec4(0.5, 0, 0.5, 0.5),
                             projection: pc__namespace.PROJECTION_ORTHOGRAPHIC,
@@ -8088,7 +8108,7 @@
                         cameraRight.translate(0, 150, 0);
                         cameraRight.lookAt(pc__namespace.Vec3.ZERO, pc__namespace.Vec3.RIGHT);
                         app.root.addChild(cameraRight);
-                        // Create top camera
+                        // Create top camera, using default layers (including the World)
                         var cameraTop = new pc__namespace.Entity('TopCamera');
                         cameraTop.addComponent("camera", {
                             farClip: 500,
@@ -8109,12 +8129,13 @@
                         });
                         cameraTop.script.create("orbitCameraInputMouse");
                         cameraTop.script.create("orbitCameraInputTouch");
-                        // Create a single directional light which casts shadows
+                        // Create a directional light which casts shadows
                         var dirLight = new pc__namespace.Entity();
                         dirLight.addComponent("light", {
                             type: "directional",
+                            layers: [worldLayer.id],
                             color: pc__namespace.Color.WHITE,
-                            intensity: 2,
+                            intensity: 5,
                             range: 500,
                             shadowDistance: 500,
                             castShadows: true,
@@ -8123,13 +8144,30 @@
                         });
                         app.root.addChild(dirLight);
                         dirLight.setLocalEulerAngles(45, 0, 30);
+                        // Create a single directional light which casts shadows
+                        var spotLight = new pc__namespace.Entity();
+                        spotLight.addComponent("light", {
+                            type: "spot",
+                            layers: [spotLightLayer.id],
+                            color: pc__namespace.Color.YELLOW,
+                            intensity: 7,
+                            innerConeAngle: 20,
+                            outerConeAngle: 80,
+                            range: 200,
+                            shadowDistance: 200,
+                            castShadows: true,
+                            shadowBias: 0.2,
+                            normalOffsetBias: 0.05
+                        });
+                        app.root.addChild(spotLight);
                         // set skybox - this DDS file was 'prefiltered' in the PlayCanvas Editor and then downloaded.
                         app.scene.envAtlas = assets.helipad.resource;
                         app.scene.toneMapping = pc__namespace.TONEMAP_ACES;
                         app.scene.skyboxMip = 1;
-                        // handle HUD changes - update the debug mode on the top camera
+                        // handle HUD changes - update the debug mode for the top and right cameras
                         data.on('*:set', function (path, value) {
                             cameraTop.camera.setShaderPass(value);
+                            cameraRight.camera.setShaderPass(value);
                         });
                         // update function called once per frame
                         var time = 0;
@@ -8138,6 +8176,8 @@
                             // orbit camera left around
                             cameraLeft.setLocalPosition(100 * Math.sin(time * 0.2), 35, 100 * Math.cos(time * 0.2));
                             cameraLeft.lookAt(pc__namespace.Vec3.ZERO);
+                            // move the spot light around
+                            spotLight.setLocalPosition(40 * Math.sin(time * 0.5), 60, 40 * Math.cos(time * 0.5));
                             // zoom in and out the orthographic camera
                             cameraRight.camera.orthoHeight = 90 + Math.sin(time * 0.3) * 60;
                         });
@@ -8210,9 +8250,10 @@
                     app.scene.envAtlas = assets.helipad.resource;
                     app.scene.skyboxMip = 1;
                     app.scene.toneMapping = pc__namespace.TONEMAP_ACES;
-                    // get world and skybox layers
+                    // get existing layers
                     var worldLayer = app.scene.layers.getLayerByName("World");
                     var skyboxLayer = app.scene.layers.getLayerByName("Skybox");
+                    var uiLayer = app.scene.layers.getLayerByName("UI");
                     // create a layer for object that render into texture, add it right after the world layer
                     var rtLayer = new pc__namespace.Layer({ name: "RTLayer" });
                     app.scene.layers.insert(rtLayer, 1);
@@ -8279,7 +8320,7 @@
                     // Create an Entity with a camera component
                     var camera = new pc__namespace.Entity();
                     camera.addComponent("camera", {
-                        layers: [worldLayer.id, skyboxLayer.id]
+                        layers: [worldLayer.id, skyboxLayer.id, uiLayer.id]
                     });
                     app.root.addChild(camera);
                     // update things every frame
@@ -9370,6 +9411,7 @@
                     var worldLayer = app.scene.layers.getLayerByName("World");
                     // find skybox layer - to enable it for the camera
                     var skyboxLayer = app.scene.layers.getLayerByName("Skybox");
+                    var uiLayer = app.scene.layers.getLayerByName("UI");
                     // portal layer - this is where the portal geometry is written to the stencil
                     // buffer, and this needs to render first, so insert it before the world layer
                     var portalLayer = new pc__namespace.Layer({ name: "Portal" });
@@ -9378,7 +9420,7 @@
                     // this camera renders both world and portal layers
                     var camera = new pc__namespace.Entity();
                     camera.addComponent('camera', {
-                        layers: [worldLayer.id, portalLayer.id, skyboxLayer.id]
+                        layers: [worldLayer.id, portalLayer.id, skyboxLayer.id, uiLayer.id]
                     });
                     camera.setLocalPosition(7, 5.5, 7.1);
                     camera.setLocalEulerAngles(-27, 45, 0);
@@ -9808,12 +9850,13 @@
                         app.root.addChild(primitive);
                         return primitive;
                     }
-                    // create a layer for objects that do not render into texture
-                    var excludedLayer = new pc__namespace.Layer({ name: "Excluded" });
-                    app.scene.layers.push(excludedLayer);
-                    // get world and skybox layers
+                    // get existing layers
                     var worldLayer = app.scene.layers.getLayerByName("World");
                     var skyboxLayer = app.scene.layers.getLayerByName("Skybox");
+                    var uiLayer = app.scene.layers.getLayerByName("UI");
+                    // create a layer for objects that do not render into texture
+                    var excludedLayer = new pc__namespace.Layer({ name: "Excluded" });
+                    app.scene.layers.insert(excludedLayer, app.scene.layers.getTransparentIndex(worldLayer) + 1);
                     // Create the shader from the vertex and fragment shaders
                     var shader = pc__namespace.createShaderFromCode(app.graphicsDevice, files['shader.vert'], files['shader.frag'], 'myShader', {
                         aPosition: pc__namespace.SEMANTIC_POSITION,
@@ -9839,7 +9882,7 @@
                     var camera = new pc__namespace.Entity("MainCamera");
                     camera.addComponent("camera", {
                         fov: 60,
-                        layers: [worldLayer.id, excludedLayer.id, skyboxLayer.id]
+                        layers: [worldLayer.id, excludedLayer.id, skyboxLayer.id, uiLayer.id]
                     });
                     app.root.addChild(camera);
                     // create reflection camera, which renders entities in world and skybox layers only
@@ -10067,6 +10110,11 @@
                         app.root.addChild(primitive);
                         return primitive;
                     }
+                    // get existing layers
+                    var worldLayer = app.scene.layers.getLayerByName("World");
+                    var skyboxLayer = app.scene.layers.getLayerByName("Skybox");
+                    var immediateLayer = app.scene.layers.getLayerByName("Immediate");
+                    var uiLayer = app.scene.layers.getLayerByName("UI");
                     // create a layer for object that do not render into texture
                     var excludedLayer = new pc__namespace.Layer({ name: "Excluded" });
                     app.scene.layers.push(excludedLayer);
@@ -10076,10 +10124,6 @@
                     var shinyBall = createHighQualitySphere(shinyMat, [excludedLayer.id]);
                     shinyBall.setLocalPosition(0, 0, 0);
                     shinyBall.setLocalScale(10, 10, 10);
-                    // get world and skybox layers
-                    var worldLayer = app.scene.layers.getLayerByName("World");
-                    var skyboxLayer = app.scene.layers.getLayerByName("Skybox");
-                    var immediateLayer = app.scene.layers.getLayerByName("Immediate");
                     // add camera component to shiny ball - this defines camera properties for cubemap rendering
                     shinyBall.addComponent('camera', {
                         // optimization - clear the surface even though all pixels are overwritten,
@@ -10125,7 +10169,7 @@
                     var camera = new pc__namespace.Entity("MainCamera");
                     camera.addComponent("camera", {
                         fov: 60,
-                        layers: [worldLayer.id, excludedLayer.id, skyboxLayer.id, immediateLayer.id]
+                        layers: [worldLayer.id, excludedLayer.id, skyboxLayer.id, immediateLayer.id, uiLayer.id]
                     });
                     app.root.addChild(camera);
                     // Create an Entity with a directional light component
@@ -10350,9 +10394,10 @@
                     // create a layer for object that do not render into texture, add it right after the world layer
                     var excludedLayer = new pc__namespace.Layer({ name: "Excluded" });
                     app.scene.layers.insert(excludedLayer, 1);
-                    // get world and skybox layers
+                    // get existing layers
                     var worldLayer = app.scene.layers.getLayerByName("World");
                     var skyboxLayer = app.scene.layers.getLayerByName("Skybox");
+                    var uiLayer = app.scene.layers.getLayerByName("UI");
                     // create ground plane and 3 primitives, visible in world layer
                     var plane = createPrimitive("plane", new pc__namespace.Vec3(0, 0, 0), new pc__namespace.Vec3(20, 20, 20), new pc__namespace.Color(3, 4, 2), [worldLayer.id]);
                     var planeMaterial = plane.render.meshInstances[0].material;
@@ -10370,7 +10415,7 @@
                     var camera = new pc__namespace.Entity("Camera");
                     camera.addComponent("camera", {
                         fov: 100,
-                        layers: [worldLayer.id, excludedLayer.id, skyboxLayer.id]
+                        layers: [worldLayer.id, excludedLayer.id, skyboxLayer.id, uiLayer.id]
                     });
                     camera.translate(0, 9, 15);
                     camera.lookAt(1, 4, 0);
@@ -10576,14 +10621,14 @@
         function ShaderCompileExample() {
         }
         ShaderCompileExample.prototype.example = function (canvas, deviceType) {
-            // This example servers as a test framework for large shader compilation speed test. Enable tracking for it.
+            // This example serves as a test framework for large shader compilation speed test. Enable tracking for it.
             pc__namespace.Tracing.set(pc__namespace.TRACEID_SHADER_COMPILE, true);
             var assets = {
                 'color': new pc__namespace.Asset('color', 'texture', { url: '/static/assets/textures/seaside-rocks01-color.jpg' }),
                 'normal': new pc__namespace.Asset('normal', 'texture', { url: '/static/assets/textures/seaside-rocks01-normal.jpg' }),
                 'gloss': new pc__namespace.Asset('gloss', 'texture', { url: '/static/assets/textures/seaside-rocks01-gloss.jpg' }),
                 'luts': new pc__namespace.Asset('luts', 'json', { url: '/static/assets/json/area-light-luts.json' }),
-                helipad: new pc__namespace.Asset('helipad-env-atlas', 'texture', { url: '/static/assets/cubemaps/helipad-env-atlas.png' }, { type: pc__namespace.TEXTURETYPE_RGBP, mipmaps: false }),
+                helipad: new pc__namespace.Asset('helipad-env-atlas', 'texture', { url: '/static/assets/cubemaps/helipad-env-atlas.png' }, { type: pc__namespace.TEXTURETYPE_RGBP, mipmaps: false })
             };
             var gfxOptions = {
                 deviceTypes: [deviceType],
@@ -11234,7 +11279,7 @@
                 'color': new pc__namespace.Asset('color', 'texture', { url: '/static/assets/textures/seaside-rocks01-color.basis' }),
                 'gloss': new pc__namespace.Asset('gloss', 'texture', { url: '/static/assets/textures/seaside-rocks01-gloss.basis' }),
                 'normal': new pc__namespace.Asset('normal', 'texture', { url: '/static/assets/textures/seaside-rocks01-normal.basis' }, { type: pc__namespace.TEXTURETYPE_SWIZZLEGGGR }),
-                'helipad': new pc__namespace.Asset('helipad-env-atlas', 'texture', { url: '/static/assets/cubemaps/helipad-env-atlas.png' }, { type: pc__namespace.TEXTURETYPE_RGBP, mipmaps: false }),
+                'helipad': new pc__namespace.Asset('helipad-env-atlas', 'texture', { url: '/static/assets/cubemaps/helipad-env-atlas.png' }, { type: pc__namespace.TEXTURETYPE_RGBP, mipmaps: false })
             };
             var gfxOptions = {
                 deviceTypes: [deviceType],
@@ -11327,6 +11372,7 @@
         };
         TextureBasisExample.CATEGORY = 'Graphics';
         TextureBasisExample.NAME = 'Texture Basis';
+        TextureBasisExample.WEBGPU_ENABLED = true;
         return TextureBasisExample;
     }());
 
@@ -11388,7 +11434,7 @@
                 var deltaTimeUniform = app.graphicsDevice.scope.resolve("deltaTime");
                 var directionSampler = app.graphicsDevice.scope.resolve("directionSampler");
                 // @ts-ignore engine-tsd
-                if (app.graphicsDevice.webgl2) {
+                if (app.graphicsDevice.isWebGL2) {
                     // simulated particles
                     var maxNumPoints = 200000;
                     var positions = new Float32Array(4 * maxNumPoints);
@@ -12112,7 +12158,8 @@
                     'helipad': new pc__namespace.Asset('helipad-env-atlas', 'texture', { url: '/static/assets/cubemaps/helipad-env-atlas.png' }, { type: pc__namespace.TEXTURETYPE_RGBP, mipmaps: false }),
                     'bench': new pc__namespace.Asset('bench', 'container', { url: '/static/assets/models/bench_wooden_01.glb' }),
                     'model': new pc__namespace.Asset('model', 'container', { url: '/static/assets/models/bitmoji.glb' }),
-                    'board': new pc__namespace.Asset('statue', 'container', { url: '/static/assets/models/chess-board.glb' })
+                    'board': new pc__namespace.Asset('statue', 'container', { url: '/static/assets/models/chess-board.glb' }),
+                    'color': new pc__namespace.Asset('color', 'texture', { url: '/static/assets/textures/seaside-rocks01-color.jpg' })
                 };
                 var gfxOptions = {
                     deviceTypes: [deviceType],
@@ -12169,6 +12216,17 @@
                         });
                         app.root.addChild(entity);
                         entity.setLocalPosition(0, 1.5, -1.5);
+                        // mesh with a basic material
+                        var basicMaterial = new pc__namespace.BasicMaterial();
+                        basicMaterial.color.set(0.5, 1.0, 0.7);
+                        basicMaterial.colorMap = assets.color.resource;
+                        var capsule = new pc__namespace.Entity('capsule');
+                        capsule.addComponent('render', {
+                            material: basicMaterial,
+                            type: 'capsule'
+                        });
+                        capsule.setLocalPosition(0.5, 2.0, -0.5);
+                        app.root.addChild(capsule);
                         // Create an Entity with a camera component
                         var camera = new pc__namespace.Entity();
                         camera.addComponent("camera", {
@@ -12622,6 +12680,7 @@
         };
         MiniStatsExample.CATEGORY = 'Misc';
         MiniStatsExample.NAME = 'Mini Stats';
+        MiniStatsExample.WEBGPU_ENABLED = true;
         MiniStatsExample.ENGINE = 'PERFORMANCE';
         MiniStatsExample.MINISTATS = true;
         return MiniStatsExample;
@@ -13113,7 +13172,7 @@
                 var assets = {
                     'model': new pc__namespace.Asset('model', 'container', { url: '/static/assets/models/bitmoji.glb' }),
                     'idleAnim': new pc__namespace.Asset('idleAnim', 'container', { url: '/static/assets/animations/bitmoji/idle.glb' }),
-                    helipad: new pc__namespace.Asset('helipad-env-atlas', 'texture', { url: '/static/assets/cubemaps/helipad-env-atlas.png' }, { type: pc__namespace.TEXTURETYPE_RGBP, mipmaps: false }),
+                    helipad: new pc__namespace.Asset('helipad-env-atlas', 'texture', { url: '/static/assets/cubemaps/helipad-env-atlas.png' }, { type: pc__namespace.TEXTURETYPE_RGBP, mipmaps: false })
                 };
                 var gfxOptions = {
                     deviceTypes: [deviceType],
@@ -14086,9 +14145,7 @@
                     app.root.addChild(screen);
                     // Button
                     var button = new pc__namespace.Entity();
-                    button.addComponent("button", {
-                        imageEntity: button
-                    });
+                    button.addComponent("button");
                     button.addComponent("element", {
                         anchor: [0.5, 0.5, 0.5, 0.5],
                         height: 40,
@@ -14190,7 +14247,6 @@
                     var button = new pc__namespace.Entity();
                     button.addComponent("button", {
                         active: true,
-                        imageEntity: button,
                         transitionMode: pc__namespace.BUTTON_TRANSITION_MODE_SPRITE_CHANGE
                     });
                     button.addComponent("element", {
@@ -15160,6 +15216,7 @@
         };
         TextEmojisExample.CATEGORY = 'User Interface';
         TextEmojisExample.NAME = 'Text Emojis';
+        TextEmojisExample.WEBGPU_ENABLED = true;
         return TextEmojisExample;
     }());
 
@@ -15275,9 +15332,7 @@
                     function createButton(labelText, x, y) {
                         // Create a simple button
                         var button = new pc__namespace.Entity();
-                        button.addComponent("button", {
-                            imageEntity: button
-                        });
+                        button.addComponent("button");
                         button.addComponent("element", {
                             anchor: [0.5, 0.5, 0.5, 0.5],
                             height: 40,
@@ -15882,9 +15937,7 @@
                     // Button
                     var button = new pc__namespace.Entity();
                     button.setLocalPosition(0, -25, 0);
-                    button.addComponent("button", {
-                        imageEntity: button
-                    });
+                    button.addComponent("button");
                     button.addComponent("element", {
                         anchor: [0.5, 0.5, 0.5, 0.5],
                         width: 100,
