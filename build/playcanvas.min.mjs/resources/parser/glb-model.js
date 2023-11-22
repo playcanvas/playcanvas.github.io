@@ -1,1 +1,0 @@
-import{GlbContainerResource as e}from"./glb-container-resource.js";import{GlbParser as r}from"./glb-parser.js";class t{constructor(e,r){this._device=e,this._defaultMaterial=r}parse(t){const s=r.parse("filename.glb",t,this._device);if(s){const r=e.createModel(s,this._defaultMaterial);return s.destroy(),r}return null}}export{t as GlbModelParser};

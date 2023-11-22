@@ -1,0 +1,691 @@
+<html>
+    <head>
+        <link rel="stylesheet" href="./example.css">
+        <title>Graphics: LightsBakedAO</title>
+        <!-- no es5libs -->
+    </head>
+    <body>
+        <div id="app">
+            <div id="appInner">
+                <!--A link without href, which makes it invisible. Setting href in an example would trigger a download when clicked.-->
+                <div style="width:100%; position:absolute; top:10px">
+                    <div style="text-align: center;">
+                        <a id="ar-link" rel="ar" download="asset.usdz">
+                            <img src="./arkit.png" id="button" width="200"/>
+                        </a>    
+                    </div>
+                </div>
+                <canvas id='application-canvas'></canvas>
+            </div>
+        </div>
+        <script src='./playcanvas-observer.js'></script>
+        <script src='./pathes.js'></script>
+        <!-- imports (if any) -->
+        <script>
+
+        </script>
+        <!-- controls (if given) -->
+        <script>
+function controls({ observer, ReactPCUI, React, jsx, fragment }) {
+    const { BindingTwoWay, BooleanInput, Label, LabelGroup, Panel, SliderInput } = ReactPCUI;
+    return fragment(
+        jsx(Panel, { headerText: 'Lightmap Filter Settings' },
+            jsx(LabelGroup, { text: 'enable' },
+                jsx(BooleanInput, {
+                    type: 'toggle',
+                    binding: new BindingTwoWay(),
+                    link: { observer, path: 'data.settings.lightmapFilterEnabled' },
+                    value: observer.get('data.settings.lightmapFilterEnabled')
+                })
+            ),
+            jsx(LabelGroup, { text: 'range' },
+                jsx(SliderInput, {
+                    binding: new BindingTwoWay(),
+                    link: { observer, path: 'data.settings.lightmapFilterRange' },
+                    value: observer.get('data.settings.lightmapFilterRange'),
+                    min: 1,
+                    max: 20,
+                    precision: 0
+                })
+            ),
+            jsx(LabelGroup, { text: 'smoothness' },
+                jsx(SliderInput, {
+                    binding: new BindingTwoWay(),
+                    link: { observer, path: 'data.settings.lightmapFilterSmoothness' },
+                    value: observer.get('data.settings.lightmapFilterSmoothness'),
+                    min: 0.1,
+                    max: 2,
+                    precision: 1
+                })
+            )
+        ),
+        jsx(Panel, { headerText: 'Ambient light' },
+            jsx(LabelGroup, { text: 'bake' },
+                jsx(BooleanInput, {
+                    type: 'toggle',
+                    binding: new BindingTwoWay(),
+                    link: { observer, path: 'data.ambient.ambientBake' },
+                    value: observer.get('data.ambient.ambientBake')
+                })
+            ),
+            jsx(LabelGroup, { text: 'cubemap' },
+                jsx(BooleanInput, {
+                    type: 'toggle',
+                    binding: new BindingTwoWay(),
+                    link: { observer, path: 'data.ambient.cubemap' },
+                    value: observer.get('data.ambient.cubemap')
+                })
+            ),
+            jsx(LabelGroup, { text: 'hemisphere' },
+                jsx(BooleanInput, {
+                    type: 'toggle',
+                    binding: new BindingTwoWay(),
+                    link: { observer, path: 'data.ambient.hemisphere' },
+                    value: observer.get('data.ambient.hemisphere')
+                })
+            ),
+            jsx(LabelGroup, { text: 'samples' },
+                jsx(SliderInput, {
+                    binding: new BindingTwoWay(),
+                    link: { observer, path: 'data.ambient.ambientBakeNumSamples' },
+                    value: observer.get('data.ambient.ambientBakeNumSamples'),
+                    max: 64,
+                    precision: 0
+                })
+            ),
+            jsx(LabelGroup, { text: 'contrast' },
+                jsx(SliderInput, {
+                    binding: new BindingTwoWay(),
+                    link: { observer, path: 'data.ambient.ambientBakeOcclusionContrast' },
+                    value: observer.get('data.ambient.ambientBakeOcclusionContrast'),
+                    min: -1,
+                    max: 1,
+                    precision: 1
+                })
+            ),
+            jsx(LabelGroup, { text: 'brightness' },
+                jsx(SliderInput, {
+                    binding: new BindingTwoWay(),
+                    link: { observer, path: 'data.ambient.ambientBakeOcclusionBrightness' },
+                    value: observer.get('data.ambient.ambientBakeOcclusionBrightness'),
+                    min: -1,
+                    max: 1,
+                    precision: 1
+                })
+            )
+        ),
+        jsx(Panel, { headerText: 'Directional light' },
+            jsx(LabelGroup, { text: 'enable' },
+                jsx(BooleanInput, {
+                    type: 'toggle',
+                    binding: new BindingTwoWay(),
+                    link: { observer, path: 'data.directional.enabled' },
+                    value: observer.get('data.directional.enabled')
+                })
+            ),
+            jsx(LabelGroup, { text: 'bake' },
+                jsx(BooleanInput, {
+                    type: 'toggle',
+                    binding: new BindingTwoWay(),
+                    link: { observer, path: 'data.directional.bake' },
+                    value: observer.get('data.directional.bake')
+                })
+            ),
+            jsx(LabelGroup, { text: 'samples' },
+                jsx(SliderInput, {
+                    binding: new BindingTwoWay(),
+                    link: { observer, path: 'data.directional.bakeNumSamples' },
+                    value: observer.get('data.directional.bakeNumSamples'),
+                    max: 64,
+                    precision: 0
+                })
+            ),
+            jsx(LabelGroup, { text: 'area' },
+                jsx(SliderInput, {
+                    binding: new BindingTwoWay(),
+                    link: { observer, path: 'data.directional.bakeArea' },
+                    value: observer.get('data.directional.bakeArea'),
+                    max: 40,
+                    precision: 0
+                })
+            )
+        ),
+        jsx(Panel, { headerText: 'Other lights' },
+            jsx(LabelGroup, { text: 'enable' },
+                jsx(BooleanInput, {
+                    type: 'toggle',
+                    binding: new BindingTwoWay(),
+                    link: { observer, path: 'data.other.enabled' },
+                    value: observer.get('data.other.enabled')
+                })
+            )
+        ),
+        jsx(Panel, { headerText: 'Bake stats' },
+            jsx(LabelGroup, { text: 'duration' },
+                jsx(Label, {
+                    binding: new BindingTwoWay(),
+                    link: { observer, path: 'data.stats.duration' },
+                    value: observer.get('data.stats.duration')
+                })
+            )
+        )
+    );
+}
+        </script>
+        <script>
+async function example({ canvas, deviceType, data, assetPath, scriptsPath, glslangPath, twgslPath }) {
+
+    const assets = {
+        helipad: new pc.Asset('helipad-env-atlas', 'texture', { url: assetPath + 'cubemaps/helipad-env-atlas.png' }, { type: pc.TEXTURETYPE_RGBP, mipmaps: false }),
+        house: new pc.Asset('house', 'container', { url: assetPath + 'models/house.glb' }),
+        script: new pc.Asset('script', 'script', { url: scriptsPath + 'camera/orbit-camera.js' })
+    };
+
+    const gfxOptions = {
+        deviceTypes: [deviceType],
+        glslangUrl: glslangPath + 'glslang.js',
+        twgslUrl: twgslPath + 'twgsl.js'
+    };
+
+    const device = await pc.createGraphicsDevice(canvas, gfxOptions);
+    const createOptions = new pc.AppOptions();
+    createOptions.graphicsDevice = device;
+    createOptions.mouse = new pc.Mouse(document.body);
+    createOptions.touch = new pc.TouchDevice(document.body);
+
+    // @ts-ignore
+    createOptions.lightmapper = pc.Lightmapper;
+
+    createOptions.componentSystems = [
+        // @ts-ignore
+        pc.RenderComponentSystem,
+        // @ts-ignore
+        pc.CameraComponentSystem,
+        // @ts-ignore
+        pc.LightComponentSystem,
+        // @ts-ignore
+        pc.ScriptComponentSystem
+    ];
+    createOptions.resourceHandlers = [
+        // @ts-ignore
+        pc.ScriptHandler,
+        // @ts-ignore
+        pc.TextureHandler,
+        // @ts-ignore
+        pc.ContainerHandler,
+        // @ts-ignore
+        pc.CubemapHandler
+    ];
+
+    const app = new pc.AppBase(canvas);
+    app.init(createOptions);
+
+    // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
+    app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
+    app.setCanvasResolution(pc.RESOLUTION_AUTO);
+
+    // Ensure canvas is resized when window changes size
+    const resize = () => app.resizeCanvas();
+    window.addEventListener('resize', resize);
+    app.on('destroy', () => {
+        window.removeEventListener('resize', resize);
+    });
+
+    const assetListLoader = new pc.AssetListLoader(Object.values(assets), app.assets);
+    assetListLoader.load(() => {
+
+        app.start();
+
+        // setup skydome - this is the main source of ambient light
+        app.scene.skyboxMip = 3;
+        app.scene.skyboxIntensity = 0.6;
+        app.scene.envAtlas = assets.helipad.resource;
+
+        // if skydome cubemap is disabled using HUD, a constant ambient color is used instead
+        app.scene.ambientLight = new pc.Color(0.1, 0.3, 0.4);
+
+        // instantiate the house model, which has unwrapped texture coordinates for lightmap in UV1
+        const house = assets.house.resource.instantiateRenderEntity();
+        house.setLocalScale(100, 100, 100);
+        app.root.addChild(house);
+
+        // change its materials to lightmapping
+        /** @type {Array<pc.RenderComponent>} */
+        const renders = house.findComponents("render");
+        renders.forEach((render) => {
+            render.castShadows = true;
+            render.castShadowsLightmap = true;
+            render.lightmapped = true;
+        });
+
+        // directional light
+        const lightDirectional = new pc.Entity("Directional");
+        lightDirectional.addComponent("light", {
+            type: "directional",
+
+            // disable to not have shadow map updated every frame,
+            // as the scene does not have dynamically lit objects
+            affectDynamic: false,
+
+            affectLightmapped: true,
+            castShadows: true,
+            normalOffsetBias: 0.05,
+            shadowBias: 0.2,
+            shadowDistance: 100,
+            shadowResolution: 2048,
+            shadowType: pc.SHADOW_PCF3,
+            color: new pc.Color(0.7, 0.7, 0.5),
+            intensity: 1.6
+        });
+        app.root.addChild(lightDirectional);
+        lightDirectional.setLocalEulerAngles(-55, 0, -30);
+
+        // Create an entity with a omni light component that is configured as a baked light
+        const lightOmni = new pc.Entity("Omni");
+        lightOmni.addComponent("light", {
+            type: "omni",
+            affectDynamic: false,
+            affectLightmapped: true,
+            bake: true,
+            castShadows: true,
+            normalOffsetBias: 0.05,
+            shadowBias: 0.2,
+            shadowDistance: 25,
+            shadowResolution: 512,
+            shadowType: pc.SHADOW_PCF3,
+            color: pc.Color.YELLOW,
+            range: 25,
+            intensity: 0.9
+        });
+        lightOmni.setLocalPosition(-4, 10, 5);
+        app.root.addChild(lightOmni);
+
+        // Create an entity with a spot light component that is configured as a baked light
+        const lightSpot = new pc.Entity("Spot");
+        lightSpot.addComponent("light", {
+            type: "spot",
+            affectDynamic: false,
+            affectLightmapped: true,
+            bake: true,
+            castShadows: true,
+            normalOffsetBias: 0.05,
+            shadowBias: 0.2,
+            shadowDistance: 50,
+            shadowResolution: 512,
+            shadowType: pc.SHADOW_PCF3,
+            color: pc.Color.RED,
+            range: 10,
+            intensity: 2.5
+        });
+        lightSpot.setLocalPosition(-5, 10, -7.5);
+        app.root.addChild(lightSpot);
+
+        // Create an entity with a camera component
+        const camera = new pc.Entity();
+        camera.addComponent("camera", {
+            clearColor: new pc.Color(0.4, 0.45, 0.5),
+            farClip: 100,
+            nearClip: 1
+        });
+        camera.setLocalPosition(40, 20, 40);
+
+        // add orbit camera script with a mouse and a touch support
+        camera.addComponent("script");
+        camera.script.create("orbitCamera", {
+            attributes: {
+                inertiaFactor: 0.2,
+                focusEntity: house,
+                distanceMax: 60
+            }
+        });
+        camera.script.create("orbitCameraInputMouse");
+        camera.script.create("orbitCameraInputTouch");
+        app.root.addChild(camera);
+
+        // lightmap baking properties
+        const bakeType = pc.BAKE_COLOR;
+        app.scene.lightmapMode = bakeType;
+        app.scene.lightmapMaxResolution = 1024;
+
+        // multiplier for lightmap resolution
+        app.scene.lightmapSizeMultiplier = 512;
+
+        // bake when settings are changed only
+        let needBake = false;
+
+        // handle data changes from HUD to modify baking properties
+        data.on('*:set', (/** @type {string} */ path, value) => {
+            let bakeSettingChanged = true;
+            const pathArray = path.split('.');
+
+            // ambient light
+            if (pathArray[1] === 'ambient') {
+                if (pathArray[2] === 'cubemap') {
+                    // enable / disable cubemap
+                    app.scene.envAtlas = value ? assets.helipad.resource : null;
+                } else if (pathArray[2] === 'hemisphere') {
+                    // switch between smaller upper hemisphere and full sphere
+                    app.scene.ambientBakeSpherePart = value ? 0.4 : 1;
+                } else {
+                    // all other values are set directly on the scene
+                    // @ts-ignore engine-tsd
+                    app.scene[pathArray[2]] = value;
+                }
+            } else if (pathArray[1] === 'directional') {
+                // @ts-ignore engine-tsd
+                lightDirectional.light[pathArray[2]] = value;
+            } else if (pathArray[1] === 'settings') {
+                // @ts-ignore engine-tsd
+                app.scene[pathArray[2]] = value;
+            } else if (pathArray[1] === 'other') {
+                // @ts-ignore engine-tsd
+                lightOmni.light[pathArray[2]] = value;
+                // @ts-ignore engine-tsd
+                lightSpot.light[pathArray[2]] = value;
+            } else {
+                // don't rebake if stats change
+                bakeSettingChanged = false;
+            }
+
+            // trigger bake on the next frame if relevant settings were changes
+            needBake ||= bakeSettingChanged;
+        });
+
+        // bake properties connected to the HUD
+        data.set('data', {
+            settings: {
+                lightmapFilterEnabled: true,
+                lightmapFilterRange: 10,
+                lightmapFilterSmoothness: 0.2
+            },
+            ambient: {
+                ambientBake: true,
+                cubemap: true,
+                hemisphere: true,
+                ambientBakeNumSamples: 20,
+                ambientBakeOcclusionContrast: -0.6,
+                ambientBakeOcclusionBrightness: -0.5
+            },
+            directional: {
+                enabled: true,
+                bake: true,
+                bakeNumSamples: 15,
+                bakeArea: 10
+            },
+            other: {
+                enabled: true
+            },
+            stats: {
+                duration: ''
+            }
+        });
+
+        // Set an update function on the app's update event
+        app.on("update", function (dt) {
+
+            // bake lightmaps when HUD properties change
+            if (needBake) {
+                needBake = false;
+                app.lightmapper.bake(null, bakeType);
+
+                // update stats with the bake duration
+                data.set('data.stats.duration', app.lightmapper.stats.totalRenderTime.toFixed(1) + 'ms');
+            }
+        });
+    });
+    return app;
+}
+        </script>
+        <script>
+        const ENGINE_PATH = '';
+        const NODE_ENV = 'production';
+        /**
+         * Used in outline and posteffects to make ES5 scripts work in ES6
+         * @example
+         * // doesn't start with 'class', so not changing any behaviour
+         * debugger; // step through with F11 to debug
+         * Object.prototype.toString.call(1) === '[object Number]'
+         */
+        function enablePolyfillFunctionCall() {
+            const functionCall = Function.prototype.call;
+            function polyCall(thisArg, ...args) {
+                if (this.toString().startsWith('class')) {
+                    return Object.assign(thisArg, new this(...args));
+                }
+                return functionCall.bind(this)(thisArg, ...args);
+            }
+            Function.prototype.call = polyCall;
+        }
+        enablePolyfillFunctionCall();
+        /**
+         * Can load UMD and ESM. UMD registers itself into globalThis, while ESM is handled
+         * to specifically to do the same, so we achieve the same result, no matter which
+         * target build/src we linked to.
+         */
+        async function loadScript(name, src) {
+            // console.log('loadScript>', { name, src });
+            const module = await import(src);
+            const isESM = Object.keys(module).length;
+            if (isESM) {
+                window[name] = module;
+            }
+        }
+        /**
+         * @returns {string}
+         */
+        function getDeviceType() {
+            const last = localStorage.getItem('preferredGraphicsDevice');
+            if (last !== null) {
+                if (last === 'webgpu' && true) {
+                    console.warn('Picked WebGPU but example is not supported on WebGPU, defaulting to WebGL2');
+                    return 'webgl2';
+                }
+                return last;
+            } else if (false) {
+                let preferredDevice = 'webgpu';
+                // Lack of Chrome's WebGPU support on Linux
+                if (navigator.platform.includes('Linux') && navigator.appVersion.includes("Chrome")) {
+                    preferredDevice = 'webgl2';
+                }
+                return window.top.preferredGraphicsDevice || preferredDevice;
+            } else if (['webgl1', 'webgl2'].includes(window.top.preferredGraphicsDevice)) {
+                return window.top.preferredGraphicsDevice;
+            } else {
+                return 'webgl2';
+            }
+        }
+        /**
+         * Get the specified engine, picking the right choice from three sources:
+         *  - Example#ENGINE (lowest priority)
+         *  - NODE_ENV (2nd lowest priority)
+         *  - ENGINE_PATH (highest priority)
+         * If none of these sources are given, we simply pick build/playcanvas.js (ES5)
+         */
+        function getSpecifiedEngine() {
+            let specifiedEngine = './playcanvas.js';
+            // Doesn't matter what Example class specifies otherwise, because
+            // NODE_ENV has a higher priority
+            if (NODE_ENV === 'development') {
+                specifiedEngine = './playcanvas.dbg.js'
+            }
+            // ENGINE_PATH has the highest priority.
+            if (ENGINE_PATH.length) {
+                const entryPoint = ENGINE_PATH.split('/').pop();
+                specifiedEngine = './ENGINE_PATH/' + entryPoint;
+            }
+            return specifiedEngine;
+        }
+        let ready = false; // Used in indicate if UI can render Controls
+        let started = false;
+        let miniStats;
+        let allowRestart = 'true';
+        const args = Object.fromEntries(
+            location.href.split('?').pop().split('#')[0].split('&').map(_ => _.split('='))
+        );
+        let data = new observer.Observer({});
+        /**
+         * Keep it function in first run for nicer debug locations.
+         * @type {Record<string, string | Function>}
+         */
+        const files = {};
+        files['example.mjs'] = example.toString();
+        if (window.controls) {
+            files['controls.mjs'] = controls.toString();
+        }
+        var filesObject = {};
+        function resolveFunction(_) {
+            if (_.call) {
+                return _;
+            }
+            return new Function('return ' + _)();
+        }
+        Object.assign(files, filesObject);
+        function requestFiles() {
+            const responseEvent = new CustomEvent("requestedFiles", { detail: files });
+            window.top.dispatchEvent(responseEvent);
+        }
+        /**
+         * This function is called from React whenever we click on MiniStats icon,
+         * even PlayCanvas' pc itself could be undefined here.
+         */
+        function showStats() {
+            // examples/misc/mini-stats.mjs creates its own instance of ministats, prevent two mini-stats here
+            if (false) {
+                return;
+            }
+            if (typeof pc === 'undefined' || typeof pcx === 'undefined') {
+                return;
+            }
+            const { app } = pc;
+            const deviceType = app?.graphicsDevice?.deviceType;
+            if (deviceType === 'null') {
+                return;
+            }
+            if (args.miniStats === 'false') {
+                return;
+            }
+            if (!miniStats) {
+                miniStats = new pcx.MiniStats(app);
+            }
+            miniStats.enabled = true;
+        }
+        function hideStats() {
+            if (!miniStats) {
+                return;
+            }
+            miniStats.enabled = false;
+        }
+        /**
+         * This function is called from React whenever we change an example in any possible state,
+         * even PlayCanvas' pc itself could be undefined here.
+         */
+        function destroy() {
+            miniStats?.destroy();
+            miniStats = null;
+            // Can't call app.destroy() twice without an error,
+            // so we check for app.graphicsDevice first
+            const app = window.pc?.app;
+            if (app && app.graphicsDevice) {
+                app.destroy();
+            }
+            ready = false;
+        }
+        function hotReload() {
+            if (!allowRestart) {
+                console.warn('hotReload> Dropping restart while still restarting');
+                return;
+            }
+            destroy();
+            data = new observer.Observer({});
+            main(files);
+        }
+        window.addEventListener('requestFiles', requestFiles);
+        window.addEventListener('showStats'   , showStats   );
+        window.addEventListener('hideStats'   , hideStats   );
+        window.addEventListener('destroy'     , destroy     );
+        window.addEventListener('hotReload'   , hotReload   );
+        function updateControls() {
+            const event = new CustomEvent("updateFiles", {
+                detail: {
+                    files
+                }
+            });
+            window.top.dispatchEvent(event);
+        }
+        function updateActiveDevice() {
+            const event = new CustomEvent("updateActiveDevice", {
+                detail: pc.app.graphicsDevice.deviceType
+            });
+            window.top.dispatchEvent(event);
+        }
+        async function main(files) {
+            allowRestart = false;
+            await loadScript('pc', getSpecifiedEngine());
+            await loadScript('pcx', './playcanvas-extras.js');
+            window.top.pc = pc;
+            var canvas = document.getElementById("application-canvas");
+            window.top.observerData = data;
+            var deviceType = getDeviceType();
+            if (args.deviceType) {
+                console.warn("overwriting default deviceType from URL");
+                deviceType = args.deviceType;
+            }
+            if (!deviceType) {
+                console.warn("No deviceType given, defaulting to WebGL2");
+                deviceType = 'webgl2';
+            }
+            if (!started) {
+                // console.log("Dispatch exampleLoading!");
+                const event = new CustomEvent("exampleLoading"); // just notify to clean UI, but not during hot-reload
+                window.top.dispatchEvent(event);
+            }
+            const example = resolveFunction(files['example.mjs']);
+            files['example.mjs'] = files['example.mjs'].toString();
+            const app = await example({
+                canvas,
+                deviceType,
+                data,
+                assetPath,
+                scriptsPath,
+                ammoPath,
+                basisPath,
+                dracoPath,
+                glslangPath,
+                twgslPath,
+                pcx,
+                files,
+            });
+            ready = true;
+            class ExampleLoadEvent extends CustomEvent {
+                constructor(deviceType) {
+                    super("exampleLoad");
+                    this.files = files;
+                }
+            }
+            const finalFunc = () => {
+                if (app.graphicsDevice?.canvas) {
+                    showStats();
+                    if (!started) { // only one time, recalls of main() are caused by Monaco live coding
+                        window.top.dispatchEvent(new ExampleLoadEvent());
+                    }
+                    started = true;
+                    updateControls();
+                    updateActiveDevice();
+                    allowRestart = true;
+                } else {
+                    console.warn('main> no canvas');
+                }
+            };
+            // Wait until example has called app.start()
+            // And if it already called start, we will know by app.frame > 0
+            // app.start() is called when assets loaded in examples
+            if (app.frame) { // app already started
+                finalFunc();
+            } else { // Wait for app.start()
+                app.once('start', finalFunc);
+            }
+        }
+        window.onload = () => main(files);
+        </script>
+    </body>
+</html>

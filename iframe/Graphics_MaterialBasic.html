@@ -1,0 +1,445 @@
+<html>
+    <head>
+        <link rel="stylesheet" href="./example.css">
+        <title>Graphics: MaterialBasic</title>
+        <!-- no es5libs -->
+    </head>
+    <body>
+        <div id="app">
+            <div id="appInner">
+                <!--A link without href, which makes it invisible. Setting href in an example would trigger a download when clicked.-->
+                <div style="width:100%; position:absolute; top:10px">
+                    <div style="text-align: center;">
+                        <a id="ar-link" rel="ar" download="asset.usdz">
+                            <img src="./arkit.png" id="button" width="200"/>
+                        </a>    
+                    </div>
+                </div>
+                <canvas id='application-canvas'></canvas>
+            </div>
+        </div>
+        <script src='./playcanvas-observer.js'></script>
+        <script src='./pathes.js'></script>
+        <!-- imports (if any) -->
+        <script>
+
+        </script>
+        <!-- controls (if given) -->
+        <script>
+
+        </script>
+        <script>
+async function example({ canvas, deviceType, assetPath, glslangPath, twgslPath }) {
+
+    const assets = {
+        'font': new pc.Asset('font', 'font', { url: assetPath + 'fonts/arial.json' }),
+        'rocks': new pc.Asset("rocks", "texture", { url: assetPath + "textures/seaside-rocks01-diffuse-alpha.png" })
+    };
+
+    const gfxOptions = {
+        deviceTypes: [deviceType],
+        glslangUrl: glslangPath + 'glslang.js',
+        twgslUrl: twgslPath + 'twgsl.js'
+    };
+
+    const device = await pc.createGraphicsDevice(canvas, gfxOptions);
+    const createOptions = new pc.AppOptions();
+    createOptions.graphicsDevice = device;
+
+    createOptions.componentSystems = [
+        // @ts-ignore
+        pc.RenderComponentSystem,
+        // @ts-ignore
+        pc.CameraComponentSystem,
+        // @ts-ignore
+        pc.ElementComponentSystem
+    ];
+    createOptions.resourceHandlers = [
+        // @ts-ignore
+        pc.TextureHandler,
+        // @ts-ignore
+        pc.FontHandler
+    ];
+
+    const app = new pc.AppBase(canvas);
+    app.init(createOptions);
+
+    // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
+    app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
+    app.setCanvasResolution(pc.RESOLUTION_AUTO);
+
+    // Ensure canvas is resized when window changes size
+    const resize = () => app.resizeCanvas();
+    window.addEventListener('resize', resize);
+    app.on('destroy', () => {
+        window.removeEventListener('resize', resize);
+    });
+
+    const assetListLoader = new pc.AssetListLoader(Object.values(assets), app.assets);
+    assetListLoader.load(() => {
+
+        app.start();
+
+        // Create an entity with a camera component
+        const camera = new pc.Entity();
+        camera.addComponent("camera", {
+            clearColor: new pc.Color(0.1, 0.1, 0.1, 1)
+        });
+        camera.translate(2, 1, 8);
+        camera.lookAt(new pc.Vec3(0, -0.3, 0));
+        app.root.addChild(camera);
+
+        const NUM_BOXES = 5;
+
+        // alpha blend modes for individual rows
+        const blendModes = [
+            pc.BLEND_ADDITIVE,
+            pc.BLEND_SUBTRACTIVE,
+            pc.BLEND_SCREEN,
+            pc.BLEND_NORMAL,
+            pc.BLEND_NONE
+        ];
+
+        /**
+         * @param {number} x - The x coordinate.
+         * @param {number} y - The y coordinate.
+         * @param {number} z - The z coordinate.
+         * @returns {pc.Entity} The returned entity.
+         */
+        const createPrimitive = function (x, y, z) {
+
+            // a basic material, which does not have support for lighting
+            const material = new pc.BasicMaterial();
+
+            // diffuse color
+            material.color.set(x, y, 1 - y);
+
+            // diffuse texture with alpha channel for transparency
+            material.colorMap = assets.rocks.resource;
+
+            // disable culling to see back faces as well
+            material.cull = pc.CULLFACE_NONE;
+
+            // set up alpha test value
+            material.alphaTest = x / NUM_BOXES - 0.1;
+
+            // alpha blend mode
+            material.blendType = blendModes[y];
+
+            const box = new pc.Entity();
+            box.addComponent("render", {
+                material: material,
+                type: "box",
+
+                // Note: basic material cannot currently cast shadows, disable it
+                castShadows: false
+            });
+            box.setLocalPosition(x - (NUM_BOXES - 1) * 0.5, y - (NUM_BOXES - 1) * 0.5, z);
+            box.setLocalScale(0.7, 0.7, 0.7);
+            app.root.addChild(box);
+
+            return box;
+        };
+        /** @type {Array<pc.Entity>} */
+        const boxes = [];
+        for (let i = 0; i < NUM_BOXES; i++) {
+            for (let j = 0; j < NUM_BOXES; j++) {
+                boxes.push(createPrimitive(j, i, 0));
+            }
+        }
+        /**
+         * @param {pc.Asset} fontAsset - The font asset.
+         * @param {string} message - The message.
+         * @param {number} x - The x coordinate.
+         * @param {number} y - The y coordinate.
+         * @param {number} z - The z coordinate.
+         * @param {number} rot - The z coordinate rotation (euler angles).
+         */
+        const createText = function (fontAsset, message, x, y, z, rot) {
+            // Create a text element-based entity
+            const text = new pc.Entity();
+            text.addComponent("element", {
+                anchor: [0.5, 0.5, 0.5, 0.5],
+                fontAsset: fontAsset,
+                fontSize: 0.5,
+                pivot: [0.5, 0.5],
+                text: message,
+                type: pc.ELEMENTTYPE_TEXT
+            });
+            text.setLocalPosition(x, y, z);
+            text.setLocalEulerAngles(0, 0, rot);
+            app.root.addChild(text);
+        };
+
+        createText(assets.font, 'Alpha Test', 0, -(NUM_BOXES + 1) * 0.5, 0, 0);
+        createText(assets.font, 'Alpha Blend', -(NUM_BOXES + 1) * 0.5, 0, 0, 90);
+
+        // Set an update function on the app's update event
+        let time = 0;
+        const rot = new pc.Quat();
+        app.on("update", function (/** @type {number} */dt) {
+            time += dt;
+
+            // rotate the boxes
+            rot.setFromEulerAngles(20 * time, 30 * time, 0);
+            boxes.forEach((box) => {
+                box.setRotation(rot);
+            });
+        });
+    });
+    return app;
+}
+        </script>
+        <script>
+        const ENGINE_PATH = '';
+        const NODE_ENV = 'production';
+        /**
+         * Used in outline and posteffects to make ES5 scripts work in ES6
+         * @example
+         * // doesn't start with 'class', so not changing any behaviour
+         * debugger; // step through with F11 to debug
+         * Object.prototype.toString.call(1) === '[object Number]'
+         */
+        function enablePolyfillFunctionCall() {
+            const functionCall = Function.prototype.call;
+            function polyCall(thisArg, ...args) {
+                if (this.toString().startsWith('class')) {
+                    return Object.assign(thisArg, new this(...args));
+                }
+                return functionCall.bind(this)(thisArg, ...args);
+            }
+            Function.prototype.call = polyCall;
+        }
+        enablePolyfillFunctionCall();
+        /**
+         * Can load UMD and ESM. UMD registers itself into globalThis, while ESM is handled
+         * to specifically to do the same, so we achieve the same result, no matter which
+         * target build/src we linked to.
+         */
+        async function loadScript(name, src) {
+            // console.log('loadScript>', { name, src });
+            const module = await import(src);
+            const isESM = Object.keys(module).length;
+            if (isESM) {
+                window[name] = module;
+            }
+        }
+        /**
+         * @returns {string}
+         */
+        function getDeviceType() {
+            const last = localStorage.getItem('preferredGraphicsDevice');
+            if (last !== null) {
+                if (last === 'webgpu' && false) {
+                    console.warn('Picked WebGPU but example is not supported on WebGPU, defaulting to WebGL2');
+                    return 'webgl2';
+                }
+                return last;
+            } else if (true) {
+                let preferredDevice = 'webgpu';
+                // Lack of Chrome's WebGPU support on Linux
+                if (navigator.platform.includes('Linux') && navigator.appVersion.includes("Chrome")) {
+                    preferredDevice = 'webgl2';
+                }
+                return window.top.preferredGraphicsDevice || preferredDevice;
+            } else if (['webgl1', 'webgl2'].includes(window.top.preferredGraphicsDevice)) {
+                return window.top.preferredGraphicsDevice;
+            } else {
+                return 'webgl2';
+            }
+        }
+        /**
+         * Get the specified engine, picking the right choice from three sources:
+         *  - Example#ENGINE (lowest priority)
+         *  - NODE_ENV (2nd lowest priority)
+         *  - ENGINE_PATH (highest priority)
+         * If none of these sources are given, we simply pick build/playcanvas.js (ES5)
+         */
+        function getSpecifiedEngine() {
+            let specifiedEngine = './playcanvas.js';
+            // Doesn't matter what Example class specifies otherwise, because
+            // NODE_ENV has a higher priority
+            if (NODE_ENV === 'development') {
+                specifiedEngine = './playcanvas.dbg.js'
+            }
+            // ENGINE_PATH has the highest priority.
+            if (ENGINE_PATH.length) {
+                const entryPoint = ENGINE_PATH.split('/').pop();
+                specifiedEngine = './ENGINE_PATH/' + entryPoint;
+            }
+            return specifiedEngine;
+        }
+        let ready = false; // Used in indicate if UI can render Controls
+        let started = false;
+        let miniStats;
+        let allowRestart = 'true';
+        const args = Object.fromEntries(
+            location.href.split('?').pop().split('#')[0].split('&').map(_ => _.split('='))
+        );
+        let data = new observer.Observer({});
+        /**
+         * Keep it function in first run for nicer debug locations.
+         * @type {Record<string, string | Function>}
+         */
+        const files = {};
+        files['example.mjs'] = example.toString();
+        if (window.controls) {
+            files['controls.mjs'] = controls.toString();
+        }
+        var filesObject = {};
+        function resolveFunction(_) {
+            if (_.call) {
+                return _;
+            }
+            return new Function('return ' + _)();
+        }
+        Object.assign(files, filesObject);
+        function requestFiles() {
+            const responseEvent = new CustomEvent("requestedFiles", { detail: files });
+            window.top.dispatchEvent(responseEvent);
+        }
+        /**
+         * This function is called from React whenever we click on MiniStats icon,
+         * even PlayCanvas' pc itself could be undefined here.
+         */
+        function showStats() {
+            // examples/misc/mini-stats.mjs creates its own instance of ministats, prevent two mini-stats here
+            if (false) {
+                return;
+            }
+            if (typeof pc === 'undefined' || typeof pcx === 'undefined') {
+                return;
+            }
+            const { app } = pc;
+            const deviceType = app?.graphicsDevice?.deviceType;
+            if (deviceType === 'null') {
+                return;
+            }
+            if (args.miniStats === 'false') {
+                return;
+            }
+            if (!miniStats) {
+                miniStats = new pcx.MiniStats(app);
+            }
+            miniStats.enabled = true;
+        }
+        function hideStats() {
+            if (!miniStats) {
+                return;
+            }
+            miniStats.enabled = false;
+        }
+        /**
+         * This function is called from React whenever we change an example in any possible state,
+         * even PlayCanvas' pc itself could be undefined here.
+         */
+        function destroy() {
+            miniStats?.destroy();
+            miniStats = null;
+            // Can't call app.destroy() twice without an error,
+            // so we check for app.graphicsDevice first
+            const app = window.pc?.app;
+            if (app && app.graphicsDevice) {
+                app.destroy();
+            }
+            ready = false;
+        }
+        function hotReload() {
+            if (!allowRestart) {
+                console.warn('hotReload> Dropping restart while still restarting');
+                return;
+            }
+            destroy();
+            data = new observer.Observer({});
+            main(files);
+        }
+        window.addEventListener('requestFiles', requestFiles);
+        window.addEventListener('showStats'   , showStats   );
+        window.addEventListener('hideStats'   , hideStats   );
+        window.addEventListener('destroy'     , destroy     );
+        window.addEventListener('hotReload'   , hotReload   );
+        function updateControls() {
+            const event = new CustomEvent("updateFiles", {
+                detail: {
+                    files
+                }
+            });
+            window.top.dispatchEvent(event);
+        }
+        function updateActiveDevice() {
+            const event = new CustomEvent("updateActiveDevice", {
+                detail: pc.app.graphicsDevice.deviceType
+            });
+            window.top.dispatchEvent(event);
+        }
+        async function main(files) {
+            allowRestart = false;
+            await loadScript('pc', getSpecifiedEngine());
+            await loadScript('pcx', './playcanvas-extras.js');
+            window.top.pc = pc;
+            var canvas = document.getElementById("application-canvas");
+            window.top.observerData = data;
+            var deviceType = getDeviceType();
+            if (args.deviceType) {
+                console.warn("overwriting default deviceType from URL");
+                deviceType = args.deviceType;
+            }
+            if (!deviceType) {
+                console.warn("No deviceType given, defaulting to WebGL2");
+                deviceType = 'webgl2';
+            }
+            if (!started) {
+                // console.log("Dispatch exampleLoading!");
+                const event = new CustomEvent("exampleLoading"); // just notify to clean UI, but not during hot-reload
+                window.top.dispatchEvent(event);
+            }
+            const example = resolveFunction(files['example.mjs']);
+            files['example.mjs'] = files['example.mjs'].toString();
+            const app = await example({
+                canvas,
+                deviceType,
+                data,
+                assetPath,
+                scriptsPath,
+                ammoPath,
+                basisPath,
+                dracoPath,
+                glslangPath,
+                twgslPath,
+                pcx,
+                files,
+            });
+            ready = true;
+            class ExampleLoadEvent extends CustomEvent {
+                constructor(deviceType) {
+                    super("exampleLoad");
+                    this.files = files;
+                }
+            }
+            const finalFunc = () => {
+                if (app.graphicsDevice?.canvas) {
+                    showStats();
+                    if (!started) { // only one time, recalls of main() are caused by Monaco live coding
+                        window.top.dispatchEvent(new ExampleLoadEvent());
+                    }
+                    started = true;
+                    updateControls();
+                    updateActiveDevice();
+                    allowRestart = true;
+                } else {
+                    console.warn('main> no canvas');
+                }
+            };
+            // Wait until example has called app.start()
+            // And if it already called start, we will know by app.frame > 0
+            // app.start() is called when assets loaded in examples
+            if (app.frame) { // app already started
+                finalFunc();
+            } else { // Wait for app.start()
+                app.once('start', finalFunc);
+            }
+        }
+        window.onload = () => main(files);
+        </script>
+    </body>
+</html>

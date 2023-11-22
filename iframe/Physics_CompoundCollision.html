@@ -1,0 +1,698 @@
+<html>
+    <head>
+        <link rel="stylesheet" href="./example.css">
+        <title>Physics: CompoundCollision</title>
+        <!-- no es5libs -->
+    </head>
+    <body>
+        <div id="app">
+            <div id="appInner">
+                <!--A link without href, which makes it invisible. Setting href in an example would trigger a download when clicked.-->
+                <div style="width:100%; position:absolute; top:10px">
+                    <div style="text-align: center;">
+                        <a id="ar-link" rel="ar" download="asset.usdz">
+                            <img src="./arkit.png" id="button" width="200"/>
+                        </a>    
+                    </div>
+                </div>
+                <canvas id='application-canvas'></canvas>
+            </div>
+        </div>
+        <script src='./playcanvas-observer.js'></script>
+        <script src='./pathes.js'></script>
+        <!-- imports (if any) -->
+        <script>
+
+        </script>
+        <!-- controls (if given) -->
+        <script>
+
+        </script>
+        <script>
+async function example({ canvas, deviceType, ammoPath, glslangPath, twgslPath }) {
+    pc.WasmModule.setConfig('Ammo', {
+        glueUrl:     ammoPath + 'ammo.wasm.js',
+        wasmUrl:     ammoPath + 'ammo.wasm.wasm',
+        fallbackUrl: ammoPath + 'ammo.js'
+    });
+    await new Promise((resolve) => { pc.WasmModule.getInstance('Ammo', () => resolve()) });
+
+    const gfxOptions = {
+        deviceTypes: [deviceType],
+        glslangUrl: glslangPath + 'glslang.js',
+        twgslUrl: twgslPath + 'twgsl.js'
+    };
+
+    const device = await pc.createGraphicsDevice(canvas, gfxOptions);
+
+    const createOptions = new pc.AppOptions();
+    createOptions.graphicsDevice = device;
+    createOptions.keyboard = new pc.Keyboard(document.body);
+
+    createOptions.componentSystems = [
+        // @ts-ignore
+        pc.RenderComponentSystem,
+        // @ts-ignore
+        pc.CameraComponentSystem,
+        // @ts-ignore
+        pc.LightComponentSystem,
+        // @ts-ignore
+        pc.ScriptComponentSystem,
+        // @ts-ignore
+        pc.CollisionComponentSystem,
+        // @ts-ignore
+        pc.RigidBodyComponentSystem,
+        // @ts-ignore
+        pc.ElementComponentSystem
+    ];
+    createOptions.resourceHandlers = [
+        // @ts-ignore
+        pc.TextureHandler,
+        // @ts-ignore
+        pc.ContainerHandler,
+        // @ts-ignore
+        pc.ScriptHandler,
+        // @ts-ignore
+        pc.JsonHandler,
+        // @ts-ignore
+        pc.FontHandler
+    ];
+
+    const app = new pc.AppBase(canvas);
+    app.init(createOptions);
+    app.start();
+
+    // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
+    app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
+    app.setCanvasResolution(pc.RESOLUTION_AUTO);
+
+    // Ensure canvas is resized when window changes size
+    const resize = () => app.resizeCanvas();
+    window.addEventListener('resize', resize);
+    app.on('destroy', () => {
+        window.removeEventListener('resize', resize);
+    });
+
+    app.scene.ambientLight = new pc.Color(0.2, 0.2, 0.2);
+    /**
+     * @param {pc.Color} color 
+     * @returns {pc.StandardMaterial}
+     */
+    function createMaterial(color) {
+        const material = new pc.StandardMaterial();
+        material.diffuse = color;
+        material.update();
+        return material;
+    }
+
+    // Create a couple of materials for our objects
+    const red = createMaterial(new pc.Color(0.7, 0.3, 0.3));
+    const gray = createMaterial(new pc.Color(0.7, 0.7, 0.7));
+
+    // Define a scene hierarchy in JSON format. This is loaded/parsed in
+    // the parseScene function below
+    const scene = [
+        {
+            // The Chair entity has a collision component of type 'compound' and a
+            // rigidbody component. This means that any descendent entity with a
+            // collision component is added to a compound collision shape on the
+            // Chair entity. You can use compound collision shapes to define
+            // complex, rigid shapes.
+            name: 'Chair',
+            pos: [0, 1, 0],
+            components: [
+                {
+                    type: 'collision',
+                    options: {
+                        type: 'compound'
+                    }
+                }, {
+                    type: 'rigidbody',
+                    options: {
+                        type: 'dynamic',
+                        friction: 0.5,
+                        mass: 10,
+                        restitution: 0.5
+                    }
+                }
+            ],
+            children: [
+                {
+                    name: 'Seat',
+                    components: [
+                        {
+                            type: 'collision',
+                            options: {
+                                type: 'box',
+                                halfExtents: [0.25, 0.025, 0.25]
+                            }
+                        }
+                    ],
+                    children: [
+                        {
+                            name: 'Seat Model',
+                            scl: [0.5, 0.05, 0.5],
+                            components: [
+                                {
+                                    type: 'render',
+                                    options: {
+                                        type: 'box',
+                                        material: gray
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }, {
+                    name: 'Seat Back',
+                    pos: [0, 0.3, -0.2],
+                    components: [
+                        {
+                            type: 'collision',
+                            options: {
+                                type: 'box',
+                                halfExtents: [0.25, 0.2, 0.025]
+                            }
+                        }
+                    ],
+                    children: [
+                        {
+                            name: 'Seat Back Model',
+                            scl: [0.5, 0.4, 0.05],
+                            components: [
+                                {
+                                    type: 'render',
+                                    options: {
+                                        type: 'box',
+                                        material: gray
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }, {
+                    name: 'Leg 1',
+                    pos: [0.2, -0.25, 0.2],
+                    components: [
+                        {
+                            type: 'collision',
+                            options: {
+                                type: 'cylinder',
+                                height: 0.5,
+                                radius: 0.025
+                            }
+                        }
+                    ],
+                    children: [
+                        {
+                            name: 'Leg 1 Model',
+                            scl: [0.05, 0.5, 0.05],
+                            components: [
+                                {
+                                    type: 'render',
+                                    options: {
+                                        type: 'cylinder',
+                                        material: gray
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }, {
+                    name: 'Leg 2',
+                    pos: [-0.2, -0.25, 0.2],
+                    components: [
+                        {
+                            type: 'collision',
+                            options: {
+                                type: 'cylinder',
+                                height: 0.5,
+                                radius: 0.025
+                            }
+                        }
+                    ],
+                    children: [
+                        {
+                            name: 'Leg 2 Model',
+                            scl: [0.05, 0.5, 0.05],
+                            components: [
+                                {
+                                    type: 'render',
+                                    options: {
+                                        type: 'cylinder',
+                                        material: gray
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }, {
+                    name: 'Leg 3',
+                    pos: [0.2, 0, -0.2],
+                    components: [
+                        {
+                            type: 'collision',
+                            options: {
+                                type: 'cylinder',
+                                height: 1,
+                                radius: 0.025
+                            }
+                        }
+                    ],
+                    children: [
+                        {
+                            name: 'Leg 3 Model',
+                            scl: [0.05, 1, 0.05],
+                            components: [
+                                {
+                                    type: 'render',
+                                    options: {
+                                        type: 'cylinder',
+                                        material: gray
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }, {
+                    name: 'Leg 4',
+                    pos: [-0.2, 0, -0.2],
+                    components: [
+                        {
+                            type: 'collision',
+                            options: {
+                                type: 'cylinder',
+                                height: 1,
+                                radius: 0.025
+                            }
+                        }
+                    ],
+                    children: [
+                        {
+                            name: 'Leg 4 Model',
+                            scl: [0.05, 1, 0.05],
+                            components: [
+                                {
+                                    type: 'render',
+                                    options: {
+                                        type: 'cylinder',
+                                        material: gray
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }, {
+            name: 'Ground',
+            pos: [0, -0.5, 0],
+            components: [
+                {
+                    type: 'collision',
+                    options: {
+                        type: 'box',
+                        halfExtents: [5, 0.5, 5]
+                    }
+                }, {
+                    type: 'rigidbody',
+                    options: {
+                        type: 'static',
+                        restitution: 0.5
+                    }
+                }
+            ],
+            children: [
+                {
+                    name: 'Ground Model',
+                    scl: [10, 1, 10],
+                    components: [
+                        {
+                            type: 'render',
+                            options: {
+                                type: 'box',
+                                material: gray
+                            }
+                        }
+                    ]
+                }
+            ]
+        }, {
+            name: 'Directional Light',
+            rot: [45, 130, 0],
+            components: [
+                {
+                    type: 'light',
+                    options: {
+                        type: 'directional',
+                        castShadows: true,
+                        shadowDistance: 8,
+                        shadowBias: 0.1,
+                        intensity: 1,
+                        normalOffsetBias: 0.05
+                    }
+                }
+            ]
+        }, {
+            name: 'Camera',
+            pos: [0, 4, 7],
+            rot: [-30, 0, 0],
+            components: [
+                {
+                    type: 'camera',
+                    options: {
+                        color: [0.5, 0.5, 0.5]
+                    }
+                }
+            ]
+        }
+    ];
+
+    /**
+     * Convert an entity definition in the structure above to a pc.Entity object
+     *
+     * @param {typeof scene} e - The scene definition.
+     * @returns {pc.Entity} The entity.
+     */
+    function parseEntity(e) {
+        const entity = new pc.Entity(e.name);
+
+        if (e.pos) {
+            entity.setLocalPosition(e.pos[0], e.pos[1], e.pos[2]);
+        }
+        if (e.rot) {
+            entity.setLocalEulerAngles(e.rot[0], e.rot[1], e.rot[2]);
+        }
+        if (e.scl) {
+            entity.setLocalScale(e.scl[0], e.scl[1], e.scl[2]);
+        }
+
+        if (e.components) {
+            e.components.forEach(function (c) {
+                entity.addComponent(c.type, c.options);
+            });
+        }
+
+        if (e.children) {
+            e.children.forEach(function (/** @type {typeof scene} */ child) {
+                entity.addChild(parseEntity(child));
+            });
+        }
+
+        return entity;
+    }
+
+    // Parse the scene data above into entities and add them to the scene's root entity
+    function parseScene(s) {
+        s.forEach(function (e) {
+            app.root.addChild(parseEntity(e));
+        });
+    }
+
+    parseScene(scene);
+
+    let numChairs = 0;
+
+    // Clone the chair entity hierarchy and add it to the scene root
+    function spawnChair() {
+        /** @type {pc.Entity} */
+        const chair = app.root.findByName('Chair');
+        const clone = chair.clone();
+        clone.setLocalPosition(Math.random() * 1 - 0.5, Math.random() * 2 + 1, Math.random() * 1 - 0.5);
+        app.root.addChild(clone);
+        numChairs++;
+    }
+
+    // Set an update function on the application's update event
+    let time = 0;
+    app.on("update", function (dt) {
+        // Add a new chair every 250 ms
+        time += dt;
+        if (time > 0.25 && numChairs < 20) {
+            spawnChair();
+            time = 0;
+        }
+
+        // Show active bodies in red and frozen bodies in gray
+        app.root.findComponents('rigidbody').forEach(function (/** @type {pc.RigidBodyComponent} */ body) {
+            body.entity.findComponents('render').forEach(function (/** @type {pc.RenderComponent} */ render) {
+                render.material = body.isActive() ? red : gray;
+            });
+        });
+    });
+    return app;
+}
+        </script>
+        <script>
+        const ENGINE_PATH = '';
+        const NODE_ENV = 'production';
+        /**
+         * Used in outline and posteffects to make ES5 scripts work in ES6
+         * @example
+         * // doesn't start with 'class', so not changing any behaviour
+         * debugger; // step through with F11 to debug
+         * Object.prototype.toString.call(1) === '[object Number]'
+         */
+        function enablePolyfillFunctionCall() {
+            const functionCall = Function.prototype.call;
+            function polyCall(thisArg, ...args) {
+                if (this.toString().startsWith('class')) {
+                    return Object.assign(thisArg, new this(...args));
+                }
+                return functionCall.bind(this)(thisArg, ...args);
+            }
+            Function.prototype.call = polyCall;
+        }
+        enablePolyfillFunctionCall();
+        /**
+         * Can load UMD and ESM. UMD registers itself into globalThis, while ESM is handled
+         * to specifically to do the same, so we achieve the same result, no matter which
+         * target build/src we linked to.
+         */
+        async function loadScript(name, src) {
+            // console.log('loadScript>', { name, src });
+            const module = await import(src);
+            const isESM = Object.keys(module).length;
+            if (isESM) {
+                window[name] = module;
+            }
+        }
+        /**
+         * @returns {string}
+         */
+        function getDeviceType() {
+            const last = localStorage.getItem('preferredGraphicsDevice');
+            if (last !== null) {
+                if (last === 'webgpu' && false) {
+                    console.warn('Picked WebGPU but example is not supported on WebGPU, defaulting to WebGL2');
+                    return 'webgl2';
+                }
+                return last;
+            } else if (true) {
+                let preferredDevice = 'webgpu';
+                // Lack of Chrome's WebGPU support on Linux
+                if (navigator.platform.includes('Linux') && navigator.appVersion.includes("Chrome")) {
+                    preferredDevice = 'webgl2';
+                }
+                return window.top.preferredGraphicsDevice || preferredDevice;
+            } else if (['webgl1', 'webgl2'].includes(window.top.preferredGraphicsDevice)) {
+                return window.top.preferredGraphicsDevice;
+            } else {
+                return 'webgl2';
+            }
+        }
+        /**
+         * Get the specified engine, picking the right choice from three sources:
+         *  - Example#ENGINE (lowest priority)
+         *  - NODE_ENV (2nd lowest priority)
+         *  - ENGINE_PATH (highest priority)
+         * If none of these sources are given, we simply pick build/playcanvas.js (ES5)
+         */
+        function getSpecifiedEngine() {
+            let specifiedEngine = './playcanvas.js';
+            // Doesn't matter what Example class specifies otherwise, because
+            // NODE_ENV has a higher priority
+            if (NODE_ENV === 'development') {
+                specifiedEngine = './playcanvas.dbg.js'
+            }
+            // ENGINE_PATH has the highest priority.
+            if (ENGINE_PATH.length) {
+                const entryPoint = ENGINE_PATH.split('/').pop();
+                specifiedEngine = './ENGINE_PATH/' + entryPoint;
+            }
+            return specifiedEngine;
+        }
+        let ready = false; // Used in indicate if UI can render Controls
+        let started = false;
+        let miniStats;
+        let allowRestart = 'true';
+        const args = Object.fromEntries(
+            location.href.split('?').pop().split('#')[0].split('&').map(_ => _.split('='))
+        );
+        let data = new observer.Observer({});
+        /**
+         * Keep it function in first run for nicer debug locations.
+         * @type {Record<string, string | Function>}
+         */
+        const files = {};
+        files['example.mjs'] = example.toString();
+        if (window.controls) {
+            files['controls.mjs'] = controls.toString();
+        }
+        var filesObject = {};
+        function resolveFunction(_) {
+            if (_.call) {
+                return _;
+            }
+            return new Function('return ' + _)();
+        }
+        Object.assign(files, filesObject);
+        function requestFiles() {
+            const responseEvent = new CustomEvent("requestedFiles", { detail: files });
+            window.top.dispatchEvent(responseEvent);
+        }
+        /**
+         * This function is called from React whenever we click on MiniStats icon,
+         * even PlayCanvas' pc itself could be undefined here.
+         */
+        function showStats() {
+            // examples/misc/mini-stats.mjs creates its own instance of ministats, prevent two mini-stats here
+            if (false) {
+                return;
+            }
+            if (typeof pc === 'undefined' || typeof pcx === 'undefined') {
+                return;
+            }
+            const { app } = pc;
+            const deviceType = app?.graphicsDevice?.deviceType;
+            if (deviceType === 'null') {
+                return;
+            }
+            if (args.miniStats === 'false') {
+                return;
+            }
+            if (!miniStats) {
+                miniStats = new pcx.MiniStats(app);
+            }
+            miniStats.enabled = true;
+        }
+        function hideStats() {
+            if (!miniStats) {
+                return;
+            }
+            miniStats.enabled = false;
+        }
+        /**
+         * This function is called from React whenever we change an example in any possible state,
+         * even PlayCanvas' pc itself could be undefined here.
+         */
+        function destroy() {
+            miniStats?.destroy();
+            miniStats = null;
+            // Can't call app.destroy() twice without an error,
+            // so we check for app.graphicsDevice first
+            const app = window.pc?.app;
+            if (app && app.graphicsDevice) {
+                app.destroy();
+            }
+            ready = false;
+        }
+        function hotReload() {
+            if (!allowRestart) {
+                console.warn('hotReload> Dropping restart while still restarting');
+                return;
+            }
+            destroy();
+            data = new observer.Observer({});
+            main(files);
+        }
+        window.addEventListener('requestFiles', requestFiles);
+        window.addEventListener('showStats'   , showStats   );
+        window.addEventListener('hideStats'   , hideStats   );
+        window.addEventListener('destroy'     , destroy     );
+        window.addEventListener('hotReload'   , hotReload   );
+        function updateControls() {
+            const event = new CustomEvent("updateFiles", {
+                detail: {
+                    files
+                }
+            });
+            window.top.dispatchEvent(event);
+        }
+        function updateActiveDevice() {
+            const event = new CustomEvent("updateActiveDevice", {
+                detail: pc.app.graphicsDevice.deviceType
+            });
+            window.top.dispatchEvent(event);
+        }
+        async function main(files) {
+            allowRestart = false;
+            await loadScript('pc', getSpecifiedEngine());
+            await loadScript('pcx', './playcanvas-extras.js');
+            window.top.pc = pc;
+            var canvas = document.getElementById("application-canvas");
+            window.top.observerData = data;
+            var deviceType = getDeviceType();
+            if (args.deviceType) {
+                console.warn("overwriting default deviceType from URL");
+                deviceType = args.deviceType;
+            }
+            if (!deviceType) {
+                console.warn("No deviceType given, defaulting to WebGL2");
+                deviceType = 'webgl2';
+            }
+            if (!started) {
+                // console.log("Dispatch exampleLoading!");
+                const event = new CustomEvent("exampleLoading"); // just notify to clean UI, but not during hot-reload
+                window.top.dispatchEvent(event);
+            }
+            const example = resolveFunction(files['example.mjs']);
+            files['example.mjs'] = files['example.mjs'].toString();
+            const app = await example({
+                canvas,
+                deviceType,
+                data,
+                assetPath,
+                scriptsPath,
+                ammoPath,
+                basisPath,
+                dracoPath,
+                glslangPath,
+                twgslPath,
+                pcx,
+                files,
+            });
+            ready = true;
+            class ExampleLoadEvent extends CustomEvent {
+                constructor(deviceType) {
+                    super("exampleLoad");
+                    this.files = files;
+                }
+            }
+            const finalFunc = () => {
+                if (app.graphicsDevice?.canvas) {
+                    showStats();
+                    if (!started) { // only one time, recalls of main() are caused by Monaco live coding
+                        window.top.dispatchEvent(new ExampleLoadEvent());
+                    }
+                    started = true;
+                    updateControls();
+                    updateActiveDevice();
+                    allowRestart = true;
+                } else {
+                    console.warn('main> no canvas');
+                }
+            };
+            // Wait until example has called app.start()
+            // And if it already called start, we will know by app.frame > 0
+            // app.start() is called when assets loaded in examples
+            if (app.frame) { // app already started
+                finalFunc();
+            } else { // Wait for app.start()
+                app.once('start', finalFunc);
+            }
+        }
+        window.onload = () => main(files);
+        </script>
+    </body>
+</html>

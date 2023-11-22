@@ -1,1 +1,0 @@
-var n="\nvec3 getTangent() {\n    return normalize(dNormalMatrix * vertex_tangent.xyz);\n}\n\nvec3 getBinormal() {\n    return cross(vNormalW, vTangentW) * vertex_tangent.w;\n}\n\nvec3 getObjectSpaceUp() {\n    return normalize(dNormalMatrix * vec3(0, 1, 0));\n}\n";export{n as default};

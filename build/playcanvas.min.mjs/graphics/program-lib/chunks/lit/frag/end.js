@@ -1,1 +1,0 @@
-var r="\n    gl_FragColor.rgb = combineColor();\n\n    gl_FragColor.rgb += dEmission;\n    gl_FragColor.rgb = addFog(gl_FragColor.rgb);\n\n    #ifndef HDR\n    gl_FragColor.rgb = toneMap(gl_FragColor.rgb);\n    gl_FragColor.rgb = gammaCorrectOutput(gl_FragColor.rgb);\n    #endif\n";export{r as default};
