@@ -1,0 +1,521 @@
+<html>
+    <head>
+        <link rel="stylesheet" href="./example.css">
+        <title>Misc: MiniStats</title>
+        <!-- no es5libs -->
+    </head>
+    <body>
+        <div id="app">
+            <div id="appInner">
+                <!--A link without href, which makes it invisible. Setting href in an example would trigger a download when clicked.-->
+                <div style="width:100%; position:absolute; top:10px">
+                    <div style="text-align: center;">
+                        <a id="ar-link" rel="ar" download="asset.usdz">
+                            <img src="./arkit.png" id="button" width="200"/>
+                        </a>    
+                    </div>
+                </div>
+                <canvas id='application-canvas'></canvas>
+            </div>
+        </div>
+        <script src='./playcanvas-observer.js'></script>
+        <script src='./pathes.js'></script>
+        <!-- imports (if any) -->
+        <script>
+
+        </script>
+        <!-- controls (if given) -->
+        <script>
+
+        </script>
+        <script>
+async function example({ canvas, pcx }) {
+    // Create the application and start the update loop
+    const app = new pc.Application(canvas, {});
+    app.start();
+
+    // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
+    app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
+    app.setCanvasResolution(pc.RESOLUTION_AUTO);
+
+    // Ensure canvas is resized when window changes size
+    const resize = () => app.resizeCanvas();
+    window.addEventListener('resize', resize);
+    app.on('destroy', () => {
+        window.removeEventListener('resize', resize);
+    });
+
+    // set up options for mini-stats, start with the default options
+    const options = pcx.MiniStats.getDefaultOptions();
+
+    // configure sizes
+    options.sizes = [
+        { width: 128, height: 16, spacing: 0, graphs: false },
+        { width: 256, height: 32, spacing: 2, graphs: true },
+        { width: 500, height: 64, spacing: 2, graphs: true }
+    ];
+
+    // when the application starts, use the largest size
+    options.startSizeIndex = 2;
+
+    // display additional counters
+    // Note: for most of these to report values, either debug or profiling engine build needs to be used.
+    options.stats = [
+
+        // frame update time in ms
+        {
+            name: "Update",
+            stats: ["frame.updateTime"],
+            decimalPlaces: 1,
+            unitsName: "ms",
+            watermark: 33
+        },
+
+        // total number of draw calls
+        {
+            name: "DrawCalls",
+            stats: ["drawCalls.total"],
+            watermark: 2000
+        },
+
+        // total number of triangles, in 1000s
+        {
+            name: "triCount",
+            stats: ["frame.triangles"],
+            decimalPlaces: 1,
+            multiplier: 1 / 1000,
+            unitsName: "k",
+            watermark: 500
+        },
+
+        // number of materials used in a frame
+        {
+            name: "materials",
+            stats: ["frame.materials"],
+            watermark: 2000
+        },
+
+        // frame time it took to do frustum culling
+        {
+            name: "cull",
+            stats: ["frame.cullTime"],
+            decimalPlaces: 1,
+            watermark: 1,
+            unitsName: "ms"
+        },
+
+        // used VRAM, displayed using 2 colors - red for textures, green for geometry
+        {
+            name: "VRAM",
+            stats: ["vram.tex", "vram.geom"],
+            decimalPlaces: 1,
+            multiplier: 1 / (1024 * 1024),
+            unitsName: "MB",
+            watermark: 100
+        },
+
+        // frames per second
+        {
+            name: "FPS",
+            stats: ["frame.fps"],
+            watermark: 60
+        },
+
+        // delta time
+        {
+            name: "Frame",
+            stats: ["frame.ms"],
+            decimalPlaces: 1,
+            unitsName: "ms",
+            watermark: 33
+        }
+    ];
+
+    // create mini-stats system
+    const miniStats = new pcx.MiniStats(app, options);
+
+    // add directional lights to the scene
+    const light = new pc.Entity();
+    light.addComponent("light", {
+        type: "directional"
+    });
+    app.root.addChild(light);
+    light.setLocalEulerAngles(45, 30, 0);
+
+    // Create an entity with a camera component
+    const camera = new pc.Entity();
+    camera.addComponent("camera", {
+        clearColor: new pc.Color(0.1, 0.1, 0.1)
+    });
+    app.root.addChild(camera);
+    camera.setLocalPosition(20, 10, 10);
+    camera.lookAt(pc.Vec3.ZERO);
+
+    /**
+     * helper function to create a primitive with shape type, position, scale
+     * @param {string} primitiveType 
+     * @param {number | pc.Vec3} position 
+     * @param {number | pc.Vec3} scale 
+     * @returns {pc.Entity}
+     */
+    function createPrimitive(primitiveType, position, scale) {
+        // create material of random color
+        const material = new pc.StandardMaterial();
+        material.diffuse = new pc.Color(Math.random(), Math.random(), Math.random());
+        material.update();
+
+        // create primitive
+        const primitive = new pc.Entity();
+        primitive.addComponent('model', {
+            type: primitiveType
+        });
+        primitive.model.material = material;
+
+        // set position and scale
+        primitive.setLocalPosition(position);
+        primitive.setLocalScale(scale);
+
+        return primitive;
+    }
+
+    // list of all created engine resources
+    /** @type {pc.Entity[]} */
+    const entities = [];
+    /** @type {any[]} */
+    const vertexBuffers = [];
+    /** @type {any[]} */
+    const textures = [];
+
+    // update function called every frame
+    let adding = true;
+    const step = 10, max = 2000;
+    /** @type {pc.Entity} */
+    let entity;
+    /** @type {pc.VertexBuffer} */
+    let vertexBuffer;
+    /** @type {{ destroy: () => void}} */
+    let texture;
+    app.on("update", function () {
+
+        // execute some tasks multiple times per frame
+        for (let i = 0; i < step; i++) {
+
+            // allocating resources
+            if (adding) {
+
+                // add entity (they used shared geometry internally, and we create individual material for each)
+                const shape = Math.random() < 0.5 ? "box" : "sphere";
+                const position = new pc.Vec3(Math.random() * 10, Math.random() * 10, Math.random() * 10);
+                const scale = 0.5 + Math.random();
+                entity = createPrimitive(shape, position, new pc.Vec3(scale, scale, scale));
+                entities.push(entity);
+                app.root.addChild(entity);
+
+                // if allocation reached the max limit, switch to removing mode
+                if (entities.length >= max) {
+                    adding = false;
+                }
+
+                // add vertex buffer
+                const vertexCount = 500;
+                const data = new Float32Array(vertexCount * 16);
+                vertexBuffer = new pc.VertexBuffer(app.graphicsDevice, pc.VertexFormat.getDefaultInstancingFormat(app.graphicsDevice),
+                                                    vertexCount, pc.BUFFER_STATIC, data);
+                vertexBuffers.push(vertexBuffer);
+
+                // allocate texture
+                const texture = new pc.Texture(app.graphicsDevice, {
+                    width: 64,
+                    height: 64,
+                    format: pc.PIXELFORMAT_RGB8,
+                    mipmaps: false
+                });
+                textures.push(texture);
+
+                // ensure texture is uploaded (actual VRAM is allocated)
+                texture.lock();
+                texture.unlock();
+                // @ts-ignore engine-tsd
+                app.graphicsDevice.setTexture(texture, 0);
+
+            } else {    // de-allocating resources
+
+                if (entities.length > 0) {
+
+                    // destroy entities
+                    entity = entities[entities.length - 1];
+                    // @ts-ignore engine-tsd
+                    entity.destroy();
+                    entities.length--;
+
+                    // destroy vertex buffer
+                    vertexBuffer = vertexBuffers[vertexBuffers.length - 1];
+                    vertexBuffer.destroy();
+                    vertexBuffers.length--;
+
+                    // destroy texture
+                    texture = textures[textures.length - 1];
+                    texture.destroy();
+                    textures.length--;
+                } else {
+                    adding = true;
+                }
+            }
+        }
+    });
+    return app;
+}
+        </script>
+        <script>
+        const ENGINE_PATH = '';
+        const NODE_ENV = 'production';
+        /**
+         * Used in outline and posteffects to make ES5 scripts work in ES6
+         * @example
+         * // doesn't start with 'class', so not changing any behaviour
+         * debugger; // step through with F11 to debug
+         * Object.prototype.toString.call(1) === '[object Number]'
+         */
+        function enablePolyfillFunctionCall() {
+            const functionCall = Function.prototype.call;
+            function polyCall(thisArg, ...args) {
+                if (this.toString().startsWith('class')) {
+                    return Object.assign(thisArg, new this(...args));
+                }
+                return functionCall.bind(this)(thisArg, ...args);
+            }
+            Function.prototype.call = polyCall;
+        }
+        enablePolyfillFunctionCall();
+        /**
+         * Can load UMD and ESM. UMD registers itself into globalThis, while ESM is handled
+         * to specifically to do the same, so we achieve the same result, no matter which
+         * target build/src we linked to.
+         */
+        async function loadScript(name, src) {
+            // console.log('loadScript>', { name, src });
+            const module = await import(src);
+            const isESM = Object.keys(module).length;
+            if (isESM) {
+                window[name] = module;
+            }
+        }
+        /**
+         * @returns {string}
+         */
+        function getDeviceType() {
+            const last = localStorage.getItem('preferredGraphicsDevice');
+            if (last !== null) {
+                if (last === 'webgpu' && false) {
+                    console.warn('Picked WebGPU but example is not supported on WebGPU, defaulting to WebGL2');
+                    return 'webgl2';
+                }
+                return last;
+            } else if (true) {
+                let preferredDevice = 'webgpu';
+                // Lack of Chrome's WebGPU support on Linux
+                if (navigator.platform.includes('Linux') && navigator.appVersion.includes("Chrome")) {
+                    preferredDevice = 'webgl2';
+                }
+                return window.top.preferredGraphicsDevice || preferredDevice;
+            } else if (['webgl1', 'webgl2'].includes(window.top.preferredGraphicsDevice)) {
+                return window.top.preferredGraphicsDevice;
+            } else {
+                return 'webgl2';
+            }
+        }
+        /**
+         * Get the specified engine, picking the right choice from three sources:
+         *  - Example#ENGINE (lowest priority)
+         *  - NODE_ENV (2nd lowest priority)
+         *  - ENGINE_PATH (highest priority)
+         * If none of these sources are given, we simply pick build/playcanvas.js (ES5)
+         */
+        function getSpecifiedEngine() {
+            let specifiedEngine = './playcanvas.prf.js';
+            // Doesn't matter what Example class specifies otherwise, because
+            // NODE_ENV has a higher priority
+            if (NODE_ENV === 'development') {
+                specifiedEngine = './playcanvas.dbg.js'
+            }
+            // ENGINE_PATH has the highest priority.
+            if (ENGINE_PATH.length) {
+                const entryPoint = ENGINE_PATH.split('/').pop();
+                specifiedEngine = './ENGINE_PATH/' + entryPoint;
+            }
+            return specifiedEngine;
+        }
+        let ready = false; // Used in indicate if UI can render Controls
+        let started = false;
+        let miniStats;
+        let allowRestart = 'true';
+        const args = Object.fromEntries(
+            location.href.split('?').pop().split('#')[0].split('&').map(_ => _.split('='))
+        );
+        let data = new observer.Observer({});
+        /**
+         * Keep it function in first run for nicer debug locations.
+         * @type {Record<string, string | Function>}
+         */
+        const files = {};
+        files['example.mjs'] = example.toString();
+        if (window.controls) {
+            files['controls.mjs'] = controls.toString();
+        }
+        var filesObject = {};
+        function resolveFunction(_) {
+            if (_.call) {
+                return _;
+            }
+            return new Function('return ' + _)();
+        }
+        Object.assign(files, filesObject);
+        function requestFiles() {
+            const responseEvent = new CustomEvent("requestedFiles", { detail: files });
+            window.top.dispatchEvent(responseEvent);
+        }
+        /**
+         * This function is called from React whenever we click on MiniStats icon,
+         * even PlayCanvas' pc itself could be undefined here.
+         */
+        function showStats() {
+            // examples/misc/mini-stats.mjs creates its own instance of ministats, prevent two mini-stats here
+            if (true) {
+                return;
+            }
+            if (typeof pc === 'undefined' || typeof pcx === 'undefined') {
+                return;
+            }
+            const { app } = pc;
+            const deviceType = app?.graphicsDevice?.deviceType;
+            if (deviceType === 'null') {
+                return;
+            }
+            if (args.miniStats === 'false') {
+                return;
+            }
+            if (!miniStats) {
+                miniStats = new pcx.MiniStats(app);
+            }
+            miniStats.enabled = true;
+        }
+        function hideStats() {
+            if (!miniStats) {
+                return;
+            }
+            miniStats.enabled = false;
+        }
+        /**
+         * This function is called from React whenever we change an example in any possible state,
+         * even PlayCanvas' pc itself could be undefined here.
+         */
+        function destroy() {
+            miniStats?.destroy();
+            miniStats = null;
+            // Can't call app.destroy() twice without an error,
+            // so we check for app.graphicsDevice first
+            const app = window.pc?.app;
+            if (app && app.graphicsDevice) {
+                app.destroy();
+            }
+            ready = false;
+        }
+        function hotReload() {
+            if (!allowRestart) {
+                console.warn('hotReload> Dropping restart while still restarting');
+                return;
+            }
+            destroy();
+            data = new observer.Observer({});
+            main(files);
+        }
+        window.addEventListener('requestFiles', requestFiles);
+        window.addEventListener('showStats'   , showStats   );
+        window.addEventListener('hideStats'   , hideStats   );
+        window.addEventListener('destroy'     , destroy     );
+        window.addEventListener('hotReload'   , hotReload   );
+        function updateControls() {
+            const event = new CustomEvent("updateFiles", {
+                detail: {
+                    files
+                }
+            });
+            window.top.dispatchEvent(event);
+        }
+        function updateActiveDevice() {
+            const event = new CustomEvent("updateActiveDevice", {
+                detail: pc.app.graphicsDevice.deviceType
+            });
+            window.top.dispatchEvent(event);
+        }
+        async function main(files) {
+            allowRestart = false;
+            await loadScript('pc', getSpecifiedEngine());
+            await loadScript('pcx', './playcanvas-extras.js');
+            window.top.pc = pc;
+            var canvas = document.getElementById("application-canvas");
+            window.top.observerData = data;
+            var deviceType = getDeviceType();
+            if (args.deviceType) {
+                console.warn("overwriting default deviceType from URL");
+                deviceType = args.deviceType;
+            }
+            if (!deviceType) {
+                console.warn("No deviceType given, defaulting to WebGL2");
+                deviceType = 'webgl2';
+            }
+            if (!started) {
+                // console.log("Dispatch exampleLoading!");
+                const event = new CustomEvent("exampleLoading"); // just notify to clean UI, but not during hot-reload
+                window.top.dispatchEvent(event);
+            }
+            const example = resolveFunction(files['example.mjs']);
+            files['example.mjs'] = files['example.mjs'].toString();
+            const app = await example({
+                canvas,
+                deviceType,
+                data,
+                assetPath,
+                scriptsPath,
+                ammoPath,
+                basisPath,
+                dracoPath,
+                glslangPath,
+                twgslPath,
+                pcx,
+                files,
+            });
+            ready = true;
+            class ExampleLoadEvent extends CustomEvent {
+                constructor(deviceType) {
+                    super("exampleLoad");
+                    this.files = files;
+                }
+            }
+            const finalFunc = () => {
+                if (app.graphicsDevice?.canvas) {
+                    showStats();
+                    if (!started) { // only one time, recalls of main() are caused by Monaco live coding
+                        window.top.dispatchEvent(new ExampleLoadEvent());
+                    }
+                    started = true;
+                    updateControls();
+                    updateActiveDevice();
+                    allowRestart = true;
+                } else {
+                    console.warn('main> no canvas');
+                }
+            };
+            // Wait until example has called app.start()
+            // And if it already called start, we will know by app.frame > 0
+            // app.start() is called when assets loaded in examples
+            if (app.frame) { // app already started
+                finalFunc();
+            } else { // Wait for app.start()
+                app.once('start', finalFunc);
+            }
+        }
+        window.onload = () => main(files);
+        </script>
+    </body>
+</html>
