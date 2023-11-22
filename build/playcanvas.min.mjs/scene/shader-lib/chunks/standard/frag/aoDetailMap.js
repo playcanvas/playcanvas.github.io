@@ -1,1 +1,0 @@
-var t="\nfloat addAoDetail(float ao) {\n#ifdef MAPTEXTURE\n\t\tfloat aoDetail = texture2DBias($SAMPLER, $UV, textureBias).$CH;\n\t\treturn detailMode_$DETAILMODE(vec3(ao), vec3(aoDetail)).r;\n#else\n\t\treturn ao;\n#endif\n}\n";export{t as default};

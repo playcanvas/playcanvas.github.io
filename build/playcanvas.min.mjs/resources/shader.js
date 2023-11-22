@@ -1,1 +1,0 @@
-import{http as r}from"../net/http.js";class t{constructor(r){this.handlerType="shader",this.maxRetries=0}load(t,e){"string"==typeof t&&(t={load:t,original:t}),r.get(t.load,{retry:this.maxRetries>0,maxRetries:this.maxRetries},(function(r,i){r?e(`Error loading shader resource: ${t.original} [${r}]`):e(null,i)}))}open(r,t){return t}patch(r,t){}}export{t as ShaderHandler};

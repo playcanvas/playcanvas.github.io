@@ -1,1 +1,0 @@
-var o="\nuniform vec3 fog_color;\nuniform float fog_density;\nfloat dBlendModeFogFactor = 1.0;\n\nvec3 addFog(vec3 color) {\n    float depth = gl_FragCoord.z / gl_FragCoord.w;\n    float fogFactor = exp(-depth * fog_density);\n    fogFactor = clamp(fogFactor, 0.0, 1.0);\n    return mix(fog_color * dBlendModeFogFactor, color, fogFactor);\n}\n";export{o as default};

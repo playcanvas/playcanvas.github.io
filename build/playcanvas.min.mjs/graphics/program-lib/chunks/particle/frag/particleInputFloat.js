@@ -1,1 +1,0 @@
-var e="\nvoid readInput(float uv) {\n    vec4 tex = texture2D(particleTexIN, vec2(uv, 0.25));\n    vec4 tex2 = texture2D(particleTexIN, vec2(uv, 0.75));\n\n    inPos = tex.xyz;\n    inVel = tex2.xyz;\n    inAngle = (tex.w < 0.0? -tex.w : tex.w) - 1000.0;\n    inShow = tex.w >= 0.0;\n    inLife = tex2.w;\n}\n";export{e as default};

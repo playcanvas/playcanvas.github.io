@@ -1,1 +1,0 @@
-import{RefCountedCache as c}from"../../core/ref-counted-cache.js";class e{static incRef(c){this.cache.incRef(c)}static decRef(c){this.cache.decRef(c)}static destroy(){this.cache.destroy()}}e.cache=new c;export{e as LightmapCache};
