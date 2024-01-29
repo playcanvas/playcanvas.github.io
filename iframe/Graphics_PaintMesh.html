@@ -8,14 +8,8 @@
         <div id="app">
             <div id="appInner">
                 <!--A link without href, which makes it invisible. Setting href in an example would trigger a download when clicked.-->
-                <div style="width:100%; position:absolute; top:10px">
-                    <div style="text-align: center;">
-                        <a id="ar-link" rel="ar" download="asset.usdz">
-                            <img src="./arkit.png" id="button" width="200"/>
-                        </a>    
-                    </div>
-                </div>
-                <canvas id='application-canvas'></canvas>
+                
+                <canvas id="application-canvas"></canvas>
             </div>
         </div>
         <script src='./playcanvas-observer.js'></script>
@@ -29,10 +23,7 @@
 
         </script>
         <script>
-async function example({ canvas, files, assetPath }) {
-
-    // Create the app and start the update loop
-    const app = new pc.Application(canvas);
+async function example({ canvas, files, deviceType, assetPath, glslangPath, twgslPath }) {
 
     // load the textures
     const assets = {
@@ -41,21 +32,46 @@ async function example({ canvas, files, assetPath }) {
         'decal': new pc.Asset('color', 'texture', { url: assetPath + 'textures/heart.png' })
     };
 
+    const gfxOptions = {
+        deviceTypes: [deviceType],
+        glslangUrl: glslangPath + 'glslang.js',
+        twgslUrl: twgslPath + 'twgsl.js'
+    };
+
+    const device = await pc.createGraphicsDevice(canvas, gfxOptions);
+    const createOptions = new pc.AppOptions();
+    createOptions.graphicsDevice = device;
+
+    createOptions.componentSystems = [
+        pc.RenderComponentSystem,
+        pc.CameraComponentSystem,
+        pc.LightComponentSystem
+    ];
+    createOptions.resourceHandlers = [
+        // @ts-ignore
+        pc.TextureHandler,
+        // @ts-ignore
+        pc.CubemapHandler
+    ];
+
+    const app = new pc.AppBase(canvas);
+    app.init(createOptions);
+
+    // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
+    app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
+    app.setCanvasResolution(pc.RESOLUTION_AUTO);
+
+    // Ensure canvas is resized when window changes size
+    const resize = () => app.resizeCanvas();
+    window.addEventListener('resize', resize);
+    app.on('destroy', () => {
+        window.removeEventListener('resize', resize);
+    });
+
     const assetListLoader = new pc.AssetListLoader(Object.values(assets), app.assets);
     assetListLoader.load(() => {
 
         app.start();
-
-        // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
-        app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
-        app.setCanvasResolution(pc.RESOLUTION_AUTO);
-
-        // Ensure canvas is resized when window changes size
-        const resize = () => app.resizeCanvas();
-        window.addEventListener('resize', resize);
-        app.on('destroy', () => {
-            window.removeEventListener('resize', resize);
-        });
 
         app.scene.setSkybox(assets.helipad.resources);
         app.scene.toneMapping = pc.TONEMAP_ACES;
@@ -134,16 +150,11 @@ async function example({ canvas, files, assetPath }) {
         const meshEntity = createHighQualitySphere(material, [worldLayer.id]);
         meshEntity.setLocalScale(15, 15, 15);
 
-        // Create the shader definition and shader from the vertex and fragment shaders
-        const shaderDefinition = {
-            attributes: {
-                aPosition: pc.SEMANTIC_POSITION,
-                aUv0: pc.SEMANTIC_TEXCOORD0
-            },
-            vshader: files['shader.vert'],
-            fshader: files['shader.frag']
-        };
-        const shader = new pc.Shader(app.graphicsDevice, shaderDefinition);
+        // Create the shader from the vertex and fragment shaders
+        const shader = pc.createShaderFromCode(app.graphicsDevice, files['shader.vert'], files['shader.frag'], 'myShader', {
+            aPosition: pc.SEMANTIC_POSITION,
+            aUv0: pc.SEMANTIC_TEXCOORD0
+        });
 
         // Create a decal material with the new shader
         const decalMaterial = new pc.Material();
@@ -266,7 +277,7 @@ async function example({ canvas, files, assetPath }) {
                     return 'webgl2';
                 }
                 return last;
-            } else if (false) {
+            } else if (true) {
                 let preferredDevice = 'webgpu';
                 // Lack of Chrome's WebGPU support on Linux
                 if (navigator.platform.includes('Linux') && navigator.appVersion.includes("Chrome")) {
@@ -300,6 +311,7 @@ async function example({ canvas, files, assetPath }) {
             }
             return specifiedEngine;
         }
+        let app;
         let ready = false; // Used in indicate if UI can render Controls
         let started = false;
         let miniStats;
@@ -317,7 +329,7 @@ async function example({ canvas, files, assetPath }) {
         if (window.controls) {
             files['controls.mjs'] = controls.toString();
         }
-        var filesObject = {"shader.vert":"\n            // Attributes per vertex: position and uv\n            attribute vec4 aPosition;\n            attribute vec2 aUv0;\n        \n            // model matrix of the mesh\n            uniform mat4 matrix_model;\n\n            // decal view-projection matrix (orthographic)\n            uniform mat4 matrix_decal_viewProj;\n\n            // decal projected position to fragment program\n            varying vec4 decalPos;\n\n            void main(void)\n            {\n                // We render in texture space, so a position of this fragment is its uv-coordinates.\n                // Changes the range of uv coordinates from 0..1 to projection space -1 to 1.\n                gl_Position = vec4(aUv0.x * 2.0 - 1.0, aUv0.y * 2.0 - 1.0, 0, 1.0);\n\n                // transform the vertex position to world space and then to decal space, and pass it\n                // to the fragment shader to sample the decal texture\n                vec4 worldPos = matrix_model * aPosition;\n                decalPos = matrix_decal_viewProj * worldPos;\n            }","shader.frag":"\n            precision lowp float;\n            varying vec4 decalPos;\n            uniform sampler2D uDecalMap;\n\n            void main(void)\n            {\n                // decal space position from -1..1 range, to texture space range 0..1\n                vec4 p = decalPos * 0.5 + 0.5;\n \n                // if the position is outside out 0..1 projection box, ignore the pixel\n                if (p.x < 0.0 || p.x > 1.0 || p.y < 0.0 || p.y > 1.0 || p.z < 0.0 || p.z > 1.0)\n                    discard;\n\n                gl_FragColor = texture2D(uDecalMap, p.xy);\n            }"};
+        var filesObject = {"shader.vert":"\n            // Attributes per vertex: position and uv\n            attribute vec4 aPosition;\n            attribute vec2 aUv0;\n        \n            // model matrix of the mesh\n            uniform mat4 matrix_model;\n\n            // decal view-projection matrix (orthographic)\n            uniform mat4 matrix_decal_viewProj;\n\n            // decal projected position to fragment program\n            varying vec4 decalPos;\n\n            void main(void)\n            {\n                // handle upside-down uv coordinates on WebGPU\n                vec2 uv = getImageEffectUV(aUv0);\n\n                // We render in texture space, so a position of this fragment is its uv-coordinates.\n                // Change the range of uv coordinates from 0..1 to projection space -1 to 1.\n                gl_Position = vec4(uv.x * 2.0 - 1.0, uv.y * 2.0 - 1.0, 0, 1.0);\n\n                // transform the vertex position to world space and then to decal space, and pass it\n                // to the fragment shader to sample the decal texture\n                vec4 worldPos = matrix_model * aPosition;\n                decalPos = matrix_decal_viewProj * worldPos;\n            }","shader.frag":"\n            precision lowp float;\n            varying vec4 decalPos;\n            uniform sampler2D uDecalMap;\n\n            void main(void)\n            {\n                // decal space position from -1..1 range, to texture space range 0..1\n                vec4 p = decalPos * 0.5 + 0.5;\n \n                // if the position is outside out 0..1 projection box, ignore the pixel\n                if (p.x < 0.0 || p.x > 1.0 || p.y < 0.0 || p.y > 1.0 || p.z < 0.0 || p.z > 1.0)\n                    discard;\n\n                gl_FragColor = texture2D(uDecalMap, p.xy);\n            }"};
         function resolveFunction(_) {
             if (_.call) {
                 return _;
@@ -341,7 +353,6 @@ async function example({ canvas, files, assetPath }) {
             if (typeof pc === 'undefined' || typeof pcx === 'undefined') {
                 return;
             }
-            const { app } = pc;
             const deviceType = app?.graphicsDevice?.deviceType;
             if (deviceType === 'null') {
                 return;
@@ -369,7 +380,6 @@ async function example({ canvas, files, assetPath }) {
             miniStats = null;
             // Can't call app.destroy() twice without an error,
             // so we check for app.graphicsDevice first
-            const app = window.pc?.app;
             if (app && app.graphicsDevice) {
                 app.destroy();
             }
@@ -399,7 +409,7 @@ async function example({ canvas, files, assetPath }) {
         }
         function updateActiveDevice() {
             const event = new CustomEvent("updateActiveDevice", {
-                detail: pc.app.graphicsDevice.deviceType
+                detail: app.graphicsDevice.deviceType
             });
             window.top.dispatchEvent(event);
         }
@@ -421,12 +431,17 @@ async function example({ canvas, files, assetPath }) {
             }
             if (!started) {
                 // console.log("Dispatch exampleLoading!");
-                const event = new CustomEvent("exampleLoading"); // just notify to clean UI, but not during hot-reload
+                // just notify to clean UI, but not during hot-reload
+                const event = new CustomEvent("exampleLoading", {
+                    detail: {
+                        showDeviceSelector: true,
+                    }
+                });
                 window.top.dispatchEvent(event);
             }
             const example = resolveFunction(files['example.mjs']);
             files['example.mjs'] = files['example.mjs'].toString();
-            const app = await example({
+            app = await example({
                 canvas,
                 deviceType,
                 data,
@@ -445,6 +460,7 @@ async function example({ canvas, files, assetPath }) {
                 constructor(deviceType) {
                     super("exampleLoad");
                     this.files = files;
+                    this.description = "";
                 }
             }
             const finalFunc = () => {
@@ -464,10 +480,19 @@ async function example({ canvas, files, assetPath }) {
             // Wait until example has called app.start()
             // And if it already called start, we will know by app.frame > 0
             // app.start() is called when assets loaded in examples
-            if (app.frame) { // app already started
-                finalFunc();
-            } else { // Wait for app.start()
-                app.once('start', finalFunc);
+            if (app) {
+                if (app.frame) { // app already started
+                    finalFunc();
+                } else { // Wait for app.start()
+                    app.once('start', finalFunc);
+                }
+            } else {
+                // The example function didn't return an app instance
+                // still update the UI and assume it has started.
+                window.top.dispatchEvent(new ExampleLoadEvent());
+                started = true;
+                updateControls();
+                allowRestart = true;
             }
         }
         window.onload = () => main(files);

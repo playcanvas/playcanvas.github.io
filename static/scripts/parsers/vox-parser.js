@@ -1,7 +1,7 @@
 /**
  * @license
- * PlayCanvas Engine v1.67.0 revision ea736291a
- * Copyright 2011-2023 PlayCanvas Ltd. All rights reserved.
+ * PlayCanvas Engine v1.68.0 revision c318cb382
+ * Copyright 2011-2024 PlayCanvas Ltd. All rights reserved.
  */
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -237,7 +237,7 @@
 			if (scope === void 0) {
 				scope = this;
 			}
-			Debug.deprecated('Using chaning with EventHandler.once is deprecated, subscribe to an event from EventHandler directly instead.');
+			Debug.deprecated('Using chaining with EventHandler.once is deprecated, subscribe to an event from EventHandler directly instead.');
 			return this.handler._addCallback(name, callback, scope, true);
 		};
 		_createClass(EventHandle, [{

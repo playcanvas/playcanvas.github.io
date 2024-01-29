@@ -2,24 +2,28 @@
  * Logs a frame number.
  *
  * @type {string}
+ * @category Debug
  */
 declare const TRACEID_RENDER_FRAME: string;
 /**
  * Logs a frame time.
  *
  * @type {string}
+ * @category Debug
  */
 declare const TRACEID_RENDER_FRAME_TIME: string;
 /**
  * Logs basic information about generated render passes.
  *
  * @type {string}
+ * @category Debug
  */
 declare const TRACEID_RENDER_PASS: string;
 /**
  * Logs additional detail for render passes.
  *
  * @type {string}
+ * @category Debug
  */
 declare const TRACEID_RENDER_PASS_DETAIL: string;
 /**
@@ -27,102 +31,119 @@ declare const TRACEID_RENDER_PASS_DETAIL: string;
  * layer composition changes.
  *
  * @type {string}
+ * @category Debug
  */
 declare const TRACEID_RENDER_ACTION: string;
 /**
  * Logs the allocation of render targets.
  *
  * @type {string}
+ * @category Debug
  */
 declare const TRACEID_RENDER_TARGET_ALLOC: string;
 /**
  * Logs the allocation of textures.
  *
  * @type {string}
+ * @category Debug
  */
 declare const TRACEID_TEXTURE_ALLOC: string;
 /**
  * Logs the creation of shaders.
  *
  * @type {string}
+ * @category Debug
  */
 declare const TRACEID_SHADER_ALLOC: string;
 /**
  * Logs the compilation time of shaders.
  *
  * @type {string}
+ * @category Debug
  */
 declare const TRACEID_SHADER_COMPILE: string;
 /**
  * Logs the vram use by the textures.
  *
  * @type {string}
+ * @category Debug
  */
 declare const TRACEID_VRAM_TEXTURE: string;
 /**
  * Logs the vram use by the vertex buffers.
  *
  * @type {string}
+ * @category Debug
  */
 declare const TRACEID_VRAM_VB: string;
 /**
  * Logs the vram use by the index buffers.
  *
  * @type {string}
+ * @category Debug
  */
 declare const TRACEID_VRAM_IB: string;
 /**
  * Logs the creation of bind groups.
  *
  * @type {string}
+ * @category Debug
  */
 declare const TRACEID_BINDGROUP_ALLOC: string;
 /**
  * Logs the creation of bind group formats.
  *
  * @type {string}
+ * @category Debug
  */
 declare const TRACEID_BINDGROUPFORMAT_ALLOC: string;
 /**
  * Logs the creation of render pipelines. WebBPU only.
  *
  * @type {string}
+ * @category Debug
  */
 declare const TRACEID_RENDERPIPELINE_ALLOC: string;
 /**
  * Logs the creation of compute pipelines. WebGPU only.
  *
  * @type {string}
+ * @category Debug
  */
 declare const TRACEID_COMPUTEPIPELINE_ALLOC: string;
 /**
  * Logs the creation of pipeline layouts. WebBPU only.
  *
  * @type {string}
+ * @category Debug
  */
 declare const TRACEID_PIPELINELAYOUT_ALLOC: string;
 /**
  * Logs the internal debug information for Elements.
  *
  * @type {string}
+ * @category Debug
  */
 declare const TRACE_ID_ELEMENT: string;
 /**
  * Logs the vram use by all textures in memory.
  *
  * @type {string}
+ * @category Debug
  */
 declare const TRACEID_TEXTURES: string;
 /**
  * Logs the render queue commands.
  *
  * @type {string}
+ * @category Debug
  */
 declare const TRACEID_RENDER_QUEUE: string;
 /**
  * Logs the GPU timings.
  *
  * @type {string}
+ * @category Debug
  */
 declare const TRACEID_GPU_TIMINGS: string;
 
@@ -130,12 +151,14 @@ declare const TRACEID_GPU_TIMINGS: string;
  * A linear interpolation scheme.
  *
  * @type {number}
+ * @category Math
  */
 declare const CURVE_LINEAR: number;
 /**
  * A smooth step interpolation scheme.
  *
  * @type {number}
+ * @category Math
  */
 declare const CURVE_SMOOTHSTEP: number;
 /**
@@ -160,12 +183,14 @@ declare const CURVE_CARDINAL: number;
  * Cardinal spline interpolation scheme. For Catmull-Rom, specify curve tension 0.5.
  *
  * @type {number}
+ * @category Math
  */
 declare const CURVE_SPLINE: number;
 /**
  * A stepped interpolator, free from the shackles of blending.
  *
  * @type {number}
+ * @category Math
  */
 declare const CURVE_STEP: number;
 
@@ -173,18 +198,21 @@ declare const CURVE_STEP: number;
  * Linear distance model.
  *
  * @type {string}
+ * @category Sound
  */
 declare const DISTANCE_LINEAR: string;
 /**
  * Inverse distance model.
  *
  * @type {string}
+ * @category Sound
  */
 declare const DISTANCE_INVERSE: string;
 /**
  * Exponential distance model.
  *
  * @type {string}
+ * @category Sound
  */
 declare const DISTANCE_EXPONENTIAL: string;
 
@@ -192,12 +220,14 @@ declare const DISTANCE_EXPONENTIAL: string;
  * Ignores the integer part of texture coordinates, using only the fractional part.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const ADDRESS_REPEAT: number;
 /**
  * Clamps texture coordinate to the range 0 to 1.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const ADDRESS_CLAMP_TO_EDGE: number;
 /**
@@ -205,132 +235,154 @@ declare const ADDRESS_CLAMP_TO_EDGE: number;
  * part is odd, then the texture coordinate is set to 1 minus the fractional part.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const ADDRESS_MIRRORED_REPEAT: number;
 /**
  * Multiply all fragment components by zero.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const BLENDMODE_ZERO: number;
 /**
  * Multiply all fragment components by one.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const BLENDMODE_ONE: number;
 /**
  * Multiply all fragment components by the components of the source fragment.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const BLENDMODE_SRC_COLOR: number;
 /**
  * Multiply all fragment components by one minus the components of the source fragment.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const BLENDMODE_ONE_MINUS_SRC_COLOR: number;
 /**
  * Multiply all fragment components by the components of the destination fragment.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const BLENDMODE_DST_COLOR: number;
 /**
  * Multiply all fragment components by one minus the components of the destination fragment.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const BLENDMODE_ONE_MINUS_DST_COLOR: number;
 /**
  * Multiply all fragment components by the alpha value of the source fragment.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const BLENDMODE_SRC_ALPHA: number;
 /**
  * Multiply all fragment components by the alpha value of the source fragment.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const BLENDMODE_SRC_ALPHA_SATURATE: number;
 /**
  * Multiply all fragment components by one minus the alpha value of the source fragment.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const BLENDMODE_ONE_MINUS_SRC_ALPHA: number;
 /**
  * Multiply all fragment components by the alpha value of the destination fragment.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const BLENDMODE_DST_ALPHA: number;
 /**
  * Multiply all fragment components by one minus the alpha value of the destination fragment.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const BLENDMODE_ONE_MINUS_DST_ALPHA: number;
 /**
  * Multiplies all fragment components by a constant.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const BLENDMODE_CONSTANT: number;
 /**
  * Multiplies all fragment components by 1 minus a constant.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const BLENDMODE_ONE_MINUS_CONSTANT: number;
 /**
  * Add the results of the source and destination fragment multiplies.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const BLENDEQUATION_ADD: number;
 /**
  * Subtract the results of the source and destination fragment multiplies.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const BLENDEQUATION_SUBTRACT: number;
 /**
  * Reverse and subtract the results of the source and destination fragment multiplies.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const BLENDEQUATION_REVERSE_SUBTRACT: number;
 /**
  * Use the smallest value. Check app.graphicsDevice.extBlendMinmax for support.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const BLENDEQUATION_MIN: number;
 /**
  * Use the largest value. Check app.graphicsDevice.extBlendMinmax for support.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const BLENDEQUATION_MAX: number;
 /**
  * The data store contents will be modified once and used many times.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const BUFFER_STATIC: number;
 /**
  * The data store contents will be modified repeatedly and used many times.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const BUFFER_DYNAMIC: number;
 /**
  * The data store contents will be modified once and used at most a few times.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const BUFFER_STREAM: number;
 /**
@@ -338,78 +390,91 @@ declare const BUFFER_STREAM: number;
  * transform feedback usage (WebGL2 only).
  *
  * @type {number}
+ * @category Graphics
  */
 declare const BUFFER_GPUDYNAMIC: number;
 /**
  * Clear the color buffer.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const CLEARFLAG_COLOR: number;
 /**
  * Clear the depth buffer.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const CLEARFLAG_DEPTH: number;
 /**
  * Clear the stencil buffer.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const CLEARFLAG_STENCIL: number;
 /**
  * The positive X face of a cubemap.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const CUBEFACE_POSX: number;
 /**
  * The negative X face of a cubemap.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const CUBEFACE_NEGX: number;
 /**
  * The positive Y face of a cubemap.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const CUBEFACE_POSY: number;
 /**
  * The negative Y face of a cubemap.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const CUBEFACE_NEGY: number;
 /**
  * The positive Z face of a cubemap.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const CUBEFACE_POSZ: number;
 /**
  * The negative Z face of a cubemap.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const CUBEFACE_NEGZ: number;
 /**
  * No triangles are culled.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const CULLFACE_NONE: number;
 /**
  * Triangles facing away from the view direction are culled.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const CULLFACE_BACK: number;
 /**
  * Triangles facing the view direction are culled.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const CULLFACE_FRONT: number;
 /**
@@ -418,156 +483,182 @@ declare const CULLFACE_FRONT: number;
  *
  * @type {number}
  * @ignore
+ * @category Graphics
  */
 declare const CULLFACE_FRONTANDBACK: number;
 /**
  * Point sample filtering.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const FILTER_NEAREST: number;
 /**
  * Bilinear filtering.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const FILTER_LINEAR: number;
 /**
  * Use the nearest neighbor in the nearest mipmap level.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const FILTER_NEAREST_MIPMAP_NEAREST: number;
 /**
  * Linearly interpolate in the nearest mipmap level.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const FILTER_NEAREST_MIPMAP_LINEAR: number;
 /**
  * Use the nearest neighbor after linearly interpolating between mipmap levels.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const FILTER_LINEAR_MIPMAP_NEAREST: number;
 /**
  * Linearly interpolate both the mipmap levels and between texels.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const FILTER_LINEAR_MIPMAP_LINEAR: number;
 /**
  * Never pass.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const FUNC_NEVER: number;
 /**
  * Pass if (ref & mask) < (stencil & mask).
  *
  * @type {number}
+ * @category Graphics
  */
 declare const FUNC_LESS: number;
 /**
  * Pass if (ref & mask) == (stencil & mask).
  *
  * @type {number}
+ * @category Graphics
  */
 declare const FUNC_EQUAL: number;
 /**
  * Pass if (ref & mask) <= (stencil & mask).
  *
  * @type {number}
+ * @category Graphics
  */
 declare const FUNC_LESSEQUAL: number;
 /**
  * Pass if (ref & mask) > (stencil & mask).
  *
  * @type {number}
+ * @category Graphics
  */
 declare const FUNC_GREATER: number;
 /**
  * Pass if (ref & mask) != (stencil & mask).
  *
  * @type {number}
+ * @category Graphics
  */
 declare const FUNC_NOTEQUAL: number;
 /**
  * Pass if (ref & mask) >= (stencil & mask).
  *
  * @type {number}
+ * @category Graphics
  */
 declare const FUNC_GREATEREQUAL: number;
 /**
  * Always pass.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const FUNC_ALWAYS: number;
 /**
  * 8-bit unsigned vertex indices (0 to 255).
  *
  * @type {number}
+ * @category Graphics
  */
 declare const INDEXFORMAT_UINT8: number;
 /**
  * 16-bit unsigned vertex indices (0 to 65,535).
  *
  * @type {number}
+ * @category Graphics
  */
 declare const INDEXFORMAT_UINT16: number;
 /**
  * 32-bit unsigned vertex indices (0 to 4,294,967,295).
  *
  * @type {number}
+ * @category Graphics
  */
 declare const INDEXFORMAT_UINT32: number;
 /**
  * 8-bit alpha.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const PIXELFORMAT_A8: number;
 /**
  * 8-bit luminance.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const PIXELFORMAT_L8: number;
 /**
  * 8-bit luminance with 8-bit alpha.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const PIXELFORMAT_LA8: number;
 /**
  * 16-bit RGB (5-bits for red channel, 6 for green and 5 for blue).
  *
  * @type {number}
+ * @category Graphics
  */
 declare const PIXELFORMAT_RGB565: number;
 /**
  * 16-bit RGBA (5-bits for red channel, 5 for green, 5 for blue with 1-bit alpha).
  *
  * @type {number}
+ * @category Graphics
  */
 declare const PIXELFORMAT_RGBA5551: number;
 /**
  * 16-bit RGBA (4-bits for red channel, 4 for green, 4 for blue with 4-bit alpha).
  *
  * @type {number}
+ * @category Graphics
  */
 declare const PIXELFORMAT_RGBA4: number;
 /**
  * 24-bit RGB (8-bits for red channel, 8 for green and 8 for blue).
  *
  * @type {number}
+ * @category Graphics
  */
 declare const PIXELFORMAT_RGB8: number;
 /**
  * 32-bit RGBA (8-bits for red channel, 8 for green, 8 for blue with 8-bit alpha).
  *
  * @type {number}
+ * @category Graphics
  */
 declare const PIXELFORMAT_RGBA8: number;
 /**
@@ -575,6 +666,7 @@ declare const PIXELFORMAT_RGBA8: number;
  * RGB 5:6:5 color values and a 4x4 two bit lookup table.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const PIXELFORMAT_DXT1: number;
 /**
@@ -583,6 +675,7 @@ declare const PIXELFORMAT_DXT1: number;
  * 64 bits of color data; encoded the same way as DXT1.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const PIXELFORMAT_DXT3: number;
 /**
@@ -591,48 +684,56 @@ declare const PIXELFORMAT_DXT3: number;
  * of color data (encoded the same way as DXT1).
  *
  * @type {number}
+ * @category Graphics
  */
 declare const PIXELFORMAT_DXT5: number;
 /**
  * 16-bit floating point RGB (16-bit float for each red, green and blue channels).
  *
  * @type {number}
+ * @category Graphics
  */
 declare const PIXELFORMAT_RGB16F: number;
 /**
  * 16-bit floating point RGBA (16-bit float for each red, green, blue and alpha channels).
  *
  * @type {number}
+ * @category Graphics
  */
 declare const PIXELFORMAT_RGBA16F: number;
 /**
  * 32-bit floating point RGB (32-bit float for each red, green and blue channels).
  *
  * @type {number}
+ * @category Graphics
  */
 declare const PIXELFORMAT_RGB32F: number;
 /**
  * 32-bit floating point RGBA (32-bit float for each red, green, blue and alpha channels).
  *
  * @type {number}
+ * @category Graphics
  */
 declare const PIXELFORMAT_RGBA32F: number;
 /**
  * 32-bit floating point single channel format (WebGL2 only).
  *
  * @type {number}
+ * @category Graphics
  */
 declare const PIXELFORMAT_R32F: number;
 /**
  * A readable depth buffer format.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const PIXELFORMAT_DEPTH: number;
 /**
  * A readable depth/stencil buffer format (WebGL2 only).
  *
  * @type {number}
+ * @category Graphics
  */
 declare const PIXELFORMAT_DEPTHSTENCIL: number;
 /**
@@ -640,78 +741,91 @@ declare const PIXELFORMAT_DEPTHSTENCIL: number;
  * blue channel (WebGL2 only).
  *
  * @type {number}
+ * @category Graphics
  */
 declare const PIXELFORMAT_111110F: number;
 /**
  * Color-only sRGB format (WebGL2 only).
  *
  * @type {number}
+ * @category Graphics
  */
 declare const PIXELFORMAT_SRGB: number;
 /**
  * Color sRGB format with additional alpha channel (WebGL2 only).
  *
  * @type {number}
+ * @category Graphics
  */
 declare const PIXELFORMAT_SRGBA: number;
 /**
  * ETC1 compressed format.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const PIXELFORMAT_ETC1: number;
 /**
  * ETC2 (RGB) compressed format.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const PIXELFORMAT_ETC2_RGB: number;
 /**
  * ETC2 (RGBA) compressed format.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const PIXELFORMAT_ETC2_RGBA: number;
 /**
  * PVRTC (2BPP RGB) compressed format.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const PIXELFORMAT_PVRTC_2BPP_RGB_1: number;
 /**
  * PVRTC (2BPP RGBA) compressed format.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const PIXELFORMAT_PVRTC_2BPP_RGBA_1: number;
 /**
  * PVRTC (4BPP RGB) compressed format.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const PIXELFORMAT_PVRTC_4BPP_RGB_1: number;
 /**
  * PVRTC (4BPP RGBA) compressed format.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const PIXELFORMAT_PVRTC_4BPP_RGBA_1: number;
 /**
  * ATC compressed format with alpha channel in blocks of 4x4.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const PIXELFORMAT_ASTC_4x4: number;
 /**
  * ATC compressed format with no alpha channel.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const PIXELFORMAT_ATC_RGB: number;
 /**
  * ATC compressed format with alpha channel.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const PIXELFORMAT_ATC_RGBA: number;
 /**
@@ -719,29 +833,166 @@ declare const PIXELFORMAT_ATC_RGBA: number;
  *
  * @type {number}
  * @ignore
+ * @category Graphics
  */
 declare const PIXELFORMAT_BGRA8: number;
+/**
+ * 8-bit signed integer single-channel (R) format (Not supported by WebGL1).
+ *
+ * @type {number}
+ * @category Graphics
+ */
+declare const PIXELFORMAT_R8I: number;
+/**
+ * 8-bit unsigned integer single-channel (R) format (Not supported by WebGL1).
+ *
+ * @type {number}
+ * @category Graphics
+ */
+declare const PIXELFORMAT_R8U: number;
+/**
+ * 16-bit signed integer single-channel (R) format (Not supported by WebGL1).
+ *
+ * @type {number}
+ * @category Graphics
+ */
+declare const PIXELFORMAT_R16I: number;
+/**
+ * 16-bit unsigned integer single-channel (R) format (Not supported by WebGL1).
+ *
+ * @type {number}
+ * @category Graphics
+ */
+declare const PIXELFORMAT_R16U: number;
+/**
+ * 32-bit signed integer single-channel (R) format (Not supported by WebGL1).
+ *
+ * @type {number}
+ * @category Graphics
+ */
+declare const PIXELFORMAT_R32I: number;
+/**
+ * 32-bit unsigned integer single-channel (R) format (Not supported by WebGL1).
+ *
+ * @type {number}
+ * @category Graphics
+ */
+declare const PIXELFORMAT_R32U: number;
+/**
+ * 8-bit per-channel signed integer (RG) format (Not supported by WebGL1).
+ *
+ * @type {number}
+ * @category Graphics
+ */
+declare const PIXELFORMAT_RG8I: number;
+/**
+ * 8-bit per-channel unsigned integer (RG) format (Not supported by WebGL1).
+ *
+ * @type {number}
+ * @category Graphics
+ */
+declare const PIXELFORMAT_RG8U: number;
+/**
+ * 16-bit per-channel signed integer (RG) format (Not supported by WebGL1).
+ *
+ * @type {number}
+ * @category Graphics
+ */
+declare const PIXELFORMAT_RG16I: number;
+/**
+ * 16-bit per-channel unsigned integer (RG) format (Not supported by WebGL1).
+ *
+ * @type {number}
+ * @category Graphics
+ */
+declare const PIXELFORMAT_RG16U: number;
+/**
+ * 32-bit per-channel signed integer (RG) format (Not supported by WebGL1).
+ *
+ * @type {number}
+ * @category Graphics
+ */
+declare const PIXELFORMAT_RG32I: number;
+/**
+ * 32-bit per-channel unsigned integer (RG) format (Not supported by WebGL1).
+ *
+ * @type {number}
+ * @category Graphics
+ */
+declare const PIXELFORMAT_RG32U: number;
+/**
+ * 8-bit per-channel signed integer (RGBA) format (Not supported by WebGL1).
+ *
+ * @type {number}
+ * @category Graphics
+ */
+declare const PIXELFORMAT_RGBA8I: number;
+/**
+ * 8-bit per-channel unsigned integer (RGBA) format (Not supported by WebGL1).
+ *
+ * @type {number}
+ * @category Graphics
+ */
+declare const PIXELFORMAT_RGBA8U: number;
+/**
+ * 16-bit per-channel signed integer (RGBA) format (Not supported by WebGL1).
+ *
+ * @type {number}
+ * @category Graphics
+ */
+declare const PIXELFORMAT_RGBA16I: number;
+/**
+ * 16-bit per-channel unsigned integer (RGBA) format (Not supported by WebGL1).
+ *
+ * @type {number}
+ * @category Graphics
+ */
+declare const PIXELFORMAT_RGBA16U: number;
+/**
+ * 32-bit per-channel signed integer (RGBA) format (Not supported by WebGL1).
+ *
+ * @type {number}
+ * @category Graphics
+ */
+declare const PIXELFORMAT_RGBA32I: number;
+/**
+ * 32-bit per-channel unsigned integer (RGBA) format (Not supported by WebGL1).
+ *
+ * @type {number}
+ * @category Graphics
+ */
+declare const PIXELFORMAT_RGBA32U: number;
 declare const pixelFormatInfo: Map<number, {
     name: string;
     size: number;
     blockSize?: undefined;
+    isInt?: undefined;
 } | {
     name: string;
     blockSize: number;
     size?: undefined;
+    isInt?: undefined;
+} | {
+    name: string;
+    size: number;
+    isInt: boolean;
+    blockSize?: undefined;
 }>;
 declare function isCompressedPixelFormat(format: any): boolean;
-declare function getPixelFormatArrayType(format: any): Uint8ArrayConstructor | Uint16ArrayConstructor | Float32ArrayConstructor;
+declare function isIntegerPixelFormat(format: any): boolean;
+declare function getPixelFormatArrayType(format: any): Int8ArrayConstructor | Uint8ArrayConstructor | Int16ArrayConstructor | Uint16ArrayConstructor | Int32ArrayConstructor | Uint32ArrayConstructor | Float32ArrayConstructor;
 /**
  * List of distinct points.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const PRIMITIVE_POINTS: number;
 /**
  * Discrete list of line segments.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const PRIMITIVE_LINES: number;
 /**
@@ -749,66 +1000,77 @@ declare const PRIMITIVE_LINES: number;
  * between the last and first points.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const PRIMITIVE_LINELOOP: number;
 /**
  * List of points that are linked sequentially by line segments.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const PRIMITIVE_LINESTRIP: number;
 /**
  * Discrete list of triangles.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const PRIMITIVE_TRIANGLES: number;
 /**
  * Connected strip of triangles where a specified vertex forms a triangle using the previous two.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const PRIMITIVE_TRISTRIP: number;
 /**
  * Connected fan of triangles where the first vertex forms triangles with the following pairs of vertices.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const PRIMITIVE_TRIFAN: number;
 /**
  * Vertex attribute to be treated as a position.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const SEMANTIC_POSITION: string;
 /**
  * Vertex attribute to be treated as a normal.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const SEMANTIC_NORMAL: string;
 /**
  * Vertex attribute to be treated as a tangent.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const SEMANTIC_TANGENT: string;
 /**
  * Vertex attribute to be treated as skin blend weights.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const SEMANTIC_BLENDWEIGHT: string;
 /**
  * Vertex attribute to be treated as skin blend indices.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const SEMANTIC_BLENDINDICES: string;
 /**
  * Vertex attribute to be treated as a color.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const SEMANTIC_COLOR: string;
 declare const SEMANTIC_TEXCOORD: "TEXCOORD";
@@ -816,48 +1078,56 @@ declare const SEMANTIC_TEXCOORD: "TEXCOORD";
  * Vertex attribute to be treated as a texture coordinate (set 0).
  *
  * @type {string}
+ * @category Graphics
  */
 declare const SEMANTIC_TEXCOORD0: string;
 /**
  * Vertex attribute to be treated as a texture coordinate (set 1).
  *
  * @type {string}
+ * @category Graphics
  */
 declare const SEMANTIC_TEXCOORD1: string;
 /**
  * Vertex attribute to be treated as a texture coordinate (set 2).
  *
  * @type {string}
+ * @category Graphics
  */
 declare const SEMANTIC_TEXCOORD2: string;
 /**
  * Vertex attribute to be treated as a texture coordinate (set 3).
  *
  * @type {string}
+ * @category Graphics
  */
 declare const SEMANTIC_TEXCOORD3: string;
 /**
  * Vertex attribute to be treated as a texture coordinate (set 4).
  *
  * @type {string}
+ * @category Graphics
  */
 declare const SEMANTIC_TEXCOORD4: string;
 /**
  * Vertex attribute to be treated as a texture coordinate (set 5).
  *
  * @type {string}
+ * @category Graphics
  */
 declare const SEMANTIC_TEXCOORD5: string;
 /**
  * Vertex attribute to be treated as a texture coordinate (set 6).
  *
  * @type {string}
+ * @category Graphics
  */
 declare const SEMANTIC_TEXCOORD6: string;
 /**
  * Vertex attribute to be treated as a texture coordinate (set 7).
  *
  * @type {string}
+ * @category Graphics
  */
 declare const SEMANTIC_TEXCOORD7: string;
 declare const SEMANTIC_ATTR: "ATTR";
@@ -865,96 +1135,112 @@ declare const SEMANTIC_ATTR: "ATTR";
  * Vertex attribute with a user defined semantic.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const SEMANTIC_ATTR0: string;
 /**
  * Vertex attribute with a user defined semantic.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const SEMANTIC_ATTR1: string;
 /**
  * Vertex attribute with a user defined semantic.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const SEMANTIC_ATTR2: string;
 /**
  * Vertex attribute with a user defined semantic.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const SEMANTIC_ATTR3: string;
 /**
  * Vertex attribute with a user defined semantic.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const SEMANTIC_ATTR4: string;
 /**
  * Vertex attribute with a user defined semantic.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const SEMANTIC_ATTR5: string;
 /**
  * Vertex attribute with a user defined semantic.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const SEMANTIC_ATTR6: string;
 /**
  * Vertex attribute with a user defined semantic.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const SEMANTIC_ATTR7: string;
 /**
  * Vertex attribute with a user defined semantic.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const SEMANTIC_ATTR8: string;
 /**
  * Vertex attribute with a user defined semantic.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const SEMANTIC_ATTR9: string;
 /**
  * Vertex attribute with a user defined semantic.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const SEMANTIC_ATTR10: string;
 /**
  * Vertex attribute with a user defined semantic.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const SEMANTIC_ATTR11: string;
 /**
  * Vertex attribute with a user defined semantic.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const SEMANTIC_ATTR12: string;
 /**
  * Vertex attribute with a user defined semantic.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const SEMANTIC_ATTR13: string;
 /**
  * Vertex attribute with a user defined semantic.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const SEMANTIC_ATTR14: string;
 /**
  * Vertex attribute with a user defined semantic.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const SEMANTIC_ATTR15: string;
 declare const SHADERTAG_MATERIAL: 1;
@@ -962,84 +1248,98 @@ declare const SHADERTAG_MATERIAL: 1;
  * Don't change the stencil buffer value.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const STENCILOP_KEEP: number;
 /**
  * Set value to zero.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const STENCILOP_ZERO: number;
 /**
  * Replace value with the reference value (see {@link StencilParameters}).
  *
  * @type {number}
+ * @category Graphics
  */
 declare const STENCILOP_REPLACE: number;
 /**
  * Increment the value.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const STENCILOP_INCREMENT: number;
 /**
  * Increment the value but wrap it to zero when it's larger than a maximum representable value.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const STENCILOP_INCREMENTWRAP: number;
 /**
  * Decrement the value.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const STENCILOP_DECREMENT: number;
 /**
  * Decrement the value but wrap it to a maximum representable value if the current value is 0.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const STENCILOP_DECREMENTWRAP: number;
 /**
  * Invert the value bitwise.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const STENCILOP_INVERT: number;
 /**
  * Read only. Any changes to the locked mip level's pixels will not update the texture.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const TEXTURELOCK_READ: number;
 /**
  * Write only. The contents of the specified mip level will be entirely replaced.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const TEXTURELOCK_WRITE: number;
 /**
  * Texture is a default type.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const TEXTURETYPE_DEFAULT: string;
 /**
  * Texture stores high dynamic range data in RGBM format.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const TEXTURETYPE_RGBM: string;
 /**
  * Texture stores high dynamic range data in RGBE format.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const TEXTURETYPE_RGBE: string;
 /**
  * Texture stores high dynamic range data in RGBP encoding.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const TEXTURETYPE_RGBP: string;
 /**
@@ -1048,6 +1348,7 @@ declare const TEXTURETYPE_RGBP: string;
  * higher quality when the texture data is compressed.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const TEXTURETYPE_SWIZZLEGGGR: string;
 declare const TEXHINT_NONE: 0;
@@ -1063,88 +1364,104 @@ declare const TEXTUREDIMENSION_3D: "3d";
 declare const SAMPLETYPE_FLOAT: 0;
 declare const SAMPLETYPE_UNFILTERABLE_FLOAT: 1;
 declare const SAMPLETYPE_DEPTH: 2;
+declare const SAMPLETYPE_INT: 3;
+declare const SAMPLETYPE_UINT: 4;
 /**
  * Texture data is not stored a specific projection format.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const TEXTUREPROJECTION_NONE: string;
 /**
  * Texture data is stored in cubemap projection format.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const TEXTUREPROJECTION_CUBE: string;
 /**
  * Texture data is stored in equirectangular projection format.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const TEXTUREPROJECTION_EQUIRECT: string;
 /**
  * Texture data is stored in octahedral projection format.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const TEXTUREPROJECTION_OCTAHEDRAL: string;
 /**
  * Shader source code uses GLSL language.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const SHADERLANGUAGE_GLSL: string;
 /**
  * Shader source code uses WGSL language.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const SHADERLANGUAGE_WGSL: string;
 /**
  * Signed byte vertex element type.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const TYPE_INT8: number;
 /**
  * Unsigned byte vertex element type.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const TYPE_UINT8: number;
 /**
  * Signed short vertex element type.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const TYPE_INT16: number;
 /**
  * Unsigned short vertex element type.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const TYPE_UINT16: number;
 /**
  * Signed integer vertex element type.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const TYPE_INT32: number;
 /**
  * Unsigned integer vertex element type.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const TYPE_UINT32: number;
 /**
  * Floating point vertex element type.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const TYPE_FLOAT32: number;
 /**
  * 16-bit floating point vertex element type (not supported by WebGL1).
  *
  * @type {number}
+ * @category Graphics
  */
 declare const TYPE_FLOAT16: number;
 declare const UNIFORMTYPE_BOOL: 0;
@@ -1173,29 +1490,58 @@ declare const UNIFORMTYPE_VEC3ARRAY: 22;
 declare const UNIFORMTYPE_VEC4ARRAY: 23;
 declare const UNIFORMTYPE_MAT4ARRAY: 24;
 declare const UNIFORMTYPE_TEXTURE2D_ARRAY: 25;
+declare const UNIFORMTYPE_UINT: 26;
+declare const UNIFORMTYPE_UVEC2: 27;
+declare const UNIFORMTYPE_UVEC3: 28;
+declare const UNIFORMTYPE_UVEC4: 29;
+declare const UNIFORMTYPE_INTARRAY: 30;
+declare const UNIFORMTYPE_UINTARRAY: 31;
+declare const UNIFORMTYPE_BOOLARRAY: 32;
+declare const UNIFORMTYPE_IVEC2ARRAY: 33;
+declare const UNIFORMTYPE_UVEC2ARRAY: 34;
+declare const UNIFORMTYPE_BVEC2ARRAY: 35;
+declare const UNIFORMTYPE_IVEC3ARRAY: 36;
+declare const UNIFORMTYPE_UVEC3ARRAY: 37;
+declare const UNIFORMTYPE_BVEC3ARRAY: 38;
+declare const UNIFORMTYPE_IVEC4ARRAY: 39;
+declare const UNIFORMTYPE_UVEC4ARRAY: 40;
+declare const UNIFORMTYPE_BVEC4ARRAY: 41;
+declare const UNIFORMTYPE_ITEXTURE2D: 42;
+declare const UNIFORMTYPE_UTEXTURE2D: 43;
+declare const UNIFORMTYPE_ITEXTURECUBE: 44;
+declare const UNIFORMTYPE_UTEXTURECUBE: 45;
+declare const UNIFORMTYPE_ITEXTURE3D: 46;
+declare const UNIFORMTYPE_UTEXTURE3D: 47;
+declare const UNIFORMTYPE_ITEXTURE2D_ARRAY: 48;
+declare const UNIFORMTYPE_UTEXTURE2D_ARRAY: 49;
 declare const uniformTypeToName: string[];
+declare const uniformTypeToStorage: Uint8Array;
 /**
  * A WebGL 1 device type.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const DEVICETYPE_WEBGL1: string;
 /**
  * A WebGL 2 device type.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const DEVICETYPE_WEBGL2: string;
 /**
  * A WebGPU device type.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const DEVICETYPE_WEBGPU: string;
 /**
  * A Null device type.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const DEVICETYPE_NULL: string;
 declare const SHADERSTAGE_VERTEX: 1;
@@ -1226,12 +1572,14 @@ declare const typedArrayIndexFormatsByteSize: number[];
  *
  * @type {object}
  * @ignore
+ * @category Graphics
  */
 declare const semanticToLocation: object;
 /**
  * Chunk API versions
  *
  * @type {string}
+ * @category Graphics
  */
 declare const CHUNKAPI_1_51: string;
 declare const CHUNKAPI_1_55: "1.55";
@@ -1256,54 +1604,63 @@ declare const AXIS_KEY: "key";
  * Name of event fired when a key is pressed.
  *
  * @type {string}
+ * @category Input
  */
 declare const EVENT_KEYDOWN: string;
 /**
  * Name of event fired when a key is released.
  *
  * @type {string}
+ * @category Input
  */
 declare const EVENT_KEYUP: string;
 /**
  * Name of event fired when a mouse button is pressed.
  *
  * @type {string}
+ * @category Input
  */
 declare const EVENT_MOUSEDOWN: string;
 /**
  * Name of event fired when the mouse is moved.
  *
  * @type {string}
+ * @category Input
  */
 declare const EVENT_MOUSEMOVE: string;
 /**
  * Name of event fired when a mouse button is released.
  *
  * @type {string}
+ * @category Input
  */
 declare const EVENT_MOUSEUP: string;
 /**
  * Name of event fired when the mouse wheel is rotated.
  *
  * @type {string}
+ * @category Input
  */
 declare const EVENT_MOUSEWHEEL: string;
 /**
  * Name of event fired when a new touch occurs. For example, a finger is placed on the device.
  *
  * @type {string}
+ * @category Input
  */
 declare const EVENT_TOUCHSTART: string;
 /**
  * Name of event fired when touch ends. For example, a finger is lifted off the device.
  *
  * @type {string}
+ * @category Input
  */
 declare const EVENT_TOUCHEND: string;
 /**
  * Name of event fired when a touch moves.
  *
  * @type {string}
+ * @category Input
  */
 declare const EVENT_TOUCHMOVE: string;
 /**
@@ -1313,658 +1670,800 @@ declare const EVENT_TOUCHMOVE: string;
  * device supports, in which case the earliest touch point is canceled.
  *
  * @type {string}
+ * @category Input
  */
 declare const EVENT_TOUCHCANCEL: string;
 /**
  * Name of event fired when a new xr select occurs. For example, primary trigger was pressed.
  *
  * @type {string}
+ * @category Input
  */
 declare const EVENT_SELECT: string;
 /**
  * Name of event fired when a new xr select starts. For example, primary trigger is now pressed.
  *
  * @type {string}
+ * @category Input
  */
 declare const EVENT_SELECTSTART: string;
 /**
  * Name of event fired when xr select ends. For example, a primary trigger is now released.
  *
  * @type {string}
+ * @category Input
  */
 declare const EVENT_SELECTEND: string;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_BACKSPACE: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_TAB: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_RETURN: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_ENTER: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_SHIFT: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_CONTROL: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_ALT: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_PAUSE: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_CAPS_LOCK: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_ESCAPE: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_SPACE: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_PAGE_UP: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_PAGE_DOWN: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_END: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_HOME: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_LEFT: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_UP: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_RIGHT: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_DOWN: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_PRINT_SCREEN: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_INSERT: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_DELETE: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_0: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_1: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_2: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_3: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_4: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_5: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_6: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_7: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_8: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_9: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_SEMICOLON: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_EQUAL: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_A: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_B: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_C: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_D: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_E: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_F: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_G: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_H: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_I: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_J: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_K: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_L: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_M: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_N: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_O: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_P: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_Q: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_R: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_S: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_T: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_U: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_V: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_W: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_X: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_Y: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_Z: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_WINDOWS: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_CONTEXT_MENU: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_NUMPAD_0: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_NUMPAD_1: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_NUMPAD_2: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_NUMPAD_3: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_NUMPAD_4: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_NUMPAD_5: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_NUMPAD_6: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_NUMPAD_7: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_NUMPAD_8: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_NUMPAD_9: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_MULTIPLY: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_ADD: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_SEPARATOR: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_SUBTRACT: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_DECIMAL: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_DIVIDE: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_F1: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_F2: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_F3: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_F4: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_F5: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_F6: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_F7: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_F8: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_F9: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_F10: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_F11: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_F12: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_COMMA: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_PERIOD: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_SLASH: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_OPEN_BRACKET: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_BACK_SLASH: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_CLOSE_BRACKET: number;
 /**
  * @type {number}
+ * @category Input
  */
 declare const KEY_META: number;
 /**
  * No mouse buttons pressed.
  *
  * @type {number}
+ * @category Input
  */
 declare const MOUSEBUTTON_NONE: number;
 /**
  * The left mouse button.
  *
  * @type {number}
+ * @category Input
  */
 declare const MOUSEBUTTON_LEFT: number;
 /**
  * The middle mouse button.
  *
  * @type {number}
+ * @category Input
  */
 declare const MOUSEBUTTON_MIDDLE: number;
 /**
  * The right mouse button.
  *
  * @type {number}
+ * @category Input
  */
 declare const MOUSEBUTTON_RIGHT: number;
 /**
  * Index for pad 1.
  *
  * @type {number}
+ * @category Input
  */
 declare const PAD_1: number;
 /**
  * Index for pad 2.
  *
  * @type {number}
+ * @category Input
  */
 declare const PAD_2: number;
 /**
  * Index for pad 3.
  *
  * @type {number}
+ * @category Input
  */
 declare const PAD_3: number;
 /**
  * Index for pad 4.
  *
  * @type {number}
+ * @category Input
  */
 declare const PAD_4: number;
 /**
  * The first face button, from bottom going clockwise.
  *
  * @type {number}
+ * @category Input
  */
 declare const PAD_FACE_1: number;
 /**
  * The second face button, from bottom going clockwise.
  *
  * @type {number}
+ * @category Input
  */
 declare const PAD_FACE_2: number;
 /**
  * The third face button, from bottom going clockwise.
  *
  * @type {number}
+ * @category Input
  */
 declare const PAD_FACE_3: number;
 /**
  * The fourth face button, from bottom going clockwise.
  *
  * @type {number}
+ * @category Input
  */
 declare const PAD_FACE_4: number;
 /**
  * The first shoulder button on the left.
  *
  * @type {number}
+ * @category Input
  */
 declare const PAD_L_SHOULDER_1: number;
 /**
  * The first shoulder button on the right.
  *
  * @type {number}
+ * @category Input
  */
 declare const PAD_R_SHOULDER_1: number;
 /**
  * The second shoulder button on the left.
  *
  * @type {number}
+ * @category Input
  */
 declare const PAD_L_SHOULDER_2: number;
 /**
  * The second shoulder button on the right.
  *
  * @type {number}
+ * @category Input
  */
 declare const PAD_R_SHOULDER_2: number;
 /**
  * The select button.
  *
  * @type {number}
+ * @category Input
  */
 declare const PAD_SELECT: number;
 /**
  * The start button.
  *
  * @type {number}
+ * @category Input
  */
 declare const PAD_START: number;
 /**
  * The button when depressing the left analogue stick.
  *
  * @type {number}
+ * @category Input
  */
 declare const PAD_L_STICK_BUTTON: number;
 /**
  * The button when depressing the right analogue stick.
  *
  * @type {number}
+ * @category Input
  */
 declare const PAD_R_STICK_BUTTON: number;
 /**
  * Direction pad up.
  *
  * @type {number}
+ * @category Input
  */
 declare const PAD_UP: number;
 /**
  * Direction pad down.
  *
  * @type {number}
+ * @category Input
  */
 declare const PAD_DOWN: number;
 /**
  * Direction pad left.
  *
  * @type {number}
+ * @category Input
  */
 declare const PAD_LEFT: number;
 /**
  * Direction pad right.
  *
  * @type {number}
+ * @category Input
  */
 declare const PAD_RIGHT: number;
 /**
  * Vendor specific button.
  *
  * @type {number}
+ * @category Input
  */
 declare const PAD_VENDOR: number;
 /**
  * Horizontal axis on the left analogue stick.
  *
  * @type {number}
+ * @category Input
  */
 declare const PAD_L_STICK_X: number;
 /**
  * Vertical axis on the left analogue stick.
  *
  * @type {number}
+ * @category Input
  */
 declare const PAD_L_STICK_Y: number;
 /**
  * Horizontal axis on the right analogue stick.
  *
  * @type {number}
+ * @category Input
  */
 declare const PAD_R_STICK_X: number;
 /**
  * Vertical axis on the right analogue stick.
  *
  * @type {number}
+ * @category Input
  */
 declare const PAD_R_STICK_Y: number;
 /**
  * Name of event fired when a gamepad connects.
  *
  * @type {string}
+ * @category Input
  */
 declare const EVENT_GAMEPADCONNECTED: string;
 /**
  * Name of event fired when a gamepad disconnects.
  *
  * @type {string}
+ * @category Input
  */
 declare const EVENT_GAMEPADDISCONNECTED: string;
 /**
  * Horizontal axis on the touchpad of a XR pad.
  *
  * @type {number}
+ * @category Input
  */
 declare const XRPAD_TOUCHPAD_X: number;
 /**
  * Vertical axis on the thouchpad of a XR pad.
  *
  * @type {number}
+ * @category Input
  */
 declare const XRPAD_TOUCHPAD_Y: number;
 /**
  * Horizontal axis on the stick of a XR pad.
  *
  * @type {number}
+ * @category Input
  */
 declare const XRPAD_STICK_X: number;
 /**
  * Vertical axis on the stick of a XR pad.
  *
  * @type {number}
+ * @category Input
  */
 declare const XRPAD_STICK_Y: number;
 /**
  * The button when pressing the XR pad's touchpad.
  *
  * @type {number}
+ * @category Input
  */
 declare const XRPAD_TOUCHPAD_BUTTON: number;
 /**
  * The trigger button from XR pad.
  *
  * @type {number}
+ * @category Input
  */
 declare const XRPAD_TRIGGER: number;
 /**
  * The squeeze button from XR pad.
  *
  * @type {number}
+ * @category Input
  */
 declare const XRPAD_SQUEEZE: number;
 /**
  * The button when pressing the XR pad's stick.
  *
  * @type {number}
+ * @category Input
  */
 declare const XRPAD_STICK_BUTTON: number;
 /**
  * The A button from XR pad.
  *
  * @type {number}
+ * @category Input
  */
 declare const XRPAD_A: number;
 /**
  * The B button from XR pad.
  *
  * @type {number}
+ * @category Input
  */
 declare const XRPAD_B: number;
 
@@ -1973,6 +2472,7 @@ declare const XRPAD_B: number;
  * the frame buffer.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const BLEND_SUBTRACTIVE: number;
 /**
@@ -1980,6 +2480,7 @@ declare const BLEND_SUBTRACTIVE: number;
  * frame buffer.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const BLEND_ADDITIVE: number;
 /**
@@ -1988,12 +2489,14 @@ declare const BLEND_ADDITIVE: number;
  * {@link BLENDMODE_ONE_MINUS_SRC_ALPHA}.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const BLEND_NORMAL: number;
 /**
  * Disable blending.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const BLEND_NONE: number;
 /**
@@ -2001,6 +2504,7 @@ declare const BLEND_NONE: number;
  * multiplied by the source alpha value.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const BLEND_PREMULTIPLIED: number;
 /**
@@ -2008,72 +2512,84 @@ declare const BLEND_PREMULTIPLIED: number;
  * result to the frame buffer.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const BLEND_MULTIPLICATIVE: number;
 /**
  * Same as {@link BLEND_ADDITIVE} except the source RGB is multiplied by the source alpha.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const BLEND_ADDITIVEALPHA: number;
 /**
  * Multiplies colors and doubles the result.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const BLEND_MULTIPLICATIVE2X: number;
 /**
  * Softer version of additive.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const BLEND_SCREEN: number;
 /**
  * Minimum color. Check app.graphicsDevice.extBlendMinmax for support.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const BLEND_MIN: number;
 /**
  * Maximum color. Check app.graphicsDevice.extBlendMinmax for support.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const BLEND_MAX: number;
 /**
  * No fog is applied to the scene.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const FOG_NONE: string;
 /**
  * Fog rises linearly from zero to 1 between a start and end depth.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const FOG_LINEAR: string;
 /**
  * Fog rises according to an exponential curve controlled by a density value.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const FOG_EXP: string;
 /**
  * Fog rises according to an exponential curve controlled by a density value.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const FOG_EXP2: string;
 /**
  * No Fresnel.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const FRESNEL_NONE: number;
 /**
  * Schlick's approximation of Fresnel.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const FRESNEL_SCHLICK: number;
 declare const LAYER_HUD: 0;
@@ -2084,42 +2600,49 @@ declare const LAYER_WORLD: 15;
  * The world layer.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const LAYERID_WORLD: number;
 /**
  * The depth layer.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const LAYERID_DEPTH: number;
 /**
  * The skybox layer.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const LAYERID_SKYBOX: number;
 /**
  * The immediate layer.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const LAYERID_IMMEDIATE: number;
 /**
  * The UI layer.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const LAYERID_UI: number;
 /**
  * Directional (global) light source.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const LIGHTTYPE_DIRECTIONAL: number;
 /**
  * Omni-directional (local) light source.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const LIGHTTYPE_OMNI: number;
 /**
@@ -2127,12 +2650,14 @@ declare const LIGHTTYPE_OMNI: number;
  *
  * @type {number}
  * @ignore
+ * @category Graphics
  */
 declare const LIGHTTYPE_POINT: number;
 /**
  * Spot (local) light source.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const LIGHTTYPE_SPOT: number;
 declare const LIGHTTYPE_COUNT: 3;
@@ -2140,42 +2665,49 @@ declare const LIGHTTYPE_COUNT: 3;
  * Infinitesimally small point light source shape.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const LIGHTSHAPE_PUNCTUAL: number;
 /**
  * Rectangle shape of light source.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const LIGHTSHAPE_RECT: number;
 /**
  * Disk shape of light source.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const LIGHTSHAPE_DISK: number;
 /**
  * Sphere shape of light source.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const LIGHTSHAPE_SPHERE: number;
 /**
  * Linear distance falloff model for light attenuation.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const LIGHTFALLOFF_LINEAR: number;
 /**
  * Inverse squared distance falloff model for light attenuation.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const LIGHTFALLOFF_INVERSESQUARED: number;
 /**
  * Render depth (color-packed on WebGL 1.0), can be used for PCF 3x3 sampling.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const SHADOW_PCF3: number;
 declare const SHADOW_DEPTH: 0;
@@ -2184,6 +2716,7 @@ declare const SHADOW_DEPTH: 0;
  * work correctly.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const SHADOW_VSM8: number;
 /**
@@ -2191,6 +2724,7 @@ declare const SHADOW_VSM8: number;
  * back to {@link SHADOW_VSM8}, if not supported.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const SHADOW_VSM16: number;
 /**
@@ -2198,6 +2732,7 @@ declare const SHADOW_VSM16: number;
  * to {@link SHADOW_VSM16}, if not supported.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const SHADOW_VSM32: number;
 /**
@@ -2205,18 +2740,21 @@ declare const SHADOW_VSM32: number;
  * WebGL 2. Falls back to {@link SHADOW_PCF3} on WebGL 1.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const SHADOW_PCF5: number;
 /**
  * Render depth (color-packed on WebGL 1.0), can be used for PCF 1x1 sampling.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const SHADOW_PCF1: number;
 /**
  * Render depth as color for PCSS software filtering.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const SHADOW_PCSS: number;
 /**
@@ -2224,42 +2762,49 @@ declare const SHADOW_PCSS: number;
  *
  * @type {object}
  * @ignore
+ * @category Graphics
  */
 declare const shadowTypeToString: object;
 /**
  * Box filter.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const BLUR_BOX: number;
 /**
  * Gaussian filter. May look smoother than box, but requires more samples.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const BLUR_GAUSSIAN: number;
 /**
  * No sorting, particles are drawn in arbitrary order. Can be simulated on GPU.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const PARTICLESORT_NONE: number;
 /**
  * Sorting based on distance to the camera. CPU only.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const PARTICLESORT_DISTANCE: number;
 /**
  * Newer particles are drawn first. CPU only.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const PARTICLESORT_NEWER_FIRST: number;
 /**
  * Older particles are drawn first. CPU only.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const PARTICLESORT_OLDER_FIRST: number;
 declare const PARTICLEMODE_GPU: 0;
@@ -2268,6 +2813,7 @@ declare const PARTICLEMODE_CPU: 1;
  * Box shape parameterized by emitterExtents. Initial velocity is directed towards local Z axis.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const EMITTERSHAPE_BOX: number;
 /**
@@ -2275,66 +2821,77 @@ declare const EMITTERSHAPE_BOX: number;
  * center.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const EMITTERSHAPE_SPHERE: number;
 /**
  * Particles are facing camera.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const PARTICLEORIENTATION_SCREEN: number;
 /**
  * User defines world space normal (particleNormal) to set planes orientation.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const PARTICLEORIENTATION_WORLD: number;
 /**
  * Similar to previous, but the normal is affected by emitter(entity) transformation.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const PARTICLEORIENTATION_EMITTER: number;
 /**
  * A perspective camera projection where the frustum shape is essentially pyramidal.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const PROJECTION_PERSPECTIVE: number;
 /**
  * An orthographic camera projection where the frustum shape is essentially a cuboid.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const PROJECTION_ORTHOGRAPHIC: number;
 /**
  * Render mesh instance as solid geometry.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const RENDERSTYLE_SOLID: number;
 /**
  * Render mesh instance as wireframe.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const RENDERSTYLE_WIREFRAME: number;
 /**
  * Render mesh instance as points.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const RENDERSTYLE_POINTS: number;
 /**
  * The cube map is treated as if it is infinitely far away.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const CUBEPROJ_NONE: number;
 /**
  * The cube map is box-projected based on a world space axis-aligned bounding box.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const CUBEPROJ_BOX: number;
 /**
@@ -2342,60 +2899,70 @@ declare const CUBEPROJ_BOX: number;
  * older projects.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const SPECULAR_PHONG: number;
 /**
  * Energy-conserving Blinn-Phong.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const SPECULAR_BLINN: number;
 /**
  * Multiply together the primary and secondary colors.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const DETAILMODE_MUL: string;
 /**
  * Add together the primary and secondary colors.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const DETAILMODE_ADD: string;
 /**
  * Softer version of {@link DETAILMODE_ADD}.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const DETAILMODE_SCREEN: string;
 /**
  * Multiplies or screens the colors, depending on the primary color.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const DETAILMODE_OVERLAY: string;
 /**
  * Select whichever of the primary and secondary colors is darker, component-wise.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const DETAILMODE_MIN: string;
 /**
  * Select whichever of the primary and secondary colors is lighter, component-wise.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const DETAILMODE_MAX: string;
 /**
  * No gamma correction.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const GAMMA_NONE: number;
 /**
  * Apply sRGB gamma correction.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const GAMMA_SRGB: number;
 /**
@@ -2404,60 +2971,70 @@ declare const GAMMA_SRGB: number;
  * @type {number}
  * @deprecated
  * @ignore
+ * @category Graphics
  */
 declare const GAMMA_SRGBFAST: number;
 /**
  * Apply sRGB (HDR) gamma correction.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const GAMMA_SRGBHDR: number;
 /**
  * Linear tonemapping.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const TONEMAP_LINEAR: number;
 /**
  * Filmic tonemapping curve.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const TONEMAP_FILMIC: number;
 /**
  * Hejl filmic tonemapping curve.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const TONEMAP_HEJL: number;
 /**
  * ACES filmic tonemapping curve.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const TONEMAP_ACES: number;
 /**
  * ACES v2 filmic tonemapping curve.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const TONEMAP_ACES2: number;
 /**
  * No specular occlusion.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const SPECOCC_NONE: number;
 /**
  * Use AO directly to occlude specular.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const SPECOCC_AO: number;
 /**
  * Modify AO based on material glossiness/view angle to occlude specular.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const SPECOCC_GLOSSDEPENDENT: number;
 declare const SHADERDEF_NOSHADOW: 1;
@@ -2474,25 +3051,25 @@ declare const SHADERDEF_MORPH_POSITION: 1024;
 declare const SHADERDEF_MORPH_NORMAL: 2048;
 declare const SHADERDEF_MORPH_TEXTURE_BASED: 4096;
 declare const SHADERDEF_LMAMBIENT: 8192;
-declare const LINEBATCH_WORLD: 0;
-declare const LINEBATCH_OVERLAY: 1;
-declare const LINEBATCH_GIZMO: 2;
 /**
  * The shadow map is not to be updated.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const SHADOWUPDATE_NONE: number;
 /**
  * The shadow map is regenerated this frame and not on subsequent frames.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const SHADOWUPDATE_THISFRAME: number;
 /**
  * The shadow map is regenerated every frame.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const SHADOWUPDATE_REALTIME: number;
 declare const SORTKEY_FORWARD: 0;
@@ -2504,18 +3081,21 @@ declare const MASK_BAKE: 4;
  * Render shaded materials with gamma correction and tonemapping.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const SHADER_FORWARD: number;
 /**
  * Render shaded materials without gamma correction and tonemapping.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const SHADER_FORWARDHDR: number;
 /**
  * Render RGBA-encoded depth value.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const SHADER_DEPTH: number;
 declare const SHADER_PICK: 3;
@@ -2524,72 +3104,84 @@ declare const SHADER_SHADOW: 4;
  * Shader that performs forward rendering.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const SHADERPASS_FORWARD: string;
 /**
  * Shader used for debug rendering of albedo.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const SHADERPASS_ALBEDO: string;
 /**
  * Shader used for debug rendering of world normal.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const SHADERPASS_WORLDNORMAL: string;
 /**
  * Shader used for debug rendering of opacity.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const SHADERPASS_OPACITY: string;
 /**
  * Shader used for debug rendering of specularity.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const SHADERPASS_SPECULARITY: string;
 /**
  * Shader used for debug rendering of gloss.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const SHADERPASS_GLOSS: string;
 /**
  * Shader used for debug rendering of metalness.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const SHADERPASS_METALNESS: string;
 /**
  * Shader used for debug rendering of ao.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const SHADERPASS_AO: string;
 /**
  * Shader used for debug rendering of emission.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const SHADERPASS_EMISSION: string;
 /**
  * Shader used for debug rendering of lighting.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const SHADERPASS_LIGHTING: string;
 /**
  * Shader used for debug rendering of UV0 texture coordinates.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const SHADERPASS_UV0: string;
 /**
  * This mode renders a sprite as a simple quad.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const SPRITE_RENDERMODE_SIMPLE: number;
 /**
@@ -2598,6 +3190,7 @@ declare const SPRITE_RENDERMODE_SIMPLE: number;
  * region both horizontally and vertically.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const SPRITE_RENDERMODE_SLICED: number;
 /**
@@ -2606,48 +3199,56 @@ declare const SPRITE_RENDERMODE_SLICED: number;
  * both horizontally and vertically.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const SPRITE_RENDERMODE_TILED: number;
 /**
  * Single color lightmap.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const BAKE_COLOR: number;
 /**
  * Single color lightmap + dominant light direction (used for bump/specular).
  *
  * @type {number}
+ * @category Graphics
  */
 declare const BAKE_COLORDIR: number;
 /**
  * Center of view.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const VIEW_CENTER: number;
 /**
  * Left of view. Only used in stereo rendering.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const VIEW_LEFT: number;
 /**
  * Right of view. Only used in stereo rendering.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const VIEW_RIGHT: number;
 /**
  * No sorting is applied. Mesh instances are rendered in the same order they were added to a layer.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const SORTMODE_NONE: number;
 /**
  * Mesh instances are sorted based on {@link MeshInstance#drawOrder}.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const SORTMODE_MANUAL: number;
 /**
@@ -2655,6 +3256,7 @@ declare const SORTMODE_MANUAL: number;
  * rendering performance.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const SORTMODE_MATERIALMESH: number;
 /**
@@ -2662,6 +3264,7 @@ declare const SORTMODE_MATERIALMESH: number;
  * semi-transparent objects on different depth, one is blended on top of another.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const SORTMODE_BACK2FRONT: number;
 /**
@@ -2669,6 +3272,7 @@ declare const SORTMODE_BACK2FRONT: number;
  * better performance than {@link SORTMODE_MATERIALMESH} due to reduced overdraw.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const SORTMODE_FRONT2BACK: number;
 /**
@@ -2676,32 +3280,81 @@ declare const SORTMODE_FRONT2BACK: number;
  *
  * @type {number}
  * @ignore
+ * @category Graphics
  */
 declare const SORTMODE_CUSTOM: number;
 /**
  * Automatically set aspect ratio to current render target's width divided by height.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const ASPECT_AUTO: number;
 /**
  * Use the manual aspect ratio value.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const ASPECT_MANUAL: number;
 /**
  * Horizontal orientation.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const ORIENTATION_HORIZONTAL: number;
 /**
  * Vertical orientation.
  *
  * @type {number}
+ * @category Graphics
  */
 declare const ORIENTATION_VERTICAL: number;
+/**
+ * A sky texture is rendered using an infinite projection.
+ *
+ * @type {string}
+ * @category Graphics
+ */
+declare const SKYTYPE_INFINITE: string;
+/**
+ * A sky texture is rendered using a box projection. This is generally suitable for interior
+ * environments.
+ *
+ * @type {string}
+ * @category Graphics
+ */
+declare const SKYTYPE_BOX: string;
+/**
+ *  A sky texture is rendered using a dome projection. This is generally suitable for exterior
+ * environments.
+ *
+ * @type {string}
+ * @category Graphics
+ */
+declare const SKYTYPE_DOME: string;
+/**
+ * Opacity dithering is disabled.
+ *
+ * @type {string}
+ * @category Graphics
+ */
+declare const DITHER_NONE: string;
+/**
+ * Opacity is dithered using a Bayer 8 matrix.
+ *
+ * @type {string}
+ * @category Graphics
+ */
+declare const DITHER_BAYER8: string;
+/**
+ * Opacity is dithered using a blue noise texture.
+ *
+ * @type {string}
+ * @category Graphics
+ */
+declare const DITHER_BLUENOISE: string;
 
 /**
  * When resizing the window the size of the canvas will not change.
@@ -2741,12 +3394,14 @@ declare const RESOLUTION_FIXED: string;
  * Specifies different color tints for the hover, pressed and inactive states.
  *
  * @type {number}
+ * @category User Interface
  */
 declare const BUTTON_TRANSITION_MODE_TINT: number;
 /**
  * Specifies different sprites for the hover, pressed and inactive states.
  *
  * @type {number}
+ * @category User Interface
  */
 declare const BUTTON_TRANSITION_MODE_SPRITE_CHANGE: number;
 
@@ -2754,36 +3409,42 @@ declare const BUTTON_TRANSITION_MODE_SPRITE_CHANGE: number;
  * A {@link ElementComponent} that contains child {@link ElementComponent}s.
  *
  * @type {string}
+ * @category User Interface
  */
 declare const ELEMENTTYPE_GROUP: string;
 /**
  * A {@link ElementComponent} that displays an image.
  *
  * @type {string}
+ * @category User Interface
  */
 declare const ELEMENTTYPE_IMAGE: string;
 /**
  * A {@link ElementComponent} that displays text.
  *
  * @type {string}
+ * @category User Interface
  */
 declare const ELEMENTTYPE_TEXT: string;
 /**
  * Fit the content exactly to Element's bounding box.
  *
  * @type {string}
+ * @category User Interface
  */
 declare const FITMODE_STRETCH: string;
 /**
  * Fit the content within the Element's bounding box while preserving its Aspect Ratio.
  *
  * @type {string}
+ * @category User Interface
  */
 declare const FITMODE_CONTAIN: string;
 /**
  * Fit the content to cover the entire Element's bounding box while preserving its Aspect Ratio.
  *
  * @type {string}
+ * @category User Interface
  */
 declare const FITMODE_COVER: string;
 
@@ -2813,24 +3474,28 @@ declare const MOTION_LOCKED: string;
  * Disable all fitting logic.
  *
  * @type {number}
+ * @category User Interface
  */
 declare const FITTING_NONE: number;
 /**
  * Stretch child elements to fit the parent container.
  *
  * @type {number}
+ * @category User Interface
  */
 declare const FITTING_STRETCH: number;
 /**
  * Shrink child elements to fit the parent container.
  *
  * @type {number}
+ * @category User Interface
  */
 declare const FITTING_SHRINK: number;
 /**
  * Apply both STRETCH and SHRINK fitting logic where applicable.
  *
  * @type {number}
+ * @category User Interface
  */
 declare const FITTING_BOTH: number;
 
@@ -2838,12 +3503,14 @@ declare const FITTING_BOTH: number;
  * Rigid body has infinite mass and cannot move.
  *
  * @type {string}
+ * @category Physics
  */
 declare const BODYTYPE_STATIC: string;
 /**
  * Rigid body is simulated according to applied forces.
  *
  * @type {string}
+ * @category Physics
  */
 declare const BODYTYPE_DYNAMIC: string;
 /**
@@ -2851,6 +3518,7 @@ declare const BODYTYPE_DYNAMIC: string;
  * their velocity or position.
  *
  * @type {string}
+ * @category Physics
  */
 declare const BODYTYPE_KINEMATIC: string;
 declare const BODYFLAG_STATIC_OBJECT: 1;
@@ -2888,6 +3556,7 @@ declare const BODYMASK_NOT_STATIC_KINEMATIC: number;
  * Always use the application's resolution as the resolution for the {@link ScreenComponent}.
  *
  * @type {string}
+ * @category User Interface
  */
 declare const SCALEMODE_NONE: string;
 /**
@@ -2895,6 +3564,7 @@ declare const SCALEMODE_NONE: string;
  * ScreenComponent's referenceResolution.
  *
  * @type {string}
+ * @category User Interface
  */
 declare const SCALEMODE_BLEND: string;
 
@@ -2902,30 +3572,35 @@ declare const SCALEMODE_BLEND: string;
  * Content does not scroll any further than its bounds.
  *
  * @type {number}
+ * @category User Interface
  */
 declare const SCROLL_MODE_CLAMP: number;
 /**
  * Content scrolls past its bounds and then gently bounces back.
  *
  * @type {number}
+ * @category User Interface
  */
 declare const SCROLL_MODE_BOUNCE: number;
 /**
  * Content can scroll forever.
  *
  * @type {number}
+ * @category User Interface
  */
 declare const SCROLL_MODE_INFINITE: number;
 /**
  * The scrollbar will be visible all the time.
  *
  * @type {number}
+ * @category User Interface
  */
 declare const SCROLLBAR_VISIBILITY_SHOW_ALWAYS: number;
 /**
  * The scrollbar will be visible only when content exceeds the size of the viewport.
  *
  * @type {number}
+ * @category User Interface
  */
 declare const SCROLLBAR_VISIBILITY_SHOW_WHEN_REQUIRED: number;
 
@@ -2933,12 +3608,14 @@ declare const SCROLLBAR_VISIBILITY_SHOW_WHEN_REQUIRED: number;
  * A {@link SpriteComponent} that displays a single frame from a sprite asset.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const SPRITETYPE_SIMPLE: string;
 /**
  * A {@link SpriteComponent} that renders sprite animations.
  *
  * @type {string}
+ * @category Graphics
  */
 declare const SPRITETYPE_ANIMATED: string;
 
@@ -2946,18 +3623,21 @@ declare const SPRITETYPE_ANIMATED: string;
  * A stepped interpolation scheme.
  *
  * @type {number}
+ * @category Animation
  */
 declare const INTERPOLATION_STEP: number;
 /**
  * A linear interpolation scheme.
  *
  * @type {number}
+ * @category Animation
  */
 declare const INTERPOLATION_LINEAR: number;
 /**
  * A cubic spline interpolation scheme.
  *
  * @type {number}
+ * @category Animation
  */
 declare const INTERPOLATION_CUBIC: number;
 
@@ -2965,18 +3645,21 @@ declare const INTERPOLATION_CUBIC: number;
  * Used to set the anim state graph transition interruption source to no state.
  *
  * @type {string}
+ * @category Animation
  */
 declare const ANIM_INTERRUPTION_NONE: string;
 /**
  * Used to set the anim state graph transition interruption source as the previous state only.
  *
  * @type {string}
+ * @category Animation
  */
 declare const ANIM_INTERRUPTION_PREV: string;
 /**
  * Used to set the anim state graph transition interruption source as the next state only.
  *
  * @type {string}
+ * @category Animation
  */
 declare const ANIM_INTERRUPTION_NEXT: string;
 /**
@@ -2984,6 +3667,7 @@ declare const ANIM_INTERRUPTION_NEXT: string;
  * by the next state.
  *
  * @type {string}
+ * @category Animation
  */
 declare const ANIM_INTERRUPTION_PREV_NEXT: string;
 /**
@@ -2991,100 +3675,118 @@ declare const ANIM_INTERRUPTION_PREV_NEXT: string;
  * the previous state.
  *
  * @type {string}
+ * @category Animation
  */
 declare const ANIM_INTERRUPTION_NEXT_PREV: string;
 /**
  * Used to set an anim state graph transition condition predicate as '>'.
  *
  * @type {string}
+ * @category Animation
  */
 declare const ANIM_GREATER_THAN: string;
 /**
  * Used to set an anim state graph transition condition predicate as '<'.
  *
  * @type {string}
+ * @category Animation
  */
 declare const ANIM_LESS_THAN: string;
 /**
  * Used to set an anim state graph transition condition predicate as '>='.
  *
  * @type {string}
+ * @category Animation
  */
 declare const ANIM_GREATER_THAN_EQUAL_TO: string;
 /**
  * Used to set an anim state graph transition condition predicate as '<='.
  *
  * @type {string}
+ * @category Animation
  */
 declare const ANIM_LESS_THAN_EQUAL_TO: string;
 /**
  * Used to set an anim state graph transition condition predicate as '==='.
  *
  * @type {string}
+ * @category Animation
  */
 declare const ANIM_EQUAL_TO: string;
 /**
  * Used to set an anim state graph transition condition predicate as '!=='.
  *
  * @type {string}
+ * @category Animation
  */
 declare const ANIM_NOT_EQUAL_TO: string;
 /**
  * Used to set an anim state graph parameter as type integer.
  *
  * @type {string}
+ * @category Animation
  */
 declare const ANIM_PARAMETER_INTEGER: string;
 /**
  * Used to set an anim state graph parameter as type float.
  *
  * @type {string}
+ * @category Animation
  */
 declare const ANIM_PARAMETER_FLOAT: string;
 /**
  * Used to set an anim state graph parameter as type boolean.
  *
  * @type {string}
+ * @category Animation
  */
 declare const ANIM_PARAMETER_BOOLEAN: string;
 /**
  * Used to set an anim state graph parameter as type trigger.
  *
  * @type {string}
+ * @category Animation
  */
 declare const ANIM_PARAMETER_TRIGGER: string;
 /**
  * @type {string}
+ * @category Animation
  */
 declare const ANIM_BLEND_1D: string;
 /**
  * @type {string}
+ * @category Animation
  */
 declare const ANIM_BLEND_2D_DIRECTIONAL: string;
 /**
  * @type {string}
+ * @category Animation
  */
 declare const ANIM_BLEND_2D_CARTESIAN: string;
 /**
  * @type {string}
+ * @category Animation
  */
 declare const ANIM_BLEND_DIRECT: string;
 /**
  * The starting state in an anim state graph layer.
  *
  * @type {string}
+ * @category Animation
  */
 declare const ANIM_STATE_START: string;
 /**
  * The ending state in an anim state graph layer.
  *
  * @type {string}
+ * @category Animation
  */
 declare const ANIM_STATE_END: string;
 /**
  * Used to indicate any state in an anim state graph layer.
  *
  * @type {string}
+ * @category Animation
  */
 declare const ANIM_STATE_ANY: string;
 declare const ANIM_CONTROL_STATES: string[];
@@ -3092,12 +3794,14 @@ declare const ANIM_CONTROL_STATES: string[];
  * Used to indicate that a layers animations should overwrite all previous layers.
  *
  * @type {string}
+ * @category Animation
  */
 declare const ANIM_LAYER_OVERWRITE: string;
 /**
  * Used to indicate that a layers animations should blend additively with previous layers.
  *
  * @type {string}
+ * @category Animation
  */
 declare const ANIM_LAYER_ADDITIVE: string;
 
@@ -3201,6 +3905,7 @@ declare const FONT_BITMAP: "bitmap";
  * into HTML element.
  *
  * @type {string}
+ * @category XR
  */
 declare const XRTYPE_INLINE: string;
 /**
@@ -3208,6 +3913,7 @@ declare const XRTYPE_INLINE: string;
  * features.
  *
  * @type {string}
+ * @category XR
  */
 declare const XRTYPE_VR: string;
 /**
@@ -3215,12 +3921,14 @@ declare const XRTYPE_VR: string;
  * blended with real-world environment.
  *
  * @type {string}
+ * @category XR
  */
 declare const XRTYPE_AR: string;
 /**
  * Viewer - always supported space with some basic tracking capabilities.
  *
  * @type {string}
+ * @category XR
  */
 declare const XRSPACE_VIEWER: string;
 /**
@@ -3232,6 +3940,7 @@ declare const XRSPACE_VIEWER: string;
  * to the user's environment.
  *
  * @type {string}
+ * @category XR
  */
 declare const XRSPACE_LOCAL: string;
 /**
@@ -3244,6 +3953,7 @@ declare const XRSPACE_LOCAL: string;
  * keeping the origin stable relative to the user's environment.
  *
  * @type {string}
+ * @category XR
  */
 declare const XRSPACE_LOCALFLOOR: string;
 /**
@@ -3253,6 +3963,7 @@ declare const XRSPACE_LOCALFLOOR: string;
  * user's environment.
  *
  * @type {string}
+ * @category XR
  */
 declare const XRSPACE_BOUNDEDFLOOR: string;
 /**
@@ -3262,6 +3973,7 @@ declare const XRSPACE_BOUNDEDFLOOR: string;
  * native origin may drift over time.
  *
  * @type {string}
+ * @category XR
  */
 declare const XRSPACE_UNBOUNDED: string;
 /**
@@ -3270,6 +3982,7 @@ declare const XRSPACE_UNBOUNDED: string;
  * displays.
  *
  * @type {string}
+ * @category XR
  */
 declare const XRTARGETRAY_GAZE: string;
 /**
@@ -3277,6 +3990,7 @@ declare const XRTARGETRAY_GAZE: string;
  * with an inline session's output context, such as a mouse click or touch event.
  *
  * @type {string}
+ * @category XR
  */
 declare const XRTARGETRAY_SCREEN: string;
 /**
@@ -3285,24 +3999,49 @@ declare const XRTARGETRAY_SCREEN: string;
  * device for pointing.
  *
  * @type {string}
+ * @category XR
  */
 declare const XRTARGETRAY_POINTER: string;
+/**
+ * None - view associated with a monoscopic screen, such as mobile phone screens.
+ *
+ * @type {string}
+ * @category XR
+ */
+declare const XREYE_NONE: string;
+/**
+ * Left - view associated with left eye.
+ *
+ * @type {string}
+ * @category XR
+ */
+declare const XREYE_LEFT: string;
+/**
+ * Right - view associated with right eye.
+ *
+ * @type {string}
+ * @category XR
+ */
+declare const XREYE_RIGHT: string;
 /**
  * None - input source is not meant to be held in hands.
  *
  * @type {string}
+ * @category XR
  */
 declare const XRHAND_NONE: string;
 /**
  * Left - indicates that input source is meant to be held in left hand.
  *
  * @type {string}
+ * @category XR
  */
 declare const XRHAND_LEFT: string;
 /**
  * Right - indicates that input source is meant to be held in right hand.
  *
  * @type {string}
+ * @category XR
  */
 declare const XRHAND_RIGHT: string;
 /**
@@ -3310,6 +4049,7 @@ declare const XRHAND_RIGHT: string;
  * detected by the underlying Augmented Reality system.
  *
  * @type {string}
+ * @category XR
  */
 declare const XRTRACKABLE_POINT: string;
 /**
@@ -3317,6 +4057,7 @@ declare const XRTRACKABLE_POINT: string;
  * underlying Augmented Reality system.
  *
  * @type {string}
+ * @category XR
  */
 declare const XRTRACKABLE_PLANE: string;
 /**
@@ -3324,6 +4065,7 @@ declare const XRTRACKABLE_PLANE: string;
  * underlying Augmented Reality system.
  *
  * @type {string}
+ * @category XR
  */
 declare const XRTRACKABLE_MESH: string;
 /**
@@ -3331,12 +4073,14 @@ declare const XRTRACKABLE_MESH: string;
  * supported.
  *
  * @type {string}
+ * @category XR
  */
 declare const XRDEPTHSENSINGUSAGE_CPU: string;
 /**
  * GPU - indicates that depth sensing preferred usage is GPU.
  *
  * @type {string}
+ * @category XR
  */
 declare const XRDEPTHSENSINGUSAGE_GPU: string;
 /**
@@ -3344,12 +4088,14 @@ declare const XRDEPTHSENSINGUSAGE_GPU: string;
  * This format is guaranteed to be supported.
  *
  * @type {string}
+ * @category XR
  */
 declare const XRDEPTHSENSINGFORMAT_L8A8: string;
 /**
  * Float 32 - indicates that depth sensing preferred raw data format is Float 32.
  *
  * @type {string}
+ * @category XR
  */
 declare const XRDEPTHSENSINGFORMAT_F32: string;
 
@@ -5466,10 +6212,10 @@ declare class Plane {
 declare class ShaderGenerator {
     static begin(): string;
     static end(): string;
-    static skinCode(device: any, chunks: any): any;
-    static fogCode(value: any, chunks: any): any;
-    static gammaCode(value: any, chunks: any): any;
-    static tonemapCode(value: any, chunks: any): any;
+    static skinCode(device: any, chunks?: any): any;
+    static fogCode(value: any, chunks?: any): any;
+    static gammaCode(value: any, chunks?: any): any;
+    static tonemapCode(value: any, chunks?: any): any;
 }
 
 /**
@@ -5520,11 +6266,6 @@ declare class ShaderGenerator {
  * @category Graphics
  */
 declare class VertexFormat {
-    /**
-     * @type {VertexFormat}
-     * @private
-     */
-    private static _defaultInstancingFormat;
     /**
      * The {@link VertexFormat} used to store matrices of type {@link Mat4} for hardware instancing.
      *
@@ -5650,6 +6391,7 @@ declare class VertexFormat {
      */
     private _evaluateHash;
     batchingHash: number;
+    shaderProcessingHashString: string;
     renderingHashString: string;
     renderingHash: number;
 }
@@ -6194,7 +6936,8 @@ declare class Texture {
      * - {@link FUNC_NOTEQUAL}
      *
      * Defaults to {@link FUNC_LESS}.
-     * @param {Uint8Array[]|HTMLCanvasElement[]|HTMLImageElement[]|HTMLVideoElement[]|Uint8Array[][]} [options.levels] - Array of Uint8Array or other supported browser interface; or a two-dimensional array
+     * @param {Uint8Array[]|HTMLCanvasElement[]|HTMLImageElement[]|HTMLVideoElement[]|Uint8Array[][]} [options.levels]
+     * - Array of Uint8Array or other supported browser interface; or a two-dimensional array
      * of Uint8Array if options.arrayLength is defined and greater than zero.
      * @param {boolean} [options.storage] - Defines if texture can be used as a storage texture by
      * a compute shader. Defaults to false.
@@ -6250,10 +6993,8 @@ declare class Texture {
      * @type {string}
      */
     name: string;
-    /** @protected */
-    protected _isRenderTarget: boolean;
-    /** @protected */
-    protected _gpuSize: number;
+    /** @ignore */
+    _gpuSize: number;
     /** @protected */
     protected id: number;
     /** @protected */
@@ -6275,6 +7016,7 @@ declare class Texture {
     _height: number;
     _format: number;
     _compressed: boolean;
+    _integerFormat: boolean;
     _volume: boolean;
     _depth: number;
     _arrayLength: number;
@@ -6745,6 +7487,18 @@ declare class UniformFormat {
      * @type {number}
      */
     count: number;
+    /**
+     * Number of components in each element (e.g. vec2 has 2 components, mat4 has 16 components)
+     *
+     * @type {number}
+     */
+    numComponents: number;
+    /**
+     * True if this is an array of elements (i.e. count > 0)
+     *
+     * @type {number}
+     */
+    get isArrayType(): number;
     shortName: any;
     updateType: any;
     invalid: boolean;
@@ -6813,6 +7567,9 @@ declare class Shader {
      * WebGPU platform.
      * @param {boolean} [definition.useTransformFeedback] - Specifies that this shader outputs
      * post-VS data to a buffer.
+     * @param {string | string[]} [definition.fragmentOutputTypes] - Fragment shader output types,
+     * which default to vec4. Passing a string will set the output type for all color attachments.
+     * Passing an array will set the output type for each color attachment.
      * @param {string} [definition.shaderLanguage] - Specifies the shader language of vertex and
      * fragment shaders. Defaults to {@link SHADERLANGUAGE_GLSL}.
      * @example
@@ -6855,6 +7612,7 @@ declare class Shader {
         fshader?: string;
         cshader?: string;
         useTransformFeedback?: boolean;
+        fragmentOutputTypes?: string | string[];
         shaderLanguage?: string;
     });
     /**
@@ -6882,6 +7640,7 @@ declare class Shader {
         fshader?: string;
         cshader?: string;
         useTransformFeedback?: boolean;
+        fragmentOutputTypes?: string | string[];
         shaderLanguage?: string;
     };
     name: string;
@@ -8116,6 +8875,16 @@ declare class DepthState {
      * @private
      */
     private data;
+    _depthBias: number;
+    _depthBiasSlope: number;
+    /**
+     * A unique number representing the depth state. You can use this number to quickly compare
+     * two depth states for equality. The key is always maintained valid without a dirty flag,
+     * to avoid condition check at runtime, considering these change rarely.
+     *
+     * @type {number}
+     */
+    key: number;
     /**
      * Controls how the depth of the fragment is compared against the current depth contained in
      * the depth buffer. Can be:
@@ -8151,6 +8920,22 @@ declare class DepthState {
     set test(arg: boolean);
     get test(): boolean;
     /**
+     * Constant depth bias added to each fragment's depth. Useful for decals to prevent z-fighting.
+     * Typically a small negative value (-0.1) is used to render the mesh slightly closer to the
+     * camera. Defaults to 0.
+     *
+     * @type {number}
+     */
+    set depthBias(arg: number);
+    get depthBias(): number;
+    /**
+     * Depth bias that scales with the fragment’s slope. Defaults to 0.
+     *
+     * @type {number}
+     */
+    set depthBiasSlope(arg: number);
+    get depthBiasSlope(): number;
+    /**
      * Copies the contents of a source depth state to this depth state.
      *
      * @param {DepthState} rhs - A depth state to copy from.
@@ -8163,7 +8948,7 @@ declare class DepthState {
      * @returns {this} The result of the cloning.
      */
     clone(): this;
-    get key(): number;
+    updateKey(): void;
     /**
      * Reports whether two DepthStates are equal.
      *
@@ -8326,6 +9111,193 @@ declare class StencilParameters {
 }
 
 /**
+ * Representation of an RGBA color.
+ *
+ * @category Math
+ */
+declare class Color {
+    /**
+     * A constant color set to black [0, 0, 0, 1].
+     *
+     * @type {Color}
+     * @readonly
+     */
+    static readonly BLACK: Color;
+    /**
+     * A constant color set to blue [0, 0, 1, 1].
+     *
+     * @type {Color}
+     * @readonly
+     */
+    static readonly BLUE: Color;
+    /**
+     * A constant color set to cyan [0, 1, 1, 1].
+     *
+     * @type {Color}
+     * @readonly
+     */
+    static readonly CYAN: Color;
+    /**
+     * A constant color set to gray [0.5, 0.5, 0.5, 1].
+     *
+     * @type {Color}
+     * @readonly
+     */
+    static readonly GRAY: Color;
+    /**
+     * A constant color set to green [0, 1, 0, 1].
+     *
+     * @type {Color}
+     * @readonly
+     */
+    static readonly GREEN: Color;
+    /**
+     * A constant color set to magenta [1, 0, 1, 1].
+     *
+     * @type {Color}
+     * @readonly
+     */
+    static readonly MAGENTA: Color;
+    /**
+     * A constant color set to red [1, 0, 0, 1].
+     *
+     * @type {Color}
+     * @readonly
+     */
+    static readonly RED: Color;
+    /**
+     * A constant color set to white [1, 1, 1, 1].
+     *
+     * @type {Color}
+     * @readonly
+     */
+    static readonly WHITE: Color;
+    /**
+     * A constant color set to yellow [1, 1, 0, 1].
+     *
+     * @type {Color}
+     * @readonly
+     */
+    static readonly YELLOW: Color;
+    /**
+     * Create a new Color object.
+     *
+     * @param {number|number[]} [r] - The value of the red component (0-1). Defaults to 0. If r is
+     * an array of length 3 or 4, the array will be used to populate all components.
+     * @param {number} [g] - The value of the green component (0-1). Defaults to 0.
+     * @param {number} [b] - The value of the blue component (0-1). Defaults to 0.
+     * @param {number} [a] - The value of the alpha component (0-1). Defaults to 1.
+     */
+    constructor(r?: number | number[], g?: number, b?: number, a?: number);
+    /**
+     * The red component of the color.
+     *
+     * @type {number}
+     */
+    r: number;
+    /**
+     * The green component of the color.
+     *
+     * @type {number}
+     */
+    g: number;
+    /**
+     * The blue component of the color.
+     *
+     * @type {number}
+     */
+    b: number;
+    /**
+     * The alpha component of the color.
+     *
+     * @type {number}
+     */
+    a: number;
+    /**
+     * Returns a clone of the specified color.
+     *
+     * @returns {this} A duplicate color object.
+     */
+    clone(): this;
+    /**
+     * Copies the contents of a source color to a destination color.
+     *
+     * @param {Color} rhs - A color to copy to the specified color.
+     * @returns {Color} Self for chaining.
+     * @example
+     * const src = new pc.Color(1, 0, 0, 1);
+     * const dst = new pc.Color();
+     *
+     * dst.copy(src);
+     *
+     * console.log("The two colors are " + (dst.equals(src) ? "equal" : "different"));
+     */
+    copy(rhs: Color): Color;
+    /**
+     * Reports whether two colors are equal.
+     *
+     * @param {Color} rhs - The color to compare to the specified color.
+     * @returns {boolean} True if the colors are equal and false otherwise.
+     * @example
+     * const a = new pc.Color(1, 0, 0, 1);
+     * const b = new pc.Color(1, 1, 0, 1);
+     * console.log("The two colors are " + (a.equals(b) ? "equal" : "different"));
+     */
+    equals(rhs: Color): boolean;
+    /**
+     * Assign values to the color components, including alpha.
+     *
+     * @param {number} r - The value for red (0-1).
+     * @param {number} g - The value for blue (0-1).
+     * @param {number} b - The value for green (0-1).
+     * @param {number} [a] - The value for the alpha (0-1), defaults to 1.
+     * @returns {Color} Self for chaining.
+     */
+    set(r: number, g: number, b: number, a?: number): Color;
+    /**
+     * Returns the result of a linear interpolation between two specified colors.
+     *
+     * @param {Color} lhs - The color to interpolate from.
+     * @param {Color} rhs - The color to interpolate to.
+     * @param {number} alpha - The value controlling the point of interpolation. Between 0 and 1,
+     * the linear interpolant will occur on a straight line between lhs and rhs. Outside of this
+     * range, the linear interpolant will occur on a ray extrapolated from this line.
+     * @returns {Color} Self for chaining.
+     * @example
+     * const a = new pc.Color(0, 0, 0);
+     * const b = new pc.Color(1, 1, 0.5);
+     * const r = new pc.Color();
+     *
+     * r.lerp(a, b, 0);   // r is equal to a
+     * r.lerp(a, b, 0.5); // r is 0.5, 0.5, 0.25
+     * r.lerp(a, b, 1);   // r is equal to b
+     */
+    lerp(lhs: Color, rhs: Color, alpha: number): Color;
+    /**
+     * Set the values of the color from a string representation '#11223344' or '#112233'.
+     *
+     * @param {string} hex - A string representation in the format '#RRGGBBAA' or '#RRGGBB'. Where
+     * RR, GG, BB, AA are red, green, blue and alpha values. This is the same format used in
+     * HTML/CSS.
+     * @returns {Color} Self for chaining.
+     */
+    fromString(hex: string): Color;
+    /**
+     * Converts the color to string form. The format is '#RRGGBBAA', where RR, GG, BB, AA are the
+     * red, green, blue and alpha values. When the alpha value is not included (the default), this
+     * is the same format as used in HTML/CSS.
+     *
+     * @param {boolean} alpha - If true, the output string will include the alpha value.
+     * @returns {string} The color in string form.
+     * @example
+     * const c = new pc.Color(1, 1, 1);
+     * // Outputs #ffffffff
+     * console.log(c.toString());
+     */
+    toString(alpha: boolean): string;
+}
+
+/**
  * The graphics device manages the underlying graphics context. It is responsible for submitting
  * render state changes and graphics primitives to the hardware. A graphics device is tied to a
  * specific canvas HTML element. It is valid to have more than one canvas element per page and
@@ -8337,6 +9309,16 @@ declare class StencilParameters {
 declare class GraphicsDevice extends EventHandler {
     static EVENT_RESIZE: string;
     constructor(canvas: any, options: any);
+    /**
+     * Fired when the canvas is resized. The handler is passed the new width and height as number
+     * parameters.
+     *
+     * @event
+     * @example
+     * graphicsDevice.on('resizecanvas', (width, height) => {
+     *     console.log(`The canvas was resized to ${width}x${height}`);
+     * });
+     */
     /**
      * The canvas DOM element that provides the underlying WebGL context used by the graphics device.
      *
@@ -8366,6 +9348,8 @@ declare class GraphicsDevice extends EventHandler {
     backBufferFormat: any;
     /**
      * True if the back buffer should use anti-aliasing.
+     *
+     * @type {boolean}
      */
     backBufferAntialias: boolean;
     /**
@@ -8654,13 +9638,6 @@ declare class GraphicsDevice extends EventHandler {
      */
     postInit(): void;
     /**
-     * Fired when the canvas is resized.
-     *
-     * @event GraphicsDevice#resizecanvas
-     * @param {number} width - The new width of the canvas in pixels.
-     * @param {number} height - The new height of the canvas in pixels.
-     */
-    /**
      * Destroy the graphics device.
      */
     destroy(): void;
@@ -8681,6 +9658,7 @@ declare class GraphicsDevice extends EventHandler {
     sy: number;
     sw: number;
     sh: number;
+    blendColor: Color;
     /**
      * Sets the specified stencil state. If both stencilFront and stencilBack are null, stencil
      * operation is disabled.
@@ -8697,6 +9675,17 @@ declare class GraphicsDevice extends EventHandler {
      * @param {BlendState} blendState - New blend state.
      */
     setBlendState(blendState: BlendState): void;
+    /**
+     * Sets the constant blend color and alpha values used with {@link BLENDMODE_CONSTANT} and
+     * {@link BLENDMODE_ONE_MINUS_CONSTANT} factors specified in {@link BlendState}. Defaults to
+     * [0, 0, 0, 0].
+     *
+     * @param {number} r - The value for red.
+     * @param {number} g - The value for green.
+     * @param {number} b - The value for blue.
+     * @param {number} a - The value for alpha.
+     */
+    setBlendColor(r: number, g: number, b: number, a: number): void;
     /**
      * Sets the specified depth state.
      *
@@ -8905,8 +9894,10 @@ declare class ShaderUtils {
      * @param {string} [options.fragmentDefines] - The fragment shader defines.
      * @param {string} [options.fragmentExtensions] - The fragment shader extensions code.
      * @param {string} [options.fragmentPreamble] - The preamble string for the fragment shader.
-     * @param {boolean} [options.useTransformFeedback] - Whether to use transform feedback. Defaults
-     * to false.
+     * @param {boolean} [options.useTransformFeedback] - Whether to use transform feedback. Defaults to false.
+     * @param {string | string[]} [options.fragmentOutputTypes] - Fragment shader output types,
+     * which default to vec4. Passing a string will set the output type for all color attachments.
+     * Passing an array will set the output type for each color attachment.
      * @returns {object} Returns the created shader definition.
      */
     static createDefinition(device: GraphicsDevice, options: {
@@ -8920,6 +9911,7 @@ declare class ShaderUtils {
         fragmentExtensions?: string;
         fragmentPreamble?: string;
         useTransformFeedback?: boolean;
+        fragmentOutputTypes?: string | string[];
     }): object;
     static getShaderNameCode(name: any): string;
     static gl1Extensions(device: any, options: any, isVertex: any): string;
@@ -8951,6 +9943,7 @@ declare class ShaderUtils {
  * pixels. Defaults to fullscreen (`0, 0, target.width, target.height`).
  * @param {import('../../core/math/vec4.js').Vec4} [scissorRect] - The scissor rectangle of the
  * quad, in pixels. Defaults to fullscreen (`0, 0, target.width, target.height`).
+ * @category Graphics
  */
 declare function drawQuadWithShader(device: GraphicsDevice, target: RenderTarget | null, shader: Shader, rect?: Vec4, scissorRect?: Vec4, ...args: any[]): void;
 /**
@@ -8967,6 +9960,7 @@ declare function drawQuadWithShader(device: GraphicsDevice, target: RenderTarget
  * texture, in pixels. Defaults to fullscreen (`0, 0, target.width, target.height`).
  * @param {import('../../core/math/vec4.js').Vec4} [scissorRect] - The scissor rectangle to use for
  * the texture, in pixels. Defaults to fullscreen (`0, 0, target.width, target.height`).
+ * @category Graphics
  */
 declare function drawTexture(device: GraphicsDevice, texture: Texture, target?: RenderTarget, shader?: Shader, rect?: Vec4, scissorRect?: Vec4, ...args: any[]): void;
 
@@ -8974,6 +9968,7 @@ declare function drawTexture(device: GraphicsDevice, texture: Texture, target?: 
  * Object containing all default shader chunks used by shader generators.
  *
  * @type {object}
+ * @category Graphics
  */
 declare const shaderChunks: object;
 
@@ -9110,6 +10105,18 @@ declare class LitShaderOptions {
      * @type {boolean}
      */
     opacityFadesSpecular: boolean;
+    /**
+     * Enable opacity dithering. See {@link StandardMaterial#opacityDither}.
+     *
+     * @type {string}
+     */
+    opacityDither: string;
+    /**
+     * Enable opacity shadow dithering. See {@link StandardMaterial#opacityShadowDither}.
+     *
+     * @type {string}
+     */
+    opacityShadowDither: string;
     /**
      * The value of {@link StandardMaterial#cubeMapProjection}.
      *
@@ -9762,10 +10769,10 @@ declare class RefCountedObject {
  *
  * Follow these links for more complex examples showing the functionality.
  *
- * - {@link http://playcanvas.github.io/#graphics/mesh-decals}
- * - {@link http://playcanvas.github.io/#graphics/mesh-deformation}
- * - {@link http://playcanvas.github.io/#graphics/mesh-generation}
- * - {@link http://playcanvas.github.io/#graphics/point-cloud-simulation}
+ * - {@link https://playcanvas.github.io/#graphics/mesh-decals}
+ * - {@link https://playcanvas.github.io/#graphics/mesh-deformation}
+ * - {@link https://playcanvas.github.io/#graphics/mesh-generation}
+ * - {@link https://playcanvas.github.io/#graphics/point-cloud-simulation}
  *
  * ### Update Vertex and Index buffers
  * This allows greater flexibility, but is more complex to use. It allows more advanced setups, for
@@ -9795,7 +10802,7 @@ declare class Mesh extends RefCountedObject {
      */
     _aabb: BoundingBox;
     id: number;
-    device: any;
+    device: GraphicsDevice;
     /**
      * The vertex buffer holding the vertex data of the mesh.
      *
@@ -10200,7 +11207,7 @@ declare class Morph extends RefCountedObject {
     private _aabb;
     /** @type {boolean} */
     preferHighPrecision: boolean;
-    device: any;
+    device: GraphicsDevice;
     _targets: MorphTarget[];
     _renderTextureFormat: number;
     _textureFormat: number;
@@ -10251,7 +11258,7 @@ declare class MorphInstance {
      * @type {import('./morph.js').Morph}
      */
     morph: Morph;
-    device: any;
+    device: GraphicsDevice;
     _weights: any[];
     _weightMap: Map<any, any>;
     _activeTargets: any[];
@@ -10261,7 +11268,7 @@ declare class MorphInstance {
     rtPositions: RenderTarget;
     rtNormals: RenderTarget;
     _textureParams: Float32Array;
-    morphFactor: any;
+    morphFactor: ScopeId;
     zeroTextures: boolean;
     _shaderMorphWeightsA: Float32Array;
     _shaderMorphWeightsB: Float32Array;
@@ -10332,6 +11339,37 @@ declare class MorphInstance {
  */
 declare class Tags extends EventHandler {
     /**
+     * Fired for each individual tag that is added.
+     *
+     * @event
+     * @example
+     * tags.on('add', (tag, parent) => {
+     *    console.log(`${tag} added to ${parent.name}`);
+     * });
+     */
+    static EVENT_ADD: string;
+    /**
+     * Fired for each individual tag that is removed.
+     *
+     * @event
+     * @example
+     * tags.on('remove', (tag, parent) => {
+     *   console.log(`${tag} removed from ${parent.name}`);
+     * });
+     */
+    static EVENT_REMOVE: string;
+    /**
+     * Fired when tags have been added or removed. It will fire once on bulk changes, while `add`
+     * and `remove` will fire on each tag operation.
+     *
+     * @event
+     * @example
+     * tags.on('change', (parent) => {
+     *    console.log(`Tags changed on ${parent.name}`);
+     * });
+     */
+    static EVENT_CHANGE: string;
+    /**
      * Create an instance of a Tags.
      *
      * @param {object} [parent] - Parent object who tags belong to.
@@ -10342,23 +11380,6 @@ declare class Tags extends EventHandler {
     /** @private */
     private _list;
     _parent: any;
-    /**
-     * @event Tags#add
-     * @param {string} tag - Name of a tag added to a set.
-     * @param {object} parent - Parent object who tags belong to.
-     */
-    /**
-     * @event Tags#remove
-     * @param {string} tag - Name of a tag removed from a set.
-     * @param {object} parent - Parent object who tags belong to.
-     */
-    /**
-     * Fires when tags have been added or removed. It will fire once on bulk changes, while
-     * `add`/`remove` will fire on each tag operation.
-     *
-     * @event Tags#change
-     * @param {object} [parent] - Parent object who tags belong to.
-     */
     /**
      * Add a tag, duplicates are ignored. Can be array or comma separated arguments for multiple tags.
      *
@@ -11496,6 +12517,137 @@ declare class SkinInstance {
     updateMatrixPalette(rootNode: any, skinUpdateIndex: any): void;
 }
 
+/**
+ * Component Systems contain the logic and functionality to update all Components of a particular
+ * type.
+ *
+ * @augments EventHandler
+ */
+declare class ComponentSystem extends EventHandler {
+    /**
+     * Create a new ComponentSystem instance.
+     *
+     * @param {import('../app-base.js').AppBase} app - The application managing this system.
+     */
+    constructor(app: AppBase);
+    app: AppBase;
+    store: {};
+    schema: any[];
+    /**
+     * Create new {@link Component} and component data instances and attach them to the entity.
+     *
+     * @param {import('../entity.js').Entity} entity - The Entity to attach this component to.
+     * @param {object} [data] - The source data with which to create the component.
+     * @returns {import('./component.js').Component} Returns a Component of type defined by the
+     * component system.
+     * @example
+     * const entity = new pc.Entity(app);
+     * app.systems.model.addComponent(entity, { type: 'box' });
+     * // entity.model is now set to a pc.ModelComponent
+     * @ignore
+     */
+    addComponent(entity: Entity, data?: object): Component;
+    /**
+     * Remove the {@link Component} from the entity and delete the associated component data.
+     *
+     * @param {import('../entity.js').Entity} entity - The entity to remove the component from.
+     * @example
+     * app.systems.model.removeComponent(entity);
+     * // entity.model === undefined
+     * @ignore
+     */
+    removeComponent(entity: Entity): void;
+    /**
+     * Create a clone of component. This creates a copy of all component data variables.
+     *
+     * @param {import('../entity.js').Entity} entity - The entity to clone the component from.
+     * @param {import('../entity.js').Entity} clone - The entity to clone the component into.
+     * @returns {import('./component.js').Component} The newly cloned component.
+     * @ignore
+     */
+    cloneComponent(entity: Entity, clone: Entity): Component;
+    /**
+     * Called during {@link ComponentSystem#addComponent} to initialize the component data in the
+     * store. This can be overridden by derived Component Systems and either called by the derived
+     * System or replaced entirely.
+     *
+     * @param {import('./component.js').Component} component - The component being initialized.
+     * @param {object} data - The data block used to initialize the component.
+     * @param {Array<string | {name: string, type: string}>} properties - The array of property
+     * descriptors for the component. A descriptor can be either a plain property name, or an
+     * object specifying the name and type.
+     * @ignore
+     */
+    initializeComponentData(component: Component, data: object, properties: Array<string | {
+        name: string;
+        type: string;
+    }>): void;
+    /**
+     * Searches the component schema for properties that match the specified type.
+     *
+     * @param {string} type - The type to search for.
+     * @returns {string[]|object[]} An array of property descriptors matching the specified type.
+     * @ignore
+     */
+    getPropertiesOfType(type: string): string[] | object[];
+    destroy(): void;
+}
+
+/**
+ * Components are used to attach functionality on a {@link Entity}. Components can receive update
+ * events each frame, and expose properties to the PlayCanvas Editor.
+ *
+ * @property {boolean} enabled Enables or disables the component.
+ * @augments EventHandler
+ */
+declare class Component extends EventHandler {
+    /** @ignore */
+    static _buildAccessors(obj: any, schema: any): void;
+    /**
+     * Base constructor for a Component.
+     *
+     * @param {import('./system.js').ComponentSystem} system - The ComponentSystem used to create
+     * this Component.
+     * @param {import('../entity.js').Entity} entity - The Entity that this Component is attached
+     * to.
+     */
+    constructor(system: ComponentSystem, entity: Entity);
+
+    set enabled(arg: boolean);
+    get enabled(): boolean;
+
+    /**
+     * The ComponentSystem used to create this Component.
+     *
+     * @type {import('./system.js').ComponentSystem}
+     */
+    system: ComponentSystem;
+    /**
+     * The Entity that this Component is attached to.
+     *
+     * @type {import('../entity.js').Entity}
+     */
+    entity: Entity;
+    /** @ignore */
+    buildAccessors(schema: any): void;
+    /** @ignore */
+    onSetEnabled(name: any, oldValue: any, newValue: any): void;
+    /** @ignore */
+    onEnable(): void;
+    /** @ignore */
+    onDisable(): void;
+    /** @ignore */
+    onPostStateChange(): void;
+    /**
+     * Access the component data directly. Usually you should access the data properties via the
+     * individual properties as modifying this data directly will not fire 'set' events.
+     *
+     * @type {*}
+     * @ignore
+     */
+    get data(): any;
+}
+
 declare class LightComponentData {
 }
 
@@ -11513,193 +12665,6 @@ declare class LightComponentSystem extends ComponentSystem {
     _onRemoveComponent(entity: any, component: any): void;
     cloneComponent(entity: any, clone: any): Component;
     changeType(component: any, oldValue: any, newValue: any): void;
-}
-
-/**
- * Representation of an RGBA color.
- *
- * @category Math
- */
-declare class Color {
-    /**
-     * A constant color set to black [0, 0, 0, 1].
-     *
-     * @type {Color}
-     * @readonly
-     */
-    static readonly BLACK: Color;
-    /**
-     * A constant color set to blue [0, 0, 1, 1].
-     *
-     * @type {Color}
-     * @readonly
-     */
-    static readonly BLUE: Color;
-    /**
-     * A constant color set to cyan [0, 1, 1, 1].
-     *
-     * @type {Color}
-     * @readonly
-     */
-    static readonly CYAN: Color;
-    /**
-     * A constant color set to gray [0.5, 0.5, 0.5, 1].
-     *
-     * @type {Color}
-     * @readonly
-     */
-    static readonly GRAY: Color;
-    /**
-     * A constant color set to green [0, 1, 0, 1].
-     *
-     * @type {Color}
-     * @readonly
-     */
-    static readonly GREEN: Color;
-    /**
-     * A constant color set to magenta [1, 0, 1, 1].
-     *
-     * @type {Color}
-     * @readonly
-     */
-    static readonly MAGENTA: Color;
-    /**
-     * A constant color set to red [1, 0, 0, 1].
-     *
-     * @type {Color}
-     * @readonly
-     */
-    static readonly RED: Color;
-    /**
-     * A constant color set to white [1, 1, 1, 1].
-     *
-     * @type {Color}
-     * @readonly
-     */
-    static readonly WHITE: Color;
-    /**
-     * A constant color set to yellow [1, 1, 0, 1].
-     *
-     * @type {Color}
-     * @readonly
-     */
-    static readonly YELLOW: Color;
-    /**
-     * Create a new Color object.
-     *
-     * @param {number|number[]} [r] - The value of the red component (0-1). Defaults to 0. If r is
-     * an array of length 3 or 4, the array will be used to populate all components.
-     * @param {number} [g] - The value of the green component (0-1). Defaults to 0.
-     * @param {number} [b] - The value of the blue component (0-1). Defaults to 0.
-     * @param {number} [a] - The value of the alpha component (0-1). Defaults to 1.
-     */
-    constructor(r?: number | number[], g?: number, b?: number, a?: number);
-    /**
-     * The red component of the color.
-     *
-     * @type {number}
-     */
-    r: number;
-    /**
-     * The green component of the color.
-     *
-     * @type {number}
-     */
-    g: number;
-    /**
-     * The blue component of the color.
-     *
-     * @type {number}
-     */
-    b: number;
-    /**
-     * The alpha component of the color.
-     *
-     * @type {number}
-     */
-    a: number;
-    /**
-     * Returns a clone of the specified color.
-     *
-     * @returns {this} A duplicate color object.
-     */
-    clone(): this;
-    /**
-     * Copies the contents of a source color to a destination color.
-     *
-     * @param {Color} rhs - A color to copy to the specified color.
-     * @returns {Color} Self for chaining.
-     * @example
-     * const src = new pc.Color(1, 0, 0, 1);
-     * const dst = new pc.Color();
-     *
-     * dst.copy(src);
-     *
-     * console.log("The two colors are " + (dst.equals(src) ? "equal" : "different"));
-     */
-    copy(rhs: Color): Color;
-    /**
-     * Reports whether two colors are equal.
-     *
-     * @param {Color} rhs - The color to compare to the specified color.
-     * @returns {boolean} True if the colors are equal and false otherwise.
-     * @example
-     * const a = new pc.Color(1, 0, 0, 1);
-     * const b = new pc.Color(1, 1, 0, 1);
-     * console.log("The two colors are " + (a.equals(b) ? "equal" : "different"));
-     */
-    equals(rhs: Color): boolean;
-    /**
-     * Assign values to the color components, including alpha.
-     *
-     * @param {number} r - The value for red (0-1).
-     * @param {number} g - The value for blue (0-1).
-     * @param {number} b - The value for green (0-1).
-     * @param {number} [a] - The value for the alpha (0-1), defaults to 1.
-     * @returns {Color} Self for chaining.
-     */
-    set(r: number, g: number, b: number, a?: number): Color;
-    /**
-     * Returns the result of a linear interpolation between two specified colors.
-     *
-     * @param {Color} lhs - The color to interpolate from.
-     * @param {Color} rhs - The color to interpolate to.
-     * @param {number} alpha - The value controlling the point of interpolation. Between 0 and 1,
-     * the linear interpolant will occur on a straight line between lhs and rhs. Outside of this
-     * range, the linear interpolant will occur on a ray extrapolated from this line.
-     * @returns {Color} Self for chaining.
-     * @example
-     * const a = new pc.Color(0, 0, 0);
-     * const b = new pc.Color(1, 1, 0.5);
-     * const r = new pc.Color();
-     *
-     * r.lerp(a, b, 0);   // r is equal to a
-     * r.lerp(a, b, 0.5); // r is 0.5, 0.5, 0.25
-     * r.lerp(a, b, 1);   // r is equal to b
-     */
-    lerp(lhs: Color, rhs: Color, alpha: number): Color;
-    /**
-     * Set the values of the color from a string representation '#11223344' or '#112233'.
-     *
-     * @param {string} hex - A string representation in the format '#RRGGBBAA' or '#RRGGBB'. Where
-     * RR, GG, BB, AA are red, green, blue and alpha values. This is the same format used in
-     * HTML/CSS.
-     * @returns {Color} Self for chaining.
-     */
-    fromString(hex: string): Color;
-    /**
-     * Converts the color to string form. The format is '#RRGGBBAA', where RR, GG, BB, AA are the
-     * red, green, blue and alpha values. When the alpha value is not included (the default), this
-     * is the same format as used in HTML/CSS.
-     *
-     * @param {boolean} alpha - If true, the output string will include the alpha value.
-     * @returns {string} The color in string form.
-     * @example
-     * const c = new pc.Color(1, 1, 1);
-     * // Outputs #ffffffff
-     * console.log(c.toString());
-     */
-    toString(alpha: boolean): string;
 }
 
 /**
@@ -11746,8 +12711,8 @@ declare class Color {
  * - {@link LIGHTSHAPE_SPHERE}: Sphere shape.
  *
  * Defaults to pc.LIGHTSHAPE_PUNCTUAL.
- * @property {boolean} affectSpecularity If enabled and the light type is pc.LIGHTTYPE_DIRECTIONAL, material specularity
- * will not be affected by this light. Defaults to true.
+ * @property {boolean} affectSpecularity If enabled, material specularity will be affected by this light.
+ * Ignored for lights other than {@link LIGHTTYPE_DIRECTIONAL}. Defaults to true.
  * @property {boolean} castShadows If enabled the light will cast shadows. Defaults to false.
  * @property {number} shadowDistance The distance from the viewpoint beyond which shadows are no
  * longer rendered. Affects directional lights only. Defaults to 40.
@@ -12008,13 +12973,25 @@ declare class Light {
      * @returns {number} The scaling factor to multiply with the luminance value.
      */
     static getLightUnitConversion(type: number, outerAngle?: number, innerAngle?: number): number;
-    constructor(graphicsDevice: any);
+    constructor(graphicsDevice: any, clusteredLighting: any);
     /**
      * The Layers the light is on.
      *
      * @type {Set<import('./layer.js').Layer>}
      */
     layers: Set<Layer>;
+    /**
+     * True if the clustered lighting is enabled.
+     *
+     * @type {boolean}
+     */
+    clusteredLighting: boolean;
+    /**
+     * The depth state used when rendering the shadow map.
+     *
+     * @type {DepthState}
+     */
+    shadowDepthState: DepthState;
     device: any;
     id: number;
     _type: number;
@@ -12067,7 +13044,7 @@ declare class Light {
     _shadowCameraParams: any[];
     shadowDistance: number;
     _shadowResolution: number;
-    shadowBias: number;
+    _shadowBias: number;
     shadowIntensity: number;
     _normalOffsetBias: number;
     shadowUpdateMode: number;
@@ -12089,6 +13066,8 @@ declare class Light {
     releaseRenderData(): void;
     addLayer(layer: any): void;
     removeLayer(layer: any): void;
+    set shadowBias(arg: number);
+    get shadowBias(): number;
     set shadowMap(arg: any);
     get shadowMap(): any;
     set mask(arg: number);
@@ -12157,6 +13136,7 @@ declare class Light {
     getColor(): Color;
     getBoundingSphere(sphere: any): void;
     getBoundingBox(box: any): void;
+    _updateShadowBias(): void;
     _updateFinalColor(): void;
     setColor(...args: any[]): void;
     layersDirty(): void;
@@ -12185,11 +13165,18 @@ declare class RenderPass {
     /** @type {string} */
     name: string;
     /**
+     * The graphics device.
+     *
+     * @type {import('../graphics/graphics-device.js').GraphicsDevice}
+     */
+    device: GraphicsDevice;
+    /**
      * True if the render pass is enabled.
      *
      * @type {boolean}
+     * @private
      */
-    enabled: boolean;
+    private _enabled;
     /**
      * True if the render pass is enabled and execute function will be called. Note that before and
      * after functions are called regardless of this flag.
@@ -12255,7 +13242,6 @@ declare class RenderPass {
      * @type {RenderPass[]}
      */
     afterPasses: RenderPass[];
-    device: GraphicsDevice;
     /**
      * @param {import('../graphics/render-target.js').RenderTarget|null} [renderTarget] - The render
      * target to render into (output). This function should be called only for render passes which
@@ -12269,24 +13255,31 @@ declare class RenderPass {
     before(): void;
     execute(): void;
     after(): void;
+    onEnable(): void;
+    onDisable(): void;
+    set enabled(arg: boolean);
+    get enabled(): boolean;
     /**
      * Mark render pass as clearing the full color buffer.
      *
-     * @param {Color} color - The color to clear to.
+     * @param {Color|undefined} color - The color to clear to, or undefined to preserve the existing
+     * content.
      */
-    setClearColor(color: Color): void;
+    setClearColor(color: Color | undefined): void;
     /**
      * Mark render pass as clearing the full depth buffer.
      *
-     * @param {number} depthValue - The depth value to clear to.
+     * @param {number|undefined} depthValue - The depth value to clear to, or undefined to preserve
+     * the existing content.
      */
-    setClearDepth(depthValue: number): void;
+    setClearDepth(depthValue: number | undefined): void;
     /**
      * Mark render pass as clearing the full stencil buffer.
      *
-     * @param {number} stencilValue - The stencil value to clear to.
+     * @param {number|undefined} stencilValue - The stencil value to clear to, or undefined to preserve the
+     * existing content.
      */
-    setClearStencil(stencilValue: number): void;
+    setClearStencil(stencilValue: number | undefined): void;
     /**
      * Render the render pass
      */
@@ -12394,11 +13387,11 @@ declare class ShaderPass {
      * Allocates a shader pass with the specified name and options.
      *
      * @param {string} name - A name of the shader pass.
-     * @param {object} options - Options for the shader pass, which are added as properties to the
+     * @param {object} [options] - Options for the shader pass, which are added as properties to the
      * shader pass info.
      * @returns {ShaderPassInfo} The allocated shader pass info.
      */
-    allocate(name: string, options: object): ShaderPassInfo;
+    allocate(name: string, options?: object): ShaderPassInfo;
     /**
      * Return the shader pass info for the specified index.
      *
@@ -12416,15 +13409,29 @@ declare class ShaderPass {
  * @ignore
  */
 declare class ShaderPassInfo {
-    constructor(name: any, index: any, options?: {});
+    /**
+     * @param {string} name - The name, for example 'depth'. Must contain only letters, numbers,
+     * and underscores, and start with a letter.
+     * @param {number} index - Index from ShaderPass#nextIndex.
+     * @param {object} [options] - Options for additional configuration of the shader pass.
+     * @param {boolean} [options.isForward] - Whether the pass is forward.
+     * @param {boolean} [options.isShadow] - Whether the pass is shadow.
+     * @param {boolean} [options.lightType] - Type of light, for example `pc.LIGHTTYPE_DIRECTIONAL`.
+     * @param {boolean} [options.shadowType] - Type of shadow, for example `pc.SHADOW_PCF3`.
+     */
+    constructor(name: string, index: number, options?: {
+        isForward?: boolean;
+        isShadow?: boolean;
+        lightType?: boolean;
+        shadowType?: boolean;
+    });
     /** @type {number} */
     index: number;
     /** @type {string} */
     name: string;
     /** @type {string} */
-    shaderDefine: string;
-    initShaderDefines(): void;
     shaderDefines: string;
+    buildShaderDefines(): string;
 }
 
 /**
@@ -12438,9 +13445,13 @@ declare class ShaderPassInfo {
  * @ignore
  */
 declare class RenderPassColorGrab extends RenderPass {
-    constructor(device: any, camera: any);
     colorRenderTarget: any;
-    camera: any;
+    /**
+     * The source render target to grab the color from.
+     *
+     * @type {RenderTarget|null}
+     */
+    source: RenderTarget | null;
     shouldReallocate(targetRT: any, sourceTexture: any, sourceFormat: any): boolean;
     allocateRenderTarget(renderTarget: any, sourceRenderTarget: any, device: any, format: any): any;
     releaseRenderTarget(rt: any): void;
@@ -12516,6 +13527,8 @@ declare class Camera {
      * @type {import('../platform/graphics/render-pass.js').RenderPass[]}
      */
     renderPasses: RenderPass[];
+    /** @type {number} */
+    jitter: number;
     _aspectRatio: number;
     _aspectRatioMode: number;
     _calculateProjection: any;
@@ -13229,6 +14242,8 @@ declare class UniformBuffer {
     storageFloat32: Float32Array;
     /** @type {Int32Array} */
     storageInt32: Int32Array;
+    /** @type {Uint32Array} */
+    storageUint32: Uint32Array;
     /**
      * A render version used to track the last time the properties requiring bind group to be
      * updated were changed.
@@ -13371,13 +14386,11 @@ declare class RenderAction {
     triggerPostprocess: boolean;
     firstCameraUse: boolean;
     lastCameraUse: boolean;
-    directionalLights: any[];
     /** @type {import('../../platform/graphics/bind-group.js').BindGroup[]} */
     viewBindGroups: BindGroup[];
     useCameraPasses: boolean;
     destroy(): void;
     setupClears(camera: any, layer: any): void;
-    get hasDirectionalShadowLights(): boolean;
 }
 
 /**
@@ -13616,31 +14629,8 @@ declare class LayerComposition extends EventHandler {
 }
 
 /**
- * A visual representation of the sky.
- *
- * @ignore
- */
-declare class Sky {
-    /**
-     * @param {import('../platform/graphics/graphics-device.js').GraphicsDevice} device - The
-     * graphics device.
-     * @param {import('./scene.js').Scene} scene - The scene owning the sky.
-     * @param {import('../platform/graphics/texture.js').Texture} texture - The texture of the sky.
-     */
-    constructor(device: GraphicsDevice, scene: Scene, texture: Texture);
-    /**
-     * Mesh instance representing the visuals of the sky.
-     *
-     * @type {MeshInstance}
-     */
-    meshInstance: MeshInstance;
-    skyLayer: Layer;
-    destroy(): void;
-}
-
-/**
  * Lighting parameters, allow configuration of the global lighting parameters. For details see
- * [Clustered Lighting](https://developer.playcanvas.com/en/user-manual/graphics/lighting/clustered-lighting/).
+ * [Clustered Lighting](https://developer.playcanvas.com/user-manual/graphics/lighting/clustered-lighting/).
  *
  * @category Graphics
  */
@@ -13678,7 +14668,7 @@ declare class LightingParams {
     /**
      * Atlas textures split description, which applies to both the shadow and cookie texture atlas.
      * Defaults to null, which enables to automatic split mode. For details see [Configuring Atlas
-     * Split](https://developer.playcanvas.com/en/user-manual/graphics/lighting/clustered-lighting/#configuring-atlas).
+     * Split](https://developer.playcanvas.com/user-manual/graphics/lighting/clustered-lighting/#configuring-atlas).
      *
      * @type {number[]|null}
      */
@@ -13756,6 +14746,102 @@ declare class LightingParams {
      */
     set cells(arg: Vec3);
     get cells(): Vec3;
+}
+
+/**
+ * A visual representation of the sky.
+ *
+ * @ignore
+ */
+declare class SkyMesh {
+    /**
+     * @param {import('../../platform/graphics/graphics-device.js').GraphicsDevice} device - The
+     * graphics device.
+     * @param {import('../scene.js').Scene} scene - The scene owning the sky.
+     * @param {import('../../platform/graphics/texture.js').Texture} texture - The texture of the sky.
+     * @param {string} type - The type of the sky. One of the SKYMESH_* constants.
+     */
+    constructor(device: GraphicsDevice, scene: Scene, node: any, texture: Texture, type: string);
+    /**
+     * Mesh instance representing the visuals of the sky.
+     *
+     * @type {MeshInstance|null}
+     */
+    meshInstance: MeshInstance | null;
+    skyLayer: Layer;
+    destroy(): void;
+}
+
+/**
+ * Implementation of the sky.
+ *
+ * @category Graphics
+ */
+declare class Sky {
+    /**
+     * Constructs a new sky.
+     *
+     * @param {import('../scene.js').Scene} scene - The scene owning the sky.
+     * @hideconstructor
+     */
+    constructor(scene: Scene);
+    /**
+     * The type of the sky. One of the SKYMESH_* constants.
+     *
+     * @type {string}
+     * @private
+     */
+    private _type;
+    /**
+     * The center of the sky.
+     *
+     * @type {Vec3}
+     * @private
+     */
+    private _center;
+    /**
+     * The sky mesh of the scene.
+     *
+     * @type {SkyMesh|null}
+     * @ignore
+     */
+    skyMesh: SkyMesh | null;
+    /**
+     * A graph node with a transform used to render the sky mesh. Adjust the position, rotation and
+     * scale of this node to orient the sky mesh. Ignored for {@link SKYTYPE_INFINITE}.
+     *
+     * @type {GraphNode}
+     * @readonly
+     */
+    readonly node: GraphNode;
+    device: GraphicsDevice;
+    scene: Scene;
+    /**
+     * The center of the sky. Ignored for {@link SKYTYPE_INFINITE}. Typically only the y-coordinate
+     * is used, representing the tripod height. Defaults to (0, 1, 0).
+     *
+     * @type {Vec3}
+     */
+    set center(arg: Vec3);
+    get center(): Vec3;
+    centerArray: Float32Array;
+    projectedSkydomeCenterId: ScopeId;
+    applySettings(render: any): void;
+    /**
+     * The type of the sky. One of the SKYMESH_* constants. Defaults to {@link SKYTYPE_INFINITE}.
+     * Can be:
+     *
+     * {@link SKYTYPE_INFINITE}
+     * {@link SKYTYPE_BOX}
+     * {@link SKYTYPE_DOME}
+     *
+     * @type {string}
+     */
+    set type(arg: string);
+    get type(): string;
+    updateSkyMesh(): void;
+    resetSkyMesh(): void;
+    update(): void;
 }
 
 /**
@@ -13857,18 +14943,21 @@ declare class Material {
      */
     stencilBack: StencilParameters | null;
     /**
-     * Offsets the output depth buffer value. Useful for decals to prevent z-fighting.
+     * Offsets the output depth buffer value. Useful for decals to prevent z-fighting. Typically
+     * a small negative value (-0.1) is used to render the mesh slightly closer to the camera.
      *
      * @type {number}
      */
-    depthBias: number;
+    set depthBias(arg: number);
+    get depthBias(): number;
     /**
      * Same as {@link Material#depthBias}, but also depends on the slope of the triangle relative
      * to the camera.
      *
      * @type {number}
      */
-    slopeDepthBias: number;
+    set slopeDepthBias(arg: number);
+    get slopeDepthBias(): number;
     _shaderVersion: number;
     _scene: any;
     dirty: boolean;
@@ -14161,6 +15250,42 @@ declare class Immediate {
  */
 declare class Scene extends EventHandler {
     /**
+     * Fired when the layer composition is set. Use this event to add callbacks or advanced
+     * properties to your layers. The handler is passed the old and the new
+     * {@link LayerComposition}.
+     *
+     * @event
+     * @example
+     * app.scene.on('set:layers', (oldComp, newComp) => {
+     *     const list = newComp.layerList;
+     *     for (let i = 0; i < list.length; i++) {
+     *         const layer = list[i];
+     *         switch (layer.name) {
+     *             case 'MyLayer':
+     *                 layer.onEnable = myOnEnableFunction;
+     *                 layer.onDisable = myOnDisableFunction;
+     *                 break;
+     *             case 'MyOtherLayer':
+     *                 layer.shaderPass = myShaderPass;
+     *                 break;
+     *         }
+     *     }
+     * });
+     */
+    static EVENT_SETLAYERS: string;
+    /**
+     * Fired when the skybox is set. The handler is passed the {@link Texture} that is the
+     * previously used skybox cubemap texture. The new skybox cubemap texture is in the
+     * {@link Scene#skybox} property.
+     *
+     * @event
+     * @example
+     * app.scene.on('set:skybox', (oldSkybox) => {
+     *     console.log(`Skybox changed from ${oldSkybox.name} to ${app.scene.skybox.name}`);
+     * });
+     */
+    static EVENT_SETSKYBOX: string;
+    /**
      * Create a new Scene instance.
      *
      * @param {import('../platform/graphics/graphics-device.js').GraphicsDevice} graphicsDevice -
@@ -14284,19 +15409,26 @@ declare class Scene extends EventHandler {
      */
     root: Entity;
     /**
-     * The sky of the scene.
-     *
-     * @type {Sky}
-     * @ignore
-     */
-    sky: Sky;
-    /**
      * Use physically based units for cameras and lights. When used, the exposure value is ignored.
      *
      * @type {boolean}
      */
     physicalUnits: boolean;
-    device: any;
+    /**
+     * Environment lighting atlas
+     *
+     * @type {import('../platform/graphics/texture.js').Texture|null}
+     * @private
+     */
+    private _envAtlas;
+    /**
+     * The skybox cubemap as set by user (gets used when skyboxMip === 0)
+     *
+     * @type {import('../platform/graphics/texture.js').Texture|null}
+     * @private
+     */
+    private _skyboxCubeMap;
+    device: GraphicsDevice;
     _gravity: Vec3;
     /**
      * @type {import('./composition/layer-composition.js').LayerComposition}
@@ -14307,26 +15439,12 @@ declare class Scene extends EventHandler {
     _gammaCorrection: number;
     _toneMapping: number;
     /**
-     * The skybox cubemap as set by user (gets used when skyboxMip === 0)
-     *
-     * @type {import('../platform/graphics/texture.js').Texture}
-     * @private
-     */
-    private _skyboxCubeMap;
-    /**
      * Array of 6 prefiltered lighting data cubemaps.
      *
      * @type {import('../platform/graphics/texture.js').Texture[]}
      * @private
      */
     private _prefilteredCubemaps;
-    /**
-     * Environment lighting atlas
-     *
-     * @type {import('../platform/graphics/texture.js').Texture}
-     * @private
-     */
-    private _envAtlas;
     _internalEnvAtlas: any;
     _skyboxIntensity: number;
     _skyboxLuminance: number;
@@ -14342,6 +15460,7 @@ declare class Scene extends EventHandler {
     _clusteredLightingEnabled: boolean;
     _lightingParams: LightingParams;
     updateShaders: boolean;
+    _sky: Sky;
     _stats: {
         meshInstances: number;
         lights: number;
@@ -14351,39 +15470,6 @@ declare class Scene extends EventHandler {
     };
     _shaderVersion: number;
     immediate: Immediate;
-    /**
-     * Fired when the skybox is set.
-     *
-     * @event Scene#set:skybox
-     * @param {import('../platform/graphics/texture.js').Texture} usedTex - Previously used cubemap
-     * texture. New is in the {@link Scene#skybox}.
-     */
-    /**
-     * Fired when the layer composition is set. Use this event to add callbacks or advanced
-     * properties to your layers.
-     *
-     * @event Scene#set:layers
-     * @param {import('./composition/layer-composition.js').LayerComposition} oldComp - Previously
-     * used {@link LayerComposition}.
-     * @param {import('./composition/layer-composition.js').LayerComposition} newComp - Newly set
-     * {@link LayerComposition}.
-     * @example
-     * this.app.scene.on('set:layers', function (oldComp, newComp) {
-     *     const list = newComp.layerList;
-     *     for (let i = 0; i < list.length; i++) {
-     *         const layer = list[i];
-     *         switch (layer.name) {
-     *             case 'MyLayer':
-     *                 layer.onEnable = myOnEnableFunction;
-     *                 layer.onDisable = myOnDisableFunction;
-     *                 break;
-     *             case 'MyOtherLayer':
-     *                 layer.shaderPass = myShaderPass;
-     *                 break;
-     *         }
-     *     }
-     * });
-     */
     /**
      * Returns the default layer used by the immediate drawing functions.
      *
@@ -14458,6 +15544,7 @@ declare class Scene extends EventHandler {
      */
     set layers(arg: LayerComposition);
     get layers(): LayerComposition;
+    get sky(): Sky;
     /**
      * A {@link LightingParams} that defines lighting parameters.
      *
@@ -14546,8 +15633,8 @@ declare class Scene extends EventHandler {
     drawLineArrays(positions: any, colors: any, depthTest?: boolean, layer?: Layer): void;
     applySettings(settings: any): void;
     _getSkyboxTex(): Texture;
-    _updateSky(device: any): void;
-    _resetSky(): void;
+    _updateSkyMesh(): void;
+    _resetSkyMesh(): void;
     /**
      * Sets the cubemap for the scene skybox.
      *
@@ -14565,6 +15652,196 @@ declare class Scene extends EventHandler {
      * @type {number}
      */
     get lightmapPixelFormat(): number;
+}
+
+/**
+ * - The options.
+ */
+type SplatMaterialOptions = {
+    /**
+     * - Adds #define DEBUG_RENDER for shader.
+     */
+    debugRender?: boolean;
+    /**
+     * - Custom vertex shader, see SPLAT MANY example.
+     */
+    vertex?: string;
+    /**
+     * - Custom fragment shader, see SPLAT MANY example.
+     */
+    fragment?: string;
+    /**
+     * - Opacity dithering enum.
+     */
+    dither?: string;
+};
+
+type SplatTextureFormat = {
+    /**
+     * - The pixel format of the texture.
+     */
+    format: number;
+    /**
+     * - The number of components in the texture format.
+     */
+    numComponents: number;
+    /**
+     * - Indicates if the format uses half-precision floats.
+     */
+    isHalf: boolean;
+};
+/**
+ * @typedef {object} SplatTextureFormat
+ * @property {number} format - The pixel format of the texture.
+ * @property {number} numComponents - The number of components in the texture format.
+ * @property {boolean} isHalf - Indicates if the format uses half-precision floats.
+ */
+/** @ignore */
+declare class GSplat {
+    /**
+     * @param {import('../../platform/graphics/graphics-device.js').GraphicsDevice} device - The graphics device.
+     * @param {number} numSplats - Number of splats.
+     * @param {import('../../core/shape/bounding-box.js').BoundingBox} aabb - The bounding box.
+     */
+    constructor(device: GraphicsDevice, numSplats: number, aabb: BoundingBox);
+    device: GraphicsDevice;
+    numSplats: number;
+    vertexFormat: VertexFormat;
+    /** @type {SplatTextureFormat} */
+    format: SplatTextureFormat;
+    colorTexture: Texture;
+    scaleTexture: Texture;
+    rotationTexture: Texture;
+    /** @type {Texture} */
+    centerTexture: Texture;
+    /** @type {Float32Array} */
+    centers: Float32Array;
+    /** @type {import('../../core/shape/bounding-box.js').BoundingBox} */
+    aabb: BoundingBox;
+    destroy(): void;
+    /**
+     * @param {import('../materials/material.js').Material} material - The material to set up for
+     * the splat rendering.
+     */
+    setupMaterial(material: Material): void;
+    /**
+     * Evaluates the texture size needed to store a given number of elements.
+     * The function calculates a width and height that is close to a square
+     * that can contain 'count' elements.
+     *
+     * @param {number} count - The number of elements to store in the texture.
+     * @returns {Vec2} An instance of Vec2 representing the width and height of the texture.
+     */
+    evalTextureSize(count: number): Vec2;
+    /**
+     * Creates a new texture with the specified parameters.
+     *
+     * @param {import('../../platform/graphics/graphics-device.js').GraphicsDevice} device - The graphics device to use for the texture creation.
+     * @param {string} name - The name of the texture to be created.
+     * @param {number} format - The pixel format of the texture.
+     * @param {Vec2} size - The size of the texture in a Vec2 object, containing width (x) and height (y).
+     * @returns {Texture} The created texture instance.
+     */
+    createTexture(device: GraphicsDevice, name: string, format: number, size: Vec2): Texture;
+    /**
+     * Gets the most suitable texture format based on device capabilities.
+     *
+     * @param {import('../../platform/graphics/graphics-device.js').GraphicsDevice} device - The graphics device.
+     * @param {boolean} preferHighPrecision - True to prefer high precision when available.
+     * @returns {SplatTextureFormat} The texture format info or undefined if not available.
+     */
+    getTextureFormat(device: GraphicsDevice, preferHighPrecision: boolean): SplatTextureFormat;
+    /**
+     * Updates pixel data of this.colorTexture based on the supplied color components and opacity.
+     * Assumes that the texture is using an RGBA format where RGB are color components influenced
+     * by SH spherical harmonics and A is opacity after a sigmoid transformation.
+     *
+     * @param {Float32Array} c0 - The first color component SH coefficients.
+     * @param {Float32Array} c1 - The second color component SH coefficients.
+     * @param {Float32Array} c2 - The third color component SH coefficients.
+     * @param {Float32Array} opacity - The opacity values to be transformed using a sigmoid function.
+     */
+    updateColorData(c0: Float32Array, c1: Float32Array, c2: Float32Array, opacity: Float32Array): void;
+    /**
+     * Updates pixel data of this.scaleTexture based based on the supplied scale components.
+     * The scales are exponentiated before being stored in the texture, and if the texture
+     * format uses half precision, the scale values are converted accordingly.
+     *
+     * @param {Float32Array} scale0 - The first scale component associated with the x-dimension.
+     * @param {Float32Array} scale1 - The second scale component associated with the y-dimension.
+     * @param {Float32Array} scale2 - The third scale component associated with the z-dimension.
+     */
+    updateScaleData(scale0: Float32Array, scale1: Float32Array, scale2: Float32Array): void;
+    /**
+     * Updates pixel data of this.rotationTexture based on the supplied quaternion components.
+     * Quaternions are normalized and conjugated if the 'w' component is negative.
+     * The quaternion components are stored as either half or full precision floats depending on the texture format.
+     *
+     * @param {Float32Array} rot0 - The array containing the 'x' component of quaternion rotations.
+     * @param {Float32Array} rot1 - The array containing the 'y' component of quaternion rotations.
+     * @param {Float32Array} rot2 - The array containing the 'z' component of quaternion rotations.
+     * @param {Float32Array} rot3 - The array containing the 'w' component of quaternion rotations.
+     */
+    updateRotationData(rot0: Float32Array, rot1: Float32Array, rot2: Float32Array, rot3: Float32Array): void;
+    /**
+     * Updates pixel data of this.centerTexture based on the supplied center coordinates.
+     * The center coordinates are stored as either half or full precision floats depending on the texture format.
+     *
+     * @param {Float32Array} x - The array containing the 'x' component of the center points.
+     * @param {Float32Array} y - The array containing the 'y' component of the center points.
+     * @param {Float32Array} z - The array containing the 'z' component of the center points.
+     */
+    updateCenterData(x: Float32Array, y: Float32Array, z: Float32Array): void;
+}
+
+declare class GSplatSorter extends EventHandler {
+    worker: Worker;
+    vertexBuffer: any;
+    destroy(): void;
+    init(vertexBuffer: any, centers: any, intIndices: any): void;
+    setCamera(pos: any, dir: any): void;
+}
+
+/** @ignore */
+declare class GSplatInstance {
+    /**
+     * @param {import('./gsplat.js').GSplat} splat - The splat instance.
+     * @param {import('./gsplat-material.js').SplatMaterialOptions} options - The options.
+     */
+    constructor(splat: GSplat, options: SplatMaterialOptions);
+    /** @type {import('./gsplat.js').GSplat} */
+    splat: GSplat;
+    /** @type {Mesh} */
+    mesh: Mesh;
+    /** @type {MeshInstance} */
+    meshInstance: MeshInstance;
+    /** @type {import('../materials/material.js').Material} */
+    material: Material;
+    /** @type {VertexBuffer} */
+    vb: VertexBuffer;
+    options: {};
+    /** @type {GSplatSorter | null} */
+    sorter: GSplatSorter | null;
+    lastCameraPosition: Vec3;
+    lastCameraDirection: Vec3;
+    /**
+     * List of cameras this instance is visible for. Updated every frame by the renderer.
+     *
+     * @type {import('../camera.js').Camera[]}
+     * @ignore
+     */
+    cameras: Camera[];
+    centers: Float32Array;
+    destroy(): void;
+    clone(): GSplatInstance;
+    createMaterial(options: any): void;
+    updateViewport(): void;
+    /**
+     * Sorts the GS vertices based on the given camera.
+     * @param {import('../graph-node.js').GraphNode} cameraNode - The camera node used for sorting.
+     */
+    sort(cameraNode: GraphNode): void;
+    update(): void;
 }
 
 /**
@@ -14700,6 +15977,11 @@ declare class MeshInstance {
      * @private
      */
     private _morphInstance;
+    /**
+     * @type {import('./gsplat/gsplat-instance.js').GSplatInstance|null}
+     * @ignore
+     */
+    gsplatInstance: GSplatInstance | null;
     instancingData: InstancingData;
     /**
      * @type {BoundingBox|null}
@@ -15350,14 +16632,39 @@ declare class SoundManager extends EventHandler {
  */
 declare class XrHitTestSource extends EventHandler {
     /**
+     * Fired when {@link XrHitTestSource} is removed.
+     *
+     * @event
+     * @example
+     * hitTestSource.once('remove', () => {
+     *     // hit test source has been removed
+     * });
+     */
+    static EVENT_REMOVE: string;
+    /**
+     * Fired when the hit test source receives new results. It provides transform information that
+     * tries to match real world picked geometry. The handler is passed the {@link Vec3} position,
+     * the {@link Quat} rotation, the {@link XrInputSource} (if it is a transient hit test source)
+     * and the {@link XRHitTestResult} object that is created by WebXR API.
+     *
+     * @event
+     * @example
+     * hitTestSource.on('result', (position, rotation) => {
+     *     target.setPosition(position);
+     *     target.setRotation(rotation);
+     * });
+     */
+    static EVENT_RESULT: string;
+    /**
      * Create a new XrHitTestSource instance.
      *
      * @param {import('./xr-manager.js').XrManager} manager - WebXR Manager.
      * @param {*} xrHitTestSource - XRHitTestSource object that is created by WebXR API.
      * @param {boolean} transient - True if XRHitTestSource created for input source profile.
+     * @param {null|import('./xr-input-source.js').XrInputSource} inputSource - Input Source for which hit test is created for, or null.
      * @hideconstructor
      */
-    constructor(manager: XrManager, xrHitTestSource: any, transient: boolean);
+    constructor(manager: XrManager, xrHitTestSource: any, transient: boolean, inputSource?: null | XrInputSource);
     /**
      * @type {import('./xr-manager.js').XrManager}
      * @private
@@ -15374,30 +16681,10 @@ declare class XrHitTestSource extends EventHandler {
      */
     private _transient;
     /**
-     * Fired when {@link XrHitTestSource} is removed.
-     *
-     * @event XrHitTestSource#remove
-     * @example
-     * hitTestSource.once('remove', function () {
-     *     // hit test source has been removed
-     * });
+     * @type {null|import('./xr-input-source.js').XrInputSource}
+     * @private
      */
-    /**
-     * Fired when hit test source receives new results. It provides transform information that
-     * tries to match real world picked geometry.
-     *
-     * @event XrHitTestSource#result
-     * @param {Vec3} position - Position of hit test.
-     * @param {Quat} rotation - Rotation of hit test.
-     * @param {import('./xr-input-source.js').XrInputSource|null} inputSource - If is transient hit
-     * test source, then it will provide related input source.
-     * @param {XRHitTestResult} XRHitTestResult - object that is created by WebXR API.
-     * @example
-     * hitTestSource.on('result', function (position, rotation) {
-     *     target.setPosition(position);
-     *     target.setRotation(rotation);
-     * });
-     */
+    private _inputSource;
     /**
      * Stop and remove hit test source.
      */
@@ -15411,7 +16698,7 @@ declare class XrHitTestSource extends EventHandler {
     update(frame: any): void;
     /**
      * @param {XRTransientInputHitTestResult[]} results - Hit test results.
-     * @param {XRHitTestSource} inputSource - Input source.
+     * @param {null|import('./xr-input-source.js').XrInputSource} inputSource - Input source.
      * @private
      */
     private updateHitResults;
@@ -15437,6 +16724,52 @@ export type XrHitTestStartCallback = (err: Error | null, hitTestSource: XrHitTes
  * @category XR
  */
 declare class XrHitTest extends EventHandler {
+    /**
+     * Fired when new {@link XrHitTestSource} is added to the list. The handler is passed the
+     * {@link XrHitTestSource} object that has been added.
+     *
+     * @event
+     * @example
+     * app.xr.hitTest.on('add', (hitTestSource) => {
+     *     // new hit test source is added
+     * });
+     */
+    static EVENT_ADD: string;
+    /**
+     * Fired when {@link XrHitTestSource} is removed to the list. The handler is passed the
+     * {@link XrHitTestSource} object that has been removed.
+     *
+     * @event
+     * @example
+     * app.xr.hitTest.on('remove', (hitTestSource) => {
+     *     // hit test source is removed
+     * });
+     */
+    static EVENT_REMOVE: string;
+    /**
+     * Fired when hit test source receives new results. It provides transform information that
+     * tries to match real world picked geometry. The handler is passed the {@link XrHitTestSource}
+     * that produced the hit result, the {@link Vec3} position, the {@link Quat} rotation and the
+     * {@link XrInputSource} (if it is a transient hit test source).
+     *
+     * @event
+     * @example
+     * app.xr.hitTest.on('result', (hitTestSource, position, rotation, inputSource) => {
+     *     target.setPosition(position);
+     *     target.setRotation(rotation);
+     * });
+     */
+    static EVENT_RESULT: string;
+    /**
+     * Fired when failed create hit test source. The handler is passed the Error object.
+     *
+     * @event
+     * @example
+     * app.xr.hitTest.on('error', (err) => {
+     *     console.error(err.message);
+     * });
+     */
+    static EVENT_ERROR: string;
     /**
      * Create a new XrHitTest instance.
      *
@@ -15465,48 +16798,6 @@ declare class XrHitTest extends EventHandler {
      * @type {XrHitTestSource[]}
      */
     sources: XrHitTestSource[];
-    /**
-     * Fired when new {@link XrHitTestSource} is added to the list.
-     *
-     * @event XrHitTest#add
-     * @param {XrHitTestSource} hitTestSource - Hit test source that has been added.
-     * @example
-     * app.xr.hitTest.on('add', function (hitTestSource) {
-     *     // new hit test source is added
-     * });
-     */
-    /**
-     * Fired when {@link XrHitTestSource} is removed to the list.
-     *
-     * @event XrHitTest#remove
-     * @param {XrHitTestSource} hitTestSource - Hit test source that has been removed.
-     * @example
-     * app.xr.hitTest.on('remove', function (hitTestSource) {
-     *     // hit test source is removed
-     * });
-     */
-    /**
-     * Fired when hit test source receives new results. It provides transform information that
-     * tries to match real world picked geometry.
-     *
-     * @event XrHitTest#result
-     * @param {XrHitTestSource} hitTestSource - Hit test source that produced the hit result.
-     * @param {import('../../core/math/vec3.js').Vec3} position - Position of hit test.
-     * @param {import('../../core/math/quat.js').Quat} rotation - Rotation of hit test.
-     * @param {import('./xr-input-source.js').XrInputSource|null} inputSource - If is transient hit
-     * test source, then it will provide related input source.
-     * @example
-     * app.xr.hitTest.on('result', function (hitTestSource, position, rotation, inputSource) {
-     *     target.setPosition(position);
-     *     target.setRotation(rotation);
-     * });
-     */
-    /**
-     * Fired when failed create hit test source.
-     *
-     * @event XrHitTest#error
-     * @param {Error} error - Error object related to failure of creating hit test source.
-     */
     /** @private */
     private _onSessionStart;
     /** @private */
@@ -15599,6 +16890,7 @@ declare class XrHitTest extends EventHandler {
     /**
      * @param {XRHitTestSource} xrHitTestSource - Hit test source.
      * @param {boolean} transient - True if hit test source is created from transient input source.
+     * @param {import('./xr-input-source.js').XrInputSource|null} inputSource - Input Source with which hit test source is associated with.
      * @param {Function} callback - Callback called once hit test source is created.
      * @private
      */
@@ -15830,6 +17122,26 @@ declare class XrJoint {
  */
 declare class XrHand extends EventHandler {
     /**
+     * Fired when tracking becomes available.
+     *
+     * @event
+     * @example
+     * hand.on('tracking', () => {
+     *     console.log('Hand tracking is available');
+     * });
+     */
+    static EVENT_TRACKING: string;
+    /**
+     * Fired when tracking is lost.
+     *
+     * @event
+     * @example
+     * hand.on('trackinglost', () => {
+     *     console.log('Hand tracking is lost');
+     * });
+     */
+    static EVENT_TRACKINGLOST: string;
+    /**
      * Represents a hand with fingers and joints.
      *
      * @param {import('./xr-input-source.js').XrInputSource} inputSource - Input Source that hand
@@ -15877,16 +17189,6 @@ declare class XrHand extends EventHandler {
      * @private
      */
     private _wrist;
-    /**
-     * Fired when tracking becomes available.
-     *
-     * @event XrHand#tracking
-     */
-    /**
-     * Fired when tracking is lost.
-     *
-     * @event XrHand#trackinglost
-     */
     /**
      * @param {*} frame - XRFrame from requestAnimationFrame callback.
      * @ignore
@@ -15948,6 +17250,126 @@ declare class XrHand extends EventHandler {
  */
 declare class XrInputSource extends EventHandler {
     /**
+     * Fired when {@link XrInputSource} is removed.
+     *
+     * @event
+     * @example
+     * inputSource.once('remove', () => {
+     *     // input source is not available anymore
+     * });
+     */
+    static EVENT_REMOVE: string;
+    /**
+     * Fired when input source has triggered primary action. This could be pressing a trigger
+     * button, or touching a screen. The handler is passed an {@link XRInputSourceEvent} object
+     * from the WebXR API.
+     *
+     * @event
+     * @example
+     * const ray = new pc.Ray();
+     * inputSource.on('select', (evt) => {
+     *     ray.set(inputSource.getOrigin(), inputSource.getDirection());
+     *     if (obj.intersectsRay(ray)) {
+     *         // selected an object with input source
+     *     }
+     * });
+     */
+    static EVENT_SELECT: string;
+    /**
+     * Fired when input source has started to trigger primary action. The handler is passed an
+     * {@link XRInputSourceEvent} object from the WebXR API.
+     *
+     * @event
+     * @example
+     * inputSource.on('selectstart', (evt) => {
+     *     console.log('Select started');
+     * });
+     */
+    static EVENT_SELECTSTART: string;
+    /**
+     * Fired when input source has ended triggering primary action. The handler is passed an
+     * {@link XRInputSourceEvent} object from the WebXR API.
+     *
+     * @event
+     * @example
+     * inputSource.on('selectend', (evt) => {
+     *     console.log('Select ended');
+     * });
+     */
+    static EVENT_SELECTEND: string;
+    /**
+     * Fired when input source has triggered squeeze action. This is associated with "grabbing"
+     * action on the controllers. The handler is passed an {@link XRInputSourceEvent} object from
+     * the WebXR API.
+     *
+     * @event
+     * @example
+     * inputSource.on('squeeze', (evt) => {
+     *     console.log('Squeeze');
+     * });
+     */
+    static EVENT_SQUEEZE: string;
+    /**
+     * Fired when input source has started to trigger squeeze action. The handler is passed an
+     * {@link XRInputSourceEvent} object from the WebXR API.
+     *
+     * @event
+     * @example
+     * inputSource.on('squeezestart', (evt) => {
+     *     if (obj.containsPoint(inputSource.getPosition())) {
+     *         // grabbed an object
+     *     }
+     * });
+     */
+    static EVENT_SQUEEZESTART: string;
+    /**
+     * Fired when input source has ended triggering squeeze action. The handler is passed an
+     * {@link XRInputSourceEvent} object from the WebXR API.
+     *
+     * @event
+     * @example
+     * inputSource.on('squeezeend', (evt) => {
+     *     console.log('Squeeze ended');
+     * });
+     */
+    static EVENT_SQUEEZEEND: string;
+    /**
+     * Fired when new {@link XrHitTestSource} is added to the input source. The handler is passed
+     * the {@link XrHitTestSource} object that has been added.
+     *
+     * @event
+     * @example
+     * inputSource.on('hittest:add', (hitTestSource) => {
+     *     // new hit test source is added
+     * });
+     */
+    static EVENT_HITTESTADD: string;
+    /**
+     * Fired when {@link XrHitTestSource} is removed to the the input source. The handler is passed
+     * the {@link XrHitTestSource} object that has been removed.
+     *
+     * @event
+     * @example
+     * inputSource.on('remove', (hitTestSource) => {
+     *     // hit test source is removed
+     * });
+     */
+    static EVENT_HITTESTREMOVE: string;
+    /**
+     * Fired when hit test source receives new results. It provides transform information that
+     * tries to match real world picked geometry. The handler is passed the {@link XrHitTestSource}
+     * object that produced the hit result, the {@link Vec3} position and the {@link Quat}
+     * rotation.
+     *
+     * @event
+     * @example
+     * inputSource.on('hittest:result', (hitTestSource, position, rotation) => {
+     *     target.setPosition(position);
+     *     target.setRotation(rotation);
+     * });
+     */
+    static EVENT_HITTESTRESULT: string;
+    /**
      * Create a new XrInputSource instance.
      *
      * @param {import('./xr-manager.js').XrManager} manager - WebXR Manager.
@@ -15987,10 +17409,20 @@ declare class XrInputSource extends EventHandler {
      */
     private _grip;
     /**
-     * @type {XrHand}
+     * @type {XrHand|null}
      * @private
      */
     private _hand;
+    /**
+     * @type {boolean}
+     * @private
+     */
+    private _velocitiesAvailable;
+    /**
+     * @type {number}
+     * @private
+     */
+    private _velocitiesTimestamp;
     /**
      * @type {Mat4|null}
      * @private
@@ -16012,15 +17444,25 @@ declare class XrInputSource extends EventHandler {
      */
     private _rotation;
     /**
-     * @type {Mat4|null}
+     * @type {Vec3|null}
      * @private
      */
     private _localPosition;
     /**
-     * @type {Mat4|null}
+     * @type {Vec3|null}
+     * @private
+     */
+    private _localPositionLast;
+    /**
+     * @type {Quat|null}
      * @private
      */
     private _localRotation;
+    /**
+     * @type {Vec3|null}
+     * @private
+     */
+    private _linearVelocity;
     /**
      * @type {boolean}
      * @private
@@ -16056,109 +17498,6 @@ declare class XrInputSource extends EventHandler {
      * @private
      */
     private _hitTestSources;
-    /**
-     * @type {Set<import('./xr-hit-test-source.js').XrHitTestSource>}
-     * @ignore
-     */
-    hitTestSourcesSet: Set<XrHitTestSource>;
-    /**
-     * Fired when {@link XrInputSource} is removed.
-     *
-     * @event XrInputSource#remove
-     * @example
-     * inputSource.once('remove', function () {
-     *     // input source is not available anymore
-     * });
-     */
-    /**
-     * Fired when input source has triggered primary action. This could be pressing a trigger
-     * button, or touching a screen.
-     *
-     * @event XrInputSource#select
-     * @param {object} evt - XRInputSourceEvent event data from WebXR API.
-     * @example
-     * const ray = new pc.Ray();
-     * inputSource.on('select', function (evt) {
-     *     ray.set(inputSource.getOrigin(), inputSource.getDirection());
-     *     if (obj.intersectsRay(ray)) {
-     *         // selected an object with input source
-     *     }
-     * });
-     */
-    /**
-     * Fired when input source has started to trigger primary action.
-     *
-     * @event XrInputSource#selectstart
-     * @param {object} evt - XRInputSourceEvent event data from WebXR API.
-     */
-    /**
-     * Fired when input source has ended triggering primary action.
-     *
-     * @event XrInputSource#selectend
-     * @param {object} evt - XRInputSourceEvent event data from WebXR API.
-     */
-    /**
-     * Fired when input source has triggered squeeze action. This is associated with "grabbing"
-     * action on the controllers.
-     *
-     * @event XrInputSource#squeeze
-     * @param {object} evt - XRInputSourceEvent event data from WebXR API.
-     */
-    /**
-     * Fired when input source has started to trigger squeeze action.
-     *
-     * @event XrInputSource#squeezestart
-     * @param {object} evt - XRInputSourceEvent event data from WebXR API.
-     * @example
-     * inputSource.on('squeezestart', function (evt) {
-     *     if (obj.containsPoint(inputSource.getPosition())) {
-     *         // grabbed an object
-     *     }
-     * });
-     */
-    /**
-     * Fired when input source has ended triggering squeeze action.
-     *
-     * @event XrInputSource#squeezeend
-     * @param {object} evt - XRInputSourceEvent event data from WebXR API.
-     */
-    /**
-     * Fired when new {@link XrHitTestSource} is added to the input source.
-     *
-     * @event XrInputSource#hittest:add
-     * @param {import('./xr-hit-test-source.js').XrHitTestSource} hitTestSource - Hit test source
-     * that has been added.
-     * @example
-     * inputSource.on('hittest:add', function (hitTestSource) {
-     *     // new hit test source is added
-     * });
-     */
-    /**
-     * Fired when {@link XrHitTestSource} is removed to the the input source.
-     *
-     * @event XrInputSource#hittest:remove
-     * @param {import('./xr-hit-test-source.js').XrHitTestSource} hitTestSource - Hit test source
-     * that has been removed.
-     * @example
-     * inputSource.on('remove', function (hitTestSource) {
-     *     // hit test source is removed
-     * });
-     */
-    /**
-     * Fired when hit test source receives new results. It provides transform information that
-     * tries to match real world picked geometry.
-     *
-     * @event XrInputSource#hittest:result
-     * @param {import('./xr-hit-test-source.js').XrHitTestSource} hitTestSource - Hit test source
-     * that produced the hit result.
-     * @param {Vec3} position - Position of hit test.
-     * @param {Quat} rotation - Rotation of hit test.
-     * @example
-     * inputSource.on('hittest:result', function (hitTestSource, position, rotation) {
-     *     target.setPosition(position);
-     *     target.setRotation(rotation);
-     * });
-     */
     /**
      * Unique number associated with instance of input source. Same physical devices when
      * reconnected will not share this ID.
@@ -16293,9 +17632,16 @@ declare class XrInputSource extends EventHandler {
      * Get the local space rotation of input source if it is handheld ({@link XrInputSource#grip}
      * is true). Local space is relative to parent of the XR camera. Otherwise it will return null.
      *
-     * @returns {Vec3|null} The world space rotation of handheld input source.
+     * @returns {Quat|null} The world space rotation of handheld input source.
      */
-    getLocalRotation(): Vec3 | null;
+    getLocalRotation(): Quat | null;
+    /**
+     * Get the linear velocity (units per second) of the input source if it is handheld
+     * ({@link XrInputSource#grip} is true). Otherwise it will return null.
+     *
+     * @returns {Vec3|null} The world space linear velocity of the handheld input source.
+     */
+    getLinearVelocity(): Vec3 | null;
     /**
      * Get the world space origin of input source ray.
      *
@@ -16724,6 +18070,22 @@ export type UpdateShaderCallback = (options: StandardMaterialOptions) => Standar
  * @property {boolean} opacityFadesSpecular Used to specify whether specular and reflections are
  * faded out using {@link StandardMaterial#opacity}. Default is true. When set to false use
  * {@link Material#alphaFade} to fade out materials.
+ * @property {string} opacityDither Used to specify whether opacity is dithered, which allows
+ * transparency without alpha blending. Can be:
+ *
+ * - {@link DITHER_NONE}: Opacity dithering is disabled.
+ * - {@link DITHER_BAYER8}: Opacity is dithered using a Bayer 8 matrix.
+ * - {@link DITHER_BLUENOISE}: Opacity is dithered using a blue noise texture.
+ *
+ * Defaults to {@link DITHER_NONE}.
+ * @property {boolean} opacityShadowDither Used to specify whether shadow opacity is dithered, which
+ * allows shadow transparency without alpha blending.  Can be:
+ *
+ * - {@link DITHER_NONE}: Opacity dithering is disabled.
+ * - {@link DITHER_BAYER8}: Opacity is dithered using a Bayer 8 matrix.
+ * - {@link DITHER_BLUENOISE}: Opacity is dithered using a blue noise texture.
+ *
+ * Defaults to {@link DITHER_NONE}.
  * @property {number} alphaFade Used to fade out materials when
  * {@link StandardMaterial#opacityFadesSpecular} is set to false.
  * @property {import('../../platform/graphics/texture.js').Texture|null} normalMap The main
@@ -17283,6 +18645,12 @@ declare class StandardMaterial extends Material {
 
     set opacity(arg: number);
     get opacity(): number;
+
+    set opacityDither(arg: string);
+    get opacityDither(): string;
+
+    set opacityShadowDither(arg: string);
+    get opacityShadowDither(): string;
 
     set opacityFadesSpecular(arg: boolean);
     get opacityFadesSpecular(): boolean;
@@ -18289,12 +19657,11 @@ declare class Font {
  * ```
  *
  * Relevant 'Engine-only' examples:
- * - [Basic text rendering](http://playcanvas.github.io/#user-interface/text-basic)
- * - [Rendering text outlines](http://playcanvas.github.io/#user-interface/text-outline)
- * - [Adding drop shadows to text](http://playcanvas.github.io/#user-interface/text-drop-shadow)
- * - [Coloring text with markup](http://playcanvas.github.io/#user-interface/text-markup)
- * - [Wrapping text](http://playcanvas.github.io/#user-interface/text-wrap)
- * - [Typewriter text](http://playcanvas.github.io/#user-interface/text-typewriter)
+ * - [Basic text rendering](https://playcanvas.github.io/#/user-interface/text)
+ * - [Auto font sizing](https://playcanvas.github.io/#/user-interface/text-auto-font-size)
+ * - [Emojis](https://playcanvas.github.io/#/user-interface/text-emojis)
+ * - [Text localization](https://playcanvas.github.io/#/user-interface/text-localization)
+ * - [Typewriter text](https://playcanvas.github.io/#/user-interface/text-typewriter)
  *
  * @property {import('../../../core/math/color.js').Color} color The color of the image for
  * {@link ELEMENTTYPE_IMAGE} types or the color of the text for {@link ELEMENTTYPE_TEXT} types.
@@ -18393,6 +19760,128 @@ declare class Font {
  * @category User Interface
  */
 declare class ElementComponent extends Component {
+    /**
+     * Fired when the mouse is pressed while the cursor is on the component. Only fired when
+     * useInput is true. The handler is passed an {@link ElementMouseEvent}.
+     *
+     * @event
+     * @example
+     * entity.element.on('mousedown', (event) => {
+     *     console.log(`Mouse down event on entity ${entity.name}`);
+     * });
+     */
+    static EVENT_MOUSEDOWN: string;
+    /**
+     * Fired when the mouse is released while the cursor is on the component. Only fired when
+     * useInput is true. The handler is passed an {@link ElementMouseEvent}.
+     *
+     * @event
+     * @example
+     * entity.element.on('mouseup', (event) => {
+     *     console.log(`Mouse up event on entity ${entity.name}`);
+     * });
+     */
+    static EVENT_MOUSEUP: string;
+    /**
+     * Fired when the mouse cursor enters the component. Only fired when useInput is true. The
+     * handler is passed an {@link ElementMouseEvent}.
+     *
+     * @event
+     * @example
+     * entity.element.on('mouseenter', (event) => {
+     *     console.log(`Mouse enter event on entity ${entity.name}`);
+     * });
+     */
+    static EVENT_MOUSEENTER: string;
+    /**
+     * Fired when the mouse cursor leaves the component. Only fired when useInput is true. The
+     * handler is passed an {@link ElementMouseEvent}.
+     *
+     * @event
+     * @example
+     * entity.element.on('mouseleave', (event) => {
+     *     console.log(`Mouse leave event on entity ${entity.name}`);
+     * });
+     */
+    static EVENT_MOUSELEAVE: string;
+    /**
+     * Fired when the mouse cursor is moved on the component. Only fired when useInput is true. The
+     * handler is passed an {@link ElementMouseEvent}.
+     *
+     * @event
+     * @example
+     * entity.element.on('mousemove', (event) => {
+     *     console.log(`Mouse move event on entity ${entity.name}`);
+     * });
+     */
+    static EVENT_MOUSEMOVE: string;
+    /**
+     * Fired when the mouse wheel is scrolled on the component. Only fired when useInput is true.
+     * The handler is passed an {@link ElementMouseEvent}.
+     *
+     * @event
+     * @example
+     * entity.element.on('mousewheel', (event) => {
+     *     console.log(`Mouse wheel event on entity ${entity.name}`);
+     * });
+     */
+    static EVENT_MOUSEWHEEL: string;
+    /**
+     * Fired when the mouse is pressed and released on the component or when a touch starts and
+     * ends on the component. Only fired when useInput is true. The handler is passed an
+     * {@link ElementMouseEvent} or {@link ElementTouchEvent}.
+     *
+     * @event
+     * @example
+     * entity.element.on('click', (event) => {
+     *     console.log(`Click event on entity ${entity.name}`);
+     * });
+     */
+    static EVENT_CLICK: string;
+    /**
+     * Fired when a touch starts on the component. Only fired when useInput is true. The handler is
+     * passed an {@link ElementTouchEvent}.
+     *
+     * @event
+     * @example
+     * entity.element.on('touchstart', (event) => {
+     *     console.log(`Touch start event on entity ${entity.name}`);
+     * });
+     */
+    static EVENT_TOUCHSTART: string;
+    /**
+     * Fired when a touch ends on the component. Only fired when useInput is true. The handler is
+     * passed an {@link ElementTouchEvent}.
+     *
+     * @event
+     * @example
+     * entity.element.on('touchend', (event) => {
+     *     console.log(`Touch end event on entity ${entity.name}`);
+     * });
+     */
+    static EVENT_TOUCHEND: string;
+    /**
+     * Fired when a touch moves after it started touching the component. Only fired when useInput
+     * is true. The handler is passed an {@link ElementTouchEvent}.
+     *
+     * @event
+     * @example
+     * entity.element.on('touchmove', (event) => {
+     *     console.log(`Touch move event on entity ${entity.name}`);
+     * });
+     */
+    static EVENT_TOUCHMOVE: string;
+    /**
+     * Fired when a touch is canceled on the component. Only fired when useInput is true. The
+     * handler is passed an {@link ElementTouchEvent}.
+     *
+     * @event
+     * @example
+     * entity.element.on('touchcancel', (event) => {
+     *     console.log(`Touch cancel event on entity ${entity.name}`);
+     * });
+     */
+    static EVENT_TOUCHCANCEL: string;
     /**
      * Create a new ElementComponent instance.
      *
@@ -18555,76 +20044,6 @@ declare class ElementComponent extends Component {
     _offsetReadAt: number;
     _maskOffset: number;
     _maskedBy: any;
-    /**
-     * Fired when the mouse is pressed while the cursor is on the component. Only fired when
-     * useInput is true.
-     *
-     * @event ElementComponent#mousedown
-     * @param {import('../../input/element-input.js').ElementMouseEvent} event - The event.
-     */
-    /**
-     * Fired when the mouse is released while the cursor is on the component. Only fired when
-     * useInput is true.
-     *
-     * @event ElementComponent#mouseup
-     * @param {import('../../input/element-input.js').ElementMouseEvent} event - The event.
-     */
-    /**
-     * Fired when the mouse cursor enters the component. Only fired when useInput is true.
-     *
-     * @event ElementComponent#mouseenter
-     * @param {import('../../input/element-input.js').ElementMouseEvent} event - The event.
-     */
-    /**
-     * Fired when the mouse cursor leaves the component. Only fired when useInput is true.
-     *
-     * @event ElementComponent#mouseleave
-     * @param {import('../../input/element-input.js').ElementMouseEvent} event - The event.
-     */
-    /**
-     * Fired when the mouse cursor is moved on the component. Only fired when useInput is true.
-     *
-     * @event ElementComponent#mousemove
-     * @param {import('../../input/element-input.js').ElementMouseEvent} event - The event.
-     */
-    /**
-     * Fired when the mouse wheel is scrolled on the component. Only fired when useInput is true.
-     *
-     * @event ElementComponent#mousewheel
-     * @param {import('../../input/element-input.js').ElementMouseEvent} event - The event.
-     */
-    /**
-     * Fired when the mouse is pressed and released on the component or when a touch starts and
-     * ends on the component. Only fired when useInput is true.
-     *
-     * @event ElementComponent#click
-     * @param {import('../../input/element-input.js').ElementMouseEvent|import('../../input/element-input.js').ElementTouchEvent} event - The event.
-     */
-    /**
-     * Fired when a touch starts on the component. Only fired when useInput is true.
-     *
-     * @event ElementComponent#touchstart
-     * @param {import('../../input/element-input.js').ElementTouchEvent} event - The event.
-     */
-    /**
-     * Fired when a touch ends on the component. Only fired when useInput is true.
-     *
-     * @event ElementComponent#touchend
-     * @param {import('../../input/element-input.js').ElementTouchEvent} event - The event.
-     */
-    /**
-     * Fired when a touch moves after it started touching the component. Only fired when useInput
-     * is true.
-     *
-     * @event ElementComponent#touchmove
-     * @param {import('../../input/element-input.js').ElementTouchEvent} event - The event.
-     */
-    /**
-     * Fired when a touch is canceled on the component. Only fired when useInput is true.
-     *
-     * @event ElementComponent#touchcancel
-     * @param {import('../../input/element-input.js').ElementTouchEvent} event - The event.
-     */
     /**
      * @type {number}
      * @private
@@ -19272,6 +20691,36 @@ declare class ElementTouchEvent extends ElementInputEvent {
  */
 declare class GamePads extends EventHandler {
     /**
+     * Fired when a gamepad is connected. The handler is passed the {@link GamePad} object that was
+     * connected.
+     *
+     * @event
+     * @example
+     * const onPadConnected = (pad) => {
+     *     if (!pad.mapping) {
+     *         // Map the gamepad as the system could not find the proper map.
+     *     } else {
+     *         // Make the gamepad pulse.
+     *     }
+     * };
+     *
+     * app.keyboard.on("gamepadconnected", onPadConnected, this);
+     */
+    static EVENT_GAMEPADCONNECTED: string;
+    /**
+     * Fired when a gamepad is disconnected. The handler is passed the {@link GamePad} object that
+     * was disconnected.
+     *
+     * @event
+     * @example
+     * const onPadDisconnected = (pad) => {
+     *     // Pause the game.
+     * };
+     *
+     * app.keyboard.on("gamepaddisconnected", onPadDisconnected, this);
+     */
+    static EVENT_GAMEPADDISCONNECTED: string;
+    /**
      * Whether gamepads are supported by this device.
      *
      * @type {boolean}
@@ -19292,32 +20741,6 @@ declare class GamePads extends EventHandler {
     _previous: boolean[][];
     _ongamepadconnectedHandler: any;
     _ongamepaddisconnectedHandler: any;
-    /**
-     * Fired when a gamepad is connected.
-     *
-     * @event GamePads#gamepadconnected
-     * @param {GamePad} gamepad - The gamepad that was just connected.
-     * @example
-     * const onPadConnected = function (pad) {
-     *     if (!pad.mapping) {
-     *         // Map the gamepad as the system could not find the proper map.
-     *     } else {
-     *         // Make the gamepad pulse.
-     *     }
-     * };
-     * app.keyboard.on("gamepadconnected", onPadConnected, this);
-     */
-    /**
-     * Fired when a gamepad is disconnected.
-     *
-     * @event GamePads#gamepaddisconnected
-     * @param {GamePad} gamepad - The gamepad that was just disconnected.
-     * @example
-     * const onPadDisconnected = function (pad) {
-     *     // Pause the game.
-     * };
-     * app.keyboard.on("gamepaddisconnected", onPadDisconnected, this);
-     */
     /**
      * Threshold for axes to return values. Must be between 0 and 1.
      *
@@ -19803,29 +21226,45 @@ export type LockMouseCallback = () => any;
  */
 declare class Mouse extends EventHandler {
     /**
-     * Fired when the mouse is moved.
+     * Fired when the mouse is moved. The handler is passed a {@link MouseEvent}.
      *
-     * @event Mouse#mousemove
-     * @param {MouseEvent} event - The MouseEvent object.
+     * @event
+     * @example
+     * app.mouse.on('mousemove', (e) => {
+     *     console.log(`Current mouse position is: ${e.x}, ${e.y}`);
+     * });
      */
+    static EVENT_MOUSEMOVE: string;
     /**
-     * Fired when a mouse button is pressed.
+     * Fired when a mouse button is pressed. The handler is passed a {@link MouseEvent}.
      *
-     * @event Mouse#mousedown
-     * @param {MouseEvent} event - The MouseEvent object.
+     * @event
+     * @example
+     * app.mouse.on('mousedown', (e) => {
+     *     console.log(`The ${e.button} button was pressed at position: ${e.x}, ${e.y}`);
+     * });
      */
+    static EVENT_MOUSEDOWN: string;
     /**
-     * Fired when a mouse button is released.
+     * Fired when a mouse button is released. The handler is passed a {@link MouseEvent}.
      *
-     * @event Mouse#mouseup
-     * @param {MouseEvent} event - The MouseEvent object.
+     * @event
+     * @example
+     * app.mouse.on('mouseup', (e) => {
+     *     console.log(`The ${e.button} button was released at position: ${e.x}, ${e.y}`);
+     * });
      */
+    static EVENT_MOUSEUP: string;
     /**
-     * Fired when a mouse wheel is moved.
+     * Fired when a mouse wheel is moved. The handler is passed a {@link MouseEvent}.
      *
-     * @event Mouse#mousewheel
-     * @param {MouseEvent} event - The MouseEvent object.
+     * @event
+     * @example
+     * app.mouse.on('mousewheel', (e) => {
+     *     console.log(`The mouse wheel was moved by ${e.wheelDelta}`);
+     * });
      */
+    static EVENT_MOUSEWHEEL: string;
     /**
      * Check if the mouse pointer has been locked, using {@link Mouse#enablePointerLock}.
      *
@@ -19949,12 +21388,42 @@ declare class Mouse extends EventHandler {
  */
 declare class Keyboard extends EventHandler {
     /**
+     * Fired when a key is pressed. The handler is passed a {@link KeyboardEvent}.
+     *
+     * @event
+     * @example
+     * const onKeyDown = (e) => {
+     *     if (e.key === pc.KEY_SPACE) {
+     *         // space key pressed
+     *     }
+     *     e.event.preventDefault(); // Use original browser event to prevent browser action.
+     * };
+     *
+     * app.keyboard.on("keydown", onKeyDown, this);
+     */
+    static EVENT_KEYDOWN: string;
+    /**
+     * Fired when a key is released. The handler is passed a {@link KeyboardEvent}.
+     *
+     * @event
+     * @example
+     * const onKeyUp = (e) => {
+     *     if (e.key === pc.KEY_SPACE) {
+     *         // space key released
+     *     }
+     *     e.event.preventDefault(); // Use original browser event to prevent browser action.
+     * };
+     *
+     * app.keyboard.on("keyup", onKeyUp, this);
+     */
+    static EVENT_KEYUP: string;
+    /**
      * Create a new Keyboard instance.
      *
      * @param {Element|Window} [element] - Element to attach Keyboard to. Note that elements like
      * &lt;div&gt; can't accept focus by default. To use keyboard events on an element like this it
      * must have a value of 'tabindex' e.g. tabindex="0". See
-     * [here](http://www.w3.org/WAI/GL/WCAG20/WD-WCAG20-TECHS/SCR29.html) for more details.
+     * [here](https://www.w3.org/WAI/GL/WCAG20/WD-WCAG20-TECHS/SCR29.html) for more details.
      * @param {object} [options] - Optional options object.
      * @param {boolean} [options.preventDefault] - Call preventDefault() in key event handlers.
      * This stops the default action of the event occurring. e.g. Ctrl+T will not open a new
@@ -19980,34 +21449,6 @@ declare class Keyboard extends EventHandler {
     _lastmap: {};
     preventDefault: boolean;
     stopPropagation: boolean;
-    /**
-     * Fired when a key is pressed.
-     *
-     * @event Keyboard#keydown
-     * @param {KeyboardEvent} event - The Keyboard event object. Note, this event is only valid for the current callback.
-     * @example
-     * const onKeyDown = function (e) {
-     *     if (e.key === pc.KEY_SPACE) {
-     *         // space key pressed
-     *     }
-     *     e.event.preventDefault(); // Use original browser event to prevent browser action.
-     * };
-     * app.keyboard.on("keydown", onKeyDown, this);
-     */
-    /**
-     * Fired when a key is released.
-     *
-     * @event Keyboard#keyup
-     * @param {KeyboardEvent} event - The Keyboard event object. Note, this event is only valid for the current callback.
-     * @example
-     * const onKeyUp = function (e) {
-     *     if (e.key === pc.KEY_SPACE) {
-     *         // space key released
-     *     }
-     *     e.event.preventDefault(); // Use original browser event to prevent browser action.
-     * };
-     * app.keyboard.on("keyup", onKeyUp, this);
-     */
     /**
      * Attach the keyboard event handlers to an Element.
      *
@@ -20125,6 +21566,78 @@ export type AssetReadyCallback = (asset: Asset) => any;
  */
 declare class Asset extends EventHandler {
     /**
+     * Fired when the asset has completed loading.
+     *
+     * @event
+     * @example
+     * asset.on('load', (asset) => {
+     *     console.log(`Asset loaded: ${asset.name}`);
+     * });
+     */
+    static EVENT_LOAD: string;
+    /**
+     * Fired just before the asset unloads the resource. This allows for the opportunity to prepare
+     * for an asset that will be unloaded. E.g. Changing the texture of a model to a default before
+     * the one it was using is unloaded.
+     *
+     * @event
+     * @example
+     * asset.on('unload', (asset) => {
+     *    console.log(`Asset about to unload: ${asset.name}`);
+     * });
+     */
+    static EVENT_UNLOAD: string;
+    /**
+     * Fired when the asset is removed from the asset registry.
+     *
+     * @event
+     * @example
+     * asset.on('remove', (asset) => {
+     *    console.log(`Asset removed: ${asset.name}`);
+     * });
+     */
+    static EVENT_REMOVE: string;
+    /**
+     * Fired if the asset encounters an error while loading.
+     *
+     * @event
+     * @example
+     * asset.on('error', (err, asset) => {
+     *    console.error(`Error loading asset ${asset.name}: ${err}`);
+     * });
+     */
+    static EVENT_ERROR: string;
+    /**
+     * Fired when one of the asset properties `file`, `data`, `resource` or `resources` is changed.
+     *
+     * @event
+     * @example
+     * asset.on('change', (asset, property, newValue, oldValue) => {
+     *    console.log(`Asset ${asset.name} has property ${property} changed from ${oldValue} to ${newValue}`);
+     * });
+     */
+    static EVENT_CHANGE: string;
+    /**
+     * Fired when we add a new localized asset id to the asset.
+     *
+     * @event
+     * @example
+     * asset.on('add:localized', (locale, assetId) => {
+     *    console.log(`Asset ${asset.name} has added localized asset ${assetId} for locale ${locale}`);
+     * });
+     */
+    static EVENT_ADDLOCALIZED: string;
+    /**
+     * Fired when we remove a localized asset id from the asset.
+     *
+     * @event
+     * @example
+     * asset.on('remove:localized', (locale, assetId) => {
+     *   console.log(`Asset ${asset.name} has removed localized asset ${assetId} for locale ${locale}`);
+     * });
+     */
+    static EVENT_REMOVELOCALIZED: string;
+    /**
      * Helper function to resolve asset file data and return the contents as an ArrayBuffer. If the
      * asset file contents are present, that is returned. Otherwise the file data is be downloaded
      * via http.
@@ -20233,56 +21746,6 @@ declare class Asset extends EventHandler {
      */
     set file(arg: any);
     get file(): any;
-    /**
-     * Fired when the asset has completed loading.
-     *
-     * @event Asset#load
-     * @param {Asset} asset - The asset that was loaded.
-     */
-    /**
-     * Fired just before the asset unloads the resource. This allows for the opportunity to prepare
-     * for an asset that will be unloaded. E.g. Changing the texture of a model to a default before
-     * the one it was using is unloaded.
-     *
-     * @event Asset#unload
-     * @param {Asset} asset - The asset that is due to be unloaded.
-     */
-    /**
-     * Fired when the asset is removed from the asset registry.
-     *
-     * @event Asset#remove
-     * @param {Asset} asset - The asset that was removed.
-     */
-    /**
-     * Fired if the asset encounters an error while loading.
-     *
-     * @event Asset#error
-     * @param {string} err - The error message.
-     * @param {Asset} asset - The asset that generated the error.
-     */
-    /**
-     * Fired when one of the asset properties `file`, `data`, `resource` or `resources` is changed.
-     *
-     * @event Asset#change
-     * @param {Asset} asset - The asset that was loaded.
-     * @param {string} property - The name of the property that changed.
-     * @param {*} value - The new property value.
-     * @param {*} oldValue - The old property value.
-     */
-    /**
-     * Fired when we add a new localized asset id to the asset.
-     *
-     * @event Asset#add:localized
-     * @param {string} locale - The locale.
-     * @param {number} assetId - The asset id we added.
-     */
-    /**
-     * Fired when we remove a localized asset id from the asset.
-     *
-     * @event Asset#remove:localized
-     * @param {string} locale - The locale.
-     * @param {number} assetId - The asset id we removed.
-     */
     /**
      * The asset id.
      *
@@ -20632,6 +22095,119 @@ export type LoadAssetCallback = (err: string | null, asset?: Asset) => any;
  */
 declare class AssetRegistry extends EventHandler {
     /**
+     * Fired when an asset completes loading. This event is available in three forms. They are as
+     * follows:
+     *
+     * 1. `load` - Fired when any asset finishes loading.
+     * 2. `load:[id]` - Fired when a specific asset has finished loading, where `[id]` is the
+     * unique id of the asset.
+     * 3. `load:url:[url]` - Fired when an asset finishes loading whose URL matches `[url]`, where
+     * `[url]` is the URL of the asset.
+     *
+     * @event
+     * @example
+     * app.assets.on('load', (asset) => {
+     *     console.log(`Asset loaded: ${asset.name}`);
+     * });
+     * @example
+     * const id = 123456;
+     * const asset = app.assets.get(id);
+     * app.assets.on('load:' + id, (asset) => {
+     *     console.log(`Asset loaded: ${asset.name}`);
+     * });
+     * app.assets.load(asset);
+     * @example
+     * const id = 123456;
+     * const asset = app.assets.get(id);
+     * app.assets.on('load:url:' + asset.file.url, (asset) => {
+     *     console.log(`Asset loaded: ${asset.name}`);
+     * });
+     * app.assets.load(asset);
+     */
+    static EVENT_LOAD: string;
+    /**
+     * Fired when an asset is added to the registry. This event is available in three forms. They
+     * are as follows:
+     *
+     * 1. `add` - Fired when any asset is added to the registry.
+     * 2. `add:[id]` - Fired when an asset is added to the registry, where `[id]` is the unique id
+     * of the asset.
+     * 3. `add:url:[url]` - Fired when an asset is added to the registry and matches the URL
+     * `[url]`, where `[url]` is the URL of the asset.
+     *
+     * @event
+     * @example
+     * app.assets.on('add', (asset) => {
+     *    console.log(`Asset added: ${asset.name}`);
+     * });
+     * @example
+     * const id = 123456;
+     * app.assets.on('add:' + id, (asset) => {
+     *    console.log(`Asset added: ${asset.name}`);
+     * });
+     * @example
+     * const id = 123456;
+     * const asset = app.assets.get(id);
+     * app.assets.on('add:url:' + asset.file.url, (asset) => {
+     *    console.log(`Asset added: ${asset.name}`);
+     * });
+     */
+    static EVENT_ADD: string;
+    /**
+     * Fired when an asset is removed from the registry. This event is available in three forms.
+     * They are as follows:
+     *
+     * 1. `remove` - Fired when any asset is removed from the registry.
+     * 2. `remove:[id]` - Fired when an asset is removed from the registry, where `[id]` is the
+     * unique id of the asset.
+     * 3. `remove:url:[url]` - Fired when an asset is removed from the registry and matches the
+     * URL `[url]`, where `[url]` is the URL of the asset.
+     *
+     * @event
+     * @param {Asset} asset - The asset that was removed.
+     * @example
+     * app.assets.on('remove', (asset) => {
+     *    console.log(`Asset removed: ${asset.name}`);
+     * });
+     * @example
+     * const id = 123456;
+     * app.assets.on('remove:' + id, (asset) => {
+     *    console.log(`Asset removed: ${asset.name}`);
+     * });
+     * @example
+     * const id = 123456;
+     * const asset = app.assets.get(id);
+     * app.assets.on('remove:url:' + asset.file.url, (asset) => {
+     *    console.log(`Asset removed: ${asset.name}`);
+     * });
+     */
+    static EVENT_REMOVE: string;
+    /**
+     * Fired when an error occurs during asset loading. This event is available in two forms. They
+     * are as follows:
+     *
+     * 1. `error` - Fired when any asset reports an error in loading.
+     * 2. `error:[id]` - Fired when an asset reports an error in loading, where `[id]` is the
+     * unique id of the asset.
+     *
+     * @event
+     * @example
+     * const id = 123456;
+     * const asset = app.assets.get(id);
+     * app.assets.on('error', (err, asset) => {
+     *     console.error(err);
+     * });
+     * app.assets.load(asset);
+     * @example
+     * const id = 123456;
+     * const asset = app.assets.get(id);
+     * app.assets.on('error:' + id, (err, asset) => {
+     *     console.error(err);
+     * });
+     * app.assets.load(asset);
+     */
+    static EVENT_ERROR: string;
+    /**
      * Create an instance of an AssetRegistry.
      *
      * @param {import('../handlers/loader.js').ResourceLoader} loader - The ResourceLoader used to
@@ -20671,123 +22247,6 @@ declare class AssetRegistry extends EventHandler {
      */
     prefix: string | null;
     _loader: ResourceLoader;
-    /**
-     * Fired when an asset completes loading.
-     *
-     * @event AssetRegistry#load
-     * @param {Asset} asset - The asset that has just loaded.
-     * @example
-     * app.assets.on("load", function (asset) {
-     *     console.log("asset loaded: " + asset.name);
-     * });
-     */
-    /**
-     * Fired when an asset completes loading.
-     *
-     * @event AssetRegistry#load:[id]
-     * @param {Asset} asset - The asset that has just loaded.
-     * @example
-     * const id = 123456;
-     * const asset = app.assets.get(id);
-     * app.assets.on("load:" + id, function (asset) {
-     *     console.log("asset loaded: " + asset.name);
-     * });
-     * app.assets.load(asset);
-     */
-    /**
-     * Fired when an asset completes loading.
-     *
-     * @event AssetRegistry#load:url:[url]
-     * @param {Asset} asset - The asset that has just loaded.
-     * @example
-     * const id = 123456;
-     * const asset = app.assets.get(id);
-     * app.assets.on("load:url:" + asset.file.url, function (asset) {
-     *     console.log("asset loaded: " + asset.name);
-     * });
-     * app.assets.load(asset);
-     */
-    /**
-     * Fired when an asset is added to the registry.
-     *
-     * @event AssetRegistry#add
-     * @param {Asset} asset - The asset that was added.
-     * @example
-     * app.assets.on("add", function (asset) {
-     *     console.log("New asset added: " + asset.name);
-     * });
-     */
-    /**
-     * Fired when an asset is added to the registry.
-     *
-     * @event AssetRegistry#add:[id]
-     * @param {Asset} asset - The asset that was added.
-     * @example
-     * const id = 123456;
-     * app.assets.on("add:" + id, function (asset) {
-     *     console.log("Asset 123456 loaded");
-     * });
-     */
-    /**
-     * Fired when an asset is added to the registry.
-     *
-     * @event AssetRegistry#add:url:[url]
-     * @param {Asset} asset - The asset that was added.
-     */
-    /**
-     * Fired when an asset is removed from the registry.
-     *
-     * @event AssetRegistry#remove
-     * @param {Asset} asset - The asset that was removed.
-     * @example
-     * app.assets.on("remove", function (asset) {
-     *     console.log("Asset removed: " + asset.name);
-     * });
-     */
-    /**
-     * Fired when an asset is removed from the registry.
-     *
-     * @event AssetRegistry#remove:[id]
-     * @param {Asset} asset - The asset that was removed.
-     * @example
-     * const id = 123456;
-     * app.assets.on("remove:" + id, function (asset) {
-     *     console.log("Asset removed: " + asset.name);
-     * });
-     */
-    /**
-     * Fired when an asset is removed from the registry.
-     *
-     * @event AssetRegistry#remove:url:[url]
-     * @param {Asset} asset - The asset that was removed.
-     */
-    /**
-     * Fired when an error occurs during asset loading.
-     *
-     * @event AssetRegistry#error
-     * @param {string} err - The error message.
-     * @param {Asset} asset - The asset that generated the error.
-     * @example
-     * const id = 123456;
-     * const asset = app.assets.get(id);
-     * app.assets.on("error", function (err, asset) {
-     *     console.error(err);
-     * });
-     * app.assets.load(asset);
-     */
-    /**
-     * Fired when an error occurs during asset loading.
-     *
-     * @event AssetRegistry#error:[id]
-     * @param {Asset} asset - The asset that generated the error.
-     * @example
-     * const id = 123456;
-     * const asset = app.assets.get(id);
-     * app.assets.on("error:" + id, function (err, asset) {
-     *     console.error(err);
-     * });
-     * app.assets.load(asset);
-     */
     /**
      * Create a filtered list of assets from the registry.
      *
@@ -20978,21 +22437,15 @@ declare class FrameGraph {
 }
 
 declare class LightsBuffer {
-    static FORMAT_FLOAT: number;
-    static FORMAT_8BIT: number;
-    static lightTextureFormat: number;
-    static useTexelFetch: boolean;
-    static shaderDefines: string;
-    static initShaderDefines(): void;
-    static buildShaderDefines(object: any, prefix: any): string;
-    static init(device: any): void;
-    static createTexture(device: any, width: any, height: any, format: any, name: any): Texture;
+    static getLightTextureFormat(device: any): 0 | 1;
+    static getShaderDefines(device: any): any;
     constructor(device: any);
     device: any;
     cookiesEnabled: boolean;
     shadowsEnabled: boolean;
     areaLightsEnabled: boolean;
     maxLights: number;
+    lightTextureFormat: number;
     lights8: Uint8ClampedArray;
     lightsTexture8: Texture;
     _lightsTexture8Id: any;
@@ -21006,6 +22459,7 @@ declare class LightsBuffer {
     boundsMin: Vec3;
     boundsDelta: Vec3;
     destroy(): void;
+    createTexture(device: any, width: any, height: any, format: any, name: any): Texture;
     setCompressionRanges(maxAttenuation: any, maxColorValue: any): void;
     setBounds(min: any, delta: any): void;
     uploadTextures(): void;
@@ -21129,6 +22583,19 @@ declare class WorldClustersAllocator {
     update(renderPasses: any, gammaCorrection: any, lighting: any): void;
 }
 
+/**
+ * Blue noise based random numbers API.
+ *
+ * @ignore
+ */
+declare class BlueNoise {
+    constructor(seed?: number);
+    seed: number;
+    _next(): void;
+    value(): number;
+    vec4(dest?: Vec4): Vec4;
+}
+
 declare class ShadowMap {
     static getShadowFormat(device: any, shadowType: any): number;
     static getShadowFiltering(device: any, shadowType: any): number;
@@ -21230,9 +22697,12 @@ declare class ShadowRenderer {
      */
     cullShadowCasters(comp: LayerComposition, light: Light, visible: MeshInstance[], camera: Camera, casters?: MeshInstance[]): void;
     setupRenderState(device: any, light: any): void;
-    restoreRenderState(device: any): void;
     dispatchUniforms(light: any, shadowCam: any, lightRenderData: any, face: any): void;
-    getShadowPass(light: any): number;
+    /**
+     * @param {import('../light.js').Light} light - The light.
+     * @returns {number} Index of shadow pass info.
+     */
+    getShadowPass(light: Light): number;
     /**
      * @param {import('../mesh-instance.js').MeshInstance[]} visibleCasters - Visible mesh
      * instances.
@@ -21274,6 +22744,19 @@ declare class ShadowRendererLocal {
 }
 
 /**
+ * A render pass used to render directional shadows.
+ *
+ * @ignore
+ */
+declare class RenderPassShadowDirectional extends RenderPass {
+    constructor(device: any, shadowRenderer: any, light: any, camera: any, allCascadesRendering: any);
+    shadowRenderer: any;
+    light: any;
+    camera: any;
+    allCascadesRendering: any;
+}
+
+/**
  * @ignore
  */
 declare class ShadowRendererDirectional {
@@ -21286,16 +22769,15 @@ declare class ShadowRendererDirectional {
     device: GraphicsDevice;
     cull(light: any, comp: any, camera: any, casters?: any): void;
     generateSplitDistances(light: any, nearDist: any, farDist: any): void;
-    addLightRenderPasses(frameGraph: any, light: any, camera: any): void;
     /**
-     * Builds a frame graph for rendering of directional shadows for the render action.
+     * Create a render pass for directional light shadow rendering for a specified camera.
      *
-     * @param {import('../frame-graph.js').FrameGraph} frameGraph - The frame-graph that is built.
-     * @param {import('../light.js').Light[]} directionalLights - The
-     * directional lights.
-     * @param {import('../../framework/components/camera/component.js').CameraComponent} camera - The camera.
+     * @param {import('../light.js').Light} light - The directional light.
+     * @param {import('../camera.js').Camera} camera - The camera.
+     * @returns {RenderPassShadowDirectional|null} - The render pass if the shadow rendering is
+     * required, or null otherwise.
      */
-    buildFrameGraph(frameGraph: FrameGraph, directionalLights: Light[], camera: CameraComponent): void;
+    getLightRenderPass(light: Light, camera: Camera): RenderPassShadowDirectional | null;
 }
 
 /**
@@ -21447,6 +22929,22 @@ declare class Renderer {
      * @type {import('../light.js').Light[]}
      */
     localLights: Light[];
+    /**
+     * A list of unique directional shadow casting lights for each enabled camera. This is generated
+     * each frame during light culling.
+     *
+     * @type {Map<import('../camera.js').Camera, Array<import('../light.js').Light>>}
+     */
+    cameraDirShadowLights: Map<Camera, Array<Light>>;
+    /**
+     * A mapping of a directional light to a camera, for which the shadow is currently valid. This
+     * is cleared each frame, and updated each time a directional light shadow is rendered for a
+     * camera, and allows us to manually schedule shadow passes when a new camera needs a shadow.
+     *
+     * @type {Map<import('../light.js').Light, import('../camera.js').Camera>}
+     */
+    dirLightShadows: Map<Light, Camera>;
+    blueNoise: BlueNoise;
     device: GraphicsDevice;
     /** @type {import('../scene.js').Scene|null} */
     scene: Scene | null;
@@ -21490,6 +22988,9 @@ declare class Renderer {
     farClipId: ScopeId;
     cameraParams: Float32Array;
     cameraParamsId: ScopeId;
+    viewIndexId: ScopeId;
+    blueNoiseJitterId: ScopeId;
+    blueNoiseTextureId: ScopeId;
     alphaTestId: ScopeId;
     opacityMapId: ScopeId;
     exposureId: ScopeId;
@@ -21550,6 +23051,14 @@ declare class Renderer {
      */
     updateMorphing(drawCalls: MeshInstance[] | Set<MeshInstance>): void;
     /**
+     * Update gsplats ahead of rendering.
+     *
+     * @param {import('../mesh-instance.js').MeshInstance[]|Set<import('../mesh-instance.js').MeshInstance>} drawCalls - MeshInstances
+     * containing gsplatInstances.
+     * @ignore
+     */
+    updateGSplats(drawCalls: MeshInstance[] | Set<MeshInstance>): void;
+    /**
      * Update draw calls ahead of rendering.
      *
      * @param {import('../mesh-instance.js').MeshInstance[]|Set<import('../mesh-instance.js').MeshInstance>} drawCalls - MeshInstances
@@ -21596,15 +23105,12 @@ declare class Renderer {
      * @param {boolean} onlyLitShaders - Limits the update to shaders affected by lighting.
      */
     updateShaders(drawCalls: MeshInstance[], onlyLitShaders: boolean): void;
+    updateFrameUniforms(): void;
     /**
      * @param {import('../composition/layer-composition.js').LayerComposition} comp - The layer
      * composition to update.
      */
     beginFrame(comp: LayerComposition): void;
-    /**
-     * @param {import('../composition/layer-composition.js').LayerComposition} comp - The layer
-     * composition.
-     */
     updateLightTextureAtlas(): void;
     /**
      * Updates the layer composition for rendering.
@@ -21908,9 +23414,9 @@ declare class AppOptions {
     /**
      * The component systems the app requires.
      *
-     * @type {import('./components/system.js').ComponentSystem[]}
+     * @type {typeof import('./components/system.js').ComponentSystem[]}
      */
-    componentSystems: ComponentSystem[];
+    componentSystems: typeof ComponentSystem[];
     /**
      * The resource handlers the app requires.
      *
@@ -22082,432 +23588,12 @@ declare class BundleRegistry {
 }
 
 /**
- * Container of Script Attribute definitions. Implements an interface to add/remove attributes and
- * store their definition for a {@link ScriptType}. Note: An instance of ScriptAttributes is
- * created automatically by each {@link ScriptType}.
- */
-declare class ScriptAttributes {
-    static reservedNames: Set<string>;
-    /**
-     * Create a new ScriptAttributes instance.
-     *
-     * @param {typeof ScriptType} scriptType - Script Type that attributes relate to.
-     */
-    constructor(scriptType: typeof ScriptType);
-    scriptType: typeof ScriptType;
-    index: {};
-    /**
-     * Add Attribute.
-     *
-     * @param {string} name - Name of an attribute.
-     * @param {object} args - Object with Arguments for an attribute.
-     * @param {("boolean"|"number"|"string"|"json"|"asset"|"entity"|"rgb"|"rgba"|"vec2"|"vec3"|"vec4"|"curve")} args.type - Type
-     * of an attribute value.  Can be:
-     *
-     * - "asset"
-     * - "boolean"
-     * - "curve"
-     * - "entity"
-     * - "json"
-     * - "number"
-     * - "rgb"
-     * - "rgba"
-     * - "string"
-     * - "vec2"
-     * - "vec3"
-     * - "vec4"
-     *
-     * @param {*} [args.default] - Default attribute value.
-     * @param {string} [args.title] - Title for Editor's for field UI.
-     * @param {string} [args.description] - Description for Editor's for field UI.
-     * @param {string|string[]} [args.placeholder] - Placeholder for Editor's for field UI.
-     * For multi-field types, such as vec2, vec3, and others use array of strings.
-     * @param {boolean} [args.array] - If attribute can hold single or multiple values.
-     * @param {number} [args.size] - If attribute is array, maximum number of values can be set.
-     * @param {number} [args.min] - Minimum value for type 'number', if max and min defined, slider
-     * will be rendered in Editor's UI.
-     * @param {number} [args.max] - Maximum value for type 'number', if max and min defined, slider
-     * will be rendered in Editor's UI.
-     * @param {number} [args.precision] - Level of precision for field type 'number' with floating
-     * values.
-     * @param {number} [args.step] - Step value for type 'number'. The amount used to increment the
-     * value when using the arrow keys in the Editor's UI.
-     * @param {string} [args.assetType] - Name of asset type to be used in 'asset' type attribute
-     * picker in Editor's UI, defaults to '*' (all).
-     * @param {string[]} [args.curves] - List of names for Curves for field type 'curve'.
-     * @param {string} [args.color] - String of color channels for Curves for field type 'curve',
-     * can be any combination of `rgba` characters. Defining this property will render Gradient in
-     * Editor's field UI.
-     * @param {object[]} [args.enum] - List of fixed choices for field, defined as array of objects,
-     * where key in object is a title of an option.
-     * @param {object[]} [args.schema] - List of attributes for type 'json'. Each attribute
-     * description is an object with the same properties as regular script attributes but with an
-     * added 'name' field to specify the name of each attribute in the JSON.
-     * @example
-     * PlayerController.attributes.add('fullName', {
-     *     type: 'string'
-     * });
-     * @example
-     * PlayerController.attributes.add('speed', {
-     *     type: 'number',
-     *     title: 'Speed',
-     *     placeholder: 'km/h',
-     *     default: 22.2
-     * });
-     * @example
-     * PlayerController.attributes.add('resolution', {
-     *     type: 'number',
-     *     default: 32,
-     *     enum: [
-     *         { '32x32': 32 },
-     *         { '64x64': 64 },
-     *         { '128x128': 128 }
-     *     ]
-     * });
-     * @example
-     * PlayerController.attributes.add('config', {
-     *     type: 'json',
-     *     schema: [{
-     *         name: 'speed',
-     *         type: 'number',
-     *         title: 'Speed',
-     *         placeholder: 'km/h',
-     *         default: 22.2
-     *     }, {
-     *         name: 'resolution',
-     *         type: 'number',
-     *         default: 32,
-     *         enum: [
-     *             { '32x32': 32 },
-     *             { '64x64': 64 },
-     *             { '128x128': 128 }
-     *         ]
-     *     }]
-     * });
-     */
-    add(name: string, args: {
-        type: ("boolean" | "number" | "string" | "json" | "asset" | "entity" | "rgb" | "rgba" | "vec2" | "vec3" | "vec4" | "curve");
-        default?: any;
-        title?: string;
-        description?: string;
-        placeholder?: string | string[];
-        array?: boolean;
-        size?: number;
-        min?: number;
-        max?: number;
-        precision?: number;
-        step?: number;
-        assetType?: string;
-        curves?: string[];
-        color?: string;
-        enum?: object[];
-        schema?: object[];
-    }): void;
-    /**
-     * Remove Attribute.
-     *
-     * @param {string} name - Name of an attribute.
-     * @returns {boolean} True if removed or false if not defined.
-     * @example
-     * PlayerController.attributes.remove('fullName');
-     */
-    remove(name: string): boolean;
-    /**
-     * Detect if Attribute is added.
-     *
-     * @param {string} name - Name of an attribute.
-     * @returns {boolean} True if Attribute is defined.
-     * @example
-     * if (PlayerController.attributes.has('fullName')) {
-     *     // attribute fullName is defined
-     * }
-     */
-    has(name: string): boolean;
-    /**
-     * Get object with attribute arguments. Note: Changing argument properties will not affect
-     * existing Script Instances.
-     *
-     * @param {string} name - Name of an attribute.
-     * @returns {?object} Arguments with attribute properties.
-     * @example
-     * // changing default value for an attribute 'fullName'
-     * var attr = PlayerController.attributes.get('fullName');
-     * if (attr) attr.default = 'Unknown';
-     */
-    get(name: string): object | null;
-}
-
-/**
- * Represents the type of a script. It is returned by {@link createScript}. Also referred to as
- * Script Type.
- *
- * The type is to be extended using its JavaScript prototype. There is a list of methods that will
- * be executed by the engine on instances of this type, such as:
- *
- * - `initialize`
- * - `postInitialize`
- * - `update`
- * - `postUpdate`
- * - `swap`
- *
- * `initialize` and `postInitialize` - are called (if defined) when a script is about to run for
- * the first time - `postInitialize` will run after all `initialize` methods are executed in the
- * same tick or enabling chain of actions.
- *
- * `update` and `postUpdate` - are called (if defined) for enabled (running state) scripts on each
- * tick.
- *
- * `swap` - is called when a ScriptType that already exists in the registry gets redefined. If the
- * new ScriptType has a `swap` method in its prototype, then it will be executed to perform hot-
- * reload at runtime.
- *
- * @augments EventHandler
- */
-declare class ScriptType extends EventHandler {
-    /**
-     * Name of a Script Type.
-     *
-     * @type {string}
-     * @private
-     */
-    private static __name;
-    /**
-     * @param {*} constructorFn - The constructor function of the script type.
-     * @returns {string} The script name.
-     * @private
-     */
-    private static __getScriptName;
-    /**
-     * Name of a Script Type.
-     *
-     * @type {string|null}
-     */
-    static get scriptName(): string;
-    /**
-     * The interface to define attributes for Script Types. Refer to {@link ScriptAttributes}.
-     *
-     * @type {ScriptAttributes}
-     * @example
-     * var PlayerController = pc.createScript('playerController');
-     *
-     * PlayerController.attributes.add('speed', {
-     *     type: 'number',
-     *     title: 'Speed',
-     *     placeholder: 'km/h',
-     *     default: 22.2
-     * });
-     */
-    static get attributes(): ScriptAttributes;
-    /**
-     * Shorthand function to extend Script Type prototype with list of methods.
-     *
-     * @param {object} methods - Object with methods, where key - is name of method, and value - is function.
-     * @example
-     * var PlayerController = pc.createScript('playerController');
-     *
-     * PlayerController.extend({
-     *     initialize: function () {
-     *         // called once on initialize
-     *     },
-     *     update: function (dt) {
-     *         // called each tick
-     *     }
-     * });
-     */
-    static extend(methods: object): void;
-    /**
-     * Create a new ScriptType instance.
-     *
-     * @param {object} args - The input arguments object.
-     * @param {import('../app-base.js').AppBase} args.app - The {@link AppBase} that is running the
-     * script.
-     * @param {import('../entity.js').Entity} args.entity - The {@link Entity} that the script is
-     * attached to.
-     */
-    constructor(args: {
-        app: AppBase;
-        entity: Entity;
-    });
-    /**
-     * The {@link AppBase} that the instance of this type belongs to.
-     *
-     * @type {import('../app-base.js').AppBase}
-     */
-    app: AppBase;
-    /**
-     * The {@link Entity} that the instance of this type belongs to.
-     *
-     * @type {import('../entity.js').Entity}
-     */
-    entity: Entity;
-    /** @private */
-    private _enabled;
-    /** @private */
-    private _enabledOld;
-    /** @private */
-    private _initialized;
-    /** @private */
-    private _postInitialized;
-    /** @private */
-    private __destroyed;
-    /** @private */
-    private __attributes;
-    /** @private */
-    private __attributesRaw;
-    /** @private */
-    private __scriptType;
-    /**
-     * The order in the script component that the methods of this script instance will run
-     * relative to other script instances in the component.
-     *
-     * @type {number}
-     * @private
-     */
-    private __executionOrder;
-    /**
-     * Fired when a script instance becomes enabled.
-     *
-     * @event ScriptType#enable
-     * @example
-     * PlayerController.prototype.initialize = function () {
-     *     this.on('enable', function () {
-     *         // Script Instance is now enabled
-     *     });
-     * };
-     */
-    /**
-     * Fired when a script instance becomes disabled.
-     *
-     * @event ScriptType#disable
-     * @example
-     * PlayerController.prototype.initialize = function () {
-     *     this.on('disable', function () {
-     *         // Script Instance is now disabled
-     *     });
-     * };
-     */
-    /**
-     * Fired when a script instance changes state to enabled or disabled.
-     *
-     * @event ScriptType#state
-     * @param {boolean} enabled - True if now enabled, False if disabled.
-     * @example
-     * PlayerController.prototype.initialize = function () {
-     *     this.on('state', function (enabled) {
-     *         console.log('Script Instance is now ' + (enabled ? 'enabled' : 'disabled'));
-     *     });
-     * };
-     */
-    /**
-     * Fired when a script instance is destroyed and removed from component.
-     *
-     * @event ScriptType#destroy
-     * @example
-     * PlayerController.prototype.initialize = function () {
-     *     this.on('destroy', function () {
-     *         // no more part of an entity
-     *         // good place to cleanup entity from destroyed script
-     *     });
-     * };
-     */
-    /**
-     * Fired when any script attribute has been changed.
-     *
-     * @event ScriptType#attr
-     * @param {string} name - Name of attribute.
-     * @param {object} value - New value.
-     * @param {object} valueOld - Old value.
-     * @example
-     * PlayerController.prototype.initialize = function () {
-     *     this.on('attr', function (name, value, valueOld) {
-     *         console.log(name + ' been changed from ' + valueOld + ' to ' + value);
-     *     });
-     * };
-     */
-    /**
-     * Fired when a specific script attribute has been changed.
-     *
-     * @event ScriptType#attr:[name]
-     * @param {object} value - New value.
-     * @param {object} valueOld - Old value.
-     * @example
-     * PlayerController.prototype.initialize = function () {
-     *     this.on('attr:speed', function (value, valueOld) {
-     *         console.log('speed been changed from ' + valueOld + ' to ' + value);
-     *     });
-     * };
-     */
-    /**
-     * Fired when a script instance had an exception. The script instance will be automatically
-     * disabled.
-     *
-     * @event ScriptType#error
-     * @param {Error} err - Native JavaScript Error object with details of error.
-     * @param {string} method - The method of the script instance that the exception originated from.
-     * @example
-     * PlayerController.prototype.initialize = function () {
-     *     this.on('error', function (err, method) {
-     *         // caught an exception
-     *         console.log(err.stack);
-     *     });
-     * };
-     */
-    /**
-     * True if the instance of this type is in running state. False when script is not running,
-     * because the Entity or any of its parents are disabled or the {@link ScriptComponent} is
-     * disabled or the Script Instance is disabled. When disabled no update methods will be called
-     * on each tick. initialize and postInitialize methods will run once when the script instance
-     * is in `enabled` state during app tick.
-     *
-     * @type {boolean}
-     */
-    set enabled(arg: boolean);
-    get enabled(): boolean;
-    /**
-     * Called when script is about to run for the first time.
-     */
-    initialize?(): void;
-    /**
-     * Called after all initialize methods are executed in the same tick or enabling chain of actions.
-     */
-    postInitialize?(): void;
-    /**
-     * Called for enabled (running state) scripts on each tick.
-     * @param dt - The delta time in seconds since the last frame.
-     */
-    update?(dt: number): void;
-    /**
-     * Called for enabled (running state) scripts on each tick, after update.
-     * @param dt - The delta time in seconds since the last frame.
-     */
-    postUpdate?(dt: number): void;
-    /**
-     * Called when a ScriptType that already exists in the registry gets redefined. If the new
-     * ScriptType has a `swap` method in its prototype, then it will be executed to perform
-     * hot-reload at runtime.
-     * @param old - Old instance of the scriptType to copy data to the new instance.
-     */
-    swap?(old: ScriptType): void;
-
-    /**
-     * @param {{entity: import('../entity.js').Entity, app: import('../app-base.js').AppBase}} args -
-     * The entity and app.
-     * @private
-     */
-    private initScriptType;
-    /**
-     * @param {boolean} [force] - Set to true to force initialization of the attributes.
-     * @private
-     */
-    private __initializeAttributes;
-}
-
-/**
  * Container for all {@link ScriptType}s that are available to this application. Note that
  * PlayCanvas scripts can access the Script Registry from inside the application with
  * {@link AppBase#scripts}.
  *
  * @augments EventHandler
+ * @category Script
  */
 declare class ScriptRegistry extends EventHandler {
     /**
@@ -23019,6 +24105,49 @@ declare class SceneRegistry {
  */
 declare class ZoneComponent extends Component {
     /**
+     * Fired when the zone component is enabled. This event does not take into account the enabled
+     * state of the entity or any of its ancestors.
+     *
+     * @event
+     * @example
+     * entity.zone.on('enable', () => {
+     *     console.log(`Zone component of entity '${entity.name}' has been enabled`);
+     * });
+     */
+    static EVENT_ENABLE: string;
+    /**
+     * Fired when the zone component is disabled. This event does not take into account the enabled
+     * state of the entity or any of its ancestors.
+     *
+     * @event
+     * @example
+     * entity.zone.on('disable', () => {
+     *     console.log(`Zone component of entity '${entity.name}' has been disabled`);
+     * });
+     */
+    static EVENT_DISABLE: string;
+    /**
+     * Fired when the enabled state of the zone component changes. This event does not take into
+     * account the enabled state of the entity or any of its ancestors.
+     *
+     * @event
+     * @example
+     * entity.zone.on('state', (enabled) => {
+     *     console.log(`Zone component of entity '${entity.name}' has been ${enabled ? 'enabled' : 'disabled'}`);
+     * });
+     */
+    static EVENT_STATE: string;
+    /**
+     * Fired when a zone component is removed from an entity.
+     *
+     * @event
+     * @example
+     * entity.zone.on('remove', () => {
+     *     console.log(`Zone component removed from entity '${entity.name}'`);
+     * });
+     */
+    static EVENT_REMOVE: string;
+    /**
      * Create a new ZoneComponent instance.
      *
      * @param {import('./system.js').ZoneComponentSystem} system - The ComponentSystem that
@@ -23029,50 +24158,6 @@ declare class ZoneComponent extends Component {
     constructor(system: ZoneComponentSystem, entity: Entity);
     _oldState: boolean;
     _size: Vec3;
-    /**
-     * Fired when Component becomes enabled. Note: this event does not take in account entity or
-     * any of its parent enabled state.
-     *
-     * @event ZoneComponent#enable
-     * @example
-     * entity.zone.on('enable', function () {
-     *     // component is enabled
-     * });
-     * @ignore
-     */
-    /**
-     * Fired when Component becomes disabled. Note: this event does not take in account entity or
-     * any of its parent enabled state.
-     *
-     * @event ZoneComponent#disable
-     * @example
-     * entity.zone.on('disable', function () {
-     *     // component is disabled
-     * });
-     * @ignore
-     */
-    /**
-     * Fired when Component changes state to enabled or disabled. Note: this event does not take in
-     * account entity or any of its parent enabled state.
-     *
-     * @event ZoneComponent#state
-     * @param {boolean} enabled - True if now enabled, False if disabled.
-     * @example
-     * entity.zone.on('state', function (enabled) {
-     *     // component changed state
-     * });
-     * @ignore
-     */
-    /**
-     * Fired when a zone is removed from an entity.
-     *
-     * @event ZoneComponent#remove
-     * @example
-     * entity.zone.on('remove', function () {
-     *     // zone has been removed from an entity
-     * });
-     * @ignore
-     */
     /**
      * The size of the axis-aligned box of this ZoneComponent.
      *
@@ -23113,6 +24198,66 @@ declare class ZoneComponentSystem extends ComponentSystem {
  */
 declare class SpriteAnimationClip extends EventHandler {
     /**
+     * Fired when the clip starts playing.
+     *
+     * @event
+     * @example
+     * clip.on('play', () => {
+     *     console.log('Clip started playing');
+     * });
+     */
+    static EVENT_PLAY: string;
+    /**
+     * Fired when the clip is paused.
+     *
+     * @event
+     * @example
+     * clip.on('pause', () => {
+     *     console.log('Clip paused');
+     * });
+     */
+    static EVENT_PAUSE: string;
+    /**
+     * Fired when the clip is resumed.
+     *
+     * @event
+     * @example
+     * clip.on('resume', () => {
+     *     console.log('Clip resumed');
+     * });
+     */
+    static EVENT_RESUME: string;
+    /**
+     * Fired when the clip is stopped.
+     *
+     * @event
+     * @example
+     * clip.on('stop', () => {
+     *     console.log('Clip stopped');
+     * });
+     */
+    static EVENT_STOP: string;
+    /**
+     * Fired when the clip stops playing because it reached its end.
+     *
+     * @event
+     * @example
+     * clip.on('end', () => {
+     *     console.log('Clip ended');
+     * });
+     */
+    static EVENT_END: string;
+    /**
+     * Fired when the clip reached the end of its current loop.
+     *
+     * @event
+     * @example
+     * clip.on('loop', () => {
+     *     console.log('Clip looped');
+     * });
+     */
+    static EVENT_LOOP: string;
+    /**
      * Create a new SpriteAnimationClip instance.
      *
      * @param {import('./component.js').SpriteComponent} component - The sprite component managing
@@ -23146,36 +24291,6 @@ declare class SpriteAnimationClip extends EventHandler {
     _playing: boolean;
     _paused: boolean;
     _time: number;
-    /**
-     * Fired when the clip starts playing.
-     *
-     * @event SpriteAnimationClip#play
-     */
-    /**
-     * Fired when the clip is paused.
-     *
-     * @event SpriteAnimationClip#pause
-     */
-    /**
-     * Fired when the clip is resumed.
-     *
-     * @event SpriteAnimationClip#resume
-     */
-    /**
-     * Fired when the clip is stopped.
-     *
-     * @event SpriteAnimationClip#stop
-     */
-    /**
-     * Fired when the clip stops playing because it reached its ending.
-     *
-     * @event SpriteAnimationClip#end
-     */
-    /**
-     * Fired when the clip reached the end of its current loop.
-     *
-     * @event SpriteAnimationClip#loop
-     */
     /**
      * The total duration of the animation in seconds.
      *
@@ -23259,6 +24374,72 @@ declare class SpriteAnimationClip extends EventHandler {
  */
 declare class SpriteComponent extends Component {
     /**
+     * Fired when an animation clip starts playing. The handler is passed the
+     * {@link SpriteAnimationClip} that started playing.
+     *
+     * @event
+     * @example
+     * entity.sprite.on('play', (clip) => {
+     *     console.log(`Animation clip ${clip.name} started playing.`);
+     * });
+     */
+    static EVENT_PLAY: string;
+    /**
+     * Fired when an animation clip is paused. The handler is passed the
+     * {@link SpriteAnimationClip} that was paused.
+     *
+     * @event
+     * @example
+     * entity.sprite.on('pause', (clip) => {
+     *     console.log(`Animation clip ${clip.name} paused.`);
+     * });
+     */
+    static EVENT_PAUSE: string;
+    /**
+     * Fired when an animation clip is resumed. The handler is passed the
+     * {@link SpriteAnimationClip} that was resumed.
+     *
+     * @event
+     * @example
+     * entity.sprite.on('resume', (clip) => {
+     *     console.log(`Animation clip ${clip.name} resumed.`);
+     * });
+     */
+    static EVENT_RESUME: string;
+    /**
+     * Fired when an animation clip is stopped. The handler is passed the
+     * {@link SpriteAnimationClip} that was stopped.
+     *
+     * @event
+     * @example
+     * entity.sprite.on('stop', (clip) => {
+     *     console.log(`Animation clip ${clip.name} stopped.`);
+     * });
+     */
+    static EVENT_STOP: string;
+    /**
+     * Fired when an animation clip stops playing because it reached its end. The handler is passed
+     * the {@link SpriteAnimationClip} that ended.
+     *
+     * @event
+     * @example
+     * entity.sprite.on('end', (clip) => {
+     *     console.log(`Animation clip ${clip.name} ended.`);
+     * });
+     */
+    static EVENT_END: string;
+    /**
+     * Fired when an animation clip reached the end of its current loop. The handler is passed the
+     * {@link SpriteAnimationClip} that looped.
+     *
+     * @event
+     * @example
+     * entity.sprite.on('loop', (clip) => {
+     *     console.log(`Animation clip ${clip.name} looped.`);
+     * });
+     */
+    static EVENT_LOOP: string;
+    /**
      * Create a new SpriteComponent instance.
      *
      * @param {import('./system.js').SpriteComponentSystem} system - The ComponentSystem that
@@ -23307,42 +24488,6 @@ declare class SpriteComponent extends Component {
      * @private
      */
     private _currentClip;
-    /**
-     * Fired when an animation clip starts playing.
-     *
-     * @event SpriteComponent#play
-     * @param {SpriteAnimationClip} clip - The clip that started playing.
-     */
-    /**
-     * Fired when an animation clip is paused.
-     *
-     * @event SpriteComponent#pause
-     * @param {SpriteAnimationClip} clip - The clip that was paused.
-     */
-    /**
-     * Fired when an animation clip is resumed.
-     *
-     * @event SpriteComponent#resume
-     * @param {SpriteAnimationClip} clip - The clip that was resumed.
-     */
-    /**
-     * Fired when an animation clip is stopped.
-     *
-     * @event SpriteComponent#stop
-     * @param {SpriteAnimationClip} clip - The clip that was stopped.
-     */
-    /**
-     * Fired when an animation clip stops playing because it reached its ending.
-     *
-     * @event SpriteComponent#end
-     * @param {SpriteAnimationClip} clip - The clip that ended.
-     */
-    /**
-     * Fired when an animation clip reached the end of its current loop.
-     *
-     * @event SpriteComponent#loop
-     * @param {SpriteAnimationClip} clip - The clip.
-     */
     /**
      * The type of the SpriteComponent. Can be:
      *
@@ -23614,6 +24759,56 @@ declare class Sound {
  */
 declare class SoundInstance extends EventHandler {
     /**
+     * Fired when the instance starts playing its source.
+     *
+     * @event
+     * @example
+     * instance.on('play', () => {
+     *     console.log('Instance started playing');
+     * });
+     */
+    static EVENT_PLAY: string;
+    /**
+     * Fired when the instance is paused.
+     *
+     * @event
+     * @example
+     * instance.on('pause', () => {
+     *     console.log('Instance paused');
+     * });
+     */
+    static EVENT_PAUSE: string;
+    /**
+     * Fired when the instance is resumed.
+     *
+     * @event
+     * @example
+     * instance.on('resume', () => {
+     *     console.log('Instance resumed');
+     * });
+     */
+    static EVENT_RESUME: string;
+    /**
+     * Fired when the instance is stopped.
+     *
+     * @event
+     * @example
+     * instance.on('stop', () => {
+     *     console.log('Instance stopped');
+     * });
+     */
+    static EVENT_STOP: string;
+    /**
+     * Fired when the sound currently played by the instance ends.
+     *
+     * @event
+     * @example
+     * instance.on('end', () => {
+     *     console.log('Instance ended');
+     * });
+     */
+    static EVENT_END: string;
+    /**
      * Create a new SoundInstance instance.
      *
      * @param {import('./manager.js').SoundManager} manager - The sound manager.
@@ -23803,31 +24998,6 @@ declare class SoundInstance extends EventHandler {
     private _loadedMetadataHandler;
     /** @private */
     private _timeUpdateHandler;
-    /**
-     * Fired when the instance starts playing its source.
-     *
-     * @event SoundInstance#play
-     */
-    /**
-     * Fired when the instance is paused.
-     *
-     * @event SoundInstance#pause
-     */
-    /**
-     * Fired when the instance is resumed.
-     *
-     * @event SoundInstance#resume
-     */
-    /**
-     * Fired when the instance is stopped.
-     *
-     * @event SoundInstance#stop
-     */
-    /**
-     * Fired when the sound currently played by the instance ends.
-     *
-     * @event SoundInstance#end
-     */
     /**
      * Gets or sets the current time of the sound that is playing. If the value provided is bigger
      * than the duration of the instance it will wrap from the beginning.
@@ -24032,6 +25202,61 @@ declare class SoundInstance extends EventHandler {
  */
 declare class SoundSlot extends EventHandler {
     /**
+     * Fired when a {@link SoundInstance} starts playing on a slot. The handler is passed the sound
+     * instance that started playing.
+     *
+     * @event
+     * @example
+     * slot.on('play', (instance) => {
+     *     console.log('Sound instance started playing');
+     * });
+     */
+    static EVENT_PLAY: string;
+    /**
+     * Fired when a {@link SoundInstance} is paused on a slot. The handler is passed the sound
+     * instance that is paused.
+     *
+     * @event
+     * @example
+     * slot.on('pause', (instance) => {
+     *     console.log('Sound instance paused');
+     * });
+     */
+    static EVENT_PAUSE: string;
+    /**
+     * Fired when a {@link SoundInstance} is resumed on a slot. The handler is passed the sound
+     * instance that is resumed.
+     *
+     * @event
+     * @example
+     * slot.on('resume', (instance) => {
+     *     console.log('Sound instance resumed');
+     * });
+     */
+    static EVENT_RESUME: string;
+    /**
+     * Fired when a {@link SoundInstance} is stopped on a slot. The handler is passed the sound
+     * instance that is stopped.
+     *
+     * @event
+     * @example
+     * slot.on('stop', (instance) => {
+     *     console.log('Sound instance stopped');
+     * });
+     */
+    static EVENT_STOP: string;
+    /**
+     * Fired when the sound {@link Asset} assigned to the slot is loaded. The handler is passed the
+     * loaded {@link Sound} resource.
+     *
+     * @event
+     * @example
+     * slot.on('load', (sound) => {
+     *     console.log('Sound resource loaded');
+     * });
+     */
+    static EVENT_LOAD: string;
+    /**
      * Create a new SoundSlot.
      *
      * @param {import('./component.js').SoundComponent} component - The Component that created this
@@ -24093,37 +25318,6 @@ declare class SoundSlot extends EventHandler {
     _onInstanceResumeHandler: any;
     _onInstanceStopHandler: any;
     _onInstanceEndHandler: any;
-    /**
-     * Fired when a sound instance starts playing.
-     *
-     * @event SoundSlot#play
-     * @param {SoundInstance} instance - The instance that started playing.
-     */
-    /**
-     * Fired when a sound instance is paused.
-     *
-     * @event SoundSlot#pause
-     * @param {SoundInstance} instance - The instance that was paused created to play the sound.
-     */
-    /**
-     * Fired when a sound instance is resumed.
-     *
-     * @event SoundSlot#resume
-     * @param {SoundInstance} instance - The instance that was resumed.
-     */
-    /**
-     * Fired when a sound instance is stopped.
-     *
-     * @event SoundSlot#stop
-     * @param {SoundInstance} instance - The instance that was stopped.
-     */
-    /**
-     * Fired when the asset assigned to the slot is loaded.
-     *
-     * @event SoundSlot#load
-     * @param {import('../../../platform/sound/sound.js').Sound} sound - The sound resource that
-     * was loaded.
-     */
     /**
      * Plays a sound. If {@link SoundSlot#overlap} is true the new sound instance will be played
      * independently of any other instances already playing. Otherwise existing sound instances
@@ -24301,6 +25495,61 @@ declare class SoundSlot extends EventHandler {
  */
 declare class SoundComponent extends Component {
     /**
+     * Fired when a sound instance starts playing. The handler is passed the {@link SoundSlot} and
+     * the {@link SoundInstance} that started playing.
+     *
+     * @event
+     * @example
+     * entity.sound.on('play', (slot, instance) => {
+     *     console.log(`Sound ${slot.name} started playing`);
+     * });
+     */
+    static EVENT_PLAY: string;
+    /**
+     * Fired when a sound instance is paused. The handler is passed the {@link SoundSlot} and the
+     * {@link SoundInstance} that was paused.
+     *
+     * @event
+     * @example
+     * entity.sound.on('pause', (slot, instance) => {
+     *     console.log(`Sound ${slot.name} paused`);
+     * });
+     */
+    static EVENT_PAUSE: string;
+    /**
+     * Fired when a sound instance is resumed. The handler is passed the {@link SoundSlot} and the
+     * {@link SoundInstance} that was resumed.
+     *
+     * @event
+     * @example
+     * entity.sound.on('resume', (slot, instance) => {
+     *     console.log(`Sound ${slot.name} resumed`);
+     * });
+     */
+    static EVENT_RESUME: string;
+    /**
+     * Fired when a sound instance is stopped. The handler is passed the {@link SoundSlot} and the
+     * {@link SoundInstance} that was stopped.
+     *
+     * @event
+     * @example
+     * entity.sound.on('stop', (slot, instance) => {
+     *     console.log(`Sound ${slot.name} stopped`);
+     * });
+     */
+    static EVENT_STOP: string;
+    /**
+     * Fired when a sound instance stops playing because it reached its end. The handler is passed
+     * the {@link SoundSlot} and the {@link SoundInstance} that ended.
+     *
+     * @event
+     * @example
+     * entity.sound.on('end', (slot, instance) => {
+     *     console.log(`Sound ${slot.name} ended`);
+     * });
+     */
+    static EVENT_END: string;
+    /**
      * Create a new Sound Component.
      *
      * @param {import('./system.js').SoundComponentSystem} system - The ComponentSystem that
@@ -24330,46 +25579,6 @@ declare class SoundComponent extends Component {
     private _slots;
     /** @private */
     private _playingBeforeDisable;
-    /**
-     * Fired when a sound instance starts playing.
-     *
-     * @event SoundComponent#play
-     * @param {SoundSlot} slot - The slot whose instance started playing.
-     * @param {import('../../../platform/sound/instance.js').SoundInstance} instance - The instance
-     * that started playing.
-     */
-    /**
-     * Fired when a sound instance is paused.
-     *
-     * @event SoundComponent#pause
-     * @param {SoundSlot} slot - The slot whose instance was paused.
-     * @param {import('../../../platform/sound/instance.js').SoundInstance} instance - The instance
-     * that was paused created to play the sound.
-     */
-    /**
-     * Fired when a sound instance is resumed.
-     *
-     * @event SoundComponent#resume
-     * @param {SoundSlot} slot - The slot whose instance was resumed.
-     * @param {import('../../../platform/sound/instance.js').SoundInstance} instance - The instance
-     * that was resumed.
-     */
-    /**
-     * Fired when a sound instance is stopped.
-     *
-     * @event SoundComponent#stop
-     * @param {SoundSlot} slot - The slot whose instance was stopped.
-     * @param {import('../../../platform/sound/instance.js').SoundInstance} instance - The instance
-     * that was stopped.
-     */
-    /**
-     * Fired when a sound instance stops playing because it reached its ending.
-     *
-     * @event SoundComponent#end
-     * @param {SoundSlot} slot - The slot whose instance ended.
-     * @param {import('../../../platform/sound/instance.js').SoundInstance} instance - The instance
-     * that ended.
-     */
     /**
      * Update the specified property on all sound instances.
      *
@@ -24840,6 +26049,37 @@ declare class EntityReference extends EventHandler {
  */
 declare class ElementDragHelper extends EventHandler {
     /**
+     * Fired when a new drag operation starts.
+     *
+     * @event
+     * @example
+     * elementDragHelper.on('drag:start', () => {
+     *     console.log('Drag started');
+     * });
+     */
+    static EVENT_DRAGSTART: string;
+    /**
+     * Fired when the current new drag operation ends.
+     *
+     * @event
+     * @example
+     * elementDragHelper.on('drag:end', () => {
+     *     console.log('Drag ended');
+     * });
+     */
+    static EVENT_DRAGEND: string;
+    /**
+     * Fired whenever the position of the dragged element changes. The handler is passed the
+     * current {@link Vec3} position of the dragged element.
+     *
+     * @event
+     * @example
+     * elementDragHelper.on('drag:move', (position) => {
+     *     console.log(`Dragged element position is ${position}`);
+     * });
+     */
+    static EVENT_DRAGMOVE: string;
+    /**
      * Create a new ElementDragHelper instance.
      *
      * @param {ElementComponent} element - The Element that should become draggable.
@@ -24856,22 +26096,6 @@ declare class ElementDragHelper extends EventHandler {
     _deltaMousePosition: Vec3;
     _deltaHandlePosition: Vec3;
     _isDragging: boolean;
-    /**
-     * Fired when a new drag operation starts.
-     *
-     * @event ElementDragHelper#drag:start
-     */
-    /**
-     * Fired when the current new drag operation ends.
-     *
-     * @event ElementDragHelper#drag:end
-     */
-    /**
-     * Fired whenever the position of the dragged element changes.
-     *
-     * @event ElementDragHelper#drag:move
-     * @param {Vec3} value - The current position.
-     */
     /**
      * @param {'on'|'off'} onOrOff - Either 'on' or 'off'.
      * @private
@@ -24955,6 +26179,18 @@ declare class ElementDragHelper extends EventHandler {
  */
 declare class ScrollViewComponent extends Component {
     /**
+     * Fired whenever the scroll position changes. The handler is passed a {@link Vec2} containing
+     * the horizontal and vertical scroll values in the range 0..1.
+     *
+     * @event
+     * @example
+     * entity.scrollview.on('set:scroll', (scroll) => {
+     *     console.log(`Horizontal scroll position: ${scroll.x}`);
+     *     console.log(`Vertical scroll position: ${scroll.y}`);
+     * });
+     */
+    static EVENT_SETSCROLL: string;
+    /**
      * Create a new ScrollViewComponent.
      *
      * @param {import('./system.js').ScrollViewComponentSystem} system - The ComponentSystem that
@@ -25013,12 +26249,6 @@ declare class ScrollViewComponent extends Component {
     _dragStartPosition: Vec3;
     _disabledContentInput: boolean;
     _disabledContentInputEntities: any[];
-    /**
-     * Fired whenever the scroll position changes.
-     *
-     * @event ScrollViewComponent#set:scroll
-     * @param {Vec2} scrollPosition - Horizontal and vertical scroll values in the range 0...1.
-     */
     /**
      * @param {string} onOrOff - 'on' or 'off'.
      * @param {import('./system.js').ScrollViewComponentSystem} system - The ComponentSystem that
@@ -25134,6 +26364,17 @@ declare class ScrollViewComponentSystem extends ComponentSystem {
  */
 declare class ScrollbarComponent extends Component {
     /**
+     * Fired whenever the scroll value changes. The handler is passed a number representing the
+     * current scroll value.
+     *
+     * @event
+     * @example
+     * entity.scrollbar.on('set:value', (value) => {
+     *     console.log(`Scroll value is now ${value}`);
+     * });
+     */
+    static EVENT_SETVALUE: string;
+    /**
      * Create a new ScrollbarComponent.
      *
      * @param {import('./system.js').ScrollbarComponentSystem} system - The ComponentSystem that
@@ -25153,12 +26394,6 @@ declare class ScrollbarComponent extends Component {
     get orientation(): number;
 
     _handleReference: EntityReference;
-    /**
-     * Fired whenever the scroll value changes.
-     *
-     * @event ScrollbarComponent#set:value
-     * @param {number} value - The current scroll value.
-     */
     /**
      * @param {string} onOrOff - 'on' or 'off'.
      * @private
@@ -25308,8 +26543,124 @@ declare class SortedLoopArray {
  * details on scripting see [Scripting](https://developer.playcanvas.com/user-manual/scripting/).
  *
  * @augments Component
+ * @category Script
  */
 declare class ScriptComponent extends Component {
+    /**
+     * Fired when a {@link ScriptType} instance is created and attached to the script component.
+     * This event is available in two forms. They are as follows:
+     *
+     * 1. `create` - Fired when a script instance is created. The name of the script type and the
+     * script type instance are passed as arguments.
+     * 2. `create:[name]` - Fired when a script instance is created that has the specified script
+     * type name. The script instance is passed as an argument to the handler.
+     *
+     * @event
+     * @example
+     * entity.script.on('create', (name, scriptInstance) => {
+     *     console.log(`Instance of script '${name}' created`);
+     * });
+     * @example
+     * entity.script.on('create:player', (scriptInstance) => {
+     *     console.log(`Instance of script 'player' created`);
+     * });
+     */
+    static EVENT_CREATE: string;
+    /**
+     * Fired when a {@link ScriptType} instance is destroyed and removed from the script component.
+     * This event is available in two forms. They are as follows:
+     *
+     * 1. `destroy` - Fired when a script instance is destroyed. The name of the script type and
+     * the script type instance are passed as arguments.
+     * 2. `destroy:[name]` - Fired when a script instance is destroyed that has the specified
+     * script type name. The script instance is passed as an argument.
+     *
+     * @event
+     * @example
+     * entity.script.on('destroy', (name, scriptInstance) => {
+     *     console.log(`Instance of script '${name}' destroyed`);
+     * });
+     * @example
+     * entity.script.on('destroy:player', (scriptInstance) => {
+     *     console.log(`Instance of script 'player' destroyed`);
+     * });
+     */
+    static EVENT_DESTROY: string;
+    /**
+     * Fired when the script component becomes enabled. This event does not take into account the
+     * enabled state of the entity or any of its ancestors.
+     *
+     * @event
+     * @example
+     * entity.script.on('enable', () => {
+     *     console.log(`Script component of entity '${entity.name}' has been enabled`);
+     * });
+     */
+    static EVENT_ENABLE: string;
+    /**
+     * Fired when the script component becomes disabled. This event does not take into account the
+     * enabled state of the entity or any of its ancestors.
+     *
+     * @event
+     * @example
+     * entity.script.on('disable', () => {
+     *     console.log(`Script component of entity '${entity.name}' has been disabled`);
+     * });
+     */
+    static EVENT_DISABLE: string;
+    /**
+     * Fired when the script component has been removed from its entity.
+     *
+     * @event
+     * @example
+     * entity.script.on('remove', () => {
+     *     console.log(`Script component removed from entity '${entity.name}'`);
+     * });
+     */
+    static EVENT_REMOVE: string;
+    /**
+     * Fired when the script component changes state to enabled or disabled. The handler is passed
+     * the new boolean enabled state of the script component. This event does not take into account
+     * the enabled state of the entity or any of its ancestors.
+     *
+     * @event
+     * @example
+     * entity.script.on('state', (enabled) => {
+     *     console.log(`Script component of entity '${entity.name}' changed state to '${enabled}'`);
+     * });
+     */
+    static EVENT_STATE: string;
+    /**
+     * Fired when the index of a {@link ScriptType} instance is changed in the script component.
+     * This event is available in two forms. They are as follows:
+     *
+     * 1. `move` - Fired when a script instance is moved. The name of the script type, the script
+     * type instance, the new index and the old index are passed as arguments.
+     * 2. `move:[name]` - Fired when a specifically named script instance is moved. The script
+     * instance, the new index and the old index are passed as arguments.
+     *
+     * @event
+     * @example
+     * entity.script.on('move', (name, scriptInstance, newIndex, oldIndex) => {
+     *     console.log(`Script '${name}' moved from index '${oldIndex}' to '${newIndex}'`);
+     * });
+     * @example
+     * entity.script.on('move:player', (scriptInstance, newIndex, oldIndex) => {
+     *     console.log(`Script 'player' moved from index '${oldIndex}' to '${newIndex}'`);
+     * });
+     */
+    static EVENT_MOVE: string;
+    /**
+     * Fired when a {@link ScriptType} instance had an exception. The handler is passed the script
+     * instance, the exception and the method name that the exception originated from.
+     *
+     * @event
+     * @example
+     * entity.script.on('error', (scriptInstance, exception, methodName) => {
+     *     console.log(`Script error: ${exception} in method '${methodName}'`);
+     * });
+     */
+    static EVENT_ERROR: string;
     /**
      * Create a new ScriptComponent instance.
      *
@@ -25336,132 +26687,6 @@ declare class ScriptComponent extends Component {
     _beingEnabled: boolean;
     _isLoopingThroughScripts: boolean;
     _executionOrder: number;
-    /**
-     * Fired when Component becomes enabled. Note: this event does not take in account entity or
-     * any of its parent enabled state.
-     *
-     * @event ScriptComponent#enable
-     * @example
-     * entity.script.on('enable', function () {
-     *     // component is enabled
-     * });
-     */
-    /**
-     * Fired when Component becomes disabled. Note: this event does not take in account entity or
-     * any of its parent enabled state.
-     *
-     * @event ScriptComponent#disable
-     * @example
-     * entity.script.on('disable', function () {
-     *     // component is disabled
-     * });
-     */
-    /**
-     * Fired when Component changes state to enabled or disabled. Note: this event does not take in
-     * account entity or any of its parent enabled state.
-     *
-     * @event ScriptComponent#state
-     * @param {boolean} enabled - True if now enabled, False if disabled.
-     * @example
-     * entity.script.on('state', function (enabled) {
-     *     // component changed state
-     * });
-     */
-    /**
-     * Fired when Component is removed from entity.
-     *
-     * @event ScriptComponent#remove
-     * @example
-     * entity.script.on('remove', function () {
-     *     // entity has no more script component
-     * });
-     */
-    /**
-     * Fired when a script instance is created and attached to component.
-     *
-     * @event ScriptComponent#create
-     * @param {string} name - The name of the Script Type.
-     * @param {import('../../script/script-type.js').ScriptType} scriptInstance - The instance of
-     * the {@link ScriptType} that has been created.
-     * @example
-     * entity.script.on('create', function (name, scriptInstance) {
-     *     // new script instance added to component
-     * });
-     */
-    /**
-     * Fired when a script instance is created and attached to component.
-     *
-     * @event ScriptComponent#create:[name]
-     * @param {import('../../script/script-type.js').ScriptType} scriptInstance - The instance of
-     * the {@link ScriptType} that has been created.
-     * @example
-     * entity.script.on('create:playerController', function (scriptInstance) {
-     *     // new script instance 'playerController' is added to component
-     * });
-     */
-    /**
-     * Fired when a script instance is destroyed and removed from component.
-     *
-     * @event ScriptComponent#destroy
-     * @param {string} name - The name of the Script Type.
-     * @param {import('../../script/script-type.js').ScriptType} scriptInstance - The instance of
-     * the {@link ScriptType} that has been destroyed.
-     * @example
-     * entity.script.on('destroy', function (name, scriptInstance) {
-     *     // script instance has been destroyed and removed from component
-     * });
-     */
-    /**
-     * Fired when a script instance is destroyed and removed from component.
-     *
-     * @event ScriptComponent#destroy:[name]
-     * @param {import('../../script/script-type.js').ScriptType} scriptInstance - The instance of
-     * the {@link ScriptType} that has been destroyed.
-     * @example
-     * entity.script.on('destroy:playerController', function (scriptInstance) {
-     *     // script instance 'playerController' has been destroyed and removed from component
-     * });
-     */
-    /**
-     * Fired when a script instance is moved in component.
-     *
-     * @event ScriptComponent#move
-     * @param {string} name - The name of the Script Type.
-     * @param {import('../../script/script-type.js').ScriptType} scriptInstance - The instance of
-     * the {@link ScriptType} that has been moved.
-     * @param {number} ind - New position index.
-     * @param {number} indOld - Old position index.
-     * @example
-     * entity.script.on('move', function (name, scriptInstance, ind, indOld) {
-     *     // script instance has been moved in component
-     * });
-     */
-    /**
-     * Fired when a script instance is moved in component.
-     *
-     * @event ScriptComponent#move:[name]
-     * @param {import('../../script/script-type.js').ScriptType} scriptInstance - The instance of
-     * the {@link ScriptType} that has been moved.
-     * @param {number} ind - New position index.
-     * @param {number} indOld - Old position index.
-     * @example
-     * entity.script.on('move:playerController', function (scriptInstance, ind, indOld) {
-     *     // script instance 'playerController' has been moved in component
-     * });
-     */
-    /**
-     * Fired when a script instance had an exception.
-     *
-     * @event ScriptComponent#error
-     * @param {import('../../script/script-type.js').ScriptType} scriptInstance - The instance of
-     * the {@link ScriptType} that raised the exception.
-     * @param {Error} err - Native JS Error object with details of an error.
-     * @param {string} method - The method of the script instance that the exception originated from.
-     * @example
-     * entity.script.on('error', function (scriptInstance, err, method) {
-     *     // script instance caught an exception
-     * });
-     */
     /**
      * An array of all script instances attached to an entity. This array is read-only and should
      * not be modified by developer.
@@ -25605,6 +26830,7 @@ declare class ScriptComponentData {
  * Allows scripts to be attached to an Entity and executed.
  *
  * @augments ComponentSystem
+ * @category Script
  */
 declare class ScriptComponentSystem extends ComponentSystem {
     id: string;
@@ -25840,43 +27066,68 @@ declare class ScreenComponentSystem extends ComponentSystem {
  *
  * Relevant 'Engine-only' examples:
  *
- * - [Falling shapes](http://playcanvas.github.io/#physics/falling-shapes)
- * - [Vehicle physics](http://playcanvas.github.io/#physics/vehicle)
+ * - [Falling shapes](https://playcanvas.github.io/#/physics/falling-shapes)
+ * - [Vehicle physics](https://playcanvas.github.io/#/physics/vehicle)
  *
  * @augments Component
  * @category Physics
  */
 declare class RigidBodyComponent extends Component {
     /**
-     * Fired when a contact occurs between two rigid bodies.
+     * Fired when a contact occurs between two rigid bodies. The handler is passed a
+     * {@link ContactResult} object containing details of the contact between the two rigid bodies.
      *
-     * @event RigidBodyComponent#contact
-     * @param {ContactResult} result - Details of the contact between the two rigid bodies.
+     * @event
+     * @example
+     * entity.rigidbody.on('contact', (result) => {
+     *    console.log(`Contact between ${entity.name} and ${result.other.name}`);
+     * });
      */
+    static EVENT_CONTACT: string;
     /**
-     * Fired when two rigid bodies start touching.
+     * Fired when two rigid bodies start touching. The handler is passed a {@link ContactResult}
+     * object containing details of the contact between the two rigid bodies.
      *
-     * @event RigidBodyComponent#collisionstart
-     * @param {ContactResult} result - Details of the contact between the two rigid bodies.
+     * @event
+     * @example
+     * entity.rigidbody.on('collisionstart', (result) => {
+     *     console.log(`Collision started between ${entity.name} and ${result.other.name}`);
+     * });
      */
+    static EVENT_COLLISIONSTART: string;
     /**
-     * Fired when two rigid bodies stop touching.
+     * Fired when two rigid bodies stop touching. The handler is passed a {@link ContactResult}
+     * object containing details of the contact between the two rigid bodies.
      *
-     * @event RigidBodyComponent#collisionend
-     * @param {import('../../entity.js').Entity} other - The {@link Entity} that stopped touching this rigid body.
+     * @event
+     * @example
+     * entity.rigidbody.on('collisionend', (result) => {
+     *     console.log(`Collision ended between ${entity.name} and ${result.other.name}`);
+     * });
      */
+    static EVENT_COLLISIONEND: string;
     /**
-     * Fired when a rigid body enters a trigger volume.
+     * Fired when a rigid body enters a trigger volume. The handler is passed an {@link Entity}
+     * representing the trigger volume that this rigid body entered.
      *
-     * @event RigidBodyComponent#triggerenter
-     * @param {import('../../entity.js').Entity} other - The {@link Entity} with trigger volume that this rigid body entered.
+     * @event
+     * @example
+     * entity.rigidbody.on('triggerenter', (trigger) => {
+     *     console.log(`Entity ${entity.name} entered trigger volume ${trigger.name}`);
+     * });
      */
+    static EVENT_TRIGGERENTER: string;
     /**
-     * Fired when a rigid body exits a trigger volume.
+     * Fired when a rigid body exits a trigger volume. The handler is passed an {@link Entity}
+     * representing the trigger volume that this rigid body exited.
      *
-     * @event RigidBodyComponent#triggerleave
-     * @param {import('../../entity.js').Entity} other - The {@link Entity} with trigger volume that this rigid body exited.
+     * @event
+     * @example
+     * entity.rigidbody.on('triggerleave', (trigger) => {
+     *     console.log(`Entity ${entity.name} exited trigger volume ${trigger.name}`);
+     * });
      */
+    static EVENT_TRIGGERLEAVE: string;
     /** @ignore */
     static onLibraryLoaded(): void;
     /**
@@ -26444,6 +27695,17 @@ declare class RaycastResult {
  */
 declare class RigidBodyComponentSystem extends ComponentSystem {
     /**
+     * Fired when a contact occurs between two rigid bodies. The handler is passed a
+     * {@link SingleContactResult} object containing details of the contact between the two bodies.
+     *
+     * @event
+     * @example
+     * app.systems.rigidbody.on('contact', (result) => {
+     *     console.log(`Contact between ${result.a.name} and ${result.b.name}`);
+     * });
+     */
+    static EVENT_CONTACT: string;
+    /**
      * @type {number}
      * @ignore
      */
@@ -26527,12 +27789,6 @@ declare class RigidBodyComponentSystem extends ComponentSystem {
     schema: string[];
     collisions: {};
     frameCollisions: {};
-    /**
-     * Fired when a contact occurs between two rigid bodies.
-     *
-     * @event RigidBodyComponentSystem#contact
-     * @param {SingleContactResult} result - Details of the contact between the two bodies.
-     */
     /**
      * Called once Ammo has been loaded. Responsible for creating the physics world.
      *
@@ -28817,6 +30073,62 @@ declare class JointComponentSystem extends ComponentSystem {
  */
 declare class CollisionComponent extends Component {
     /**
+     * Fired when a contact occurs between two rigid bodies. The handler is passed a
+     * {@link ContactResult} object which contains details of the contact between the two rigid
+     * bodies.
+     *
+     * @event
+     * @example
+     * entity.collision.on('contact', (result) => {
+     *    console.log(`Contact between ${entity.name} and ${result.other.name}`);
+     * });
+     */
+    static EVENT_CONTACT: string;
+    /**
+     * Fired when two rigid bodies start touching. The handler is passed the {@link ContactResult}
+     * object which contains details of the contact between the two rigid bodies.
+     *
+     * @event
+     * @example
+     * entity.collision.on('collisionstart', (result) => {
+     *    console.log(`${entity.name} started touching ${result.other.name}`);
+     * });
+     */
+    static EVENT_COLLISIONSTART: string;
+    /**
+     * Fired two rigid-bodies stop touching. The handler is passed an {@link Entity} that
+     * represents the other rigid body involved in the collision.
+     *
+     * @event
+     * @example
+     * entity.collision.on('collisionend', (other) => {
+     *     console.log(`${entity.name} stopped touching ${other.name}`);
+     * });
+     */
+    static EVENT_COLLISIONEND: string;
+    /**
+     * Fired when a rigid body enters a trigger volume. The handler is passed an {@link Entity}
+     * representing the rigid body that entered this collision volume.
+     *
+     * @event
+     * @example
+     * entity.collision.on('triggerenter', (other) => {
+     *     console.log(`${other.name} entered trigger volume ${entity.name}`);
+     * });
+     */
+    static EVENT_TRIGGERENTER: string;
+    /**
+     * Fired when a rigid body exits a trigger volume. The handler is passed an {@link Entity}
+     * representing the rigid body that exited this collision volume.
+     *
+     * @event
+     * @example
+     * entity.collision.on('triggerleave', (other) => {
+     *     console.log(`${other.name} exited trigger volume ${entity.name}`);
+     * });
+     */
+    static EVENT_TRIGGERLEAVE: string;
+    /**
      * Create a new CollisionComponent.
      *
      * @param {import('./system.js').CollisionComponentSystem} system - The ComponentSystem that
@@ -28847,36 +30159,6 @@ declare class CollisionComponent extends Component {
     /** @private */
     private _compoundParent;
     _hasOffset: boolean;
-    /**
-     * The 'contact' event is fired when a contact occurs between two rigid bodies.
-     *
-     * @event CollisionComponent#contact
-     * @param {ContactResult} result - Details of the contact between the two rigid bodies.
-     */
-    /**
-     * Fired when two rigid bodies start touching.
-     *
-     * @event CollisionComponent#collisionstart
-     * @param {ContactResult} result - Details of the contact between the two Entities.
-     */
-    /**
-     * Fired two rigid-bodies stop touching.
-     *
-     * @event CollisionComponent#collisionend
-     * @param {import('../../entity.js').Entity} other - The {@link Entity} that stopped touching this collision volume.
-     */
-    /**
-     * Fired when a rigid body enters a trigger volume.
-     *
-     * @event CollisionComponent#triggerenter
-     * @param {import('../../entity.js').Entity} other - The {@link Entity} that entered this collision volume.
-     */
-    /**
-     * Fired when a rigid body exits a trigger volume.
-     *
-     * @event CollisionComponent#triggerleave
-     * @param {import('../../entity.js').Entity} other - The {@link Entity} that exited this collision volume.
-     */
     /**
      * @param {string} name - Property name.
      * @param {*} oldValue - Previous value of the property.
@@ -29093,6 +30375,186 @@ declare class CameraComponentSystem extends ComponentSystem {
  * @category User Interface
  */
 declare class ButtonComponent extends Component {
+    /**
+     * Fired when the mouse is pressed while the cursor is on the component. The handler is passed
+     * a {@link ElementMouseEvent}.
+     *
+     * @event
+     * @example
+     * entity.button.on('mousedown', (event) => {
+     *     console.log(`Mouse down on entity ${entity.name}`);
+     * });
+     */
+    static EVENT_MOUSEDOWN: string;
+    /**
+     * Fired when the mouse is released while the cursor is on the component. The handler is passed
+     * a {@link ElementMouseEvent}.
+     *
+     * @event
+     * @example
+     * entity.button.on('mouseup', (event) => {
+     *     console.log(`Mouse up on entity ${entity.name}`);
+     * });
+     */
+    static EVENT_MOUSEUP: string;
+    /**
+     * Fired when the mouse cursor enters the component. The handler is passed a
+     * {@link ElementMouseEvent}.
+     *
+     * @event
+     * @example
+     * entity.button.on('mouseenter', (event) => {
+     *     console.log(`Mouse entered entity ${entity.name}`);
+     * });
+     */
+    static EVENT_MOUSEENTER: string;
+    /**
+     * Fired when the mouse cursor leaves the component. The handler is passed a
+     * {@link ElementMouseEvent}.
+     *
+     * @event
+     * @example
+     * entity.button.on('mouseleave', (event) => {
+     *     console.log(`Mouse left entity ${entity.name}`);
+     * });
+     */
+    static EVENT_MOUSELEAVE: string;
+    /**
+     * Fired when the mouse is pressed and released on the component or when a touch starts and ends on
+     * the component. The handler is passed a {@link ElementMouseEvent} or {@link ElementTouchEvent}.
+     *
+     * @event
+     * @example
+     * entity.button.on('click', (event) => {
+     *     console.log(`Clicked entity ${entity.name}`);
+     * });
+     */
+    static EVENT_CLICK: string;
+    /**
+     * Fired when a touch starts on the component. The handler is passed a {@link ElementTouchEvent}.
+     *
+     * @event
+     * @example
+     * entity.button.on('touchstart', (event) => {
+     *     console.log(`Touch started on entity ${entity.name}`);
+     * });
+     */
+    static EVENT_TOUCHSTART: string;
+    /**
+     * Fired when a touch ends on the component. The handler is passed a {@link ElementTouchEvent}.
+     *
+     * @event
+     * @example
+     * entity.button.on('touchend', (event) => {
+     *     console.log(`Touch ended on entity ${entity.name}`);
+     * });
+     */
+    static EVENT_TOUCHEND: string;
+    /**
+     * Fired when a touch is canceled on the component. The handler is passed a
+     * {@link ElementTouchEvent}.
+     *
+     * @event
+     * @example
+     * entity.button.on('touchcancel', (event) => {
+     *     console.log(`Touch canceled on entity ${entity.name}`);
+     * });
+     */
+    static EVENT_TOUCHCANCEL: string;
+    /**
+     * Fired when a touch leaves the component. The handler is passed a {@link ElementTouchEvent}.
+     *
+     * @event
+     * @example
+     * entity.button.on('touchleave', (event) => {
+     *     console.log(`Touch left entity ${entity.name}`);
+     * });
+     */
+    static EVENT_TOUCHLEAVE: string;
+    /**
+     * Fired when a xr select starts on the component. The handler is passed a
+     * {@link ElementSelectEvent}.
+     *
+     * @event
+     * @example
+     * entity.button.on('selectstart', (event) => {
+     *     console.log(`Select started on entity ${entity.name}`);
+     * });
+     */
+    static EVENT_SELECTSTART: string;
+    /**
+     * Fired when a xr select ends on the component. The handler is passed a
+     * {@link ElementSelectEvent}.
+     *
+     * @event
+     * @example
+     * entity.button.on('selectend', (event) => {
+     *     console.log(`Select ended on entity ${entity.name}`);
+     * });
+     */
+    static EVENT_SELECTEND: string;
+    /**
+     * Fired when a xr select now hovering over the component. The handler is passed a
+     * {@link ElementSelectEvent}.
+     *
+     * @event
+     * @example
+     * entity.button.on('selectenter', (event) => {
+     *     console.log(`Select entered entity ${entity.name}`);
+     * });
+     */
+    static EVENT_SELECTENTER: string;
+    /**
+     * Fired when a xr select not hovering over the component. The handler is passed a
+     * {@link ElementSelectEvent}.
+     *
+     * @event
+     * @example
+     * entity.button.on('selectleave', (event) => {
+     *     console.log(`Select left entity ${entity.name}`);
+     * });
+     */
+    static EVENT_SELECTLEAVE: string;
+    /**
+     * Fired when the button changes state to be hovered.
+     *
+     * @event
+     * @example
+     * entity.button.on('hoverstart', () => {
+     *     console.log(`Entity ${entity.name} hovered`);
+     * });
+     */
+    static EVENT_HOVERSTART: string;
+    /**
+     * Fired when the button changes state to be not hovered.
+     *
+     * @event
+     * @example
+     * entity.button.on('hoverend', () => {
+     *     console.log(`Entity ${entity.name} unhovered`);
+     * });
+     */
+    static EVENT_HOVEREND: string;
+    /**
+     * Fired when the button changes state to be pressed.
+     *
+     * @event
+     * @example
+     * entity.button.on('pressedstart', () => {
+     *     console.log(`Entity ${entity.name} pressed`);
+     * });
+     */
+    static EVENT_PRESSEDSTART: string;
+    /**
+     * Fired when the button changes state to be not pressed.
+     *
+     * @event
+     * @example
+     * entity.button.on('pressedend', () => {
+     *     console.log(`Entity ${entity.name} unpressed`);
+     * });
+     */
+    static EVENT_PRESSEDEND: string;
     /**
      * Create a new ButtonComponent instance.
      *
@@ -31972,134 +33434,559 @@ declare class AppBase extends EventHandler {
 }
 
 /**
- * Component Systems contain the logic and functionality to update all Components of a particular
- * type.
+ * Container of Script Attribute definitions. Implements an interface to add/remove attributes and
+ * store their definition for a {@link ScriptType}. Note: An instance of ScriptAttributes is
+ * created automatically by each {@link ScriptType}.
  *
- * @augments EventHandler
+ * @category Script
  */
-declare class ComponentSystem extends EventHandler {
+declare class ScriptAttributes {
+    static reservedNames: Set<string>;
     /**
-     * Create a new ComponentSystem instance.
+     * Create a new ScriptAttributes instance.
      *
-     * @param {import('../app-base.js').AppBase} app - The application managing this system.
+     * @param {typeof ScriptType} scriptType - Script Type that attributes relate to.
      */
-    constructor(app: AppBase);
-    app: AppBase;
-    store: {};
-    schema: any[];
+    constructor(scriptType: typeof ScriptType);
+    scriptType: typeof ScriptType;
+    index: {};
     /**
-     * Create new {@link Component} and component data instances and attach them to the entity.
+     * Add Attribute.
      *
-     * @param {import('../entity.js').Entity} entity - The Entity to attach this component to.
-     * @param {object} [data] - The source data with which to create the component.
-     * @returns {import('./component.js').Component} Returns a Component of type defined by the
-     * component system.
+     * @param {string} name - Name of an attribute.
+     * @param {object} args - Object with Arguments for an attribute.
+     * @param {("boolean"|"number"|"string"|"json"|"asset"|"entity"|"rgb"|"rgba"|"vec2"|"vec3"|"vec4"|"curve")} args.type - Type
+     * of an attribute value.  Can be:
+     *
+     * - "asset"
+     * - "boolean"
+     * - "curve"
+     * - "entity"
+     * - "json"
+     * - "number"
+     * - "rgb"
+     * - "rgba"
+     * - "string"
+     * - "vec2"
+     * - "vec3"
+     * - "vec4"
+     *
+     * @param {*} [args.default] - Default attribute value.
+     * @param {string} [args.title] - Title for Editor's for field UI.
+     * @param {string} [args.description] - Description for Editor's for field UI.
+     * @param {string|string[]} [args.placeholder] - Placeholder for Editor's for field UI.
+     * For multi-field types, such as vec2, vec3, and others use array of strings.
+     * @param {boolean} [args.array] - If attribute can hold single or multiple values.
+     * @param {number} [args.size] - If attribute is array, maximum number of values can be set.
+     * @param {number} [args.min] - Minimum value for type 'number', if max and min defined, slider
+     * will be rendered in Editor's UI.
+     * @param {number} [args.max] - Maximum value for type 'number', if max and min defined, slider
+     * will be rendered in Editor's UI.
+     * @param {number} [args.precision] - Level of precision for field type 'number' with floating
+     * values.
+     * @param {number} [args.step] - Step value for type 'number'. The amount used to increment the
+     * value when using the arrow keys in the Editor's UI.
+     * @param {string} [args.assetType] - Name of asset type to be used in 'asset' type attribute
+     * picker in Editor's UI, defaults to '*' (all).
+     * @param {string[]} [args.curves] - List of names for Curves for field type 'curve'.
+     * @param {string} [args.color] - String of color channels for Curves for field type 'curve',
+     * can be any combination of `rgba` characters. Defining this property will render Gradient in
+     * Editor's field UI.
+     * @param {object[]} [args.enum] - List of fixed choices for field, defined as array of objects,
+     * where key in object is a title of an option.
+     * @param {object[]} [args.schema] - List of attributes for type 'json'. Each attribute
+     * description is an object with the same properties as regular script attributes but with an
+     * added 'name' field to specify the name of each attribute in the JSON.
      * @example
-     * const entity = new pc.Entity(app);
-     * app.systems.model.addComponent(entity, { type: 'box' });
-     * // entity.model is now set to a pc.ModelComponent
-     * @ignore
-     */
-    addComponent(entity: Entity, data?: object): Component;
-    /**
-     * Remove the {@link Component} from the entity and delete the associated component data.
-     *
-     * @param {import('../entity.js').Entity} entity - The entity to remove the component from.
+     * PlayerController.attributes.add('fullName', {
+     *     type: 'string'
+     * });
      * @example
-     * app.systems.model.removeComponent(entity);
-     * // entity.model === undefined
-     * @ignore
+     * PlayerController.attributes.add('speed', {
+     *     type: 'number',
+     *     title: 'Speed',
+     *     placeholder: 'km/h',
+     *     default: 22.2
+     * });
+     * @example
+     * PlayerController.attributes.add('resolution', {
+     *     type: 'number',
+     *     default: 32,
+     *     enum: [
+     *         { '32x32': 32 },
+     *         { '64x64': 64 },
+     *         { '128x128': 128 }
+     *     ]
+     * });
+     * @example
+     * PlayerController.attributes.add('config', {
+     *     type: 'json',
+     *     schema: [{
+     *         name: 'speed',
+     *         type: 'number',
+     *         title: 'Speed',
+     *         placeholder: 'km/h',
+     *         default: 22.2
+     *     }, {
+     *         name: 'resolution',
+     *         type: 'number',
+     *         default: 32,
+     *         enum: [
+     *             { '32x32': 32 },
+     *             { '64x64': 64 },
+     *             { '128x128': 128 }
+     *         ]
+     *     }]
+     * });
      */
-    removeComponent(entity: Entity): void;
+    add(name: string, args: {
+        type: ("boolean" | "number" | "string" | "json" | "asset" | "entity" | "rgb" | "rgba" | "vec2" | "vec3" | "vec4" | "curve");
+        default?: any;
+        title?: string;
+        description?: string;
+        placeholder?: string | string[];
+        array?: boolean;
+        size?: number;
+        min?: number;
+        max?: number;
+        precision?: number;
+        step?: number;
+        assetType?: string;
+        curves?: string[];
+        color?: string;
+        enum?: object[];
+        schema?: object[];
+    }): void;
     /**
-     * Create a clone of component. This creates a copy of all component data variables.
+     * Remove Attribute.
      *
-     * @param {import('../entity.js').Entity} entity - The entity to clone the component from.
-     * @param {import('../entity.js').Entity} clone - The entity to clone the component into.
-     * @returns {import('./component.js').Component} The newly cloned component.
-     * @ignore
+     * @param {string} name - Name of an attribute.
+     * @returns {boolean} True if removed or false if not defined.
+     * @example
+     * PlayerController.attributes.remove('fullName');
      */
-    cloneComponent(entity: Entity, clone: Entity): Component;
+    remove(name: string): boolean;
     /**
-     * Called during {@link ComponentSystem#addComponent} to initialize the component data in the
-     * store. This can be overridden by derived Component Systems and either called by the derived
-     * System or replaced entirely.
+     * Detect if Attribute is added.
      *
-     * @param {import('./component.js').Component} component - The component being initialized.
-     * @param {object} data - The data block used to initialize the component.
-     * @param {Array<string | {name: string, type: string}>} properties - The array of property
-     * descriptors for the component. A descriptor can be either a plain property name, or an
-     * object specifying the name and type.
-     * @ignore
+     * @param {string} name - Name of an attribute.
+     * @returns {boolean} True if Attribute is defined.
+     * @example
+     * if (PlayerController.attributes.has('fullName')) {
+     *     // attribute fullName is defined
+     * }
      */
-    initializeComponentData(component: Component, data: object, properties: Array<string | {
-        name: string;
-        type: string;
-    }>): void;
+    has(name: string): boolean;
     /**
-     * Searches the component schema for properties that match the specified type.
+     * Get object with attribute arguments. Note: Changing argument properties will not affect
+     * existing Script Instances.
      *
-     * @param {string} type - The type to search for.
-     * @returns {string[]|object[]} An array of property descriptors matching the specified type.
-     * @ignore
+     * @param {string} name - Name of an attribute.
+     * @returns {?object} Arguments with attribute properties.
+     * @example
+     * // changing default value for an attribute 'fullName'
+     * var attr = PlayerController.attributes.get('fullName');
+     * if (attr) attr.default = 'Unknown';
      */
-    getPropertiesOfType(type: string): string[] | object[];
-    destroy(): void;
+    get(name: string): object | null;
 }
 
 /**
- * Components are used to attach functionality on a {@link Entity}. Components can receive update
- * events each frame, and expose properties to the PlayCanvas Editor.
+ * Represents the type of a script. It is returned by {@link createScript}. Also referred to as
+ * Script Type.
  *
- * @property {boolean} enabled Enables or disables the component.
+ * The type is to be extended using its JavaScript prototype. There is a list of methods that will
+ * be executed by the engine on instances of this type, such as:
+ *
+ * - `initialize`
+ * - `postInitialize`
+ * - `update`
+ * - `postUpdate`
+ * - `swap`
+ *
+ * `initialize` and `postInitialize` - are called (if defined) when a script is about to run for
+ * the first time - `postInitialize` will run after all `initialize` methods are executed in the
+ * same tick or enabling chain of actions.
+ *
+ * `update` and `postUpdate` - are called (if defined) for enabled (running state) scripts on each
+ * tick.
+ *
+ * `swap` - is called when a ScriptType that already exists in the registry gets redefined. If the
+ * new ScriptType has a `swap` method in its prototype, then it will be executed to perform hot-
+ * reload at runtime.
+ *
  * @augments EventHandler
+ * @category Script
  */
-declare class Component extends EventHandler {
-    /** @ignore */
-    static _buildAccessors(obj: any, schema: any): void;
+declare class ScriptType extends EventHandler {
     /**
-     * Base constructor for a Component.
+     * Fired when a script instance becomes enabled.
      *
-     * @param {import('./system.js').ComponentSystem} system - The ComponentSystem used to create
-     * this Component.
-     * @param {import('../entity.js').Entity} entity - The Entity that this Component is attached
-     * to.
+     * @event
+     * @example
+     * PlayerController.prototype.initialize = function () {
+     *     this.on('enable', () => {
+     *         // Script Instance is now enabled
+     *     });
+     * };
      */
-    constructor(system: ComponentSystem, entity: Entity);
-
-    set enabled(arg: boolean);
-    get enabled(): boolean;
-
+    static EVENT_ENABLE: string;
     /**
-     * The ComponentSystem used to create this Component.
+     * Fired when a script instance becomes disabled.
      *
-     * @type {import('./system.js').ComponentSystem}
+     * @event
+     * @example
+     * PlayerController.prototype.initialize = function () {
+     *     this.on('disable', () => {
+     *         // Script Instance is now disabled
+     *     });
+     * };
      */
-    system: ComponentSystem;
+    static EVENT_DISABLE: string;
     /**
-     * The Entity that this Component is attached to.
+     * Fired when a script instance changes state to enabled or disabled. The handler is passed a
+     * boolean parameter that states whether the script instance is now enabled or disabled.
+     *
+     * @event
+     * @example
+     * PlayerController.prototype.initialize = function () {
+     *     this.on('state', (enabled) => {
+     *         console.log(`Script Instance is now ${enabled ? 'enabled' : 'disabled'}`);
+     *     });
+     * };
+     */
+    static EVENT_STATE: string;
+    /**
+     * Fired when a script instance is destroyed and removed from component.
+     *
+     * @event
+     * @example
+     * PlayerController.prototype.initialize = function () {
+     *     this.on('destroy', () => {
+     *         // no longer part of the entity
+     *         // this is a good place to clean up allocated resources used by the script
+     *     });
+     * };
+     */
+    static EVENT_DESTROY: string;
+    /**
+     * Fired when script attributes have changed. This event is available in two forms. They are as follows:
+     *
+     * 1. `attr` - Fired for any attribute change. The handler is passed the name of the attribute
+     * that changed, the value of the attribute before the change and the value of the attribute
+     * after the change.
+     * 2. `attr:[name]` - Fired for a specific attribute change. The handler is passed the value of
+     * the attribute before the change and the value of the attribute after the change.
+     *
+     * @event
+     * @example
+     * PlayerController.prototype.initialize = function () {
+     *     this.on('attr', (name, newValue, oldValue) => {
+     *         console.log(`Attribute '${name}' changed from '${oldValue}' to '${newValue}'`);
+     *     });
+     * };
+     * @example
+     * PlayerController.prototype.initialize = function () {
+     *     this.on('attr:speed', (newValue, oldValue) => {
+     *         console.log(`Attribute 'speed' changed from '${oldValue}' to '${newValue}'`);
+     *     });
+     * };
+     */
+    static EVENT_ATTR: string;
+    /**
+     * Fired when a script instance had an exception. The script instance will be automatically
+     * disabled. The handler is passed an {@link Error} object containing the details of the
+     * exception and the name of the method that threw the exception.
+     *
+     * @event
+     * @example
+     * PlayerController.prototype.initialize = function () {
+     *     this.on('error', (err, method) => {
+     *         // caught an exception
+     *         console.log(err.stack);
+     *     });
+     * };
+     */
+    static EVENT_ERROR: string;
+    /**
+     * Name of a Script Type.
+     *
+     * @type {string}
+     * @private
+     */
+    private static __name;
+    /**
+     * @param {*} constructorFn - The constructor function of the script type.
+     * @returns {string} The script name.
+     * @private
+     */
+    private static __getScriptName;
+    /**
+     * Name of a Script Type.
+     *
+     * @type {string|null}
+     */
+    static get scriptName(): string;
+    /**
+     * The interface to define attributes for Script Types. Refer to {@link ScriptAttributes}.
+     *
+     * @type {ScriptAttributes}
+     * @example
+     * var PlayerController = pc.createScript('playerController');
+     *
+     * PlayerController.attributes.add('speed', {
+     *     type: 'number',
+     *     title: 'Speed',
+     *     placeholder: 'km/h',
+     *     default: 22.2
+     * });
+     */
+    static get attributes(): ScriptAttributes;
+    /**
+     * Shorthand function to extend Script Type prototype with list of methods.
+     *
+     * @param {object} methods - Object with methods, where key - is name of method, and value - is function.
+     * @example
+     * var PlayerController = pc.createScript('playerController');
+     *
+     * PlayerController.extend({
+     *     initialize: function () {
+     *         // called once on initialize
+     *     },
+     *     update: function (dt) {
+     *         // called each tick
+     *     }
+     * });
+     */
+    static extend(methods: object): void;
+    /**
+     * Create a new ScriptType instance.
+     *
+     * @param {object} args - The input arguments object.
+     * @param {import('../app-base.js').AppBase} args.app - The {@link AppBase} that is running the
+     * script.
+     * @param {import('../entity.js').Entity} args.entity - The {@link Entity} that the script is
+     * attached to.
+     */
+    constructor(args: {
+        app: AppBase;
+        entity: Entity;
+    });
+    /**
+     * The {@link AppBase} that the instance of this type belongs to.
+     *
+     * @type {import('../app-base.js').AppBase}
+     */
+    app: AppBase;
+    /**
+     * The {@link Entity} that the instance of this type belongs to.
      *
      * @type {import('../entity.js').Entity}
      */
     entity: Entity;
-    /** @ignore */
-    buildAccessors(schema: any): void;
-    /** @ignore */
-    onSetEnabled(name: any, oldValue: any, newValue: any): void;
-    /** @ignore */
-    onEnable(): void;
-    /** @ignore */
-    onDisable(): void;
-    /** @ignore */
-    onPostStateChange(): void;
+    /** @private */
+    private _enabled;
+    /** @private */
+    private _enabledOld;
+    /** @private */
+    private _initialized;
+    /** @private */
+    private _postInitialized;
+    /** @private */
+    private __destroyed;
+    /** @private */
+    private __attributes;
+    /** @private */
+    private __attributesRaw;
+    /** @private */
+    private __scriptType;
     /**
-     * Access the component data directly. Usually you should access the data properties via the
-     * individual properties as modifying this data directly will not fire 'set' events.
+     * The order in the script component that the methods of this script instance will run
+     * relative to other script instances in the component.
      *
-     * @type {*}
+     * @type {number}
+     * @private
+     */
+    private __executionOrder;
+    /**
+     * True if the instance of this type is in running state. False when script is not running,
+     * because the Entity or any of its parents are disabled or the {@link ScriptComponent} is
+     * disabled or the Script Instance is disabled. When disabled no update methods will be called
+     * on each tick. initialize and postInitialize methods will run once when the script instance
+     * is in `enabled` state during app tick.
+     *
+     * @type {boolean}
+     */
+    set enabled(arg: boolean);
+    get enabled(): boolean;
+    /**
+     * Called when script is about to run for the first time.
+     */
+    initialize?(): void;
+    /**
+     * Called after all initialize methods are executed in the same tick or enabling chain of actions.
+     */
+    postInitialize?(): void;
+    /**
+     * Called for enabled (running state) scripts on each tick.
+     * @param dt - The delta time in seconds since the last frame.
+     */
+    update?(dt: number): void;
+    /**
+     * Called for enabled (running state) scripts on each tick, after update.
+     * @param dt - The delta time in seconds since the last frame.
+     */
+    postUpdate?(dt: number): void;
+    /**
+     * Called when a ScriptType that already exists in the registry gets redefined. If the new
+     * ScriptType has a `swap` method in its prototype, then it will be executed to perform
+     * hot-reload at runtime.
+     * @param old - Old instance of the scriptType to copy data to the new instance.
+     */
+    swap?(old: ScriptType): void;
+
+    /**
+     * @param {{entity: import('../entity.js').Entity, app: import('../app-base.js').AppBase}} args -
+     * The entity and app.
+     * @private
+     */
+    private initScriptType;
+    /**
+     * @param {boolean} [force] - Set to true to force initialization of the attributes.
+     * @private
+     */
+    private __initializeAttributes;
+}
+
+declare class GSplatComponentData {
+    enabled: boolean;
+}
+
+/**
+ * Allows an Entity to render a gsplat.
+ *
+ * @augments ComponentSystem
+ * @category Graphics
+ */
+declare class GSplatComponentSystem extends ComponentSystem {
+    id: string;
+    ComponentType: typeof GSplatComponent;
+    DataType: typeof GSplatComponentData;
+    schema: string[];
+    initializeComponentData(component: any, _data: any, properties: any): void;
+    cloneComponent(entity: any, clone: any): Component;
+    onRemove(entity: any, component: any): void;
+}
+
+/**
+ * Enables an Entity to render a Gaussian Splat (asset of the 'gsplat' type).
+ *
+ * @augments Component
+ * @category Graphics
+ */
+declare class GSplatComponent extends Component {
+    /**
+     * Create a new GSplatComponent.
+     *
+     * @param {import('./system.js').GSplatComponentSystem} system - The ComponentSystem that
+     * created this Component.
+     * @param {import('../../entity.js').Entity} entity - The Entity that this Component is
+     * attached to.
+     */
+    constructor(system: GSplatComponentSystem, entity: Entity);
+    /** @private */
+    private _layers;
+    /**
+     * @type {import('../../../scene/gsplat/gsplat-instance.js').GSplatInstance|null}
+     * @private
+     */
+    private _instance;
+    /**
+     * @type {import('../../../core/shape/bounding-box.js').BoundingBox|null}
+     * @private
+     */
+    private _customAabb;
+    /**
+     * @type {AssetReference}
+     * @private
+     */
+    private _assetReference;
+    /**
+     * @type {import('../../../scene/gsplat/gsplat-material.js').SplatMaterialOptions|null}
+     * @private
+     */
+    private _materialOptions;
+    /**
+     * If set, the object space bounding box is used as a bounding box for visibility culling of
+     * attached gsplat. This allows a custom bounding box to be specified.
+     *
+     * @type {import('../../../core/shape/bounding-box.js').BoundingBox}
+     */
+    set customAabb(arg: BoundingBox);
+    get customAabb(): BoundingBox;
+    /**
+     * A {@link GSplatInstance} contained in the component. If not set or loaded, it returns null.
+     *
      * @ignore
      */
-    get data(): any;
+    set instance(arg: GSplatInstance);
+    get instance(): GSplatInstance;
+    set materialOptions(arg: SplatMaterialOptions);
+    get materialOptions(): SplatMaterialOptions;
+    /**
+     * Material used to render the gsplat.
+     *
+     * @type {import('../../../scene/materials/material.js').Material|undefined}
+     */
+    get material(): Material;
+    /**
+     * An array of layer IDs ({@link Layer#id}) to which gsplats should belong. Don't push, pop,
+     * splice or modify this array, if you want to change it - set a new one instead.
+     *
+     * @type {number[]}
+     */
+    set layers(arg: number[]);
+    get layers(): number[];
+    /**
+     * The gsplat asset for the gsplat component - can also be an asset id.
+     *
+     * @type {Asset|number}
+     */
+    set asset(arg: any);
+    get asset(): any;
+    /**
+     * Assign asset id to the component, without updating the component with the new asset.
+     * This can be used to assign the asset id to already fully created component.
+     *
+     * @param {Asset|number} asset - The gsplat asset or asset id to assign.
+     * @ignore
+     */
+    assignAsset(asset: Asset | number): void;
+    /** @private */
+    private destroyInstance;
+    /** @private */
+    private addToLayers;
+    removeFromLayers(): void;
+    /** @private */
+    private onRemoveChild;
+    /** @private */
+    private onInsertChild;
+    onRemove(): void;
+    onLayersChanged(oldComp: any, newComp: any): void;
+    onLayerAdded(layer: any): void;
+    onLayerRemoved(layer: any): void;
+    /**
+     * Stop rendering this component without removing its mesh instance from the scene hierarchy.
+     */
+    hide(): void;
+    /**
+     * Enable rendering of the component if hidden using {@link GSplatComponent#hide}.
+     */
+    show(): void;
+    _onGSplatAssetAdded(): void;
+    _onGSplatAssetLoad(): void;
+    _onGSplatAssetUnload(): void;
+    _onGSplatAssetRemove(): void;
 }
 
 /**
@@ -32118,6 +34005,16 @@ declare class Component extends EventHandler {
  * @augments GraphNode
  */
 declare class Entity extends GraphNode {
+    /**
+     * Fired after the entity is destroyed.
+     *
+     * @event
+     * @example
+     * entity.on('destroy', (e) => {
+     *     console.log(`Entity ${e.name} has been destroyed`);
+     * });
+     */
+    static EVENT_DESTROY: string;
     /**
      * Create a new Entity.
      *
@@ -32201,6 +34098,13 @@ declare class Entity extends GraphNode {
      * @readonly
      */
     readonly element: ElementComponent | undefined;
+    /**
+     * Gets the {@link GSplatComponent} attached to this entity.
+     *
+     * @type {import('./components/gsplat/component.js').GSplatComponent|undefined}
+     * @readonly
+     */
+    readonly gsplat: GSplatComponent | undefined;
     /**
      * Gets the {@link LayoutChildComponent} attached to this entity.
      *
@@ -32339,6 +34243,7 @@ declare class Entity extends GraphNode {
      * - "camera" - see {@link CameraComponent}
      * - "collision" - see {@link CollisionComponent}
      * - "element" - see {@link ElementComponent}
+     * - "gsplat" - see {@link GSplatComponent}
      * - "layoutchild" - see {@link LayoutChildComponent}
      * - "layoutgroup" - see {@link LayoutGroupComponent}
      * - "light" - see {@link LightComponent}
@@ -32404,6 +34309,28 @@ declare class Entity extends GraphNode {
      */
     findComponents(type: string): Component[];
     /**
+     * Search the entity and all of its descendants for the first script instance of specified type.
+     *
+     * @param {string|typeof ScriptType} nameOrType - The name or type of {@link ScriptType}.
+     * @returns {import('./script/script-type.js').ScriptType|undefined} A script instance of specified type, if the entity or any of its descendants
+     * has one. Returns undefined otherwise.
+     * @example
+     * // Get the first found "playerController" instance in the hierarchy tree that starts with this entity
+     * var controller = entity.findScript("playerController");
+     */
+    findScript(nameOrType: string | typeof ScriptType): ScriptType | undefined;
+    /**
+     * Search the entity and all of its descendants for all script instances of specified type.
+     *
+     * @param {string|typeof ScriptType} nameOrType - The name or type of {@link ScriptType}.
+     * @returns {import('./script/script-type.js').ScriptType[]} All script instances of specified type in the entity or any of its
+     * descendants. Returns empty array if none found.
+     * @example
+     * // Get all "playerController" instances in the hierarchy tree that starts with this entity
+     * var controllers = entity.findScripts("playerController");
+     */
+    findScripts(nameOrType: string | typeof ScriptType): ScriptType[];
+    /**
      * Get the GUID value for this Entity.
      *
      * @returns {string} The GUID of the Entity.
@@ -32449,68 +34376,29 @@ declare class Entity extends GraphNode {
 }
 
 /**
- * Depth Sensing provides depth information which is reconstructed using the underlying AR system.
- * It provides the ability to query depth values (CPU path) or access a depth texture (GPU path).
- * Depth information can be used (not limited to) for reconstructing real world geometry, virtual
- * object placement, occlusion of virtual objects by real world geometry and more.
- *
- * ```javascript
- * // CPU path
- * const depthSensing = app.xr.depthSensing;
- * if (depthSensing.available) {
- *     // get depth in the middle of the screen, value is in meters
- *     const depth = depthSensing.getDepth(depthSensing.width / 2, depthSensing.height / 2);
- * }
- * ```
- *
- * ```javascript
- * // GPU path, attaching texture to material
- * material.diffuseMap = depthSensing.texture;
- * material.setParameter('matrix_depth_uv', depthSensing.uvMatrix.data);
- * material.setParameter('depth_raw_to_meters', depthSensing.rawValueToMeters);
- * material.update();
- *
- * // update UV transformation matrix on depth texture resize
- * depthSensing.on('resize', function () {
- *     material.setParameter('matrix_depth_uv', depthSensing.uvMatrix.data);
- *     material.setParameter('depth_raw_to_meters', depthSensing.rawValueToMeters);
- * });
- * ```
- *
- * ```javascript
- * // GLSL shader to unpack depth texture
- * varying vec2 vUv0;
- *
- * uniform sampler2D texture_depthSensingMap;
- * uniform mat4 matrix_depth_uv;
- * uniform float depth_raw_to_meters;
- *
- * void main(void) {
- *     // transform UVs using depth matrix
- *     vec2 texCoord = (matrix_depth_uv * vec4(vUv0.xy, 0.0, 1.0)).xy;
- *
- *     // get luminance alpha components from depth texture
- *     vec2 packedDepth = texture2D(texture_depthSensingMap, texCoord).ra;
- *
- *     // unpack into single value in millimeters
- *     float depth = dot(packedDepth, vec2(255.0, 256.0 * 255.0)) * depth_raw_to_meters; // m
- *
- *     // normalize: 0m to 8m distance
- *     depth = min(depth / 8.0, 1.0); // 0..1 = 0..8
- *
- *     // paint scene from black to white based on distance
- *     gl_FragColor = vec4(depth, depth, depth, 1.0);
- * }
- * ```
- *
  * @augments EventHandler
  * @category XR
+ * @deprecated
+ * @ignore
  */
 declare class XrDepthSensing extends EventHandler {
     /**
-     * Create a new XrDepthSensing instance.
-     *
-     * @param {import('./xr-manager.js').XrManager} manager - WebXR Manager.
+     * @event
+     * @deprecated
+     */
+    static EVENT_AVAILABLE: string;
+    /**
+     * @event
+     * @deprecated
+     */
+    static EVENT_UNAVAILABLE: string;
+    /**
+     * @event
+     * @deprecated
+     */
+    static EVENT_RESIZE: string;
+    /**
+     * @param {import('./xr-manager.js').XrManager} manager - manager
      * @hideconstructor
      */
     constructor(manager: XrManager);
@@ -32520,199 +34408,85 @@ declare class XrDepthSensing extends EventHandler {
      */
     private _manager;
     /**
+     * @type {import('./xr-views.js').XrViews}
+     * @private
+     */
+    private _views;
+    /**
      * @type {boolean}
      * @private
      */
     private _available;
     /**
-     * @type {XRCPUDepthInformation|null}
+     * @type {import('../../core/event-handle.js').EventHandle|null}
      * @private
      */
-    private _depthInfoCpu;
-    /**
-     * @type {XRCPUDepthInformation|null}
-     * @private
-     */
-    private _depthInfoGpu;
-    /**
-     * @type {string|null}
-     * @private
-     */
-    private _usage;
-    /**
-     * @type {string|null}
-     * @private
-     */
-    private _dataFormat;
-    /**
-     * @type {boolean}
-     * @private
-     */
-    private _matrixDirty;
+    private _evtDepthResize;
     /**
      * @type {Mat4}
      * @private
      */
-    private _matrix;
-    /**
-     * @type {Uint8Array}
-     * @private
-     */
-    private _emptyBuffer;
-    /**
-     * @type {Uint8Array|null}
-     * @private
-     */
-    private _depthBuffer;
-    /**
-     * @type {Texture}
-     * @private
-     */
-    private _texture;
-    /**
-     * Fired when depth sensing data becomes available.
-     *
-     * @event XrDepthSensing#available
-     */
-    /**
-     * Fired when depth sensing data becomes unavailable.
-     *
-     * @event XrDepthSensing#unavailable
-     */
-    /**
-     * Fired when the depth sensing texture been resized. The {@link XrDepthSensing#uvMatrix} needs
-     * to be updated for relevant shaders.
-     *
-     * @event XrDepthSensing#resize
-     * @param {number} width - The new width of the depth texture in pixels.
-     * @param {number} height - The new height of the depth texture in pixels.
-     * @example
-     * depthSensing.on('resize', function () {
-     *     material.setParameter('matrix_depth_uv', depthSensing.uvMatrix);
-     * });
-     */
-    /** @ignore */
-    destroy(): void;
+    private _uvMatrix;
     /** @private */
     private _onSessionStart;
     /** @private */
     private _onSessionEnd;
     /** @private */
-    private _updateTexture;
+    private _onDepthResize;
     /**
-     * @param {*} frame - XRFrame from requestAnimationFrame callback.
-     * @param {*} view - First XRView of viewer XRPose.
-     * @ignore
-     */
-    update(frame: any, view: any): void;
-    /**
-     * Get depth value from depth information in meters. UV is in range of 0..1, with origin in
-     * top-left corner of a texture.
-     *
-     * @param {number} u - U coordinate of pixel in depth texture, which is in range from 0.0 to
-     * 1.0 (left to right).
-     * @param {number} v - V coordinate of pixel in depth texture, which is in range from 0.0 to
-     * 1.0 (top to bottom).
-     * @returns {number|null} Depth in meters or null if depth information is currently not
-     * available.
-     * @example
-     * const depth = app.xr.depthSensing.getDepth(u, v);
-     * if (depth !== null) {
-     *     // depth in meters
-     * }
+     * @param {number} u - u
+     * @param {number} v - v
+     * @deprecated
+     * @returns {number|null} number
      */
     getDepth(u: number, v: number): number | null;
     /**
-     * True if Depth Sensing is supported.
-     *
+     * @deprecated
+     */
+    update(): void;
+    /**
      * @type {boolean}
+     * @deprecated
      */
     get supported(): boolean;
     /**
-     * True if depth sensing information is available.
-     *
      * @type {boolean}
-     * @example
-     * if (app.xr.depthSensing.available) {
-     *     const depth = app.xr.depthSensing.getDepth(x, y);
-     * }
+     * @deprecated
      */
     get available(): boolean;
     /**
-     * Whether the usage is CPU or GPU.
-     *
      * @type {string}
-     * @ignore
+     * @deprecated
      */
     get usage(): string;
     /**
-     * The depth sensing data format.
-     *
      * @type {string}
-     * @ignore
+     * @deprecated
      */
     get dataFormat(): string;
     /**
-     * Width of depth texture or 0 if not available.
-     *
      * @type {number}
+     * @deprecated
      */
     get width(): number;
     /**
-     * Height of depth texture or 0 if not available.
-     *
      * @type {number}
+     * @deprecated
      */
     get height(): number;
     /**
-     * Texture that contains packed depth information. The format of this texture is
-     * {@link PIXELFORMAT_LA8}. It is UV transformed based on the underlying AR system which can
-     * be normalized using {@link XrDepthSensing#uvMatrix}.
-     *
-     * @type {Texture}
-     * @example
-     * material.diffuseMap = depthSensing.texture;
-     * @example
-     * // GLSL shader to unpack depth texture
-     * varying vec2 vUv0;
-     *
-     * uniform sampler2D texture_depthSensingMap;
-     * uniform mat4 matrix_depth_uv;
-     * uniform float depth_raw_to_meters;
-     *
-     * void main(void) {
-     *     // transform UVs using depth matrix
-     *     vec2 texCoord = (matrix_depth_uv * vec4(vUv0.xy, 0.0, 1.0)).xy;
-     *
-     *     // get luminance alpha components from depth texture
-     *     vec2 packedDepth = texture2D(texture_depthSensingMap, texCoord).ra;
-     *
-     *     // unpack into single value in millimeters
-     *     float depth = dot(packedDepth, vec2(255.0, 256.0 * 255.0)) * depth_raw_to_meters; // m
-     *
-     *     // normalize: 0m to 8m distance
-     *     depth = min(depth / 8.0, 1.0); // 0..1 = 0m..8m
-     *
-     *     // paint scene from black to white based on distance
-     *     gl_FragColor = vec4(depth, depth, depth, 1.0);
-     * }
+     * @type {import('../../platform/graphics/texture.js').Texture|null}
+     * @deprecated
      */
     get texture(): Texture;
     /**
-     * 4x4 matrix that should be used to transform depth texture UVs to normalized UVs in a shader.
-     * It is updated when the depth texture is resized. Refer to {@link XrDepthSensing#resize}.
-     *
      * @type {Mat4}
-     * @example
-     * material.setParameter('matrix_depth_uv', depthSensing.uvMatrix.data);
+     * @deprecated
      */
     get uvMatrix(): Mat4;
     /**
-     * Multiply this coefficient number by raw depth value to get depth in meters.
-     *
      * @type {number}
-     * @example
-     * material.setParameter('depth_raw_to_meters', depthSensing.rawValueToMeters);
+     * @deprecated
      */
     get rawValueToMeters(): number;
 }
@@ -32818,6 +34592,26 @@ declare class XrDomOverlay {
  */
 declare class XrTrackedImage extends EventHandler {
     /**
+     * Fired when image becomes actively tracked.
+     *
+     * @event
+     * @example
+     * trackedImage.on('tracked', () => {
+     *     console.log('Image is now tracked');
+     * });
+     */
+    static EVENT_TRACKED: string;
+    /**
+     * Fired when image is no longer actively tracked.
+     *
+     * @event
+     * @example
+     * trackedImage.on('untracked', () => {
+     *     console.log('Image is no longer tracked');
+     * });
+     */
+    static EVENT_UNTRACKED: string;
+    /**
      * The tracked image interface that is created by the Image Tracking system and is provided as
      * a list from {@link XrImageTracking#images}. It contains information about the tracking state
      * as well as the position and rotation of the tracked image.
@@ -32882,16 +34676,6 @@ declare class XrTrackedImage extends EventHandler {
      * @private
      */
     private _rotation;
-    /**
-     * Fired when image becomes actively tracked.
-     *
-     * @event XrTrackedImage#tracked
-     */
-    /**
-     * Fired when image is no more actively tracked.
-     *
-     * @event XrTrackedImage#untracked
-     */
     /**
      * Image that is used for tracking.
      *
@@ -32970,6 +34754,17 @@ declare class XrTrackedImage extends EventHandler {
  */
 declare class XrImageTracking extends EventHandler {
     /**
+     * Fired when the XR session is started, but image tracking failed to process the provided
+     * images. The handler is passed the Error object.
+     *
+     * @event
+     * @example
+     * app.xr.imageTracking.on('error', (err) => {
+     *     console.error(err.message);
+     * });
+     */
+    static EVENT_ERROR: string;
+    /**
      * Image Tracking provides the ability to track real world images by provided image samples and
      * their estimate sizes.
      *
@@ -32997,13 +34792,6 @@ declare class XrImageTracking extends EventHandler {
      * @private
      */
     private _images;
-    /**
-     * Fired when the XR session is started, but image tracking failed to process the provided
-     * images.
-     *
-     * @event XrImageTracking#error
-     * @param {Error} error - Error object related to a failure of image tracking.
-     */
     /**
      * Add an image for image tracking. A width can also be provided to help the underlying system
      * estimate the appropriate transformation. Modifying the tracked images list is only possible
@@ -33074,6 +34862,27 @@ declare class XrImageTracking extends EventHandler {
  */
 declare class XrPlane extends EventHandler {
     /**
+     * Fired when an {@link XrPlane} is removed.
+     *
+     * @event
+     * @example
+     * plane.once('remove', () => {
+     *     // plane is not available anymore
+     * });
+     */
+    static EVENT_REMOVE: string;
+    /**
+     * Fired when {@link XrPlane} attributes such as: orientation and/or points have been changed.
+     * Position and rotation can change at any time without triggering a `change` event.
+     *
+     * @event
+     * @example
+     * plane.on('change', () -> {
+     *     // plane has been changed
+     * });
+     */
+    static EVENT_CHANGE: string;
+    /**
      * Create a new XrPlane instance.
      *
      * @param {import('./xr-plane-detection.js').XrPlaneDetection} planeDetection - Plane detection
@@ -33117,25 +34926,6 @@ declare class XrPlane extends EventHandler {
      * @private
      */
     private _rotation;
-    /**
-     * Fired when {@link XrPlane} is removed.
-     *
-     * @event XrPlane#remove
-     * @example
-     * plane.once('remove', function () {
-     *     // plane is not available anymore
-     * });
-     */
-    /**
-     * Fired when {@link XrPlane} attributes such as: orientation and/or points have been changed.
-     * Position and rotation can change at any time without triggering a `change` event.
-     *
-     * @event XrPlane#change
-     * @example
-     * plane.on('change', function () {
-     *     // plane has been changed
-     * });
-     */
     /** @ignore */
     destroy(): void;
     /**
@@ -33216,7 +35006,7 @@ declare class XrPlane extends EventHandler {
  * ```
  *
  * ```javascript
- * app.xr.planeDetection.on('add', function (plane) {
+ * app.xr.planeDetection.on('add', (plane) => {
  *     // new plane been added
  * });
  * ```
@@ -33224,6 +35014,48 @@ declare class XrPlane extends EventHandler {
  * @category XR
  */
 declare class XrPlaneDetection extends EventHandler {
+    /**
+     * Fired when plane detection becomes available.
+     *
+     * @event
+     * @example
+     * app.xr.planeDetection.on('available', () => {
+     *     console.log('Plane detection is available');
+     * });
+     */
+    static EVENT_AVAILABLE: string;
+    /**
+     * Fired when plane detection becomes unavailable.
+     *
+     * @event
+     * @example
+     * app.xr.planeDetection.on('unavailable', () => {
+     *     console.log('Plane detection is unavailable');
+     * });
+     */
+    static EVENT_UNAVAILABLE: string;
+    /**
+     * Fired when new {@link XrPlane} is added to the list. The handler is passed the
+     * {@link XrPlane} instance that has been added.
+     *
+     * @event
+     * @example
+     * app.xr.planeDetection.on('add', (plane) => {
+     *     // new plane is added
+     * });
+     */
+    static EVENT_ADD: string;
+    /**
+     * Fired when a {@link XrPlane} is removed from the list. The handler is passed the
+     * {@link XrPlane} instance that has been removed.
+     *
+     * @event
+     * @example
+     * app.xr.planeDetection.on('remove', (plane) => {
+     *     // new plane is removed
+     * });
+     */
+    static EVENT_REMOVE: string;
     /**
      * Create a new XrPlaneDetection instance.
      *
@@ -33256,36 +35088,6 @@ declare class XrPlaneDetection extends EventHandler {
      * @private
      */
     private _planes;
-    /**
-     * Fired when plane detection becomes available.
-     *
-     * @event XrPlaneDetection#available
-     */
-    /**
-     * Fired when plane detection becomes unavailable.
-     *
-     * @event XrPlaneDetection#unavailable
-     */
-    /**
-     * Fired when new {@link XrPlane} is added to the list.
-     *
-     * @event XrPlaneDetection#add
-     * @param {XrPlane} plane - Plane that has been added.
-     * @example
-     * app.xr.planeDetection.on('add', function (plane) {
-     *     // new plane is added
-     * });
-     */
-    /**
-     * Fired when a {@link XrPlane} is removed from the list.
-     *
-     * @event XrPlaneDetection#remove
-     * @param {XrPlane} plane - Plane that has been removed.
-     * @example
-     * app.xr.planeDetection.on('remove', function (plane) {
-     *     // new plane is removed
-     * });
-     */
     /** @private */
     private _onSessionStart;
     /** @private */
@@ -33318,12 +35120,348 @@ declare class XrPlaneDetection extends EventHandler {
 }
 
 /**
+ * Detected Mesh instance that provides its transform (position, rotation),
+ * triangles (vertices, indices) and its semantic label. Any of its properties can
+ * change during its lifetime.
+ *
+ * @category XR
+ */
+declare class XrMesh extends EventHandler {
+    /**
+     * Fired when an {@link XrMesh} is removed.
+     *
+     * @event
+     * @example
+     * mesh.once('remove', () => {
+     *     // mesh is no longer available
+     * });
+     */
+    static EVENT_REMOVE: string;
+    /**
+     * Fired when {@link XrMesh} attributes such as vertices, indices and/or label have been
+     * changed. Position and rotation can change at any time without triggering a `change` event.
+     *
+     * @event
+     * @example
+     * mesh.on('change', () => {
+     *     // mesh attributes have been changed
+     * });
+     */
+    static EVENT_CHANGE: string;
+    /**
+     * Create a new XrMesh instance.
+     *
+     * @param {import('./xr-mesh-detection.js').XrMeshDetection} meshDetection - Mesh Detection
+     * interface.
+     * @param {XRMesh} xrMesh - XRMesh that is instantiated by WebXR system.
+     * @hideconstructor
+     */
+    constructor(meshDetection: XrMeshDetection, xrMesh: XRMesh);
+    /**
+     * @type {import('./xr-mesh-detection.js').XrMeshDetection}
+     * @private
+     */
+    private _meshDetection;
+    /**
+     * @type {XRMesh}
+     * @private
+     */
+    private _xrMesh;
+    /**
+     * @type {number}
+     * @private
+     */
+    private _lastChanged;
+    /**
+     * @type {Vec3}
+     * @private
+     */
+    private _position;
+    /**
+     * @type {Quat}
+     * @private
+     */
+    private _rotation;
+    /**
+     * @type {XRMesh}
+     * @ignore
+     */
+    get xrMesh(): XRMesh;
+    /**
+     * Semantic Label of a mesh that is provided by underlying system.
+     * Current list includes (but not limited to): https://github.com/immersive-web/semantic-labels/blob/master/labels.json
+     *
+     * @type {string}
+     */
+    get label(): string;
+    /**
+     * Float 32 array of mesh vertices.
+     *
+     * @type {Float32Array}
+     */
+    get vertices(): Float32Array;
+    /**
+     * Uint 32 array of mesh indices.
+     *
+     * @type {Uint32Array}
+     */
+    get indices(): Uint32Array;
+    /** @ignore */
+    destroy(): void;
+    /**
+     * @param {XRFrame} frame - XRFrame from requestAnimationFrame callback.
+     * @ignore
+     */
+    update(frame: XRFrame): void;
+    /**
+     * Get the world space position of a mesh.
+     *
+     * @returns {Vec3} The world space position of a mesh.
+     */
+    getPosition(): Vec3;
+    /**
+     * Get the world space rotation of a mesh.
+     *
+     * @returns {Quat} The world space rotation of a mesh.
+     */
+    getRotation(): Quat;
+}
+
+/**
+ * Mesh Detection provides the ability to detect real world meshes based on the
+ * scanning and reconstruction by the underlying AR system.
+ *
+ * ```javascript
+ * // start session with plane detection enabled
+ * app.xr.start(camera, pc.XRTYPE_AR, pc.XRSPACE_LOCALFLOOR, {
+ *     meshDetection: true
+ * });
+ * ```
+ *
+ * ```javascript
+ * app.xr.meshDetection.on('add', function (mesh) {
+ *     // new mesh been added
+ * });
+ * ```
+ *
+ * @category XR
+ */
+declare class XrMeshDetection extends EventHandler {
+    /**
+     * Fired when mesh detection becomes available.
+     *
+     * @event
+     * @example
+     * app.xr.meshDetection.on('available', () => {
+     *     console.log('Mesh detection is available');
+     * });
+     */
+    static EVENT_AVAILABLE: string;
+    /**
+     * Fired when mesh detection becomes unavailable.
+     *
+     * @event
+     * @example
+     * app.xr.meshDetection.on('unavailable', () => {
+     *     console.log('Mesh detection is unavailable');
+     * });
+     */
+    static EVENT_UNAVAILABLE: string;
+    /**
+     * Fired when new {@link XrMesh} is added to the list. The handler is passed the {@link XrMesh}
+     * instance that has been added.
+     *
+     * @event
+     * @example
+     * app.xr.meshDetection.on('add', (mesh) => {
+     *     // a new XrMesh has been added
+     * });
+     */
+    static EVENT_ADD: string;
+    /**
+     * Fired when a {@link XrMesh} is removed from the list. The handler is passed the
+     * {@link XrMesh} instance that has been removed.
+     *
+     * @event
+     * @example
+     * app.xr.meshDetection.on('remove', (mesh) => {
+     *     // XrMesh has been removed
+     * });
+     */
+    static EVENT_REMOVE: string;
+    /**
+     * Create a new XrMeshDetection instance.
+     *
+     * @param {import('./xr-manager.js').XrManager} manager - WebXR Manager.
+     * @hideconstructor
+     */
+    constructor(manager: XrManager);
+    /**
+     * @type {import('./xr-manager.js').XrManager}
+     * @private
+     */
+    private _manager;
+    /**
+     * @type {boolean}
+     * @private
+     */
+    private _supported;
+    /**
+     * @type {boolean}
+     * @private
+     */
+    private _available;
+    /**
+     * @type {Map<XRMesh, XrMesh>}
+     * @private
+     */
+    private _index;
+    /**
+     * @type {XrMesh[]}
+     * @private
+     */
+    private _list;
+    /**
+     * @param {XRFrame} frame - XRFrame from requestAnimationFrame callback.
+     * @ignore
+     */
+    update(frame: XRFrame): void;
+    /**
+     * @param {XrMesh} mesh - XrMesh to remove.
+     * @private
+     */
+    private _removeMesh;
+    /** @private */
+    private _onSessionStart;
+    /** @private */
+    private _onSessionEnd;
+    /**
+     * True if Mesh Detection is supported.
+     *
+     * @type {boolean}
+     */
+    get supported(): boolean;
+    /**
+     * True if Mesh Detection is available. This information is available only when session has started.
+     *
+     * @type {boolean}
+     */
+    get available(): boolean;
+    /**
+     * Array of {@link XrMesh} instances that contain transform, vertices and label information.
+     *
+     * @type {XrMesh[]|null}
+     */
+    get meshes(): XrMesh[];
+}
+
+/**
  * Provides access to input sources for WebXR.
  *
  * @augments EventHandler
  * @category XR
  */
 declare class XrInput extends EventHandler {
+    /**
+     * Fired when a new {@link XrInputSource} is added to the list. The handler is passed the
+     * {@link XrInputSource} that has been added.
+     *
+     * @event
+     * @example
+     * app.xr.input.on('add', (inputSource) => {
+     *     // new input source is added
+     * });
+     */
+    static EVENT_ADD: string;
+    /**
+     * Fired when an {@link XrInputSource} is removed to the list. The handler is passed the
+     * {@link XrInputSource} that has been removed.
+     *
+     * @event
+     * @example
+     * app.xr.input.on('remove', (inputSource) => {
+     *     // input source is removed
+     * });
+     */
+    static EVENT_REMOVE: string;
+    /**
+     * Fired when {@link XrInputSource} has triggered primary action. This could be pressing a
+     * trigger button, or touching a screen. The handler is passed the {@link XrInputSource} that
+     * triggered the select event and the XRInputSourceEvent event from the WebXR API.
+     *
+     * @event
+     * @example
+     * const ray = new pc.Ray();
+     * app.xr.input.on('select', (inputSource, evt) => {
+     *     ray.set(inputSource.getOrigin(), inputSource.getDirection());
+     *     if (obj.intersectsRay(ray)) {
+     *         // selected an object with input source
+     *     }
+     * });
+     */
+    static EVENT_SELECT: string;
+    /**
+     * Fired when {@link XrInputSource} has started to trigger primary action. The handler is
+     * passed the {@link XrInputSource} that triggered the selectstart event and the
+     * XRInputSourceEvent event from the WebXR API.
+     *
+     * @event
+     * @example
+     * app.xr.input.on('selectstart', (inputSource, evt) => {
+     *     console.log('Select started');
+     * });
+     */
+    static EVENT_SELECTSTART: string;
+    /**
+     * Fired when {@link XrInputSource} has ended triggering primary action. The handler is passed
+     * the {@link XrInputSource} that triggered the selectend event and the XRInputSourceEvent
+     * event from the WebXR API.
+     *
+     * @event
+     * @example
+     * app.xr.input.on('selectend', (inputSource, evt) => {
+     *     console.log('Select ended');
+     * });
+     */
+    static EVENT_SELECTEND: string;
+    /**
+     * Fired when {@link XrInputSource} has triggered squeeze action. This is associated with
+     * "grabbing" action on the controllers. The handler is passed the {@link XrInputSource} that
+     * triggered the squeeze event and the XRInputSourceEvent event from the WebXR API.
+     *
+     * @event
+     * @example
+     * app.xr.input.on('squeeze', (inputSource, evt) => {
+     *     console.log('Squeeze');
+     * });
+     */
+    static EVENT_SQUEEZE: string;
+    /**
+     * Fired when {@link XrInputSource} has started to trigger sqeeze action. The handler is
+     * passed the {@link XrInputSource} that triggered the squeezestart event and the
+     * XRInputSourceEvent event from the WebXR API.
+     *
+     * @event
+     * @example
+     * app.xr.input.on('squeezestart', (inputSource, evt) => {
+     *     if (obj.containsPoint(inputSource.getPosition())) {
+     *         // grabbed an object
+     *     }
+     * });
+     */
+    static EVENT_SQUEEZESTART: string;
+    /**
+     * Fired when {@link XrInputSource} has ended triggering sqeeze action. The handler is passed
+     * the {@link XrInputSource} that triggered the squeezeend event and the XRInputSourceEvent
+     * event from the WebXR API.
+     *
+     * @event
+     * @example
+     * app.xr.input.on('squeezeend', (inputSource, evt) => {
+     *     console.log('Squeeze ended');
+     * });
+     */
+    static EVENT_SQUEEZEEND: string;
     /**
      * Create a new XrInput instance.
      *
@@ -33347,83 +35485,10 @@ declare class XrInput extends EventHandler {
      */
     private _onInputSourcesChangeEvt;
     /**
-     * Fired when new {@link XrInputSource} is added to the list.
-     *
-     * @event XrInput#add
-     * @param {XrInputSource} inputSource - Input source that has been added.
-     * @example
-     * app.xr.input.on('add', function (inputSource) {
-     *     // new input source is added
-     * });
+     * @type {boolean}
+     * @ignore
      */
-    /**
-     * Fired when {@link XrInputSource} is removed to the list.
-     *
-     * @event XrInput#remove
-     * @param {XrInputSource} inputSource - Input source that has been removed.
-     * @example
-     * app.xr.input.on('remove', function (inputSource) {
-     *     // input source is removed
-     * });
-     */
-    /**
-     * Fired when {@link XrInputSource} has triggered primary action. This could be pressing a
-     * trigger button, or touching a screen.
-     *
-     * @event XrInput#select
-     * @param {XrInputSource} inputSource - Input source that triggered select event.
-     * @param {object} evt - XRInputSourceEvent event data from WebXR API.
-     * @example
-     * const ray = new pc.Ray();
-     * app.xr.input.on('select', function (inputSource, evt) {
-     *     ray.set(inputSource.getOrigin(), inputSource.getDirection());
-     *     if (obj.intersectsRay(ray)) {
-     *         // selected an object with input source
-     *     }
-     * });
-     */
-    /**
-     * Fired when {@link XrInputSource} has started to trigger primary action.
-     *
-     * @event XrInput#selectstart
-     * @param {XrInputSource} inputSource - Input source that triggered selectstart event.
-     * @param {object} evt - XRInputSourceEvent event data from WebXR API.
-     */
-    /**
-     * Fired when {@link XrInputSource} has ended triggerring primary action.
-     *
-     * @event XrInput#selectend
-     * @param {XrInputSource} inputSource - Input source that triggered selectend event.
-     * @param {object} evt - XRInputSourceEvent event data from WebXR API.
-     */
-    /**
-     * Fired when {@link XrInputSource} has triggered squeeze action. This is associated with
-     * "grabbing" action on the controllers.
-     *
-     * @event XrInput#squeeze
-     * @param {XrInputSource} inputSource - Input source that triggered squeeze event.
-     * @param {object} evt - XRInputSourceEvent event data from WebXR API.
-     */
-    /**
-     * Fired when {@link XrInputSource} has started to trigger sqeeze action.
-     *
-     * @event XrInput#squeezestart
-     * @param {XrInputSource} inputSource - Input source that triggered squeezestart event.
-     * @param {object} evt - XRInputSourceEvent event data from WebXR API.
-     * @example
-     * app.xr.input.on('squeezestart', function (inputSource, evt) {
-     *     if (obj.containsPoint(inputSource.getPosition())) {
-     *         // grabbed an object
-     *     }
-     * });
-     */
-    /**
-     * Fired when {@link XrInputSource} has ended triggerring sqeeze action.
-     *
-     * @event XrInput#squeezeend
-     * @param {XrInputSource} inputSource - Input source that triggered squeezeend event.
-     * @param {object} evt - XRInputSourceEvent event data from WebXR API.
-     */
+    velocitiesSupported: boolean;
     /** @private */
     private _onSessionStart;
     /** @private */
@@ -33474,6 +35539,27 @@ declare class XrInput extends EventHandler {
  * @category XR
  */
 declare class XrLightEstimation extends EventHandler {
+    /**
+     * Fired when light estimation data becomes available.
+     *
+     * @event
+     * @example
+     * app.xr.lightEstimation.on('available', () => {
+     *     console.log('Light estimation is available');
+     * });
+     */
+    static EVENT_AVAILABLE: string;
+    /**
+     * Fired when light estimation has failed to start. The handler is passed the Error object
+     * related to failure of light estimation start.
+     *
+     * @event
+     * @example
+     * app.xr.lightEstimation.on('error', (error) => {
+     *     console.error(error.message);
+     * });
+     */
+    static EVENT_ERROR: string;
     /**
      * Create a new XrLightEstimation instance.
      *
@@ -33526,21 +35612,6 @@ declare class XrLightEstimation extends EventHandler {
      * @private
      */
     private _sphericalHarmonics;
-    /**
-     * Fired when light estimation data becomes available.
-     *
-     * @event XrLightEstimation#available
-     */
-    /**
-     * Fired when light estimation has failed to start.
-     *
-     * @event XrLightEstimation#error
-     * @param {Error} error - Error object related to failure of light estimation start.
-     * @example
-     * app.xr.lightEstimation.on('error', function (ex) {
-     *     // has failed to start
-     * });
-     */
     /** @private */
     private _onSessionStart;
     /** @private */
@@ -33616,6 +35687,452 @@ declare class XrLightEstimation extends EventHandler {
 }
 
 /**
+ * Represents XR View which represents a screen (mobile phone context) or an eye (HMD context).
+ * It provides access to view's color and depth information based on capabilities of underlying
+ * AR system.
+ *
+ * @category XR
+ */
+declare class XrView extends EventHandler {
+    /**
+     * Fired when the depth sensing texture been resized. The {@link XrView#depthUvMatrix} needs
+     * to be updated for relevant shaders. The handler is passed the new width and height of the
+     * depth texture in pixels.
+     *
+     * @event
+     * @example
+     * view.on('depth:resize', () => {
+     *     material.setParameter('matrix_depth_uv', view.depthUvMatrix);
+     * });
+     */
+    static EVENT_DEPTHRESIZE: string;
+    /**
+     * Create a new XrView instance.
+     *
+     * @param {import('./xr-manager.js').XrManager} manager - WebXR Manager.
+     * @param {XRView} xrView - [XRView](https://developer.mozilla.org/en-US/docs/Web/API/XRView)
+     * object that is created by WebXR API.
+     * @param {number} viewsCount - Number of views available for the session.
+     * @hideconstructor
+     */
+    constructor(manager: XrManager, xrView: XRView, viewsCount: number);
+    /**
+     * @type {import('./xr-manager.js').XrManager}
+     * @private
+     */
+    private _manager;
+    /**
+     * @type {XRView}
+     * @private
+     */
+    private _xrView;
+    /**
+     * @type {Float32Array}
+     * @private
+     */
+    private _positionData;
+    /**
+     * @type {Vec4}
+     * @private
+     */
+    private _viewport;
+    /**
+     * @type {Mat4}
+     * @private
+     */
+    private _projMat;
+    /**
+     * @type {Mat4}
+     * @private
+     */
+    private _projViewOffMat;
+    /**
+     * @type {Mat4}
+     * @private
+     */
+    private _viewMat;
+    /**
+     * @type {Mat4}
+     * @private
+     */
+    private _viewOffMat;
+    /**
+     * @type {Mat3}
+     * @private
+     */
+    private _viewMat3;
+    /**
+     * @type {Mat4}
+     * @private
+     */
+    private _viewInvMat;
+    /**
+     * @type {Mat4}
+     * @private
+     */
+    private _viewInvOffMat;
+    /**
+     * @type {XRCamera}
+     * @private
+     */
+    private _xrCamera;
+    /**
+     * @type {Texture|null}
+     * @private
+     */
+    private _textureColor;
+    /**
+     * @type {Texture|null}
+     * @private
+     */
+    private _textureDepth;
+    /**
+     * @type {XRDepthInformation|null}
+     * @private
+     */
+    private _depthInfo;
+    /**
+     * @type {Uint8Array}
+     * @private
+     */
+    private _emptyDepthBuffer;
+    /**
+     * @type {Mat4}
+     * @private
+     */
+    private _depthMatrix;
+    /**
+     * Texture associated with this view's camera color. Equals to null if camera color is
+     * not available or not supported.
+     *
+     * @type {Texture|null}
+     */
+    get textureColor(): Texture;
+    /**
+     * Texture that contains packed depth information which is reconstructed using the underlying
+     * AR system. This texture can be used (not limited to) for reconstructing real world
+     * geometry, virtual object placement, occlusion of virtual object by the real world geometry,
+     * and more.
+     * The format of this texture is {@link PIXELFORMAT_LA8} or {@link PIXELFORMAT_R32F}
+     * based on {@link XrViews#depthFormat}. It is UV transformed based on the underlying AR
+     * system which can be normalized using {@link XrView#depthUvMatrix}. Equals to null if camera
+     * depth is not supported.
+     *
+     * @type {Texture|null}
+     * @example
+     * // GPU path, attaching texture to material
+     * material.setParameter('texture_depthSensingMap', view.textureDepth);
+     * material.setParameter('matrix_depth_uv', view.depthUvMatrix.data);
+     * material.setParameter('depth_to_meters', view.depthValueToMeters);
+     * @example
+     * // GLSL shader to unpack depth texture
+     * varying vec2 vUv0;
+     *
+     * uniform sampler2D texture_depthSensingMap;
+     * uniform mat4 matrix_depth_uv;
+     * uniform float depth_to_meters;
+     *
+     * void main(void) {
+     *     // transform UVs using depth matrix
+     *     vec2 texCoord = (matrix_depth_uv * vec4(vUv0.xy, 0.0, 1.0)).xy;
+     *
+     *     // get luminance alpha components from depth texture
+     *     vec2 packedDepth = texture2D(texture_depthSensingMap, texCoord).ra;
+     *
+     *     // unpack into single value in millimeters
+     *     float depth = dot(packedDepth, vec2(255.0, 256.0 * 255.0)) * depth_to_meters; // m
+     *
+     *     // normalize: 0m to 8m distance
+     *     depth = min(depth / 8.0, 1.0); // 0..1 = 0m..8m
+     *
+     *     // paint scene from black to white based on distance
+     *     gl_FragColor = vec4(depth, depth, depth, 1.0);
+     * }
+     */
+    get textureDepth(): Texture;
+    /**
+     * 4x4 matrix that should be used to transform depth texture UVs to normalized UVs in a shader.
+     * It is updated when the depth texture is resized. Refer to {@link XrView#depthResize}.
+     *
+     * @type {Mat4}
+     * @example
+     * material.setParameter('matrix_depth_uv', view.depthUvMatrix.data);
+     */
+    get depthUvMatrix(): Mat4;
+    /**
+     * Multiply this coefficient number by raw depth value to get depth in meters.
+     *
+     * @type {number}
+     * @example
+     * material.setParameter('depth_to_meters', view.depthValueToMeters);
+     */
+    get depthValueToMeters(): number;
+    /**
+     * An eye with which this view is associated. Can be any of:
+     *
+     * - {@link XREYE_NONE}: None - inidcates a monoscopic view (likely mobile phone screen).
+     * - {@link XREYE_LEFT}: Left - indicates left eye view.
+     * - {@link XREYE_RIGHT}: Right - indicates a right eye view.
+     *
+     * @type {string}
+     */
+    get eye(): string;
+    /**
+     * A Vec4 (x, y, width, height) that represents a view's viewport. For monoscopic screen
+     * it will define fullscreen view, but for stereoscopic views (left/right eye) it will define
+     * a part of a whole screen that view is occupying.
+     *
+     * @type {Vec4}
+     */
+    get viewport(): Vec4;
+    /**
+     * @type {Mat4}
+     * @ignore
+     */
+    get projMat(): Mat4;
+    /**
+     * @type {Mat4}
+     * @ignore
+     */
+    get projViewOffMat(): Mat4;
+    /**
+     * @type {Mat4}
+     * @ignore
+     */
+    get viewOffMat(): Mat4;
+    /**
+     * @type {Mat4}
+     * @ignore
+     */
+    get viewInvOffMat(): Mat4;
+    /**
+     * @type {Mat3}
+     * @ignore
+     */
+    get viewMat3(): Mat3;
+    /**
+     * @type {Float32Array}
+     * @ignore
+     */
+    get positionData(): Float32Array;
+    /**
+     * @param {XRFrame} frame - XRFrame from requestAnimationFrame callback.
+     * @param {XRView} xrView - XRView from WebXR API.
+     * @ignore
+     */
+    update(frame: XRFrame, xrView: XRView): void;
+    /**
+     * @private
+     */
+    private _updateTextureColor;
+    _frameBufferSource: any;
+    _frameBuffer: any;
+    /**
+     * @param {XRFrame} frame - XRFrame from requestAnimationFrame callback.
+     * @private
+     */
+    private _updateDepth;
+    /**
+     * @param {Mat4|null} transform - World Transform of a parents GraphNode.
+     * @ignore
+     */
+    updateTransforms(transform: Mat4 | null): void;
+    _onDeviceLost(): void;
+    /**
+     * Get depth value from depth information in meters. UV is in range of 0..1, with origin in
+     * top-left corner of a texture.
+     *
+     * @param {number} u - U coordinate of pixel in depth texture, which is in range from 0.0 to
+     * 1.0 (left to right).
+     * @param {number} v - V coordinate of pixel in depth texture, which is in range from 0.0 to
+     * 1.0 (top to bottom).
+     * @returns {number|null} Depth in meters or null if depth information is currently not
+     * available.
+     * @example
+     * const depth = view.getDepth(u, v);
+     * if (depth !== null) {
+     *     // depth in meters
+     * }
+     */
+    getDepth(u: number, v: number): number | null;
+    /**
+     * @ignore
+     */
+    destroy(): void;
+}
+
+/**
+ * Provides access to list of {@link XrView}'s. And information about their capabilities,
+ * such as support and availability of view's camera color texture.
+ *
+ * @category XR
+ */
+declare class XrViews extends EventHandler {
+    /**
+     * Fired when view has been added. Views are not available straight away on session start
+     * and are added mid-session. They can be added/removed mid session by underlyng system. The
+     * handler is passed the {@link XrView} that has been added.
+     *
+     * @event
+     * @example
+     * xr.views.on('add', (view) => {
+     *     console.log('View added');
+     * });
+     */
+    static EVENT_ADD: string;
+    /**
+     * Fired when view has been removed. They can be added/removed mid session by underlyng system.
+     * The handler is passed the {@link XrView} that has been removed.
+     *
+     * @event
+     * @example
+     * xr.views.on('remove', (view) => {
+     *     console.log('View removed');
+     * });
+     */
+    static EVENT_REMOVE: string;
+    /**
+     * @param {import('./xr-manager.js').XrManager} manager - WebXR Manager.
+     * @hideconstructor
+     */
+    constructor(manager: XrManager);
+    /**
+     * @type {import('./xr-manager.js').XrManager}
+     * @private
+     */
+    private _manager;
+    /**
+     * @type {Map<string,XrView>}
+     * @private
+     */
+    private _index;
+    /**
+     * @type {Map<string,XrView>}
+     * @private
+     */
+    private _indexTmp;
+    /**
+     * @type {XrView[]}
+     * @private
+     */
+    private _list;
+    /**
+     * @type {boolean}
+     * @private
+     */
+    private _supportedColor;
+    /**
+     * @type {boolean}
+     * @private
+     */
+    private _supportedDepth;
+    /**
+     * @type {boolean}
+     * @private
+     */
+    private _availableColor;
+    /**
+     * @type {boolean}
+     * @private
+     */
+    private _availableDepth;
+    /**
+     * @type {string}
+     * @private
+     */
+    private _depthUsage;
+    /**
+     * @type {string}
+     * @private
+     */
+    private _depthFormat;
+    /**
+     * @type {object}
+     * @private
+     */
+    private _depthFormats;
+    /**
+     * An array of {@link XrView}'s of this session. Views are not available straight
+     * away on session start, and can be added/removed mid-session. So use of add/remove
+     * events is required for accessing views.
+     *
+     * @type {XrView[]}
+     */
+    get list(): XrView[];
+    /**
+     * Check if Camera Color is supported. It might be still unavailable even if requested,
+     * based on hardware capabilities and granted permissions.
+     *
+     * @type {boolean}
+     */
+    get supportedColor(): boolean;
+    /**
+     * Check if Camera Depth is supported. It might be still unavailable even if requested,
+     * based on hardware capabilities and granted permissions.
+     *
+     * @type {boolean}
+     */
+    get supportedDepth(): boolean;
+    /**
+     * Check if Camera Color is available. This information becomes available only after
+     * session has started.
+     *
+     * @type {boolean}
+     */
+    get availableColor(): boolean;
+    /**
+     * Check if Camera Depth is available. This information becomes available only after
+     * session has started.
+     *
+     * @type {boolean}
+     */
+    get availableDepth(): boolean;
+    /**
+     * Whether the depth sensing is GPU optimized.
+     *
+     * @type {boolean}
+     * @ignore
+     */
+    get depthGpuOptimized(): boolean;
+    /**
+     * @type {string}
+     * @ignore
+     */
+    get depthFormat(): string;
+    /**
+     * The depth sensing pixel format. Currently supported either:
+     * {@link PIXELFORMAT_LA8} or {@link PIXELFORMAT_R32F}
+     *
+     * @type {number|null}
+     */
+    get depthPixelFormat(): number;
+    /**
+     * @type {string}
+     * @ignore
+     */
+    get depthUsage(): string;
+    /**
+     * @param {*} frame - XRFrame from requestAnimationFrame callback.
+     * @param {XRView} xrView - XRView from WebXR API.
+     * @ignore
+     */
+    update(frame: any, xrViews: any): void;
+    /**
+     * @param {string} eye - An XREYE_* view is associated with. Can be 'none' for monoscope views.
+     * @returns {XrView|null} View or null if view of such eye is not available.
+     */
+    get(eye: string): XrView | null;
+    /**
+     * @private
+     */
+    private _onSessionStart;
+    /**
+     * @private
+     */
+    private _onSessionEnd;
+}
+
+/**
  * Callback used by {@link XrAnchorpersist }.
  */
 export type XrAnchorPersistCallback = (err: Error | null, uuid: string | null) => any;
@@ -33648,6 +36165,51 @@ export type XrAnchorForgetCallback = (err: Error | null) => any;
  */
 declare class XrAnchor extends EventHandler {
     /**
+     * Fired when an anchor is destroyed.
+     *
+     * @event
+     * @example
+     * // once anchor is destroyed
+     * anchor.once('destroy', () => {
+     *     // destroy its related entity
+     *     entity.destroy();
+     * });
+     */
+    static EVENT_DESTROY: string;
+    /**
+     * Fired when an anchor's position and/or rotation is changed.
+     *
+     * @event
+     * @example
+     * anchor.on('change', () => {
+     *     // anchor has been updated
+     *     entity.setPosition(anchor.getPosition());
+     *     entity.setRotation(anchor.getRotation());
+     * });
+     */
+    static EVENT_CHANGE: string;
+    /**
+     * Fired when an anchor has has been persisted. The handler is passed the UUID string that can
+     * be used to restore this anchor.
+     *
+     * @event
+     * @example
+     * anchor.on('persist', (uuid) => {
+     *     // anchor has been persisted
+     * });
+     */
+    static EVENT_PERSIST: string;
+    /**
+     * Fired when an anchor has been forgotten.
+     *
+     * @event
+     * @example
+     * anchor.on('forget', () => {
+     *     // anchor has been forgotten
+     * });
+     */
+    static EVENT_FORGET: string;
+    /**
      * @param {import('./xr-anchors.js').XrAnchors} anchors - Anchor manager.
      * @param {object} xrAnchor - native XRAnchor object that is provided by WebXR API
      * @param {string|null} uuid - ID string associated with a persistent anchor
@@ -33676,47 +36238,6 @@ declare class XrAnchor extends EventHandler {
     private _uuidRequests;
     _anchors: XrAnchors;
     _xrAnchor: any;
-    /**
-     * Fired when an {@link XrAnchor} is destroyed.
-     *
-     * @event XrAnchor#destroy
-     * @example
-     * // once anchor is destroyed
-     * anchor.once('destroy', function () {
-     *     // destroy its related entity
-     *     entity.destroy();
-     * });
-     */
-    /**
-     * Fired when an {@link XrAnchor}'s position and/or rotation is changed.
-     *
-     * @event XrAnchor#change
-     * @example
-     * anchor.on('change', function () {
-     *     // anchor has been updated
-     *     entity.setPosition(anchor.getPosition());
-     *     entity.setRotation(anchor.getRotation());
-     * });
-     */
-    /**
-     * Fired when an {@link XrAnchor}'s has been persisted.
-     *
-     * @event XrAnchor#persist
-     * @param {string} uuid - Unique string that can be used to restore this anchor.
-     * @example
-     * anchor.on('persist', function (uuid) {
-     *     // anchor has been persisted
-     * });
-     */
-    /**
-     * Fired when an {@link XrAnchor}'s has been forgotten.
-     *
-     * @event XrAnchor#forget
-     * @example
-     * anchor.on('forget', function () {
-     *     // anchor has been forgotten
-     * });
-     */
     /**
      * Destroy an anchor.
      */
@@ -33772,11 +36293,11 @@ declare class XrAnchor extends EventHandler {
 /**
  * Callback used by {@link XrAnchorscreate }.
  */
-type XrAnchorCreate = (err: Error | null, anchor: XrAnchor | null) => any;
+export type XrAnchorCreateCallback = (err: Error | null, anchor: XrAnchor | null) => any;
 /**
  * Callback used by {@link XrAnchors#create}.
  *
- * @callback XrAnchorCreate
+ * @callback XrAnchorCreateCallback
  * @param {Error|null} err - The Error object if failed to create an anchor or null.
  * @param {XrAnchor|null} anchor - The anchor that is tracked against real world geometry.
  */
@@ -33797,15 +36318,77 @@ type XrAnchorCreate = (err: Error | null, anchor: XrAnchor | null) => any;
  */
 declare class XrAnchors extends EventHandler {
     /**
+     * Fired when anchors become available.
+     *
+     * @event
+     * @example
+     * app.xr.anchors.on('available', () => {
+     *     console.log('Anchors are available');
+     * });
+     */
+    static EVENT_AVAILABLE: string;
+    /**
+     * Fired when anchors become unavailable.
+     *
+     * @event
+     * @example
+     * app.xr.anchors.on('unavailable', () => {
+     *     console.log('Anchors are unavailable');
+     * });
+     */
+    static EVENT_UNAVAILABLE: string;
+    /**
+     * Fired when an anchor failed to be created. The handler is passed an Error object.
+     *
+     * @event
+     * @example
+     * app.xr.anchors.on('error', (err) => {
+     *     console.error(err.message);
+     * });
+     */
+    static EVENT_ERROR: string;
+    /**
+     * Fired when a new {@link XrAnchor} is added. The handler is passed the {@link XrAnchor} that
+     * was added.
+     *
+     * @event
+     * @example
+     * app.xr.anchors.on('add', (anchor) => {
+     *     console.log('Anchor added');
+     * });
+     */
+    static EVENT_ADD: string;
+    /**
+     * Fired when an {@link XrAnchor} is destroyed. The handler is passed the {@link XrAnchor} that
+     * was destroyed.
+     *
+     * @event
+     * @example
+     * app.xr.anchors.on('destroy', (anchor) => {
+     *     console.log('Anchor destroyed');
+     * });
+     */
+    static EVENT_DESTROY: string;
+    /**
      * @param {import('./xr-manager.js').XrManager} manager - WebXR Manager.
      * @hideconstructor
      */
     constructor(manager: XrManager);
     /**
+     * @type {import('./xr-manager.js').XrManager}
+     * @ignore
+     */
+    manager: XrManager;
+    /**
      * @type {boolean}
      * @private
      */
     private _supported;
+    /**
+     * @type {boolean}
+     * @private
+     */
+    private _available;
     /**
      * @type {boolean}
      * @private
@@ -33841,37 +36424,12 @@ declare class XrAnchors extends EventHandler {
      * Map of callbacks to XRAnchors so that we can call its callback once
      * an anchor is updated with a pose for the first time.
      *
-     * @type {Map<XrAnchor,XrAnchorCreate>}
+     * @type {Map<XrAnchor, XrAnchorCreateCallback>}
      * @private
      */
     private _callbacksAnchors;
-    manager: XrManager;
-    /**
-     * Fired when anchor failed to be created.
-     *
-     * @event XrAnchors#error
-     * @param {Error} error - Error object related to a failure of anchors.
-     */
-    /**
-     * Fired when a new {@link XrAnchor} is added.
-     *
-     * @event XrAnchors#add
-     * @param {XrAnchor} anchor - Anchor that has been added.
-     * @example
-     * app.xr.anchors.on('add', function (anchor) {
-     *     // new anchor is added
-     * });
-     */
-    /**
-     * Fired when an {@link XrAnchor} is destroyed.
-     *
-     * @event XrAnchors#destroy
-     * @param {XrAnchor} anchor - Anchor that has been destroyed.
-     * @example
-     * app.xr.anchors.on('destroy', function (anchor) {
-     *     // anchor that is destroyed
-     * });
-     */
+    /** @private */
+    private _onSessionStart;
     /** @private */
     private _onSessionEnd;
     /**
@@ -33891,8 +36449,8 @@ declare class XrAnchors extends EventHandler {
      * Create anchor with position, rotation and a callback.
      *
      * @param {import('../../core/math/vec3.js').Vec3|XRHitTestResult} position - Position for an anchor.
-     * @param {import('../../core/math/quat.js').Quat|XrAnchorCreate} [rotation] - Rotation for an anchor.
-     * @param {XrAnchorCreate} [callback] - Callback to fire when anchor was created or failed to be created.
+     * @param {import('../../core/math/quat.js').Quat|XrAnchorCreateCallback} [rotation] - Rotation for an anchor.
+     * @param {XrAnchorCreateCallback} [callback] - Callback to fire when anchor was created or failed to be created.
      * @example
      * // create an anchor using a position and rotation
      * app.xr.anchors.create(position, rotation, function (err, anchor) {
@@ -33910,12 +36468,12 @@ declare class XrAnchors extends EventHandler {
      *     });
      * });
      */
-    create(position: Vec3 | XRHitTestResult, rotation?: Quat | XrAnchorCreate, callback?: XrAnchorCreate): void;
+    create(position: Vec3 | XRHitTestResult, rotation?: Quat | XrAnchorCreateCallback, callback?: XrAnchorCreateCallback): void;
     /**
      * Restore anchor using persistent UUID.
      *
      * @param {string} uuid - UUID string associated with persistent anchor.
-     * @param {XrAnchorCreate} [callback] - Callback to fire when anchor was created or failed to be created.
+     * @param {XrAnchorCreateCallback} [callback] - Callback to fire when anchor was created or failed to be created.
      * @example
      * // restore an anchor using uuid string
      * app.xr.anchors.restore(uuid, function (err, anchor) {
@@ -33930,7 +36488,7 @@ declare class XrAnchors extends EventHandler {
      *     app.xr.anchors.restore(uuids[i]);
      * }
      */
-    restore(uuid: string, callback?: XrAnchorCreate): void;
+    restore(uuid: string, callback?: XrAnchorCreateCallback): void;
     /**
      * Forget an anchor by removing its UUID from underlying systems.
      *
@@ -33956,6 +36514,12 @@ declare class XrAnchors extends EventHandler {
      * @type {boolean}
      */
     get supported(): boolean;
+    /**
+     * True if Anchors are available. This information is available only when session has started.
+     *
+     * @type {boolean}
+     */
+    get available(): boolean;
     /**
      * True if Anchors support persistence.
      *
@@ -34004,6 +36568,70 @@ export type XrRoomCaptureCallback = (err: Error | null) => any;
  */
 declare class XrManager extends EventHandler {
     /**
+     * Fired when availability of the XR type is changed. This event is available in two
+     * forms. They are as follows:
+     *
+     * 1. `available` - Fired when availability of any XR type is changed. The handler is passed
+     * the session type that has changed availability and a boolean representing the availability.
+     * 2. `available:[type]` - Fired when availability of specific XR type is changed. The handler
+     * is passed a boolean representing the availability.
+     *
+     * @event
+     * @example
+     * app.xr.on('available', (type, available) => {
+     *     console.log(`XR type ${type} is now ${available ? 'available' : 'unavailable'}`);
+     * });
+     * @example
+     * app.xr.on(`available:${pc.XRTYPE_VR}`, (available) => {
+     *     console.log(`XR type VR is now ${available ? 'available' : 'unavailable'}`);
+     * });
+     */
+    static EVENT_AVAILABLE: string;
+    /**
+     * Fired when XR session is started.
+     *
+     * @event
+     * @example
+     * app.xr.on('start', () => {
+     *     // XR session has started
+     * });
+     */
+    static EVENT_START: string;
+    /**
+     * Fired when XR session is ended.
+     *
+     * @event
+     * @example
+     * app.xr.on('end', () => {
+     *     // XR session has ended
+     * });
+     */
+    static EVENT_END: string;
+    /**
+     * Fired when XR session is updated, providing relevant XRFrame object. The handler is passed
+     * [XRFrame](https://developer.mozilla.org/en-US/docs/Web/API/XRFrame) object that can be used
+     * for interfacing directly with WebXR APIs.
+     *
+     * @event
+     * @example
+     * app.xr.on('update', (frame) => {
+     *     console.log('XR frame updated');
+     * });
+     */
+    static EVENT_UPDATE: string;
+    /**
+     * Fired when XR session is failed to start or failed to check for session type support. The handler
+     * is passed the [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)
+     * object related to failure of session start or check of session type support.
+     *
+     * @event
+     * @example
+     * app.xr.on('error', (error) => {
+     *     console.error(error.message);
+     * });
+     */
+    static EVENT_ERROR: string;
+    /**
      * Create a new XrManager instance.
      *
      * @param {import('../app-base.js').AppBase} app - The main application.
@@ -34046,6 +36674,11 @@ declare class XrManager extends EventHandler {
      */
     private _baseLayer;
     /**
+     * @type {XRWebGLBinding|null}
+     * @ignore
+     */
+    webglBinding: XRWebGLBinding | null;
+    /**
      * @type {XRReferenceSpace|null}
      * @ignore
      */
@@ -34086,6 +36719,13 @@ declare class XrManager extends EventHandler {
      */
     planeDetection: XrPlaneDetection;
     /**
+     * Provides access to mesh detection capabilities.
+     *
+     * @type {XrMeshDetection}
+     * @ignore
+     */
+    meshDetection: XrMeshDetection;
+    /**
      * Provides access to Input Sources.
      *
      * @type {XrInput}
@@ -34099,6 +36739,13 @@ declare class XrManager extends EventHandler {
      */
     lightEstimation: XrLightEstimation;
     /**
+     * Provides access to views and their capabilities.
+     *
+     * @type {XrViews}
+     * @ignore
+     */
+    views: XrViews;
+    /**
      * Provides access to Anchors.
      *
      * @type {XrAnchors}
@@ -34109,16 +36756,6 @@ declare class XrManager extends EventHandler {
      * @private
      */
     private _camera;
-    /**
-     * @type {Array<*>}
-     * @ignore
-     */
-    views: Array<any>;
-    /**
-     * @type {Array<*>}
-     * @ignore
-     */
-    viewsPool: Array<any>;
     /**
      * @type {Vec3}
      * @private
@@ -34149,67 +36786,6 @@ declare class XrManager extends EventHandler {
      * @private
      */
     private _height;
-    /**
-     * Fired when availability of specific XR type is changed.
-     *
-     * @event XrManager#available
-     * @param {string} type - The session type that has changed availability.
-     * @param {boolean} available - True if specified session type is now available.
-     * @example
-     * app.xr.on('available', function (type, available) {
-     *     console.log('"' + type + '" XR session is now ' + (available ? 'available' : 'unavailable'));
-     * });
-     */
-    /**
-     * Fired when availability of specific XR type is changed.
-     *
-     * @event XrManager#available:[type]
-     * @param {boolean} available - True if specified session type is now available.
-     * @example
-     * app.xr.on('available:' + pc.XRTYPE_VR, function (available) {
-     *     console.log('Immersive VR session is now ' + (available ? 'available' : 'unavailable'));
-     * });
-     */
-    /**
-     * Fired when XR session is started.
-     *
-     * @event XrManager#start
-     * @example
-     * app.xr.on('start', function () {
-     *     // XR session has started
-     * });
-     */
-    /**
-     * Fired when XR session is ended.
-     *
-     * @event XrManager#end
-     * @example
-     * app.xr.on('end', function () {
-     *     // XR session has ended
-     * });
-     */
-    /**
-     * Fired when XR session is updated, providing relevant XRFrame object.
-     *
-     * @event XrManager#update
-     * @param {object} frame - [XRFrame](https://developer.mozilla.org/en-US/docs/Web/API/XRFrame)
-     * object that can be used for interfacing directly with WebXR APIs.
-     * @example
-     * app.xr.on('update', function (frame) {
-     *
-     * });
-     */
-    /**
-     * Fired when XR session is failed to start or failed to check for session type support.
-     *
-     * @event XrManager#error
-     * @param {Error} error - Error object related to failure of session start or check of session
-     * type support.
-     * @example
-     * app.xr.on('error', function (ex) {
-     *     // XR session has failed to start, or failed to check for session type support
-     * });
-     */
     /**
      * Destroys the XrManager instance.
      *
@@ -34257,6 +36833,8 @@ declare class XrManager extends EventHandler {
      * {@link XrImageTracking}.
      * @param {boolean} [options.planeDetection] - Set to true to attempt to enable
      * {@link XrPlaneDetection}.
+     * @param {boolean} [options.meshDetection] - Set to true to attempt to enable
+     * {@link XrMeshDetection}.
      * @param {XrErrorCallback} [options.callback] - Optional callback function called once session
      * is started. The callback has one argument Error - it is null if successfully started XR
      * session.
@@ -34288,6 +36866,7 @@ declare class XrManager extends EventHandler {
         anchors?: boolean;
         imageTracking?: boolean;
         planeDetection?: boolean;
+        meshDetection?: boolean;
         callback?: XrErrorCallback;
         depthSensing?: {
             usagePreference?: string;
@@ -34374,6 +36953,11 @@ declare class XrManager extends EventHandler {
      * @private
      */
     private _setClipPlanes;
+    _createBaseLayer(): void;
+    /** @private */
+    private _onDeviceLost;
+    /** @private */
+    private _onDeviceRestored;
     /**
      * @param {*} frame - XRFrame from requestAnimationFrame callback.
      *
@@ -34746,6 +37330,16 @@ declare class CameraComponent extends Component {
     set layers(arg: number[]);
     get layers(): number[];
     get layersSet(): Set<number>;
+    /**
+     * A jitter intensity applied in the projection matrix. Used for jittered sampling by TAA.
+     * A value of 1 represents a jitter in the range of [-1 to 1] of a pixel. Smaller values result
+     * in a crisper yet more aliased outcome, whereas increased values produce smoother but blurred
+     * result. Defaults to 0, representing no jitter.
+     *
+     * @type {number}
+     */
+    set jitter(arg: number);
+    get jitter(): number;
     /**
      * The distance from the camera before which no rendering will take place. Defaults to 0.1.
      *
@@ -35166,6 +37760,7 @@ declare function partitionSkin(model: any, materialMappings: any, boneLimit: any
  *     uvs: uvs,
  *     indices: indices
  * });
+ * @category Graphics
  */
 declare function calculateNormals(positions: number[], indices: number[]): number[];
 /**
@@ -35185,6 +37780,7 @@ declare function calculateNormals(positions: number[], indices: number[]): numbe
  *     uvs: uvs,
  *     indices: indices
  * });
+ * @category Graphics
  */
 declare function calculateTangents(positions: number[], normals: number[], uvs: number[], indices: number[]): number[];
 /**
@@ -35209,7 +37805,10 @@ declare function calculateTangents(positions: number[], normals: number[], uvs: 
  * @param {number} [opts.heightSegments] - The number of divisions along the Y axis of the box
  * (defaults to 1).
  * @param {boolean} [opts.calculateTangents] - Generate tangent information (defaults to false).
+ * @param {number} [opts.yOffset] - Move the box vertically by given offset in local space. Pass
+ * 0.5 to generate the box with pivot point at the bottom face. Defaults to 0.
  * @returns {Mesh} A new box-shaped mesh.
+ * @category Graphics
  */
 declare function createBox(device: GraphicsDevice, opts?: {
     halfExtents?: Vec3;
@@ -35217,6 +37816,7 @@ declare function createBox(device: GraphicsDevice, opts?: {
     lengthSegments?: number;
     heightSegments?: number;
     calculateTangents?: boolean;
+    yOffset?: number;
 }): Mesh;
 /**
  * Creates a procedural capsule-shaped mesh.
@@ -35241,6 +37841,7 @@ declare function createBox(device: GraphicsDevice, opts?: {
  * (defaults to 20).
  * @param {boolean} [opts.calculateTangents] - Generate tangent information (defaults to false).
  * @returns {Mesh} A new cylinder-shaped mesh.
+ * @category Graphics
  */
 declare function createCapsule(device: GraphicsDevice, opts?: {
     radius?: number;
@@ -35271,6 +37872,7 @@ declare function createCapsule(device: GraphicsDevice, opts?: {
  * (defaults to 18).
  * @param {boolean} [opts.calculateTangents] - Generate tangent information (defaults to false).
  * @returns {Mesh} A new cone-shaped mesh.
+ * @category Graphics
  */
 declare function createCone(device: GraphicsDevice, opts?: {
     baseRadius?: number;
@@ -35302,6 +37904,7 @@ declare function createCone(device: GraphicsDevice, opts?: {
  * cylinder (defaults to 20).
  * @param {boolean} [opts.calculateTangents] - Generate tangent information (defaults to false).
  * @returns {Mesh} A new cylinder-shaped mesh.
+ * @category Graphics
  */
 declare function createCylinder(device: GraphicsDevice, opts?: {
     radius?: number;
@@ -35336,6 +37939,7 @@ declare function createCylinder(device: GraphicsDevice, opts?: {
  *     uvs: [0, 0, 1, 0, 0, 1],
  *     indices: [0, 1, 2]
  * });
+ * @category Graphics
  */
 declare function createMesh(device: GraphicsDevice, positions: number[], opts?: {
     normals?: number[];
@@ -35369,6 +37973,7 @@ declare function createMesh(device: GraphicsDevice, positions: number[], opts?: 
  * (defaults to 5).
  * @param {boolean} [opts.calculateTangents] - Generate tangent information (defaults to false).
  * @returns {Mesh} A new plane-shaped mesh.
+ * @category Graphics
  */
 declare function createPlane(device: GraphicsDevice, opts?: {
     halfExtents?: Vec2;
@@ -35396,6 +38001,7 @@ declare function createPlane(device: GraphicsDevice, opts?: {
  * the sphere (defaults to 16).
  * @param {boolean} [opts.calculateTangents] - Generate tangent information (defaults to false).
  * @returns {Mesh} A new sphere-shaped mesh.
+ * @category Graphics
  */
 declare function createSphere(device: GraphicsDevice, opts?: {
     radius?: number;
@@ -35420,16 +38026,20 @@ declare function createSphere(device: GraphicsDevice, opts?: {
  * (defaults to 0.2).
  * @param {number} [opts.ringRadius] - The radius from the centre of the torus to the centre of the
  * tube (defaults to 0.3).
+ * @param {number} [opts.sectorAngle] - The sector angle in degrees of the ring of the torus
+ * (defaults to 2 * Math.PI).
  * @param {number} [opts.segments] - The number of radial divisions forming cross-sections of the
  * torus ring (defaults to 20).
  * @param {number} [opts.sides] - The number of divisions around the tubular body of the torus ring
  * (defaults to 30).
  * @param {boolean} [opts.calculateTangents] - Generate tangent information (defaults to false).
  * @returns {Mesh} A new torus-shaped mesh.
+ * @category Graphics
  */
 declare function createTorus(device: GraphicsDevice, opts?: {
     tubeRadius?: number;
     ringRadius?: number;
+    sectorAngle?: number;
     segments?: number;
     sides?: number;
     calculateTangents?: boolean;
@@ -35484,8 +38094,8 @@ declare class Picker {
      *
      * @param {number} x - The left edge of the rectangle.
      * @param {number} y - The top edge of the rectangle.
-     * @param {number} [width] - The width of the rectangle.
-     * @param {number} [height] - The height of the rectangle.
+     * @param {number} [width] - The width of the rectangle. Defaults to 1.
+     * @param {number} [height] - The height of the rectangle. Defaults to 1.
      * @returns {import('../../scene/mesh-instance.js').MeshInstance[]} An array of mesh instances
      * that are in the selection.
      * @example
@@ -35659,6 +38269,7 @@ declare class Channel3d extends Channel {
  * @param {globalThis.Touch} touch - The browser Touch object.
  * @returns {object} The coordinates of the touch relative to the touch.target DOM element. In the
  * format \{x, y\}.
+ * @category Input
  */
 declare function getTouchTargetCoords(touch: globalThis.Touch): object;
 /**
@@ -36039,6 +38650,9 @@ declare class ContextCreationError {
 declare function drawFullscreenQuad(device: any, target: any, vertexBuffer: any, shader: any, rect: any): void;
 declare function basisSetDownloadConfig(glueUrl: any, wasmUrl: any, fallbackUrl: any): void;
 declare function prefilterCubemap(options: any): void;
+declare const LINEBATCH_WORLD: 0;
+declare const LINEBATCH_OVERLAY: 1;
+declare const LINEBATCH_GIZMO: 2;
 declare namespace log {
     function write(text: any): void;
     function open(): void;
@@ -36261,6 +38875,16 @@ declare class Timer {
 }
 
 declare namespace events {
+    /**
+     * Attach event methods 'on', 'off', 'fire', 'once' and 'hasEvent' to the target object.
+     *
+     * @param {object} target - The object to add events to.
+     * @returns {object} The target object.
+     * @example
+     * const obj = { };
+     * pc.events.attach(obj);
+     * @ignore
+     */
     function attach(target: any): any;
     let _addCallback: (name: string, callback: HandleEventCallback, scope: any, once: boolean) => EventHandle;
     let on: (name: string, callback: HandleEventCallback, scope?: any) => EventHandle;
@@ -36271,22 +38895,109 @@ declare namespace events {
 }
 
 declare namespace guid {
+    /**
+     * Create an RFC4122 version 4 compliant GUID.
+     *
+     * @returns {string} A new GUID.
+     */
     function create(): string;
 }
 
 declare namespace path {
     let delimiter: string;
-    function join(...args: string[]): string;
+    /**
+     * Join two or more sections of file path together, inserting a delimiter if needed.
+     *
+     * @param {...string} sections - Sections of the path to join.
+     * @returns {string} The joined file path.
+     * @example
+     * const path = pc.path.join('foo', 'bar');
+     * console.log(path); // Prints 'foo/bar'
+     * @example
+     * const path = pc.path.join('alpha', 'beta', 'gamma');
+     * console.log(path); // Prints 'alpha/beta/gamma'
+     */
+    function join(...sections: string[]): string;
+    /**
+     * Normalize the path by removing '.' and '..' instances.
+     *
+     * @param {string} pathname - The path to normalize.
+     * @returns {string} The normalized path.
+     */
     function normalize(pathname: string): string;
+    /**
+     * Split the pathname path into a pair [head, tail] where tail is the final part of the path
+     * after the last delimiter and head is everything leading up to that. tail will never contain
+     * a slash.
+     *
+     * @param {string} pathname - The path to split.
+     * @returns {string[]} The split path which is an array of two strings, the path and the
+     * filename.
+     */
     function split(pathname: string): string[];
+    /**
+     * Return the basename of the path. That is the second element of the pair returned by passing
+     * path into {@link path.split}.
+     *
+     * @param {string} pathname - The path to process.
+     * @returns {string} The basename.
+     * @example
+     * pc.path.getBasename("/path/to/file.txt"); // returns "file.txt"
+     * pc.path.getBasename("/path/to/dir"); // returns "dir"
+     */
     function getBasename(pathname: string): string;
+    /**
+     * Get the directory name from the path. This is everything up to the final instance of
+     * {@link path.delimiter}.
+     *
+     * @param {string} pathname - The path to get the directory from.
+     * @returns {string} The directory part of the path.
+     */
     function getDirectory(pathname: string): string;
+    /**
+     * Return the extension of the path. Pop the last value of a list after path is split by
+     * question mark and comma.
+     *
+     * @param {string} pathname - The path to process.
+     * @returns {string} The extension.
+     * @example
+     * pc.path.getExtension("/path/to/file.txt"); // returns ".txt"
+     * pc.path.getExtension("/path/to/file.jpg"); // returns ".jpg"
+     * pc.path.getExtension("/path/to/file.txt?function=getExtension"); // returns ".txt"
+     */
     function getExtension(pathname: string): string;
+    /**
+     * Check if a string s is relative path.
+     *
+     * @param {string} pathname - The path to process.
+     * @returns {boolean} True if s doesn't start with slash and doesn't include colon and double
+     * slash.
+     *
+     * @example
+     * pc.path.isRelativePath("file.txt"); // returns true
+     * pc.path.isRelativePath("path/to/file.txt"); // returns true
+     * pc.path.isRelativePath("./path/to/file.txt"); // returns true
+     * pc.path.isRelativePath("../path/to/file.jpg"); // returns true
+     * pc.path.isRelativePath("/path/to/file.jpg"); // returns false
+     * pc.path.isRelativePath("http://path/to/file.jpg"); // returns false
+     */
     function isRelativePath(pathname: string): boolean;
+    /**
+     * Return the path without file name. If path is relative path, start with period.
+     *
+     * @param {string} pathname - The full path to process.
+     * @returns {string} The path without a last element from list split by slash.
+     * @example
+     * pc.path.extractPath("path/to/file.txt");    // returns "./path/to"
+     * pc.path.extractPath("./path/to/file.txt");  // returns "./path/to"
+     * pc.path.extractPath("../path/to/file.txt"); // returns "../path/to"
+     * pc.path.extractPath("/path/to/file.txt");   // returns "/path/to"
+     */
     function extractPath(pathname: string): string;
 }
 
 declare namespace platform {
+    export { platformName as name };
     export { environment };
     export let global: object;
     export let browser: boolean;
@@ -36301,6 +39012,7 @@ declare namespace platform {
     export { passiveEvents };
     export { browserName };
 }
+declare const platformName: "android" | "ios" | "windows" | "osx" | "linux" | "cros";
 declare const environment: "browser" | "node";
 declare const xbox: boolean;
 declare const gamepads: boolean;
@@ -36313,10 +39025,50 @@ declare namespace string {
     export { ASCII_LOWERCASE };
     export { ASCII_UPPERCASE };
     export { ASCII_LETTERS };
+    /**
+     * Return a string with \{n\} replaced with the n-th argument.
+     *
+     * @param {string} s - The string to format.
+     * @param {...*} args - All other arguments are substituted into the string.
+     * @returns {string} The formatted string.
+     * @example
+     * const s = pc.string.format("Hello {0}", "world");
+     * console.log(s); // Prints "Hello world"
+     */
     export function format(s: string, ...args: any[]): string;
+    /**
+     * Get the code point number for a character in a string. Polyfill for
+     * [`codePointAt`]{@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/codePointAt}.
+     *
+     * @param {string} string - The string to get the code point from.
+     * @param {number} [i] - The index in the string.
+     * @returns {number} The code point value for the character in the string.
+     */
     export function getCodePoint(string: string, i?: number): number;
+    /**
+     * Gets an array of all code points in a string.
+     *
+     * @param {string} string - The string to get code points from.
+     * @returns {number[]} The code points in the string.
+     */
     export function getCodePoints(string: string): number[];
+    /**
+     * Gets an array of all grapheme clusters (visible symbols) in a string. This is needed because
+     * some symbols (such as emoji or accented characters) are actually made up of multiple
+     * character codes. See {@link https://mathiasbynens.be/notes/javascript-unicode here} for more
+     * info.
+     *
+     * @param {string} string - The string to break into symbols.
+     * @returns {string[]} The symbols in the string.
+     */
     export function getSymbols(string: string): string[];
+    /**
+     * Get the string for a given code point or set of code points. Polyfill for
+     * [`fromCodePoint`]{@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/fromCodePoint}.
+     *
+     * @param {...number} args - The code points to convert to a string.
+     * @returns {string} The converted string.
+     */
     export function fromCodePoint(...args: number[]): string;
 }
 declare const ASCII_LOWERCASE: "abcdefghijklmnopqrstuvwxyz";
@@ -36417,6 +39169,8 @@ declare class ReadStream {
  * Log tracing functionality, allowing for tracing of the internal functionality of the engine.
  * Note that the trace logging only takes place in the debug build of the engine and is stripped
  * out in other builds.
+ *
+ * @category Debug
  */
 declare class Tracing {
     /**
@@ -36470,26 +39224,173 @@ declare class Tracing {
 declare namespace math {
     let DEG_TO_RAD: number;
     let RAD_TO_DEG: number;
+    /**
+     * Clamp a number between min and max inclusive.
+     *
+     * @param {number} value - Number to clamp.
+     * @param {number} min - Min value.
+     * @param {number} max - Max value.
+     * @returns {number} The clamped value.
+     */
     function clamp(value: number, min: number, max: number): number;
+    /**
+     * Convert an 24 bit integer into an array of 3 bytes.
+     *
+     * @param {number} i - Number holding an integer value.
+     * @returns {number[]} An array of 3 bytes.
+     * @example
+     * // Set bytes to [0x11, 0x22, 0x33]
+     * const bytes = pc.math.intToBytes24(0x112233);
+     */
     function intToBytes24(i: number): number[];
+    /**
+     * Convert an 32 bit integer into an array of 4 bytes.
+     *
+     * @param {number} i - Number holding an integer value.
+     * @returns {number[]} An array of 4 bytes.
+     * @example
+     * // Set bytes to [0x11, 0x22, 0x33, 0x44]
+     * const bytes = pc.math.intToBytes32(0x11223344);
+     */
     function intToBytes32(i: number): number[];
+    /**
+     * Convert 3 8 bit Numbers into a single unsigned 24 bit Number.
+     *
+     * @param {number} r - A single byte (0-255).
+     * @param {number} g - A single byte (0-255).
+     * @param {number} b - A single byte (0-255).
+     * @returns {number} A single unsigned 24 bit Number.
+     * @example
+     * // Set result1 to 0x112233 from an array of 3 values
+     * const result1 = pc.math.bytesToInt24([0x11, 0x22, 0x33]);
+     *
+     * // Set result2 to 0x112233 from 3 discrete values
+     * const result2 = pc.math.bytesToInt24(0x11, 0x22, 0x33);
+     */
     function bytesToInt24(r: number, g: number, b: number): number;
+    /**
+     * Convert 4 1-byte Numbers into a single unsigned 32bit Number.
+     *
+     * @param {number} r - A single byte (0-255).
+     * @param {number} g - A single byte (0-255).
+     * @param {number} b - A single byte (0-255).
+     * @param {number} a - A single byte (0-255).
+     * @returns {number} A single unsigned 32bit Number.
+     * @example
+     * // Set result1 to 0x11223344 from an array of 4 values
+     * const result1 = pc.math.bytesToInt32([0x11, 0x22, 0x33, 0x44]);
+     *
+     * // Set result2 to 0x11223344 from 4 discrete values
+     * const result2 = pc.math.bytesToInt32(0x11, 0x22, 0x33, 0x44);
+     */
     function bytesToInt32(r: number, g: number, b: number, a: number): number;
+    /**
+     * Calculates the linear interpolation of two numbers.
+     *
+     * @param {number} a - Number to linearly interpolate from.
+     * @param {number} b - Number to linearly interpolate to.
+     * @param {number} alpha - The value controlling the result of interpolation. When alpha is 0,
+     * a is returned. When alpha is 1, b is returned. Between 0 and 1, a linear interpolation
+     * between a and b is returned. alpha is clamped between 0 and 1.
+     * @returns {number} The linear interpolation of two numbers.
+     */
     function lerp(a: number, b: number, alpha: number): number;
+    /**
+     * Calculates the linear interpolation of two angles ensuring that interpolation is correctly
+     * performed across the 360 to 0 degree boundary. Angles are supplied in degrees.
+     *
+     * @param {number} a - Angle (in degrees) to linearly interpolate from.
+     * @param {number} b - Angle (in degrees) to linearly interpolate to.
+     * @param {number} alpha - The value controlling the result of interpolation. When alpha is 0,
+     * a is returned. When alpha is 1, b is returned. Between 0 and 1, a linear interpolation
+     * between a and b is returned. alpha is clamped between 0 and 1.
+     * @returns {number} The linear interpolation of two angles.
+     */
     function lerpAngle(a: number, b: number, alpha: number): number;
+    /**
+     * Returns true if argument is a power-of-two and false otherwise.
+     *
+     * @param {number} x - Number to check for power-of-two property.
+     * @returns {boolean} true if power-of-two and false otherwise.
+     */
     function powerOfTwo(x: number): boolean;
+    /**
+     * Returns the next power of 2 for the specified value.
+     *
+     * @param {number} val - The value for which to calculate the next power of 2.
+     * @returns {number} The next power of 2.
+     */
     function nextPowerOfTwo(val: number): number;
+    /**
+     * Returns the nearest (smaller or larger) power of 2 for the specified value.
+     *
+     * @param {number} val - The value for which to calculate the nearest power of 2.
+     * @returns {number} The nearest power of 2.
+     */
     function nearestPowerOfTwo(val: number): number;
+    /**
+     * Return a pseudo-random number between min and max. The number generated is in the range
+     * [min, max), that is inclusive of the minimum but exclusive of the maximum.
+     *
+     * @param {number} min - Lower bound for range.
+     * @param {number} max - Upper bound for range.
+     * @returns {number} Pseudo-random number between the supplied range.
+     */
     function random(min: number, max: number): number;
+    /**
+     * The function interpolates smoothly between two input values based on a third one that should
+     * be between the first two. The returned value is clamped between 0 and 1.
+     *
+     * The slope (i.e. derivative) of the smoothstep function starts at 0 and ends at 0. This makes
+     * it easy to create a sequence of transitions using smoothstep to interpolate each segment
+     * rather than using a more sophisticated or expensive interpolation technique.
+     *
+     * See https://en.wikipedia.org/wiki/Smoothstep for more details.
+     *
+     * @param {number} min - The lower bound of the interpolation range.
+     * @param {number} max - The upper bound of the interpolation range.
+     * @param {number} x - The value to interpolate.
+     * @returns {number} The smoothly interpolated value clamped between zero and one.
+     */
     function smoothstep(min: number, max: number, x: number): number;
+    /**
+     * An improved version of the {@link math.smoothstep} function which has zero 1st and 2nd order
+     * derivatives at t=0 and t=1.
+     *
+     * See https://en.wikipedia.org/wiki/Smoothstep#Variations for more details.
+     *
+     * @param {number} min - The lower bound of the interpolation range.
+     * @param {number} max - The upper bound of the interpolation range.
+     * @param {number} x - The value to interpolate.
+     * @returns {number} The smoothly interpolated value clamped between zero and one.
+     */
     function smootherstep(min: number, max: number, x: number): number;
+    /**
+     * Rounds a number up to nearest multiple.
+     *
+     * @param {number} numToRound - The number to round up.
+     * @param {number} multiple - The multiple to round up to.
+     * @returns {number} A number rounded up to nearest multiple.
+     */
     function roundUp(numToRound: number, multiple: number): number;
+    /**
+     * Checks whether a given number resides between two other given numbers.
+     *
+     * @param {number} num - The number to check the position of.
+     * @param {number} a - The first upper or lower threshold to check between.
+     * @param {number} b - The second upper or lower threshold to check between.
+     * @param {boolean} inclusive - If true, a num param which is equal to a or b will return true.
+     * @returns {boolean} true if between or false otherwise.
+     * @ignore
+     */
     function between(num: number, a: number, b: number, inclusive: boolean): boolean;
 }
 
 /**
  * Utility static class providing functionality to pack float values to various storage
  * representations.
+ *
+ * @category Math
  */
 declare class FloatPacking {
     /**
@@ -36637,6 +39538,7 @@ declare class OrientedBox {
  *
  * Defaults to 'default'.
  * @returns {Promise} - Promise object representing the created graphics device.
+ * @category Graphics
  */
 declare function createGraphicsDevice(canvas: HTMLCanvasElement, options?: {
     deviceTypes?: string[];
@@ -36681,6 +39583,53 @@ declare class Compute {
      * @param {number} [z] - Z dimension of the grid of work-groups to dispatch.
      */
     dispatch(x: number, y?: number, z?: number): void;
+}
+
+/**
+ * Options to drive shader processing to add support for bind groups and uniform buffers.
+ *
+ * @ignore
+ */
+declare class ShaderProcessorOptions {
+    /**
+     * Constructs shader processing options, used to process the shader for uniform buffer support.
+     *
+     * @param {import('./uniform-buffer-format.js').UniformBufferFormat} [viewUniformFormat] - Format
+     * of the uniform buffer.
+     * @param {import('./bind-group-format.js').BindGroupFormat} [viewBindGroupFormat] - Format of
+     * the bind group.
+     * @param {import('./vertex-format.js').VertexFormat} [vertexFormat] - Format of the vertex
+     * buffer.
+     */
+    constructor(viewUniformFormat?: UniformBufferFormat, viewBindGroupFormat?: BindGroupFormat, vertexFormat?: VertexFormat);
+    /** @type {import('./uniform-buffer-format.js').UniformBufferFormat[]} */
+    uniformFormats: UniformBufferFormat[];
+    /** @type {import('./bind-group-format.js').BindGroupFormat[]} */
+    bindGroupFormats: BindGroupFormat[];
+    /** @type {import('./vertex-format.js').VertexFormat[]} */
+    vertexFormat: VertexFormat[];
+    /**
+     * Get the bind group index for the uniform name.
+     *
+     * @param {string} name - The name of the uniform.
+     * @returns {boolean} - Returns true if the uniform exists, false otherwise.
+     */
+    hasUniform(name: string): boolean;
+    /**
+     * Get the bind group texture slot for the texture uniform name.
+     *
+     * @param {string} name - The name of the texture uniform.
+     * @returns {boolean} - Returns true if the texture uniform exists, false otherwise.
+     */
+    hasTexture(name: string): boolean;
+    getVertexElement(semantic: any): any;
+    /**
+     * Generate unique key representing the processing options.
+     *
+     * @param {import('./graphics-device.js').GraphicsDevice} device - The device.
+     * @returns {string} - Returns the key.
+     */
+    generateKey(device: GraphicsDevice): string;
 }
 
 /**
@@ -37000,7 +39949,11 @@ declare class WebglTexture {
     loseContext(): void;
     propertyChanged(flag: any): void;
     initialize(device: any, texture: any): void;
-    upload(device: any, texture: any): void;
+    /**
+     * @param {import('./webgl-graphics-device.js').WebglGraphicsDevice} device - The device.
+     * @param {import('../texture.js').Texture} texture - The texture to update.
+     */
+    upload(device: WebglGraphicsDevice, texture: Texture): void;
 }
 
 /**
@@ -37256,7 +40209,6 @@ declare class WebglGraphicsDevice extends GraphicsDevice {
     maxSamples: any;
     supportsAreaLights: boolean;
     supportsTextureFetch: boolean;
-    blendColor: Color;
     stencil: any;
     stencilFuncFront: any;
     stencilFuncBack: any;
@@ -37274,7 +40226,7 @@ declare class WebglGraphicsDevice extends GraphicsDevice {
     stencilWriteMaskBack: any;
     alphaToCoverage: any;
     raster: any;
-    depthBiasEnabled: any;
+    depthBiasEnabled: boolean;
     clearDepth: any;
     clearColor: Color;
     clearStencil: any;
@@ -37570,23 +40522,6 @@ declare class WebglGraphicsDevice extends GraphicsDevice {
      * @ignore
      */
     setRaster(on: boolean): void;
-    /**
-     * Toggles the polygon offset render state.
-     *
-     * @param {boolean} on - True to enable polygon offset and false to disable it.
-     * @ignore
-     */
-    setDepthBias(on: boolean): void;
-    /**
-     * Specifies the scale factor and units to calculate depth values. The offset is added before
-     * the depth test is performed and before the value is written into the depth buffer.
-     *
-     * @param {number} constBias - The multiplier by which an implementation-specific value is
-     * multiplied with to create a constant depth offset.
-     * @param {number} slopeBias - The scale factor for the variable depth offset for each polygon.
-     * @ignore
-     */
-    setDepthBiasValues(constBias: number, slopeBias: number): void;
     setStencilTest(enable: any): void;
     setStencilFunc(func: any, ref: any, mask: any): void;
     setStencilFuncFront(func: any, ref: any, mask: any): void;
@@ -37595,16 +40530,6 @@ declare class WebglGraphicsDevice extends GraphicsDevice {
     setStencilOperationFront(fail: any, zfail: any, zpass: any, writeMask: any): void;
     setStencilOperationBack(fail: any, zfail: any, zpass: any, writeMask: any): void;
     setBlendState(blendState: any): void;
-    /**
-     * Set the source and destination blending factors.
-     *
-     * @param {number} r - The red component in the range of 0 to 1. Default value is 0.
-     * @param {number} g - The green component in the range of 0 to 1. Default value is 0.
-     * @param {number} b - The blue component in the range of 0 to 1. Default value is 0.
-     * @param {number} a - The alpha component in the range of 0 to 1. Default value is 0.
-     * @ignore
-     */
-    setBlendColor(r: number, g: number, b: number, a: number): void;
     setStencilState(stencilFront: any, stencilBack: any): void;
     setDepthState(depthState: any): void;
     setCullMode(cullMode: any): void;
@@ -37832,8 +40757,8 @@ declare class WebgpuTexture {
      */
     uploadData(device: WebgpuGraphicsDevice): void;
     isExternalImage(image: any): boolean;
-    uploadExternalImage(device: any, image: any, mipLevel: any, face: any): void;
-    uploadTypedArrayData(device: any, data: any, mipLevel: any, face: any): void;
+    uploadExternalImage(device: any, image: any, mipLevel: any, index: any): void;
+    uploadTypedArrayData(device: any, data: any, mipLevel: any, index: any): void;
 }
 
 /**
@@ -38266,6 +41191,8 @@ declare class WebgpuGraphicsDevice extends GraphicsDevice {
     maxPrecision: string;
     maxSamples: number;
     maxTextures: number;
+    fragmentUniformsCount: number;
+    vertexUniformsCount: number;
     supportsBoneTextures: boolean;
     supportsMorphTargetTexturesCore: boolean;
     supportsAreaLights: boolean;
@@ -38291,7 +41218,6 @@ declare class WebgpuGraphicsDevice extends GraphicsDevice {
     extCompressedTextureS3TC: any;
     extCompressedTextureETC: any;
     extCompressedTextureASTC: any;
-    supportsTimestampQuery: any;
     textureRG11B10Renderable: any;
     /**
      * @type {GPUDevice}
@@ -38354,8 +41280,6 @@ declare class WebgpuGraphicsDevice extends GraphicsDevice {
     addCommandBuffer(commandBuffer: any, front?: boolean): void;
     submit(): void;
     clear(options: any): void;
-    setDepthBias(on: any): void;
-    setDepthBiasValues(constBias: any, slopeBias: any): void;
     setViewport(x: any, y: any, w: any, h: any): void;
     setScissor(x: any, y: any, w: any, h: any): void;
     /**
@@ -38449,6 +41373,9 @@ declare class NullGraphicsDevice extends GraphicsDevice {
     extBlendMinmax: boolean;
     areaLightLutFormat: number;
     supportsTextureFetch: boolean;
+    updateBegin(): void;
+    updateEnd(): void;
+    readPixels(x: any, y: any, w: any, h: any, pixels: any): void;
     createVertexBufferImpl(vertexBuffer: any, format: any): NullVertexBuffer;
     createIndexBufferImpl(indexBuffer: any): NullIndexBuffer;
     createShaderImpl(shader: any): NullShader;
@@ -38463,8 +41390,6 @@ declare class NullGraphicsDevice extends GraphicsDevice {
     setCullMode(cullMode: any): void;
     setAlphaToCoverage(state: any): void;
     clear(options: any): void;
-    setDepthBias(on: any): void;
-    setDepthBiasValues(constBias: any, slopeBias: any): void;
     setViewport(x: any, y: any, w: any, h: any): void;
     setScissor(x: any, y: any, w: any, h: any): void;
     copyRenderTarget(source: any, dest: any, color: any, depth: any): boolean;
@@ -38623,6 +41548,8 @@ declare class LitMaterial extends Material {
     occludeSpecular: number;
     occludeSpecularIntensity: number;
     opacityFadesSpecular: boolean;
+    opacityDither: string;
+    opacityShadowDither: string;
     conserveEnergy: boolean;
     ggxSpecular: boolean;
     fresnelModel: number;
@@ -38769,7 +41696,24 @@ declare class RenderPassShaderQuad extends RenderPass {
      */
     set shader(arg: any);
     get shader(): any;
-    createQuadShader(name: any, fs: any): Shader;
+    /**
+     * Creates a quad shader from the supplied fragment shader code.
+     *
+     * @param {string} name - A name of the shader.
+     * @param {string} fs - Fragment shader source code.
+     * @param {object} [shaderDefinitionOptions] - Additional options that will be added to the
+     * shader definition.
+     * @param {boolean} [shaderDefinitionOptions.useTransformFeedback] - Whether to use transform
+     * feedback. Defaults to false.
+     * @param {string | string[]} [shaderDefinitionOptions.fragmentOutputTypes] - Fragment shader
+     * output types, which default to vec4. Passing a string will set the output type for all color
+     * attachments. Passing an array will set the output type for each color attachment.
+     * @returns {object} Returns the created shader.
+     */
+    createQuadShader(name: string, fs: string, shaderDefinitionOptions?: {
+        useTransformFeedback?: boolean;
+        fragmentOutputTypes?: string | string[];
+    }): object;
 }
 
 declare function shFromCubemap(device: any, source: any, dontFlipX: any): Float32Array;
@@ -38792,6 +41736,8 @@ declare function shFromCubemap(device: any, source: any, dontFlipX: any): Float3
  * 'phong', 'ggx'. Default depends on specularPower.
  * @param {import('../../core/math/vec4.js').Vec4} [options.rect] - Optional viewport rectangle.
  * @param {number} [options.seamPixels] - Optional number of seam pixels to render
+ * @returns {boolean} True if the reprojection was applied and false otherwise (e.g. if rect is empty)
+ * @category Graphics
  */
 declare function reprojectTexture(source: Texture, target: Texture, options?: {
     specularPower?: number;
@@ -38800,14 +41746,14 @@ declare function reprojectTexture(source: Texture, target: Texture, options?: {
     distribution?: string;
     rect?: Vec4;
     seamPixels?: number;
-}, ...args: any[]): void;
+}, ...args: any[]): boolean;
 
 /**
- * A render pass used to render Render Actions (layers).
+ * A render pass used render a set of layers using a camera.
  *
  * @ignore
  */
-declare class RenderPassRenderActions extends RenderPass {
+declare class RenderPassForward extends RenderPass {
     constructor(device: any, layerComposition: any, scene: any, renderer: any);
     /**
      * @type {import('../composition/layer-composition.js').LayerComposition}
@@ -38826,7 +41772,39 @@ declare class RenderPassRenderActions extends RenderPass {
      */
     renderActions: RenderAction[];
     addRenderAction(renderAction: any): void;
-    addLayer(camera: any, layer: any, transparent: any, autoClears?: boolean): void;
+    /**
+     * Adds a layer to be rendered by this render pass.
+     *
+     * @param {import('../../framework/components/camera/component.js').CameraComponent} cameraComponent -
+     * The camera component that is used to render the layers.
+     * @param {import('../layer.js').Layer} layer - The layer to be added.
+     * @param {boolean} transparent - True if the layer is transparent.
+     * @param {boolean} autoClears - True if the render target should be cleared based on the camera
+     * and layer clear flags. Defaults to true.
+     */
+    addLayer(cameraComponent: CameraComponent, layer: Layer, transparent: boolean, autoClears?: boolean): void;
+    /**
+     * Adds layers to be rendered by this render pass, starting from the given index of the layer
+     * in the layer composition, till the end of the layer list, or till the last layer with the
+     * given id and transparency is reached (inclusive). Note that only layers that are enabled
+     * and are rendered by the specified camera are added.
+     *
+     * @param {import('../composition/layer-composition.js').LayerComposition} composition - The
+     * layer composition containing the layers to be added, typically the scene layer composition.
+     * @param {import('../../framework/components/camera/component.js').CameraComponent} cameraComponent -
+     * The camera component that is used to render the layers.
+     * @param {number} startIndex - The index of the first layer to be considered for adding.
+     * @param {boolean} firstLayerClears - True if the first layer added should clear the render
+     * target.
+     * @param {number} [lastLayerId] - The id of the last layer to be added. If not specified, all
+     * layers till the end of the layer list are added.
+     * @param {boolean} [lastLayerIsTransparent] - True if the last layer to be added is transparent.
+     * Defaults to true.
+     * @returns {number} Returns the index of last layer added.
+     */
+    addLayers(composition: LayerComposition, cameraComponent: CameraComponent, startIndex: number, firstLayerClears: boolean, lastLayerId?: number, lastLayerIsTransparent?: boolean): number;
+    updateDirectionalShadows(): void;
+    updateClears(): void;
     /**
      * @param {import('../composition/render-action.js').RenderAction} renderAction - The render
      * action.
@@ -38835,13 +41813,23 @@ declare class RenderPassRenderActions extends RenderPass {
     renderRenderAction(renderAction: RenderAction, firstRenderAction: boolean): void;
 }
 
+/**
+ * Returns program library for a specified instance of a device.
+ *
+ * @param {import('../../platform/graphics/graphics-device.js').GraphicsDevice} device - The
+ * graphics device used to own the program library.
+ * @returns {import('./program-library.js').ProgramLibrary} The instance of {@link ProgramLibrary}
+ * @ignore
+ */
+declare function getProgramLibrary(device: GraphicsDevice): ProgramLibrary;
+
 declare const _default$3: "\n    vec4 dirLm = texture2D(texture_dirLightMap, vUv1);\n\n    if (bakeDir > 0.5) {\n        if (dAtten > 0.00001) {\n            dirLm.xyz = dirLm.xyz * 2.0 - vec3(1.0);\n            dAtten = saturate(dAtten);\n            gl_FragColor.rgb = normalize(dLightDirNormW.xyz*dAtten + dirLm.xyz*dirLm.w) * 0.5 + vec3(0.5);\n            gl_FragColor.a = dirLm.w + dAtten;\n            gl_FragColor.a = max(gl_FragColor.a, 1.0 / 255.0);\n        } else {\n            gl_FragColor = dirLm;\n        }\n    } else {\n        gl_FragColor.rgb = dirLm.xyz;\n        gl_FragColor.a = max(dirLm.w, dAtten > 0.00001? (1.0/255.0) : 0.0);\n    }\n";
 
 declare const _default$2: "\n#ifdef LIGHTMAP_RGBM\n    gl_FragColor.rgb = dDiffuseLight;\n    gl_FragColor.rgb = pow(gl_FragColor.rgb, vec3(0.5));\n    gl_FragColor.rgb /= 8.0;\n    gl_FragColor.a = clamp( max( max( gl_FragColor.r, gl_FragColor.g ), max( gl_FragColor.b, 1.0 / 255.0 ) ), 0.0,1.0 );\n    gl_FragColor.a = ceil(gl_FragColor.a * 255.0) / 255.0;\n    gl_FragColor.rgb /= gl_FragColor.a;\n#else\n    gl_FragColor = vec4(dDiffuseLight, 1.0);\n#endif\n";
 
-declare const _default$1: "\n\nvarying vec2 vUv0;\n\nuniform sampler2D source;\nuniform vec2 pixelOffset;\n\nvoid main(void) {\n    vec4 c = texture2D(source, vUv0);\n    c = c.a>0.0? c : texture2D(source, vUv0 - pixelOffset);\n    c = c.a>0.0? c : texture2D(source, vUv0 + vec2(0, -pixelOffset.y));\n    c = c.a>0.0? c : texture2D(source, vUv0 + vec2(pixelOffset.x, -pixelOffset.y));\n    c = c.a>0.0? c : texture2D(source, vUv0 + vec2(-pixelOffset.x, 0));\n    c = c.a>0.0? c : texture2D(source, vUv0 + vec2(pixelOffset.x, 0));\n    c = c.a>0.0? c : texture2D(source, vUv0 + vec2(-pixelOffset.x, pixelOffset.y));\n    c = c.a>0.0? c : texture2D(source, vUv0 + vec2(0, pixelOffset.y));\n    c = c.a>0.0? c : texture2D(source, vUv0 + pixelOffset);\n    gl_FragColor = c;\n}\n";
+declare const _default$1: "\n\nvarying vec2 vUv0;\n\nuniform sampler2D source;\nuniform vec2 pixelOffset;\n\nvoid main(void) {\n    vec4 c = texture2DLodEXT(source, vUv0, 0.0);\n    c = c.a>0.0? c : texture2DLodEXT(source, vUv0 - pixelOffset, 0.0);\n    c = c.a>0.0? c : texture2DLodEXT(source, vUv0 + vec2(0, -pixelOffset.y), 0.0);\n    c = c.a>0.0? c : texture2DLodEXT(source, vUv0 + vec2(pixelOffset.x, -pixelOffset.y), 0.0);\n    c = c.a>0.0? c : texture2DLodEXT(source, vUv0 + vec2(-pixelOffset.x, 0), 0.0);\n    c = c.a>0.0? c : texture2DLodEXT(source, vUv0 + vec2(pixelOffset.x, 0), 0.0);\n    c = c.a>0.0? c : texture2DLodEXT(source, vUv0 + vec2(-pixelOffset.x, pixelOffset.y), 0.0);\n    c = c.a>0.0? c : texture2DLodEXT(source, vUv0 + vec2(0, pixelOffset.y), 0.0);\n    c = c.a>0.0? c : texture2DLodEXT(source, vUv0 + pixelOffset, 0.0);\n    gl_FragColor = c;\n}\n";
 
-declare const _default: "\n// bilateral filter, based on https://www.shadertoy.com/view/4dfGDH# and\n// http://people.csail.mit.edu/sparis/bf_course/course_notes.pdf\n\n// A bilateral filter is a non-linear, edge-preserving, and noise-reducing smoothing filter for images.\n// It replaces the intensity of each pixel with a weighted average of intensity values from nearby pixels.\n// This weight can be based on a Gaussian distribution. Crucially, the weights depend not only on\n// Euclidean distance of pixels, but also on the radiometric differences (e.g., range differences, such\n// as color intensity, depth distance, etc.). This preserves sharp edges.\n\nfloat normpdf3(in vec3 v, in float sigma) {\n    return 0.39894 * exp(-0.5 * dot(v, v) / (sigma * sigma)) / sigma;\n}\n\nvec3 decodeRGBM(vec4 rgbm) {\n    vec3 color = (8.0 * rgbm.a) * rgbm.rgb;\n    return color * color;\n}\n\nfloat saturate(float x) {\n    return clamp(x, 0.0, 1.0);\n}\n\nvec4 encodeRGBM(vec3 color) { // modified RGBM\n    vec4 encoded;\n    encoded.rgb = pow(color.rgb, vec3(0.5));\n    encoded.rgb *= 1.0 / 8.0;\n\n    encoded.a = saturate( max( max( encoded.r, encoded.g ), max( encoded.b, 1.0 / 255.0 ) ) );\n    encoded.a = ceil(encoded.a * 255.0) / 255.0;\n\n    encoded.rgb /= encoded.a;\n    return encoded;\n}\n\n// filter size\n#define MSIZE 15\n\nvarying vec2 vUv0;\nuniform sampler2D source;\nuniform vec2 pixelOffset;\nuniform vec2 sigmas;\nuniform float bZnorm;\nuniform float kernel[MSIZE];\n\nvoid main(void) {\n    \n    vec4 pixelRgbm = texture2D(source, vUv0);\n\n    // lightmap specific optimization - skip pixels that were not baked\n    // this also allows dilate filter that work on the output of this to work correctly, as it depends on .a being zero\n    // to dilate, which the following blur filter would otherwise modify\n    if (pixelRgbm.a <= 0.0) {\n        gl_FragColor = pixelRgbm;\n        return ;\n    }\n\n    // range sigma - controls blurriness based on a pixel distance\n    float sigma = sigmas.x;\n\n    // domain sigma - controls blurriness based on a pixel similarity (to preserve edges)\n    float bSigma = sigmas.y;\n\n    vec3 pixelHdr = decodeRGBM(pixelRgbm);\n    vec3 accumulatedHdr = vec3(0.0);\n    float accumulatedFactor = 0.0;\n\n    // read out the texels\n    const int kSize = (MSIZE-1)/2;\n    for (int i = -kSize; i <= kSize; ++i) {\n        for (int j = -kSize; j <= kSize; ++j) {\n            \n            // sample the pixel with offset\n            vec2 coord = vUv0 + vec2(float(i), float(j)) * pixelOffset;\n            vec4 rgbm = texture2D(source, coord);\n\n            // lightmap - only use baked pixels\n            if (rgbm.a > 0.0) {\n                vec3 hdr = decodeRGBM(rgbm);\n\n                // bilateral factors\n                float factor = kernel[kSize + j] * kernel[kSize + i];\n                factor *= normpdf3(hdr - pixelHdr, bSigma) * bZnorm;\n\n                // accumulate\n                accumulatedHdr += factor * hdr;\n                accumulatedFactor += factor;\n            }\n        }\n    }\n\n    gl_FragColor = encodeRGBM(accumulatedHdr / accumulatedFactor);\n}\n";
+declare const _default: "\n// bilateral filter, based on https://www.shadertoy.com/view/4dfGDH# and\n// http://people.csail.mit.edu/sparis/bf_course/course_notes.pdf\n\n// A bilateral filter is a non-linear, edge-preserving, and noise-reducing smoothing filter for images.\n// It replaces the intensity of each pixel with a weighted average of intensity values from nearby pixels.\n// This weight can be based on a Gaussian distribution. Crucially, the weights depend not only on\n// Euclidean distance of pixels, but also on the radiometric differences (e.g., range differences, such\n// as color intensity, depth distance, etc.). This preserves sharp edges.\n\nfloat normpdf3(in vec3 v, in float sigma) {\n    return 0.39894 * exp(-0.5 * dot(v, v) / (sigma * sigma)) / sigma;\n}\n\nvec3 decodeRGBM(vec4 rgbm) {\n    vec3 color = (8.0 * rgbm.a) * rgbm.rgb;\n    return color * color;\n}\n\nfloat saturate(float x) {\n    return clamp(x, 0.0, 1.0);\n}\n\nvec4 encodeRGBM(vec3 color) { // modified RGBM\n    vec4 encoded;\n    encoded.rgb = pow(color.rgb, vec3(0.5));\n    encoded.rgb *= 1.0 / 8.0;\n\n    encoded.a = saturate( max( max( encoded.r, encoded.g ), max( encoded.b, 1.0 / 255.0 ) ) );\n    encoded.a = ceil(encoded.a * 255.0) / 255.0;\n\n    encoded.rgb /= encoded.a;\n    return encoded;\n}\n\n// filter size\n#define MSIZE 15\n\nvarying vec2 vUv0;\nuniform sampler2D source;\nuniform vec2 pixelOffset;\nuniform vec2 sigmas;\nuniform float bZnorm;\nuniform float kernel[MSIZE];\n\nvoid main(void) {\n    \n    vec4 pixelRgbm = texture2DLodEXT(source, vUv0, 0.0);\n\n    // lightmap specific optimization - skip pixels that were not baked\n    // this also allows dilate filter that work on the output of this to work correctly, as it depends on .a being zero\n    // to dilate, which the following blur filter would otherwise modify\n    if (pixelRgbm.a <= 0.0) {\n        gl_FragColor = pixelRgbm;\n        return ;\n    }\n\n    // range sigma - controls blurriness based on a pixel distance\n    float sigma = sigmas.x;\n\n    // domain sigma - controls blurriness based on a pixel similarity (to preserve edges)\n    float bSigma = sigmas.y;\n\n    vec3 pixelHdr = decodeRGBM(pixelRgbm);\n    vec3 accumulatedHdr = vec3(0.0);\n    float accumulatedFactor = 0.0;\n\n    // read out the texels\n    const int kSize = (MSIZE-1)/2;\n    for (int i = -kSize; i <= kSize; ++i) {\n        for (int j = -kSize; j <= kSize; ++j) {\n            \n            // sample the pixel with offset\n            vec2 coord = vUv0 + vec2(float(i), float(j)) * pixelOffset;\n            vec4 rgbm = texture2DLodEXT(source, coord, 0.0);\n\n            // lightmap - only use baked pixels\n            if (rgbm.a > 0.0) {\n                vec3 hdr = decodeRGBM(rgbm);\n\n                // bilateral factors\n                float factor = kernel[kSize + j] * kernel[kSize + i];\n                factor *= normpdf3(hdr - pixelHdr, bSigma) * bZnorm;\n\n                // accumulate\n                accumulatedHdr += factor * hdr;\n                accumulatedFactor += factor;\n            }\n        }\n    }\n\n    gl_FragColor = encodeRGBM(accumulatedHdr / accumulatedFactor);\n}\n";
 
 declare namespace shaderChunksLightmapper {
     export { _default$3 as bakeDirLmEndPS };
@@ -38854,6 +41842,84 @@ declare class ChunkBuilder {
     code: string;
     append(...chunks: any[]): void;
     prepend(...chunks: any[]): void;
+}
+
+/**
+ * - Represents a splat object with position, rotation, and scale.
+ */
+type SplatTRS = {
+    /**
+     * - The x-coordinate of the position.
+     */
+    x: number;
+    /**
+     * - The y-coordinate of the position.
+     */
+    y: number;
+    /**
+     * - The z-coordinate of the position.
+     */
+    z: number;
+    /**
+     * - The x-component of the quaternion rotation.
+     */
+    rx: number;
+    /**
+     * - The y-component of the quaternion rotation.
+     */
+    ry: number;
+    /**
+     * - The z-component of the quaternion rotation.
+     */
+    rz: number;
+    /**
+     * - The w-component of the quaternion rotation.
+     */
+    rw: number;
+    /**
+     * - The scale factor in the x-direction.
+     */
+    sx: number;
+    /**
+     * - The scale factor in the y-direction.
+     */
+    sy: number;
+    /**
+     * - The scale factor in the z-direction.
+     */
+    sz: number;
+};
+declare class GSplatData {
+    /**
+     * @param {BoundingBox} result - Bounding box instance holding calculated result.
+     * @param {SplatTRS} data - The splat TRS object.
+     */
+    static calcSplatAabb(result: BoundingBox, data: SplatTRS): void;
+    constructor(elements: any, performZScale?: boolean);
+    elements: any;
+    vertexElement: any;
+    get numSplats(): any;
+    /**
+     * Transform splat data by the given matrix.
+     *
+     * @param {Mat4} mat - The matrix.
+     */
+    transform(mat: Mat4): void;
+    getProp(name: any): any;
+    addProp(name: any, storage: any): void;
+    calcAabb(result: any, pred: any): boolean;
+    /**
+     * @param {Vec3} result - The result.
+     * @param {Function} pred - Predicate given index for skipping.
+     */
+    calcFocalPoint(result: Vec3, pred: Function): void;
+    /**
+     * @param {import('../scene.js').Scene} scene - The application's scene.
+     * @param {Mat4} worldMat - The world matrix.
+     */
+    renderWireframeBounds(scene: Scene, worldMat: Mat4): void;
+    get isCompressed(): boolean;
+    decompress(): GSplatData;
 }
 
 declare namespace script {
@@ -39896,6 +42962,91 @@ declare class ModelHandler implements ResourceHandler {
     addParser(parser: object, decider: AddParserCallback): void;
 }
 
+declare class GSplatResource {
+    /**
+     * @param {import('../../platform/graphics/graphics-device.js').GraphicsDevice} device - The graphics device.
+     * @param {import('../../scene/gsplat/gsplat-data.js').GSplatData} splatData - The splat data.
+     * @hideconstructor
+     */
+    constructor(device: GraphicsDevice, splatData: GSplatData);
+    /**
+     * @type {import('../../platform/graphics/graphics-device.js').GraphicsDevice}
+     * @ignore
+     */
+    device: GraphicsDevice;
+    /**
+     * @type {import('../../scene/gsplat/gsplat-data.js').GSplatData}
+     * @ignore
+     */
+    splatData: GSplatData;
+    /**
+     * @type {GSplat | null}
+     * @ignore
+     */
+    splat: GSplat | null;
+    destroy(): void;
+    createSplat(): GSplat;
+    /**
+     * @param {import('../../scene/gsplat/gsplat-material.js').SplatMaterialOptions} [options] - The options.
+     * @returns {Entity} The entity with {@link GSplatComponent}.
+     */
+    instantiate(options?: SplatMaterialOptions): Entity;
+    createInstance(options?: {}): GSplatInstance;
+}
+
+declare class PlyParser {
+    /**
+     * @param {import('../../platform/graphics/graphics-device.js').GraphicsDevice} device - The graphics device.
+     * @param {import('../asset/asset-registry.js').AssetRegistry} assets - The asset registry.
+     * @param {number} maxRetries - Maximum amount of retries.
+     */
+    constructor(device: GraphicsDevice, assets: AssetRegistry, maxRetries: number);
+    /** @type {import('../../platform/graphics/graphics-device.js').GraphicsDevice} */
+    device: GraphicsDevice;
+    /** @type {import('../asset/asset-registry.js').AssetRegistry} */
+    assets: AssetRegistry;
+    /** @type {number} */
+    maxRetries: number;
+    /**
+     * @param {object} url - The URL of the resource to load.
+     * @param {string} url.load - The URL to use for loading the resource.
+     * @param {string} url.original - The original URL useful for identifying the resource type.
+     * @param {import('../handlers/handler.js').ResourceHandlerCallback} callback - The callback used when
+     * the resource is loaded or an error occurs.
+     * @param {import('../asset/asset.js').Asset} asset - Container asset.
+     */
+    load(url: {
+        load: string;
+        original: string;
+    }, callback: ResourceHandlerCallback, asset: Asset): Promise<void>;
+    /**
+     * @param {string} url - The URL.
+     * @param {GSplatResource} data - The data.
+     * @returns {GSplatResource} Return the data.
+     */
+    open(url: string, data: GSplatResource): GSplatResource;
+}
+
+declare class GSplatHandler {
+    /**
+     * Create a new GSplatHandler instance.
+     *
+     * @param {import('../app-base.js').AppBase} app - The running {@link AppBase}.
+     * @hideconstructor
+     */
+    constructor(app: AppBase);
+    /**
+     * Type of the resource the handler handles.
+     *
+     * @type {string}
+     */
+    handlerType: string;
+    parser: PlyParser;
+    load(url: any, callback: any, asset: any): void;
+    open(url: any, data: any, asset: any): GSplatResource;
+    patch(asset: any, assets: any): void;
+}
+
 /**
  * A render contains an array of meshes that are referenced by a single hierarchy node in a GLB
  * model, and are accessible using {@link ContainerResource#renders} property. The render is the
@@ -39906,6 +43057,18 @@ declare class ModelHandler implements ResourceHandler {
  */
 declare class Render extends EventHandler {
     /**
+     * Fired when the meshes are set on the render. The handler is passed the an array of
+     * {@link Mesh} objects.
+     *
+     * @event
+     * @example
+     * render.on('set:meshes', (meshes) => {
+     *     console.log(`Render has ${meshes.length} meshes`);
+     * });
+     * @ignore
+     */
+    static EVENT_SETMESHES: string;
+    /**
      * Meshes are reference counted, and this class owns the references and is responsible for
      * releasing the meshes when they are no longer referenced.
      *
@@ -39913,13 +43076,6 @@ declare class Render extends EventHandler {
      * @private
      */
     private _meshes;
-    /**
-     * Fired when the meshes are set.
-     *
-     * @event Render#set:meshes
-     * @param {import('./mesh.js').Mesh[]} meshes - The meshes.
-     * @ignore
-     */
     /**
      * The meshes that the render contains.
      *
@@ -39967,6 +43123,7 @@ declare class RenderHandler implements ResourceHandler {
  * files, such as third-party libraries.
  *
  * @implements {ResourceHandler}
+ * @category Script
  */
 declare class ScriptHandler implements ResourceHandler {
     /**
@@ -39990,6 +43147,7 @@ declare class ScriptHandler implements ResourceHandler {
     open(url: any, data: any): any;
     patch(asset: any, assets: any): void;
     _loadScript(url: any, callback: any): void;
+    _loadModule(url: any, callback: any): void;
 }
 
 
@@ -40618,10 +43776,23 @@ declare class Http {
  * graphics device.
  * @param {string} vsName - The vertex shader chunk name.
  * @param {string} fsName - The fragment shader chunk name.
- * @param {boolean} [useTransformFeedback] - Whether to use transform feedback. Defaults to false.
+ * @param {boolean | Record<string, boolean | string | string[]>} [useTransformFeedback] - Whether
+ * to use transform feedback. Defaults to false.
+ * @param {object} [shaderDefinitionOptions] - Additional options that will be added to the shader
+ * definition.
+ * @param {boolean} [shaderDefinitionOptions.useTransformFeedback] - Whether to use transform
+ * feedback. Defaults to false.
+ * @param {string | string[]} [shaderDefinitionOptions.fragmentOutputTypes] - Fragment shader
+ * output types, which default to vec4. Passing a string will set the output type for all color
+ * attachments. Passing an array will set the output type for each color attachment.
+ * @see ShaderUtils.createDefinition
  * @returns {Shader} The newly created shader.
+ * @category Graphics
  */
-declare function createShader(device: GraphicsDevice, vsName: string, fsName: string, useTransformFeedback?: boolean): Shader;
+declare function createShader(device: GraphicsDevice, vsName: string, fsName: string, useTransformFeedback?: boolean | Record<string, boolean | string | string[]>, shaderDefinitionOptions?: {
+    useTransformFeedback?: boolean;
+    fragmentOutputTypes?: string | string[];
+}): Shader;
 /**
  * Create a shader from the supplied source code. Note that this function adds additional shader
  * blocks to both vertex and fragment shaders, which allow the shader to use more features and
@@ -40637,12 +43808,25 @@ declare function createShader(device: GraphicsDevice, vsName: string, fsName: st
  * @param {Object<string, string>} [attributes] - Object detailing the mapping of vertex shader
  * attribute names to semantics SEMANTIC_*. This enables the engine to match vertex buffer data as
  * inputs to the shader. Defaults to undefined, which generates the default attributes.
- * @param {boolean} [useTransformFeedback] - Whether to use transform feedback. Defaults to false.
+ * @param {boolean | Record<string, boolean | string | string[]>} [useTransformFeedback] - Whether
+ * to use transform feedback. Defaults to false.
+ * @param {object} [shaderDefinitionOptions] - Additional options that will be added to the shader
+ * definition.
+ * @param {boolean} [shaderDefinitionOptions.useTransformFeedback] - Whether to use transform
+ * feedback. Defaults to false.
+ * @param {string | string[]} [shaderDefinitionOptions.fragmentOutputTypes] - Fragment shader
+ * output types, which default to vec4. Passing a string will set the output type for all color
+ * attachments. Passing an array will set the output type for each color attachment.
+ * @see ShaderUtils.createDefinition
  * @returns {Shader} The newly created shader.
+ * @category Graphics
  */
 declare function createShaderFromCode(device: GraphicsDevice, vsCode: string, fsCode: string, uniqueName: string, attributes?: {
     [x: string]: string;
-}, useTransformFeedback?: boolean): Shader;
+}, useTransformFeedback?: boolean | Record<string, boolean | string | string[]>, shaderDefinitionOptions?: {
+    useTransformFeedback?: boolean;
+    fragmentOutputTypes?: string | string[];
+}): Shader;
 
 declare class GlbContainerParser {
     constructor(device: any, assets: any, maxRetries: any);
@@ -41089,6 +44273,7 @@ declare class TextureParser {
  * Turning.prototype.update = function (dt) {
  *     this.entity.rotate(0, this.speed * dt, 0);
  * };
+ * @category Script
  */
 declare function createScript(name: string, app?: AppBase): typeof ScriptType | null;
 declare namespace createScript {
@@ -41130,11 +44315,12 @@ declare namespace createScript {
  *
  * // declare script attributes (Must be after pc.registerScript())
  * PlayerController.attributes.add('attribute1', {type: 'number'});
+ * @category Script
  */
 declare function registerScript(script: typeof ScriptType, name?: string, app?: AppBase): void;
 declare function getReservedScriptNames(): Set<string>;
 
 declare const reservedAttributes: {};
 
-export { ABSOLUTE_URL, ACTION_GAMEPAD, ACTION_KEYBOARD, ACTION_MOUSE, ADDRESS_CLAMP_TO_EDGE, ADDRESS_MIRRORED_REPEAT, ADDRESS_REPEAT, ANIM_BLEND_1D, ANIM_BLEND_2D_CARTESIAN, ANIM_BLEND_2D_DIRECTIONAL, ANIM_BLEND_DIRECT, ANIM_CONTROL_STATES, ANIM_EQUAL_TO, ANIM_GREATER_THAN, ANIM_GREATER_THAN_EQUAL_TO, ANIM_INTERRUPTION_NEXT, ANIM_INTERRUPTION_NEXT_PREV, ANIM_INTERRUPTION_NONE, ANIM_INTERRUPTION_PREV, ANIM_INTERRUPTION_PREV_NEXT, ANIM_LAYER_ADDITIVE, ANIM_LAYER_OVERWRITE, ANIM_LESS_THAN, ANIM_LESS_THAN_EQUAL_TO, ANIM_NOT_EQUAL_TO, ANIM_PARAMETER_BOOLEAN, ANIM_PARAMETER_FLOAT, ANIM_PARAMETER_INTEGER, ANIM_PARAMETER_TRIGGER, ANIM_STATE_ANY, ANIM_STATE_END, ANIM_STATE_START, ASPECT_AUTO, ASPECT_MANUAL, ASSET_ANIMATION, ASSET_AUDIO, ASSET_CONTAINER, ASSET_CSS, ASSET_CUBEMAP, ASSET_HTML, ASSET_IMAGE, ASSET_JSON, ASSET_MATERIAL, ASSET_MODEL, ASSET_SCRIPT, ASSET_SHADER, ASSET_TEXT, ASSET_TEXTURE, ASSET_TEXTUREATLAS, AXIS_KEY, AXIS_MOUSE_X, AXIS_MOUSE_Y, AXIS_PAD_L_X, AXIS_PAD_L_Y, AXIS_PAD_R_X, AXIS_PAD_R_Y, AnimBinder, AnimClip, AnimClipHandler, AnimComponent, AnimComponentLayer, AnimComponentSystem, AnimController, AnimCurve, AnimData, AnimEvaluator, AnimEvents, AnimSnapshot, AnimStateGraph, AnimStateGraphHandler, AnimTarget, AnimTrack, Animation, AnimationComponent, AnimationComponentSystem, AnimationHandler, AppBase, AppOptions, Application, Asset, AssetListLoader, AssetReference, AssetRegistry, AudioHandler, AudioListenerComponent, AudioListenerComponentSystem, AudioSourceComponent, AudioSourceComponentSystem, BAKE_COLOR, BAKE_COLORDIR, BINDGROUP_MESH, BINDGROUP_VIEW, BLENDEQUATION_ADD, BLENDEQUATION_MAX, BLENDEQUATION_MIN, BLENDEQUATION_REVERSE_SUBTRACT, BLENDEQUATION_SUBTRACT, BLENDMODE_CONSTANT, BLENDMODE_CONSTANT_ALPHA, BLENDMODE_CONSTANT_COLOR, BLENDMODE_DST_ALPHA, BLENDMODE_DST_COLOR, BLENDMODE_ONE, BLENDMODE_ONE_MINUS_CONSTANT, BLENDMODE_ONE_MINUS_CONSTANT_ALPHA, BLENDMODE_ONE_MINUS_CONSTANT_COLOR, BLENDMODE_ONE_MINUS_DST_ALPHA, BLENDMODE_ONE_MINUS_DST_COLOR, BLENDMODE_ONE_MINUS_SRC_ALPHA, BLENDMODE_ONE_MINUS_SRC_COLOR, BLENDMODE_SRC_ALPHA, BLENDMODE_SRC_ALPHA_SATURATE, BLENDMODE_SRC_COLOR, BLENDMODE_ZERO, BLEND_ADDITIVE, BLEND_ADDITIVEALPHA, BLEND_MAX, BLEND_MIN, BLEND_MULTIPLICATIVE, BLEND_MULTIPLICATIVE2X, BLEND_NONE, BLEND_NORMAL, BLEND_PREMULTIPLIED, BLEND_SCREEN, BLEND_SUBTRACTIVE, BLUR_BOX, BLUR_GAUSSIAN, BODYFLAG_KINEMATIC_OBJECT, BODYFLAG_NORESPONSE_OBJECT, BODYFLAG_STATIC_OBJECT, BODYGROUP_DEFAULT, BODYGROUP_DYNAMIC, BODYGROUP_ENGINE_1, BODYGROUP_ENGINE_2, BODYGROUP_ENGINE_3, BODYGROUP_KINEMATIC, BODYGROUP_NONE, BODYGROUP_STATIC, BODYGROUP_TRIGGER, BODYGROUP_USER_1, BODYGROUP_USER_2, BODYGROUP_USER_3, BODYGROUP_USER_4, BODYGROUP_USER_5, BODYGROUP_USER_6, BODYGROUP_USER_7, BODYGROUP_USER_8, BODYMASK_ALL, BODYMASK_NONE, BODYMASK_NOT_STATIC, BODYMASK_NOT_STATIC_KINEMATIC, BODYMASK_STATIC, BODYSTATE_ACTIVE_TAG, BODYSTATE_DISABLE_DEACTIVATION, BODYSTATE_DISABLE_SIMULATION, BODYSTATE_ISLAND_SLEEPING, BODYSTATE_WANTS_DEACTIVATION, BODYTYPE_DYNAMIC, BODYTYPE_KINEMATIC, BODYTYPE_STATIC, BUFFER_DYNAMIC, BUFFER_GPUDYNAMIC, BUFFER_STATIC, BUFFER_STREAM, BUTTON_TRANSITION_MODE_SPRITE_CHANGE, BUTTON_TRANSITION_MODE_TINT, BasicMaterial, Batch, BatchGroup, BatchManager, BinaryHandler, BindBufferFormat, BindGroupFormat, BindStorageTextureFormat, BindTextureFormat, BlendState, BoundingBox, BoundingSphere, Bundle, BundleHandler, BundleRegistry, ButtonComponent, ButtonComponentSystem, CHUNKAPI_1_51, CHUNKAPI_1_55, CHUNKAPI_1_56, CHUNKAPI_1_57, CHUNKAPI_1_58, CHUNKAPI_1_60, CHUNKAPI_1_62, CHUNKAPI_1_65, CLEARFLAG_COLOR, CLEARFLAG_DEPTH, CLEARFLAG_STENCIL, CUBEFACE_NEGX, CUBEFACE_NEGY, CUBEFACE_NEGZ, CUBEFACE_POSX, CUBEFACE_POSY, CUBEFACE_POSZ, CUBEPROJ_BOX, CUBEPROJ_NONE, CULLFACE_BACK, CULLFACE_FRONT, CULLFACE_FRONTANDBACK, CULLFACE_NONE, CURVE_CARDINAL, CURVE_CATMULL, CURVE_LINEAR, CURVE_SMOOTHSTEP, CURVE_SPLINE, CURVE_STEP, Camera, CameraComponent, CameraComponentSystem, CanvasFont, ChunkBuilder, CollisionComponent, CollisionComponentSystem, Color, Component, ComponentSystem, ComponentSystemRegistry, Compute, ContactPoint, ContactResult, ContainerHandler, ContainerResource, ContextCreationError, Controller, CssHandler, CubemapHandler, Curve, CurveSet, DETAILMODE_ADD, DETAILMODE_MAX, DETAILMODE_MIN, DETAILMODE_MUL, DETAILMODE_OVERLAY, DETAILMODE_SCREEN, DEVICETYPE_NULL, DEVICETYPE_WEBGL1, DEVICETYPE_WEBGL2, DEVICETYPE_WEBGPU, DISTANCE_EXPONENTIAL, DISTANCE_INVERSE, DISTANCE_LINEAR, DefaultAnimBinder, DepthState, ELEMENTTYPE_FLOAT32, ELEMENTTYPE_GROUP, ELEMENTTYPE_IMAGE, ELEMENTTYPE_INT16, ELEMENTTYPE_INT32, ELEMENTTYPE_INT8, ELEMENTTYPE_TEXT, ELEMENTTYPE_UINT16, ELEMENTTYPE_UINT32, ELEMENTTYPE_UINT8, EMITTERSHAPE_BOX, EMITTERSHAPE_SPHERE, EVENT_GAMEPADCONNECTED, EVENT_GAMEPADDISCONNECTED, EVENT_KEYDOWN, EVENT_KEYUP, EVENT_MOUSEDOWN, EVENT_MOUSEMOVE, EVENT_MOUSEUP, EVENT_MOUSEWHEEL, EVENT_SELECT, EVENT_SELECTEND, EVENT_SELECTSTART, EVENT_TOUCHCANCEL, EVENT_TOUCHEND, EVENT_TOUCHMOVE, EVENT_TOUCHSTART, ElementComponent, ElementComponentSystem, ElementDragHelper, ElementInput, ElementInputEvent, ElementMouseEvent, ElementSelectEvent, ElementTouchEvent, Entity, EntityReference, EnvLighting, EventHandler, FILLMODE_FILL_WINDOW, FILLMODE_KEEP_ASPECT, FILLMODE_NONE, FILTER_LINEAR, FILTER_LINEAR_MIPMAP_LINEAR, FILTER_LINEAR_MIPMAP_NEAREST, FILTER_NEAREST, FILTER_NEAREST_MIPMAP_LINEAR, FILTER_NEAREST_MIPMAP_NEAREST, FITMODE_CONTAIN, FITMODE_COVER, FITMODE_STRETCH, FITTING_BOTH, FITTING_NONE, FITTING_SHRINK, FITTING_STRETCH, FOG_EXP, FOG_EXP2, FOG_LINEAR, FOG_NONE, FONT_BITMAP, FONT_MSDF, FRESNEL_NONE, FRESNEL_SCHLICK, FUNC_ALWAYS, FUNC_EQUAL, FUNC_GREATER, FUNC_GREATEREQUAL, FUNC_LESS, FUNC_LESSEQUAL, FUNC_NEVER, FUNC_NOTEQUAL, FloatPacking, FolderHandler, Font, FontHandler, ForwardRenderer, Frustum, GAMMA_NONE, GAMMA_SRGB, GAMMA_SRGBFAST, GAMMA_SRGBHDR, GamePads, GraphNode, GraphicsDevice, HierarchyHandler, HtmlHandler, Http, I18n, INDEXFORMAT_UINT16, INDEXFORMAT_UINT32, INDEXFORMAT_UINT8, INTERPOLATION_CUBIC, INTERPOLATION_LINEAR, INTERPOLATION_STEP, ImageElement, IndexBuffer, IndexedList, JointComponent, JointComponentSystem, JsonHandler, JsonStandardMaterialParser, KEY_0, KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7, KEY_8, KEY_9, KEY_A, KEY_ADD, KEY_ALT, KEY_B, KEY_BACKSPACE, KEY_BACK_SLASH, KEY_C, KEY_CAPS_LOCK, KEY_CLOSE_BRACKET, KEY_COMMA, KEY_CONTEXT_MENU, KEY_CONTROL, KEY_D, KEY_DECIMAL, KEY_DELETE, KEY_DIVIDE, KEY_DOWN, KEY_E, KEY_END, KEY_ENTER, KEY_EQUAL, KEY_ESCAPE, KEY_F, KEY_F1, KEY_F10, KEY_F11, KEY_F12, KEY_F2, KEY_F3, KEY_F4, KEY_F5, KEY_F6, KEY_F7, KEY_F8, KEY_F9, KEY_G, KEY_H, KEY_HOME, KEY_I, KEY_INSERT, KEY_J, KEY_K, KEY_L, KEY_LEFT, KEY_M, KEY_META, KEY_MULTIPLY, KEY_N, KEY_NUMPAD_0, KEY_NUMPAD_1, KEY_NUMPAD_2, KEY_NUMPAD_3, KEY_NUMPAD_4, KEY_NUMPAD_5, KEY_NUMPAD_6, KEY_NUMPAD_7, KEY_NUMPAD_8, KEY_NUMPAD_9, KEY_O, KEY_OPEN_BRACKET, KEY_P, KEY_PAGE_DOWN, KEY_PAGE_UP, KEY_PAUSE, KEY_PERIOD, KEY_PRINT_SCREEN, KEY_Q, KEY_R, KEY_RETURN, KEY_RIGHT, KEY_S, KEY_SEMICOLON, KEY_SEPARATOR, KEY_SHIFT, KEY_SLASH, KEY_SPACE, KEY_SUBTRACT, KEY_T, KEY_TAB, KEY_U, KEY_UP, KEY_V, KEY_W, KEY_WINDOWS, KEY_X, KEY_Y, KEY_Z, Key, Keyboard, KeyboardEvent, LAYERID_DEPTH, LAYERID_IMMEDIATE, LAYERID_SKYBOX, LAYERID_UI, LAYERID_WORLD, LAYER_FX, LAYER_GIZMO, LAYER_HUD, LAYER_WORLD, LIGHTFALLOFF_INVERSESQUARED, LIGHTFALLOFF_LINEAR, LIGHTSHAPE_DISK, LIGHTSHAPE_PUNCTUAL, LIGHTSHAPE_RECT, LIGHTSHAPE_SPHERE, LIGHTTYPE_COUNT, LIGHTTYPE_DIRECTIONAL, LIGHTTYPE_OMNI, LIGHTTYPE_POINT, LIGHTTYPE_SPOT, LINEBATCH_GIZMO, LINEBATCH_OVERLAY, LINEBATCH_WORLD, Layer, LayerComposition, LayoutCalculator, LayoutChildComponent, LayoutChildComponentSystem, LayoutGroupComponent, LayoutGroupComponentSystem, Light, LightComponent, LightComponentSystem, LightingParams, Lightmapper, LitMaterial, LitOptions, LitShaderOptions, LocalizedAsset, MASK_AFFECT_DYNAMIC, MASK_AFFECT_LIGHTMAPPED, MASK_BAKE, MOTION_FREE, MOTION_LIMITED, MOTION_LOCKED, MOUSEBUTTON_LEFT, MOUSEBUTTON_MIDDLE, MOUSEBUTTON_NONE, MOUSEBUTTON_RIGHT, Mat3, Mat4, Material, MaterialHandler, Mesh, MeshInstance, Model, ModelComponent, ModelComponentSystem, ModelHandler, Morph, MorphInstance, MorphTarget, Mouse, MouseEvent$1 as MouseEvent, Node$1 as Node, NullGraphicsDevice, ORIENTATION_HORIZONTAL, ORIENTATION_VERTICAL, OrientedBox, PAD_1, PAD_2, PAD_3, PAD_4, PAD_DOWN, PAD_FACE_1, PAD_FACE_2, PAD_FACE_3, PAD_FACE_4, PAD_LEFT, PAD_L_SHOULDER_1, PAD_L_SHOULDER_2, PAD_L_STICK_BUTTON, PAD_L_STICK_X, PAD_L_STICK_Y, PAD_RIGHT, PAD_R_SHOULDER_1, PAD_R_SHOULDER_2, PAD_R_STICK_BUTTON, PAD_R_STICK_X, PAD_R_STICK_Y, PAD_SELECT, PAD_START, PAD_UP, PAD_VENDOR, PARTICLEMODE_CPU, PARTICLEMODE_GPU, PARTICLEORIENTATION_EMITTER, PARTICLEORIENTATION_SCREEN, PARTICLEORIENTATION_WORLD, PARTICLESORT_DISTANCE, PARTICLESORT_NEWER_FIRST, PARTICLESORT_NONE, PARTICLESORT_OLDER_FIRST, PIXELFORMAT_111110F, PIXELFORMAT_A8, PIXELFORMAT_ASTC_4x4, PIXELFORMAT_ATC_RGB, PIXELFORMAT_ATC_RGBA, PIXELFORMAT_BGRA8, PIXELFORMAT_DEPTH, PIXELFORMAT_DEPTHSTENCIL, PIXELFORMAT_DXT1, PIXELFORMAT_DXT3, PIXELFORMAT_DXT5, PIXELFORMAT_ETC1, PIXELFORMAT_ETC2_RGB, PIXELFORMAT_ETC2_RGBA, PIXELFORMAT_L8, PIXELFORMAT_L8_A8, PIXELFORMAT_LA8, PIXELFORMAT_PVRTC_2BPP_RGBA_1, PIXELFORMAT_PVRTC_2BPP_RGB_1, PIXELFORMAT_PVRTC_4BPP_RGBA_1, PIXELFORMAT_PVRTC_4BPP_RGB_1, PIXELFORMAT_R32F, PIXELFORMAT_R4_G4_B4_A4, PIXELFORMAT_R5_G5_B5_A1, PIXELFORMAT_R5_G6_B5, PIXELFORMAT_R8_G8_B8, PIXELFORMAT_R8_G8_B8_A8, PIXELFORMAT_RGB16F, PIXELFORMAT_RGB32F, PIXELFORMAT_RGB565, PIXELFORMAT_RGB8, PIXELFORMAT_RGBA16F, PIXELFORMAT_RGBA32F, PIXELFORMAT_RGBA4, PIXELFORMAT_RGBA5551, PIXELFORMAT_RGBA8, PIXELFORMAT_SRGB, PIXELFORMAT_SRGBA, PRIMITIVE_LINELOOP, PRIMITIVE_LINES, PRIMITIVE_LINESTRIP, PRIMITIVE_POINTS, PRIMITIVE_TRIANGLES, PRIMITIVE_TRIFAN, PRIMITIVE_TRISTRIP, PROJECTION_ORTHOGRAPHIC, PROJECTION_PERSPECTIVE, ParticleEmitter, ParticleSystemComponent, ParticleSystemComponentSystem, PhongMaterial, Picker, Plane, PostEffect$1 as PostEffect, PostEffectQueue, ProgramLibrary, QuadRender, Quat, RENDERSTYLE_POINTS, RENDERSTYLE_SOLID, RENDERSTYLE_WIREFRAME, RESOLUTION_AUTO, RESOLUTION_FIXED, RIGIDBODY_ACTIVE_TAG, RIGIDBODY_CF_KINEMATIC_OBJECT, RIGIDBODY_CF_NORESPONSE_OBJECT, RIGIDBODY_CF_STATIC_OBJECT, RIGIDBODY_DISABLE_DEACTIVATION, RIGIDBODY_DISABLE_SIMULATION, RIGIDBODY_ISLAND_SLEEPING, RIGIDBODY_TYPE_DYNAMIC, RIGIDBODY_TYPE_KINEMATIC, RIGIDBODY_TYPE_STATIC, RIGIDBODY_WANTS_DEACTIVATION, Ray, RaycastResult, ReadStream, RenderComponent, RenderComponentSystem, RenderHandler, RenderPass, RenderPassRenderActions, RenderPassShaderQuad, RenderTarget, type ResourceHandler, ResourceLoader, RigidBodyComponent, RigidBodyComponentSystem, SAMPLETYPE_DEPTH, SAMPLETYPE_FLOAT, SAMPLETYPE_UNFILTERABLE_FLOAT, SCALEMODE_BLEND, SCALEMODE_NONE, SCROLLBAR_VISIBILITY_SHOW_ALWAYS, SCROLLBAR_VISIBILITY_SHOW_WHEN_REQUIRED, SCROLL_MODE_BOUNCE, SCROLL_MODE_CLAMP, SCROLL_MODE_INFINITE, SEMANTIC_ATTR, SEMANTIC_ATTR0, SEMANTIC_ATTR1, SEMANTIC_ATTR10, SEMANTIC_ATTR11, SEMANTIC_ATTR12, SEMANTIC_ATTR13, SEMANTIC_ATTR14, SEMANTIC_ATTR15, SEMANTIC_ATTR2, SEMANTIC_ATTR3, SEMANTIC_ATTR4, SEMANTIC_ATTR5, SEMANTIC_ATTR6, SEMANTIC_ATTR7, SEMANTIC_ATTR8, SEMANTIC_ATTR9, SEMANTIC_BLENDINDICES, SEMANTIC_BLENDWEIGHT, SEMANTIC_COLOR, SEMANTIC_NORMAL, SEMANTIC_POSITION, SEMANTIC_TANGENT, SEMANTIC_TEXCOORD, SEMANTIC_TEXCOORD0, SEMANTIC_TEXCOORD1, SEMANTIC_TEXCOORD2, SEMANTIC_TEXCOORD3, SEMANTIC_TEXCOORD4, SEMANTIC_TEXCOORD5, SEMANTIC_TEXCOORD6, SEMANTIC_TEXCOORD7, SHADERDEF_DIRLM, SHADERDEF_INSTANCING, SHADERDEF_LM, SHADERDEF_LMAMBIENT, SHADERDEF_MORPH_NORMAL, SHADERDEF_MORPH_POSITION, SHADERDEF_MORPH_TEXTURE_BASED, SHADERDEF_NOSHADOW, SHADERDEF_SCREENSPACE, SHADERDEF_SKIN, SHADERDEF_TANGENTS, SHADERDEF_UV0, SHADERDEF_UV1, SHADERDEF_VCOLOR, SHADERLANGUAGE_GLSL, SHADERLANGUAGE_WGSL, SHADERPASS_ALBEDO, SHADERPASS_AO, SHADERPASS_EMISSION, SHADERPASS_FORWARD, SHADERPASS_GLOSS, SHADERPASS_LIGHTING, SHADERPASS_METALNESS, SHADERPASS_OPACITY, SHADERPASS_SPECULARITY, SHADERPASS_UV0, SHADERPASS_WORLDNORMAL, SHADERSTAGE_COMPUTE, SHADERSTAGE_FRAGMENT, SHADERSTAGE_VERTEX, SHADERTAG_MATERIAL, SHADER_DEPTH, SHADER_FORWARD, SHADER_FORWARDHDR, SHADER_PICK, SHADER_SHADOW, SHADOWUPDATE_NONE, SHADOWUPDATE_REALTIME, SHADOWUPDATE_THISFRAME, SHADOW_DEPTH, SHADOW_PCF1, SHADOW_PCF3, SHADOW_PCF5, SHADOW_PCSS, SHADOW_VSM16, SHADOW_VSM32, SHADOW_VSM8, SORTKEY_DEPTH, SORTKEY_FORWARD, SORTMODE_BACK2FRONT, SORTMODE_CUSTOM, SORTMODE_FRONT2BACK, SORTMODE_MANUAL, SORTMODE_MATERIALMESH, SORTMODE_NONE, SPECOCC_AO, SPECOCC_GLOSSDEPENDENT, SPECOCC_NONE, SPECULAR_BLINN, SPECULAR_PHONG, SPRITETYPE_ANIMATED, SPRITETYPE_SIMPLE, SPRITE_RENDERMODE_SIMPLE, SPRITE_RENDERMODE_SLICED, SPRITE_RENDERMODE_TILED, STENCILOP_DECREMENT, STENCILOP_DECREMENTWRAP, STENCILOP_INCREMENT, STENCILOP_INCREMENTWRAP, STENCILOP_INVERT, STENCILOP_KEEP, STENCILOP_REPLACE, STENCILOP_ZERO, Scene, SceneHandler, SceneRegistry, SceneRegistryItem, SceneSettingsHandler, ScopeId, ScopeSpace, ScreenComponent, ScreenComponentSystem, ScriptAttributes, ScriptComponent, ScriptComponentSystem, ScriptHandler, ScriptLegacyComponent, ScriptLegacyComponentSystem, ScriptRegistry, ScriptType, ScrollViewComponent, ScrollViewComponentSystem, ScrollbarComponent, ScrollbarComponentSystem, Shader, ShaderHandler, ShaderPass, SingleContactResult, Skeleton, Skin, SkinBatchInstance, SkinInstance, SortedLoopArray, Sound, SoundComponent, SoundComponentSystem, SoundInstance, SoundInstance3d, SoundManager, SoundSlot, Sprite, SpriteAnimationClip, SpriteComponent, SpriteComponentSystem, SpriteHandler, StandardMaterial, StandardMaterialOptions, StencilParameters, TEXHINT_ASSET, TEXHINT_LIGHTMAP, TEXHINT_NONE, TEXHINT_SHADOWMAP, TEXTUREDIMENSION_1D, TEXTUREDIMENSION_2D, TEXTUREDIMENSION_2D_ARRAY, TEXTUREDIMENSION_3D, TEXTUREDIMENSION_CUBE, TEXTUREDIMENSION_CUBE_ARRAY, TEXTURELOCK_READ, TEXTURELOCK_WRITE, TEXTUREPROJECTION_CUBE, TEXTUREPROJECTION_EQUIRECT, TEXTUREPROJECTION_NONE, TEXTUREPROJECTION_OCTAHEDRAL, TEXTURETYPE_DEFAULT, TEXTURETYPE_RGBE, TEXTURETYPE_RGBM, TEXTURETYPE_RGBP, TEXTURETYPE_SWIZZLEGGGR, TONEMAP_ACES, TONEMAP_ACES2, TONEMAP_FILMIC, TONEMAP_HEJL, TONEMAP_LINEAR, TRACEID_BINDGROUPFORMAT_ALLOC, TRACEID_BINDGROUP_ALLOC, TRACEID_COMPUTEPIPELINE_ALLOC, TRACEID_GPU_TIMINGS, TRACEID_PIPELINELAYOUT_ALLOC, TRACEID_RENDERPIPELINE_ALLOC, TRACEID_RENDER_ACTION, TRACEID_RENDER_FRAME, TRACEID_RENDER_FRAME_TIME, TRACEID_RENDER_PASS, TRACEID_RENDER_PASS_DETAIL, TRACEID_RENDER_QUEUE, TRACEID_RENDER_TARGET_ALLOC, TRACEID_SHADER_ALLOC, TRACEID_SHADER_COMPILE, TRACEID_TEXTURES, TRACEID_TEXTURE_ALLOC, TRACEID_VRAM_IB, TRACEID_VRAM_TEXTURE, TRACEID_VRAM_VB, TRACE_ID_ELEMENT, TYPE_FLOAT16, TYPE_FLOAT32, TYPE_INT16, TYPE_INT32, TYPE_INT8, TYPE_UINT16, TYPE_UINT32, TYPE_UINT8, Tags, Template, TemplateHandler, TextElement, TextHandler, Texture, TextureAtlas, TextureAtlasHandler, TextureHandler, TextureParser, TextureUtils, Touch$1 as Touch, TouchDevice, TouchEvent$1 as TouchEvent, Tracing, TransformFeedback, UNIFORMTYPE_BOOL, UNIFORMTYPE_BVEC2, UNIFORMTYPE_BVEC3, UNIFORMTYPE_BVEC4, UNIFORMTYPE_FLOAT, UNIFORMTYPE_FLOATARRAY, UNIFORMTYPE_INT, UNIFORMTYPE_IVEC2, UNIFORMTYPE_IVEC3, UNIFORMTYPE_IVEC4, UNIFORMTYPE_MAT2, UNIFORMTYPE_MAT3, UNIFORMTYPE_MAT4, UNIFORMTYPE_MAT4ARRAY, UNIFORMTYPE_TEXTURE2D, UNIFORMTYPE_TEXTURE2D_ARRAY, UNIFORMTYPE_TEXTURE2D_SHADOW, UNIFORMTYPE_TEXTURE3D, UNIFORMTYPE_TEXTURECUBE, UNIFORMTYPE_TEXTURECUBE_SHADOW, UNIFORMTYPE_VEC2, UNIFORMTYPE_VEC2ARRAY, UNIFORMTYPE_VEC3, UNIFORMTYPE_VEC3ARRAY, UNIFORMTYPE_VEC4, UNIFORMTYPE_VEC4ARRAY, UNIFORM_BUFFER_DEFAULT_SLOT_NAME, URI, UnsupportedBrowserError, VIEW_CENTER, VIEW_LEFT, VIEW_RIGHT, Vec2, Vec3, Vec4, VertexBuffer, VertexFormat, VertexIterator, WasmModule, WebglGraphicsDevice, WebgpuGraphicsDevice, WorldClusters, XRDEPTHSENSINGFORMAT_F32, XRDEPTHSENSINGFORMAT_L8A8, XRDEPTHSENSINGUSAGE_CPU, XRDEPTHSENSINGUSAGE_GPU, XRHAND_LEFT, XRHAND_NONE, XRHAND_RIGHT, XRPAD_A, XRPAD_B, XRPAD_SQUEEZE, XRPAD_STICK_BUTTON, XRPAD_STICK_X, XRPAD_STICK_Y, XRPAD_TOUCHPAD_BUTTON, XRPAD_TOUCHPAD_X, XRPAD_TOUCHPAD_Y, XRPAD_TRIGGER, XRSPACE_BOUNDEDFLOOR, XRSPACE_LOCAL, XRSPACE_LOCALFLOOR, XRSPACE_UNBOUNDED, XRSPACE_VIEWER, XRTARGETRAY_GAZE, XRTARGETRAY_POINTER, XRTARGETRAY_SCREEN, XRTRACKABLE_MESH, XRTRACKABLE_PLANE, XRTRACKABLE_POINT, XRTYPE_AR, XRTYPE_INLINE, XRTYPE_VR, XrAnchor, XrAnchors, XrDepthSensing, XrDomOverlay, XrHitTest, XrHitTestSource, XrImageTracking, XrInput, XrInputSource, XrLightEstimation, XrManager, XrPlane, XrPlaneDetection, XrTrackedImage, ZoneComponent, ZoneComponentSystem, anim, app, apps, asset, audio, basisInitialize, basisSetDownloadConfig, bindGroupNames, calculateNormals, calculateTangents, common, config, createBox, createCapsule, createCone, createCylinder, createGraphicsDevice, createMesh, createPlane, createScript, createShader, createShaderFromCode, createSphere, createStyle, createTorus, createURI, data, dracoInitialize, drawFullscreenQuad, drawQuadWithShader, drawTexture, events, extend, getPixelFormatArrayType, getReservedScriptNames, getTouchTargetCoords, gfx, guid, http, inherits, input, isCompressedPixelFormat, log, makeArray, math, now, path, pixelFormatInfo, platform, posteffect, prefilterCubemap, programlib, registerScript, reprojectTexture, revision, scene, script, semanticToLocation, shFromCubemap, shaderChunks, shaderChunksLightmapper, shadowTypeToString, shape, string, time, type, typedArrayIndexFormats, typedArrayIndexFormatsByteSize, typedArrayToType, typedArrayTypes, typedArrayTypesByteSize, uniformTypeToName, version, vertexTypesNames };
+export { ABSOLUTE_URL, ACTION_GAMEPAD, ACTION_KEYBOARD, ACTION_MOUSE, ADDRESS_CLAMP_TO_EDGE, ADDRESS_MIRRORED_REPEAT, ADDRESS_REPEAT, ANIM_BLEND_1D, ANIM_BLEND_2D_CARTESIAN, ANIM_BLEND_2D_DIRECTIONAL, ANIM_BLEND_DIRECT, ANIM_CONTROL_STATES, ANIM_EQUAL_TO, ANIM_GREATER_THAN, ANIM_GREATER_THAN_EQUAL_TO, ANIM_INTERRUPTION_NEXT, ANIM_INTERRUPTION_NEXT_PREV, ANIM_INTERRUPTION_NONE, ANIM_INTERRUPTION_PREV, ANIM_INTERRUPTION_PREV_NEXT, ANIM_LAYER_ADDITIVE, ANIM_LAYER_OVERWRITE, ANIM_LESS_THAN, ANIM_LESS_THAN_EQUAL_TO, ANIM_NOT_EQUAL_TO, ANIM_PARAMETER_BOOLEAN, ANIM_PARAMETER_FLOAT, ANIM_PARAMETER_INTEGER, ANIM_PARAMETER_TRIGGER, ANIM_STATE_ANY, ANIM_STATE_END, ANIM_STATE_START, ASPECT_AUTO, ASPECT_MANUAL, ASSET_ANIMATION, ASSET_AUDIO, ASSET_CONTAINER, ASSET_CSS, ASSET_CUBEMAP, ASSET_HTML, ASSET_IMAGE, ASSET_JSON, ASSET_MATERIAL, ASSET_MODEL, ASSET_SCRIPT, ASSET_SHADER, ASSET_TEXT, ASSET_TEXTURE, ASSET_TEXTUREATLAS, AXIS_KEY, AXIS_MOUSE_X, AXIS_MOUSE_Y, AXIS_PAD_L_X, AXIS_PAD_L_Y, AXIS_PAD_R_X, AXIS_PAD_R_Y, AnimBinder, AnimClip, AnimClipHandler, AnimComponent, AnimComponentLayer, AnimComponentSystem, AnimController, AnimCurve, AnimData, AnimEvaluator, AnimEvents, AnimSnapshot, AnimStateGraph, AnimStateGraphHandler, AnimTarget, AnimTrack, Animation, AnimationComponent, AnimationComponentSystem, AnimationHandler, AppBase, AppOptions, Application, Asset, AssetListLoader, AssetReference, AssetRegistry, AudioHandler, AudioListenerComponent, AudioListenerComponentSystem, AudioSourceComponent, AudioSourceComponentSystem, BAKE_COLOR, BAKE_COLORDIR, BINDGROUP_MESH, BINDGROUP_VIEW, BLENDEQUATION_ADD, BLENDEQUATION_MAX, BLENDEQUATION_MIN, BLENDEQUATION_REVERSE_SUBTRACT, BLENDEQUATION_SUBTRACT, BLENDMODE_CONSTANT, BLENDMODE_CONSTANT_ALPHA, BLENDMODE_CONSTANT_COLOR, BLENDMODE_DST_ALPHA, BLENDMODE_DST_COLOR, BLENDMODE_ONE, BLENDMODE_ONE_MINUS_CONSTANT, BLENDMODE_ONE_MINUS_CONSTANT_ALPHA, BLENDMODE_ONE_MINUS_CONSTANT_COLOR, BLENDMODE_ONE_MINUS_DST_ALPHA, BLENDMODE_ONE_MINUS_DST_COLOR, BLENDMODE_ONE_MINUS_SRC_ALPHA, BLENDMODE_ONE_MINUS_SRC_COLOR, BLENDMODE_SRC_ALPHA, BLENDMODE_SRC_ALPHA_SATURATE, BLENDMODE_SRC_COLOR, BLENDMODE_ZERO, BLEND_ADDITIVE, BLEND_ADDITIVEALPHA, BLEND_MAX, BLEND_MIN, BLEND_MULTIPLICATIVE, BLEND_MULTIPLICATIVE2X, BLEND_NONE, BLEND_NORMAL, BLEND_PREMULTIPLIED, BLEND_SCREEN, BLEND_SUBTRACTIVE, BLUR_BOX, BLUR_GAUSSIAN, BODYFLAG_KINEMATIC_OBJECT, BODYFLAG_NORESPONSE_OBJECT, BODYFLAG_STATIC_OBJECT, BODYGROUP_DEFAULT, BODYGROUP_DYNAMIC, BODYGROUP_ENGINE_1, BODYGROUP_ENGINE_2, BODYGROUP_ENGINE_3, BODYGROUP_KINEMATIC, BODYGROUP_NONE, BODYGROUP_STATIC, BODYGROUP_TRIGGER, BODYGROUP_USER_1, BODYGROUP_USER_2, BODYGROUP_USER_3, BODYGROUP_USER_4, BODYGROUP_USER_5, BODYGROUP_USER_6, BODYGROUP_USER_7, BODYGROUP_USER_8, BODYMASK_ALL, BODYMASK_NONE, BODYMASK_NOT_STATIC, BODYMASK_NOT_STATIC_KINEMATIC, BODYMASK_STATIC, BODYSTATE_ACTIVE_TAG, BODYSTATE_DISABLE_DEACTIVATION, BODYSTATE_DISABLE_SIMULATION, BODYSTATE_ISLAND_SLEEPING, BODYSTATE_WANTS_DEACTIVATION, BODYTYPE_DYNAMIC, BODYTYPE_KINEMATIC, BODYTYPE_STATIC, BUFFER_DYNAMIC, BUFFER_GPUDYNAMIC, BUFFER_STATIC, BUFFER_STREAM, BUTTON_TRANSITION_MODE_SPRITE_CHANGE, BUTTON_TRANSITION_MODE_TINT, BasicMaterial, Batch, BatchGroup, BatchManager, BinaryHandler, BindBufferFormat, BindGroupFormat, BindStorageTextureFormat, BindTextureFormat, BlendState, BoundingBox, BoundingSphere, Bundle, BundleHandler, BundleRegistry, ButtonComponent, ButtonComponentSystem, CHUNKAPI_1_51, CHUNKAPI_1_55, CHUNKAPI_1_56, CHUNKAPI_1_57, CHUNKAPI_1_58, CHUNKAPI_1_60, CHUNKAPI_1_62, CHUNKAPI_1_65, CLEARFLAG_COLOR, CLEARFLAG_DEPTH, CLEARFLAG_STENCIL, CUBEFACE_NEGX, CUBEFACE_NEGY, CUBEFACE_NEGZ, CUBEFACE_POSX, CUBEFACE_POSY, CUBEFACE_POSZ, CUBEPROJ_BOX, CUBEPROJ_NONE, CULLFACE_BACK, CULLFACE_FRONT, CULLFACE_FRONTANDBACK, CULLFACE_NONE, CURVE_CARDINAL, CURVE_CATMULL, CURVE_LINEAR, CURVE_SMOOTHSTEP, CURVE_SPLINE, CURVE_STEP, Camera, CameraComponent, CameraComponentSystem, CanvasFont, ChunkBuilder, CollisionComponent, CollisionComponentSystem, Color, Component, ComponentSystem, ComponentSystemRegistry, Compute, ContactPoint, ContactResult, ContainerHandler, ContainerResource, ContextCreationError, Controller, CssHandler, CubemapHandler, Curve, CurveSet, DETAILMODE_ADD, DETAILMODE_MAX, DETAILMODE_MIN, DETAILMODE_MUL, DETAILMODE_OVERLAY, DETAILMODE_SCREEN, DEVICETYPE_NULL, DEVICETYPE_WEBGL1, DEVICETYPE_WEBGL2, DEVICETYPE_WEBGPU, DISTANCE_EXPONENTIAL, DISTANCE_INVERSE, DISTANCE_LINEAR, DITHER_BAYER8, DITHER_BLUENOISE, DITHER_NONE, DefaultAnimBinder, DepthState, ELEMENTTYPE_FLOAT32, ELEMENTTYPE_GROUP, ELEMENTTYPE_IMAGE, ELEMENTTYPE_INT16, ELEMENTTYPE_INT32, ELEMENTTYPE_INT8, ELEMENTTYPE_TEXT, ELEMENTTYPE_UINT16, ELEMENTTYPE_UINT32, ELEMENTTYPE_UINT8, EMITTERSHAPE_BOX, EMITTERSHAPE_SPHERE, EVENT_GAMEPADCONNECTED, EVENT_GAMEPADDISCONNECTED, EVENT_KEYDOWN, EVENT_KEYUP, EVENT_MOUSEDOWN, EVENT_MOUSEMOVE, EVENT_MOUSEUP, EVENT_MOUSEWHEEL, EVENT_SELECT, EVENT_SELECTEND, EVENT_SELECTSTART, EVENT_TOUCHCANCEL, EVENT_TOUCHEND, EVENT_TOUCHMOVE, EVENT_TOUCHSTART, ElementComponent, ElementComponentSystem, ElementDragHelper, ElementInput, ElementInputEvent, ElementMouseEvent, ElementSelectEvent, ElementTouchEvent, Entity, EntityReference, EnvLighting, EventHandle, EventHandler, FILLMODE_FILL_WINDOW, FILLMODE_KEEP_ASPECT, FILLMODE_NONE, FILTER_LINEAR, FILTER_LINEAR_MIPMAP_LINEAR, FILTER_LINEAR_MIPMAP_NEAREST, FILTER_NEAREST, FILTER_NEAREST_MIPMAP_LINEAR, FILTER_NEAREST_MIPMAP_NEAREST, FITMODE_CONTAIN, FITMODE_COVER, FITMODE_STRETCH, FITTING_BOTH, FITTING_NONE, FITTING_SHRINK, FITTING_STRETCH, FOG_EXP, FOG_EXP2, FOG_LINEAR, FOG_NONE, FONT_BITMAP, FONT_MSDF, FRESNEL_NONE, FRESNEL_SCHLICK, FUNC_ALWAYS, FUNC_EQUAL, FUNC_GREATER, FUNC_GREATEREQUAL, FUNC_LESS, FUNC_LESSEQUAL, FUNC_NEVER, FUNC_NOTEQUAL, FloatPacking, FolderHandler, Font, FontHandler, ForwardRenderer, Frustum, GAMMA_NONE, GAMMA_SRGB, GAMMA_SRGBFAST, GAMMA_SRGBHDR, GSplat, GSplatComponentSystem, GSplatData, GSplatHandler, GSplatInstance, GamePads, GraphNode, GraphicsDevice, HierarchyHandler, HtmlHandler, Http, I18n, INDEXFORMAT_UINT16, INDEXFORMAT_UINT32, INDEXFORMAT_UINT8, INTERPOLATION_CUBIC, INTERPOLATION_LINEAR, INTERPOLATION_STEP, ImageElement, IndexBuffer, IndexedList, JointComponent, JointComponentSystem, JsonHandler, JsonStandardMaterialParser, KEY_0, KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7, KEY_8, KEY_9, KEY_A, KEY_ADD, KEY_ALT, KEY_B, KEY_BACKSPACE, KEY_BACK_SLASH, KEY_C, KEY_CAPS_LOCK, KEY_CLOSE_BRACKET, KEY_COMMA, KEY_CONTEXT_MENU, KEY_CONTROL, KEY_D, KEY_DECIMAL, KEY_DELETE, KEY_DIVIDE, KEY_DOWN, KEY_E, KEY_END, KEY_ENTER, KEY_EQUAL, KEY_ESCAPE, KEY_F, KEY_F1, KEY_F10, KEY_F11, KEY_F12, KEY_F2, KEY_F3, KEY_F4, KEY_F5, KEY_F6, KEY_F7, KEY_F8, KEY_F9, KEY_G, KEY_H, KEY_HOME, KEY_I, KEY_INSERT, KEY_J, KEY_K, KEY_L, KEY_LEFT, KEY_M, KEY_META, KEY_MULTIPLY, KEY_N, KEY_NUMPAD_0, KEY_NUMPAD_1, KEY_NUMPAD_2, KEY_NUMPAD_3, KEY_NUMPAD_4, KEY_NUMPAD_5, KEY_NUMPAD_6, KEY_NUMPAD_7, KEY_NUMPAD_8, KEY_NUMPAD_9, KEY_O, KEY_OPEN_BRACKET, KEY_P, KEY_PAGE_DOWN, KEY_PAGE_UP, KEY_PAUSE, KEY_PERIOD, KEY_PRINT_SCREEN, KEY_Q, KEY_R, KEY_RETURN, KEY_RIGHT, KEY_S, KEY_SEMICOLON, KEY_SEPARATOR, KEY_SHIFT, KEY_SLASH, KEY_SPACE, KEY_SUBTRACT, KEY_T, KEY_TAB, KEY_U, KEY_UP, KEY_V, KEY_W, KEY_WINDOWS, KEY_X, KEY_Y, KEY_Z, Key, Keyboard, KeyboardEvent, LAYERID_DEPTH, LAYERID_IMMEDIATE, LAYERID_SKYBOX, LAYERID_UI, LAYERID_WORLD, LAYER_FX, LAYER_GIZMO, LAYER_HUD, LAYER_WORLD, LIGHTFALLOFF_INVERSESQUARED, LIGHTFALLOFF_LINEAR, LIGHTSHAPE_DISK, LIGHTSHAPE_PUNCTUAL, LIGHTSHAPE_RECT, LIGHTSHAPE_SPHERE, LIGHTTYPE_COUNT, LIGHTTYPE_DIRECTIONAL, LIGHTTYPE_OMNI, LIGHTTYPE_POINT, LIGHTTYPE_SPOT, LINEBATCH_GIZMO, LINEBATCH_OVERLAY, LINEBATCH_WORLD, Layer, LayerComposition, LayoutCalculator, LayoutChildComponent, LayoutChildComponentSystem, LayoutGroupComponent, LayoutGroupComponentSystem, Light, LightComponent, LightComponentSystem, LightingParams, Lightmapper, LitMaterial, LitOptions, LitShaderOptions, LocalizedAsset, MASK_AFFECT_DYNAMIC, MASK_AFFECT_LIGHTMAPPED, MASK_BAKE, MOTION_FREE, MOTION_LIMITED, MOTION_LOCKED, MOUSEBUTTON_LEFT, MOUSEBUTTON_MIDDLE, MOUSEBUTTON_NONE, MOUSEBUTTON_RIGHT, Mat3, Mat4, Material, MaterialHandler, Mesh, MeshInstance, Model, ModelComponent, ModelComponentSystem, ModelHandler, Morph, MorphInstance, MorphTarget, Mouse, MouseEvent$1 as MouseEvent, Node$1 as Node, NullGraphicsDevice, ORIENTATION_HORIZONTAL, ORIENTATION_VERTICAL, OrientedBox, PAD_1, PAD_2, PAD_3, PAD_4, PAD_DOWN, PAD_FACE_1, PAD_FACE_2, PAD_FACE_3, PAD_FACE_4, PAD_LEFT, PAD_L_SHOULDER_1, PAD_L_SHOULDER_2, PAD_L_STICK_BUTTON, PAD_L_STICK_X, PAD_L_STICK_Y, PAD_RIGHT, PAD_R_SHOULDER_1, PAD_R_SHOULDER_2, PAD_R_STICK_BUTTON, PAD_R_STICK_X, PAD_R_STICK_Y, PAD_SELECT, PAD_START, PAD_UP, PAD_VENDOR, PARTICLEMODE_CPU, PARTICLEMODE_GPU, PARTICLEORIENTATION_EMITTER, PARTICLEORIENTATION_SCREEN, PARTICLEORIENTATION_WORLD, PARTICLESORT_DISTANCE, PARTICLESORT_NEWER_FIRST, PARTICLESORT_NONE, PARTICLESORT_OLDER_FIRST, PIXELFORMAT_111110F, PIXELFORMAT_A8, PIXELFORMAT_ASTC_4x4, PIXELFORMAT_ATC_RGB, PIXELFORMAT_ATC_RGBA, PIXELFORMAT_BGRA8, PIXELFORMAT_DEPTH, PIXELFORMAT_DEPTHSTENCIL, PIXELFORMAT_DXT1, PIXELFORMAT_DXT3, PIXELFORMAT_DXT5, PIXELFORMAT_ETC1, PIXELFORMAT_ETC2_RGB, PIXELFORMAT_ETC2_RGBA, PIXELFORMAT_L8, PIXELFORMAT_L8_A8, PIXELFORMAT_LA8, PIXELFORMAT_PVRTC_2BPP_RGBA_1, PIXELFORMAT_PVRTC_2BPP_RGB_1, PIXELFORMAT_PVRTC_4BPP_RGBA_1, PIXELFORMAT_PVRTC_4BPP_RGB_1, PIXELFORMAT_R16I, PIXELFORMAT_R16U, PIXELFORMAT_R32F, PIXELFORMAT_R32I, PIXELFORMAT_R32U, PIXELFORMAT_R4_G4_B4_A4, PIXELFORMAT_R5_G5_B5_A1, PIXELFORMAT_R5_G6_B5, PIXELFORMAT_R8I, PIXELFORMAT_R8U, PIXELFORMAT_R8_G8_B8, PIXELFORMAT_R8_G8_B8_A8, PIXELFORMAT_RG16I, PIXELFORMAT_RG16U, PIXELFORMAT_RG32I, PIXELFORMAT_RG32U, PIXELFORMAT_RG8I, PIXELFORMAT_RG8U, PIXELFORMAT_RGB16F, PIXELFORMAT_RGB32F, PIXELFORMAT_RGB565, PIXELFORMAT_RGB8, PIXELFORMAT_RGBA16F, PIXELFORMAT_RGBA16I, PIXELFORMAT_RGBA16U, PIXELFORMAT_RGBA32F, PIXELFORMAT_RGBA32I, PIXELFORMAT_RGBA32U, PIXELFORMAT_RGBA4, PIXELFORMAT_RGBA5551, PIXELFORMAT_RGBA8, PIXELFORMAT_RGBA8I, PIXELFORMAT_RGBA8U, PIXELFORMAT_SRGB, PIXELFORMAT_SRGBA, PRIMITIVE_LINELOOP, PRIMITIVE_LINES, PRIMITIVE_LINESTRIP, PRIMITIVE_POINTS, PRIMITIVE_TRIANGLES, PRIMITIVE_TRIFAN, PRIMITIVE_TRISTRIP, PROJECTION_ORTHOGRAPHIC, PROJECTION_PERSPECTIVE, ParticleEmitter, ParticleSystemComponent, ParticleSystemComponentSystem, PhongMaterial, Picker, Plane, PostEffect$1 as PostEffect, PostEffectQueue, ProgramLibrary, QuadRender, Quat, RENDERSTYLE_POINTS, RENDERSTYLE_SOLID, RENDERSTYLE_WIREFRAME, RESOLUTION_AUTO, RESOLUTION_FIXED, RIGIDBODY_ACTIVE_TAG, RIGIDBODY_CF_KINEMATIC_OBJECT, RIGIDBODY_CF_NORESPONSE_OBJECT, RIGIDBODY_CF_STATIC_OBJECT, RIGIDBODY_DISABLE_DEACTIVATION, RIGIDBODY_DISABLE_SIMULATION, RIGIDBODY_ISLAND_SLEEPING, RIGIDBODY_TYPE_DYNAMIC, RIGIDBODY_TYPE_KINEMATIC, RIGIDBODY_TYPE_STATIC, RIGIDBODY_WANTS_DEACTIVATION, Ray, RaycastResult, ReadStream, RenderComponent, RenderComponentSystem, RenderHandler, RenderPass, RenderPassColorGrab, RenderPassForward, RenderPassShaderQuad, RenderTarget, type ResourceHandler, ResourceLoader, RigidBodyComponent, RigidBodyComponentSystem, SAMPLETYPE_DEPTH, SAMPLETYPE_FLOAT, SAMPLETYPE_INT, SAMPLETYPE_UINT, SAMPLETYPE_UNFILTERABLE_FLOAT, SCALEMODE_BLEND, SCALEMODE_NONE, SCROLLBAR_VISIBILITY_SHOW_ALWAYS, SCROLLBAR_VISIBILITY_SHOW_WHEN_REQUIRED, SCROLL_MODE_BOUNCE, SCROLL_MODE_CLAMP, SCROLL_MODE_INFINITE, SEMANTIC_ATTR, SEMANTIC_ATTR0, SEMANTIC_ATTR1, SEMANTIC_ATTR10, SEMANTIC_ATTR11, SEMANTIC_ATTR12, SEMANTIC_ATTR13, SEMANTIC_ATTR14, SEMANTIC_ATTR15, SEMANTIC_ATTR2, SEMANTIC_ATTR3, SEMANTIC_ATTR4, SEMANTIC_ATTR5, SEMANTIC_ATTR6, SEMANTIC_ATTR7, SEMANTIC_ATTR8, SEMANTIC_ATTR9, SEMANTIC_BLENDINDICES, SEMANTIC_BLENDWEIGHT, SEMANTIC_COLOR, SEMANTIC_NORMAL, SEMANTIC_POSITION, SEMANTIC_TANGENT, SEMANTIC_TEXCOORD, SEMANTIC_TEXCOORD0, SEMANTIC_TEXCOORD1, SEMANTIC_TEXCOORD2, SEMANTIC_TEXCOORD3, SEMANTIC_TEXCOORD4, SEMANTIC_TEXCOORD5, SEMANTIC_TEXCOORD6, SEMANTIC_TEXCOORD7, SHADERDEF_DIRLM, SHADERDEF_INSTANCING, SHADERDEF_LM, SHADERDEF_LMAMBIENT, SHADERDEF_MORPH_NORMAL, SHADERDEF_MORPH_POSITION, SHADERDEF_MORPH_TEXTURE_BASED, SHADERDEF_NOSHADOW, SHADERDEF_SCREENSPACE, SHADERDEF_SKIN, SHADERDEF_TANGENTS, SHADERDEF_UV0, SHADERDEF_UV1, SHADERDEF_VCOLOR, SHADERLANGUAGE_GLSL, SHADERLANGUAGE_WGSL, SHADERPASS_ALBEDO, SHADERPASS_AO, SHADERPASS_EMISSION, SHADERPASS_FORWARD, SHADERPASS_GLOSS, SHADERPASS_LIGHTING, SHADERPASS_METALNESS, SHADERPASS_OPACITY, SHADERPASS_SPECULARITY, SHADERPASS_UV0, SHADERPASS_WORLDNORMAL, SHADERSTAGE_COMPUTE, SHADERSTAGE_FRAGMENT, SHADERSTAGE_VERTEX, SHADERTAG_MATERIAL, SHADER_DEPTH, SHADER_FORWARD, SHADER_FORWARDHDR, SHADER_PICK, SHADER_SHADOW, SHADOWUPDATE_NONE, SHADOWUPDATE_REALTIME, SHADOWUPDATE_THISFRAME, SHADOW_DEPTH, SHADOW_PCF1, SHADOW_PCF3, SHADOW_PCF5, SHADOW_PCSS, SHADOW_VSM16, SHADOW_VSM32, SHADOW_VSM8, SKYTYPE_BOX, SKYTYPE_DOME, SKYTYPE_INFINITE, SORTKEY_DEPTH, SORTKEY_FORWARD, SORTMODE_BACK2FRONT, SORTMODE_CUSTOM, SORTMODE_FRONT2BACK, SORTMODE_MANUAL, SORTMODE_MATERIALMESH, SORTMODE_NONE, SPECOCC_AO, SPECOCC_GLOSSDEPENDENT, SPECOCC_NONE, SPECULAR_BLINN, SPECULAR_PHONG, SPRITETYPE_ANIMATED, SPRITETYPE_SIMPLE, SPRITE_RENDERMODE_SIMPLE, SPRITE_RENDERMODE_SLICED, SPRITE_RENDERMODE_TILED, STENCILOP_DECREMENT, STENCILOP_DECREMENTWRAP, STENCILOP_INCREMENT, STENCILOP_INCREMENTWRAP, STENCILOP_INVERT, STENCILOP_KEEP, STENCILOP_REPLACE, STENCILOP_ZERO, Scene, SceneHandler, SceneRegistry, SceneRegistryItem, SceneSettingsHandler, ScopeId, ScopeSpace, ScreenComponent, ScreenComponentSystem, ScriptAttributes, ScriptComponent, ScriptComponentSystem, ScriptHandler, ScriptLegacyComponent, ScriptLegacyComponentSystem, ScriptRegistry, ScriptType, ScrollViewComponent, ScrollViewComponentSystem, ScrollbarComponent, ScrollbarComponentSystem, Shader, ShaderGenerator, ShaderHandler, ShaderPass, ShaderProcessorOptions, ShaderUtils, SingleContactResult, Skeleton, Skin, SkinBatchInstance, SkinInstance, SortedLoopArray, Sound, SoundComponent, SoundComponentSystem, SoundInstance, SoundInstance3d, SoundManager, SoundSlot, Sprite, SpriteAnimationClip, SpriteComponent, SpriteComponentSystem, SpriteHandler, StandardMaterial, StandardMaterialOptions, StencilParameters, TEXHINT_ASSET, TEXHINT_LIGHTMAP, TEXHINT_NONE, TEXHINT_SHADOWMAP, TEXTUREDIMENSION_1D, TEXTUREDIMENSION_2D, TEXTUREDIMENSION_2D_ARRAY, TEXTUREDIMENSION_3D, TEXTUREDIMENSION_CUBE, TEXTUREDIMENSION_CUBE_ARRAY, TEXTURELOCK_READ, TEXTURELOCK_WRITE, TEXTUREPROJECTION_CUBE, TEXTUREPROJECTION_EQUIRECT, TEXTUREPROJECTION_NONE, TEXTUREPROJECTION_OCTAHEDRAL, TEXTURETYPE_DEFAULT, TEXTURETYPE_RGBE, TEXTURETYPE_RGBM, TEXTURETYPE_RGBP, TEXTURETYPE_SWIZZLEGGGR, TONEMAP_ACES, TONEMAP_ACES2, TONEMAP_FILMIC, TONEMAP_HEJL, TONEMAP_LINEAR, TRACEID_BINDGROUPFORMAT_ALLOC, TRACEID_BINDGROUP_ALLOC, TRACEID_COMPUTEPIPELINE_ALLOC, TRACEID_GPU_TIMINGS, TRACEID_PIPELINELAYOUT_ALLOC, TRACEID_RENDERPIPELINE_ALLOC, TRACEID_RENDER_ACTION, TRACEID_RENDER_FRAME, TRACEID_RENDER_FRAME_TIME, TRACEID_RENDER_PASS, TRACEID_RENDER_PASS_DETAIL, TRACEID_RENDER_QUEUE, TRACEID_RENDER_TARGET_ALLOC, TRACEID_SHADER_ALLOC, TRACEID_SHADER_COMPILE, TRACEID_TEXTURES, TRACEID_TEXTURE_ALLOC, TRACEID_VRAM_IB, TRACEID_VRAM_TEXTURE, TRACEID_VRAM_VB, TRACE_ID_ELEMENT, TYPE_FLOAT16, TYPE_FLOAT32, TYPE_INT16, TYPE_INT32, TYPE_INT8, TYPE_UINT16, TYPE_UINT32, TYPE_UINT8, Tags, Template, TemplateHandler, TextElement, TextHandler, Texture, TextureAtlas, TextureAtlasHandler, TextureHandler, TextureParser, TextureUtils, Touch$1 as Touch, TouchDevice, TouchEvent$1 as TouchEvent, Tracing, TransformFeedback, UNIFORMTYPE_BOOL, UNIFORMTYPE_BOOLARRAY, UNIFORMTYPE_BVEC2, UNIFORMTYPE_BVEC2ARRAY, UNIFORMTYPE_BVEC3, UNIFORMTYPE_BVEC3ARRAY, UNIFORMTYPE_BVEC4, UNIFORMTYPE_BVEC4ARRAY, UNIFORMTYPE_FLOAT, UNIFORMTYPE_FLOATARRAY, UNIFORMTYPE_INT, UNIFORMTYPE_INTARRAY, UNIFORMTYPE_ITEXTURE2D, UNIFORMTYPE_ITEXTURE2D_ARRAY, UNIFORMTYPE_ITEXTURE3D, UNIFORMTYPE_ITEXTURECUBE, UNIFORMTYPE_IVEC2, UNIFORMTYPE_IVEC2ARRAY, UNIFORMTYPE_IVEC3, UNIFORMTYPE_IVEC3ARRAY, UNIFORMTYPE_IVEC4, UNIFORMTYPE_IVEC4ARRAY, UNIFORMTYPE_MAT2, UNIFORMTYPE_MAT3, UNIFORMTYPE_MAT4, UNIFORMTYPE_MAT4ARRAY, UNIFORMTYPE_TEXTURE2D, UNIFORMTYPE_TEXTURE2D_ARRAY, UNIFORMTYPE_TEXTURE2D_SHADOW, UNIFORMTYPE_TEXTURE3D, UNIFORMTYPE_TEXTURECUBE, UNIFORMTYPE_TEXTURECUBE_SHADOW, UNIFORMTYPE_UINT, UNIFORMTYPE_UINTARRAY, UNIFORMTYPE_UTEXTURE2D, UNIFORMTYPE_UTEXTURE2D_ARRAY, UNIFORMTYPE_UTEXTURE3D, UNIFORMTYPE_UTEXTURECUBE, UNIFORMTYPE_UVEC2, UNIFORMTYPE_UVEC2ARRAY, UNIFORMTYPE_UVEC3, UNIFORMTYPE_UVEC3ARRAY, UNIFORMTYPE_UVEC4, UNIFORMTYPE_UVEC4ARRAY, UNIFORMTYPE_VEC2, UNIFORMTYPE_VEC2ARRAY, UNIFORMTYPE_VEC3, UNIFORMTYPE_VEC3ARRAY, UNIFORMTYPE_VEC4, UNIFORMTYPE_VEC4ARRAY, UNIFORM_BUFFER_DEFAULT_SLOT_NAME, URI, UnsupportedBrowserError, VIEW_CENTER, VIEW_LEFT, VIEW_RIGHT, Vec2, Vec3, Vec4, VertexBuffer, VertexFormat, VertexIterator, WasmModule, WebglGraphicsDevice, WebgpuGraphicsDevice, WorldClusters, XRDEPTHSENSINGFORMAT_F32, XRDEPTHSENSINGFORMAT_L8A8, XRDEPTHSENSINGUSAGE_CPU, XRDEPTHSENSINGUSAGE_GPU, XREYE_LEFT, XREYE_NONE, XREYE_RIGHT, XRHAND_LEFT, XRHAND_NONE, XRHAND_RIGHT, XRPAD_A, XRPAD_B, XRPAD_SQUEEZE, XRPAD_STICK_BUTTON, XRPAD_STICK_X, XRPAD_STICK_Y, XRPAD_TOUCHPAD_BUTTON, XRPAD_TOUCHPAD_X, XRPAD_TOUCHPAD_Y, XRPAD_TRIGGER, XRSPACE_BOUNDEDFLOOR, XRSPACE_LOCAL, XRSPACE_LOCALFLOOR, XRSPACE_UNBOUNDED, XRSPACE_VIEWER, XRTARGETRAY_GAZE, XRTARGETRAY_POINTER, XRTARGETRAY_SCREEN, XRTRACKABLE_MESH, XRTRACKABLE_PLANE, XRTRACKABLE_POINT, XRTYPE_AR, XRTYPE_INLINE, XRTYPE_VR, XrAnchor, XrAnchors, XrDepthSensing, XrDomOverlay, XrFinger, XrHand, XrHitTest, XrHitTestSource, XrImageTracking, XrInput, XrInputSource, XrLightEstimation, XrManager, XrPlane, XrPlaneDetection, XrTrackedImage, ZoneComponent, ZoneComponentSystem, anim, app, apps, asset, audio, basisInitialize, basisSetDownloadConfig, bindGroupNames, calculateNormals, calculateTangents, common, config, createBox, createCapsule, createCone, createCylinder, createGraphicsDevice, createMesh, createPlane, createScript, createShader, createShaderFromCode, createSphere, createStyle, createTorus, createURI, data, dracoInitialize, drawFullscreenQuad, drawQuadWithShader, drawTexture, events, extend, getPixelFormatArrayType, getProgramLibrary, getReservedScriptNames, getTouchTargetCoords, gfx, guid, http, inherits, input, isCompressedPixelFormat, isIntegerPixelFormat, log, makeArray, math, now, path, pixelFormatInfo, platform, posteffect, prefilterCubemap, programlib, registerScript, reprojectTexture, revision, scene, script, semanticToLocation, shFromCubemap, shaderChunks, shaderChunksLightmapper, shadowTypeToString, shape, string, time, type, typedArrayIndexFormats, typedArrayIndexFormatsByteSize, typedArrayToType, typedArrayTypes, typedArrayTypesByteSize, uniformTypeToName, uniformTypeToStorage, version, vertexTypesNames };
 export as namespace pc;

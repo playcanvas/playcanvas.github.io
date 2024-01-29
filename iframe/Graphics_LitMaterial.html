@@ -1,0 +1,447 @@
+<html>
+    <head>
+        <link rel="stylesheet" href="./example.css">
+        <title>Graphics: LitMaterial</title>
+        <!-- no es5libs -->
+    </head>
+    <body>
+        <div id="app">
+            <div id="appInner">
+                <!--A link without href, which makes it invisible. Setting href in an example would trigger a download when clicked.-->
+                
+                <canvas id="application-canvas"></canvas>
+            </div>
+        </div>
+        <script src='./playcanvas-observer.js'></script>
+        <script src='./pathes.js'></script>
+        <!-- imports (if any) -->
+        <script>
+
+        </script>
+        <!-- controls (if given) -->
+        <script>
+
+        </script>
+        <script>
+async function example({ canvas, deviceType, assetPath, scriptsPath, glslangPath, twgslPath }) {
+
+    const assets = {
+        orbitCamera: new pc.Asset('script', 'script', { url: scriptsPath + 'camera/orbit-camera.js' }),
+        helipad: new pc.Asset('helipad-env-atlas', 'texture', { url: assetPath + 'cubemaps/helipad-env-atlas.png' }, { type: pc.TEXTURETYPE_RGBP, mipmaps: false }),
+        font: new pc.Asset('font', 'font', { url: assetPath + 'fonts/arial.json' }),
+        color: new pc.Asset('color', 'texture', { url: assetPath + 'textures/seaside-rocks01-color.jpg' }),
+        normal: new pc.Asset('normal', 'texture', { url: assetPath + 'textures/seaside-rocks01-normal.jpg' }),
+        gloss: new pc.Asset('gloss', 'texture', { url: assetPath + 'textures/seaside-rocks01-gloss.jpg' })
+    };
+
+    const gfxOptions = {
+        deviceTypes: [deviceType],
+        glslangUrl: glslangPath + 'glslang.js',
+        twgslUrl: twgslPath + 'twgsl.js'
+    };
+
+    const device = await pc.createGraphicsDevice(canvas, gfxOptions);
+
+    const createOptions = new pc.AppOptions();
+    createOptions.graphicsDevice = device;
+    createOptions.mouse = new pc.Mouse(document.body);
+    createOptions.touch = new pc.TouchDevice(document.body);
+    createOptions.keyboard = new pc.Keyboard(document.body);
+
+    createOptions.componentSystems = [
+        pc.RenderComponentSystem,
+        pc.CameraComponentSystem,
+        pc.LightComponentSystem,
+        pc.ScriptComponentSystem,
+        pc.ElementComponentSystem
+    ];
+    createOptions.resourceHandlers = [
+        // @ts-ignore
+        pc.TextureHandler,
+        // @ts-ignore
+        pc.ContainerHandler,
+        // @ts-ignore
+        pc.ScriptHandler,
+        // @ts-ignore
+        pc.JsonHandler,
+        // @ts-ignore
+        pc.FontHandler
+    ];
+
+    const app = new pc.AppBase(canvas);
+    app.init(createOptions);
+
+    // Set the canvas to fill the window and automatically change resolution to be the same as the canvas size
+    app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
+    app.setCanvasResolution(pc.RESOLUTION_AUTO);
+
+    // Ensure canvas is resized when window changes size
+    const resize = () => app.resizeCanvas();
+    window.addEventListener('resize', resize);
+    app.on('destroy', () => {
+        window.removeEventListener('resize', resize);
+    });
+
+    const assetListLoader = new pc.AssetListLoader(Object.values(assets), app.assets);
+    assetListLoader.load(() => {
+        app.start();
+
+        app.scene.envAtlas = assets.helipad.resource;
+
+        // Create an Entity with a camera component
+        const camera = new pc.Entity();
+        camera.addComponent("camera", {
+            clearColor: new pc.Color(0.4, 0.45, 0.5)
+        });
+        camera.addComponent("script");
+        camera.script.create("orbitCamera", {
+            attributes: {
+                inertiaFactor: 0.2,
+                distanceMin: 2,
+                distanceMax: 15
+            }
+        });
+        camera.script.create("orbitCameraInputMouse");
+        camera.script.create("orbitCameraInputTouch");
+        camera.translate(0, 1, 4);
+        camera.lookAt(0, 0, 0);
+        app.root.addChild(camera);
+
+        // Create an Entity with a omni light component and a sphere model component.
+        const light = new pc.Entity();
+        light.addComponent("light", {
+            type: "omni",
+            color: pc.Color.WHITE,
+            intensity: 1,
+            range: 10
+        });
+        light.translate(0, 1, 0);
+        app.root.addChild(light);
+
+        const material = new pc.LitMaterial();
+        material.setParameter("texture_envAtlas", assets.helipad.resource);
+        material.setParameter("material_reflectivity", 1.0);
+        material.setParameter("material_normalMapIntensity", 1.0);
+        material.setParameter("texture_diffuseMap", assets.color.resource);
+        material.setParameter("texture_glossMap", assets.gloss.resource);
+        material.setParameter("texture_normalMap", assets.normal.resource);
+        material.shadingModel = pc.SPECULAR_BLINN;
+        material.useSkybox = true;
+        material.hasSpecular = true;
+        material.hasSpecularityFactor = true;
+        material.hasNormals = true;
+        material.hasMetalness = true;
+        material.occludeSpecular = pc.SPECOCC_AO;
+
+        const argumentsChunk = `
+        uniform sampler2D texture_diffuseMap;
+        uniform sampler2D texture_glossMap;
+        uniform sampler2D texture_normalMap;
+        uniform float material_normalMapIntensity;
+        uniform vec3 material_specularRgb;
+        void evaluateFrontend() {
+            litArgs_emission = vec3(0, 0, 0);
+            litArgs_metalness = 0.5;
+            litArgs_specularity = material_specularRgb;
+            litArgs_specularityFactor = 1.0;
+            litArgs_gloss = texture2D(texture_glossMap, vUv0).r;
+
+            litArgs_ior = 0.1;
+
+            vec3 normalMap = texture2D(texture_normalMap, vUv0).xyz * 2.0 - 1.0;
+            litArgs_worldNormal = normalize(dTBN * mix(vec3(0,0,1), normalMap, material_normalMapIntensity));
+            litArgs_albedo = vec3(0.5) + texture2D(texture_diffuseMap, vUv0).xyz;
+
+            litArgs_ao = 0.0;
+            litArgs_opacity = 1.0;
+        }`;
+        material.shaderChunk = argumentsChunk;
+        material.update();
+
+        // create primitive
+        const primitive = new pc.Entity();
+        primitive.addComponent('render', {
+            type: "sphere",
+            material: material
+        });
+
+        // set position and scale and add it to scene
+        app.root.addChild(primitive);
+
+        let time = 0;
+        app.on("update", function (/** @type {number} */dt) {
+            time += dt;
+            material.setParameter("material_specularRgb", [(Math.sin(time) + 1.0) * 0.5, (Math.cos(time * 0.5) + 1.0) * 0.5, (Math.sin(time * 0.7) + 1.0) * 0.5]);
+            material.setParameter("material_normalMapIntensity", (Math.sin(time) + 1.0) * 0.5);
+        });
+    });
+    return app;
+}
+        </script>
+        <script>
+        const ENGINE_PATH = '';
+        const NODE_ENV = 'production';
+        /**
+         * Used in outline and posteffects to make ES5 scripts work in ES6
+         * @example
+         * // doesn't start with 'class', so not changing any behaviour
+         * debugger; // step through with F11 to debug
+         * Object.prototype.toString.call(1) === '[object Number]'
+         */
+        function enablePolyfillFunctionCall() {
+            const functionCall = Function.prototype.call;
+            function polyCall(thisArg, ...args) {
+                if (this.toString().startsWith('class')) {
+                    return Object.assign(thisArg, new this(...args));
+                }
+                return functionCall.bind(this)(thisArg, ...args);
+            }
+            Function.prototype.call = polyCall;
+        }
+        enablePolyfillFunctionCall();
+        /**
+         * Can load UMD and ESM. UMD registers itself into globalThis, while ESM is handled
+         * to specifically to do the same, so we achieve the same result, no matter which
+         * target build/src we linked to.
+         */
+        async function loadScript(name, src) {
+            // console.log('loadScript>', { name, src });
+            const module = await import(src);
+            const isESM = Object.keys(module).length;
+            if (isESM) {
+                window[name] = module;
+            }
+        }
+        /**
+         * @returns {string}
+         */
+        function getDeviceType() {
+            const last = localStorage.getItem('preferredGraphicsDevice');
+            if (last !== null) {
+                if (last === 'webgpu' && false) {
+                    console.warn('Picked WebGPU but example is not supported on WebGPU, defaulting to WebGL2');
+                    return 'webgl2';
+                }
+                return last;
+            } else if (true) {
+                let preferredDevice = 'webgpu';
+                // Lack of Chrome's WebGPU support on Linux
+                if (navigator.platform.includes('Linux') && navigator.appVersion.includes("Chrome")) {
+                    preferredDevice = 'webgl2';
+                }
+                return window.top.preferredGraphicsDevice || preferredDevice;
+            } else if (['webgl1', 'webgl2'].includes(window.top.preferredGraphicsDevice)) {
+                return window.top.preferredGraphicsDevice;
+            } else {
+                return 'webgl2';
+            }
+        }
+        /**
+         * Get the specified engine, picking the right choice from three sources:
+         *  - Example#ENGINE (lowest priority)
+         *  - NODE_ENV (2nd lowest priority)
+         *  - ENGINE_PATH (highest priority)
+         * If none of these sources are given, we simply pick build/playcanvas.js (ES5)
+         */
+        function getSpecifiedEngine() {
+            let specifiedEngine = './playcanvas.js';
+            // Doesn't matter what Example class specifies otherwise, because
+            // NODE_ENV has a higher priority
+            if (NODE_ENV === 'development') {
+                specifiedEngine = './playcanvas.dbg.js'
+            }
+            // ENGINE_PATH has the highest priority.
+            if (ENGINE_PATH.length) {
+                const entryPoint = ENGINE_PATH.split('/').pop();
+                specifiedEngine = './ENGINE_PATH/' + entryPoint;
+            }
+            return specifiedEngine;
+        }
+        let app;
+        let ready = false; // Used in indicate if UI can render Controls
+        let started = false;
+        let miniStats;
+        let allowRestart = 'true';
+        const args = Object.fromEntries(
+            location.href.split('?').pop().split('#')[0].split('&').map(_ => _.split('='))
+        );
+        let data = new observer.Observer({});
+        /**
+         * Keep it function in first run for nicer debug locations.
+         * @type {Record<string, string | Function>}
+         */
+        const files = {};
+        files['example.mjs'] = example.toString();
+        if (window.controls) {
+            files['controls.mjs'] = controls.toString();
+        }
+        var filesObject = {};
+        function resolveFunction(_) {
+            if (_.call) {
+                return _;
+            }
+            return new Function('return ' + _)();
+        }
+        Object.assign(files, filesObject);
+        function requestFiles() {
+            const responseEvent = new CustomEvent("requestedFiles", { detail: files });
+            window.top.dispatchEvent(responseEvent);
+        }
+        /**
+         * This function is called from React whenever we click on MiniStats icon,
+         * even PlayCanvas' pc itself could be undefined here.
+         */
+        function showStats() {
+            // examples/misc/mini-stats.mjs creates its own instance of ministats, prevent two mini-stats here
+            if (false) {
+                return;
+            }
+            if (typeof pc === 'undefined' || typeof pcx === 'undefined') {
+                return;
+            }
+            const deviceType = app?.graphicsDevice?.deviceType;
+            if (deviceType === 'null') {
+                return;
+            }
+            if (args.miniStats === 'false') {
+                return;
+            }
+            if (!miniStats) {
+                miniStats = new pcx.MiniStats(app);
+            }
+            miniStats.enabled = true;
+        }
+        function hideStats() {
+            if (!miniStats) {
+                return;
+            }
+            miniStats.enabled = false;
+        }
+        /**
+         * This function is called from React whenever we change an example in any possible state,
+         * even PlayCanvas' pc itself could be undefined here.
+         */
+        function destroy() {
+            miniStats?.destroy();
+            miniStats = null;
+            // Can't call app.destroy() twice without an error,
+            // so we check for app.graphicsDevice first
+            if (app && app.graphicsDevice) {
+                app.destroy();
+            }
+            ready = false;
+        }
+        function hotReload() {
+            if (!allowRestart) {
+                console.warn('hotReload> Dropping restart while still restarting');
+                return;
+            }
+            destroy();
+            data = new observer.Observer({});
+            main(files);
+        }
+        window.addEventListener('requestFiles', requestFiles);
+        window.addEventListener('showStats'   , showStats   );
+        window.addEventListener('hideStats'   , hideStats   );
+        window.addEventListener('destroy'     , destroy     );
+        window.addEventListener('hotReload'   , hotReload   );
+        function updateControls() {
+            const event = new CustomEvent("updateFiles", {
+                detail: {
+                    files
+                }
+            });
+            window.top.dispatchEvent(event);
+        }
+        function updateActiveDevice() {
+            const event = new CustomEvent("updateActiveDevice", {
+                detail: app.graphicsDevice.deviceType
+            });
+            window.top.dispatchEvent(event);
+        }
+        async function main(files) {
+            allowRestart = false;
+            await loadScript('pc', getSpecifiedEngine());
+            await loadScript('pcx', './playcanvas-extras.js');
+            window.top.pc = pc;
+            var canvas = document.getElementById("application-canvas");
+            window.top.observerData = data;
+            var deviceType = getDeviceType();
+            if (args.deviceType) {
+                console.warn("overwriting default deviceType from URL");
+                deviceType = args.deviceType;
+            }
+            if (!deviceType) {
+                console.warn("No deviceType given, defaulting to WebGL2");
+                deviceType = 'webgl2';
+            }
+            if (!started) {
+                // console.log("Dispatch exampleLoading!");
+                // just notify to clean UI, but not during hot-reload
+                const event = new CustomEvent("exampleLoading", {
+                    detail: {
+                        showDeviceSelector: true,
+                    }
+                });
+                window.top.dispatchEvent(event);
+            }
+            const example = resolveFunction(files['example.mjs']);
+            files['example.mjs'] = files['example.mjs'].toString();
+            app = await example({
+                canvas,
+                deviceType,
+                data,
+                assetPath,
+                scriptsPath,
+                ammoPath,
+                basisPath,
+                dracoPath,
+                glslangPath,
+                twgslPath,
+                pcx,
+                files,
+            });
+            ready = true;
+            class ExampleLoadEvent extends CustomEvent {
+                constructor(deviceType) {
+                    super("exampleLoad");
+                    this.files = files;
+                    this.description = "";
+                }
+            }
+            const finalFunc = () => {
+                if (app.graphicsDevice?.canvas) {
+                    showStats();
+                    if (!started) { // only one time, recalls of main() are caused by Monaco live coding
+                        window.top.dispatchEvent(new ExampleLoadEvent());
+                    }
+                    started = true;
+                    updateControls();
+                    updateActiveDevice();
+                    allowRestart = true;
+                } else {
+                    console.warn('main> no canvas');
+                }
+            };
+            // Wait until example has called app.start()
+            // And if it already called start, we will know by app.frame > 0
+            // app.start() is called when assets loaded in examples
+            if (app) {
+                if (app.frame) { // app already started
+                    finalFunc();
+                } else { // Wait for app.start()
+                    app.once('start', finalFunc);
+                }
+            } else {
+                // The example function didn't return an app instance
+                // still update the UI and assume it has started.
+                window.top.dispatchEvent(new ExampleLoadEvent());
+                started = true;
+                updateControls();
+                allowRestart = true;
+            }
+        }
+        window.onload = () => main(files);
+        </script>
+    </body>
+</html>

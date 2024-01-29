@@ -1,0 +1,543 @@
+<html>
+    <head>
+        <link rel="stylesheet" href="./example.css">
+        <title>Xr: ArCameraDepth</title>
+        <!-- no es5libs -->
+    </head>
+    <body>
+        <div id="app">
+            <div id="appInner">
+                <!--A link without href, which makes it invisible. Setting href in an example would trigger a download when clicked.-->
+                
+                <canvas id="application-canvas"></canvas>
+            </div>
+        </div>
+        <script src='./playcanvas-observer.js'></script>
+        <script src='./pathes.js'></script>
+        <!-- imports (if any) -->
+        <script>
+
+        </script>
+        <!-- controls (if given) -->
+        <script>
+
+        </script>
+        <script>
+async function example({ canvas }) {
+    /**
+     * @param {string} msg - The message.
+     */
+    const message = function (msg) {
+        /** @type {HTMLDivElement} */
+        let el = document.querySelector('.message');
+        if (!el) {
+            el = document.createElement('div');
+            el.classList.add('message');
+            el.style.position = 'absolute';
+            el.style.bottom = '96px';
+            el.style.right = '0';
+            el.style.padding = '8px 16px';
+            el.style.fontFamily = 'Helvetica, Arial, sans-serif';
+            el.style.color = '#fff';
+            el.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+            document.body.append(el);
+        }
+        el.textContent = msg;
+    };
+
+    const app = new pc.Application(canvas, {
+        mouse: new pc.Mouse(canvas),
+        touch: new pc.TouchDevice(canvas),
+        keyboard: new pc.Keyboard(window),
+        graphicsDeviceOptions: { alpha: true }
+    });
+
+    app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
+    app.setCanvasResolution(pc.RESOLUTION_AUTO);
+
+    // Ensure canvas is resized when window changes size
+    const resize = () => app.resizeCanvas();
+    window.addEventListener('resize', resize);
+    app.on('destroy', () => {
+        window.removeEventListener('resize', resize);
+    });
+
+    // use device pixel ratio
+    app.graphicsDevice.maxPixelRatio = window.devicePixelRatio;
+
+    app.start();
+
+    // create camera
+    const camera = new pc.Entity();
+    camera.addComponent('camera', {
+        clearColor: new pc.Color(0, 0, 0, 0),
+        farClip: 10000
+    });
+    app.root.addChild(camera);
+
+    let shaderUpdated = false;
+    let shaderDepthArray = null;
+    let shaderDepthFloat = null;
+
+    const vertShader = /* glsl */ `
+    attribute vec3 aPosition;
+    attribute vec2 aUv0;
+    uniform mat4 matrix_model;
+    uniform mat4 matrix_viewProjection;
+    varying vec2 vUv0;
+    void main(void)
+    {
+        vec4 screenPosition = matrix_viewProjection * matrix_model * vec4(aPosition, 1.0);
+        gl_Position = screenPosition;
+        vUv0 = screenPosition.xy;
+    }
+    `;
+
+    const fragShader = /* glsl */ `
+    varying vec2 vUv0;
+    uniform vec4 uScreenSize;
+    uniform mat4 matrix_depth_uv;
+    uniform float depth_raw_to_meters;
+
+    #ifdef XRDEPTH_ARRAY
+        uniform int view_index;
+        uniform highp sampler2DArray depthMap;
+    #else
+        uniform sampler2D depthMap;
+    #endif
+
+    void main (void) {
+        vec2 uvScreen = gl_FragCoord.xy * uScreenSize.zw;
+
+        // use texture array for multi-view 
+        #ifdef XRDEPTH_ARRAY
+            uvScreen = uvScreen * vec2(2.0, 1.0) - vec2(view_index, 0.0);
+            vec3 uv = vec3((matrix_depth_uv * vec4(uvScreen.xy, 0.0, 1.0)).xy, view_index);
+        #else
+            vec2 uv = (matrix_depth_uv * vec4(uvScreen.x, 1.0 - uvScreen.y, 0.0, 1.0)).xy;
+        #endif
+
+        #ifdef XRDEPTH_FLOAT
+            float depth = texture2D(depthMap, uv).r;
+        #else
+            // unpack from AlphaLuminance
+            vec2 packedDepth = texture2D(depthMap, uv).ra;
+            float depth = dot(packedDepth, vec2(255.0, 256.0 * 255.0));
+        #endif
+
+        depth *= depth_raw_to_meters;
+
+        // depth = 1.0 - min(depth / 2.0, 1.0); // 0..1 = 0m..4m
+        gl_FragColor = vec4(depth, depth, depth, 1.0);
+    }`;
+
+    const materialDepth = new pc.Material();
+
+    /**
+     * @param {boolean} array - If the depth information uses array texture.
+     * @param {boolean} float - If the depth information uses F32R texture.
+     */
+    const updateShader = (array, float) => {
+        if (shaderDepthArray === array && shaderDepthFloat === float)
+            return;
+
+        shaderDepthArray = array;
+        shaderDepthFloat = float;
+
+        const key = 'textureDepthSensing_' + array + float;
+        let frag = fragShader;
+
+        if (shaderDepthArray)
+            frag = '#define XRDEPTH_ARRAY\n' + frag;
+
+        if (shaderDepthArray)
+            frag = '#define XRDEPTH_FLOAT\n' + frag;
+
+        materialDepth.shader = pc.createShaderFromCode(app.graphicsDevice,
+            vertShader,
+            frag,
+            key, {
+                aPosition: pc.SEMANTIC_POSITION,
+                aUv0: pc.SEMANTIC_TEXCOORD0
+            });
+        materialDepth.clearVariants();
+        materialDepth.update();
+    };
+
+    updateShader(false, false);
+    
+    const plane = new pc.Entity();
+    plane.addComponent('render', {
+        type: 'plane'
+    });
+    plane.render.material = materialDepth;
+    plane.render.meshInstances[0].cull = false;
+    plane.setLocalPosition(0, 0, -1);
+    plane.setLocalEulerAngles(90, 0, 0);
+    camera.addChild(plane);
+
+    if (app.xr.supported) {
+        const activate = function () {
+            if (app.xr.isAvailable(pc.XRTYPE_AR)) {
+                camera.camera.startXr(pc.XRTYPE_AR, pc.XRSPACE_LOCALFLOOR, {
+                    depthSensing: { // request access to camera depth
+                        usagePreference: pc.XRDEPTHSENSINGUSAGE_GPU,
+                        dataFormatPreference: pc.XRDEPTHSENSINGFORMAT_F32
+                    }, 
+                    callback: function (err) {
+                        if (err) message("WebXR Immersive AR failed to start: " + err.message);
+                    }
+                });
+            } else {
+                message("Immersive AR is not available");
+            }
+        };
+
+        app.mouse.on("mousedown", function () {
+            if (!app.xr.active)
+                activate();
+        });
+
+        if (app.touch) {
+            app.touch.on("touchend", function (evt) {
+                if (!app.xr.active) {
+                    // if not in VR, activate
+                    activate();
+                } else {
+                    // otherwise reset camera
+                    camera.camera.endXr();
+                }
+
+                evt.event.preventDefault();
+                evt.event.stopPropagation();
+            });
+        }
+
+        // end session by keyboard ESC
+        app.keyboard.on('keydown', function (evt) {
+            if (evt.key === pc.KEY_ESCAPE && app.xr.active) {
+                app.xr.end();
+            }
+        });
+
+        app.xr.on('start', function () {
+            message("Immersive AR session has started");
+            console.log('depth gpu optimized', app.xr.views.depthGpuOptimized);
+            console.log('depth texture format', app.xr.views.depthPixelFormat);
+        });
+        app.xr.on('end', function () {
+            shaderUpdated = false;
+            message("Immersive AR session has ended");
+        });
+        app.xr.on('available:' + pc.XRTYPE_AR, function (available) {
+            if (available) {
+                if (!app.xr.views.supportedDepth) {
+                    message("AR Camera Depth is not supported");
+                } else {
+                    message("Touch screen to start AR session");
+                }
+            } else {
+                message("Immersive AR is not available");
+            }
+        });
+
+        app.on('update', () => {
+            // if camera depth is available
+            if (app.xr.views.availableDepth) {
+                if (!shaderUpdated && app.xr.active) {
+                    shaderUpdated = true;
+                    updateShader(app.xr.views.list.length > 1, app.xr.views.depthPixelFormat === pc.PIXELFORMAT_R32F);
+                }
+
+                for(let i = 0; i < app.xr.views.list.length; i++) {
+                    const view = app.xr.views.list[i];
+                    if (!view.textureDepth) // check if depth texture is available
+                        continue;
+
+                    materialDepth.setParameter('depthMap', view.textureDepth);
+                    materialDepth.setParameter('matrix_depth_uv', view.depthUvMatrix.data);
+                    materialDepth.setParameter('depth_raw_to_meters', view.depthValueToMeters);
+                }
+            }
+        });
+
+        if (!app.xr.isAvailable(pc.XRTYPE_AR)) {
+            message("Immersive AR is not available");
+        } else if (!app.xr.views.supportedDepth) {
+            message("AR Camera Depth is not supported");
+        } else {
+            message("Touch screen to start AR session");
+        }
+    } else {
+        message("WebXR is not supported");
+    }
+    return app;
+}
+        </script>
+        <script>
+        const ENGINE_PATH = '';
+        const NODE_ENV = 'production';
+        /**
+         * Used in outline and posteffects to make ES5 scripts work in ES6
+         * @example
+         * // doesn't start with 'class', so not changing any behaviour
+         * debugger; // step through with F11 to debug
+         * Object.prototype.toString.call(1) === '[object Number]'
+         */
+        function enablePolyfillFunctionCall() {
+            const functionCall = Function.prototype.call;
+            function polyCall(thisArg, ...args) {
+                if (this.toString().startsWith('class')) {
+                    return Object.assign(thisArg, new this(...args));
+                }
+                return functionCall.bind(this)(thisArg, ...args);
+            }
+            Function.prototype.call = polyCall;
+        }
+        enablePolyfillFunctionCall();
+        /**
+         * Can load UMD and ESM. UMD registers itself into globalThis, while ESM is handled
+         * to specifically to do the same, so we achieve the same result, no matter which
+         * target build/src we linked to.
+         */
+        async function loadScript(name, src) {
+            // console.log('loadScript>', { name, src });
+            const module = await import(src);
+            const isESM = Object.keys(module).length;
+            if (isESM) {
+                window[name] = module;
+            }
+        }
+        /**
+         * @returns {string}
+         */
+        function getDeviceType() {
+            const last = localStorage.getItem('preferredGraphicsDevice');
+            if (last !== null) {
+                if (last === 'webgpu' && false) {
+                    console.warn('Picked WebGPU but example is not supported on WebGPU, defaulting to WebGL2');
+                    return 'webgl2';
+                }
+                return last;
+            } else if (false) {
+                let preferredDevice = 'webgpu';
+                // Lack of Chrome's WebGPU support on Linux
+                if (navigator.platform.includes('Linux') && navigator.appVersion.includes("Chrome")) {
+                    preferredDevice = 'webgl2';
+                }
+                return window.top.preferredGraphicsDevice || preferredDevice;
+            } else if (['webgl1', 'webgl2'].includes(window.top.preferredGraphicsDevice)) {
+                return window.top.preferredGraphicsDevice;
+            } else {
+                return 'webgl2';
+            }
+        }
+        /**
+         * Get the specified engine, picking the right choice from three sources:
+         *  - Example#ENGINE (lowest priority)
+         *  - NODE_ENV (2nd lowest priority)
+         *  - ENGINE_PATH (highest priority)
+         * If none of these sources are given, we simply pick build/playcanvas.js (ES5)
+         */
+        function getSpecifiedEngine() {
+            let specifiedEngine = './playcanvas.js';
+            // Doesn't matter what Example class specifies otherwise, because
+            // NODE_ENV has a higher priority
+            if (NODE_ENV === 'development') {
+                specifiedEngine = './playcanvas.dbg.js'
+            }
+            // ENGINE_PATH has the highest priority.
+            if (ENGINE_PATH.length) {
+                const entryPoint = ENGINE_PATH.split('/').pop();
+                specifiedEngine = './ENGINE_PATH/' + entryPoint;
+            }
+            return specifiedEngine;
+        }
+        let app;
+        let ready = false; // Used in indicate if UI can render Controls
+        let started = false;
+        let miniStats;
+        let allowRestart = 'true';
+        const args = Object.fromEntries(
+            location.href.split('?').pop().split('#')[0].split('&').map(_ => _.split('='))
+        );
+        let data = new observer.Observer({});
+        /**
+         * Keep it function in first run for nicer debug locations.
+         * @type {Record<string, string | Function>}
+         */
+        const files = {};
+        files['example.mjs'] = example.toString();
+        if (window.controls) {
+            files['controls.mjs'] = controls.toString();
+        }
+        var filesObject = {};
+        function resolveFunction(_) {
+            if (_.call) {
+                return _;
+            }
+            return new Function('return ' + _)();
+        }
+        Object.assign(files, filesObject);
+        function requestFiles() {
+            const responseEvent = new CustomEvent("requestedFiles", { detail: files });
+            window.top.dispatchEvent(responseEvent);
+        }
+        /**
+         * This function is called from React whenever we click on MiniStats icon,
+         * even PlayCanvas' pc itself could be undefined here.
+         */
+        function showStats() {
+            // examples/misc/mini-stats.mjs creates its own instance of ministats, prevent two mini-stats here
+            if (false) {
+                return;
+            }
+            if (typeof pc === 'undefined' || typeof pcx === 'undefined') {
+                return;
+            }
+            const deviceType = app?.graphicsDevice?.deviceType;
+            if (deviceType === 'null') {
+                return;
+            }
+            if (args.miniStats === 'false') {
+                return;
+            }
+            if (!miniStats) {
+                miniStats = new pcx.MiniStats(app);
+            }
+            miniStats.enabled = true;
+        }
+        function hideStats() {
+            if (!miniStats) {
+                return;
+            }
+            miniStats.enabled = false;
+        }
+        /**
+         * This function is called from React whenever we change an example in any possible state,
+         * even PlayCanvas' pc itself could be undefined here.
+         */
+        function destroy() {
+            miniStats?.destroy();
+            miniStats = null;
+            // Can't call app.destroy() twice without an error,
+            // so we check for app.graphicsDevice first
+            if (app && app.graphicsDevice) {
+                app.destroy();
+            }
+            ready = false;
+        }
+        function hotReload() {
+            if (!allowRestart) {
+                console.warn('hotReload> Dropping restart while still restarting');
+                return;
+            }
+            destroy();
+            data = new observer.Observer({});
+            main(files);
+        }
+        window.addEventListener('requestFiles', requestFiles);
+        window.addEventListener('showStats'   , showStats   );
+        window.addEventListener('hideStats'   , hideStats   );
+        window.addEventListener('destroy'     , destroy     );
+        window.addEventListener('hotReload'   , hotReload   );
+        function updateControls() {
+            const event = new CustomEvent("updateFiles", {
+                detail: {
+                    files
+                }
+            });
+            window.top.dispatchEvent(event);
+        }
+        function updateActiveDevice() {
+            const event = new CustomEvent("updateActiveDevice", {
+                detail: app.graphicsDevice.deviceType
+            });
+            window.top.dispatchEvent(event);
+        }
+        async function main(files) {
+            allowRestart = false;
+            await loadScript('pc', getSpecifiedEngine());
+            await loadScript('pcx', './playcanvas-extras.js');
+            window.top.pc = pc;
+            var canvas = document.getElementById("application-canvas");
+            window.top.observerData = data;
+            var deviceType = getDeviceType();
+            if (args.deviceType) {
+                console.warn("overwriting default deviceType from URL");
+                deviceType = args.deviceType;
+            }
+            if (!deviceType) {
+                console.warn("No deviceType given, defaulting to WebGL2");
+                deviceType = 'webgl2';
+            }
+            if (!started) {
+                // console.log("Dispatch exampleLoading!");
+                // just notify to clean UI, but not during hot-reload
+                const event = new CustomEvent("exampleLoading", {
+                    detail: {
+                        showDeviceSelector: true,
+                    }
+                });
+                window.top.dispatchEvent(event);
+            }
+            const example = resolveFunction(files['example.mjs']);
+            files['example.mjs'] = files['example.mjs'].toString();
+            app = await example({
+                canvas,
+                deviceType,
+                data,
+                assetPath,
+                scriptsPath,
+                ammoPath,
+                basisPath,
+                dracoPath,
+                glslangPath,
+                twgslPath,
+                pcx,
+                files,
+            });
+            ready = true;
+            class ExampleLoadEvent extends CustomEvent {
+                constructor(deviceType) {
+                    super("exampleLoad");
+                    this.files = files;
+                    this.description = "";
+                }
+            }
+            const finalFunc = () => {
+                if (app.graphicsDevice?.canvas) {
+                    showStats();
+                    if (!started) { // only one time, recalls of main() are caused by Monaco live coding
+                        window.top.dispatchEvent(new ExampleLoadEvent());
+                    }
+                    started = true;
+                    updateControls();
+                    updateActiveDevice();
+                    allowRestart = true;
+                } else {
+                    console.warn('main> no canvas');
+                }
+            };
+            // Wait until example has called app.start()
+            // And if it already called start, we will know by app.frame > 0
+            // app.start() is called when assets loaded in examples
+            if (app) {
+                if (app.frame) { // app already started
+                    finalFunc();
+                } else { // Wait for app.start()
+                    app.once('start', finalFunc);
+                }
+            } else {
+                // The example function didn't return an app instance
+                // still update the UI and assume it has started.
+                window.top.dispatchEvent(new ExampleLoadEvent());
+                started = true;
+                updateControls();
+                allowRestart = true;
+            }
+        }
+        window.onload = () => main(files);
+        </script>
+    </body>
+</html>
