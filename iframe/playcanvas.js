@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v0.0.0 revision c318cb382 (RELEASE)
+ * PlayCanvas Engine v0.0.0 revision 691ab7941 (RELEASE)
  * Copyright 2011-2024 PlayCanvas Ltd. All rights reserved.
  */
 (function (global, factory) {
@@ -227,7 +227,7 @@
 	var TRACEID_GPU_TIMINGS = 'GpuTimings';
 
 	var version = '0.0.0';
-	var revision = 'c318cb382';
+	var revision = '691ab7941';
 	var config = {};
 	var common = {};
 	var apps = {};
