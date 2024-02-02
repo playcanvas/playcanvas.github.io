@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v0.0.0 revision 691ab7941 (RELEASE)
+ * PlayCanvas Engine v0.0.0 revision b74c2ff99 (RELEASE)
  * Copyright 2011-2024 PlayCanvas Ltd. All rights reserved.
  */
 (function (global, factory) {
@@ -227,7 +227,7 @@
 	var TRACEID_GPU_TIMINGS = 'GpuTimings';
 
 	var version = '0.0.0';
-	var revision = '691ab7941';
+	var revision = 'b74c2ff99';
 	var config = {};
 	var common = {};
 	var apps = {};
@@ -36226,7 +36226,7 @@
 	}();
 
 	var splatCoreVS = "\n    attribute vec3 vertex_position;\n\n    uniform mat4 matrix_model;\n    uniform mat4 matrix_view;\n    uniform mat4 matrix_projection;\n    uniform mat4 matrix_viewProjection;\n\n    uniform vec2 viewport;\n\n    varying vec2 texCoord;\n    varying vec4 color;\n    varying float id;\n\n    mat3 quatToMat3(vec3 R)\n    {\n        float x = R.x;\n        float y = R.y;\n        float z = R.z;\n        float w = sqrt(1.0 - dot(R, R));\n\n        return mat3(\n            1.0 - 2.0 * (z * z + w * w),\n                2.0 * (y * z + x * w),\n                2.0 * (y * w - x * z),\n\n                2.0 * (y * z - x * w),\n            1.0 - 2.0 * (y * y + w * w),\n                2.0 * (z * w + x * y),\n\n                2.0 * (y * w + x * z),\n                2.0 * (z * w - x * y),\n            1.0 - 2.0 * (y * y + z * z)\n        );\n    }\n\n    uniform vec4 tex_params;\n    uniform sampler2D splatColor;\n    uniform highp sampler2D splatScale;\n    uniform highp sampler2D splatRotation;\n    uniform highp sampler2D splatCenter;\n\n    #ifdef INT_INDICES\n\n        attribute uint vertex_id;\n        ivec2 dataUV;\n        void evalDataUV() {\n\n            // turn vertex_id into int grid coordinates\n            ivec2 textureSize = ivec2(tex_params.xy);\n            vec2 invTextureSize = tex_params.zw;\n\n            int gridV = int(float(vertex_id) * invTextureSize.x);\n            int gridU = int(vertex_id) - gridV * textureSize.x;\n            dataUV = ivec2(gridU, gridV);\n        }\n\n        vec4 getColor() {\n            return texelFetch(splatColor, dataUV, 0);\n        }\n\n        vec3 getScale() {\n            return texelFetch(splatScale, dataUV, 0).xyz;\n        }\n\n        vec3 getRotation() {\n            return texelFetch(splatRotation, dataUV, 0).xyz;\n        }\n\n        vec3 getCenter() {\n            return texelFetch(splatCenter, dataUV, 0).xyz;\n        }\n\n    #else\n\n        // TODO: use texture2DLodEXT on WebGL\n\n        attribute float vertex_id;\n        vec2 dataUV;\n        void evalDataUV() {\n            vec2 textureSize = tex_params.xy;\n            vec2 invTextureSize = tex_params.zw;\n\n            // turn vertex_id into int grid coordinates\n            float gridV = floor(vertex_id * invTextureSize.x);\n            float gridU = vertex_id - (gridV * textureSize.x);\n\n            // convert grid coordinates to uv coordinates with half pixel offset\n            dataUV = vec2(gridU, gridV) * invTextureSize + (0.5 * invTextureSize);\n        }\n\n        vec4 getColor() {\n            return texture2D(splatColor, dataUV);\n        }\n\n        vec3 getScale() {\n            return texture2D(splatScale, dataUV).xyz;\n        }\n\n        vec3 getRotation() {\n            return texture2D(splatRotation, dataUV).xyz;\n        }\n\n        vec3 getCenter() {\n            return texture2D(splatCenter, dataUV).xyz;\n        }\n\n    #endif\n\n    void computeCov3d(in mat3 rot, in vec3 scale, out vec3 covA, out vec3 covB)\n    {\n        // M = S * R\n        float M0 = scale.x * rot[0][0];\n        float M1 = scale.x * rot[0][1];\n        float M2 = scale.x * rot[0][2];\n        float M3 = scale.y * rot[1][0];\n        float M4 = scale.y * rot[1][1];\n        float M5 = scale.y * rot[1][2];\n        float M6 = scale.z * rot[2][0];\n        float M7 = scale.z * rot[2][1];\n        float M8 = scale.z * rot[2][2];\n\n        covA = vec3(\n            M0 * M0 + M3 * M3 + M6 * M6,\n            M0 * M1 + M3 * M4 + M6 * M7,\n            M0 * M2 + M3 * M5 + M6 * M8\n        );\n\n        covB = vec3(\n            M1 * M1 + M4 * M4 + M7 * M7,\n            M1 * M2 + M4 * M5 + M7 * M8,\n            M2 * M2 + M5 * M5 + M8 * M8\n        );\n    }\n\n    vec3 evalCenter() {\n        evalDataUV();\n        return getCenter();\n    }\n\n    #ifndef GL2\n    #ifndef WEBGPU\n    mat3 transpose(in mat3 m) {\n        return mat3(\n            m[0].x, m[1].x, m[2].x,\n            m[0].y, m[1].y, m[2].y,\n            m[0].z, m[1].z, m[2].z\n        );\n    }\n    #endif\n    #endif\n\n    vec4 evalSplat(vec4 centerWorld)\n    {\n        vec4 splat_cam = matrix_view * centerWorld;\n        vec4 splat_proj = matrix_projection * splat_cam;\n\n        // cull behind camera\n        if (splat_proj.z < -splat_proj.w) {\n            return vec4(0.0, 0.0, 2.0, 1.0);\n        }\n\n        vec3 scale = getScale();\n        vec3 rotation = getRotation();\n\n        color = getColor();\n\n        #ifdef DEBUG_RENDER\n            vec3 local = quatToMat3(rotation) * (vertex_position * scale * 2.0) + center;\n            return matrix_viewProjection * matrix_model * vec4(local, 1.0);\n        #else\n            vec3 splat_cova;\n            vec3 splat_covb;\n            computeCov3d(mat3(matrix_model) * quatToMat3(rotation), scale, splat_cova, splat_covb);\n\n            mat3 Vrk = mat3(\n                splat_cova.x, splat_cova.y, splat_cova.z, \n                splat_cova.y, splat_covb.x, splat_covb.y,\n                splat_cova.z, splat_covb.y, splat_covb.z\n            );\n\n            float focal = viewport.x * matrix_projection[0][0];\n\n            mat3 J = mat3(\n                focal / splat_cam.z, 0., -(focal * splat_cam.x) / (splat_cam.z * splat_cam.z), \n                0., focal / splat_cam.z, -(focal * splat_cam.y) / (splat_cam.z * splat_cam.z), \n                0., 0., 0.\n            );\n\n            mat3 W = transpose(mat3(matrix_view));\n            mat3 T = W * J;\n            mat3 cov = transpose(T) * Vrk * T;\n\n            float diagonal1 = cov[0][0] + 0.3;\n            float offDiagonal = cov[0][1];\n            float diagonal2 = cov[1][1] + 0.3;\n\n            float mid = 0.5 * (diagonal1 + diagonal2);\n            float radius = length(vec2((diagonal1 - diagonal2) / 2.0, offDiagonal));\n            float lambda1 = mid + radius;\n            float lambda2 = max(mid - radius, 0.1);\n            vec2 diagonalVector = normalize(vec2(offDiagonal, lambda1 - diagonal1));\n            vec2 v1 = min(sqrt(2.0 * lambda1), 1024.0) * diagonalVector;\n            vec2 v2 = min(sqrt(2.0 * lambda2), 1024.0) * vec2(diagonalVector.y, -diagonalVector.x);\n\n            // early out tiny splats\n            // TODO: figure out length units and expose as uniform parameter\n            // TODO: perhaps make this a shader compile-time option\n            if (dot(v1, v1) < 4.0 && dot(v2, v2) < 4.0) {\n                return vec4(0.0, 0.0, 2.0, 1.0);\n            }\n\n            texCoord = vertex_position.xy * 2.0;\n\n            return splat_proj +\n                vec4((vertex_position.x * v1 + vertex_position.y * v2) / viewport * 2.0,\n                    0.0, 0.0) * splat_proj.w;\n        #endif\n\n        id = float(vertex_id);\n    }\n";
-	var splatCoreFS = "\n    varying vec2 texCoord;\n    varying vec4 color;\n    varying float id;\n\n    vec4 evalSplat() {\n\n        #ifdef DEBUG_RENDER\n\n            if (color.a < 0.2) discard;\n            return color;\n\n        #else\n\n            float A = -dot(texCoord, texCoord);\n            if (A < -4.0) discard;\n            float B = exp(A) * color.a;\n\n            #ifndef DITHER_NONE\n                opacityDither(B, id * 0.013);\n            #endif\n\n            // the color here is in gamma space, so bring it to linear\n            vec3 diffuse = decodeGamma(color.rgb);\n\n            // apply tone-mapping and gamma correction as needed\n            diffuse = toneMap(diffuse);\n            diffuse = gammaCorrectOutput(diffuse);\n\n            return vec4(diffuse, B);\n\n        #endif\n    }\n";
+	var splatCoreFS = "\n    varying vec2 texCoord;\n    varying vec4 color;\n    varying float id;\n\n    #ifdef PICK_PASS\n        uniform vec4 uColor;\n    #endif\n\n    vec4 evalSplat() {\n\n        #ifdef DEBUG_RENDER\n\n            if (color.a < 0.2) discard;\n            return color;\n\n        #else\n\n            float A = -dot(texCoord, texCoord);\n            if (A < -4.0) discard;\n            float B = exp(A) * color.a;\n\n            #ifdef PICK_PASS\n                if (B < 0.3) discard;\n                return(uColor);\n            #endif\n\n            #ifndef DITHER_NONE\n                opacityDither(B, id * 0.013);\n            #endif\n\n            // the color here is in gamma space, so bring it to linear\n            vec3 diffuse = decodeGamma(color.rgb);\n\n            // apply tone-mapping and gamma correction as needed\n            diffuse = toneMap(diffuse);\n            diffuse = gammaCorrectOutput(diffuse);\n\n            return vec4(diffuse, B);\n\n        #endif\n    }\n";
 	var GShaderGeneratorSplat = function () {
 	  function GShaderGeneratorSplat() {}
 	  var _proto = GShaderGeneratorSplat.prototype;
@@ -36236,7 +36236,9 @@
 	    return "splat-" + options.pass + "-" + options.gamma + "-" + options.toneMapping + "-" + vsHash + "-" + fsHash + "-" + options.debugRender + "-" + options.dither + "}";
 	  };
 	  _proto.createShaderDefinition = function createShaderDefinition(device, options) {
-	    var defines = (options.debugRender ? '#define DEBUG_RENDER\n' : '') + (device.isWebGL1 ? '' : '#define INT_INDICES\n') + ("#define DITHER_" + options.dither.toUpperCase() + "\n");
+	    var shaderPassInfo = ShaderPass.get(device).getByIndex(options.pass);
+	    var shaderPassDefines = shaderPassInfo.shaderDefines;
+	    var defines = shaderPassDefines + (options.debugRender ? '#define DEBUG_RENDER\n' : '') + (device.isWebGL1 ? '' : '#define INT_INDICES\n') + ("#define DITHER_" + options.dither.toUpperCase() + "\n");
 	    var vs = defines + splatCoreVS + options.vertex;
 	    var fs = defines + shaderChunks.decodePS + (options.dither === DITHER_NONE ? '' : shaderChunks.bayerPS + shaderChunks.opacityDitherPS) + ShaderGenerator.tonemapCode(options.toneMapping) + ShaderGenerator.gammaCode(options.gamma) + splatCoreFS + options.fragment;
 	    return ShaderUtils.createDefinition(device, {
@@ -67035,7 +67037,7 @@
 	    return _ref.apply(this, arguments);
 	  };
 	}();
-	var defaultElements = ['x', 'y', 'z', 'f_dc_0', 'f_dc_1', 'f_dc_2', 'opacity', 'rot_0', 'rot_1', 'rot_2', 'rot_3', 'scale_0', 'scale_1', 'scale_2'];
+	var defaultElements = ['x', 'y', 'z', 'f_dc_0', 'f_dc_1', 'f_dc_2', 'opacity', 'rot_0', 'rot_1', 'rot_2', 'rot_3', 'scale_0', 'scale_1', 'scale_2', 'min_x', 'min_y', 'min_z', 'max_x', 'max_y', 'max_z', 'min_scale_x', 'min_scale_y', 'min_scale_z', 'max_scale_x', 'max_scale_y', 'max_scale_z', 'packed_position', 'packed_rotation', 'packed_scale', 'packed_color'];
 	var defaultElementsSet = new Set(defaultElements);
 	var defaultElementFilter = function defaultElementFilter(val) {
 	  return defaultElementsSet.has(val);
@@ -76206,10 +76208,12 @@
 	exports.GAMMA_SRGBFAST = GAMMA_SRGBFAST;
 	exports.GAMMA_SRGBHDR = GAMMA_SRGBHDR;
 	exports.GSplat = GSplat;
+	exports.GSplatComponent = GSplatComponent;
 	exports.GSplatComponentSystem = GSplatComponentSystem;
 	exports.GSplatData = GSplatData;
 	exports.GSplatHandler = GSplatHandler;
 	exports.GSplatInstance = GSplatInstance;
+	exports.GSplatResource = GSplatResource;
 	exports.GamePads = GamePads;
 	exports.GraphNode = GraphNode;
 	exports.GraphicsDevice = GraphicsDevice;

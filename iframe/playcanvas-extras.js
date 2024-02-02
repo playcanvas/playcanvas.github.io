@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v0.0.0 revision 691ab7941
+ * PlayCanvas Engine v0.0.0 revision b74c2ff99
  * Copyright 2011-2024 PlayCanvas Ltd. All rights reserved.
  */
 (function (global, factory) {
@@ -3212,6 +3212,7 @@
 	var xdir = new playcanvas.Vec3();
 	var MIN_GIZMO_SCALE = 1e-4;
 	var PERS_SCALE_RATIO = 0.3;
+	var PERS_CANVAS_RATIO = 1300;
 	var ORTHO_SCALE_RATIO = 0.32;
 	var GIZMO_LOCAL = 'local';
 	var GIZMO_WORLD = 'world';
@@ -3305,7 +3306,11 @@
 	  };
 	  _proto._updateScale = function _updateScale() {
 	    if (this._camera.projection === playcanvas.PROJECTION_PERSPECTIVE) {
-	      this._scale = this._getProjFrustumWidth() * PERS_SCALE_RATIO;
+	      var canvasMult = 1;
+	      if (this._device.width > 0 && this._device.height > 0) {
+	        canvasMult = PERS_CANVAS_RATIO / Math.min(this._device.width, this._device.height);
+	      }
+	      this._scale = this._getProjFrustumWidth() * canvasMult * PERS_SCALE_RATIO;
 	    } else {
 	      this._scale = this._camera.orthoHeight * ORTHO_SCALE_RATIO;
 	    }
@@ -3704,6 +3709,9 @@
 	        }
 	      } else {
 	        angle = mouseWPos.dot(tmpV2$4.normalize()) * ROTATE_SCALE;
+	        if (this._camera.projection === playcanvas.PROJECTION_ORTHOGRAPHIC) {
+	          angle /= this._camera.orthoHeight || 1;
+	        }
 	      }
 	    }
 	    return {
@@ -4768,9 +4776,8 @@
 	      _this._nodeOffsets.clear();
 	    });
 	    app.on('update', function () {
-	      var cameraPos = _this._camera.entity.getPosition();
-	      _this._faceAxisLookAt(cameraPos);
-	      _this._xyzAxisLookAt(cameraPos);
+	      _this._faceAxisLookAtCamera();
+	      _this._xyzAxisLookAtCamera();
 	      if (_this._dragging) {
 	        var gizmoPos = _this.root.getPosition();
 	        _this._drawGuideAngleLine(gizmoPos, _this._selectedAxis, _this._guideAngleStart, _this._guideAngleStartColor);
@@ -4801,13 +4808,24 @@
 	    tmpV1.x += 90;
 	    return tmpV1;
 	  };
-	  _proto._faceAxisLookAt = function _faceAxisLookAt(position) {
-	    this._shapes.face.entity.lookAt(position);
-	    this._shapes.face.entity.rotateLocal(90, 0, 0);
+	  _proto._faceAxisLookAtCamera = function _faceAxisLookAtCamera() {
+	    if (this._camera.projection === playcanvas.PROJECTION_PERSPECTIVE) {
+	      this._shapes.face.entity.lookAt(this._camera.entity.getPosition());
+	      this._shapes.face.entity.rotateLocal(90, 0, 0);
+	    } else {
+	      tmpQ1.copy(this._camera.entity.getRotation());
+	      tmpQ1.getEulerAngles(tmpV1);
+	      this._shapes.face.entity.setEulerAngles(tmpV1);
+	      this._shapes.face.entity.rotateLocal(-90, 0, 0);
+	    }
 	  };
-	  _proto._xyzAxisLookAt = function _xyzAxisLookAt(position) {
-	    tmpV1.copy(position).sub(this.root.getPosition());
-	    tmpQ1.copy(this.root.getRotation()).invert().transformVector(tmpV1, tmpV1);
+	  _proto._xyzAxisLookAtCamera = function _xyzAxisLookAtCamera() {
+	    if (this._camera.projecion === playcanvas.PROJECTION_PERSPECTIVE) {
+	      tmpV1.copy(this._camera.entity.getPosition()).sub(this.root.getPosition());
+	      tmpQ1.copy(this.root.getRotation()).invert().transformVector(tmpV1, tmpV1);
+	    } else {
+	      tmpV1.copy(this._camera.entity.forward).mulScalar(-1);
+	    }
 	    var angle = Math.atan2(tmpV1.z, tmpV1.y) * playcanvas.math.RAD_TO_DEG;
 	    this._shapes.x.entity.setLocalEulerAngles(0, angle - 90, -90);
 	    angle = Math.atan2(tmpV1.x, tmpV1.z) * playcanvas.math.RAD_TO_DEG;
