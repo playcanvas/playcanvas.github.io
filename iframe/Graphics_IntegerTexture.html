@@ -1,3 +1,4 @@
+<!-- N.B. All single quote strings starting with '@' and are in all caps denote placeholders for replacement code  -->
 <html>
     <head>
         <link rel="stylesheet" href="./example.css">
@@ -14,13 +15,8 @@
         </div>
         <script src='./playcanvas-observer.js'></script>
         <script src='./pathes.js'></script>
-        <!-- imports (if any) -->
-        <script>
-
-        </script>
-        <!-- controls (if given) -->
-        <script>
-function controls({ observer, ReactPCUI, jsx, fragment }) {
+        <script></script>
+        <script>function controls({ observer, ReactPCUI, jsx, fragment }) {
     const { BindingTwoWay, Container, Button, InfoBox, LabelGroup, Panel, SliderInput, SelectInput } = ReactPCUI;
 
     return fragment(
@@ -63,10 +59,8 @@ function controls({ observer, ReactPCUI, jsx, fragment }) {
             )
         )
     );
-}
-        </script>
-        <script>
-async function example({ canvas, data, deviceType, assetPath, files, glslangPath, twgslPath, dracoPath }) {
+}</script>
+        <script>async function example({ canvas, data, deviceType, assetPath, files, glslangPath, twgslPath, dracoPath }) {
     //
     //  In this example, integer textures are used to store the state of each pixel in a simulation.
     //  The simulation is run in a shader, and the results are rendered to a texture.
@@ -393,272 +387,290 @@ async function example({ canvas, data, deviceType, assetPath, files, glslangPath
         });
     });
     return app;
-}
-        </script>
+}</script>
         <script>
-        const ENGINE_PATH = '';
-        const NODE_ENV = 'production';
-        /**
-         * Used in outline and posteffects to make ES5 scripts work in ES6
-         * @example
-         * // doesn't start with 'class', so not changing any behaviour
-         * debugger; // step through with F11 to debug
-         * Object.prototype.toString.call(1) === '[object Number]'
-         */
-        function enablePolyfillFunctionCall() {
-            const functionCall = Function.prototype.call;
-            function polyCall(thisArg, ...args) {
-                if (this.toString().startsWith('class')) {
-                    return Object.assign(thisArg, new this(...args));
+            const ENGINE_PATH = "../src/index.js";
+            const NODE_ENV = "development";
+
+            /**
+             * Used in outline and posteffects to make ES5 scripts work in ES6
+             * @example
+             * // doesn't start with 'class', so not changing any behaviour
+             * debugger; // step through with F11 to debug
+             * Object.prototype.toString.call(1) === '[object Number]'
+             */
+            function enablePolyfillFunctionCall() {
+                const functionCall = Function.prototype.call;
+                function polyCall(thisArg, ...args) {
+                    if (this.toString().startsWith('class')) {
+                        return Object.assign(thisArg, new this(...args));
+                    }
+                    return functionCall.bind(this)(thisArg, ...args);
                 }
-                return functionCall.bind(this)(thisArg, ...args);
+                Function.prototype.call = polyCall;
             }
-            Function.prototype.call = polyCall;
-        }
-        enablePolyfillFunctionCall();
-        /**
-         * Can load UMD and ESM. UMD registers itself into globalThis, while ESM is handled
-         * to specifically to do the same, so we achieve the same result, no matter which
-         * target build/src we linked to.
-         */
-        async function loadScript(name, src) {
-            // console.log('loadScript>', { name, src });
-            const module = await import(src);
-            const isESM = Object.keys(module).length;
-            if (isESM) {
-                window[name] = module;
+            enablePolyfillFunctionCall();
+
+            /**
+             * Can load UMD and ESM. UMD registers itself into globalThis, while ESM is handled
+             * to specifically to do the same, so we achieve the same result, no matter which
+             * target build/src we linked to.
+             */
+            async function loadScript(name, src) {
+                // console.log('loadScript>', { name, src });
+                const module = await import(src);
+                const isESM = Object.keys(module).length;
+                if (isESM) {
+                    window[name] = module;
+                }
             }
-        }
-        /**
-         * @returns {string}
-         */
-        function getDeviceType() {
-            const last = localStorage.getItem('preferredGraphicsDevice');
-            if (last !== null) {
-                if (last === 'webgpu' && false) {
-                    console.warn('Picked WebGPU but example is not supported on WebGPU, defaulting to WebGL2');
+
+            /**
+             * @returns {string}
+             */
+            function getDeviceType() {
+                if (false) {
+                    return 'webgpu';
+                }
+
+                const last = localStorage.getItem('preferredGraphicsDevice');
+                if (last !== null) {
+                    if (last === 'webgpu' && !true) {
+                        console.warn('Picked WebGPU but example is not supported on WebGPU, defaulting to WebGL2');
+                        return 'webgl2';
+                    }
+                    return last;
+                } else if (true) {
+                    let preferredDevice = 'webgpu';
+                    // Lack of Chrome's WebGPU support on Linux
+                    if (navigator.platform.includes('Linux') && navigator.appVersion.includes("Chrome")) {
+                        preferredDevice = 'webgl2';
+                    }
+                    return window.top.preferredGraphicsDevice || preferredDevice;
+                } else if (['webgl1', 'webgl2'].includes(window.top.preferredGraphicsDevice)) {
+                    return window.top.preferredGraphicsDevice;
+                } else {
                     return 'webgl2';
                 }
-                return last;
-            } else if (true) {
-                let preferredDevice = 'webgpu';
-                // Lack of Chrome's WebGPU support on Linux
-                if (navigator.platform.includes('Linux') && navigator.appVersion.includes("Chrome")) {
-                    preferredDevice = 'webgl2';
+            }
+
+            /**
+             * Get the specified engine, picking the right choice from three sources:
+             *  - Example#ENGINE (lowest priority)
+             *  - NODE_ENV (2nd lowest priority)
+             *  - ENGINE_PATH (highest priority)
+             * If none of these sources are given, we simply pick build/playcanvas.js (ES5)
+             */
+            function getSpecifiedEngine() {
+                let specifiedEngine = "./playcanvas.js";
+                if (NODE_ENV === 'development') {
+                    specifiedEngine = "./playcanvas.dbg.js";
                 }
-                return window.top.preferredGraphicsDevice || preferredDevice;
-            } else if (['webgl1', 'webgl2'].includes(window.top.preferredGraphicsDevice)) {
-                return window.top.preferredGraphicsDevice;
-            } else {
-                return 'webgl2';
-            }
-        }
-        /**
-         * Get the specified engine, picking the right choice from three sources:
-         *  - Example#ENGINE (lowest priority)
-         *  - NODE_ENV (2nd lowest priority)
-         *  - ENGINE_PATH (highest priority)
-         * If none of these sources are given, we simply pick build/playcanvas.js (ES5)
-         */
-        function getSpecifiedEngine() {
-            let specifiedEngine = './playcanvas.js';
-            // Doesn't matter what Example class specifies otherwise, because
-            // NODE_ENV has a higher priority
-            if (NODE_ENV === 'development') {
-                specifiedEngine = './playcanvas.dbg.js'
-            }
-            // ENGINE_PATH has the highest priority.
-            if (ENGINE_PATH.length) {
-                const entryPoint = ENGINE_PATH.split('/').pop();
-                specifiedEngine = './ENGINE_PATH/' + entryPoint;
-            }
-            return specifiedEngine;
-        }
-        let app;
-        let ready = false; // Used in indicate if UI can render Controls
-        let started = false;
-        let miniStats;
-        let allowRestart = 'true';
-        const args = Object.fromEntries(
-            location.href.split('?').pop().split('#')[0].split('&').map(_ => _.split('='))
-        );
-        let data = new observer.Observer({});
-        /**
-         * Keep it function in first run for nicer debug locations.
-         * @type {Record<string, string | Function>}
-         */
-        const files = {};
-        files['example.mjs'] = example.toString();
-        if (window.controls) {
-            files['controls.mjs'] = controls.toString();
-        }
-        var filesObject = {"sandSimulation.frag":"\n            precision highp usampler2D;\n\n            uniform usampler2D sourceTexture;\n            uniform vec2 mousePosition;\n            uniform uint mouseButton;\n            uniform uint passNum;\n            uniform uint brush;\n            uniform float randomVal;\n            uniform float brushRadius;\n\n            varying vec2 uv0;\n\n            \n            const uint AIR = 0u;\n            const uint SAND = 1u;\n            const uint ORANGESAND = 2u;\n            const uint GRAYSAND = 3u;\n            const uint WALL = 4u;\n                                    \n            bool isInBounds(ivec2 c, ivec2 size) {\n                return c.x > 0 && c.x < size.x - 1 && c.y > 0 && c.y < size.y - 1;\n            }\n            \n            struct Particle {\n                uint element;        // 3 bits\n                bool movedThisFrame; // 1 bit\n                uint shade;          // 4 bits\n                uint waterMass;      // 8 bits\n            };\n\n            float rand(vec2 pos, float val) {\n                return fract(pos.x * pos.y * val * 1000.0);\n            }\n            \n            uint pack(Particle particle) {\n                uint packed = 0u;\n                packed |= (particle.element & 0x7u);      // Store element in the lowest 3 bits\n                packed |= ((particle.movedThisFrame ? 1u : 0u) << 3); // Store movedThisFrame in the next bit\n                packed |= (particle.shade << 4);          // Store shade in the next 4 bits\n            \n                return packed; // Second component is reserved/unused\n            }\n            \n            Particle unpack(uint packed) {\n                Particle particle;\n                particle.element = packed & 0x7u;                         // Extract lowest 3 bits\n                particle.movedThisFrame = ((packed >> 3) & 0x1u) != 0u;   // Extract the next bit\n                particle.shade = (packed >> 4) & 0xFu;                    // Extract the next 4 bits            \n                return particle;\n            }\n\n            Particle getParticle(ivec2 c) {\n                uint val = texelFetch(sourceTexture, c, 0).r;\n                return unpack(val);\n            }\n        \n                        \n            void main() {\n\n                ivec2 size = textureSize(sourceTexture, 0);\n                ivec2 coord = ivec2(uv0 * vec2(size));\n\n                if (!isInBounds(coord, size)) {\n                    gl_FragColor = WALL;\n                    return;\n                }\n            \n                float mouseDist = distance(mousePosition, uv0);\n                int dir = int(passNum % 3u) - 1;\n\n                Particle currentParticle = getParticle(coord);\n                Particle nextState = currentParticle;\n\n                if (mouseButton == 1u && mouseDist < brushRadius) {\n                    nextState.element = brush;\n                    nextState.movedThisFrame = true;\n                    nextState.shade = uint(rand(uv0, randomVal * float(passNum)) * 15.0);\n                } else if (mouseButton == 2u && mouseDist < brushRadius) {\n                    nextState.element = AIR;\n                    nextState.movedThisFrame = false;\n                    nextState.shade = uint(rand(uv0, randomVal * float(passNum)) * 15.0);\n                }\n                \n                currentParticle.movedThisFrame = false;\n                if (currentParticle.element == AIR) {\n                    Particle above = getParticle(coord + ivec2(dir, -1));\n                    if (above.element != AIR && above.element != WALL) {\n                        nextState = above;\n                        nextState.movedThisFrame = true;\n                    }\n                } else if (currentParticle.element != WALL) {\n                    Particle below = getParticle(coord + ivec2(-dir, 1));\n                    if (below.element == AIR && !below.movedThisFrame) {\n                        nextState = below;\n                        nextState.movedThisFrame = false;\n                    }\n                }\n\n                gl_FragColor = pack(nextState);\n            }\n        ","renderOutput.frag":"\n            precision highp usampler2D;\n            uniform usampler2D sourceTexture;\n            uniform vec2 mousePosition;\n            uniform float brushRadius;\n            varying vec2 uv0;\n\n            vec3 whiteColor = vec3(1.0);\n            vec3 skyBlueColor = vec3(0.2, 0.2, 0.2);\n            vec3 yellowSandColor = vec3(0.73, 0.58, 0.26);\n            vec3 orangeSandColor = vec3(0.87, 0.43, 0.22);\n            vec3 graySandColor = vec3(0.13, 0.16, 0.17);\n            vec3 grayWallColor = vec3(0.5, 0.5, 0.5);\n            vec3 waterBlueColor = vec3(0.2, 0.3, 0.8);\n\n            float circle( vec2 p, float r ) {\n                return length(p) - r;\n            }\n\n            const float circleOutline = 0.0025;\n\n            \n            const uint AIR = 0u;\n            const uint SAND = 1u;\n            const uint ORANGESAND = 2u;\n            const uint GRAYSAND = 3u;\n            const uint WALL = 4u;\n                                    \n            bool isInBounds(ivec2 c, ivec2 size) {\n                return c.x > 0 && c.x < size.x - 1 && c.y > 0 && c.y < size.y - 1;\n            }\n            \n            struct Particle {\n                uint element;        // 3 bits\n                bool movedThisFrame; // 1 bit\n                uint shade;          // 4 bits\n                uint waterMass;      // 8 bits\n            };\n\n            float rand(vec2 pos, float val) {\n                return fract(pos.x * pos.y * val * 1000.0);\n            }\n            \n            uint pack(Particle particle) {\n                uint packed = 0u;\n                packed |= (particle.element & 0x7u);      // Store element in the lowest 3 bits\n                packed |= ((particle.movedThisFrame ? 1u : 0u) << 3); // Store movedThisFrame in the next bit\n                packed |= (particle.shade << 4);          // Store shade in the next 4 bits\n            \n                return packed; // Second component is reserved/unused\n            }\n            \n            Particle unpack(uint packed) {\n                Particle particle;\n                particle.element = packed & 0x7u;                         // Extract lowest 3 bits\n                particle.movedThisFrame = ((packed >> 3) & 0x1u) != 0u;   // Extract the next bit\n                particle.shade = (packed >> 4) & 0xFu;                    // Extract the next 4 bits            \n                return particle;\n            }\n\n            Particle getParticle(ivec2 c) {\n                uint val = texelFetch(sourceTexture, c, 0).r;\n                return unpack(val);\n            }\n        \n\n            void main() {\n                ivec2 size = textureSize(sourceTexture, 0);\n                ivec2 coord = ivec2(uv0 * vec2(size));\n                Particle particle = getParticle(coord);\n                \n                vec3 gameColor = skyBlueColor;\n                if (particle.element == SAND) {\n                    gameColor = mix(yellowSandColor, whiteColor, (float(particle.shade) / 15.0) * 0.5);\n                } else if (particle.element == WALL) {\n                    gameColor = grayWallColor;\n                } else if (particle.element == ORANGESAND) {\n                    gameColor = mix(orangeSandColor, whiteColor, (float(particle.shade) / 15.0) * 0.5);\n                } else if (particle.element == GRAYSAND) {\n                    gameColor = mix(graySandColor, whiteColor, (float(particle.shade) / 15.0) * 0.5);\n                }\n\n                // Render a brush circle\n                float d = length(uv0 - mousePosition);\n                float wd = fwidth(d);\n                float circle = smoothstep(brushRadius + wd, brushRadius, d);\n                float circleInner = smoothstep(brushRadius - circleOutline + wd, brushRadius - circleOutline, d);\n                float brush = max(circle - circleInner, 0.0) * 0.5;\n\n                vec3 outColor = mix(gameColor, vec3(1.0), brush);\n\n                gl_FragColor = vec4(outColor, 1.0);\n            }\n        "};
-        function resolveFunction(_) {
-            if (_.call) {
-                return _;
-            }
-            return new Function('return ' + _)();
-        }
-        Object.assign(files, filesObject);
-        function requestFiles() {
-            const responseEvent = new CustomEvent("requestedFiles", { detail: files });
-            window.top.dispatchEvent(responseEvent);
-        }
-        /**
-         * This function is called from React whenever we click on MiniStats icon,
-         * even PlayCanvas' pc itself could be undefined here.
-         */
-        function showStats() {
-            // examples/misc/mini-stats.mjs creates its own instance of ministats, prevent two mini-stats here
-            if (false) {
-                return;
-            }
-            if (typeof pc === 'undefined' || typeof pcx === 'undefined') {
-                return;
-            }
-            const deviceType = app?.graphicsDevice?.deviceType;
-            if (deviceType === 'null') {
-                return;
-            }
-            if (args.miniStats === 'false') {
-                return;
-            }
-            if (!miniStats) {
-                miniStats = new pcx.MiniStats(app);
-            }
-            miniStats.enabled = true;
-        }
-        function hideStats() {
-            if (!miniStats) {
-                return;
-            }
-            miniStats.enabled = false;
-        }
-        /**
-         * This function is called from React whenever we change an example in any possible state,
-         * even PlayCanvas' pc itself could be undefined here.
-         */
-        function destroy() {
-            miniStats?.destroy();
-            miniStats = null;
-            // Can't call app.destroy() twice without an error,
-            // so we check for app.graphicsDevice first
-            if (app && app.graphicsDevice) {
-                app.destroy();
-            }
-            ready = false;
-        }
-        function hotReload() {
-            if (!allowRestart) {
-                console.warn('hotReload> Dropping restart while still restarting');
-                return;
-            }
-            destroy();
-            data = new observer.Observer({});
-            main(files);
-        }
-        window.addEventListener('requestFiles', requestFiles);
-        window.addEventListener('showStats'   , showStats   );
-        window.addEventListener('hideStats'   , hideStats   );
-        window.addEventListener('destroy'     , destroy     );
-        window.addEventListener('hotReload'   , hotReload   );
-        function updateControls() {
-            const event = new CustomEvent("updateFiles", {
-                detail: {
-                    files
+                if (ENGINE_PATH.length) {
+                    const entryPoint = ENGINE_PATH.split('/').pop();
+                    specifiedEngine = './ENGINE_PATH/' + entryPoint;
                 }
-            });
-            window.top.dispatchEvent(event);
-        }
-        function updateActiveDevice() {
-            const event = new CustomEvent("updateActiveDevice", {
-                detail: app.graphicsDevice.deviceType
-            });
-            window.top.dispatchEvent(event);
-        }
-        async function main(files) {
-            allowRestart = false;
-            await loadScript('pc', getSpecifiedEngine());
-            await loadScript('pcx', './playcanvas-extras.js');
-            window.top.pc = pc;
-            var canvas = document.getElementById("application-canvas");
-            window.top.observerData = data;
-            var deviceType = getDeviceType();
-            if (args.deviceType) {
-                console.warn("overwriting default deviceType from URL");
-                deviceType = args.deviceType;
+                return specifiedEngine;
             }
-            if (!deviceType) {
-                console.warn("No deviceType given, defaulting to WebGL2");
-                deviceType = 'webgl2';
+
+            function getQueryParameters() {
+                return Object.fromEntries(
+                    window.top.location.href.split('?').pop().split('#')[0].split('&').map(_ => _.split('='))
+                );
             }
-            if (!started) {
-                // console.log("Dispatch exampleLoading!");
-                // just notify to clean UI, but not during hot-reload
-                const event = new CustomEvent("exampleLoading", {
+
+            let app;
+            let ready = false; // Used in indicate if UI can render Controls
+            let started = false;
+            let miniStats;
+            let allowRestart = 'true';
+            const args = getQueryParameters();
+            let data = new observer.Observer({});
+            /**
+             * Keep it function in first run for nicer debug locations.
+             * @type {Record<string, string | Function>}
+             */
+            const files = {};
+            files['example.mjs'] = example.toString();
+            if (window.controls) {
+                files['controls.mjs'] = controls.toString();
+            }
+            var filesObject = {"sandSimulation.frag":"\n            precision highp usampler2D;\n\n            uniform usampler2D sourceTexture;\n            uniform vec2 mousePosition;\n            uniform uint mouseButton;\n            uniform uint passNum;\n            uniform uint brush;\n            uniform float randomVal;\n            uniform float brushRadius;\n\n            varying vec2 uv0;\n\n            \n            const uint AIR = 0u;\n            const uint SAND = 1u;\n            const uint ORANGESAND = 2u;\n            const uint GRAYSAND = 3u;\n            const uint WALL = 4u;\n                                    \n            bool isInBounds(ivec2 c, ivec2 size) {\n                return c.x > 0 && c.x < size.x - 1 && c.y > 0 && c.y < size.y - 1;\n            }\n            \n            struct Particle {\n                uint element;        // 3 bits\n                bool movedThisFrame; // 1 bit\n                uint shade;          // 4 bits\n                uint waterMass;      // 8 bits\n            };\n\n            float rand(vec2 pos, float val) {\n                return fract(pos.x * pos.y * val * 1000.0);\n            }\n            \n            uint pack(Particle particle) {\n                uint packed = 0u;\n                packed |= (particle.element & 0x7u);      // Store element in the lowest 3 bits\n                packed |= ((particle.movedThisFrame ? 1u : 0u) << 3); // Store movedThisFrame in the next bit\n                packed |= (particle.shade << 4);          // Store shade in the next 4 bits\n            \n                return packed; // Second component is reserved/unused\n            }\n            \n            Particle unpack(uint packed) {\n                Particle particle;\n                particle.element = packed & 0x7u;                         // Extract lowest 3 bits\n                particle.movedThisFrame = ((packed >> 3) & 0x1u) != 0u;   // Extract the next bit\n                particle.shade = (packed >> 4) & 0xFu;                    // Extract the next 4 bits            \n                return particle;\n            }\n\n            Particle getParticle(ivec2 c) {\n                uint val = texelFetch(sourceTexture, c, 0).r;\n                return unpack(val);\n            }\n        \n                        \n            void main() {\n\n                ivec2 size = textureSize(sourceTexture, 0);\n                ivec2 coord = ivec2(uv0 * vec2(size));\n\n                if (!isInBounds(coord, size)) {\n                    gl_FragColor = WALL;\n                    return;\n                }\n            \n                float mouseDist = distance(mousePosition, uv0);\n                int dir = int(passNum % 3u) - 1;\n\n                Particle currentParticle = getParticle(coord);\n                Particle nextState = currentParticle;\n\n                if (mouseButton == 1u && mouseDist < brushRadius) {\n                    nextState.element = brush;\n                    nextState.movedThisFrame = true;\n                    nextState.shade = uint(rand(uv0, randomVal * float(passNum)) * 15.0);\n                } else if (mouseButton == 2u && mouseDist < brushRadius) {\n                    nextState.element = AIR;\n                    nextState.movedThisFrame = false;\n                    nextState.shade = uint(rand(uv0, randomVal * float(passNum)) * 15.0);\n                }\n                \n                currentParticle.movedThisFrame = false;\n                if (currentParticle.element == AIR) {\n                    Particle above = getParticle(coord + ivec2(dir, -1));\n                    if (above.element != AIR && above.element != WALL) {\n                        nextState = above;\n                        nextState.movedThisFrame = true;\n                    }\n                } else if (currentParticle.element != WALL) {\n                    Particle below = getParticle(coord + ivec2(-dir, 1));\n                    if (below.element == AIR && !below.movedThisFrame) {\n                        nextState = below;\n                        nextState.movedThisFrame = false;\n                    }\n                }\n\n                gl_FragColor = pack(nextState);\n            }\n        ","renderOutput.frag":"\n            precision highp usampler2D;\n            uniform usampler2D sourceTexture;\n            uniform vec2 mousePosition;\n            uniform float brushRadius;\n            varying vec2 uv0;\n\n            vec3 whiteColor = vec3(1.0);\n            vec3 skyBlueColor = vec3(0.2, 0.2, 0.2);\n            vec3 yellowSandColor = vec3(0.73, 0.58, 0.26);\n            vec3 orangeSandColor = vec3(0.87, 0.43, 0.22);\n            vec3 graySandColor = vec3(0.13, 0.16, 0.17);\n            vec3 grayWallColor = vec3(0.5, 0.5, 0.5);\n            vec3 waterBlueColor = vec3(0.2, 0.3, 0.8);\n\n            float circle( vec2 p, float r ) {\n                return length(p) - r;\n            }\n\n            const float circleOutline = 0.0025;\n\n            \n            const uint AIR = 0u;\n            const uint SAND = 1u;\n            const uint ORANGESAND = 2u;\n            const uint GRAYSAND = 3u;\n            const uint WALL = 4u;\n                                    \n            bool isInBounds(ivec2 c, ivec2 size) {\n                return c.x > 0 && c.x < size.x - 1 && c.y > 0 && c.y < size.y - 1;\n            }\n            \n            struct Particle {\n                uint element;        // 3 bits\n                bool movedThisFrame; // 1 bit\n                uint shade;          // 4 bits\n                uint waterMass;      // 8 bits\n            };\n\n            float rand(vec2 pos, float val) {\n                return fract(pos.x * pos.y * val * 1000.0);\n            }\n            \n            uint pack(Particle particle) {\n                uint packed = 0u;\n                packed |= (particle.element & 0x7u);      // Store element in the lowest 3 bits\n                packed |= ((particle.movedThisFrame ? 1u : 0u) << 3); // Store movedThisFrame in the next bit\n                packed |= (particle.shade << 4);          // Store shade in the next 4 bits\n            \n                return packed; // Second component is reserved/unused\n            }\n            \n            Particle unpack(uint packed) {\n                Particle particle;\n                particle.element = packed & 0x7u;                         // Extract lowest 3 bits\n                particle.movedThisFrame = ((packed >> 3) & 0x1u) != 0u;   // Extract the next bit\n                particle.shade = (packed >> 4) & 0xFu;                    // Extract the next 4 bits            \n                return particle;\n            }\n\n            Particle getParticle(ivec2 c) {\n                uint val = texelFetch(sourceTexture, c, 0).r;\n                return unpack(val);\n            }\n        \n\n            void main() {\n                ivec2 size = textureSize(sourceTexture, 0);\n                ivec2 coord = ivec2(uv0 * vec2(size));\n                Particle particle = getParticle(coord);\n                \n                vec3 gameColor = skyBlueColor;\n                if (particle.element == SAND) {\n                    gameColor = mix(yellowSandColor, whiteColor, (float(particle.shade) / 15.0) * 0.5);\n                } else if (particle.element == WALL) {\n                    gameColor = grayWallColor;\n                } else if (particle.element == ORANGESAND) {\n                    gameColor = mix(orangeSandColor, whiteColor, (float(particle.shade) / 15.0) * 0.5);\n                } else if (particle.element == GRAYSAND) {\n                    gameColor = mix(graySandColor, whiteColor, (float(particle.shade) / 15.0) * 0.5);\n                }\n\n                // Render a brush circle\n                float d = length(uv0 - mousePosition);\n                float wd = fwidth(d);\n                float circle = smoothstep(brushRadius + wd, brushRadius, d);\n                float circleInner = smoothstep(brushRadius - circleOutline + wd, brushRadius - circleOutline, d);\n                float brush = max(circle - circleInner, 0.0) * 0.5;\n\n                vec3 outColor = mix(gameColor, vec3(1.0), brush);\n\n                gl_FragColor = vec4(outColor, 1.0);\n            }\n        "};
+            function resolveFunction(_) {
+                if (_.call) {
+                    return _;
+                }
+                return new Function('return ' + _)();
+            }
+            Object.assign(files, filesObject);
+            function requestFiles() {
+                const responseEvent = new CustomEvent("requestedFiles", { detail: files });
+                window.top.dispatchEvent(responseEvent);
+            }
+            /**
+             * This function is called from React whenever we click on MiniStats icon,
+             * even PlayCanvas' pc itself could be undefined here.
+             */
+            function showStats() {
+                // examples/misc/mini-stats.mjs creates its own instance of ministats, prevent two mini-stats here
+                if (false) {
+                    return;
+                }
+                if (typeof pc === 'undefined' || typeof pcx === 'undefined') {
+                    return;
+                }
+                const deviceType = app?.graphicsDevice?.deviceType;
+                if (!deviceType || deviceType === 'null') {
+                    return;
+                }
+                if (args.miniStats === 'false') {
+                    return;
+                }
+                if (!miniStats) {
+                    miniStats = new pcx.MiniStats(app);
+                }
+                miniStats.enabled = true;
+            }
+            function hideStats() {
+                if (!miniStats) {
+                    return;
+                }
+                miniStats.enabled = false;
+            }
+            /**
+             * This function is called from React whenever we change an example in any possible state,
+             * even PlayCanvas' pc itself could be undefined here.
+             */
+            function destroy() {
+                miniStats?.destroy();
+                miniStats = null;
+                // Can't call app.destroy() twice without an error,
+                // so we check for app.graphicsDevice first
+                if (app && app.graphicsDevice) {
+                    app.destroy();
+                }
+                ready = false;
+            }
+            function hotReload() {
+                if (!allowRestart) {
+                    console.warn('hotReload> Dropping restart while still restarting');
+                    return;
+                }
+                destroy();
+                data = new observer.Observer({});
+                main(files);
+            }
+            window.addEventListener('requestFiles', requestFiles);
+            window.addEventListener('showStats', showStats);
+            window.addEventListener('hideStats', hideStats);
+            window.addEventListener('hotReload', hotReload);
+            window.addEventListener('destroy', destroy);
+
+            function updateControls() {
+                const event = new CustomEvent("updateFiles", {
                     detail: {
-                        showDeviceSelector: true,
+                        files
                     }
                 });
                 window.top.dispatchEvent(event);
             }
-            const example = resolveFunction(files['example.mjs']);
-            files['example.mjs'] = files['example.mjs'].toString();
-            app = await example({
-                canvas,
-                deviceType,
-                data,
-                assetPath,
-                scriptsPath,
-                ammoPath,
-                basisPath,
-                dracoPath,
-                glslangPath,
-                twgslPath,
-                pcx,
-                files,
-            });
-            ready = true;
-            class ExampleLoadEvent extends CustomEvent {
-                constructor(deviceType) {
-                    super("exampleLoad");
-                    this.files = files;
-                    this.description = "<ul><li>Click to add sand<li>Shift-click to remove sand<li>Press space to reset.</ul>";
-                }
+            function updateActiveDevice() {
+                const event = new CustomEvent("updateActiveDevice", {
+                    detail: app.graphicsDevice.deviceType
+                });
+                window.top.dispatchEvent(event);
             }
-            const finalFunc = () => {
-                if (app.graphicsDevice?.canvas) {
-                    showStats();
-                    if (!started) { // only one time, recalls of main() are caused by Monaco live coding
-                        window.top.dispatchEvent(new ExampleLoadEvent());
+
+            async function main(files) {
+                allowRestart = false;
+                await loadScript('pc', getSpecifiedEngine());
+                await loadScript('pcx', './playcanvas-extras.js');
+
+                window.top.pc = pc;
+                const canvas = document.getElementById("application-canvas");
+
+                window.top.observerData = data;
+                const deviceType = getDeviceType();
+
+                if (args.deviceType) {
+                    console.warn("overwriting default deviceType from URL");
+                    deviceType = args.deviceType;
+                }
+                if (!deviceType) {
+                    console.warn("No deviceType given, defaulting to WebGL2");
+                    deviceType = 'webgl2';
+                }
+
+                if (!started) {
+                    // just notify to clean UI, but not during hot-reload
+                    const event = new CustomEvent("exampleLoading", {
+                        detail: {
+                            showDeviceSelector: true,
+                        }
+                    });
+                    window.top.dispatchEvent(event);
+                }
+
+                const example = resolveFunction(files['example.mjs']);
+                files['example.mjs'] = files['example.mjs'].toString();
+                app = await example({
+                    canvas,
+                    deviceType,
+                    data,
+                    assetPath,
+                    scriptsPath,
+                    ammoPath,
+                    basisPath,
+                    dracoPath,
+                    glslangPath,
+                    twgslPath,
+                    pcx,
+                    files,
+                });
+                ready = true;
+
+                class ExampleLoadEvent extends CustomEvent {
+                    constructor(deviceType) {
+                        super("exampleLoad");
+                        this.files = files;
+                        this.description = "<ul><li>Click to add sand<li>Shift-click to remove sand<li>Press space to reset.</ul>";
                     }
+                }
+
+                const startHandler = () => {
+                    if (app.graphicsDevice?.canvas) {
+                        showStats();
+                        if (!started) { // only one time, recalls of main() are caused by Monaco live coding
+                            window.top.dispatchEvent(new ExampleLoadEvent());
+                        }
+                        started = true;
+                        updateControls();
+                        updateActiveDevice();
+                        allowRestart = true;
+                    } else {
+                        console.warn('main> no canvas');
+                    }
+                };
+
+                // Wait until example has called app.start()
+                // And if it already called start, we will know by app.frame > 0
+                // app.start() is called when assets loaded in examples
+                if (app) {
+                    if (app.frame) { // app already started
+                        startHandler();
+                    } else { // Wait for app.start()
+                        app.once('start', startHandler);
+                    }
+                } else {
+                    // The example function didn't return an app instance
+                    // still update the UI and assume it has started.
+                    window.top.dispatchEvent(new ExampleLoadEvent());
                     started = true;
                     updateControls();
-                    updateActiveDevice();
                     allowRestart = true;
-                } else {
-                    console.warn('main> no canvas');
                 }
-            };
-            // Wait until example has called app.start()
-            // And if it already called start, we will know by app.frame > 0
-            // app.start() is called when assets loaded in examples
-            if (app) {
-                if (app.frame) { // app already started
-                    finalFunc();
-                } else { // Wait for app.start()
-                    app.once('start', finalFunc);
-                }
-            } else {
-                // The example function didn't return an app instance
-                // still update the UI and assume it has started.
-                window.top.dispatchEvent(new ExampleLoadEvent());
-                started = true;
-                updateControls();
-                allowRestart = true;
             }
-        }
-        window.onload = () => main(files);
+            window.onload = () => main(files);
         </script>
     </body>
 </html>

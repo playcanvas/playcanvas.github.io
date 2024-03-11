@@ -1,7 +1,10 @@
 /**
  * @license
- * PlayCanvas Engine v1.68.1 revision b74c2ff99
+ * PlayCanvas Engine v1.69.0 revision 29eb79929
  * Copyright 2011-2024 PlayCanvas Ltd. All rights reserved.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :

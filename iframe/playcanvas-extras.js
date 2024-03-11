@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v0.0.0 revision b74c2ff99
+ * PlayCanvas Engine v0.0.0 revision 4be1cde70
  * Copyright 2011-2024 PlayCanvas Ltd. All rights reserved.
  */
 (function (global, factory) {
@@ -2763,7 +2763,7 @@
 	    _this.bloomRenderTarget = void 0;
 	    _this.textureFormat = void 0;
 	    _this.renderTargets = [];
-	    _this.sourceTexture = sourceTexture;
+	    _this._sourceTexture = sourceTexture;
 	    _this.textureFormat = format;
 	    _this.bloomRenderTarget = _this.createRenderTarget(0);
 	    _this.bloomTexture = _this.bloomRenderTarget.colorBuffer;
@@ -2819,7 +2819,7 @@
 	  };
 	  _proto.createRenderPasses = function createRenderPasses(numPasses) {
 	    var device = this.device;
-	    var passSourceTexture = this.sourceTexture;
+	    var passSourceTexture = this._sourceTexture;
 	    for (var i = 0; i < numPasses; i++) {
 	      var pass = new RenderPassDownsample(device, passSourceTexture);
 	      var rt = this.renderTargets[i];
@@ -2850,7 +2850,7 @@
 	  };
 	  _proto.frameUpdate = function frameUpdate() {
 	    _RenderPass.prototype.frameUpdate.call(this);
-	    var numPasses = this.calcMipLevels(this.sourceTexture.width, this.sourceTexture.height, Math.pow(2, this.lastMipLevel));
+	    var numPasses = this.calcMipLevels(this._sourceTexture.width, this._sourceTexture.height, Math.pow(2, this.lastMipLevel));
 	    numPasses = Math.max(1, numPasses);
 	    if (this.renderTargets.length !== numPasses) {
 	      this.destroyRenderPasses();
@@ -2859,6 +2859,20 @@
 	      this.createRenderPasses(numPasses);
 	    }
 	  };
+	  _createClass(RenderPassBloom, [{
+	    key: "sourceTexture",
+	    get: function get() {
+	      return this._sourceTexture;
+	    },
+	    set: function set(value) {
+	      this._sourceTexture = value;
+	      if (this.beforePasses.length > 0) {
+	        var firstPass = this.beforePasses[0];
+	        firstPass.options.resizeSource = value;
+	        firstPass.sourceTexture = value;
+	      }
+	    }
+	  }]);
 	  return RenderPassBloom;
 	}(playcanvas.RenderPass);
 
@@ -3004,16 +3018,24 @@
 	  return RenderPassCompose;
 	}(playcanvas.RenderPassShaderQuad);
 
+	var fs = "\n    uniform highp sampler2D uSceneDepthMap;\n    uniform sampler2D sourceTexture;\n    uniform sampler2D accumulationTexture;\n    uniform mat4 matrix_viewProjectionPrevious;\n    uniform mat4 matrix_viewProjectionInverse;\n\n    varying vec2 uv0;\n\n    vec2 reproject(vec2 uv, float depth) {\n\n        // fragment NDC\n        #ifndef WEBGPU\n            depth = depth * 2.0 - 1.0;\n        #endif\n        vec4 ndc = vec4(uv * 2.0 - 1.0, depth, 1.0);\n\n        // Transform NDC to world space of the current frame\n        vec4 worldPosition = matrix_viewProjectionInverse * ndc;\n        worldPosition /= worldPosition.w;\n    \n        // world position to screen space of the previous frame\n        vec4 screenPrevious = matrix_viewProjectionPrevious * worldPosition;\n        return (screenPrevious.xy / screenPrevious.w) * 0.5 + 0.5;\n    }\n\n    void main()\n    {\n        vec2 uv = uv0;\n\n\n\n\n        #ifdef WEBGPU\n            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n            // This hack is needed on webgpu, which makes TAA to work but the resulting image is upside-down.\n            // We could flip the image in the following pass, but ideally a better solution should be found.\n            uv.y = 1.0 - uv.y;\n            // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n        #endif\n\n\n\n\n        // current frame\n        vec4 src = texture2D(sourceTexture, uv);\n\n        // current depth\n        float depth = texture2DLodEXT(uSceneDepthMap, uv, 0.0).r;\n\n        // previous frame\n        vec2 lastUv = reproject(uv0, depth);\n        vec4 acc = texture2D(accumulationTexture, lastUv);\n\n        // handle history buffer outside of the frame\n        if (lastUv.x < 0.0 || lastUv.x > 1.0 || lastUv.y < 0.0 || lastUv.y > 1.0) {\n            gl_FragColor = src;\n        } else {\n            gl_FragColor = mix(acc, src, 0.05);\n        }\n    }\n";
 	var RenderPassTAA = function (_RenderPassShaderQuad) {
 	  _inheritsLoose(RenderPassTAA, _RenderPassShaderQuad);
-	  function RenderPassTAA(device, sourceTexture) {
+	  function RenderPassTAA(device, sourceTexture, cameraComponent) {
 	    var _this;
 	    _this = _RenderPassShaderQuad.call(this, device) || this;
-	    _this.accumulationTexture = void 0;
+	    _this.accumulationIndex = 0;
+	    _this.accumulationTexture = null;
+	    _this.accumulationTextures = [];
+	    _this.accumulationRenderTargets = [];
 	    _this.sourceTexture = sourceTexture;
-	    _this.shader = _this.createQuadShader('TaaResolveShader', "\n\n            uniform sampler2D sourceTexture;\n            varying vec2 uv0;\n\n            void main()\n            {\n                vec4 src = texture2D(sourceTexture, uv0);\n                gl_FragColor = src;\n            }");
-	    _this.sourceTextureId = device.scope.resolve('sourceTexture');
-	    _this.blendState = new playcanvas.BlendState(true, playcanvas.BLENDEQUATION_ADD, playcanvas.BLENDMODE_CONSTANT, playcanvas.BLENDMODE_ONE_MINUS_CONSTANT);
+	    _this.cameraComponent = cameraComponent;
+	    _this.shader = _this.createQuadShader('TaaResolveShader', fs);
+	    var scope = device.scope;
+	    _this.sourceTextureId = scope.resolve('sourceTexture');
+	    _this.accumulationTextureId = scope.resolve('accumulationTexture');
+	    _this.viewProjPrevId = scope.resolve('matrix_viewProjectionPrevious');
+	    _this.viewProjInvId = scope.resolve('matrix_viewProjectionInverse');
 	    _this.setup();
 	    return _this;
 	  }
@@ -3026,37 +3048,136 @@
 	    }
 	  };
 	  _proto.setup = function setup() {
-	    var device = this.device;
-	    var texture = new playcanvas.Texture(device, {
-	      name: 'TAA Accumulation Texture',
-	      width: 4,
-	      height: 4,
-	      format: this.sourceTexture.format,
-	      mipmaps: false,
-	      minFilter: playcanvas.FILTER_LINEAR,
-	      magFilter: playcanvas.FILTER_LINEAR,
-	      addressU: playcanvas.ADDRESS_CLAMP_TO_EDGE,
-	      addressV: playcanvas.ADDRESS_CLAMP_TO_EDGE
-	    });
-	    this.accumulationTexture = texture;
-	    var rt = new playcanvas.RenderTarget({
-	      colorBuffer: texture,
-	      depth: false
-	    });
-	    this.init(rt, {
+	    for (var i = 0; i < 2; ++i) {
+	      this.accumulationTextures[i] = new playcanvas.Texture(this.device, {
+	        name: "TAA-Accumulation-" + i,
+	        width: 4,
+	        height: 4,
+	        format: this.sourceTexture.format,
+	        mipmaps: false,
+	        minFilter: playcanvas.FILTER_LINEAR,
+	        magFilter: playcanvas.FILTER_LINEAR,
+	        addressU: playcanvas.ADDRESS_CLAMP_TO_EDGE,
+	        addressV: playcanvas.ADDRESS_CLAMP_TO_EDGE
+	      });
+	      this.accumulationRenderTargets[i] = new playcanvas.RenderTarget({
+	        colorBuffer: this.accumulationTextures[i],
+	        depth: false
+	      });
+	    }
+	    this.accumulationTexture = this.accumulationTextures[0];
+	    this.init(this.accumulationRenderTargets[0], {
 	      resizeSource: this.sourceTexture
 	    });
-	    this.setClearColor(playcanvas.Color.BLACK);
 	  };
-	  _proto.execute = function execute() {
+	  _proto.before = function before() {
 	    this.sourceTextureId.setValue(this.sourceTexture);
-	    var blend = 0.05;
-	    this.device.setBlendColor(blend, blend, blend, blend);
-	    _RenderPassShaderQuad.prototype.execute.call(this);
-	    this.setClearColor();
+	    this.accumulationTextureId.setValue(this.accumulationTextures[1 - this.accumulationIndex]);
+	    var camera = this.cameraComponent.camera;
+	    this.viewProjPrevId.setValue(camera._viewProjPrevious.data);
+	    this.viewProjInvId.setValue(camera._viewProjInverse.data);
+	  };
+	  _proto.update = function update() {
+	    this.accumulationIndex = 1 - this.accumulationIndex;
+	    this.accumulationTexture = this.accumulationTextures[this.accumulationIndex];
+	    this.renderTarget = this.accumulationRenderTargets[this.accumulationIndex];
+	    return this.accumulationTexture;
 	  };
 	  return RenderPassTAA;
 	}(playcanvas.RenderPassShaderQuad);
+
+	var tempMeshInstances = [];
+	var DEPTH_UNIFORM_NAME = 'uSceneDepthMap';
+	var VELOCITY_UNIFORM_NAME = 'uSceneVelocityMap';
+	var RenderPassPrepass = function (_RenderPass) {
+	  _inheritsLoose(RenderPassPrepass, _RenderPass);
+	  function RenderPassPrepass(device, scene, renderer, camera, depthBuffer, options) {
+	    var _this;
+	    _this = _RenderPass.call(this, device) || this;
+	    _this.viewBindGroups = [];
+	    _this.velocityTexture = void 0;
+	    _this.scene = scene;
+	    _this.renderer = renderer;
+	    _this.camera = camera;
+	    _this.setupRenderTarget(depthBuffer, options);
+	    return _this;
+	  }
+	  var _proto = RenderPassPrepass.prototype;
+	  _proto.destroy = function destroy() {
+	    var _this$renderTarget, _this$velocityTexture;
+	    _RenderPass.prototype.destroy.call(this);
+	    (_this$renderTarget = this.renderTarget) == null || _this$renderTarget.destroy();
+	    this.renderTarget = null;
+	    (_this$velocityTexture = this.velocityTexture) == null || _this$velocityTexture.destroy();
+	    this.velocityTexture = null;
+	    this.viewBindGroups.forEach(function (bg) {
+	      bg.defaultUniformBuffer.destroy();
+	      bg.destroy();
+	    });
+	    this.viewBindGroups.length = 0;
+	  };
+	  _proto.setupRenderTarget = function setupRenderTarget(depthBuffer, options) {
+	    var device = this.device;
+	    var velocityFormat = device.getRenderableHdrFormat([playcanvas.PIXELFORMAT_RGBA32F, playcanvas.PIXELFORMAT_RGBA16F]);
+	    this.velocityTexture = new playcanvas.Texture(device, {
+	      name: 'VelocityTexture',
+	      width: 4,
+	      height: 4,
+	      format: velocityFormat,
+	      mipmaps: false,
+	      minFilter: playcanvas.FILTER_NEAREST,
+	      magFilter: playcanvas.FILTER_NEAREST,
+	      addressU: playcanvas.ADDRESS_CLAMP_TO_EDGE,
+	      addressV: playcanvas.ADDRESS_CLAMP_TO_EDGE
+	    });
+	    var renderTarget = new playcanvas.RenderTarget({
+	      name: 'PrepassRT',
+	      depthBuffer: depthBuffer
+	    });
+	    this.init(renderTarget, options);
+	    this.depthStencilOps.storeDepth = true;
+	  };
+	  _proto.after = function after() {
+	    this.device.scope.resolve(DEPTH_UNIFORM_NAME).setValue(this.renderTarget.depthBuffer);
+	    this.device.scope.resolve(VELOCITY_UNIFORM_NAME).setValue(this.velocityTexture);
+	  };
+	  _proto.execute = function execute() {
+	    var renderer = this.renderer,
+	      scene = this.scene,
+	      renderTarget = this.renderTarget;
+	    var camera = this.camera.camera;
+	    var layers = scene.layers.layerList;
+	    var subLayerEnabled = scene.layers.subLayerEnabled;
+	    var isTransparent = scene.layers.subLayerList;
+	    for (var i = 0; i < layers.length; i++) {
+	      var layer = layers[i];
+	      if (layer.enabled && subLayerEnabled[i]) {
+	        if (layer.camerasSet.has(camera)) {
+	          if (layer.id === playcanvas.LAYERID_DEPTH) break;
+	          var culledInstances = layer.getCulledInstances(camera);
+	          var meshInstances = isTransparent[i] ? culledInstances.transparent : culledInstances.opaque;
+	          for (var j = 0; j < meshInstances.length; j++) {
+	            var _meshInstance$materia;
+	            var meshInstance = meshInstances[j];
+	            if ((_meshInstance$materia = meshInstance.material) != null && _meshInstance$materia.depthWrite) {
+	              tempMeshInstances.push(meshInstance);
+	            }
+	          }
+	          renderer.renderForwardLayer(camera, renderTarget, null, undefined, playcanvas.SHADER_PREPASS_VELOCITY, this.viewBindGroups, {
+	            meshInstances: tempMeshInstances
+	          });
+	          tempMeshInstances.length = 0;
+	        }
+	      }
+	    }
+	  };
+	  _proto.frameUpdate = function frameUpdate() {
+	    _RenderPass.prototype.frameUpdate.call(this);
+	    var camera = this.camera;
+	    this.setClearDepth(camera.clearDepthBuffer ? 1 : undefined);
+	  };
+	  return RenderPassPrepass;
+	}(playcanvas.RenderPass);
 
 	var RenderPassCameraFrame = function (_RenderPass) {
 	  _inheritsLoose(RenderPassCameraFrame, _RenderPass);
@@ -3067,9 +3188,11 @@
 	    }
 	    _this = _RenderPass.call(this, app.graphicsDevice) || this;
 	    _this.app = void 0;
+	    _this.prePass = void 0;
 	    _this.scenePass = void 0;
 	    _this.composePass = void 0;
 	    _this.bloomPass = void 0;
+	    _this.taaPass = void 0;
 	    _this._bloomEnabled = true;
 	    _this._renderTargetScale = 1;
 	    _this._rt = null;
@@ -3123,18 +3246,36 @@
 	      addressU: playcanvas.ADDRESS_CLAMP_TO_EDGE,
 	      addressV: playcanvas.ADDRESS_CLAMP_TO_EDGE
 	    });
+	    var sceneDepth = new playcanvas.Texture(device, {
+	      name: 'SceneDepth',
+	      width: 4,
+	      height: 4,
+	      format: playcanvas.PIXELFORMAT_DEPTH,
+	      mipmaps: false,
+	      minFilter: playcanvas.FILTER_NEAREST,
+	      magFilter: playcanvas.FILTER_NEAREST,
+	      addressU: playcanvas.ADDRESS_CLAMP_TO_EDGE,
+	      addressV: playcanvas.ADDRESS_CLAMP_TO_EDGE
+	    });
 	    var rt = new playcanvas.RenderTarget({
 	      colorBuffer: sceneTexture,
-	      depth: true,
+	      depthBuffer: sceneDepth,
 	      samples: options.samples
 	    });
 	    this._rt = rt;
-	    this.scenePass = new playcanvas.RenderPassForward(device, composition, scene, renderer);
-	    this.scenePass.init(rt, {
+	    var sceneOptions = {
 	      resizeSource: targetRenderTarget,
 	      scaleX: this.renderTargetScale,
 	      scaleY: this.renderTargetScale
-	    });
+	    };
+	    if (options.prepassEnabled) {
+	      this.prePass = new RenderPassPrepass(device, scene, renderer, cameraComponent, sceneDepth, sceneOptions);
+	    }
+	    this.scenePass = new playcanvas.RenderPassForward(device, composition, scene, renderer);
+	    this.scenePass.init(rt, sceneOptions);
+	    if (options.prepassEnabled) {
+	      this.scenePass.noDepthClear = true;
+	    }
 	    var lastLayerId = options.sceneColorMap ? options.lastGrabLayerId : options.lastSceneLayerId;
 	    var lastLayerIsTransparent = options.sceneColorMap ? options.lastGrabLayerIsTransparent : options.lastSceneLayerIsTransparent;
 	    var clearRenderTarget = true;
@@ -3149,25 +3290,35 @@
 	      scenePassTransparent = new playcanvas.RenderPassForward(device, composition, scene, renderer);
 	      scenePassTransparent.init(rt);
 	      lastAddedIndex = scenePassTransparent.addLayers(composition, cameraComponent, lastAddedIndex, clearRenderTarget, options.lastSceneLayerId, options.lastSceneLayerIsTransparent);
+	      if (options.prepassEnabled) {
+	        scenePassTransparent.depthStencilOps.storeDepth = true;
+	      }
 	    }
-	    var taaPass;
 	    var sceneTextureWithTaa = sceneTexture;
 	    if (options.taaEnabled) {
-	      taaPass = new RenderPassTAA(device, sceneTexture);
-	      sceneTextureWithTaa = taaPass.accumulationTexture;
+	      this.taaPass = new RenderPassTAA(device, sceneTexture, cameraComponent);
+	      sceneTextureWithTaa = this.taaPass.accumulationTexture;
 	    }
 	    this.bloomPass = new RenderPassBloom(app.graphicsDevice, sceneTextureWithTaa, format);
 	    this.composePass = new RenderPassCompose(app.graphicsDevice);
-	    this.composePass.sceneTexture = sceneTextureWithTaa;
 	    this.composePass.bloomTexture = this.bloomPass.bloomTexture;
 	    this.composePass.init(targetRenderTarget);
 	    var afterPass = new playcanvas.RenderPassForward(device, composition, scene, renderer);
 	    afterPass.init(targetRenderTarget);
 	    afterPass.addLayers(composition, cameraComponent, lastAddedIndex, clearRenderTarget);
-	    var allPasses = [this.scenePass, colorGrabPass, scenePassTransparent, taaPass, this.bloomPass, this.composePass, afterPass];
+	    var allPasses = [this.prePass, this.scenePass, colorGrabPass, scenePassTransparent, this.taaPass, this.bloomPass, this.composePass, afterPass];
 	    this.beforePasses = allPasses.filter(function (element) {
 	      return element !== undefined;
 	    });
+	  };
+	  _proto.frameUpdate = function frameUpdate() {
+	    var _this$taaPass$update, _this$taaPass;
+	    _RenderPass.prototype.frameUpdate.call(this);
+	    var sceneTexture = (_this$taaPass$update = (_this$taaPass = this.taaPass) == null ? void 0 : _this$taaPass.update()) != null ? _this$taaPass$update : this._rt.colorBuffer;
+	    this.composePass.sceneTexture = sceneTexture;
+	    if (this.bloomEnabled) {
+	      this.bloomPass.sourceTexture = sceneTexture;
+	    }
 	  };
 	  _createClass(RenderPassCameraFrame, [{
 	    key: "renderTargetScale",

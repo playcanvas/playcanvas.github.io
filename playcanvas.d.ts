@@ -962,6 +962,20 @@ declare const PIXELFORMAT_RGBA32I: number;
  * @category Graphics
  */
 declare const PIXELFORMAT_RGBA32U: number;
+/**
+ * 16-bit floating point R (16-bit float for red channel).
+ *
+ * @type {number}
+ * @category Graphics
+ */
+declare const PIXELFORMAT_R16F: number;
+/**
+ * 16-bit floating point RG (16-bit float for each red and green channels).
+ *
+ * @type {number}
+ * @category Graphics
+ */
+declare const PIXELFORMAT_RG16F: number;
 declare const pixelFormatInfo: Map<number, {
     name: string;
     size: number;
@@ -1300,6 +1314,12 @@ declare const STENCILOP_DECREMENTWRAP: number;
  * @category Graphics
  */
 declare const STENCILOP_INVERT: number;
+/**
+ * The texture is not in a locked state.
+ *
+ * @type {number}
+ */
+declare const TEXTURELOCK_NONE: number;
 /**
  * Read only. Any changes to the locked mip level's pixels will not update the texture.
  *
@@ -3100,6 +3120,7 @@ declare const SHADER_FORWARDHDR: number;
 declare const SHADER_DEPTH: number;
 declare const SHADER_PICK: 3;
 declare const SHADER_SHADOW: 4;
+declare const SHADER_PREPASS_VELOCITY: 5;
 /**
  * Shader that performs forward rendering.
  *
@@ -3810,90 +3831,105 @@ declare const ABSOLUTE_URL: RegExp;
  * Asset type name for animation.
  *
  * @type {string}
+ * @category Asset
  */
 declare const ASSET_ANIMATION: string;
 /**
  * Asset type name for audio.
  *
  * @type {string}
+ * @category Asset
  */
 declare const ASSET_AUDIO: string;
 /**
  * Asset type name for image.
  *
  * @type {string}
+ * @category Asset
  */
 declare const ASSET_IMAGE: string;
 /**
  * Asset type name for json.
  *
  * @type {string}
+ * @category Asset
  */
 declare const ASSET_JSON: string;
 /**
  * Asset type name for model.
  *
  * @type {string}
+ * @category Asset
  */
 declare const ASSET_MODEL: string;
 /**
  * Asset type name for material.
  *
  * @type {string}
+ * @category Asset
  */
 declare const ASSET_MATERIAL: string;
 /**
  * Asset type name for text.
  *
  * @type {string}
+ * @category Asset
  */
 declare const ASSET_TEXT: string;
 /**
  * Asset type name for texture.
  *
  * @type {string}
+ * @category Asset
  */
 declare const ASSET_TEXTURE: string;
 /**
  * Asset type name for textureatlas.
  *
  * @type {string}
+ * @category Asset
  */
 declare const ASSET_TEXTUREATLAS: string;
 /**
  * Asset type name for cubemap.
  *
  * @type {string}
+ * @category Asset
  */
 declare const ASSET_CUBEMAP: string;
 /**
  * Asset type name for shader.
  *
  * @type {string}
+ * @category Asset
  */
 declare const ASSET_SHADER: string;
 /**
  * Asset type name for CSS.
  *
  * @type {string}
+ * @category Asset
  */
 declare const ASSET_CSS: string;
 /**
  * Asset type name for HTML.
  *
  * @type {string}
+ * @category Asset
  */
 declare const ASSET_HTML: string;
 /**
  * Asset type name for script.
  *
  * @type {string}
+ * @category Asset
  */
 declare const ASSET_SCRIPT: string;
 /**
  * Asset type name for a container.
  *
  * @type {string}
+ * @category Asset
  */
 declare const ASSET_CONTAINER: string;
 
@@ -7001,6 +7037,8 @@ declare class Texture {
     protected _invalid: boolean;
     /** @protected */
     protected _lockedLevel: number;
+    /** @protected */
+    protected _lockedMode: number;
     /**
      * A render version used to track the last time the texture properties requiring bind group
      * to be updated were changed.
@@ -7072,6 +7110,17 @@ declare class Texture {
      * @type {number}
      */
     get requiredMipLevels(): number;
+    /**
+     * Returns the current lock mode. One of:
+     *
+     * - {@link TEXTURELOCK_NONE}
+     * - {@link TEXTURELOCK_READ}
+     * - {@link TEXTURELOCK_WRITE}
+     *
+     * @ignore
+     * @type {number}
+     */
+    get lockedMode(): number;
     /**
      * The minification filter to be applied to the texture. Can be:
      *
@@ -8000,7 +8049,7 @@ declare class EventHandle {
     /**
      * Mark if event has been removed.
      * @type {boolean}
-     * @internal
+     * @ignore
      */
     set removed(arg: boolean);
     /**
@@ -9648,6 +9697,8 @@ declare class GraphicsDevice extends EventHandler {
     indexBuffer: IndexBuffer;
     vertexBuffers: any[];
     shader: any;
+    shaderValid: any;
+    shaderAsyncCompile: boolean;
     initializeRenderState(): void;
     cullMode: number;
     vx: number;
@@ -11517,6 +11568,27 @@ declare class Mat3 {
      */
     set(src: number[]): Mat3;
     /**
+     * Extracts the x-axis from the specified matrix.
+     *
+     * @param {Vec3} [x] - The vector to receive the x axis of the matrix.
+     * @returns {Vec3} The x-axis of the specified matrix.
+     */
+    getX(x?: Vec3): Vec3;
+    /**
+     * Extracts the y-axis from the specified matrix.
+     *
+     * @param {Vec3} [y] - The vector to receive the y axis of the matrix.
+     * @returns {Vec3} The y-axis of the specified matrix.
+     */
+    getY(y?: Vec3): Vec3;
+    /**
+     * Extracts the z-axis from the specified matrix.
+     *
+     * @param {Vec3} [z] - The vector to receive the z axis of the matrix.
+     * @returns {Vec3} The z-axis of the specified matrix.
+     */
+    getZ(z?: Vec3): Vec3;
+    /**
      * Reports whether two matrices are equal.
      *
      * @param {Mat3} rhs - The other matrix.
@@ -12497,6 +12569,7 @@ declare class SkinInstance {
      * @type {import('./graph-node.js').GraphNode[]}
      */
     bones: GraphNode[];
+    boneTextureSize: any;
     _dirty: boolean;
     _rootBone: any;
     _skinUpdateIndex: number;
@@ -13163,7 +13236,7 @@ declare class RenderPass {
      */
     constructor(graphicsDevice: GraphicsDevice);
     /** @type {string} */
-    name: string;
+    _name: string;
     /**
      * The graphics device.
      *
@@ -13193,7 +13266,7 @@ declare class RenderPass {
     /**
      * The options specified when the render target was initialized.
      */
-    options: any;
+    _options: any;
     /**
      * Number of samples. 0 if no render target, otherwise number of samples from the render target,
      * or the main framebuffer if render target is null.
@@ -13242,6 +13315,10 @@ declare class RenderPass {
      * @type {RenderPass[]}
      */
     afterPasses: RenderPass[];
+    set name(arg: string);
+    get name(): string;
+    set options(arg: any);
+    get options(): any;
     /**
      * @param {import('../graphics/render-target.js').RenderTarget|null} [renderTarget] - The render
      * target to render into (output). This function should be called only for render passes which
@@ -13565,6 +13642,11 @@ declare class Camera {
     _viewMatDirty: boolean;
     _viewProjMat: Mat4;
     _viewProjMatDirty: boolean;
+    _shaderMatricesVersion: number;
+    _viewProjInverse: Mat4;
+    _viewProjCurrent: any;
+    _viewProjPrevious: Mat4;
+    _jitters: number[];
     frustum: Frustum;
     _xr: any;
     _xrProperties: {
@@ -13575,6 +13657,10 @@ declare class Camera {
         nearClip: number;
     };
     destroy(): void;
+    /**
+     * Store camera matrices required by TAA. Only update them once per frame.
+     */
+    _storeShaderMatrices(viewProjMat: any, jitterX: any, jitterY: any, renderVersion: any): void;
     /**
      * True if the camera clears the full render target. (viewport / scissor are full size)
      */
@@ -15144,7 +15230,7 @@ declare class Material {
      * Registers mesh instance as referencing the material.
      *
      * @param {import('../mesh-instance.js').MeshInstance} meshInstance - The mesh instance to
-     * de-register.
+     * register.
      * @ignore
      */
     addMeshInstanceRef(meshInstance: MeshInstance): void;
@@ -15234,7 +15320,7 @@ declare class Immediate {
     getDepthTextureShader(): any;
     getQuadMesh(): Mesh;
     drawMesh(material: any, matrix: any, mesh: any, meshInstance: any, layer: any): void;
-    drawWireAlignedBox(min: any, max: any, color: any, depthTest: any, layer: any): void;
+    drawWireAlignedBox(min: any, max: any, color: any, depthTest: any, layer: any, mat: any): void;
     drawWireSphere(center: any, radius: any, color: any, numSegments: any, depthTest: any, layer: any): void;
     getGraphNode(matrix: any): GraphNode;
     onPreRenderLayer(layer: any, visibleList: any, transparent: any): void;
@@ -15676,26 +15762,6 @@ type SplatMaterialOptions = {
     dither?: string;
 };
 
-type SplatTextureFormat = {
-    /**
-     * - The pixel format of the texture.
-     */
-    format: number;
-    /**
-     * - The number of components in the texture format.
-     */
-    numComponents: number;
-    /**
-     * - Indicates if the format uses half-precision floats.
-     */
-    isHalf: boolean;
-};
-/**
- * @typedef {object} SplatTextureFormat
- * @property {number} format - The pixel format of the texture.
- * @property {number} numComponents - The number of components in the texture format.
- * @property {boolean} isHalf - Indicates if the format uses half-precision floats.
- */
 /** @ignore */
 declare class GSplat {
     /**
@@ -15706,14 +15772,23 @@ declare class GSplat {
     constructor(device: GraphicsDevice, numSplats: number, aabb: BoundingBox);
     device: GraphicsDevice;
     numSplats: number;
+    /** @type {VertexFormat} */
     vertexFormat: VertexFormat;
-    /** @type {SplatTextureFormat} */
-    format: SplatTextureFormat;
-    colorTexture: Texture;
-    scaleTexture: Texture;
-    rotationTexture: Texture;
+    /**
+     * True if half format should be used, false is float format should be used or undefined if none
+     * are available.
+     *
+     * @type {boolean|undefined}
+     */
+    halfFormat: boolean | undefined;
     /** @type {Texture} */
-    centerTexture: Texture;
+    colorTexture: Texture;
+    /** @type {Texture} */
+    transformATexture: Texture;
+    /** @type {Texture} */
+    transformBTexture: Texture;
+    /** @type {Texture} */
+    transformCTexture: Texture;
     /** @type {Float32Array} */
     centers: Float32Array;
     /** @type {import('../../core/shape/bounding-box.js').BoundingBox} */
@@ -15748,9 +15823,10 @@ declare class GSplat {
      *
      * @param {import('../../platform/graphics/graphics-device.js').GraphicsDevice} device - The graphics device.
      * @param {boolean} preferHighPrecision - True to prefer high precision when available.
-     * @returns {SplatTextureFormat} The texture format info or undefined if not available.
+     * @returns {boolean|undefined} True if half format should be used, false is float format should
+     * be used or undefined if none are available.
      */
-    getTextureFormat(device: GraphicsDevice, preferHighPrecision: boolean): SplatTextureFormat;
+    getTextureFormat(device: GraphicsDevice, preferHighPrecision: boolean): boolean | undefined;
     /**
      * Updates pixel data of this.colorTexture based on the supplied color components and opacity.
      * Assumes that the texture is using an RGBA format where RGB are color components influenced
@@ -15763,35 +15839,34 @@ declare class GSplat {
      */
     updateColorData(c0: Float32Array, c1: Float32Array, c2: Float32Array, opacity: Float32Array): void;
     /**
-     * Updates pixel data of this.scaleTexture based based on the supplied scale components.
-     * The scales are exponentiated before being stored in the texture, and if the texture
-     * format uses half precision, the scale values are converted accordingly.
-     *
-     * @param {Float32Array} scale0 - The first scale component associated with the x-dimension.
-     * @param {Float32Array} scale1 - The second scale component associated with the y-dimension.
-     * @param {Float32Array} scale2 - The third scale component associated with the z-dimension.
-     */
-    updateScaleData(scale0: Float32Array, scale1: Float32Array, scale2: Float32Array): void;
-    /**
-     * Updates pixel data of this.rotationTexture based on the supplied quaternion components.
-     * Quaternions are normalized and conjugated if the 'w' component is negative.
-     * The quaternion components are stored as either half or full precision floats depending on the texture format.
-     *
+     * @param {Float32Array} x - The array containing the 'x' component of the center points.
+     * @param {Float32Array} y - The array containing the 'y' component of the center points.
+     * @param {Float32Array} z - The array containing the 'z' component of the center points.
      * @param {Float32Array} rot0 - The array containing the 'x' component of quaternion rotations.
      * @param {Float32Array} rot1 - The array containing the 'y' component of quaternion rotations.
      * @param {Float32Array} rot2 - The array containing the 'z' component of quaternion rotations.
      * @param {Float32Array} rot3 - The array containing the 'w' component of quaternion rotations.
+     * @param {Float32Array} scale0 - The first scale component associated with the x-dimension.
+     * @param {Float32Array} scale1 - The second scale component associated with the y-dimension.
+     * @param {Float32Array} scale2 - The third scale component associated with the z-dimension.
      */
-    updateRotationData(rot0: Float32Array, rot1: Float32Array, rot2: Float32Array, rot3: Float32Array): void;
+    updateTransformData(x: Float32Array, y: Float32Array, z: Float32Array, rot0: Float32Array, rot1: Float32Array, rot2: Float32Array, rot3: Float32Array, scale0: Float32Array, scale1: Float32Array, scale2: Float32Array): void;
     /**
-     * Updates pixel data of this.centerTexture based on the supplied center coordinates.
-     * The center coordinates are stored as either half or full precision floats depending on the texture format.
+     * Convert quaternion rotation stored in Vec3 to a rotation matrix.
      *
-     * @param {Float32Array} x - The array containing the 'x' component of the center points.
-     * @param {Float32Array} y - The array containing the 'y' component of the center points.
-     * @param {Float32Array} z - The array containing the 'z' component of the center points.
+     * @param {Vec3} R - Rotation stored in Vec3.
+     * @param {Mat3} mat - The output rotation matrix.
      */
-    updateCenterData(x: Float32Array, y: Float32Array, z: Float32Array): void;
+    quatToMat3(R: Vec3, mat: Mat3): void;
+    /**
+     * Evaluate the covariance values based on the rotation and scale.
+     *
+     * @param {Mat3} rot - The rotation matrix.
+     * @param {Vec3} scale - The scale.
+     * @param {Vec3} covA - The first covariance vector.
+     * @param {Vec3} covB - The second covariance vector.
+     */
+    computeCov3d(rot: Mat3, scale: Vec3, covA: Vec3, covB: Vec3): void;
 }
 
 declare class GSplatSorter extends EventHandler {
@@ -15956,7 +16031,6 @@ declare class MeshInstance {
     private _renderStyle;
     _receiveShadow: boolean;
     _screenSpace: boolean;
-    _noDepthDrawGl1: boolean;
     /**
      * Controls whether the mesh instance can be culled by frustum culling
      * ({@link CameraComponent#frustumCulling}). Defaults to true.
@@ -16627,6 +16701,19 @@ declare class SoundManager extends EventHandler {
  * Represents XR hit test source, which provides access to hit results of real world geometry from
  * AR session.
  *
+ * ```javascript
+ * // start a hit test from a viewer origin forward
+ * app.xr.hitTest.start({
+ *     spaceType: pc.XRSPACE_VIEWER,
+ *     callback: function (err, hitTestSource) {
+ *         if (err) return;
+ *         // subscribe to hit test results
+ *         hitTestSource.on('result', function (position, rotation, inputSource, hitTestResult) {
+ *             // position and rotation of hit test result
+ *         });
+ *     }
+ * });
+ * ```
  * @augments EventHandler
  * @category XR
  */
@@ -16643,13 +16730,13 @@ declare class XrHitTestSource extends EventHandler {
     static EVENT_REMOVE: string;
     /**
      * Fired when the hit test source receives new results. It provides transform information that
-     * tries to match real world picked geometry. The handler is passed the {@link Vec3} position,
-     * the {@link Quat} rotation, the {@link XrInputSource} (if it is a transient hit test source)
+     * tries to match real world geometry. Callback provides the {@link Vec3} position, the
+     * {@link Quat} rotation, the {@link XrInputSource} (if it is a transient hit test source)
      * and the {@link XRHitTestResult} object that is created by WebXR API.
      *
      * @event
      * @example
-     * hitTestSource.on('result', (position, rotation) => {
+     * hitTestSource.on('result', (position, rotation, inputSource, hitTestReult) => {
      *     target.setPosition(position);
      *     target.setRotation(rotation);
      * });
@@ -16717,13 +16804,34 @@ export type XrHitTestStartCallback = (err: Error | null, hitTestSource: XrHitTes
  * real world geometry.
  */
 /**
- * Hit Test provides ability to get position and rotation of ray intersecting point with
- * representation of real world geometry by underlying AR system.
+ * The Hit Test interface allows initiating hit testing against real-world geometry from various
+ * sources: the view, input sources, or an arbitrary ray in space. Results reflect the underlying
+ * AR system's understanding of the real world.
  *
  * @augments EventHandler
  * @category XR
  */
 declare class XrHitTest extends EventHandler {
+    /**
+     * Fired when hit test becomes available.
+     *
+     * @event
+     * @example
+     * app.xr.hitTest.on('available', () => {
+     *     console.log('Hit Testing is available');
+     * });
+     */
+    static EVENT_AVAILABLE: string;
+    /**
+     * Fired when hit test becomes unavailable.
+     *
+     * @event
+     * @example
+     * app.xr.hitTest.on('unavailable', () => {
+     *     console.log('Hit Testing is unavailable');
+     * });
+     */
+    static EVENT_UNAVAILABLE: string;
     /**
      * Fired when new {@link XrHitTestSource} is added to the list. The handler is passed the
      * {@link XrHitTestSource} object that has been added.
@@ -16788,10 +16896,10 @@ declare class XrHitTest extends EventHandler {
      */
     private _supported;
     /**
-     * @type {XRSession}
+     * @type {boolean}
      * @private
      */
-    private _session;
+    private _available;
     /**
      * List of active {@link XrHitTestSource}.
      *
@@ -16802,15 +16910,6 @@ declare class XrHitTest extends EventHandler {
     private _onSessionStart;
     /** @private */
     private _onSessionEnd;
-    /**
-     * Checks if hit testing is available.
-     *
-     * @param {Function} callback - Error callback.
-     * @param {*} fireError - Event handler on while to fire error event.
-     * @returns {boolean} True if hit test is available.
-     * @private
-     */
-    private isAvailable;
     /**
      * Attempts to start hit test with provided reference space.
      *
@@ -16848,17 +16947,18 @@ declare class XrHitTest extends EventHandler {
      * @param {XrHitTestStartCallback} [options.callback] - Optional callback function called once
      * hit test source is created or failed.
      * @example
+     * // start hit testing from viewer position facing forwards
      * app.xr.hitTest.start({
      *     spaceType: pc.XRSPACE_VIEWER,
      *     callback: function (err, hitTestSource) {
      *         if (err) return;
      *         hitTestSource.on('result', function (position, rotation) {
      *             // position and rotation of hit test result
-     *             // based on Ray facing forward from the Viewer reference space
      *         });
      *     }
      * });
      * @example
+     * // start hit testing using an arbitrary ray
      * const ray = new pc.Ray(new pc.Vec3(0, 0, 0), new pc.Vec3(0, -1, 0));
      * app.xr.hitTest.start({
      *     spaceType: pc.XRSPACE_LOCAL,
@@ -16869,6 +16969,7 @@ declare class XrHitTest extends EventHandler {
      *     }
      * });
      * @example
+     * // start hit testing for touch screen taps
      * app.xr.hitTest.start({
      *     profile: 'generic-touchscreen',
      *     callback: function (err, hitTestSource) {
@@ -16906,6 +17007,12 @@ declare class XrHitTest extends EventHandler {
      * @type {boolean}
      */
     get supported(): boolean;
+    /**
+     * True if Hit Test is available. This information is available only when the session has started.
+     *
+     * @type {boolean}
+     */
+    get available(): boolean;
 }
 
 /**
@@ -17201,9 +17308,9 @@ declare class XrHand extends EventHandler {
      */
     private _fingerIsClosed;
     /**
-     * Returns joint by XRHand id from list in specs: https://immersive-web.github.io/webxr-hand-input/.
+     * Returns joint by its XRHand id.
      *
-     * @param {string} id - Id of a joint based on specs ID's in XRHand: https://immersive-web.github.io/webxr-hand-input/.
+     * @param {string} id - Id of a joint based on specs ID's in XRHand: https://immersive-web.github.io/webxr-hand-input/#skeleton-joints-section.
      * @returns {XrJoint|null} Joint or null if not available.
      */
     getJointById(id: string): XrJoint | null;
@@ -17242,8 +17349,8 @@ declare class XrHand extends EventHandler {
 /**
  * Represents XR input source, which is any input mechanism which allows the user to perform
  * targeted actions in the same virtual space as the viewer. Example XR input sources include, but
- * are not limited to, handheld controllers, optically tracked hands, and gaze-based input methods
- * that operate on the viewer's pose.
+ * are not limited to: handheld controllers, optically tracked hands, touch screen taps, and
+ * gaze-based input methods that operate on the viewer's pose.
  *
  * @augments EventHandler
  * @category XR
@@ -17358,12 +17465,12 @@ declare class XrInputSource extends EventHandler {
     /**
      * Fired when hit test source receives new results. It provides transform information that
      * tries to match real world picked geometry. The handler is passed the {@link XrHitTestSource}
-     * object that produced the hit result, the {@link Vec3} position and the {@link Quat}
-     * rotation.
+     * object that produced the hit result, the {@link Vec3} position, the {@link Quat}
+     * rotation and the {@link XRHitTestResult} object that is created by the WebXR API.
      *
      * @event
      * @example
-     * inputSource.on('hittest:result', (hitTestSource, position, rotation) => {
+     * inputSource.on('hittest:result', (hitTestSource, position, rotation, hitTestResult) => {
      *     target.setPosition(position);
      *     target.setRotation(rotation);
      * });
@@ -17547,7 +17654,7 @@ declare class XrInputSource extends EventHandler {
     get profiles(): string[];
     /**
      * If input source can be held, then it will have node with its world transformation, that can
-     * be used to position and rotate virtual joysticks based on it.
+     * be used to position and rotate visual object based on it.
      *
      * @type {boolean}
      */
@@ -17593,7 +17700,7 @@ declare class XrInputSource extends EventHandler {
      */
     get elementEntity(): Entity;
     /**
-     * List of active {@link XrHitTestSource} instances created by this input source.
+     * List of active {@link XrHitTestSource} instances associated with this input source.
      *
      * @type {import('./xr-hit-test-source.js').XrHitTestSource[]}
      */
@@ -17677,7 +17784,7 @@ declare class XrInputSource extends EventHandler {
      *     inputSource.hitTestStart({
      *         callback: function (err, hitTestSource) {
      *             if (err) return;
-     *             hitTestSource.on('result', function (position, rotation) {
+     *             hitTestSource.on('result', function (position, rotation, inputSource, hitTestResult) {
      *                 // position and rotation of hit test result
      *                 // that will be created from touch on mobile devices
      *             });
@@ -21539,6 +21646,235 @@ declare class ShadowMapCache {
 }
 
 /**
+ * Callback used by {@link ResourceHandlerload } when a resource is loaded (or an error occurs).
+ */
+export type ResourceHandlerCallback = (err: string | null, response?: any) => any;
+/**
+ * Callback used by {@link ResourceHandler#load} when a resource is loaded (or an error occurs).
+ *
+ * @callback ResourceHandlerCallback
+ * @param {string|null} err - The error message in the case where the load fails.
+ * @param {*} [response] - The raw data that has been successfully loaded.
+ */
+/**
+ * Base class for ResourceHandlers used by {@link ResourceLoader}.
+ */
+declare class ResourceHandler {
+    /**
+     * @param {import('../app-base').AppBase} app - The running {@link AppBase}.
+     * @param {string} handlerType - The type of the resource the handler handles.
+     */
+    constructor(app: AppBase, handlerType: string);
+    /**
+     * Type of the resource the handler handles.
+     *
+     * @type {string}
+     */
+    handlerType: string;
+    /**
+     * The running app instance.
+     *
+     * @type {import('../app-base').AppBase}
+     */
+    _app: AppBase;
+    /** @private */
+    private _maxRetries;
+    /**
+     * The number of times to retry a failed request for the resource.
+     *
+     * @type {number}
+     */
+    set maxRetries(arg: number);
+    get maxRetries(): number;
+    /**
+     * Load a resource from a remote URL. The base implementation does nothing.
+     *
+     * @param {string|object} url - Either the URL of the resource to load or a structure
+     * containing the load and original URL.
+     * @param {string} [url.load] - The URL to be used for loading the resource.
+     * @param {string} [url.original] - The original URL to be used for identifying the resource
+     * format. This is necessary when loading, for example from blob.
+     * @param {ResourceHandlerCallback} callback - The callback used when the resource is loaded or
+     * an error occurs.
+     * @param {import('../asset/asset.js').Asset} [asset] - Optional asset that is passed by
+     * ResourceLoader.
+     */
+    load(url: string | object, callback: ResourceHandlerCallback, asset?: Asset): void;
+    /**
+     * The open function is passed the raw resource data. The handler can then process the data
+     * into a format that can be used at runtime. The base implementation simply returns the data.
+     *
+     * @param {string} url - The URL of the resource to open.
+     * @param {*} data - The raw resource data passed by callback from {@link ResourceHandler#load}.
+     * @param {import('../asset/asset.js').Asset} [asset] - Optional asset that is passed by
+     * ResourceLoader.
+     * @returns {*} The parsed resource data.
+     */
+    open(url: string, data: any, asset?: Asset): any;
+    /**
+     * The patch function performs any operations on a resource that requires a dependency on its
+     * asset data or any other asset data. The base implementation does nothing.
+     *
+     * @param {import('../asset/asset.js').Asset} asset - The asset to patch.
+     * @param {import('../asset/asset-registry.js').AssetRegistry} assets - The asset registry.
+     */
+    patch(asset: Asset, assets: AssetRegistry): void;
+}
+
+/**
+ * Callback used by {@link ResourceLoaderload } when a resource is loaded (or an error occurs).
+ */
+export type ResourceLoaderCallback = (err: string | null, resource?: any) => any;
+/**
+ * Callback used by {@link ResourceLoader#load} when a resource is loaded (or an error occurs).
+ *
+ * @callback ResourceLoaderCallback
+ * @param {string|null} err - The error message in the case where the load fails.
+ * @param {*} [resource] - The resource that has been successfully loaded.
+ */
+/**
+ * Load resource data, potentially from remote sources. Caches resource on load to prevent multiple
+ * requests. Add ResourceHandlers to handle different types of resources.
+ */
+declare class ResourceLoader {
+    static makeKey(url: any, type: any): string;
+    /**
+     * Create a new ResourceLoader instance.
+     *
+     * @param {import('../app-base.js').AppBase} app - The application.
+     */
+    constructor(app: AppBase);
+    _handlers: {};
+    _requests: {};
+    _cache: {};
+    _app: AppBase;
+    /**
+     * Add a {@link ResourceHandler} for a resource type. Handler should support at least `load()`
+     * and `open()`. Handlers can optionally support patch(asset, assets) to handle dependencies on
+     * other assets.
+     *
+     * @param {string} type - The name of the resource type that the handler will be registered
+     * with. Can be:
+     *
+     * - {@link ASSET_ANIMATION}
+     * - {@link ASSET_AUDIO}
+     * - {@link ASSET_IMAGE}
+     * - {@link ASSET_JSON}
+     * - {@link ASSET_MODEL}
+     * - {@link ASSET_MATERIAL}
+     * - {@link ASSET_TEXT}
+     * - {@link ASSET_TEXTURE}
+     * - {@link ASSET_CUBEMAP}
+     * - {@link ASSET_SHADER}
+     * - {@link ASSET_CSS}
+     * - {@link ASSET_HTML}
+     * - {@link ASSET_SCRIPT}
+     * - {@link ASSET_CONTAINER}
+     *
+     * @param {import('./handler.js').ResourceHandler} handler - An instance of a resource handler
+     * supporting at least `load()` and `open()`.
+     * @example
+     * const loader = new ResourceLoader();
+     * loader.addHandler("json", new pc.JsonHandler());
+     */
+    addHandler(type: string, handler: ResourceHandler): void;
+    /**
+     * Remove a {@link ResourceHandler} for a resource type.
+     *
+     * @param {string} type - The name of the type that the handler will be removed.
+     */
+    removeHandler(type: string): void;
+    /**
+     * Get a {@link ResourceHandler} for a resource type.
+     *
+     * @param {string} type - The name of the resource type that the handler is registered with.
+     * @returns {import('./handler.js').ResourceHandler|undefined} The registered handler, or
+     * undefined if the requested handler is not registered.
+     */
+    getHandler(type: string): ResourceHandler | undefined;
+    /**
+     * Make a request for a resource from a remote URL. Parse the returned data using the handler
+     * for the specified type. When loaded and parsed, use the callback to return an instance of
+     * the resource.
+     *
+     * @param {string} url - The URL of the resource to load.
+     * @param {string} type - The type of resource expected.
+     * @param {ResourceLoaderCallback} callback - The callback used when the resource is loaded or
+     * an error occurs. Passed (err, resource) where err is null if there are no errors.
+     * @param {import('../asset/asset.js').Asset} [asset] - Optional asset that is passed into
+     * handler.
+     * @param {object} [options] - Additional options for loading.
+     * @param {boolean} [options.bundlesIgnore] - If set to true, then asset will not try to load
+     * from a bundle. Defaults to false.
+     * @param {import('../asset/asset-registry.js').BundlesFilterCallback} [options.bundlesFilter] - A callback that will be called
+     * when loading an asset that is contained in any of the bundles. It provides an array of
+     * bundles and will ensure asset is loaded from bundle returned from a callback. By default
+     * smallest filesize bundle is choosen.
+     * @example
+     * app.loader.load("../path/to/texture.png", "texture", function (err, texture) {
+     *     // use texture here
+     * });
+     */
+    load(url: string, type: string, callback: ResourceLoaderCallback, asset?: Asset, options?: {
+        bundlesIgnore?: boolean;
+        bundlesFilter?: BundlesFilterCallback;
+    }): void;
+    _loadNull(handler: any, callback: any, asset: any): void;
+    _onSuccess(key: any, result: any, extra: any): void;
+    _onFailure(key: any, err: any): void;
+    /**
+     * Convert raw resource data into a resource instance. E.g. Take 3D model format JSON and
+     * return a {@link Model}.
+     *
+     * @param {string} type - The type of resource.
+     * @param {*} data - The raw resource data.
+     * @returns {*} The parsed resource data.
+     */
+    open(type: string, data: any): any;
+    /**
+     * Perform any operations on a resource, that requires a dependency on its asset data or any
+     * other asset data.
+     *
+     * @param {import('../asset/asset.js').Asset} asset - The asset to patch.
+     * @param {import('../asset/asset-registry.js').AssetRegistry} assets - The asset registry.
+     */
+    patch(asset: Asset, assets: AssetRegistry): void;
+    /**
+     * Remove resource from cache.
+     *
+     * @param {string} url - The URL of the resource.
+     * @param {string} type - The type of resource.
+     */
+    clearCache(url: string, type: string): void;
+    /**
+     * Check cache for resource from a URL. If present, return the cached value.
+     *
+     * @param {string} url - The URL of the resource to get from the cache.
+     * @param {string} type - The type of the resource.
+     * @returns {*} The resource loaded from the cache.
+     */
+    getFromCache(url: string, type: string): any;
+    /**
+     * Enables retrying of failed requests when loading assets.
+     *
+     * @param {number} maxRetries - The maximum number of times to retry loading an asset. Defaults
+     * to 5.
+     * @ignore
+     */
+    enableRetry(maxRetries?: number): void;
+    /**
+     * Disables retrying of failed requests when loading assets.
+     *
+     * @ignore
+     */
+    disableRetry(): void;
+    /**
+     * Destroys the resource loader.
+     */
+    destroy(): void;
+}
+
+/**
  * Callback used by {@link Assetready } and called when an asset is ready.
  */
 export type AssetReadyCallback = (asset: Asset) => any;
@@ -21563,6 +21899,7 @@ export type AssetReadyCallback = (asset: Asset) => any;
  * See the {@link AssetRegistry} for details on loading resources from assets.
  *
  * @augments EventHandler
+ * @category Asset
  */
 declare class Asset extends EventHandler {
     /**
@@ -21656,7 +21993,7 @@ declare class Asset extends EventHandler {
      *
      * @param {string} name - A non-unique but human-readable name which can be later used to
      * retrieve the asset.
-     * @param {string} type - Type of asset. One of ["animation", "audio", "binary", "container",
+     * @param {string} type - Type of asset. One of ["animation", "audio", "binary", "bundle", "container",
      * "cubemap", "css", "font", "json", "html", "material", "model", "script", "shader", "sprite",
      * "template", text", "texture", "textureatlas"]
      * @param {object} [file] - Details about the file the asset is made from. At the least must
@@ -21719,6 +22056,7 @@ declare class Asset extends EventHandler {
      */
     options: object;
     _resources: any[];
+    urlObject: any;
     _i18n: {};
     /**
      * True if the asset has finished attempting to load the resource. It is not guaranteed
@@ -21865,202 +22203,181 @@ declare class Asset extends EventHandler {
 }
 
 /**
- * Callback used by {@link ResourceHandlerload } when a resource is loaded (or an error occurs).
- */
-export type ResourceHandlerCallback = (err: string | null, response?: any) => any;
-/**
- * Callback used by {@link ResourceHandler#load} when a resource is loaded (or an error occurs).
+ * Keeps track of which assets are in bundles and loads files from bundles.
  *
- * @callback ResourceHandlerCallback
- * @param {string|null} err - The error message in the case where the load fails.
- * @param {*} [response] - The raw data that has been successfully loaded.
+ * @ignore
  */
-/**
- * @interface
- * @name ResourceHandler
- * @description Interface for ResourceHandlers used by {@link ResourceLoader}.
- */
-interface ResourceHandler {
+declare class BundleRegistry {
     /**
-     * @function
-     * @name ResourceHandler#load
-     * @description Load a resource from a remote URL. When loaded (or failed),
-     * use the callback to return an the raw resource data (or error).
-     * @param {string|object} url - Either the URL of the resource to load or a structure
-     * containing the load and original URL.
-     * @param {string} [url.load] - The URL to be used for loading the resource.
-     * @param {string} [url.original] - The original URL to be used for identifying the resource
-     * format. This is necessary when loading, for example from blob.
-     * @param {ResourceHandlerCallback} callback - The callback used when the resource is loaded or
-     * an error occurs.
-     * @param {import('../asset/asset.js').Asset} [asset] - Optional asset that is passed by
-     * ResourceLoader.
-     */
-    load(url: string | object, callback: ResourceHandlerCallback, asset?: Asset): void;
-    /**
-     * @function
-     * @name ResourceHandler#open
-     * @description Convert raw resource data into a resource instance. E.g. Take 3D model format
-     * JSON and return a {@link Model}.
-     * @param {string} url - The URL of the resource to open.
-     * @param {*} data - The raw resource data passed by callback from {@link ResourceHandler#load}.
-     * @param {import('../asset/asset.js').Asset} [asset] - Optional asset that is passed by
-     * ResourceLoader.
-     * @returns {*} The parsed resource data.
-     */
-    open(url: string, data: any, asset?: Asset): any;
-    /**
-     * @function
-     * @name ResourceHandler#[patch]
-     * @description Optional function to perform any operations on a resource, that requires a
-     * dependency on its asset data or any other asset data.
-     * @param {import('../asset/asset.js').Asset} asset - The asset to patch.
+     * Create a new BundleRegistry instance.
+     *
      * @param {import('../asset/asset-registry.js').AssetRegistry} assets - The asset registry.
      */
-    patch?(asset: Asset, assets: AssetRegistry): void;
+    constructor(assets: AssetRegistry);
+    /**
+     * Index of bundle assets.
+     * @type {Map<number, import('../asset/asset.js').Asset>}
+     * @private
+     */
+    private _idToBundle;
+    /**
+     * Index of asset id to set of bundle assets.
+     * @type {Map<number, Set<import('../asset/asset.js').Asset>>}
+     * @private
+     */
+    private _assetToBundles;
+    /**
+     * Index of file url to set of bundle assets.
+     * @type {Map<string, Set<import('../asset/asset.js').Asset>>}
+     * @private
+     */
+    private _urlsToBundles;
+    /**
+     * Index of file request to load callbacks.
+     * @type {Map<string, function[]>}
+     * @private
+     */
+    private _fileRequests;
+    _assets: AssetRegistry;
+    /**
+     * Called when asset is added to AssetRegistry.
+     *
+     * @param {import('../asset/asset.js').Asset} asset - The asset that has been added.
+     * @private
+     */
+    private _onAssetAdd;
+    _unbindAssetEvents(id: any): void;
+    _indexAssetInBundle(id: any, bundle: any): void;
+    _indexAssetFileUrls(asset: any): void;
+    _getAssetFileUrls(asset: any): any[];
+    _onAssetRemove(asset: any): void;
+    _onBundleLoadStart(asset: any): void;
+    _onBundleLoad(asset: any): void;
+    _onBundleError(err: any): void;
+    _findLoadedOrLoadingBundleForUrl(url: any): any;
+    /**
+     * Lists all of the available bundles that reference the specified asset.
+     *
+     * @param {import('../asset/asset.js').Asset} asset - The asset to search by.
+     * @returns {import('../asset/asset.js').Asset[]|null} An array of bundle assets or null if the
+     * asset is not in any bundle.
+     */
+    listBundlesForAsset(asset: Asset): Asset[] | null;
+    /**
+     * Lists all bundle assets.
+     *
+     * @returns {import('../asset/asset.js').Asset[]} An array of bundle assets.
+     */
+    list(): Asset[];
+    /**
+     * Returns true if there is a bundle that contains the specified URL.
+     *
+     * @param {string} url - The url.
+     * @returns {boolean} True or false.
+     */
+    hasUrl(url: string): boolean;
+    /**
+     * Returns true if there is a bundle that contains the specified URL and that bundle is either
+     * loaded or currently being loaded.
+     *
+     * @param {string} url - The url.
+     * @returns {boolean} True or false.
+     */
+    urlIsLoadedOrLoading(url: string): boolean;
+    /**
+     * Loads the specified file URL from a bundle that is either loaded or currently being loaded.
+     *
+     * @param {string} url - The URL. Make sure you are using a relative URL that does not contain
+     * any query parameters.
+     * @param {Function} callback - The callback is called when the file has been loaded or if an
+     * error occurs. The callback expects the first argument to be the error message (if any) and
+     * the second argument is the file blob URL.
+     * @example
+     * const url = asset.getFileUrl().split('?')[0]; // get normalized asset URL
+     * this.app.bundles.loadFile(url, function (err, data) {
+     *     // do something with the data
+     * });
+     */
+    loadUrl(url: string, callback: Function): void;
+    /**
+     * Destroys the registry, and releases its resources. Does not unload bundle assets as these
+     * should be unloaded by the {@link AssetRegistry}.
+     */
+    destroy(): void;
 }
 
 /**
- * Callback used by {@link ResourceLoaderload } when a resource is loaded (or an error occurs).
- */
-export type ResourceLoaderCallback = (err: string | null, resource?: any) => any;
-/**
- * Callback used by {@link ResourceLoader#load} when a resource is loaded (or an error occurs).
+ * Represents the resource of a Bundle Asset, which contains an index that maps URLs to DataViews.
  *
- * @callback ResourceLoaderCallback
- * @param {string|null} err - The error message in the case where the load fails.
- * @param {*} [resource] - The resource that has been successfully loaded.
+ * @ignore
  */
-/**
- * Load resource data, potentially from remote sources. Caches resource on load to prevent multiple
- * requests. Add ResourceHandlers to handle different types of resources.
- */
-declare class ResourceLoader {
-    static makeKey(url: any, type: any): string;
+declare class Bundle extends EventHandler {
     /**
-     * Create a new ResourceLoader instance.
+     * Fired when a file has been added to a Bundle.
      *
-     * @param {import('../app-base.js').AppBase} app - The application.
-     */
-    constructor(app: AppBase);
-    _handlers: {};
-    _requests: {};
-    _cache: {};
-    _app: AppBase;
-    /**
-     * Add a {@link ResourceHandler} for a resource type. Handler should support at least `load()`
-     * and `open()`. Handlers can optionally support patch(asset, assets) to handle dependencies on
-     * other assets.
-     *
-     * @param {string} type - The name of the resource type that the handler will be registered
-     * with. Can be:
-     *
-     * - {@link ASSET_ANIMATION}
-     * - {@link ASSET_AUDIO}
-     * - {@link ASSET_IMAGE}
-     * - {@link ASSET_JSON}
-     * - {@link ASSET_MODEL}
-     * - {@link ASSET_MATERIAL}
-     * - {@link ASSET_TEXT}
-     * - {@link ASSET_TEXTURE}
-     * - {@link ASSET_CUBEMAP}
-     * - {@link ASSET_SHADER}
-     * - {@link ASSET_CSS}
-     * - {@link ASSET_HTML}
-     * - {@link ASSET_SCRIPT}
-     * - {@link ASSET_CONTAINER}
-     *
-     * @param {import('./handler.js').ResourceHandler} handler - An instance of a resource handler
-     * supporting at least `load()` and `open()`.
+     * @event
      * @example
-     * const loader = new ResourceLoader();
-     * loader.addHandler("json", new pc.JsonHandler());
-     */
-    addHandler(type: string, handler: ResourceHandler): void;
-    /**
-     * Remove a {@link ResourceHandler} for a resource type.
-     *
-     * @param {string} type - The name of the type that the handler will be removed.
-     */
-    removeHandler(type: string): void;
-    /**
-     * Get a {@link ResourceHandler} for a resource type.
-     *
-     * @param {string} type - The name of the resource type that the handler is registered with.
-     * @returns {import('./handler.js').ResourceHandler|undefined} The registered handler, or
-     * undefined if the requested handler is not registered.
-     */
-    getHandler(type: string): ResourceHandler | undefined;
-    /**
-     * Make a request for a resource from a remote URL. Parse the returned data using the handler
-     * for the specified type. When loaded and parsed, use the callback to return an instance of
-     * the resource.
-     *
-     * @param {string} url - The URL of the resource to load.
-     * @param {string} type - The type of resource expected.
-     * @param {ResourceLoaderCallback} callback - The callback used when the resource is loaded or
-     * an error occurs. Passed (err, resource) where err is null if there are no errors.
-     * @param {import('../asset/asset.js').Asset} [asset] - Optional asset that is passed into
-     * handler.
-     * @example
-     * app.loader.load("../path/to/texture.png", "texture", function (err, texture) {
-     *     // use texture here
+     * bundle.on("add", function (url, data) {
+     *     console.log("file added: " + url);
      * });
      */
-    load(url: string, type: string, callback: ResourceLoaderCallback, asset?: Asset): void;
-    _loadNull(handler: any, callback: any, asset: any): void;
-    _onSuccess(key: any, result: any, extra: any): void;
-    _onFailure(key: any, err: any): void;
+    static EVENT_ADD: string;
     /**
-     * Convert raw resource data into a resource instance. E.g. Take 3D model format JSON and
-     * return a {@link Model}.
+     * Fired when all files of a Bundle has been loaded.
      *
-     * @param {string} type - The type of resource.
-     * @param {*} data - The raw resource data.
-     * @returns {*} The parsed resource data.
+     * @event
+     * @example
+     * bundle.on("load", function () {
+     *     console.log("All Bundle files has been loaded");
+     * });
      */
-    open(type: string, data: any): any;
+    static EVENT_LOAD: string;
     /**
-     * Perform any operations on a resource, that requires a dependency on its asset data or any
-     * other asset data.
-     *
-     * @param {import('../asset/asset.js').Asset} asset - The asset to patch.
-     * @param {import('../asset/asset-registry.js').AssetRegistry} assets - The asset registry.
+     * Index of file url to to DataView.
+     * @type {Map<string, DataView>}
+     * @private
      */
-    patch(asset: Asset, assets: AssetRegistry): void;
+    private _index;
     /**
-     * Remove resource from cache.
-     *
-     * @param {string} url - The URL of the resource.
-     * @param {string} type - The type of resource.
+     * If Bundle has all files loaded.
+     * @type {boolean}
+     * @private
      */
-    clearCache(url: string, type: string): void;
+    private _loaded;
     /**
-     * Check cache for resource from a URL. If present, return the cached value.
+     * Add file to a Bundle.
      *
-     * @param {string} url - The URL of the resource to get from the cache.
-     * @param {string} type - The type of the resource.
-     * @returns {*} The resource loaded from the cache.
-     */
-    getFromCache(url: string, type: string): any;
-    /**
-     * Enables retrying of failed requests when loading assets.
-     *
-     * @param {number} maxRetries - The maximum number of times to retry loading an asset. Defaults
-     * to 5.
+     * @param {string} url - A url of a file.
+     * @param {DataView} data - A DataView of a file.
      * @ignore
      */
-    enableRetry(maxRetries?: number): void;
+    addFile(url: string, data: DataView): void;
     /**
-     * Disables retrying of failed requests when loading assets.
+     * Returns true if the specified URL exists in the loaded bundle.
      *
-     * @ignore
+     * @param {string} url - The original file URL. Make sure you have called decodeURIComponent on
+     * the URL first.
+     * @returns {boolean} True of false.
      */
-    disableRetry(): void;
+    has(url: string): boolean;
     /**
-     * Destroys the resource loader.
+     * Returns a DataView for the specified URL.
+     *
+     * @param {string} url - The original file URL. Make sure you have called decodeURIComponent on
+     * the URL first.
+     * @returns {DataView|null} A DataView.
+     */
+    get(url: string): DataView | null;
+    /**
+     * Destroys the bundle.
      */
     destroy(): void;
+    /**
+     * True if all files of a Bundle are loaded.
+     * @type {boolean}
+     */
+    set loaded(arg: boolean);
+    get loaded(): boolean;
 }
 
 /**
@@ -22072,6 +22389,11 @@ export type FilterAssetCallback = (asset: Asset) => boolean;
  * error occurs).
  */
 export type LoadAssetCallback = (err: string | null, asset?: Asset) => any;
+/**
+ * Callback used by {@link ResourceLoaderload } and called when an asset is choosing a bundle
+ * to load from. Return a single bundle to ensure asset is loaded from it.
+ */
+export type BundlesFilterCallback = (bundles: Bundle[]) => any;
 /**
  * Callback used by {@link AssetRegistry#filter} to filter assets.
  *
@@ -22088,10 +22410,18 @@ export type LoadAssetCallback = (err: string | null, asset?: Asset) => any;
  * @param {Asset} [asset] - The loaded asset if no errors were encountered.
  */
 /**
+ * Callback used by {@link ResourceLoader#load} and called when an asset is choosing a bundle
+ * to load from. Return a single bundle to ensure asset is loaded from it.
+ *
+ * @callback BundlesFilterCallback
+ * @param {import('../bundle/bundle.js').Bundle[]} bundles - List of bundles which contain the asset.
+ */
+/**
  * Container for all assets that are available to this application. Note that PlayCanvas scripts
  * are provided with an AssetRegistry instance as `app.assets`.
  *
  * @augments EventHandler
+ * @category Asset
  */
 declare class AssetRegistry extends EventHandler {
     /**
@@ -22246,6 +22576,12 @@ declare class AssetRegistry extends EventHandler {
      * @type {string|null}
      */
     prefix: string | null;
+    /**
+     * BundleRegistry
+     *
+     * @type {import('../bundle/bundle-registry.js').BundleRegistry|null}
+     */
+    bundles: BundleRegistry | null;
     _loader: ResourceLoader;
     /**
      * Create a filtered list of assets from the registry.
@@ -22298,6 +22634,15 @@ declare class AssetRegistry extends EventHandler {
      * out when it is loaded.
      *
      * @param {Asset} asset - The asset to load.
+     * @param {object} [options] - Options for asset loading.
+     * @param {boolean} [options.bundlesIgnore] - If set to true, then asset will not try to load
+     * from a bundle. Defaults to false.
+     * @param {boolean} [options.force] - If set to true, then the check of asset being loaded or
+     * is already loaded is bypassed, which forces loading of asset regardless.
+     * @param {BundlesFilterCallback} [options.bundlesFilter] - A callback that will be called
+     * when loading an asset that is contained in any of the bundles. It provides an array of
+     * bundles and will ensure asset is loaded from bundle returned from a callback. By default
+     * smallest filesize bundle is choosen.
      * @example
      * // load some assets
      * const assetsToLoad = [
@@ -22315,7 +22660,11 @@ declare class AssetRegistry extends EventHandler {
      *     app.assets.load(assetToLoad);
      * });
      */
-    load(asset: Asset): void;
+    load(asset: Asset, options?: {
+        bundlesIgnore?: boolean;
+        force?: boolean;
+        bundlesFilter?: BundlesFilterCallback;
+    }): void;
     /**
      * Use this to load and create an asset if you don't have assets created. Usually you would
      * only use this if you are not integrated with the PlayCanvas Editor.
@@ -23196,6 +23545,39 @@ declare class ForwardRenderer extends Renderer {
     };
     renderForwardInternal(camera: any, preparedCalls: any, sortedLights: any, pass: any, drawCallback: any, flipFaces: any): void;
     renderForward(camera: any, allDrawCalls: any, sortedLights: any, pass: any, drawCallback: any, layer: any, flipFaces: any): void;
+    /**
+     * Forward render mesh instances on a specified layer, using a camera and a render target.
+     * Shaders used are based on the shaderPass provided, with optional clustered lighting support.
+     *
+     * @param {import('../camera.js').Camera} camera - The
+     * camera.
+     * @param {import('../../platform/graphics/render-target.js').RenderTarget} renderTarget - The
+     * render target.
+     * @param {import('../layer.js').Layer} layer - The layer.
+     * @param {boolean} transparent - True if transparent sublayer should be rendered, opaque
+     * otherwise.
+     * @param {number} shaderPass - A type of shader to use during rendering.
+     * @param {import('../../platform/graphics/bind-group.js').BindGroup[]} viewBindGroups - An array
+     * storing the view level bing groups (can be empty array, and this function populates if per
+     * view).
+     * @param {object} [options] - Object for passing optional arguments.
+     * @param {boolean} [options.clearColors] - True if the color buffer should be cleared.
+     * @param {boolean} [options.clearDepth] - True if the depth buffer should be cleared.
+     * @param {boolean} [options.clearStencil] - True if the stencil buffer should be cleared.
+     * @param {import('../lighting/world-clusters.js').WorldClusters} [options.lightClusters] - The
+     * world clusters object to be used for clustered lighting.
+     * @param {import('../mesh-instance.js').MeshInstance[]} [options.meshInstances] - The mesh
+     * instances to be rendered. Use when layer is not provided.
+     * @param {object} [options.splitLights] - The split lights to be used for clustered lighting.
+     */
+    renderForwardLayer(camera: Camera, renderTarget: RenderTarget, layer: Layer, transparent: boolean, shaderPass: number, viewBindGroups: BindGroup[], options?: {
+        clearColors?: boolean;
+        clearDepth?: boolean;
+        clearStencil?: boolean;
+        lightClusters?: WorldClusters;
+        meshInstances?: MeshInstance[];
+        splitLights?: object;
+    }): void;
     setSceneConstants(): void;
     /**
      * Builds a frame graph for the rendering of the whole frame.
@@ -23332,6 +23714,10 @@ declare class Lightmapper {
     bakeInternal(passCount: any, bakeNodes: any, allNodes: any): void;
 }
 
+/**
+ * AppOptions is an object that holds configuration settings utilized in the creation of AppBase. It
+ * allows functionality to be included or excluded from the AppBase instance.
+ */
 declare class AppOptions {
     /**
      * Input handler for {@link ElementComponent}s.
@@ -23396,21 +23782,21 @@ declare class AppOptions {
     /**
      * The lightmapper.
      *
-     * @type {import('./lightmapper/lightmapper.js').Lightmapper}
+     * @type {typeof import('./lightmapper/lightmapper.js').Lightmapper}
      */
-    lightmapper: Lightmapper;
+    lightmapper: typeof Lightmapper;
     /**
      * The BatchManager.
      *
-     * @type {import('../scene/batching/batch-manager.js').BatchManager}
+     * @type {typeof import('../scene/batching/batch-manager.js').BatchManager}
      */
-    batchManager: BatchManager;
+    batchManager: typeof BatchManager;
     /**
      * The XrManager.
      *
-     * @type {import('./xr/xr-manager.js').XrManager}
+     * @type {typeof import('./xr/xr-manager.js').XrManager}
      */
-    xr: XrManager;
+    xr: typeof XrManager;
     /**
      * The component systems the app requires.
      *
@@ -23420,9 +23806,9 @@ declare class AppOptions {
     /**
      * The resource handlers the app requires.
      *
-     * @type {import('./handlers/handler.js').ResourceHandler[]}
+     * @type {typeof import('./handlers/handler.js').ResourceHandler[]}
      */
-    resourceHandlers: ResourceHandler[];
+    resourceHandlers: typeof ResourceHandler[];
 }
 
 /**
@@ -23506,85 +23892,6 @@ declare class ApplicationStats {
     get scene(): any;
     get lightmapper(): any;
     get batcher(): any;
-}
-
-/**
- * Keeps track of which assets are in bundles and loads files from bundles.
- *
- * @ignore
- */
-declare class BundleRegistry {
-    /**
-     * Create a new BundleRegistry instance.
-     *
-     * @param {import('../asset/asset-registry.js').AssetRegistry} assets - The asset registry.
-     */
-    constructor(assets: AssetRegistry);
-    _assets: AssetRegistry;
-    _bundleAssets: {};
-    _assetsInBundles: {};
-    _urlsInBundles: {};
-    _fileRequests: {};
-    _onAssetAdded(asset: any): void;
-    _registerBundleEventListeners(bundleAssetId: any): void;
-    _unregisterBundleEventListeners(bundleAssetId: any): void;
-    _indexAssetInBundle(assetId: any, bundleAsset: any): void;
-    _indexAssetFileUrls(asset: any): void;
-    _getAssetFileUrls(asset: any): any[];
-    _normalizeUrl(url: any): any;
-    _onAssetRemoved(asset: any): void;
-    _onBundleLoaded(bundleAsset: any): void;
-    _onBundleError(err: any, bundleAsset: any): void;
-    _findLoadedOrLoadingBundleForUrl(url: any): any;
-    /**
-     * Lists all of the available bundles that reference the specified asset id.
-     *
-     * @param {import('../asset/asset.js').Asset} asset - The asset.
-     * @returns {import('../asset/asset.js').Asset[]} An array of bundle assets or null if the
-     * asset is not in any bundle.
-     */
-    listBundlesForAsset(asset: Asset): Asset[];
-    /**
-     * Lists all of the available bundles. This includes bundles that are not loaded.
-     *
-     * @returns {import('../asset/asset.js').Asset[]} An array of bundle assets.
-     */
-    list(): Asset[];
-    /**
-     * Returns true if there is a bundle that contains the specified URL.
-     *
-     * @param {string} url - The url.
-     * @returns {boolean} True or false.
-     */
-    hasUrl(url: string): boolean;
-    /**
-     * Returns true if there is a bundle that contains the specified URL and that bundle is either
-     * loaded or currently being loaded.
-     *
-     * @param {string} url - The url.
-     * @returns {boolean} True or false.
-     */
-    canLoadUrl(url: string): boolean;
-    /**
-     * Loads the specified file URL from a bundle that is either loaded or currently being loaded.
-     *
-     * @param {string} url - The URL. Make sure you are using a relative URL that does not contain
-     * any query parameters.
-     * @param {Function} callback - The callback is called when the file has been loaded or if an
-     * error occurs. The callback expects the first argument to be the error message (if any) and
-     * the second argument is the file blob URL.
-     * @example
-     * const url = asset.getFileUrl().split('?')[0]; // get normalized asset URL
-     * this.app.bundles.loadFile(url, function (err, blobUrl) {
-     *     // do something with the blob URL
-     * });
-     */
-    loadUrl(url: string, callback: Function): void;
-    /**
-     * Destroys the registry, and releases its resources. Does not unload bundle assets as these
-     * should be unloaded by the {@link AssetRegistry}.
-     */
-    destroy(): void;
 }
 
 /**
@@ -30279,6 +30586,7 @@ declare class CollisionComponentData {
     height: number;
     asset: any;
     renderAsset: any;
+    checkVertexDuplicates: boolean;
     shape: any;
     model: any;
     render: any;
@@ -33334,6 +33642,7 @@ declare class AppBase extends EventHandler {
      * @param {boolean} [depthTest] - Specifies if the sphere lines are depth tested against the
      * depth buffer. Defaults to true.
      * @param {Layer} [layer] - The layer to render the sphere into. Defaults to {@link LAYERID_IMMEDIATE}.
+     * @param {Mat4} [mat] - Matrix to transform the box before rendering.
      * @example
      * // Render a red wire aligned box
      * const min = new pc.Vec3(-1, -1, -1);
@@ -33341,7 +33650,7 @@ declare class AppBase extends EventHandler {
      * app.drawWireAlignedBox(min, max, pc.Color.RED);
      * @ignore
      */
-    drawWireAlignedBox(minPoint: Vec3, maxPoint: Vec3, color?: Color, depthTest?: boolean, layer?: Layer): void;
+    drawWireAlignedBox(minPoint: Vec3, maxPoint: Vec3, color?: Color, depthTest?: boolean, layer?: Layer, mat?: Mat4): void;
     /**
      * Draw meshInstance at this frame
      *
@@ -34548,8 +34857,8 @@ declare class XrDomOverlay {
      */
     get supported(): boolean;
     /**
-     * True if DOM Overlay is available. It can only be available if it is supported, during a
-     * valid WebXR session and if a valid root element is provided.
+     * True if DOM Overlay is available. This information becomes available only when the session has
+     * started and a valid root DOM element has been provided.
      *
      * @type {boolean}
      */
@@ -34558,20 +34867,20 @@ declare class XrDomOverlay {
      * State of the DOM Overlay, which defines how the root DOM element is rendered. Possible
      * options:
      *
-     * - screen: Screen - indicates that the DOM element is covering whole physical screen,
+     * - screen - indicates that the DOM element is covering whole physical screen,
      * matching XR viewports.
-     * - floating: Floating - indicates that the underlying platform renders the DOM element as
+     * - floating - indicates that the underlying platform renders the DOM element as
      * floating in space, which can move during the WebXR session or allow the application to move
      * the element.
-     * - head-locked: Head Locked - indicates that the DOM element follows the user's head movement
+     * - head-locked - indicates that the DOM element follows the user's head movement
      * consistently, appearing similar to a helmet heads-up display.
      *
      * @type {string|null}
      */
     get state(): string;
     /**
-     * The DOM element to be used as the root for DOM Overlay. Can be changed only outside of an
-     * active WebXR session.
+     * The DOM element to be used as the root for DOM Overlay. Can be changed only when XR session
+     * is not running.
      *
      * @type {Element|null}
      * @example
@@ -34724,8 +35033,7 @@ declare class XrTrackedImage extends EventHandler {
      */
     destroy(): void;
     /**
-     * Get the position of the tracked image. The position is the most recent one based on the
-     * tracked image state.
+     * Get the world position of the tracked image.
      *
      * @returns {Vec3} Position in world space.
      * @example
@@ -34734,8 +35042,7 @@ declare class XrTrackedImage extends EventHandler {
      */
     getPosition(): Vec3;
     /**
-     * Get the rotation of the tracked image. The rotation is the most recent based on the tracked
-     * image state.
+     * Get the world rotation of the tracked image.
      *
      * @returns {Quat} Rotation in world space.
      * @example
@@ -34746,8 +35053,9 @@ declare class XrTrackedImage extends EventHandler {
 }
 
 /**
- * Image Tracking provides the ability to track real world images by provided image samples and
- * their estimated sizes.
+ * Image Tracking provides the ability to track real world images using provided image samples and
+ * their estimated sizes. The underlying system will assume that tracked image can move and rotate
+ * in the real world and will try to provide transformation estimates and its tracking state.
  *
  * @augments EventHandler
  * @category XR
@@ -34807,7 +35115,7 @@ declare class XrImageTracking extends EventHandler {
      * @returns {XrTrackedImage|null} Tracked image object that will contain tracking information.
      * Returns null if image tracking is not supported or if the XR manager is not active.
      * @example
-     * // image with width of 20cm (0.2m)
+     * // image of a book cover that has width of 20cm (0.2m)
      * app.xr.imageTracking.add(bookCoverImg, 0.2);
      */
     add(image: HTMLCanvasElement | HTMLImageElement | SVGImageElement | HTMLVideoElement | Blob | ImageData | ImageBitmap, width: number): XrTrackedImage | null;
@@ -34840,8 +35148,9 @@ declare class XrImageTracking extends EventHandler {
      */
     get supported(): boolean;
     /**
-     * True if Image Tracking is available. This property will be false if no images were provided
-     * for the AR session or there was an error processing the provided images.
+     * True if Image Tracking is available. This information is only available when the
+     * XR session has started, and will be true if image tracking is supported and
+     * images were provided and they have been processed successfully.
      *
      * @type {boolean}
      */
@@ -34855,8 +35164,8 @@ declare class XrImageTracking extends EventHandler {
 }
 
 /**
- * Detected Plane instance that provides position, rotation and polygon points. Plane is a subject
- * to change during its lifetime.
+ * Detected Plane instance that provides position, rotation, polygon points and its semantic label.
+ * Plane data is subject to change during its lifetime.
  *
  * @category XR
  */
@@ -35104,15 +35413,13 @@ declare class XrPlaneDetection extends EventHandler {
      */
     get supported(): boolean;
     /**
-     * True if Plane Detection is available. This property can be set to true only during a running
-     * session.
+     * True if Plane Detection is available. This information is available only when the session has started.
      *
      * @type {boolean}
      */
     get available(): boolean;
     /**
-     * Array of {@link XrPlane} instances that contain individual plane information, or null if
-     * plane detection is not available.
+     * Array of {@link XrPlane} instances that contain individual plane information.
      *
      * @type {XrPlane[]}
      */
@@ -35195,7 +35502,7 @@ declare class XrMesh extends EventHandler {
      */
     get label(): string;
     /**
-     * Float 32 array of mesh vertices.
+     * Float 32 array of mesh vertices. This array contains 3 components per vertex: x,y,z coordinates.
      *
      * @type {Float32Array}
      */
@@ -35350,13 +35657,19 @@ declare class XrMeshDetection extends EventHandler {
     /**
      * Array of {@link XrMesh} instances that contain transform, vertices and label information.
      *
-     * @type {XrMesh[]|null}
+     * @type {XrMesh[]}
      */
     get meshes(): XrMesh[];
 }
 
 /**
  * Provides access to input sources for WebXR.
+ *
+ * Input sources represent:
+ *
+ * - hand held controllers - and their optional capabilities: gamepad and vibration
+ * - hands - with their individual joints
+ * - transient sources - such as touch screen taps and voice commands
  *
  * @augments EventHandler
  * @category XR
@@ -35374,7 +35687,7 @@ declare class XrInput extends EventHandler {
      */
     static EVENT_ADD: string;
     /**
-     * Fired when an {@link XrInputSource} is removed to the list. The handler is passed the
+     * Fired when an {@link XrInputSource} is removed from the list. The handler is passed the
      * {@link XrInputSource} that has been removed.
      *
      * @event
@@ -35677,19 +35990,17 @@ declare class XrLightEstimation extends EventHandler {
      */
     get rotation(): Quat;
     /**
-     * Spherical harmonics coefficients of what is estimated to be the most prominent directional
-     * light. Or null if data is not available.
+     * Spherical harmonic coefficients of estimated ambient light. Or null if data is not available.
      *
      * @type {Float32Array|null}
-     * @ignore
      */
     get sphericalHarmonics(): Float32Array;
 }
 
 /**
- * Represents XR View which represents a screen (mobile phone context) or an eye (HMD context).
- * It provides access to view's color and depth information based on capabilities of underlying
- * AR system.
+ * Represents an XR View which represents a screen (monoscopic scenario such as a mobile phone) or an eye
+ * (stereoscopic scenario such as an HMD context). It provides access to the view's color and depth information
+ * based on the capabilities of underlying AR system.
  *
  * @category XR
  */
@@ -35803,7 +36114,7 @@ declare class XrView extends EventHandler {
     private _depthMatrix;
     /**
      * Texture associated with this view's camera color. Equals to null if camera color is
-     * not available or not supported.
+     * not available or is not supported.
      *
      * @type {Texture|null}
      */
@@ -35955,15 +36266,13 @@ declare class XrView extends EventHandler {
      * }
      */
     getDepth(u: number, v: number): number | null;
-    /**
-     * @ignore
-     */
+    /** @ignore */
     destroy(): void;
 }
 
 /**
  * Provides access to list of {@link XrView}'s. And information about their capabilities,
- * such as support and availability of view's camera color texture.
+ * such as support and availability of view's camera color texture, depth texture and other parameters.
  *
  * @category XR
  */
@@ -36088,10 +36397,14 @@ declare class XrViews extends EventHandler {
      */
     get availableDepth(): boolean;
     /**
+     * @type {string}
+     * @ignore
+     */
+    get depthUsage(): string;
+    /**
      * Whether the depth sensing is GPU optimized.
      *
      * @type {boolean}
-     * @ignore
      */
     get depthGpuOptimized(): boolean;
     /**
@@ -36107,17 +36420,14 @@ declare class XrViews extends EventHandler {
      */
     get depthPixelFormat(): number;
     /**
-     * @type {string}
-     * @ignore
-     */
-    get depthUsage(): string;
-    /**
      * @param {*} frame - XRFrame from requestAnimationFrame callback.
      * @param {XRView} xrView - XRView from WebXR API.
      * @ignore
      */
     update(frame: any, xrViews: any): void;
     /**
+     * Get an {@link XrView} by its associated eye constant.
+     *
      * @param {string} eye - An XREYE_* view is associated with. Can be 'none' for monoscope views.
      * @returns {XrView|null} View or null if view of such eye is not available.
      */
@@ -36260,24 +36570,25 @@ declare class XrAnchor extends EventHandler {
      */
     getRotation(): Quat;
     /**
-     * This method provides a way to persist anchor and get a string with UUID.
-     * UUID can be used later to restore anchor.
+     * This method provides a way to persist anchor between WebXR sessions by
+     * providing a unique UUID of an anchor, that can be used later for restoring
+     * an anchor from underlying system.
      * Bear in mind that underlying systems might have a limit on number of anchors
-     * allowed to be persisted.
+     * allowed to be persisted per origin.
      *
      * @param {XrAnchorPersistCallback} [callback] - Callback to fire when anchor
      * persistent UUID has been generated or error if failed.
      */
     persist(callback?: XrAnchorPersistCallback): void;
     /**
-     * This method provides a way to remove persistent UUID of an anchor for underlying systems.
+     * Remove persistent UUID of an anchor from an underlying system.
      *
      * @param {XrAnchorForgetCallback} [callback] - Callback to fire when anchor has been
      * forgotten or error if failed.
      */
     forget(callback?: XrAnchorForgetCallback): void;
     /**
-     * UUID string of a persistent anchor or null if not presisted.
+     * UUID string of a persistent anchor or null if not persisted.
      *
      * @type {null|string}
      */
@@ -36446,11 +36757,14 @@ declare class XrAnchors extends EventHandler {
      */
     private _onAnchorDestroy;
     /**
-     * Create anchor with position, rotation and a callback.
+     * Create an anchor using position and rotation, or from hit test result.
      *
-     * @param {import('../../core/math/vec3.js').Vec3|XRHitTestResult} position - Position for an anchor.
-     * @param {import('../../core/math/quat.js').Quat|XrAnchorCreateCallback} [rotation] - Rotation for an anchor.
-     * @param {XrAnchorCreateCallback} [callback] - Callback to fire when anchor was created or failed to be created.
+     * @param {import('../../core/math/vec3.js').Vec3|XRHitTestResult} position - Position for an anchor or
+     * a hit test result.
+     * @param {import('../../core/math/quat.js').Quat|XrAnchorCreateCallback} [rotation] - Rotation for an
+     * anchor or a callback if creating from a hit test result.
+     * @param {XrAnchorCreateCallback} [callback] - Callback to fire when anchor was created or failed to be
+     * created.
      * @example
      * // create an anchor using a position and rotation
      * app.xr.anchors.create(position, rotation, function (err, anchor) {
@@ -36694,7 +37008,6 @@ declare class XrManager extends EventHandler {
      * Provides access to DOM overlay capabilities.
      *
      * @type {XrDomOverlay}
-     * @ignore
      */
     domOverlay: XrDomOverlay;
     /**
@@ -36708,21 +37021,18 @@ declare class XrManager extends EventHandler {
      * Provides access to image tracking capabilities.
      *
      * @type {XrImageTracking}
-     * @ignore
      */
     imageTracking: XrImageTracking;
     /**
      * Provides access to plane detection capabilities.
      *
      * @type {XrPlaneDetection}
-     * @ignore
      */
     planeDetection: XrPlaneDetection;
     /**
      * Provides access to mesh detection capabilities.
      *
      * @type {XrMeshDetection}
-     * @ignore
      */
     meshDetection: XrMeshDetection;
     /**
@@ -36735,14 +37045,12 @@ declare class XrManager extends EventHandler {
      * Provides access to light estimation capabilities.
      *
      * @type {XrLightEstimation}
-     * @ignore
      */
     lightEstimation: XrLightEstimation;
     /**
      * Provides access to views and their capabilities.
      *
      * @type {XrViews}
-     * @ignore
      */
     views: XrViews;
     /**
@@ -36777,6 +37085,11 @@ declare class XrManager extends EventHandler {
      */
     private _depthFar;
     /**
+     * @type {number[]|null}
+     * @private
+     */
+    private _supportedFrameRates;
+    /**
      * @type {number}
      * @private
      */
@@ -36786,6 +37099,11 @@ declare class XrManager extends EventHandler {
      * @private
      */
     private _height;
+    /**
+     * @type {number}
+     * @private
+     */
+    private _framebufferScaleFactor;
     /**
      * Destroys the XrManager instance.
      *
@@ -36825,6 +37143,9 @@ declare class XrManager extends EventHandler {
      * starting point.
      *
      * @param {object} [options] - Object with additional options for XR session initialization.
+     * @param {number} [options.framebufferScaleFactor] - Framebuffer scale factor should
+     * be higher than 0.0, by default 1.0 (no scaling). A value of 0.5 will reduce the resolution of
+     * an XR session in half, and a value of 2.0 will double the resolution.
      * @param {string[]} [options.optionalFeatures] - Optional features for XRSession start. It is
      * used for getting access to additional WebXR spec extensions.
      * @param {boolean} [options.anchors] - Set to true to attempt to enable
@@ -36862,6 +37183,7 @@ declare class XrManager extends EventHandler {
      * });
      */
     start(camera: CameraComponent, type: string, spaceType: string, options?: {
+        framebufferScaleFactor?: number;
         optionalFeatures?: string[];
         anchors?: boolean;
         imageTracking?: boolean;
@@ -36936,6 +37258,16 @@ declare class XrManager extends EventHandler {
      */
     initiateRoomCapture(callback: XrRoomCaptureCallback): void;
     /**
+     * Update target frame rate of an XR session to one of supported value provided by
+     * supportedFrameRates list.
+     *
+     * @param {number} frameRate - Target frame rate. It should be any value from the list
+     * of supportedFrameRates.
+     * @param {Function} [callback] - Callback that will be called when frameRate has been
+     * updated or failed to update with error provided.
+     */
+    updateTargetFrameRate(frameRate: number, callback?: Function): void;
+    /**
      * @param {string} type - Session type.
      * @private
      */
@@ -36997,6 +37329,42 @@ declare class XrManager extends EventHandler {
      * @type {object|null}
      */
     get session(): any;
+    /**
+     * XR session frameRate or null if this information is not available. This value can change
+     * during an active XR session.
+     *
+     * @type {number|null}
+     */
+    get frameRate(): number;
+    /**
+     * List of supported frame rates, or null if this data is not available.
+     *
+     * @type {number[]|null}
+     */
+    get supportedFrameRates(): number[];
+    /**
+     * Framebuffer scale factor. This value is read-only and can only be set when starting a new
+     * XR session.
+     *
+     * @type {number}
+     */
+    get framebufferScaleFactor(): number;
+    /**
+     * Set fixed foveation to the value between 0 and 1. Where 0 - no foveation, and 1 - highest
+     * foveation. It only can be set during an active XR session.
+     * Fixed foveation will reduce the resolution of the back buffer at the edges of the sceen,
+     * which can improve rendering performance.
+     *
+     * @type {number}
+     */
+    set fixedFoveation(arg: number);
+    /**
+     * Current fixed foveation level, which is between 0 and 1. 0 - no forveation, and 1 - highest
+     * foveation. If fixed foveation is not supported, this value returns null.
+     *
+     * @type {number|null}
+     */
+    get fixedFoveation(): number;
     /**
      * Active camera for which XR session is running or null.
      *
@@ -39013,7 +39381,7 @@ declare namespace platform {
     export { browserName };
 }
 declare const platformName: "android" | "ios" | "windows" | "osx" | "linux" | "cros";
-declare const environment: "browser" | "node";
+declare const environment: "worker" | "browser" | "node";
 declare const xbox: boolean;
 declare const gamepads: boolean;
 declare const touch: boolean;
@@ -39845,8 +40213,6 @@ declare class WebglIndexBuffer extends WebglBuffer {
  * @ignore
  */
 declare class WebglShader {
-    static getBatchShaders(device: any): any;
-    static endShaderBatch(device: any): void;
     constructor(shader: any);
     compileDuration: number;
     /**
@@ -39918,6 +40284,14 @@ declare class WebglShader {
      * @private
      */
     private _isCompiled;
+    /**
+     * Check the linking status of a shader.
+     *
+     * @param {import('./webgl-graphics-device.js').WebglGraphicsDevice} device - The graphics device.
+     * @returns {boolean} True if the shader is already linked, false otherwise. Note that unless the
+     * device supports the KHR_parallel_shader_compile extension, this will always return true.
+     */
+    isLinked(device: WebglGraphicsDevice): boolean;
     /**
      * Truncate the WebGL shader compilation log to just include the error line plus the 5 lines
      * before and after it.
@@ -40108,17 +40482,18 @@ declare class WebglGraphicsDevice extends GraphicsDevice {
     _tempEnableSafariTextureUnitWorkaround: boolean;
     _tempMacChromeBlitFramebufferWorkaround: boolean;
     supportsImageBitmap: boolean;
-    glAddress: any[];
+    _samplerTypes: Set<35679 | 35682 | 36289 | 36293 | 36298 | 36299 | 36303 | 36306 | 36307 | 36311 | 35678 | 35680>;
+    glAddress: (10497 | 33071 | 33648)[];
     glBlendEquation: any[];
-    glBlendFunctionColor: any[];
-    glBlendFunctionAlpha: any[];
-    glComparison: any[];
-    glStencilOp: any[];
-    glClearFlag: any[];
-    glCull: any[];
-    glFilter: any[];
-    glPrimitive: any[];
-    glType: any[];
+    glBlendFunctionColor: (0 | 1 | 768 | 769 | 770 | 771 | 772 | 773 | 774 | 775 | 776 | 32769 | 32770)[];
+    glBlendFunctionAlpha: (0 | 1 | 768 | 769 | 770 | 771 | 772 | 773 | 774 | 775 | 776 | 32771 | 32772)[];
+    glComparison: (512 | 513 | 514 | 515 | 516 | 517 | 518 | 519)[];
+    glStencilOp: (0 | 7680 | 7681 | 7682 | 7683 | 5386 | 34055 | 34056)[];
+    glClearFlag: number[];
+    glCull: number[];
+    glFilter: (9728 | 9729 | 9984 | 9985 | 9986 | 9987)[];
+    glPrimitive: (0 | 2 | 1 | 3 | 4 | 5 | 6)[];
+    glType: (5131 | 5120 | 5121 | 5122 | 5123 | 5124 | 5125 | 5126)[];
     pcUniformType: {};
     targetToSlot: {};
     commitFunction: {}[];
@@ -40252,12 +40627,6 @@ declare class WebglGraphicsDevice extends GraphicsDevice {
      * @ignore
      */
     restoreContext(): void;
-    /**
-     * Called after a batch of shaders was created, to guide in their optimal preparation for rendering.
-     *
-     * @ignore
-     */
-    endShaderBatch(): void;
     /**
      * Set the active rectangle for rendering on the specified device.
      *
@@ -40537,11 +40906,18 @@ declare class WebglGraphicsDevice extends GraphicsDevice {
     /**
      * Sets the active shader to be used during subsequent draw calls.
      *
-     * @param {Shader} shader - The shader to set to assign to the device.
-     * @returns {boolean} True if the shader was successfully set, false otherwise.
+     * @param {Shader} shader - The shader to assign to the device.
      */
-    setShader(shader: Shader): boolean;
-    attributesInvalidated: boolean;
+    /**
+     * Sets the active shader to be used during subsequent draw calls.
+     *
+     * @param {Shader} shader - The shader to assign to the device.
+     * @param {boolean} asyncCompile - If true, rendering will be skipped until the shader is
+     * compiled, otherwise the rendering will wait for the shader compilation to finish. Defaults to
+     * false.
+     */
+    setShader(shader: Shader, asyncCompile?: boolean): void;
+    activateShader(device: any): void;
     /**
      * Frees memory from all vertex array objects ever allocated with this device.
      *
@@ -40947,6 +41323,8 @@ declare class WebgpuShader {
     computeEntryPoint: string;
     /** @type {import('../shader.js').Shader} */
     shader: Shader;
+    meshUniformBufferFormat: any;
+    meshBindGroupFormat: any;
     /**
      * Free the WebGPU resources associated with a shader.
      *
@@ -41218,6 +41596,7 @@ declare class WebgpuGraphicsDevice extends GraphicsDevice {
     extCompressedTextureS3TC: any;
     extCompressedTextureETC: any;
     extCompressedTextureASTC: any;
+    supportsTimestampQuery: any;
     textureRG11B10Renderable: any;
     /**
      * @type {GPUDevice}
@@ -41249,7 +41628,7 @@ declare class WebgpuGraphicsDevice extends GraphicsDevice {
     setBindGroup(index: number, bindGroup: BindGroup): void;
     submitVertexBuffer(vertexBuffer: any, slot: any): any;
     draw(primitive: any, numInstances: number, keepBuffers: any): void;
-    setShader(shader: any): boolean;
+    setShader(shader: any, asyncCompile?: boolean): void;
     setBlendState(blendState: any): void;
     setDepthState(depthState: any): void;
     setStencilState(stencilFront: any, stencilBack: any): void;
@@ -41382,7 +41761,7 @@ declare class NullGraphicsDevice extends GraphicsDevice {
     createTextureImpl(texture: any): NullTexture;
     createRenderTargetImpl(renderTarget: any): NullRenderTarget;
     draw(primitive: any, numInstances: number, keepBuffers: any): void;
-    setShader(shader: any): boolean;
+    setShader(shader: any, asyncCompile?: boolean): void;
     setBlendState(blendState: any): void;
     setDepthState(depthState: any): void;
     setStencilState(stencilFront: any, stencilBack: any): void;
@@ -41771,6 +42150,13 @@ declare class RenderPassForward extends RenderPass {
      * @type {import('../composition/render-action.js').RenderAction[]}
      */
     renderActions: RenderAction[];
+    /**
+     * If true, do not clear the depth buffer before rendering, as it was already primed by a depth
+     * pre-pass.
+     *
+     * @type {boolean}
+     */
+    noDepthClear: boolean;
     addRenderAction(renderAction: any): void;
     /**
      * Adds a layer to be rendered by this render pass.
@@ -41970,6 +42356,9 @@ declare class Application extends AppBase {
      * handler for input.
      * @param {string} [options.scriptPrefix] - Prefix to apply to script urls before loading.
      * @param {string} [options.assetPrefix] - Prefix to apply to asset urls before loading.
+     * @param {import('../platform/graphics/graphics-device.js').GraphicsDevice} [options.graphicsDevice] - The
+     * graphics device used by the application. If not provided, a WebGl graphics device will be
+     * created.
      * @param {object} [options.graphicsDeviceOptions] - Options object that is passed into the
      * {@link GraphicsDevice} constructor.
      * @param {string[]} [options.scriptsOrder] - Scripts in order of loading first.
@@ -41988,6 +42377,7 @@ declare class Application extends AppBase {
         gamepads?: GamePads;
         scriptPrefix?: string;
         assetPrefix?: string;
+        graphicsDevice?: GraphicsDevice;
         graphicsDeviceOptions?: object;
         scriptsOrder?: string[];
     });
@@ -42322,6 +42712,7 @@ declare class AnimStateGraph {
  * ```
  *
  * @augments EventHandler
+ * @category Asset
  */
 declare class AssetListLoader extends EventHandler {
     /**
@@ -42375,6 +42766,8 @@ declare class AssetListLoader extends EventHandler {
  * An object that manages the case where an object holds a reference to an asset and needs to be
  * notified when changes occur in the asset. e.g. notifications include load, add and remove
  * events.
+ *
+ * @category Asset
  */
 declare class AssetReference {
     /**
@@ -42448,42 +42841,6 @@ declare class AssetReference {
 }
 
 /**
- * Represents the resource of a Bundle Asset, which contains an index that maps URLs to blob URLs.
- *
- * @ignore
- */
-declare class Bundle {
-    /**
-     * Create a new Bundle instance.
-     *
-     * @param {object[]} files - An array of objects that have a name field and contain a
-     * getBlobUrl() function.
-     */
-    constructor(files: object[]);
-    _blobUrls: {};
-    /**
-     * Returns true if the specified URL exists in the loaded bundle.
-     *
-     * @param {string} url - The original file URL. Make sure you have called decodeURIComponent on
-     * the URL first.
-     * @returns {boolean} True of false.
-     */
-    hasBlobUrl(url: string): boolean;
-    /**
-     * Returns a blob URL for the specified URL.
-     *
-     * @param {string} url - The original file URL. Make sure you have called decodeURIComponent on
-     * the URL first.
-     * @returns {string} A blob URL.
-     */
-    getBlobUrl(url: string): string;
-    /**
-     * Destroys the bundle and frees up blob URLs.
-     */
-    destroy(): void;
-}
-
-/**
  * Initialize the Basis transcode worker.
  *
  * @param {object} [config] - The Basis configuration.
@@ -42541,104 +42898,63 @@ declare function dracoInitialize(config?: {
     lazyInit?: boolean;
 }): void;
 
-
-/** @typedef {import('./handler.js').ResourceHandler} ResourceHandler */
 /**
  * Resource handler used for loading {@link AnimClip} resources.
  *
- * @implements {ResourceHandler}
  * @ignore
  */
-declare class AnimClipHandler implements ResourceHandler {
+declare class AnimClipHandler extends ResourceHandler {
     constructor(app: any);
-    /**
-     * Type of the resource the handler handles.
-     *
-     * @type {string}
-     */
-    handlerType: string;
-    maxRetries: number;
     load(url: any, callback: any): void;
     open(url: any, data: any): AnimTrack;
-    patch(asset: any, assets: any): void;
 }
 
-
-/** @typedef {import('./handler.js').ResourceHandler} ResourceHandler */
 /**
  * Resource handler used for loading {@link AnimStateGraph} resources.
  *
- * @implements {ResourceHandler}
  * @ignore
  */
-declare class AnimStateGraphHandler implements ResourceHandler {
+declare class AnimStateGraphHandler extends ResourceHandler {
     constructor(app: any);
-    /**
-     * Type of the resource the handler handles.
-     *
-     * @type {string}
-     */
-    handlerType: string;
-    maxRetries: number;
     load(url: any, callback: any): void;
     open(url: any, data: any): AnimStateGraph;
-    patch(asset: any, assets: any): void;
 }
 
-
-/** @typedef {import('./handler.js').ResourceHandler} ResourceHandler */
 /**
  * Resource handler used for loading {@link Animation} resources.
  *
- * @implements {ResourceHandler}
  * @category Animation
  */
-declare class AnimationHandler implements ResourceHandler {
-    /** @hideconstructor */
-    constructor(app: any);
+declare class AnimationHandler extends ResourceHandler {
     /**
-     * Type of the resource the handler handles.
-     *
-     * @type {string}
+     * @param {import('../app-base.js').AppBase} app - The running {@link AppBase}.
+     * @ignore
      */
-    handlerType: string;
-    device: any;
-    assets: any;
-    maxRetries: number;
+    constructor(app: AppBase);
+    device: GraphicsDevice;
+    assets: AssetRegistry;
     load(url: any, callback: any, asset: any): void;
     open(url: any, data: any, asset: any): any;
-    patch(asset: any, assets: any): void;
     _parseAnimationV3(data: any): Animation;
     _parseAnimationV4(data: any): Animation;
 }
 
-
 /**
  * Resource handler used for loading {@link Sound} resources.
  *
- * @implements {ResourceHandler}
  * @category Sound
  */
-declare class AudioHandler implements ResourceHandler {
+declare class AudioHandler extends ResourceHandler {
     /**
      * Create a new AudioHandler instance.
      *
      * @param {import('../app-base.js').AppBase} app - The running {@link AppBase}.
-     * @hideconstructor
+     * @ignore
      */
     constructor(app: AppBase);
-    /**
-     * Type of the resource the handler handles.
-     *
-     * @type {string}
-     */
-    handlerType: string;
     manager: SoundManager;
-    maxRetries: number;
     _isSupported(url: any): boolean;
     load(url: any, callback: any): void;
-    open(url: any, data: any): any;
-    patch(asset: any, assets: any): void;
     /**
      * Loads an audio asset using an AudioContext by URL and calls success or error with the
      * created resource or error respectively.
@@ -42653,87 +42969,75 @@ declare class AudioHandler implements ResourceHandler {
     private _createSound;
 }
 
-declare class BinaryHandler {
+declare class BinaryHandler extends ResourceHandler {
     constructor(app: any);
-    /**
-     * Type of the resource the handler handles.
-     *
-     * @type {string}
-     */
-    handlerType: string;
-    maxRetries: number;
     load(url: any, callback: any): void;
-    open(url: any, data: any): any;
-    patch(asset: any, assets: any): void;
+    /**
+     * Parses raw DataView and returns ArrayBuffer.
+     *
+     * @param {DataView} data - The raw data as a DataView
+     * @returns {ArrayBuffer} The parsed resource data.
+     */
+    openBinary(data: DataView): ArrayBuffer;
 }
 
-
-/** @typedef {import('./handler.js').ResourceHandler} ResourceHandler */
 /**
  * Loads Bundle Assets.
  *
- * @implements {ResourceHandler}
  * @ignore
  */
-declare class BundleHandler implements ResourceHandler {
+declare class BundleHandler extends ResourceHandler {
     /**
      * Create a new BundleHandler instance.
      *
      * @param {import('../app-base.js').AppBase} app - The running {@link AppBase}.
-     * @hideconstructor
      */
     constructor(app: AppBase);
-    /**
-     * Type of the resource the handler handles.
-     *
-     * @type {string}
-     */
-    handlerType: string;
     _assets: AssetRegistry;
-    _worker: any;
-    maxRetries: number;
+    _fetchRetries(url: any, options: any, retries?: number): Promise<any>;
     load(url: any, callback: any): void;
-    _untar(response: any, callback: any): void;
-    open(url: any, data: any): Bundle;
-    patch(asset: any, assets: any): void;
+    /**
+     * Open the bundle.
+     *
+     * @param {string} url - The URL of the resource to open.
+     * @param {Bundle} bundle - Bundle to open.
+     * @returns {Bundle} The bundle.
+     */
+    open(url: string, bundle: Bundle): Bundle;
 }
 
-declare class CssHandler {
+declare class CssHandler extends ResourceHandler {
     constructor(app: any);
     /**
-     * Type of the resource the handler handles.
+     * TextDecoder for decoding binary data.
      *
-     * @type {string}
+     * @type {TextDecoder|null}
+     * @private
      */
-    handlerType: string;
-    maxRetries: number;
+    private decoder;
     load(url: any, callback: any): void;
-    open(url: any, data: any): any;
-    patch(asset: any, assets: any): void;
+    /**
+     * Parses raw DataView and returns string.
+     *
+     * @param {DataView} data - The raw data as a DataView
+     * @returns {string} The parsed resource data.
+     */
+    openBinary(data: DataView): string;
 }
 
-
-/** @typedef {import('./handler.js').ResourceHandler} ResourceHandler */
 /**
  * Resource handler used for loading cubemap {@link Texture} resources.
  *
- * @implements {ResourceHandler}
  * @category Graphics
  */
-declare class CubemapHandler implements ResourceHandler {
+declare class CubemapHandler extends ResourceHandler {
     /**
      * Create a new CubemapHandler instance.
      *
      * @param {import('../app-base.js').AppBase} app - The running {@link AppBase}.
-     * @hideconstructor
+     * @ignore
      */
     constructor(app: AppBase);
-    /**
-     * Type of the resource the handler handles.
-     *
-     * @type {string}
-     */
-    handlerType: string;
     _device: GraphicsDevice;
     _registry: AssetRegistry;
     _loader: ResourceLoader;
@@ -42748,40 +43052,25 @@ declare class CubemapHandler implements ResourceHandler {
     loadAssets(cubemapAsset: any, callback: any): void;
 }
 
-declare class FolderHandler {
-    /**
-     * Type of the resource the handler handles.
-     *
-     * @type {string}
-     */
-    handlerType: string;
+declare class FolderHandler extends ResourceHandler {
+    constructor(app: any);
     load(url: any, callback: any): void;
-    open(url: any, data: any): any;
 }
-
 
 /**
  * Resource handler used for loading {@link Font} resources.
  *
- * @implements {ResourceHandler}
  * @category User Interface
  */
-declare class FontHandler implements ResourceHandler {
+declare class FontHandler extends ResourceHandler {
     /**
      * Create a new FontHandler instance.
      *
      * @param {import('../app-base.js').AppBase} app - The running {@link AppBase}.
-     * @hideconstructor
+     * @ignore
      */
     constructor(app: AppBase);
-    /**
-     * Type of the resource the handler handles.
-     *
-     * @type {string}
-     */
-    handlerType: string;
     _loader: ResourceLoader;
-    maxRetries: number;
     load(url: any, callback: any, asset: any): void;
     _loadTextures(url: any, data: any, callback: any): void;
     open(url: any, data: any, asset: any): Font;
@@ -42827,46 +43116,51 @@ declare class GSplatResource {
     createInstance(options?: {}): GSplatInstance;
 }
 
-declare class HierarchyHandler {
-    constructor(app: any);
+declare class HierarchyHandler extends ResourceHandler {
     /**
-     * Type of the resource the handler handles.
-     *
-     * @type {string}
+     * @param {import('../app-base').AppBase} app - The running {@link AppBase}.
      */
-    handlerType: string;
-    _app: any;
-    maxRetries: number;
+    constructor(app: AppBase);
     load(url: any, callback: any): void;
     open(url: any, data: any): Entity;
 }
 
-declare class HtmlHandler {
+declare class HtmlHandler extends ResourceHandler {
     constructor(app: any);
     /**
-     * Type of the resource the handler handles.
+     * TextDecoder for decoding binary data.
      *
-     * @type {string}
+     * @type {TextDecoder|null}
+     * @private
      */
-    handlerType: string;
-    maxRetries: number;
+    private decoder;
     load(url: any, callback: any): void;
-    open(url: any, data: any): any;
-    patch(asset: any, assets: any): void;
+    /**
+     * Parses raw DataView and returns string.
+     *
+     * @param {DataView} data - The raw data as a DataView
+     * @returns {string} The parsed resource data.
+     */
+    openBinary(data: DataView): string;
 }
 
-declare class JsonHandler {
+declare class JsonHandler extends ResourceHandler {
     constructor(app: any);
     /**
-     * Type of the resource the handler handles.
+     * TextDecoder for decoding binary data.
      *
-     * @type {string}
+     * @type {TextDecoder|null}
+     * @private
      */
-    handlerType: string;
-    maxRetries: number;
+    private decoder;
     load(url: any, callback: any): void;
-    open(url: any, data: any): any;
-    patch(asset: any, assets: any): void;
+    /**
+     * Parses raw DataView and returns string.
+     *
+     * @param {DataView} data - The raw data as a DataView
+     * @returns {object} The parsed resource data.
+     */
+    openBinary(data: DataView): object;
 }
 
 declare class StandardMaterialValidator {
@@ -42903,32 +43197,23 @@ declare class JsonStandardMaterialParser {
     _validate(data: any): any;
 }
 
-
 /**
  * Resource handler used for loading {@link Material} resources.
  *
- * @implements {ResourceHandler}
  * @category Graphics
  */
-declare class MaterialHandler implements ResourceHandler {
+declare class MaterialHandler extends ResourceHandler {
     /**
      * Create a new MaterialHandler instance.
      *
      * @param {import('../app-base.js').AppBase} app - The running {@link AppBase}.
-     * @hideconstructor
+     * @ignore
      */
     constructor(app: AppBase);
-    /**
-     * Type of the resource the handler handles.
-     *
-     * @type {string}
-     */
-    handlerType: string;
     _assets: AssetRegistry;
     _device: GraphicsDevice;
     _placeholderTextures: {};
     _parser: JsonStandardMaterialParser;
-    maxRetries: number;
     load(url: any, callback: any): void;
     open(url: any, data: any): StandardMaterial;
     _createPlaceholders(): void;
@@ -42947,12 +43232,10 @@ declare class MaterialHandler implements ResourceHandler {
     _bindAndAssignAssets(materialAsset: any, assets: any): void;
 }
 
-
 /**
  * Callback used by {@link ModelHandleraddParser } to decide on which parser to use.
  */
 export type AddParserCallback = (url: string, data: object) => boolean;
-/** @typedef {import('./handler.js').ResourceHandler} ResourceHandler */
 /**
  * Callback used by {@link ModelHandler#addParser} to decide on which parser to use.
  *
@@ -42965,28 +43248,20 @@ export type AddParserCallback = (url: string, data: object) => boolean;
 /**
  * Resource handler used for loading {@link Model} resources.
  *
- * @implements {ResourceHandler}
  * @category Graphics
  */
-declare class ModelHandler implements ResourceHandler {
+declare class ModelHandler extends ResourceHandler {
     /**
      * Create a new ModelHandler instance.
      *
      * @param {import('../app-base.js').AppBase} app - The running {@link AppBase}.
-     * @hideconstructor
+     * @ignore
      */
     constructor(app: AppBase);
-    /**
-     * Type of the resource the handler handles.
-     *
-     * @type {string}
-     */
-    handlerType: string;
     _parsers: any[];
     device: GraphicsDevice;
     assets: AssetRegistry;
     defaultMaterial: StandardMaterial;
-    maxRetries: number;
     load(url: any, callback: any, asset: any): void;
     open(url: any, data: any): any;
     patch(asset: any, assets: any): void;
@@ -43034,7 +43309,7 @@ declare class PlyParser {
     open(url: string, data: GSplatResource): GSplatResource;
 }
 
-declare class GSplatHandler {
+declare class GSplatHandler extends ResourceHandler {
     /**
      * Create a new GSplatHandler instance.
      *
@@ -43042,16 +43317,9 @@ declare class GSplatHandler {
      * @hideconstructor
      */
     constructor(app: AppBase);
-    /**
-     * Type of the resource the handler handles.
-     *
-     * @type {string}
-     */
-    handlerType: string;
     parser: PlyParser;
     load(url: any, callback: any, asset: any): void;
     open(url: any, data: any, asset: any): GSplatResource;
-    patch(asset: any, assets: any): void;
 }
 
 /**
@@ -43095,58 +43363,39 @@ declare class Render extends EventHandler {
     incRefMeshes(): void;
 }
 
-
 /**
  * Resource handler used for loading {@link Render} resources.
  *
- * @implements {ResourceHandler}
  * @category Graphics
  */
-declare class RenderHandler implements ResourceHandler {
+declare class RenderHandler extends ResourceHandler {
     /**
      * Create a new RenderHandler instance.
      *
      * @param {import('../app-base.js').AppBase} app - The running {@link AppBase}.
-     * @hideconstructor
+     * @ignore
      */
     constructor(app: AppBase);
-    /**
-     * Type of the resource the handler handles.
-     *
-     * @type {string}
-     */
-    handlerType: string;
     _registry: AssetRegistry;
-    load(url: any, callback: any, asset: any): void;
     open(url: any, data: any): Render;
     patch(asset: any, registry: any): void;
 }
 
-
-/** @typedef {import('./handler.js').ResourceHandler} ResourceHandler */
 /**
  * Resource handler for loading JavaScript files dynamically.  Two types of JavaScript files can be
  * loaded, PlayCanvas scripts which contain calls to {@link createScript}, or regular JavaScript
  * files, such as third-party libraries.
  *
- * @implements {ResourceHandler}
  * @category Script
  */
-declare class ScriptHandler implements ResourceHandler {
+declare class ScriptHandler extends ResourceHandler {
     /**
      * Create a new ScriptHandler instance.
      *
      * @param {import('../app-base.js').AppBase} app - The running {@link AppBase}.
-     * @hideconstructor
+     * @ignore
      */
     constructor(app: AppBase);
-    /**
-     * Type of the resource the handler handles.
-     *
-     * @type {string}
-     */
-    handlerType: string;
-    _app: AppBase;
     _scripts: {};
     _cache: {};
     clearCache(): void;
@@ -43157,81 +43406,63 @@ declare class ScriptHandler implements ResourceHandler {
     _loadModule(url: any, callback: any): void;
 }
 
-
-/** @typedef {import('./handler.js').ResourceHandler} ResourceHandler */
 /**
  * Resource handler used for loading {@link Scene} resources.
  *
- * @implements {ResourceHandler}
  * @category Graphics
  */
-declare class SceneHandler implements ResourceHandler {
+declare class SceneHandler extends ResourceHandler {
     /**
      * Create a new SceneHandler instance.
      *
      * @param {import('../app-base.js').AppBase} app - The running {@link AppBase}.
-     * @hideconstructor
+     * @ignore
      */
     constructor(app: AppBase);
-    /**
-     * Type of the resource the handler handles.
-     *
-     * @type {string}
-     */
-    handlerType: string;
-    _app: AppBase;
-    maxRetries: number;
     load(url: any, callback: any): void;
     open(url: any, data: any): Scene;
-    patch(asset: any, assets: any): void;
 }
 
-declare class SceneSettingsHandler {
+declare class SceneSettingsHandler extends ResourceHandler {
     constructor(app: any);
-    _app: any;
-    maxRetries: number;
     load(url: any, callback: any): void;
     open(url: any, data: any): any;
 }
 
-declare class ShaderHandler {
+declare class ShaderHandler extends ResourceHandler {
     constructor(app: any);
     /**
-     * Type of the resource the handler handles.
+     * TextDecoder for decoding binary data.
      *
-     * @type {string}
+     * @type {TextDecoder|null}
+     * @private
      */
-    handlerType: string;
-    maxRetries: number;
+    private decoder;
     load(url: any, callback: any): void;
-    open(url: any, data: any): any;
-    patch(asset: any, assets: any): void;
+    /**
+     * Parses raw DataView and returns string.
+     *
+     * @param {DataView} data - The raw data as a DataView
+     * @returns {string} The parsed resource data.
+     */
+    openBinary(data: DataView): string;
 }
-
 
 /**
  * Resource handler used for loading {@link Sprite} resources.
  *
- * @implements {ResourceHandler}
  * @category Graphics
  */
-declare class SpriteHandler implements ResourceHandler {
+declare class SpriteHandler extends ResourceHandler {
     /**
      * Create a new SpriteHandler instance.
      *
      * @param {import('../app-base.js').AppBase} app - The running {@link AppBase}.
-     * @hideconstructor
+     * @ignore
      */
     constructor(app: AppBase);
-    /**
-     * Type of the resource the handler handles.
-     *
-     * @type {string}
-     */
-    handlerType: string;
     _assets: AssetRegistry;
     _device: GraphicsDevice;
-    maxRetries: number;
     load(url: any, callback: any): void;
     open(url: any, data: any): Sprite;
     patch(asset: any, assets: any): void;
@@ -43239,57 +43470,59 @@ declare class SpriteHandler implements ResourceHandler {
     _onAssetChange(asset: any, attribute: any, value: any, oldValue: any): void;
 }
 
-declare class TemplateHandler {
+declare class TemplateHandler extends ResourceHandler {
     constructor(app: any);
     /**
-     * Type of the resource the handler handles.
+     * TextDecoder for decoding binary data.
      *
-     * @type {string}
+     * @type {TextDecoder|null}
+     * @private
      */
-    handlerType: string;
-    _app: any;
-    maxRetries: number;
+    private decoder;
     load(url: any, callback: any): void;
     open(url: any, data: any): Template;
+    /**
+     * Parses raw DataView and returns string.
+     *
+     * @param {DataView} data - The raw data as a DataView
+     * @returns {Template} The parsed resource data.
+     */
+    openBinary(data: DataView): Template;
 }
 
-declare class TextHandler {
+declare class TextHandler extends ResourceHandler {
     constructor(app: any);
     /**
-     * Type of the resource the handler handles.
+     * TextDecoder for decoding binary data.
      *
-     * @type {string}
+     * @type {TextDecoder|null}
+     * @private
      */
-    handlerType: string;
-    maxRetries: number;
+    private decoder;
     load(url: any, callback: any): void;
-    open(url: any, data: any): any;
-    patch(asset: any, assets: any): void;
+    /**
+     * Parses raw DataView and returns string.
+     *
+     * @param {DataView} data - The raw data as a DataView
+     * @returns {string} The parsed resource data.
+     */
+    openBinary(data: DataView): string;
 }
-
 
 /**
  * Resource handler used for loading {@link TextureAtlas} resources.
  *
- * @implements {ResourceHandler}
  * @category Graphics
  */
-declare class TextureAtlasHandler implements ResourceHandler {
+declare class TextureAtlasHandler extends ResourceHandler {
     /**
      * Create a new TextureAtlasHandler instance.
      *
      * @param {import('../app-base.js').AppBase} app - The running {@link AppBase}.
-     * @hideconstructor
+     * @ignore
      */
     constructor(app: AppBase);
-    /**
-     * Type of the resource the handler handles.
-     *
-     * @type {string}
-     */
-    handlerType: string;
     _loader: ResourceLoader;
-    maxRetries: number;
     load(url: any, callback: any): void;
     open(url: any, data: any): TextureAtlas;
     patch(asset: any, assets: any): void;
@@ -43847,8 +44080,6 @@ declare class GlbContainerParser {
     patch(asset: any, assets: any): void;
 }
 
-
-/** @typedef {import('./handler.js').ResourceHandler} ResourceHandler */
 /**
  * @interface
  * @name ContainerResource
@@ -43994,23 +44225,16 @@ declare class ContainerResource {
  * });
  * ```
  *
- * @implements {ResourceHandler}
  * @category Graphics
  */
-declare class ContainerHandler implements ResourceHandler {
+declare class ContainerHandler extends ResourceHandler {
     /**
      * Create a new ContainerResource instance.
      *
      * @param {import('../app-base.js').AppBase} app - The running {@link AppBase}.
-     * @hideconstructor
+     * @ignore
      */
     constructor(app: AppBase);
-    /**
-     * Type of the resource the handler handles.
-     *
-     * @type {string}
-     */
-    handlerType: string;
     glbContainerParser: GlbContainerParser;
     parsers: {};
     set maxRetries(arg: any);
@@ -44027,31 +44251,6 @@ declare class ContainerHandler implements ResourceHandler {
      * @private
      */
     private _getParser;
-    /**
-     * @param {string|object} url - Either the URL of the resource to load or a structure
-     * containing the load and original URL.
-     * @param {string} [url.load] - The URL to be used for loading the resource.
-     * @param {string} [url.original] - The original URL to be used for identifying the resource
-     * format. This is necessary when loading, for example from blob.
-     * @param {import('./handler.js').ResourceHandlerCallback} callback - The callback used when
-     * the resource is loaded or an error occurs.
-     * @param {import('../asset/asset.js').Asset} [asset] - Optional asset that is passed by
-     * ResourceLoader.
-     */
-    load(url: string | object, callback: ResourceHandlerCallback, asset?: Asset): void;
-    /**
-     * @param {string} url - The URL of the resource to open.
-     * @param {*} data - The raw resource data passed by callback from {@link ResourceHandler#load}.
-     * @param {import('../asset/asset.js').Asset} [asset] - Optional asset that is passed by
-     * ResourceLoader.
-     * @returns {*} The parsed resource data.
-     */
-    open(url: string, data: any, asset?: Asset): any;
-    /**
-     * @param {import('../asset/asset.js').Asset} asset - The asset to patch.
-     * @param {import('../asset/asset-registry.js').AssetRegistry} assets - The asset registry.
-     */
-    patch(asset: Asset, assets: AssetRegistry): void;
 }
 
 
@@ -44164,27 +44363,19 @@ declare class HdrParser implements TextureParser {
     _readPixelsFlat(readStream: any, width: any, height: any): Uint8Array;
 }
 
-
 /**
  * Resource handler used for loading 2D and 3D {@link Texture} resources.
  *
- * @implements {ResourceHandler}
  * @category Graphics
  */
-declare class TextureHandler implements ResourceHandler {
+declare class TextureHandler extends ResourceHandler {
     /**
      * Create a new TextureHandler instance.
      *
      * @param {import('../app-base.js').AppBase} app - The running {@link AppBase}.
-     * @hideconstructor
+     * @ignore
      */
     constructor(app: AppBase);
-    /**
-     * Type of the resource the handler handles.
-     *
-     * @type {string}
-     */
-    handlerType: string;
     _device: GraphicsDevice;
     _assets: AssetRegistry;
     imgParser: ImgParser;
@@ -44197,8 +44388,6 @@ declare class TextureHandler implements ResourceHandler {
     };
     set crossOrigin(arg: string);
     get crossOrigin(): string;
-    set maxRetries(arg: number);
-    get maxRetries(): number;
     _getUrlWithoutParams(url: any): any;
     _getParser(url: any): any;
     _getTextureOptions(asset: any): {
@@ -44329,5 +44518,5 @@ declare function getReservedScriptNames(): Set<string>;
 
 declare const reservedAttributes: {};
 
-export { ABSOLUTE_URL, ACTION_GAMEPAD, ACTION_KEYBOARD, ACTION_MOUSE, ADDRESS_CLAMP_TO_EDGE, ADDRESS_MIRRORED_REPEAT, ADDRESS_REPEAT, ANIM_BLEND_1D, ANIM_BLEND_2D_CARTESIAN, ANIM_BLEND_2D_DIRECTIONAL, ANIM_BLEND_DIRECT, ANIM_CONTROL_STATES, ANIM_EQUAL_TO, ANIM_GREATER_THAN, ANIM_GREATER_THAN_EQUAL_TO, ANIM_INTERRUPTION_NEXT, ANIM_INTERRUPTION_NEXT_PREV, ANIM_INTERRUPTION_NONE, ANIM_INTERRUPTION_PREV, ANIM_INTERRUPTION_PREV_NEXT, ANIM_LAYER_ADDITIVE, ANIM_LAYER_OVERWRITE, ANIM_LESS_THAN, ANIM_LESS_THAN_EQUAL_TO, ANIM_NOT_EQUAL_TO, ANIM_PARAMETER_BOOLEAN, ANIM_PARAMETER_FLOAT, ANIM_PARAMETER_INTEGER, ANIM_PARAMETER_TRIGGER, ANIM_STATE_ANY, ANIM_STATE_END, ANIM_STATE_START, ASPECT_AUTO, ASPECT_MANUAL, ASSET_ANIMATION, ASSET_AUDIO, ASSET_CONTAINER, ASSET_CSS, ASSET_CUBEMAP, ASSET_HTML, ASSET_IMAGE, ASSET_JSON, ASSET_MATERIAL, ASSET_MODEL, ASSET_SCRIPT, ASSET_SHADER, ASSET_TEXT, ASSET_TEXTURE, ASSET_TEXTUREATLAS, AXIS_KEY, AXIS_MOUSE_X, AXIS_MOUSE_Y, AXIS_PAD_L_X, AXIS_PAD_L_Y, AXIS_PAD_R_X, AXIS_PAD_R_Y, AnimBinder, AnimClip, AnimClipHandler, AnimComponent, AnimComponentLayer, AnimComponentSystem, AnimController, AnimCurve, AnimData, AnimEvaluator, AnimEvents, AnimSnapshot, AnimStateGraph, AnimStateGraphHandler, AnimTarget, AnimTrack, Animation, AnimationComponent, AnimationComponentSystem, AnimationHandler, AppBase, AppOptions, Application, Asset, AssetListLoader, AssetReference, AssetRegistry, AudioHandler, AudioListenerComponent, AudioListenerComponentSystem, AudioSourceComponent, AudioSourceComponentSystem, BAKE_COLOR, BAKE_COLORDIR, BINDGROUP_MESH, BINDGROUP_VIEW, BLENDEQUATION_ADD, BLENDEQUATION_MAX, BLENDEQUATION_MIN, BLENDEQUATION_REVERSE_SUBTRACT, BLENDEQUATION_SUBTRACT, BLENDMODE_CONSTANT, BLENDMODE_CONSTANT_ALPHA, BLENDMODE_CONSTANT_COLOR, BLENDMODE_DST_ALPHA, BLENDMODE_DST_COLOR, BLENDMODE_ONE, BLENDMODE_ONE_MINUS_CONSTANT, BLENDMODE_ONE_MINUS_CONSTANT_ALPHA, BLENDMODE_ONE_MINUS_CONSTANT_COLOR, BLENDMODE_ONE_MINUS_DST_ALPHA, BLENDMODE_ONE_MINUS_DST_COLOR, BLENDMODE_ONE_MINUS_SRC_ALPHA, BLENDMODE_ONE_MINUS_SRC_COLOR, BLENDMODE_SRC_ALPHA, BLENDMODE_SRC_ALPHA_SATURATE, BLENDMODE_SRC_COLOR, BLENDMODE_ZERO, BLEND_ADDITIVE, BLEND_ADDITIVEALPHA, BLEND_MAX, BLEND_MIN, BLEND_MULTIPLICATIVE, BLEND_MULTIPLICATIVE2X, BLEND_NONE, BLEND_NORMAL, BLEND_PREMULTIPLIED, BLEND_SCREEN, BLEND_SUBTRACTIVE, BLUR_BOX, BLUR_GAUSSIAN, BODYFLAG_KINEMATIC_OBJECT, BODYFLAG_NORESPONSE_OBJECT, BODYFLAG_STATIC_OBJECT, BODYGROUP_DEFAULT, BODYGROUP_DYNAMIC, BODYGROUP_ENGINE_1, BODYGROUP_ENGINE_2, BODYGROUP_ENGINE_3, BODYGROUP_KINEMATIC, BODYGROUP_NONE, BODYGROUP_STATIC, BODYGROUP_TRIGGER, BODYGROUP_USER_1, BODYGROUP_USER_2, BODYGROUP_USER_3, BODYGROUP_USER_4, BODYGROUP_USER_5, BODYGROUP_USER_6, BODYGROUP_USER_7, BODYGROUP_USER_8, BODYMASK_ALL, BODYMASK_NONE, BODYMASK_NOT_STATIC, BODYMASK_NOT_STATIC_KINEMATIC, BODYMASK_STATIC, BODYSTATE_ACTIVE_TAG, BODYSTATE_DISABLE_DEACTIVATION, BODYSTATE_DISABLE_SIMULATION, BODYSTATE_ISLAND_SLEEPING, BODYSTATE_WANTS_DEACTIVATION, BODYTYPE_DYNAMIC, BODYTYPE_KINEMATIC, BODYTYPE_STATIC, BUFFER_DYNAMIC, BUFFER_GPUDYNAMIC, BUFFER_STATIC, BUFFER_STREAM, BUTTON_TRANSITION_MODE_SPRITE_CHANGE, BUTTON_TRANSITION_MODE_TINT, BasicMaterial, Batch, BatchGroup, BatchManager, BinaryHandler, BindBufferFormat, BindGroupFormat, BindStorageTextureFormat, BindTextureFormat, BlendState, BoundingBox, BoundingSphere, Bundle, BundleHandler, BundleRegistry, ButtonComponent, ButtonComponentSystem, CHUNKAPI_1_51, CHUNKAPI_1_55, CHUNKAPI_1_56, CHUNKAPI_1_57, CHUNKAPI_1_58, CHUNKAPI_1_60, CHUNKAPI_1_62, CHUNKAPI_1_65, CLEARFLAG_COLOR, CLEARFLAG_DEPTH, CLEARFLAG_STENCIL, CUBEFACE_NEGX, CUBEFACE_NEGY, CUBEFACE_NEGZ, CUBEFACE_POSX, CUBEFACE_POSY, CUBEFACE_POSZ, CUBEPROJ_BOX, CUBEPROJ_NONE, CULLFACE_BACK, CULLFACE_FRONT, CULLFACE_FRONTANDBACK, CULLFACE_NONE, CURVE_CARDINAL, CURVE_CATMULL, CURVE_LINEAR, CURVE_SMOOTHSTEP, CURVE_SPLINE, CURVE_STEP, Camera, CameraComponent, CameraComponentSystem, CanvasFont, ChunkBuilder, CollisionComponent, CollisionComponentSystem, Color, Component, ComponentSystem, ComponentSystemRegistry, Compute, ContactPoint, ContactResult, ContainerHandler, ContainerResource, ContextCreationError, Controller, CssHandler, CubemapHandler, Curve, CurveSet, DETAILMODE_ADD, DETAILMODE_MAX, DETAILMODE_MIN, DETAILMODE_MUL, DETAILMODE_OVERLAY, DETAILMODE_SCREEN, DEVICETYPE_NULL, DEVICETYPE_WEBGL1, DEVICETYPE_WEBGL2, DEVICETYPE_WEBGPU, DISTANCE_EXPONENTIAL, DISTANCE_INVERSE, DISTANCE_LINEAR, DITHER_BAYER8, DITHER_BLUENOISE, DITHER_NONE, DefaultAnimBinder, DepthState, ELEMENTTYPE_FLOAT32, ELEMENTTYPE_GROUP, ELEMENTTYPE_IMAGE, ELEMENTTYPE_INT16, ELEMENTTYPE_INT32, ELEMENTTYPE_INT8, ELEMENTTYPE_TEXT, ELEMENTTYPE_UINT16, ELEMENTTYPE_UINT32, ELEMENTTYPE_UINT8, EMITTERSHAPE_BOX, EMITTERSHAPE_SPHERE, EVENT_GAMEPADCONNECTED, EVENT_GAMEPADDISCONNECTED, EVENT_KEYDOWN, EVENT_KEYUP, EVENT_MOUSEDOWN, EVENT_MOUSEMOVE, EVENT_MOUSEUP, EVENT_MOUSEWHEEL, EVENT_SELECT, EVENT_SELECTEND, EVENT_SELECTSTART, EVENT_TOUCHCANCEL, EVENT_TOUCHEND, EVENT_TOUCHMOVE, EVENT_TOUCHSTART, ElementComponent, ElementComponentSystem, ElementDragHelper, ElementInput, ElementInputEvent, ElementMouseEvent, ElementSelectEvent, ElementTouchEvent, Entity, EntityReference, EnvLighting, EventHandle, EventHandler, FILLMODE_FILL_WINDOW, FILLMODE_KEEP_ASPECT, FILLMODE_NONE, FILTER_LINEAR, FILTER_LINEAR_MIPMAP_LINEAR, FILTER_LINEAR_MIPMAP_NEAREST, FILTER_NEAREST, FILTER_NEAREST_MIPMAP_LINEAR, FILTER_NEAREST_MIPMAP_NEAREST, FITMODE_CONTAIN, FITMODE_COVER, FITMODE_STRETCH, FITTING_BOTH, FITTING_NONE, FITTING_SHRINK, FITTING_STRETCH, FOG_EXP, FOG_EXP2, FOG_LINEAR, FOG_NONE, FONT_BITMAP, FONT_MSDF, FRESNEL_NONE, FRESNEL_SCHLICK, FUNC_ALWAYS, FUNC_EQUAL, FUNC_GREATER, FUNC_GREATEREQUAL, FUNC_LESS, FUNC_LESSEQUAL, FUNC_NEVER, FUNC_NOTEQUAL, FloatPacking, FolderHandler, Font, FontHandler, ForwardRenderer, Frustum, GAMMA_NONE, GAMMA_SRGB, GAMMA_SRGBFAST, GAMMA_SRGBHDR, GSplat, GSplatComponent, GSplatComponentSystem, GSplatData, GSplatHandler, GSplatInstance, GSplatResource, GamePads, GraphNode, GraphicsDevice, HierarchyHandler, HtmlHandler, Http, I18n, INDEXFORMAT_UINT16, INDEXFORMAT_UINT32, INDEXFORMAT_UINT8, INTERPOLATION_CUBIC, INTERPOLATION_LINEAR, INTERPOLATION_STEP, ImageElement, IndexBuffer, IndexedList, JointComponent, JointComponentSystem, JsonHandler, JsonStandardMaterialParser, KEY_0, KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7, KEY_8, KEY_9, KEY_A, KEY_ADD, KEY_ALT, KEY_B, KEY_BACKSPACE, KEY_BACK_SLASH, KEY_C, KEY_CAPS_LOCK, KEY_CLOSE_BRACKET, KEY_COMMA, KEY_CONTEXT_MENU, KEY_CONTROL, KEY_D, KEY_DECIMAL, KEY_DELETE, KEY_DIVIDE, KEY_DOWN, KEY_E, KEY_END, KEY_ENTER, KEY_EQUAL, KEY_ESCAPE, KEY_F, KEY_F1, KEY_F10, KEY_F11, KEY_F12, KEY_F2, KEY_F3, KEY_F4, KEY_F5, KEY_F6, KEY_F7, KEY_F8, KEY_F9, KEY_G, KEY_H, KEY_HOME, KEY_I, KEY_INSERT, KEY_J, KEY_K, KEY_L, KEY_LEFT, KEY_M, KEY_META, KEY_MULTIPLY, KEY_N, KEY_NUMPAD_0, KEY_NUMPAD_1, KEY_NUMPAD_2, KEY_NUMPAD_3, KEY_NUMPAD_4, KEY_NUMPAD_5, KEY_NUMPAD_6, KEY_NUMPAD_7, KEY_NUMPAD_8, KEY_NUMPAD_9, KEY_O, KEY_OPEN_BRACKET, KEY_P, KEY_PAGE_DOWN, KEY_PAGE_UP, KEY_PAUSE, KEY_PERIOD, KEY_PRINT_SCREEN, KEY_Q, KEY_R, KEY_RETURN, KEY_RIGHT, KEY_S, KEY_SEMICOLON, KEY_SEPARATOR, KEY_SHIFT, KEY_SLASH, KEY_SPACE, KEY_SUBTRACT, KEY_T, KEY_TAB, KEY_U, KEY_UP, KEY_V, KEY_W, KEY_WINDOWS, KEY_X, KEY_Y, KEY_Z, Key, Keyboard, KeyboardEvent, LAYERID_DEPTH, LAYERID_IMMEDIATE, LAYERID_SKYBOX, LAYERID_UI, LAYERID_WORLD, LAYER_FX, LAYER_GIZMO, LAYER_HUD, LAYER_WORLD, LIGHTFALLOFF_INVERSESQUARED, LIGHTFALLOFF_LINEAR, LIGHTSHAPE_DISK, LIGHTSHAPE_PUNCTUAL, LIGHTSHAPE_RECT, LIGHTSHAPE_SPHERE, LIGHTTYPE_COUNT, LIGHTTYPE_DIRECTIONAL, LIGHTTYPE_OMNI, LIGHTTYPE_POINT, LIGHTTYPE_SPOT, LINEBATCH_GIZMO, LINEBATCH_OVERLAY, LINEBATCH_WORLD, Layer, LayerComposition, LayoutCalculator, LayoutChildComponent, LayoutChildComponentSystem, LayoutGroupComponent, LayoutGroupComponentSystem, Light, LightComponent, LightComponentSystem, LightingParams, Lightmapper, LitMaterial, LitOptions, LitShaderOptions, LocalizedAsset, MASK_AFFECT_DYNAMIC, MASK_AFFECT_LIGHTMAPPED, MASK_BAKE, MOTION_FREE, MOTION_LIMITED, MOTION_LOCKED, MOUSEBUTTON_LEFT, MOUSEBUTTON_MIDDLE, MOUSEBUTTON_NONE, MOUSEBUTTON_RIGHT, Mat3, Mat4, Material, MaterialHandler, Mesh, MeshInstance, Model, ModelComponent, ModelComponentSystem, ModelHandler, Morph, MorphInstance, MorphTarget, Mouse, MouseEvent$1 as MouseEvent, Node$1 as Node, NullGraphicsDevice, ORIENTATION_HORIZONTAL, ORIENTATION_VERTICAL, OrientedBox, PAD_1, PAD_2, PAD_3, PAD_4, PAD_DOWN, PAD_FACE_1, PAD_FACE_2, PAD_FACE_3, PAD_FACE_4, PAD_LEFT, PAD_L_SHOULDER_1, PAD_L_SHOULDER_2, PAD_L_STICK_BUTTON, PAD_L_STICK_X, PAD_L_STICK_Y, PAD_RIGHT, PAD_R_SHOULDER_1, PAD_R_SHOULDER_2, PAD_R_STICK_BUTTON, PAD_R_STICK_X, PAD_R_STICK_Y, PAD_SELECT, PAD_START, PAD_UP, PAD_VENDOR, PARTICLEMODE_CPU, PARTICLEMODE_GPU, PARTICLEORIENTATION_EMITTER, PARTICLEORIENTATION_SCREEN, PARTICLEORIENTATION_WORLD, PARTICLESORT_DISTANCE, PARTICLESORT_NEWER_FIRST, PARTICLESORT_NONE, PARTICLESORT_OLDER_FIRST, PIXELFORMAT_111110F, PIXELFORMAT_A8, PIXELFORMAT_ASTC_4x4, PIXELFORMAT_ATC_RGB, PIXELFORMAT_ATC_RGBA, PIXELFORMAT_BGRA8, PIXELFORMAT_DEPTH, PIXELFORMAT_DEPTHSTENCIL, PIXELFORMAT_DXT1, PIXELFORMAT_DXT3, PIXELFORMAT_DXT5, PIXELFORMAT_ETC1, PIXELFORMAT_ETC2_RGB, PIXELFORMAT_ETC2_RGBA, PIXELFORMAT_L8, PIXELFORMAT_L8_A8, PIXELFORMAT_LA8, PIXELFORMAT_PVRTC_2BPP_RGBA_1, PIXELFORMAT_PVRTC_2BPP_RGB_1, PIXELFORMAT_PVRTC_4BPP_RGBA_1, PIXELFORMAT_PVRTC_4BPP_RGB_1, PIXELFORMAT_R16I, PIXELFORMAT_R16U, PIXELFORMAT_R32F, PIXELFORMAT_R32I, PIXELFORMAT_R32U, PIXELFORMAT_R4_G4_B4_A4, PIXELFORMAT_R5_G5_B5_A1, PIXELFORMAT_R5_G6_B5, PIXELFORMAT_R8I, PIXELFORMAT_R8U, PIXELFORMAT_R8_G8_B8, PIXELFORMAT_R8_G8_B8_A8, PIXELFORMAT_RG16I, PIXELFORMAT_RG16U, PIXELFORMAT_RG32I, PIXELFORMAT_RG32U, PIXELFORMAT_RG8I, PIXELFORMAT_RG8U, PIXELFORMAT_RGB16F, PIXELFORMAT_RGB32F, PIXELFORMAT_RGB565, PIXELFORMAT_RGB8, PIXELFORMAT_RGBA16F, PIXELFORMAT_RGBA16I, PIXELFORMAT_RGBA16U, PIXELFORMAT_RGBA32F, PIXELFORMAT_RGBA32I, PIXELFORMAT_RGBA32U, PIXELFORMAT_RGBA4, PIXELFORMAT_RGBA5551, PIXELFORMAT_RGBA8, PIXELFORMAT_RGBA8I, PIXELFORMAT_RGBA8U, PIXELFORMAT_SRGB, PIXELFORMAT_SRGBA, PRIMITIVE_LINELOOP, PRIMITIVE_LINES, PRIMITIVE_LINESTRIP, PRIMITIVE_POINTS, PRIMITIVE_TRIANGLES, PRIMITIVE_TRIFAN, PRIMITIVE_TRISTRIP, PROJECTION_ORTHOGRAPHIC, PROJECTION_PERSPECTIVE, ParticleEmitter, ParticleSystemComponent, ParticleSystemComponentSystem, PhongMaterial, Picker, Plane, PostEffect$1 as PostEffect, PostEffectQueue, ProgramLibrary, QuadRender, Quat, RENDERSTYLE_POINTS, RENDERSTYLE_SOLID, RENDERSTYLE_WIREFRAME, RESOLUTION_AUTO, RESOLUTION_FIXED, RIGIDBODY_ACTIVE_TAG, RIGIDBODY_CF_KINEMATIC_OBJECT, RIGIDBODY_CF_NORESPONSE_OBJECT, RIGIDBODY_CF_STATIC_OBJECT, RIGIDBODY_DISABLE_DEACTIVATION, RIGIDBODY_DISABLE_SIMULATION, RIGIDBODY_ISLAND_SLEEPING, RIGIDBODY_TYPE_DYNAMIC, RIGIDBODY_TYPE_KINEMATIC, RIGIDBODY_TYPE_STATIC, RIGIDBODY_WANTS_DEACTIVATION, Ray, RaycastResult, ReadStream, RenderComponent, RenderComponentSystem, RenderHandler, RenderPass, RenderPassColorGrab, RenderPassForward, RenderPassShaderQuad, RenderTarget, type ResourceHandler, ResourceLoader, RigidBodyComponent, RigidBodyComponentSystem, SAMPLETYPE_DEPTH, SAMPLETYPE_FLOAT, SAMPLETYPE_INT, SAMPLETYPE_UINT, SAMPLETYPE_UNFILTERABLE_FLOAT, SCALEMODE_BLEND, SCALEMODE_NONE, SCROLLBAR_VISIBILITY_SHOW_ALWAYS, SCROLLBAR_VISIBILITY_SHOW_WHEN_REQUIRED, SCROLL_MODE_BOUNCE, SCROLL_MODE_CLAMP, SCROLL_MODE_INFINITE, SEMANTIC_ATTR, SEMANTIC_ATTR0, SEMANTIC_ATTR1, SEMANTIC_ATTR10, SEMANTIC_ATTR11, SEMANTIC_ATTR12, SEMANTIC_ATTR13, SEMANTIC_ATTR14, SEMANTIC_ATTR15, SEMANTIC_ATTR2, SEMANTIC_ATTR3, SEMANTIC_ATTR4, SEMANTIC_ATTR5, SEMANTIC_ATTR6, SEMANTIC_ATTR7, SEMANTIC_ATTR8, SEMANTIC_ATTR9, SEMANTIC_BLENDINDICES, SEMANTIC_BLENDWEIGHT, SEMANTIC_COLOR, SEMANTIC_NORMAL, SEMANTIC_POSITION, SEMANTIC_TANGENT, SEMANTIC_TEXCOORD, SEMANTIC_TEXCOORD0, SEMANTIC_TEXCOORD1, SEMANTIC_TEXCOORD2, SEMANTIC_TEXCOORD3, SEMANTIC_TEXCOORD4, SEMANTIC_TEXCOORD5, SEMANTIC_TEXCOORD6, SEMANTIC_TEXCOORD7, SHADERDEF_DIRLM, SHADERDEF_INSTANCING, SHADERDEF_LM, SHADERDEF_LMAMBIENT, SHADERDEF_MORPH_NORMAL, SHADERDEF_MORPH_POSITION, SHADERDEF_MORPH_TEXTURE_BASED, SHADERDEF_NOSHADOW, SHADERDEF_SCREENSPACE, SHADERDEF_SKIN, SHADERDEF_TANGENTS, SHADERDEF_UV0, SHADERDEF_UV1, SHADERDEF_VCOLOR, SHADERLANGUAGE_GLSL, SHADERLANGUAGE_WGSL, SHADERPASS_ALBEDO, SHADERPASS_AO, SHADERPASS_EMISSION, SHADERPASS_FORWARD, SHADERPASS_GLOSS, SHADERPASS_LIGHTING, SHADERPASS_METALNESS, SHADERPASS_OPACITY, SHADERPASS_SPECULARITY, SHADERPASS_UV0, SHADERPASS_WORLDNORMAL, SHADERSTAGE_COMPUTE, SHADERSTAGE_FRAGMENT, SHADERSTAGE_VERTEX, SHADERTAG_MATERIAL, SHADER_DEPTH, SHADER_FORWARD, SHADER_FORWARDHDR, SHADER_PICK, SHADER_SHADOW, SHADOWUPDATE_NONE, SHADOWUPDATE_REALTIME, SHADOWUPDATE_THISFRAME, SHADOW_DEPTH, SHADOW_PCF1, SHADOW_PCF3, SHADOW_PCF5, SHADOW_PCSS, SHADOW_VSM16, SHADOW_VSM32, SHADOW_VSM8, SKYTYPE_BOX, SKYTYPE_DOME, SKYTYPE_INFINITE, SORTKEY_DEPTH, SORTKEY_FORWARD, SORTMODE_BACK2FRONT, SORTMODE_CUSTOM, SORTMODE_FRONT2BACK, SORTMODE_MANUAL, SORTMODE_MATERIALMESH, SORTMODE_NONE, SPECOCC_AO, SPECOCC_GLOSSDEPENDENT, SPECOCC_NONE, SPECULAR_BLINN, SPECULAR_PHONG, SPRITETYPE_ANIMATED, SPRITETYPE_SIMPLE, SPRITE_RENDERMODE_SIMPLE, SPRITE_RENDERMODE_SLICED, SPRITE_RENDERMODE_TILED, STENCILOP_DECREMENT, STENCILOP_DECREMENTWRAP, STENCILOP_INCREMENT, STENCILOP_INCREMENTWRAP, STENCILOP_INVERT, STENCILOP_KEEP, STENCILOP_REPLACE, STENCILOP_ZERO, Scene, SceneHandler, SceneRegistry, SceneRegistryItem, SceneSettingsHandler, ScopeId, ScopeSpace, ScreenComponent, ScreenComponentSystem, ScriptAttributes, ScriptComponent, ScriptComponentSystem, ScriptHandler, ScriptLegacyComponent, ScriptLegacyComponentSystem, ScriptRegistry, ScriptType, ScrollViewComponent, ScrollViewComponentSystem, ScrollbarComponent, ScrollbarComponentSystem, Shader, ShaderGenerator, ShaderHandler, ShaderPass, ShaderProcessorOptions, ShaderUtils, SingleContactResult, Skeleton, Skin, SkinBatchInstance, SkinInstance, SortedLoopArray, Sound, SoundComponent, SoundComponentSystem, SoundInstance, SoundInstance3d, SoundManager, SoundSlot, Sprite, SpriteAnimationClip, SpriteComponent, SpriteComponentSystem, SpriteHandler, StandardMaterial, StandardMaterialOptions, StencilParameters, TEXHINT_ASSET, TEXHINT_LIGHTMAP, TEXHINT_NONE, TEXHINT_SHADOWMAP, TEXTUREDIMENSION_1D, TEXTUREDIMENSION_2D, TEXTUREDIMENSION_2D_ARRAY, TEXTUREDIMENSION_3D, TEXTUREDIMENSION_CUBE, TEXTUREDIMENSION_CUBE_ARRAY, TEXTURELOCK_READ, TEXTURELOCK_WRITE, TEXTUREPROJECTION_CUBE, TEXTUREPROJECTION_EQUIRECT, TEXTUREPROJECTION_NONE, TEXTUREPROJECTION_OCTAHEDRAL, TEXTURETYPE_DEFAULT, TEXTURETYPE_RGBE, TEXTURETYPE_RGBM, TEXTURETYPE_RGBP, TEXTURETYPE_SWIZZLEGGGR, TONEMAP_ACES, TONEMAP_ACES2, TONEMAP_FILMIC, TONEMAP_HEJL, TONEMAP_LINEAR, TRACEID_BINDGROUPFORMAT_ALLOC, TRACEID_BINDGROUP_ALLOC, TRACEID_COMPUTEPIPELINE_ALLOC, TRACEID_GPU_TIMINGS, TRACEID_PIPELINELAYOUT_ALLOC, TRACEID_RENDERPIPELINE_ALLOC, TRACEID_RENDER_ACTION, TRACEID_RENDER_FRAME, TRACEID_RENDER_FRAME_TIME, TRACEID_RENDER_PASS, TRACEID_RENDER_PASS_DETAIL, TRACEID_RENDER_QUEUE, TRACEID_RENDER_TARGET_ALLOC, TRACEID_SHADER_ALLOC, TRACEID_SHADER_COMPILE, TRACEID_TEXTURES, TRACEID_TEXTURE_ALLOC, TRACEID_VRAM_IB, TRACEID_VRAM_TEXTURE, TRACEID_VRAM_VB, TRACE_ID_ELEMENT, TYPE_FLOAT16, TYPE_FLOAT32, TYPE_INT16, TYPE_INT32, TYPE_INT8, TYPE_UINT16, TYPE_UINT32, TYPE_UINT8, Tags, Template, TemplateHandler, TextElement, TextHandler, Texture, TextureAtlas, TextureAtlasHandler, TextureHandler, TextureParser, TextureUtils, Touch$1 as Touch, TouchDevice, TouchEvent$1 as TouchEvent, Tracing, TransformFeedback, UNIFORMTYPE_BOOL, UNIFORMTYPE_BOOLARRAY, UNIFORMTYPE_BVEC2, UNIFORMTYPE_BVEC2ARRAY, UNIFORMTYPE_BVEC3, UNIFORMTYPE_BVEC3ARRAY, UNIFORMTYPE_BVEC4, UNIFORMTYPE_BVEC4ARRAY, UNIFORMTYPE_FLOAT, UNIFORMTYPE_FLOATARRAY, UNIFORMTYPE_INT, UNIFORMTYPE_INTARRAY, UNIFORMTYPE_ITEXTURE2D, UNIFORMTYPE_ITEXTURE2D_ARRAY, UNIFORMTYPE_ITEXTURE3D, UNIFORMTYPE_ITEXTURECUBE, UNIFORMTYPE_IVEC2, UNIFORMTYPE_IVEC2ARRAY, UNIFORMTYPE_IVEC3, UNIFORMTYPE_IVEC3ARRAY, UNIFORMTYPE_IVEC4, UNIFORMTYPE_IVEC4ARRAY, UNIFORMTYPE_MAT2, UNIFORMTYPE_MAT3, UNIFORMTYPE_MAT4, UNIFORMTYPE_MAT4ARRAY, UNIFORMTYPE_TEXTURE2D, UNIFORMTYPE_TEXTURE2D_ARRAY, UNIFORMTYPE_TEXTURE2D_SHADOW, UNIFORMTYPE_TEXTURE3D, UNIFORMTYPE_TEXTURECUBE, UNIFORMTYPE_TEXTURECUBE_SHADOW, UNIFORMTYPE_UINT, UNIFORMTYPE_UINTARRAY, UNIFORMTYPE_UTEXTURE2D, UNIFORMTYPE_UTEXTURE2D_ARRAY, UNIFORMTYPE_UTEXTURE3D, UNIFORMTYPE_UTEXTURECUBE, UNIFORMTYPE_UVEC2, UNIFORMTYPE_UVEC2ARRAY, UNIFORMTYPE_UVEC3, UNIFORMTYPE_UVEC3ARRAY, UNIFORMTYPE_UVEC4, UNIFORMTYPE_UVEC4ARRAY, UNIFORMTYPE_VEC2, UNIFORMTYPE_VEC2ARRAY, UNIFORMTYPE_VEC3, UNIFORMTYPE_VEC3ARRAY, UNIFORMTYPE_VEC4, UNIFORMTYPE_VEC4ARRAY, UNIFORM_BUFFER_DEFAULT_SLOT_NAME, URI, UnsupportedBrowserError, VIEW_CENTER, VIEW_LEFT, VIEW_RIGHT, Vec2, Vec3, Vec4, VertexBuffer, VertexFormat, VertexIterator, WasmModule, WebglGraphicsDevice, WebgpuGraphicsDevice, WorldClusters, XRDEPTHSENSINGFORMAT_F32, XRDEPTHSENSINGFORMAT_L8A8, XRDEPTHSENSINGUSAGE_CPU, XRDEPTHSENSINGUSAGE_GPU, XREYE_LEFT, XREYE_NONE, XREYE_RIGHT, XRHAND_LEFT, XRHAND_NONE, XRHAND_RIGHT, XRPAD_A, XRPAD_B, XRPAD_SQUEEZE, XRPAD_STICK_BUTTON, XRPAD_STICK_X, XRPAD_STICK_Y, XRPAD_TOUCHPAD_BUTTON, XRPAD_TOUCHPAD_X, XRPAD_TOUCHPAD_Y, XRPAD_TRIGGER, XRSPACE_BOUNDEDFLOOR, XRSPACE_LOCAL, XRSPACE_LOCALFLOOR, XRSPACE_UNBOUNDED, XRSPACE_VIEWER, XRTARGETRAY_GAZE, XRTARGETRAY_POINTER, XRTARGETRAY_SCREEN, XRTRACKABLE_MESH, XRTRACKABLE_PLANE, XRTRACKABLE_POINT, XRTYPE_AR, XRTYPE_INLINE, XRTYPE_VR, XrAnchor, XrAnchors, XrDepthSensing, XrDomOverlay, XrFinger, XrHand, XrHitTest, XrHitTestSource, XrImageTracking, XrInput, XrInputSource, XrLightEstimation, XrManager, XrPlane, XrPlaneDetection, XrTrackedImage, ZoneComponent, ZoneComponentSystem, anim, app, apps, asset, audio, basisInitialize, basisSetDownloadConfig, bindGroupNames, calculateNormals, calculateTangents, common, config, createBox, createCapsule, createCone, createCylinder, createGraphicsDevice, createMesh, createPlane, createScript, createShader, createShaderFromCode, createSphere, createStyle, createTorus, createURI, data, dracoInitialize, drawFullscreenQuad, drawQuadWithShader, drawTexture, events, extend, getPixelFormatArrayType, getProgramLibrary, getReservedScriptNames, getTouchTargetCoords, gfx, guid, http, inherits, input, isCompressedPixelFormat, isIntegerPixelFormat, log, makeArray, math, now, path, pixelFormatInfo, platform, posteffect, prefilterCubemap, programlib, registerScript, reprojectTexture, revision, scene, script, semanticToLocation, shFromCubemap, shaderChunks, shaderChunksLightmapper, shadowTypeToString, shape, string, time, type, typedArrayIndexFormats, typedArrayIndexFormatsByteSize, typedArrayToType, typedArrayTypes, typedArrayTypesByteSize, uniformTypeToName, uniformTypeToStorage, version, vertexTypesNames };
+export { ABSOLUTE_URL, ACTION_GAMEPAD, ACTION_KEYBOARD, ACTION_MOUSE, ADDRESS_CLAMP_TO_EDGE, ADDRESS_MIRRORED_REPEAT, ADDRESS_REPEAT, ANIM_BLEND_1D, ANIM_BLEND_2D_CARTESIAN, ANIM_BLEND_2D_DIRECTIONAL, ANIM_BLEND_DIRECT, ANIM_CONTROL_STATES, ANIM_EQUAL_TO, ANIM_GREATER_THAN, ANIM_GREATER_THAN_EQUAL_TO, ANIM_INTERRUPTION_NEXT, ANIM_INTERRUPTION_NEXT_PREV, ANIM_INTERRUPTION_NONE, ANIM_INTERRUPTION_PREV, ANIM_INTERRUPTION_PREV_NEXT, ANIM_LAYER_ADDITIVE, ANIM_LAYER_OVERWRITE, ANIM_LESS_THAN, ANIM_LESS_THAN_EQUAL_TO, ANIM_NOT_EQUAL_TO, ANIM_PARAMETER_BOOLEAN, ANIM_PARAMETER_FLOAT, ANIM_PARAMETER_INTEGER, ANIM_PARAMETER_TRIGGER, ANIM_STATE_ANY, ANIM_STATE_END, ANIM_STATE_START, ASPECT_AUTO, ASPECT_MANUAL, ASSET_ANIMATION, ASSET_AUDIO, ASSET_CONTAINER, ASSET_CSS, ASSET_CUBEMAP, ASSET_HTML, ASSET_IMAGE, ASSET_JSON, ASSET_MATERIAL, ASSET_MODEL, ASSET_SCRIPT, ASSET_SHADER, ASSET_TEXT, ASSET_TEXTURE, ASSET_TEXTUREATLAS, AXIS_KEY, AXIS_MOUSE_X, AXIS_MOUSE_Y, AXIS_PAD_L_X, AXIS_PAD_L_Y, AXIS_PAD_R_X, AXIS_PAD_R_Y, AnimBinder, AnimClip, AnimClipHandler, AnimComponent, AnimComponentLayer, AnimComponentSystem, AnimController, AnimCurve, AnimData, AnimEvaluator, AnimEvents, AnimSnapshot, AnimStateGraph, AnimStateGraphHandler, AnimTarget, AnimTrack, Animation, AnimationComponent, AnimationComponentSystem, AnimationHandler, AppBase, AppOptions, Application, Asset, AssetListLoader, AssetReference, AssetRegistry, AudioHandler, AudioListenerComponent, AudioListenerComponentSystem, AudioSourceComponent, AudioSourceComponentSystem, BAKE_COLOR, BAKE_COLORDIR, BINDGROUP_MESH, BINDGROUP_VIEW, BLENDEQUATION_ADD, BLENDEQUATION_MAX, BLENDEQUATION_MIN, BLENDEQUATION_REVERSE_SUBTRACT, BLENDEQUATION_SUBTRACT, BLENDMODE_CONSTANT, BLENDMODE_CONSTANT_ALPHA, BLENDMODE_CONSTANT_COLOR, BLENDMODE_DST_ALPHA, BLENDMODE_DST_COLOR, BLENDMODE_ONE, BLENDMODE_ONE_MINUS_CONSTANT, BLENDMODE_ONE_MINUS_CONSTANT_ALPHA, BLENDMODE_ONE_MINUS_CONSTANT_COLOR, BLENDMODE_ONE_MINUS_DST_ALPHA, BLENDMODE_ONE_MINUS_DST_COLOR, BLENDMODE_ONE_MINUS_SRC_ALPHA, BLENDMODE_ONE_MINUS_SRC_COLOR, BLENDMODE_SRC_ALPHA, BLENDMODE_SRC_ALPHA_SATURATE, BLENDMODE_SRC_COLOR, BLENDMODE_ZERO, BLEND_ADDITIVE, BLEND_ADDITIVEALPHA, BLEND_MAX, BLEND_MIN, BLEND_MULTIPLICATIVE, BLEND_MULTIPLICATIVE2X, BLEND_NONE, BLEND_NORMAL, BLEND_PREMULTIPLIED, BLEND_SCREEN, BLEND_SUBTRACTIVE, BLUR_BOX, BLUR_GAUSSIAN, BODYFLAG_KINEMATIC_OBJECT, BODYFLAG_NORESPONSE_OBJECT, BODYFLAG_STATIC_OBJECT, BODYGROUP_DEFAULT, BODYGROUP_DYNAMIC, BODYGROUP_ENGINE_1, BODYGROUP_ENGINE_2, BODYGROUP_ENGINE_3, BODYGROUP_KINEMATIC, BODYGROUP_NONE, BODYGROUP_STATIC, BODYGROUP_TRIGGER, BODYGROUP_USER_1, BODYGROUP_USER_2, BODYGROUP_USER_3, BODYGROUP_USER_4, BODYGROUP_USER_5, BODYGROUP_USER_6, BODYGROUP_USER_7, BODYGROUP_USER_8, BODYMASK_ALL, BODYMASK_NONE, BODYMASK_NOT_STATIC, BODYMASK_NOT_STATIC_KINEMATIC, BODYMASK_STATIC, BODYSTATE_ACTIVE_TAG, BODYSTATE_DISABLE_DEACTIVATION, BODYSTATE_DISABLE_SIMULATION, BODYSTATE_ISLAND_SLEEPING, BODYSTATE_WANTS_DEACTIVATION, BODYTYPE_DYNAMIC, BODYTYPE_KINEMATIC, BODYTYPE_STATIC, BUFFER_DYNAMIC, BUFFER_GPUDYNAMIC, BUFFER_STATIC, BUFFER_STREAM, BUTTON_TRANSITION_MODE_SPRITE_CHANGE, BUTTON_TRANSITION_MODE_TINT, BasicMaterial, Batch, BatchGroup, BatchManager, BinaryHandler, BindBufferFormat, BindGroupFormat, BindStorageTextureFormat, BindTextureFormat, BlendState, BoundingBox, BoundingSphere, Bundle, BundleHandler, BundleRegistry, ButtonComponent, ButtonComponentSystem, CHUNKAPI_1_51, CHUNKAPI_1_55, CHUNKAPI_1_56, CHUNKAPI_1_57, CHUNKAPI_1_58, CHUNKAPI_1_60, CHUNKAPI_1_62, CHUNKAPI_1_65, CLEARFLAG_COLOR, CLEARFLAG_DEPTH, CLEARFLAG_STENCIL, CUBEFACE_NEGX, CUBEFACE_NEGY, CUBEFACE_NEGZ, CUBEFACE_POSX, CUBEFACE_POSY, CUBEFACE_POSZ, CUBEPROJ_BOX, CUBEPROJ_NONE, CULLFACE_BACK, CULLFACE_FRONT, CULLFACE_FRONTANDBACK, CULLFACE_NONE, CURVE_CARDINAL, CURVE_CATMULL, CURVE_LINEAR, CURVE_SMOOTHSTEP, CURVE_SPLINE, CURVE_STEP, Camera, CameraComponent, CameraComponentSystem, CanvasFont, ChunkBuilder, CollisionComponent, CollisionComponentSystem, Color, Component, ComponentSystem, ComponentSystemRegistry, Compute, ContactPoint, ContactResult, ContainerHandler, ContainerResource, ContextCreationError, Controller, CssHandler, CubemapHandler, Curve, CurveSet, DETAILMODE_ADD, DETAILMODE_MAX, DETAILMODE_MIN, DETAILMODE_MUL, DETAILMODE_OVERLAY, DETAILMODE_SCREEN, DEVICETYPE_NULL, DEVICETYPE_WEBGL1, DEVICETYPE_WEBGL2, DEVICETYPE_WEBGPU, DISTANCE_EXPONENTIAL, DISTANCE_INVERSE, DISTANCE_LINEAR, DITHER_BAYER8, DITHER_BLUENOISE, DITHER_NONE, DefaultAnimBinder, DepthState, ELEMENTTYPE_FLOAT32, ELEMENTTYPE_GROUP, ELEMENTTYPE_IMAGE, ELEMENTTYPE_INT16, ELEMENTTYPE_INT32, ELEMENTTYPE_INT8, ELEMENTTYPE_TEXT, ELEMENTTYPE_UINT16, ELEMENTTYPE_UINT32, ELEMENTTYPE_UINT8, EMITTERSHAPE_BOX, EMITTERSHAPE_SPHERE, EVENT_GAMEPADCONNECTED, EVENT_GAMEPADDISCONNECTED, EVENT_KEYDOWN, EVENT_KEYUP, EVENT_MOUSEDOWN, EVENT_MOUSEMOVE, EVENT_MOUSEUP, EVENT_MOUSEWHEEL, EVENT_SELECT, EVENT_SELECTEND, EVENT_SELECTSTART, EVENT_TOUCHCANCEL, EVENT_TOUCHEND, EVENT_TOUCHMOVE, EVENT_TOUCHSTART, ElementComponent, ElementComponentSystem, ElementDragHelper, ElementInput, ElementInputEvent, ElementMouseEvent, ElementSelectEvent, ElementTouchEvent, Entity, EntityReference, EnvLighting, EventHandle, EventHandler, FILLMODE_FILL_WINDOW, FILLMODE_KEEP_ASPECT, FILLMODE_NONE, FILTER_LINEAR, FILTER_LINEAR_MIPMAP_LINEAR, FILTER_LINEAR_MIPMAP_NEAREST, FILTER_NEAREST, FILTER_NEAREST_MIPMAP_LINEAR, FILTER_NEAREST_MIPMAP_NEAREST, FITMODE_CONTAIN, FITMODE_COVER, FITMODE_STRETCH, FITTING_BOTH, FITTING_NONE, FITTING_SHRINK, FITTING_STRETCH, FOG_EXP, FOG_EXP2, FOG_LINEAR, FOG_NONE, FONT_BITMAP, FONT_MSDF, FRESNEL_NONE, FRESNEL_SCHLICK, FUNC_ALWAYS, FUNC_EQUAL, FUNC_GREATER, FUNC_GREATEREQUAL, FUNC_LESS, FUNC_LESSEQUAL, FUNC_NEVER, FUNC_NOTEQUAL, FloatPacking, FolderHandler, Font, FontHandler, ForwardRenderer, Frustum, GAMMA_NONE, GAMMA_SRGB, GAMMA_SRGBFAST, GAMMA_SRGBHDR, GSplat, GSplatComponent, GSplatComponentSystem, GSplatData, GSplatHandler, GSplatInstance, GSplatResource, GamePads, GraphNode, GraphicsDevice, HierarchyHandler, HtmlHandler, Http, I18n, INDEXFORMAT_UINT16, INDEXFORMAT_UINT32, INDEXFORMAT_UINT8, INTERPOLATION_CUBIC, INTERPOLATION_LINEAR, INTERPOLATION_STEP, ImageElement, IndexBuffer, IndexedList, JointComponent, JointComponentSystem, JsonHandler, JsonStandardMaterialParser, KEY_0, KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7, KEY_8, KEY_9, KEY_A, KEY_ADD, KEY_ALT, KEY_B, KEY_BACKSPACE, KEY_BACK_SLASH, KEY_C, KEY_CAPS_LOCK, KEY_CLOSE_BRACKET, KEY_COMMA, KEY_CONTEXT_MENU, KEY_CONTROL, KEY_D, KEY_DECIMAL, KEY_DELETE, KEY_DIVIDE, KEY_DOWN, KEY_E, KEY_END, KEY_ENTER, KEY_EQUAL, KEY_ESCAPE, KEY_F, KEY_F1, KEY_F10, KEY_F11, KEY_F12, KEY_F2, KEY_F3, KEY_F4, KEY_F5, KEY_F6, KEY_F7, KEY_F8, KEY_F9, KEY_G, KEY_H, KEY_HOME, KEY_I, KEY_INSERT, KEY_J, KEY_K, KEY_L, KEY_LEFT, KEY_M, KEY_META, KEY_MULTIPLY, KEY_N, KEY_NUMPAD_0, KEY_NUMPAD_1, KEY_NUMPAD_2, KEY_NUMPAD_3, KEY_NUMPAD_4, KEY_NUMPAD_5, KEY_NUMPAD_6, KEY_NUMPAD_7, KEY_NUMPAD_8, KEY_NUMPAD_9, KEY_O, KEY_OPEN_BRACKET, KEY_P, KEY_PAGE_DOWN, KEY_PAGE_UP, KEY_PAUSE, KEY_PERIOD, KEY_PRINT_SCREEN, KEY_Q, KEY_R, KEY_RETURN, KEY_RIGHT, KEY_S, KEY_SEMICOLON, KEY_SEPARATOR, KEY_SHIFT, KEY_SLASH, KEY_SPACE, KEY_SUBTRACT, KEY_T, KEY_TAB, KEY_U, KEY_UP, KEY_V, KEY_W, KEY_WINDOWS, KEY_X, KEY_Y, KEY_Z, Key, Keyboard, KeyboardEvent, LAYERID_DEPTH, LAYERID_IMMEDIATE, LAYERID_SKYBOX, LAYERID_UI, LAYERID_WORLD, LAYER_FX, LAYER_GIZMO, LAYER_HUD, LAYER_WORLD, LIGHTFALLOFF_INVERSESQUARED, LIGHTFALLOFF_LINEAR, LIGHTSHAPE_DISK, LIGHTSHAPE_PUNCTUAL, LIGHTSHAPE_RECT, LIGHTSHAPE_SPHERE, LIGHTTYPE_COUNT, LIGHTTYPE_DIRECTIONAL, LIGHTTYPE_OMNI, LIGHTTYPE_POINT, LIGHTTYPE_SPOT, LINEBATCH_GIZMO, LINEBATCH_OVERLAY, LINEBATCH_WORLD, Layer, LayerComposition, LayoutCalculator, LayoutChildComponent, LayoutChildComponentSystem, LayoutGroupComponent, LayoutGroupComponentSystem, Light, LightComponent, LightComponentSystem, LightingParams, Lightmapper, LitMaterial, LitOptions, LitShaderOptions, LocalizedAsset, MASK_AFFECT_DYNAMIC, MASK_AFFECT_LIGHTMAPPED, MASK_BAKE, MOTION_FREE, MOTION_LIMITED, MOTION_LOCKED, MOUSEBUTTON_LEFT, MOUSEBUTTON_MIDDLE, MOUSEBUTTON_NONE, MOUSEBUTTON_RIGHT, Mat3, Mat4, Material, MaterialHandler, Mesh, MeshInstance, Model, ModelComponent, ModelComponentSystem, ModelHandler, Morph, MorphInstance, MorphTarget, Mouse, MouseEvent$1 as MouseEvent, Node$1 as Node, NullGraphicsDevice, ORIENTATION_HORIZONTAL, ORIENTATION_VERTICAL, OrientedBox, PAD_1, PAD_2, PAD_3, PAD_4, PAD_DOWN, PAD_FACE_1, PAD_FACE_2, PAD_FACE_3, PAD_FACE_4, PAD_LEFT, PAD_L_SHOULDER_1, PAD_L_SHOULDER_2, PAD_L_STICK_BUTTON, PAD_L_STICK_X, PAD_L_STICK_Y, PAD_RIGHT, PAD_R_SHOULDER_1, PAD_R_SHOULDER_2, PAD_R_STICK_BUTTON, PAD_R_STICK_X, PAD_R_STICK_Y, PAD_SELECT, PAD_START, PAD_UP, PAD_VENDOR, PARTICLEMODE_CPU, PARTICLEMODE_GPU, PARTICLEORIENTATION_EMITTER, PARTICLEORIENTATION_SCREEN, PARTICLEORIENTATION_WORLD, PARTICLESORT_DISTANCE, PARTICLESORT_NEWER_FIRST, PARTICLESORT_NONE, PARTICLESORT_OLDER_FIRST, PIXELFORMAT_111110F, PIXELFORMAT_A8, PIXELFORMAT_ASTC_4x4, PIXELFORMAT_ATC_RGB, PIXELFORMAT_ATC_RGBA, PIXELFORMAT_BGRA8, PIXELFORMAT_DEPTH, PIXELFORMAT_DEPTHSTENCIL, PIXELFORMAT_DXT1, PIXELFORMAT_DXT3, PIXELFORMAT_DXT5, PIXELFORMAT_ETC1, PIXELFORMAT_ETC2_RGB, PIXELFORMAT_ETC2_RGBA, PIXELFORMAT_L8, PIXELFORMAT_L8_A8, PIXELFORMAT_LA8, PIXELFORMAT_PVRTC_2BPP_RGBA_1, PIXELFORMAT_PVRTC_2BPP_RGB_1, PIXELFORMAT_PVRTC_4BPP_RGBA_1, PIXELFORMAT_PVRTC_4BPP_RGB_1, PIXELFORMAT_R16F, PIXELFORMAT_R16I, PIXELFORMAT_R16U, PIXELFORMAT_R32F, PIXELFORMAT_R32I, PIXELFORMAT_R32U, PIXELFORMAT_R4_G4_B4_A4, PIXELFORMAT_R5_G5_B5_A1, PIXELFORMAT_R5_G6_B5, PIXELFORMAT_R8I, PIXELFORMAT_R8U, PIXELFORMAT_R8_G8_B8, PIXELFORMAT_R8_G8_B8_A8, PIXELFORMAT_RG16F, PIXELFORMAT_RG16I, PIXELFORMAT_RG16U, PIXELFORMAT_RG32I, PIXELFORMAT_RG32U, PIXELFORMAT_RG8I, PIXELFORMAT_RG8U, PIXELFORMAT_RGB16F, PIXELFORMAT_RGB32F, PIXELFORMAT_RGB565, PIXELFORMAT_RGB8, PIXELFORMAT_RGBA16F, PIXELFORMAT_RGBA16I, PIXELFORMAT_RGBA16U, PIXELFORMAT_RGBA32F, PIXELFORMAT_RGBA32I, PIXELFORMAT_RGBA32U, PIXELFORMAT_RGBA4, PIXELFORMAT_RGBA5551, PIXELFORMAT_RGBA8, PIXELFORMAT_RGBA8I, PIXELFORMAT_RGBA8U, PIXELFORMAT_SRGB, PIXELFORMAT_SRGBA, PRIMITIVE_LINELOOP, PRIMITIVE_LINES, PRIMITIVE_LINESTRIP, PRIMITIVE_POINTS, PRIMITIVE_TRIANGLES, PRIMITIVE_TRIFAN, PRIMITIVE_TRISTRIP, PROJECTION_ORTHOGRAPHIC, PROJECTION_PERSPECTIVE, ParticleEmitter, ParticleSystemComponent, ParticleSystemComponentSystem, PhongMaterial, Picker, Plane, PostEffect$1 as PostEffect, PostEffectQueue, ProgramLibrary, QuadRender, Quat, RENDERSTYLE_POINTS, RENDERSTYLE_SOLID, RENDERSTYLE_WIREFRAME, RESOLUTION_AUTO, RESOLUTION_FIXED, RIGIDBODY_ACTIVE_TAG, RIGIDBODY_CF_KINEMATIC_OBJECT, RIGIDBODY_CF_NORESPONSE_OBJECT, RIGIDBODY_CF_STATIC_OBJECT, RIGIDBODY_DISABLE_DEACTIVATION, RIGIDBODY_DISABLE_SIMULATION, RIGIDBODY_ISLAND_SLEEPING, RIGIDBODY_TYPE_DYNAMIC, RIGIDBODY_TYPE_KINEMATIC, RIGIDBODY_TYPE_STATIC, RIGIDBODY_WANTS_DEACTIVATION, Ray, RaycastResult, ReadStream, RenderComponent, RenderComponentSystem, RenderHandler, RenderPass, RenderPassColorGrab, RenderPassForward, RenderPassShaderQuad, RenderTarget, ResourceHandler, ResourceLoader, RigidBodyComponent, RigidBodyComponentSystem, SAMPLETYPE_DEPTH, SAMPLETYPE_FLOAT, SAMPLETYPE_INT, SAMPLETYPE_UINT, SAMPLETYPE_UNFILTERABLE_FLOAT, SCALEMODE_BLEND, SCALEMODE_NONE, SCROLLBAR_VISIBILITY_SHOW_ALWAYS, SCROLLBAR_VISIBILITY_SHOW_WHEN_REQUIRED, SCROLL_MODE_BOUNCE, SCROLL_MODE_CLAMP, SCROLL_MODE_INFINITE, SEMANTIC_ATTR, SEMANTIC_ATTR0, SEMANTIC_ATTR1, SEMANTIC_ATTR10, SEMANTIC_ATTR11, SEMANTIC_ATTR12, SEMANTIC_ATTR13, SEMANTIC_ATTR14, SEMANTIC_ATTR15, SEMANTIC_ATTR2, SEMANTIC_ATTR3, SEMANTIC_ATTR4, SEMANTIC_ATTR5, SEMANTIC_ATTR6, SEMANTIC_ATTR7, SEMANTIC_ATTR8, SEMANTIC_ATTR9, SEMANTIC_BLENDINDICES, SEMANTIC_BLENDWEIGHT, SEMANTIC_COLOR, SEMANTIC_NORMAL, SEMANTIC_POSITION, SEMANTIC_TANGENT, SEMANTIC_TEXCOORD, SEMANTIC_TEXCOORD0, SEMANTIC_TEXCOORD1, SEMANTIC_TEXCOORD2, SEMANTIC_TEXCOORD3, SEMANTIC_TEXCOORD4, SEMANTIC_TEXCOORD5, SEMANTIC_TEXCOORD6, SEMANTIC_TEXCOORD7, SHADERDEF_DIRLM, SHADERDEF_INSTANCING, SHADERDEF_LM, SHADERDEF_LMAMBIENT, SHADERDEF_MORPH_NORMAL, SHADERDEF_MORPH_POSITION, SHADERDEF_MORPH_TEXTURE_BASED, SHADERDEF_NOSHADOW, SHADERDEF_SCREENSPACE, SHADERDEF_SKIN, SHADERDEF_TANGENTS, SHADERDEF_UV0, SHADERDEF_UV1, SHADERDEF_VCOLOR, SHADERLANGUAGE_GLSL, SHADERLANGUAGE_WGSL, SHADERPASS_ALBEDO, SHADERPASS_AO, SHADERPASS_EMISSION, SHADERPASS_FORWARD, SHADERPASS_GLOSS, SHADERPASS_LIGHTING, SHADERPASS_METALNESS, SHADERPASS_OPACITY, SHADERPASS_SPECULARITY, SHADERPASS_UV0, SHADERPASS_WORLDNORMAL, SHADERSTAGE_COMPUTE, SHADERSTAGE_FRAGMENT, SHADERSTAGE_VERTEX, SHADERTAG_MATERIAL, SHADER_DEPTH, SHADER_FORWARD, SHADER_FORWARDHDR, SHADER_PICK, SHADER_PREPASS_VELOCITY, SHADER_SHADOW, SHADOWUPDATE_NONE, SHADOWUPDATE_REALTIME, SHADOWUPDATE_THISFRAME, SHADOW_DEPTH, SHADOW_PCF1, SHADOW_PCF3, SHADOW_PCF5, SHADOW_PCSS, SHADOW_VSM16, SHADOW_VSM32, SHADOW_VSM8, SKYTYPE_BOX, SKYTYPE_DOME, SKYTYPE_INFINITE, SORTKEY_DEPTH, SORTKEY_FORWARD, SORTMODE_BACK2FRONT, SORTMODE_CUSTOM, SORTMODE_FRONT2BACK, SORTMODE_MANUAL, SORTMODE_MATERIALMESH, SORTMODE_NONE, SPECOCC_AO, SPECOCC_GLOSSDEPENDENT, SPECOCC_NONE, SPECULAR_BLINN, SPECULAR_PHONG, SPRITETYPE_ANIMATED, SPRITETYPE_SIMPLE, SPRITE_RENDERMODE_SIMPLE, SPRITE_RENDERMODE_SLICED, SPRITE_RENDERMODE_TILED, STENCILOP_DECREMENT, STENCILOP_DECREMENTWRAP, STENCILOP_INCREMENT, STENCILOP_INCREMENTWRAP, STENCILOP_INVERT, STENCILOP_KEEP, STENCILOP_REPLACE, STENCILOP_ZERO, Scene, SceneHandler, SceneRegistry, SceneRegistryItem, SceneSettingsHandler, ScopeId, ScopeSpace, ScreenComponent, ScreenComponentSystem, ScriptAttributes, ScriptComponent, ScriptComponentSystem, ScriptHandler, ScriptLegacyComponent, ScriptLegacyComponentSystem, ScriptRegistry, ScriptType, ScrollViewComponent, ScrollViewComponentSystem, ScrollbarComponent, ScrollbarComponentSystem, Shader, ShaderGenerator, ShaderHandler, ShaderPass, ShaderProcessorOptions, ShaderUtils, SingleContactResult, Skeleton, Skin, SkinBatchInstance, SkinInstance, SortedLoopArray, Sound, SoundComponent, SoundComponentSystem, SoundInstance, SoundInstance3d, SoundManager, SoundSlot, Sprite, SpriteAnimationClip, SpriteComponent, SpriteComponentSystem, SpriteHandler, StandardMaterial, StandardMaterialOptions, StencilParameters, TEXHINT_ASSET, TEXHINT_LIGHTMAP, TEXHINT_NONE, TEXHINT_SHADOWMAP, TEXTUREDIMENSION_1D, TEXTUREDIMENSION_2D, TEXTUREDIMENSION_2D_ARRAY, TEXTUREDIMENSION_3D, TEXTUREDIMENSION_CUBE, TEXTUREDIMENSION_CUBE_ARRAY, TEXTURELOCK_NONE, TEXTURELOCK_READ, TEXTURELOCK_WRITE, TEXTUREPROJECTION_CUBE, TEXTUREPROJECTION_EQUIRECT, TEXTUREPROJECTION_NONE, TEXTUREPROJECTION_OCTAHEDRAL, TEXTURETYPE_DEFAULT, TEXTURETYPE_RGBE, TEXTURETYPE_RGBM, TEXTURETYPE_RGBP, TEXTURETYPE_SWIZZLEGGGR, TONEMAP_ACES, TONEMAP_ACES2, TONEMAP_FILMIC, TONEMAP_HEJL, TONEMAP_LINEAR, TRACEID_BINDGROUPFORMAT_ALLOC, TRACEID_BINDGROUP_ALLOC, TRACEID_COMPUTEPIPELINE_ALLOC, TRACEID_GPU_TIMINGS, TRACEID_PIPELINELAYOUT_ALLOC, TRACEID_RENDERPIPELINE_ALLOC, TRACEID_RENDER_ACTION, TRACEID_RENDER_FRAME, TRACEID_RENDER_FRAME_TIME, TRACEID_RENDER_PASS, TRACEID_RENDER_PASS_DETAIL, TRACEID_RENDER_QUEUE, TRACEID_RENDER_TARGET_ALLOC, TRACEID_SHADER_ALLOC, TRACEID_SHADER_COMPILE, TRACEID_TEXTURES, TRACEID_TEXTURE_ALLOC, TRACEID_VRAM_IB, TRACEID_VRAM_TEXTURE, TRACEID_VRAM_VB, TRACE_ID_ELEMENT, TYPE_FLOAT16, TYPE_FLOAT32, TYPE_INT16, TYPE_INT32, TYPE_INT8, TYPE_UINT16, TYPE_UINT32, TYPE_UINT8, Tags, Template, TemplateHandler, TextElement, TextHandler, Texture, TextureAtlas, TextureAtlasHandler, TextureHandler, TextureParser, TextureUtils, Touch$1 as Touch, TouchDevice, TouchEvent$1 as TouchEvent, Tracing, TransformFeedback, UNIFORMTYPE_BOOL, UNIFORMTYPE_BOOLARRAY, UNIFORMTYPE_BVEC2, UNIFORMTYPE_BVEC2ARRAY, UNIFORMTYPE_BVEC3, UNIFORMTYPE_BVEC3ARRAY, UNIFORMTYPE_BVEC4, UNIFORMTYPE_BVEC4ARRAY, UNIFORMTYPE_FLOAT, UNIFORMTYPE_FLOATARRAY, UNIFORMTYPE_INT, UNIFORMTYPE_INTARRAY, UNIFORMTYPE_ITEXTURE2D, UNIFORMTYPE_ITEXTURE2D_ARRAY, UNIFORMTYPE_ITEXTURE3D, UNIFORMTYPE_ITEXTURECUBE, UNIFORMTYPE_IVEC2, UNIFORMTYPE_IVEC2ARRAY, UNIFORMTYPE_IVEC3, UNIFORMTYPE_IVEC3ARRAY, UNIFORMTYPE_IVEC4, UNIFORMTYPE_IVEC4ARRAY, UNIFORMTYPE_MAT2, UNIFORMTYPE_MAT3, UNIFORMTYPE_MAT4, UNIFORMTYPE_MAT4ARRAY, UNIFORMTYPE_TEXTURE2D, UNIFORMTYPE_TEXTURE2D_ARRAY, UNIFORMTYPE_TEXTURE2D_SHADOW, UNIFORMTYPE_TEXTURE3D, UNIFORMTYPE_TEXTURECUBE, UNIFORMTYPE_TEXTURECUBE_SHADOW, UNIFORMTYPE_UINT, UNIFORMTYPE_UINTARRAY, UNIFORMTYPE_UTEXTURE2D, UNIFORMTYPE_UTEXTURE2D_ARRAY, UNIFORMTYPE_UTEXTURE3D, UNIFORMTYPE_UTEXTURECUBE, UNIFORMTYPE_UVEC2, UNIFORMTYPE_UVEC2ARRAY, UNIFORMTYPE_UVEC3, UNIFORMTYPE_UVEC3ARRAY, UNIFORMTYPE_UVEC4, UNIFORMTYPE_UVEC4ARRAY, UNIFORMTYPE_VEC2, UNIFORMTYPE_VEC2ARRAY, UNIFORMTYPE_VEC3, UNIFORMTYPE_VEC3ARRAY, UNIFORMTYPE_VEC4, UNIFORMTYPE_VEC4ARRAY, UNIFORM_BUFFER_DEFAULT_SLOT_NAME, URI, UniformBufferFormat, UniformFormat, UnsupportedBrowserError, VIEW_CENTER, VIEW_LEFT, VIEW_RIGHT, Vec2, Vec3, Vec4, VertexBuffer, VertexFormat, VertexIterator, WasmModule, WebglGraphicsDevice, WebgpuGraphicsDevice, WorldClusters, XRDEPTHSENSINGFORMAT_F32, XRDEPTHSENSINGFORMAT_L8A8, XRDEPTHSENSINGUSAGE_CPU, XRDEPTHSENSINGUSAGE_GPU, XREYE_LEFT, XREYE_NONE, XREYE_RIGHT, XRHAND_LEFT, XRHAND_NONE, XRHAND_RIGHT, XRPAD_A, XRPAD_B, XRPAD_SQUEEZE, XRPAD_STICK_BUTTON, XRPAD_STICK_X, XRPAD_STICK_Y, XRPAD_TOUCHPAD_BUTTON, XRPAD_TOUCHPAD_X, XRPAD_TOUCHPAD_Y, XRPAD_TRIGGER, XRSPACE_BOUNDEDFLOOR, XRSPACE_LOCAL, XRSPACE_LOCALFLOOR, XRSPACE_UNBOUNDED, XRSPACE_VIEWER, XRTARGETRAY_GAZE, XRTARGETRAY_POINTER, XRTARGETRAY_SCREEN, XRTRACKABLE_MESH, XRTRACKABLE_PLANE, XRTRACKABLE_POINT, XRTYPE_AR, XRTYPE_INLINE, XRTYPE_VR, XrAnchor, XrAnchors, XrDepthSensing, XrDomOverlay, XrFinger, XrHand, XrHitTest, XrHitTestSource, XrImageTracking, XrInput, XrInputSource, XrJoint, XrLightEstimation, XrManager, XrMeshDetection, XrPlane, XrPlaneDetection, XrTrackedImage, XrView, XrViews, ZoneComponent, ZoneComponentSystem, anim, app, apps, asset, audio, basisInitialize, basisSetDownloadConfig, bindGroupNames, calculateNormals, calculateTangents, common, config, createBox, createCapsule, createCone, createCylinder, createGraphicsDevice, createMesh, createPlane, createScript, createShader, createShaderFromCode, createSphere, createStyle, createTorus, createURI, data, dracoInitialize, drawFullscreenQuad, drawQuadWithShader, drawTexture, events, extend, getPixelFormatArrayType, getProgramLibrary, getReservedScriptNames, getTouchTargetCoords, gfx, guid, http, inherits, input, isCompressedPixelFormat, isIntegerPixelFormat, log, makeArray, math, now, path, pixelFormatInfo, platform, posteffect, prefilterCubemap, programlib, registerScript, reprojectTexture, revision, scene, script, semanticToLocation, shFromCubemap, shaderChunks, shaderChunksLightmapper, shadowTypeToString, shape, string, time, type, typedArrayIndexFormats, typedArrayIndexFormatsByteSize, typedArrayToType, typedArrayTypes, typedArrayTypesByteSize, uniformTypeToName, uniformTypeToStorage, version, vertexTypesNames };
 export as namespace pc;

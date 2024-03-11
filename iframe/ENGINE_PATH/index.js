@@ -8,6 +8,7 @@
  * @module Engine
  */
 
+// #if _IS_UMD
 // POLYFILLS
 import './polyfill/array-fill.js';
 import './polyfill/array-find.js';
@@ -16,10 +17,12 @@ import './polyfill/math-log2.js';
 import './polyfill/math-sign.js';
 import './polyfill/number-isfinite.js';
 import './polyfill/object-assign.js';
+import './polyfill/object-entries.js';
 import './polyfill/object-values.js';
 import './polyfill/pointer-lock.js';
 import './polyfill/string.js';
 import './polyfill/typedarray-fill.js';
+// #endif
 
 // CORE
 export * from './core/constants.js';
@@ -84,6 +87,7 @@ export { ShaderUtils } from './platform/graphics/shader-utils.js';  // used by s
 export { Texture } from './platform/graphics/texture.js';
 export { TextureUtils } from './platform/graphics/texture-utils.js';
 export { TransformFeedback } from './platform/graphics/transform-feedback.js';
+export { UniformBufferFormat, UniformFormat } from './platform/graphics/uniform-buffer-format.js';
 export { VertexBuffer } from './platform/graphics/vertex-buffer.js';
 export { VertexFormat } from './platform/graphics/vertex-format.js';
 export { VertexIterator } from './platform/graphics/vertex-iterator.js';
@@ -364,11 +368,15 @@ export { XrHitTestSource } from './framework/xr/xr-hit-test-source.js';
 export { XrImageTracking } from './framework/xr/xr-image-tracking.js';
 export { XrInput } from './framework/xr/xr-input.js';
 export { XrInputSource } from './framework/xr/xr-input-source.js';
+export { XrJoint } from './framework/xr/xr-joint.js';
 export { XrLightEstimation } from './framework/xr/xr-light-estimation.js';
 export { XrManager } from './framework/xr/xr-manager.js';
+export { XrMeshDetection } from './framework/xr/xr-mesh-detection.js';
 export { XrPlane } from './framework/xr/xr-plane.js';
 export { XrPlaneDetection } from './framework/xr/xr-plane-detection.js';
 export { XrTrackedImage } from './framework/xr/xr-tracked-image.js';
+export { XrView } from './framework/xr/xr-view.js';
+export { XrViews } from './framework/xr/xr-views.js';
 
 // BACKWARDS COMPATIBILITY
 export * from './deprecated/deprecated.js';
