@@ -15762,6 +15762,26 @@ type SplatMaterialOptions = {
     dither?: string;
 };
 
+type SplatTextureFormat = {
+    /**
+     * - The pixel format of the texture.
+     */
+    format: number;
+    /**
+     * - The number of components in the texture format.
+     */
+    numComponents: number;
+    /**
+     * - Indicates if the format uses half-precision floats.
+     */
+    isHalf: boolean;
+};
+/**
+ * @typedef {object} SplatTextureFormat
+ * @property {number} format - The pixel format of the texture.
+ * @property {number} numComponents - The number of components in the texture format.
+ * @property {boolean} isHalf - Indicates if the format uses half-precision floats.
+ */
 /** @ignore */
 declare class GSplat {
     /**
@@ -15772,23 +15792,17 @@ declare class GSplat {
     constructor(device: GraphicsDevice, numSplats: number, aabb: BoundingBox);
     device: GraphicsDevice;
     numSplats: number;
-    /** @type {VertexFormat} */
     vertexFormat: VertexFormat;
-    /**
-     * True if half format should be used, false is float format should be used or undefined if none
-     * are available.
-     *
-     * @type {boolean|undefined}
-     */
-    halfFormat: boolean | undefined;
+    /** @type {SplatTextureFormat} */
+    format: SplatTextureFormat;
     /** @type {Texture} */
     colorTexture: Texture;
     /** @type {Texture} */
-    transformATexture: Texture;
+    covATexture: Texture;
     /** @type {Texture} */
-    transformBTexture: Texture;
+    covBTexture: Texture;
     /** @type {Texture} */
-    transformCTexture: Texture;
+    centerTexture: Texture;
     /** @type {Float32Array} */
     centers: Float32Array;
     /** @type {import('../../core/shape/bounding-box.js').BoundingBox} */
@@ -15823,10 +15837,9 @@ declare class GSplat {
      *
      * @param {import('../../platform/graphics/graphics-device.js').GraphicsDevice} device - The graphics device.
      * @param {boolean} preferHighPrecision - True to prefer high precision when available.
-     * @returns {boolean|undefined} True if half format should be used, false is float format should
-     * be used or undefined if none are available.
+     * @returns {SplatTextureFormat} The texture format info or undefined if not available.
      */
-    getTextureFormat(device: GraphicsDevice, preferHighPrecision: boolean): boolean | undefined;
+    getTextureFormat(device: GraphicsDevice, preferHighPrecision: boolean): SplatTextureFormat;
     /**
      * Updates pixel data of this.colorTexture based on the supplied color components and opacity.
      * Assumes that the texture is using an RGBA format where RGB are color components influenced
@@ -15838,19 +15851,6 @@ declare class GSplat {
      * @param {Float32Array} opacity - The opacity values to be transformed using a sigmoid function.
      */
     updateColorData(c0: Float32Array, c1: Float32Array, c2: Float32Array, opacity: Float32Array): void;
-    /**
-     * @param {Float32Array} x - The array containing the 'x' component of the center points.
-     * @param {Float32Array} y - The array containing the 'y' component of the center points.
-     * @param {Float32Array} z - The array containing the 'z' component of the center points.
-     * @param {Float32Array} rot0 - The array containing the 'x' component of quaternion rotations.
-     * @param {Float32Array} rot1 - The array containing the 'y' component of quaternion rotations.
-     * @param {Float32Array} rot2 - The array containing the 'z' component of quaternion rotations.
-     * @param {Float32Array} rot3 - The array containing the 'w' component of quaternion rotations.
-     * @param {Float32Array} scale0 - The first scale component associated with the x-dimension.
-     * @param {Float32Array} scale1 - The second scale component associated with the y-dimension.
-     * @param {Float32Array} scale2 - The third scale component associated with the z-dimension.
-     */
-    updateTransformData(x: Float32Array, y: Float32Array, z: Float32Array, rot0: Float32Array, rot1: Float32Array, rot2: Float32Array, rot3: Float32Array, scale0: Float32Array, scale1: Float32Array, scale2: Float32Array): void;
     /**
      * Convert quaternion rotation stored in Vec3 to a rotation matrix.
      *
@@ -15867,6 +15867,29 @@ declare class GSplat {
      * @param {Vec3} covB - The second covariance vector.
      */
     computeCov3d(rot: Mat3, scale: Vec3, covA: Vec3, covB: Vec3): void;
+    /**
+     * Updates data of covATexture and covBTexture based on the supplied rotation and scale
+     * components.
+     *
+     * @param {Float32Array} rot0 - The array containing the 'x' component of quaternion rotations.
+     * @param {Float32Array} rot1 - The array containing the 'y' component of quaternion rotations.
+     * @param {Float32Array} rot2 - The array containing the 'z' component of quaternion rotations.
+     * @param {Float32Array} rot3 - The array containing the 'w' component of quaternion rotations.
+     * @param {Float32Array} scale0 - The first scale component associated with the x-dimension.
+     * @param {Float32Array} scale1 - The second scale component associated with the y-dimension.
+     * @param {Float32Array} scale2 - The third scale component associated with the z-dimension.
+     */
+    updateCovData(rot0: Float32Array, rot1: Float32Array, rot2: Float32Array, rot3: Float32Array, scale0: Float32Array, scale1: Float32Array, scale2: Float32Array): void;
+    /**
+     * Updates pixel data of this.centerTexture based on the supplied center coordinates.
+     * The center coordinates are stored as either half or full precision floats depending on the
+     * texture format.
+     *
+     * @param {Float32Array} x - The array containing the 'x' component of the center points.
+     * @param {Float32Array} y - The array containing the 'y' component of the center points.
+     * @param {Float32Array} z - The array containing the 'z' component of the center points.
+     */
+    updateCenterData(x: Float32Array, y: Float32Array, z: Float32Array): void;
 }
 
 declare class GSplatSorter extends EventHandler {

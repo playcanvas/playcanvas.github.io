@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v0.0.0 revision 29eb79929 (PROFILE)
+ * PlayCanvas Engine v0.0.0 revision 2a805ddb9 (PROFILE)
  * Copyright 2011-2024 PlayCanvas Ltd. All rights reserved.
  *
  * This source code is licensed under the MIT license found in the
@@ -29,7 +29,7 @@ const TRACEID_RENDER_QUEUE = 'RenderQueue';
 const TRACEID_GPU_TIMINGS = 'GpuTimings';
 
 const version = '0.0.0';
-const revision = '29eb79929';
+const revision = '2a805ddb9';
 const config = {};
 const common = {};
 const apps = {};
@@ -13304,14 +13304,13 @@ const XRPAD_B = 5;
 
 class KeyboardEvent {
   constructor(keyboard, event) {
+    this.key = null;
+    this.element = null;
+    this.event = null;
     if (event) {
       this.key = event.keyCode;
       this.element = event.target;
       this.event = event;
-    } else {
-      this.key = null;
-      this.element = null;
-      this.event = null;
     }
   }
 }
@@ -13347,13 +13346,13 @@ class Keyboard extends EventHandler {
   constructor(element, options = {}) {
     super();
     this._element = null;
+    this._keymap = {};
+    this._lastmap = {};
     this._keyDownHandler = this._handleKeyDown.bind(this);
     this._keyUpHandler = this._handleKeyUp.bind(this);
     this._keyPressHandler = this._handleKeyPress.bind(this);
     this._visibilityChangeHandler = this._handleVisibilityChange.bind(this);
     this._windowBlurHandler = this._handleWindowBlur.bind(this);
-    this._keymap = {};
-    this._lastmap = {};
     if (element) {
       this.attach(element);
     }
@@ -13473,6 +13472,19 @@ function isMousePointerLocked() {
 }
 class MouseEvent {
   constructor(mouse, event) {
+    var _event$ctrlKey, _event$altKey, _event$shiftKey, _event$metaKey;
+    this.x = 0;
+    this.y = 0;
+    this.dx = 0;
+    this.dy = 0;
+    this.button = MOUSEBUTTON_NONE;
+    this.wheelDelta = 0;
+    this.element = void 0;
+    this.ctrlKey = false;
+    this.altKey = false;
+    this.shiftKey = false;
+    this.metaKey = false;
+    this.event = void 0;
     let coords = {
       x: 0,
       y: 0
@@ -13494,7 +13506,6 @@ class MouseEvent {
     } else {
       return;
     }
-    this.wheelDelta = 0;
     if (event.type === 'wheel') {
       if (event.deltaY > 0) {
         this.wheelDelta = 1;
@@ -13511,15 +13522,13 @@ class MouseEvent {
     }
     if (event.type === 'mousedown' || event.type === 'mouseup') {
       this.button = event.button;
-    } else {
-      this.button = MOUSEBUTTON_NONE;
     }
     this.buttons = mouse._buttons.slice(0);
     this.element = event.target;
-    this.ctrlKey = event.ctrlKey || false;
-    this.altKey = event.altKey || false;
-    this.shiftKey = event.shiftKey || false;
-    this.metaKey = event.metaKey || false;
+    this.ctrlKey = (_event$ctrlKey = event.ctrlKey) != null ? _event$ctrlKey : false;
+    this.altKey = (_event$altKey = event.altKey) != null ? _event$altKey : false;
+    this.shiftKey = (_event$shiftKey = event.shiftKey) != null ? _event$shiftKey : false;
+    this.metaKey = (_event$metaKey = event.metaKey) != null ? _event$metaKey : false;
     this.event = event;
   }
 }
@@ -13531,6 +13540,8 @@ class Mouse extends EventHandler {
     this._lastY = 0;
     this._buttons = [false, false, false];
     this._lastbuttons = [false, false, false];
+    this._target = null;
+    this._attached = false;
     this._upHandler = this._handleUp.bind(this);
     this._downHandler = this._handleDown.bind(this);
     this._moveHandler = this._handleMove.bind(this);
@@ -13538,8 +13549,6 @@ class Mouse extends EventHandler {
     this._contextMenuHandler = event => {
       event.preventDefault();
     };
-    this._target = null;
-    this._attached = false;
     this.attach(element);
   }
   static isPointerLocked() {
@@ -13549,25 +13558,27 @@ class Mouse extends EventHandler {
     this._target = element;
     if (this._attached) return;
     this._attached = true;
-    const opts = platform.passiveEvents ? {
+    const passiveOptions = {
       passive: false
-    } : false;
-    window.addEventListener('mouseup', this._upHandler, opts);
-    window.addEventListener('mousedown', this._downHandler, opts);
-    window.addEventListener('mousemove', this._moveHandler, opts);
-    window.addEventListener('wheel', this._wheelHandler, opts);
+    };
+    const options = platform.passiveEvents ? passiveOptions : false;
+    window.addEventListener('mouseup', this._upHandler, options);
+    window.addEventListener('mousedown', this._downHandler, options);
+    window.addEventListener('mousemove', this._moveHandler, options);
+    window.addEventListener('wheel', this._wheelHandler, options);
   }
   detach() {
     if (!this._attached) return;
     this._attached = false;
     this._target = null;
-    const opts = platform.passiveEvents ? {
+    const passiveOptions = {
       passive: false
-    } : false;
-    window.removeEventListener('mouseup', this._upHandler, opts);
-    window.removeEventListener('mousedown', this._downHandler, opts);
-    window.removeEventListener('mousemove', this._moveHandler, opts);
-    window.removeEventListener('wheel', this._wheelHandler, opts);
+    };
+    const options = platform.passiveEvents ? passiveOptions : false;
+    window.removeEventListener('mouseup', this._upHandler, options);
+    window.removeEventListener('mousedown', this._downHandler, options);
+    window.removeEventListener('mousemove', this._moveHandler, options);
+    window.removeEventListener('wheel', this._wheelHandler, options);
   }
   disableContextMenu() {
     if (!this._target) return;
@@ -14381,6 +14392,11 @@ function getTouchTargetCoords(touch) {
 }
 class Touch {
   constructor(touch) {
+    this.id = void 0;
+    this.x = void 0;
+    this.y = void 0;
+    this.target = void 0;
+    this.touch = void 0;
     const coords = getTouchTargetCoords(touch);
     this.id = touch.identifier;
     this.x = coords.x;
@@ -14391,26 +14407,17 @@ class Touch {
 }
 class TouchEvent {
   constructor(device, event) {
-    this.element = event.target;
-    this.event = event;
+    this.element = void 0;
+    this.event = void 0;
     this.touches = [];
     this.changedTouches = [];
-    if (event) {
-      for (let i = 0, l = event.touches.length; i < l; i++) {
-        this.touches.push(new Touch(event.touches[i]));
-      }
-      for (let i = 0, l = event.changedTouches.length; i < l; i++) {
-        this.changedTouches.push(new Touch(event.changedTouches[i]));
-      }
-    }
+    this.element = event.target;
+    this.event = event;
+    this.touches = Array.from(event.touches).map(touch => new Touch(touch));
+    this.changedTouches = Array.from(event.changedTouches).map(touch => new Touch(touch));
   }
   getTouchById(id, list) {
-    for (let i = 0, l = list.length; i < l; i++) {
-      if (list[i].id === id) {
-        return list[i];
-      }
-    }
-    return null;
+    return list.find(touch => touch.id === id) || null;
   }
 }
 

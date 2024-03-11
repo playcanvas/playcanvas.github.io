@@ -1,6 +1,6 @@
 /**
  * @license
- * PlayCanvas Engine v1.69.0 revision 29eb79929
+ * PlayCanvas Engine v1.69.0-dev revision 9d17f0da7
  * Copyright 2011-2024 PlayCanvas Ltd. All rights reserved.
  *
  * This source code is licensed under the MIT license found in the
