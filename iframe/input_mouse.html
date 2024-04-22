@@ -15,7 +15,7 @@
         <script type="importmap">
             {
                 "imports": {
-                    "playcanvas": "./playcanvas.mjs",
+                    "playcanvas": "./playcanvas/src/index.js",
                     "fflate": "../../modules/fflate/esm/browser.js",
                     "@examples/config": "./input_mouse.config.mjs",
                     "@examples/utils": "./utils.mjs",
@@ -38,8 +38,7 @@
 
             document.addEventListener('DOMContentLoaded', () => {
                 loader.start({
-                    engineUrl: "./playcanvas.mjs",
-                    extrasUrl: './playcanvas-extras.mjs/index.js',
+                    engineUrl: "./playcanvas/src/index.js",
                     exampleUrl: "./input_mouse.example.mjs",
                     controlsUrl: "./input_mouse.controls.mjs"
                 });

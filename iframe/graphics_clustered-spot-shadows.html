@@ -15,7 +15,7 @@
         <script type="importmap">
             {
                 "imports": {
-                    "playcanvas": "./playcanvas.dbg.mjs",
+                    "playcanvas": "./playcanvas/src/index.js",
                     "fflate": "../../modules/fflate/esm/browser.js",
                     "@examples/config": "./graphics_clustered-spot-shadows.config.mjs",
                     "@examples/utils": "./utils.mjs",
@@ -38,8 +38,7 @@
 
             document.addEventListener('DOMContentLoaded', () => {
                 loader.start({
-                    engineUrl: "./playcanvas.dbg.mjs",
-                    extrasUrl: './playcanvas-extras.mjs/index.js',
+                    engineUrl: "./playcanvas/src/index.js",
                     exampleUrl: "./graphics_clustered-spot-shadows.example.mjs",
                     controlsUrl: "./graphics_clustered-spot-shadows.controls.mjs"
                 });

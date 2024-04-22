@@ -74,7 +74,7 @@ assetListLoader.load(() => {
         maxTextureSize: 1024
     };
 
-    new pcx.UsdzExporter()
+    new pc.UsdzExporter()
         .build(entity, options)
         .then((arrayBuffer) => {
             const blob = new Blob([arrayBuffer], { type: 'application/octet-stream' });

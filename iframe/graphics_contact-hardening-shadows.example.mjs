@@ -265,7 +265,7 @@ assetListLoader.load(() => {
                 areaLight.light.penumbraSize = value;
                 break;
             case 'script.area.shadowType':
-                areaLight.light.shadowType = parseInt(value);
+                areaLight.light.shadowType = parseInt(value, 10);
                 break;
             case 'script.directional.enabled':
                 directionalLight.enabled = value;
@@ -277,7 +277,7 @@ assetListLoader.load(() => {
                 directionalLight.light.penumbraSize = value;
                 break;
             case 'script.directional.shadowType':
-                directionalLight.light.shadowType = parseInt(value);
+                directionalLight.light.shadowType = parseInt(value, 10);
                 break;
             case 'script.point.enabled':
                 lightOmni.enabled = value;
@@ -289,7 +289,7 @@ assetListLoader.load(() => {
                 lightOmni.light.penumbraSize = value;
                 break;
             case 'script.point.shadowType':
-                lightOmni.light.shadowType = parseInt(value);
+                lightOmni.light.shadowType = parseInt(value, 10);
                 break;
         }
     });

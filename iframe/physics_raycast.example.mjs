@@ -65,6 +65,7 @@ assetListLoader.load(() => {
     app.start();
 
     app.scene.ambientLight = new pc.Color(0.2, 0.2, 0.2);
+
     /**
      * @param {pc.Color} color - The color.
      * @returns {pc.StandardMaterial} - The material.
@@ -99,12 +100,12 @@ assetListLoader.load(() => {
     camera.setPosition(5, 0, 15);
 
     /**
-     * @param {string} type
-     * @param {pc.Material} material
-     * @param {number} x
-     * @param {number} y
-     * @param {number} z
-     * @returns
+     * @param {string} type - The shape type.
+     * @param {pc.Material} material - The material.
+     * @param {number} x - The x coordinate.
+     * @param {number} y - The y coordinate.
+     * @param {number} z - The z coordinate.
+     * @returns {pc.Entity} - The created entity.
      */
     function createPhysicalShape(type, material, x, y, z) {
         const e = new pc.Entity();
@@ -190,6 +191,7 @@ assetListLoader.load(() => {
             app.drawLine(result.point, temp, blue);
         }, this);
     });
+
     /**
      * @param {pc.Asset} fontAsset - The font asset.
      * @param {string} message - The message.

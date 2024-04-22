@@ -105,11 +105,7 @@ if (app.xr.supported) {
         }
     });
 
-    app.xr.on('start', function () {
-        message('Immersive AR session has started');
-
-        if (!app.xr.hitTest.supported) return;
-
+    app.xr.hitTest.on('available', () => {
         app.xr.hitTest.start({
             entityTypes: [pc.XRTRACKABLE_POINT, pc.XRTRACKABLE_PLANE],
             callback: function (err, hitTestSource) {
@@ -124,6 +120,10 @@ if (app.xr.supported) {
                 });
             }
         });
+    });
+
+    app.xr.on('start', function () {
+        message('Immersive AR session has started');
     });
     app.xr.on('end', function () {
         message('Immersive AR session has ended');

@@ -151,6 +151,12 @@ export type FlateStreamHandler = (data: Uint8Array, final: boolean) => void;
  */
 export type AsyncFlateStreamHandler = (err: FlateError | null, data: Uint8Array, final: boolean) => void;
 /**
+ * Handler for the asynchronous completion of (de)compression for a data chunk
+ * @param size The number of bytes that were processed. This is measured in terms of the input
+ * (i.e. compressed bytes for decompression, uncompressed bytes for compression.)
+ */
+export type AsyncFlateDrainHandler = (size: number) => void;
+/**
  * Callback for asynchronous (de)compression methods
  * @param err Any error that occurred
  * @param data The resulting data. Only present if `err` is null
@@ -237,6 +243,11 @@ export declare class Deflate {
      * @param final Whether this is the last chunk
      */
     push(chunk: Uint8Array, final?: boolean): void;
+    /**
+     * Flushes buffered uncompressed data. Useful to immediately retrieve the
+     * deflated output for small inputs.
+     */
+    flush(): void;
 }
 /**
  * Asynchronous streaming DEFLATE compression
@@ -246,6 +257,14 @@ export declare class AsyncDeflate {
      * The handler to call whenever data is available
      */
     ondata: AsyncFlateStreamHandler;
+    /**
+     * The handler to call whenever buffered source data is processed (i.e. `queuedSize` updates)
+     */
+    ondrain?: AsyncFlateDrainHandler;
+    /**
+     * The number of uncompressed bytes buffered in the stream
+     */
+    queuedSize: number;
     /**
      * Creates an asynchronous DEFLATE stream
      * @param opts The compression options
@@ -263,6 +282,11 @@ export declare class AsyncDeflate {
      * @param final Whether this is the last chunk
      */
     push(chunk: Uint8Array, final?: boolean): void;
+    /**
+     * Flushes buffered uncompressed data. Useful to immediately retrieve the
+     * deflated output for small inputs.
+     */
+    flush(): void;
     /**
      * A method to terminate the stream's internal worker. Subsequent calls to
      * push() will silently fail.
@@ -330,6 +354,14 @@ export declare class AsyncInflate {
      * The handler to call whenever data is available
      */
     ondata: AsyncFlateStreamHandler;
+    /**
+     * The handler to call whenever buffered source data is processed (i.e. `queuedSize` updates)
+     */
+    ondrain?: AsyncFlateDrainHandler;
+    /**
+     * The number of compressed bytes buffered in the stream
+     */
+    queuedSize: number;
     /**
      * Creates an asynchronous DEFLATE decompression stream
      * @param opts The decompression options
@@ -406,6 +438,11 @@ export declare class Gzip {
      */
     push(chunk: Uint8Array, final?: boolean): void;
     private p;
+    /**
+     * Flushes buffered uncompressed data. Useful to immediately retrieve the
+     * GZIPped output for small inputs.
+     */
+    flush(): void;
 }
 /**
  * Asynchronous streaming GZIP compression
@@ -415,6 +452,14 @@ export declare class AsyncGzip {
      * The handler to call whenever data is available
      */
     ondata: AsyncFlateStreamHandler;
+    /**
+     * The handler to call whenever buffered source data is processed (i.e. `queuedSize` updates)
+     */
+    ondrain?: AsyncFlateDrainHandler;
+    /**
+     * The number of uncompressed bytes buffered in the stream
+     */
+    queuedSize: number;
     /**
      * Creates an asynchronous GZIP stream
      * @param opts The compression options
@@ -432,6 +477,11 @@ export declare class AsyncGzip {
      * @param final Whether this is the last chunk
      */
     push(chunk: Uint8Array, final?: boolean): void;
+    /**
+     * Flushes buffered uncompressed data. Useful to immediately retrieve the
+     * GZIPped output for small inputs.
+     */
+    flush(): void;
     /**
      * A method to terminate the stream's internal worker. Subsequent calls to
      * push() will silently fail.
@@ -508,6 +558,14 @@ export declare class AsyncGunzip {
      * The handler to call whenever data is available
      */
     ondata: AsyncFlateStreamHandler;
+    /**
+     * The handler to call whenever buffered source data is processed (i.e. `queuedSize` updates)
+     */
+    ondrain?: AsyncFlateDrainHandler;
+    /**
+     * The number of compressed bytes buffered in the stream
+     */
+    queuedSize: number;
     /**
      * The handler to call whenever a new GZIP member is found
      */
@@ -587,6 +645,11 @@ export declare class Zlib {
      */
     push(chunk: Uint8Array, final?: boolean): void;
     private p;
+    /**
+     * Flushes buffered uncompressed data. Useful to immediately retrieve the
+     * zlibbed output for small inputs.
+     */
+    flush(): void;
 }
 /**
  * Asynchronous streaming Zlib compression
@@ -596,6 +659,14 @@ export declare class AsyncZlib {
      * The handler to call whenever data is available
      */
     ondata: AsyncFlateStreamHandler;
+    /**
+     * The handler to call whenever buffered source data is processed (i.e. `queuedSize` updates)
+     */
+    ondrain?: AsyncFlateDrainHandler;
+    /**
+     * The number of uncompressed bytes buffered in the stream
+     */
+    queuedSize: number;
     /**
      * Creates an asynchronous Zlib stream
      * @param opts The compression options
@@ -613,6 +684,11 @@ export declare class AsyncZlib {
      * @param final Whether this is the last chunk
      */
     push(chunk: Uint8Array, final?: boolean): void;
+    /**
+     * Flushes buffered uncompressed data. Useful to immediately retrieve the
+     * zlibbed output for small inputs.
+     */
+    flush(): void;
     /**
      * A method to terminate the stream's internal worker. Subsequent calls to
      * push() will silently fail.
@@ -676,6 +752,14 @@ export declare class AsyncUnzlib {
      * The handler to call whenever data is available
      */
     ondata: AsyncFlateStreamHandler;
+    /**
+     * The handler to call whenever buffered source data is processed (i.e. `queuedSize` updates)
+     */
+    ondrain?: AsyncFlateDrainHandler;
+    /**
+     * The number of compressed bytes buffered in the stream
+     */
+    queuedSize: number;
     /**
      * Creates an asynchronous Zlib decompression stream
      * @param opts The decompression options
@@ -748,6 +832,7 @@ export declare class Decompress {
      * @param cb The callback to call whenever data is decompressed
      */
     constructor(cb?: FlateStreamHandler);
+    private i;
     /**
      * Pushes a chunk to be decompressed
      * @param chunk The chunk to push
@@ -767,6 +852,14 @@ export declare class AsyncDecompress {
      */
     ondata: AsyncFlateStreamHandler;
     /**
+     * The handler to call whenever buffered source data is processed (i.e. `queuedSize` updates)
+     */
+    ondrain?: AsyncFlateDrainHandler;
+    /**
+     * The number of compressed bytes buffered in the stream
+     */
+    queuedSize: number;
+    /**
      * Creates an asynchronous decompression stream
      * @param opts The decompression options
      * @param cb The callback to call whenever data is decompressed
@@ -777,6 +870,7 @@ export declare class AsyncDecompress {
      * @param cb The callback to call whenever data is decompressed
      */
     constructor(cb?: AsyncFlateStreamHandler);
+    private i;
     /**
      * Pushes a chunk to be decompressed
      * @param chunk The chunk to push

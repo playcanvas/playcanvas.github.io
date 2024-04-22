@@ -15,7 +15,7 @@
         <script type="importmap">
             {
                 "imports": {
-                    "playcanvas": "./playcanvas.mjs",
+                    "playcanvas": "./playcanvas/src/index.js",
                     "fflate": "../../modules/fflate/esm/browser.js",
                     "@examples/config": "./graphics_particles-random-sprites.config.mjs",
                     "@examples/utils": "./utils.mjs",
@@ -38,8 +38,7 @@
 
             document.addEventListener('DOMContentLoaded', () => {
                 loader.start({
-                    engineUrl: "./playcanvas.mjs",
-                    extrasUrl: './playcanvas-extras.mjs/index.js',
+                    engineUrl: "./playcanvas/src/index.js",
                     exampleUrl: "./graphics_particles-random-sprites.example.mjs",
                     controlsUrl: "./graphics_particles-random-sprites.controls.mjs"
                 });

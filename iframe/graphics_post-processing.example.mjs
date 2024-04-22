@@ -232,7 +232,7 @@ assetListLoader.load(() => {
 
         // Use a render pass camera frame, which is a render pass that implements typical rendering of a camera.
         // Internally this sets up additional passes it needs, based on the options passed to it.
-        const renderPassCamera = new pcx.RenderPassCameraFrame(app, currentOptions);
+        const renderPassCamera = new pc.RenderPassCameraFrame(app, currentOptions);
 
         // and set up these rendering passes to be used by the camera, instead of its default rendering
         cameraEntity.camera.renderPasses = [renderPassCamera];

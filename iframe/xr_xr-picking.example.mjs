@@ -130,7 +130,7 @@ if (app.xr.supported) {
         let candidateDist = Infinity;
 
         for (let i = 0; i < cubes.length; i++) {
-            const mesh = cubes[i].model.meshInstances[0];
+            const mesh = cubes[i].render.meshInstances[0];
 
             // check if mesh bounding box intersects with input source ray
             ray.set(inputSource.getOrigin(), inputSource.getDirection());
@@ -156,7 +156,6 @@ if (app.xr.supported) {
     });
 
     const tmpVec = new pc.Vec3();
-    const lineColor = new pc.Color(1, 1, 1);
 
     // on each app update
     // render input source rays as a line
@@ -165,10 +164,11 @@ if (app.xr.supported) {
             const inputSource = app.xr.input.inputSources[i];
             const direction = inputSource.getDirection();
             const origin = inputSource.getOrigin();
+            const color = inputSource.selecting ? pc.Color.GREEN : pc.Color.WHITE;
 
             tmpVec.copy(direction).mulScalar(100).add(origin);
 
-            app.drawLine(inputSource.getOrigin(), tmpVec, lineColor);
+            app.drawLine(inputSource.getOrigin(), tmpVec, color);
         }
     });
 } else {

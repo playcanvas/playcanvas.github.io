@@ -21,7 +21,7 @@
         <script type="importmap">
             {
                 "imports": {
-                    "playcanvas": "./playcanvas.mjs",
+                    "playcanvas": "./playcanvas/src/index.js",
                     "fflate": "../../modules/fflate/esm/browser.js",
                     "@examples/config": "./loaders_usdz-export.config.mjs",
                     "@examples/utils": "./utils.mjs",
@@ -44,8 +44,7 @@
 
             document.addEventListener('DOMContentLoaded', () => {
                 loader.start({
-                    engineUrl: "./playcanvas.mjs",
-                    extrasUrl: './playcanvas-extras.mjs/index.js',
+                    engineUrl: "./playcanvas/src/index.js",
                     exampleUrl: "./loaders_usdz-export.example.mjs",
                     controlsUrl: "./loaders_usdz-export.controls.mjs"
                 });

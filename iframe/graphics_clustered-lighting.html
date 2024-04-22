@@ -15,7 +15,7 @@
         <script type="importmap">
             {
                 "imports": {
-                    "playcanvas": "./playcanvas.prf.mjs",
+                    "playcanvas": "./playcanvas.prf/src/index.js",
                     "fflate": "../../modules/fflate/esm/browser.js",
                     "@examples/config": "./graphics_clustered-lighting.config.mjs",
                     "@examples/utils": "./utils.mjs",
@@ -38,8 +38,7 @@
 
             document.addEventListener('DOMContentLoaded', () => {
                 loader.start({
-                    engineUrl: "./playcanvas.prf.mjs",
-                    extrasUrl: './playcanvas-extras.mjs/index.js',
+                    engineUrl: "./playcanvas.prf/src/index.js",
                     exampleUrl: "./graphics_clustered-lighting.example.mjs",
                     controlsUrl: "./graphics_clustered-lighting.controls.mjs"
                 });

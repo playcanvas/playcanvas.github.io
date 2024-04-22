@@ -15,7 +15,7 @@
         <script type="importmap">
             {
                 "imports": {
-                    "playcanvas": "./playcanvas.prf.mjs",
+                    "playcanvas": "./playcanvas.prf/src/index.js",
                     "fflate": "../../modules/fflate/esm/browser.js",
                     "@examples/config": "./misc_mini-stats.config.mjs",
                     "@examples/utils": "./utils.mjs",
@@ -38,8 +38,7 @@
 
             document.addEventListener('DOMContentLoaded', () => {
                 loader.start({
-                    engineUrl: "./playcanvas.prf.mjs",
-                    extrasUrl: './playcanvas-extras.mjs/index.js',
+                    engineUrl: "./playcanvas.prf/src/index.js",
                     exampleUrl: "./misc_mini-stats.example.mjs",
                     controlsUrl: "./misc_mini-stats.controls.mjs"
                 });
